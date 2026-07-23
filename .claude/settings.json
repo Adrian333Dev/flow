@@ -1,4 +1,16 @@
 {
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/check-skills.sh\""
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "deny": [
       "Bash(git add:*)",

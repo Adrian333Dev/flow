@@ -2,7 +2,7 @@
 
 Optional, external tools that complement this workflow. None are required — the core loop works without any of them.
 
-**One rule governs this list:** it holds only tools that fill a gap the built-in skills *don't* cover. Anything this workflow already owns — brainstorming/spec-writing, planning, execution, research, visualization, context-capture, debugging, verification — is deliberately absent. If you're about to add a tool that duplicates a built-in skill, don't.
+**One rule governs this list:** it holds only tools that fill a gap the built-in skills *don't* cover. Anything this workflow already owns — brainstorming/spec-writing, planning, execution, research, explanation, context capture, debugging, verification — is deliberately absent. If you're about to add a tool that duplicates a built-in skill, don't.
 
 > Snapshot: mid-2026. This ecosystem churns fast — re-check a repo's recent activity before installing, especially community entries. Treat every MCP server and skill as executable code you're granting access to: skim the source and scope credentials tightly.
 
@@ -91,3 +91,16 @@ When you build on a specific vendor (Stripe, Paddle, etc.), their official doc-s
 ### Utilities
 
 - **agent-toolkit** (`softaworks/agent-toolkit`) — large collection; cherry-pick the useful ones (e.g. `database-schema-designer`, `qa-test-planner`, `naming-analyzer`, `reducing-entropy`). Don't install the whole set — poor signal-to-noise is the trap.
+
+---
+
+## 4. External LLM for research
+
+The built-in `research` skill hands web research to an external chat LLM. Any capable model works; based on repeated head-to-head evaluation on real research tasks, prefer them in this order:
+
+1. **Claude** (Sonnet/Opus) — the default. Consistently strongest on accuracy, critical coverage, and catching the decisive gotcha; usually safe to act on with light verification.
+2. **ChatGPT** (incl. Deep Research) — solid fallback, well-calibrated about what it's unsure of. Double-check specific install commands and citations.
+3. **DeepSeek** — good for concrete mechanism detail; verify its citations, which are sometimes fabricated (especially in "Expert" mode).
+4. **Gemini** — weakest in these tests; expect citation artifacts and dubious package names, and fact-check before acting.
+
+Use Claude unless you lack access or want a second opinion; then work down the list.
