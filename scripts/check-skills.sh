@@ -5,7 +5,7 @@
 proj="${CLAUDE_PROJECT_DIR:-.}"
 
 missing=()
-for skill in brainstorm research explain capture-context execute; do
+for skill in brainstorm research explain note organize execute; do
   if [ ! -e "$HOME/.claude/skills/$skill" ] && [ ! -e "$proj/.claude/skills/$skill" ]; then
     missing+=("$skill")
   fi

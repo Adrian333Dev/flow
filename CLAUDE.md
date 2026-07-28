@@ -1,70 +1,88 @@
 # <!-- Project Name -->
 
-> Designed for **solo developers**. One author, one branch context.
+> Solo developer. One author, one branch context.
 
----
+## Project
 
-## Project context
-
-- **Name:** <!-- project name -->
+- **Name:** <!-- -->
 - **Stack:** <!-- e.g. TypeScript, React, Vite, NestJS, Supabase, pnpm -->
-- **Structure:** <!-- e.g. single app | monorepo | library -->
+- **Structure:** <!-- single app | monorepo | library -->
 
-## Who the user is
+## The user
 
-<!-- One paragraph: role, stack expertise, notable gaps. The explain skill calibrates
-against this — it never re-explains what's inside the profile and always defines what's
-outside it. Written at project init; extend only when a real gap shows up.
-e.g. "Solo web developer. Expert: TypeScript, React, Node. Comfortable: SQL, Docker.
+<!-- Role, stack expertise, notable gaps. Explanations calibrate against this — never
+re-explain what's inside it, always define what's outside it. Grows as the work reveals more.
+e.g. "Solo web dev. Expert: TypeScript, React, Node. Comfortable: SQL, Docker.
 No background: audio APIs, compilers, ML internals." -->
 
-## Project-specific rules
+## Preferences
 
-> Add rules that emerge from your spec and can't be inferred from conventions.
+<!-- How the user wants to be worked with, captured as it emerges. Distinct from project
+rules below — those are about the code, these are about the collaboration.
+e.g. "Wants the exact git command at the end of a work session, not silence." -->
+
+## Project rules
+
+> Rules from the spec that can't be inferred from conventions.
 
 ---
 
-## Session start
+## Workflow
 
-1. Read `docs/work/now.md` to find the active topic and next action.
-2. The next action is usually a skill — invoke it rather than improvising.
+```
+brainstorm    → brainstorm.md → spec.md → plan.md
+research      → docs/research/ — before working from stale knowledge
+execute       → plan.md task by task, Haiku subagents by default
+explain       → diagrams, mockups, rendered artifacts
+note          → docs/work/inbox.md, raw, unfiled
+organize      → drains the inbox to its homes
+handoff       → session state before compaction
+curate-skills → build / restructure / prune skills
+```
 
-## Utility scripts
+Skills override default behavior. Reach for one rather than improvising.
 
-- **Project tree:** `bash scripts/tree.sh [path] [--depth N] [--except pattern]`
-- **Merge files:** `node scripts/merge-files.js [--ext ts,tsx] [--except pattern] <path1[:N-M]> [path2...]`
-  - `path:N-M` extracts lines N through M only (1-indexed, inclusive)
-  - Use for 5+ files or when you need a single merged blob
+## Scripts — use these, not raw shell
 
-**When to use parallel Read vs merge-files:** ≤4 files → issue parallel Read tool calls. 5+ files, or when a single merged output is needed → merge-files.js.
+- **Any look at structure → `tree.sh`.** Never `ls`, `find`, or `cd` to look around.
+  `bash scripts/tree.sh [path] [--depth N] [--except pattern]`
+  `--except` repeats and takes a name, folder, or glob (`--except __tests__ --except "*.md"`). Already ignores `node_modules`, `.git`, `dist`, `build`, `.next`, `coverage`, `tmp` and friends.
 
-## Context capture
+- **More than a few files, or any filtered set → `merge-files.js`.** Query and merge in one call — it replaces grep-then-read whenever the content itself is what's wanted.
+  `node scripts/merge-files.js [--ext ts,tsx] [--except pattern] [--force] <path[:N-M]>...`
+  Paths take whole files, folders (recursive), or `file.md:45-89` for a line range. `--ext` filters by extension, `--except` excludes by glob (repeatable). Output is fenced per file with its path. Stops at 2000 lines and reports per-file counts instead; `--force` overrides.
+  Four or fewer whole files, no filtering: parallel `Read` is fine.
 
-The `capture-context` skill is always active — it runs passively across all phases. Any time something important surfaces (a decision, a future idea, a domain insight, a session checkpoint), write it to the right file immediately. Don't wait for the end of a session. Invoke it explicitly when you want to force a checkpoint or need to route something.
+## Explaining
 
-## Working with the user
+Governs every answer — status reports and one-line questions included, not just designs.
 
-- Solo developer, one author. Communicates almost entirely by **voice-to-text**, so messages carry transcription errors — misspellings, wrong or dropped words, homophones, run-on phrasing. Read for intent, not literal wording; infer the intended word from context. Ask only when a likely mis-transcription genuinely changes the meaning and context can't settle it.
-- **No fluff.** No cheerleading, no jargon, no filler, never "you're absolutely right." Every sentence earns its place. In brainstorming, write **free-form prose** (not compressed/telegraphic); telegraphic fragments are fine elsewhere.
-- Work iteratively: commit to a recommendation the user can react to, rather than laying out every option neutrally.
+- **Whole picture first.** The thing itself, then its parts. Never a close-up with no machine around it.
+- **Define from zero.** Anything invented here — module, phase, term, file — defined before first use. No expertise covers what didn't exist yesterday.
+- **No undefined shorthand.** "The engine", "the panel", "M2" — ground it in what the user actually sees, or drop it.
+- **Calibrate tech** against `## The user`. Unfamiliar: one line, by what it does here.
+- **Priority order.** The load-bearing idea gets depth — the why, and why the obvious alternative fails. Trivia gets one line or none.
+- **The final message is written for the user.** Internal notes — scratch files, subagent briefs, working docs — are for agents; the user skims them at most. Never let one stand in as the answer. Every turn ends with a full report in plain language.
+- **Outline before typing.** Never discover the structure on the way.
+- **No preamble.** Content starts at sentence one.
+- **UI is rendered, never described.** Layout, density, hierarchy, colour don't survive as sentences — invoke `explain`.
 
-## Communication (/copy discipline)
+## Communication
 
-- **HARD RULE — all explanations go at the END of the turn, after every tool call.** The user reads (and `/copy`-captures) only the final message of a turn; any prose written before or between tool calls (reads, edits, writes, commands) is effectively invisible. Do the tool work first, then deliver the full explanation as the last thing in the turn — never split it around edits, and never assume text written before a tool call was seen. If an earlier turn violated this, re-deliver the explanation in full.
-- **Write locked decisions, batched.** Write to a workflow doc only when a decision is genuinely locked (user-confirmed, no open threads on it) — not on mid-discussion agreement. Let a few accumulate and record them together. Don't gate each write behind a yes/no question, and don't edit every turn.
-- **Explain artifacts from zero.** Never assume the user has read a research report or file. Explain the content in plain language — what it says, what you conclude, what you propose, and why. Research reports get the strongest form: assume **zero** lines read. (Earlier chat messages are fine to assume read — the /copy discipline means they were the last thing each turn.)
+- **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
+- **Preferences are inferred, not announced.** A correction heard twice is a preference — record it under `## Preferences`.
+- **Explanations go at the END of the turn, after every tool call.** The user reads only the final message.
+- **Explain artifacts from zero.** Assume no file and no report has been read.
+- **Write locked decisions, batched.** Record when user-confirmed with no open threads, not on mid-discussion agreement.
 
 ## Hard rules
 
-- **Never run git mutations.** Suggest commands; the user runs them.
-- **Plan first.** Propose a plan and wait for explicit approval before changing files. (Recording an already-locked decision into a workflow doc follows the surface-reasoning rule below — no second approval round-trip.)
-- **Never use the AskUserQuestion tool.** Ask questions in plain prose; the user answers inline.
-- **No pointless mkdir.** The Write tool creates directories automatically — never run `mkdir` just to create a folder before writing a file.
-- **Never state cause without evidence.** Every causal claim must be a labeled hypothesis with a verification step: "Hypothesis: X. To verify: Y."
-- **Surface reasoning before writing any workflow document** (brainstorm.md, spec.md, plan.md). State your interpretation first. When the decision is already locked (user-confirmed, no open threads), record it in the same turn — no separate approval round-trip. Wait for approval only when the write rests on an inference beyond what was explicitly discussed.
-- **No placeholders in plans.** Real file paths, real code, real commands — always.
-- **Chain shell commands.** If chaining won't bite back, chain — any operations, any phase: one `&&` call instead of several. `&&` halts at the first failure. Separate calls only when a step's output must be inspected before the next runs, or when a partial run would be hard to detect or undo.
-- **No auto-memory.** Never use the memory feature. Anything worth keeping goes in the repo — CLAUDE.md, the work/session docs, or a skill.
-- **Never run install or setup commands** — `pnpm add`/`remove`, `npm install`, editor extensions, global CLIs, MCP servers, system packages. No exceptions. Name the command; the user runs it.
-- **Never delete source after copying** without a separate explicit confirmation — even inside an approved plan. Moves are fine; deletes are not.
-- **Keep internal reasoning out of deliverables.** Rejected-alternatives / "deliberately skipped" catalogs belong in design notes, never in a polished spec/plan/artifact.
+- **Plan first.** Propose, wait for approval, then change files. Recording an already-locked decision needs no second approval.
+- **Surface reasoning before writing any workflow doc.**
+- **No cause without evidence.** "Hypothesis: X. To verify: Y."
+- **Deletes need their own confirmation**, even inside an approved plan. Moves don't.
+- **Dependencies: run the package manager, never hand-edit the manifest.** `pnpm add` / `bun add` / `uv add`, plus their remove and update equivalents. A hand-written version string comes from stale memory and lands years behind.
+- **Scaffolding: run the official CLI.** Anything with a `create-*` or `init` command gets generated by it, then modified afterward. Hand-built scaffolds drift from the standard layout.
+- **Write creates directories.** Never `mkdir` first.
+- **Chain aggressively.** `&&` anything that can be chained, in any phase. Separate calls only when a step's output must be inspected before the next runs.
+- **Internal reasoning stays out of deliverables.**

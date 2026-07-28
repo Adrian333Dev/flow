@@ -9,14 +9,14 @@ A Claude Code project template for solo developers. Opinionated session rules, w
 ## What ships
 
 - **`CLAUDE.md`** — project instructions template: session-start rules, communication protocol, utility script docs, and hard rules. Fill in the project context section at the top when starting a project.
-- **`docs/work/`** — working-docs scaffold: `now.md` (active topic pointer) and `roadmap.md`.
+- **`docs/work/`** — working-docs scaffold: `backlog.md`.
 - **`scripts/`** — three utility scripts:
   - `tree.sh` — filtered project tree (`bash scripts/tree.sh [path] [--depth N] [--except pattern]`)
   - `merge-files.js` — merge multiple files or line ranges into one blob for large-context reads
   - `check-skills.sh` — SessionStart hook that verifies companion skills are installed
 - **`recommended-tools.md`** — catalog of optional external tools and skills.
 - **`.claude/settings.json`** — git mutation deny rules.
-- **`.gitignore`** — ignores `temp/` (scratch directory for refetchable material and session artifacts).
+- **`.gitignore`** — ignores `tmp/` (scratch directory for refetchable material and session artifacts).
 
 ## Companion skills
 
