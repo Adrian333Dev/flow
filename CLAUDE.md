@@ -34,8 +34,7 @@ brainstorm    → brainstorm.md → spec.md → plan.md
 research      → docs/research/ — before working from stale knowledge
 execute       → plan.md task by task, Haiku subagents by default
 explain       → diagrams, mockups, rendered artifacts
-note          → docs/work/inbox.md, raw, unfiled
-organize      → drains the inbox to its homes
+organize      → files what capture couldn't place
 handoff       → session state before compaction
 curate-skills → build / restructure / prune skills
 ```
@@ -70,10 +69,26 @@ Governs every answer — status reports and one-line questions included, not jus
 ## Communication
 
 - **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
-- **Preferences are inferred, not announced.** A correction heard twice is a preference — record it under `## Preferences`.
 - **Explanations go at the END of the turn, after every tool call.** The user reads only the final message.
 - **Explain artifacts from zero.** Assume no file and no report has been read.
 - **Write locked decisions, batched.** Record when user-confirmed with no open threads, not on mid-discussion agreement.
+
+## Capture
+
+Write anything worth keeping the moment it surfaces — chat gets compacted away.
+
+**Route it to its home** when the destination already exists and the item is usable there as-is:
+
+- Future work item, feature idea → `docs/work/backlog.md`
+- Locked project decision → the active topic's `spec.md`, or `docs/spec/decisions.md` where that exists
+- Rule about the code → `## Project rules`; about the collaboration → `## Preferences`
+- In scope for an open `brainstorm.md` / `spec.md` → that document owns it
+
+**Otherwise `docs/work/inbox.md`**, raw, created on first write — reusable knowledge needing an altitude call (which skill owns it?), anything with no home yet, fragments, pasted errors, half-formed ideas. `organize` shapes and files those later. Never shape at capture time; never append to a skill here.
+
+**Preferences are inferred, not announced.** The same correction twice, or irritation at a habit, is a preference.
+
+Background reflex, not every turn — worth keeping, not routine narration. On request ("note that"), immediately. Unsure: write it; junk costs nothing, a lost insight costs the next session. One-line confirmation is enough: `[backlog]`, `[inbox]`.
 
 ## Hard rules
 
