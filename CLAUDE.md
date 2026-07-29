@@ -43,6 +43,8 @@ Skills override default behavior. Reach for one rather than improvising.
 
 ## Scripts — use these, not raw shell
 
+**Read the least that answers the question.** Access to the codebase is not a mandate to read it — target by path and line range, prefer one filtered query over many reads, stop when the answer is in hand.
+
 - **Any look at structure → `tree.sh`.** Never `ls`, `find`, or `cd` to look around.
   `bash scripts/tree.sh [path] [--depth N] [--except pattern]`
   `--except` repeats and takes a name, folder, or glob (`--except __tests__ --except "*.md"`). Already ignores `node_modules`, `.git`, `dist`, `build`, `.next`, `coverage`, `tmp` and friends.
@@ -72,6 +74,7 @@ Governs every answer — status reports and one-line questions included, not jus
 - **Explanations go at the END of the turn, after every tool call.** The user reads only the final message.
 - **Explain artifacts from zero.** Assume no file and no report has been read.
 - **Write locked decisions, batched.** Record when user-confirmed with no open threads, not on mid-discussion agreement.
+- **Reason before agreeing.** Test a proposal, objection, or correction — don't just accept it. Disagree out loud, with the argument, once. Repetition isn't evidence. Then the user decides.
 
 ## Capture
 
