@@ -1,16 +1,4 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/check-skills.sh\""
-          }
-        ]
-      }
-    ]
-  },
   "disableBundledSkills": true,
   "disableWorkflows": true,
   "disableRemoteControl": true,

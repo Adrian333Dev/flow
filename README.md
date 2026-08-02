@@ -1,36 +1,59 @@
 # Flow
 
-> **Work in progress.** This template is under active development and has not been finalized.
+> **Work in progress.** Under active development, not finalized.
 
-A Claude Code project template for solo developers. Opinionated session rules, working-docs scaffold, and utility scripts, designed to pair with the [flow-skills](https://github.com/Adrian333Dev/flow-skills) companion catalog.
+A Claude Code workflow for solo developers: session rules that load in every directory, a set of skills covering the loop from brainstorm to execution, and a small scaffold for new projects.
 
 > Written for and tested with Claude Code only.
 
-## What ships
+## How it's put together
 
-- **`CLAUDE.md`** — project instructions template: session-start rules, communication protocol, utility script docs, and hard rules. Fill in the project context section at the top when starting a project.
-- **`docs/work/`** — working-docs scaffold: `backlog.md`.
-- **`scripts/`** — three utility scripts:
-  - `tree.sh` — filtered project tree (`bash scripts/tree.sh [path] [--depth N] [--except pattern]`)
-  - `merge-files.js` — merge multiple files or line ranges into one blob for large-context reads
-  - `check-skills.sh` — SessionStart hook that verifies companion skills are installed
-- **`recommended-tools.md`** — catalog of optional external tools and skills.
-- **`.claude/settings.json`** — git mutation deny rules.
-- **`.gitignore`** — ignores `tmp/` (scratch directory for refetchable material and session artifacts).
+Flow installs **once per machine**, not once per project. The rules live at `~/.claude/CLAUDE.md`, the scripts at `~/.claude/scripts/`, the skills at `~/.claude/skills/` — all of which Claude Code loads in every session, in every directory, whether or not there's a project. That matters because most thinking happens before a repo exists.
 
-## Companion skills
+A project then adds only what actually varies: its name and stack, and the rules its spec implies.
 
-Flow pairs with the flow-skills catalog. Install it globally:
+| Path | What it is |
+|---|---|
+| `global/` | what gets installed into `~/.claude/` — rules, settings, scripts |
+| `skills/` | every skill, symlinked into `~/.claude/skills/` |
+| `project-template/` | the two-and-a-bit files a new project starts with |
+
+## Setup — once per machine
 
 ```bash
-npx skills add Adrian333Dev/flow-skills
+git clone https://github.com/Adrian333Dev/flow ~/code/flow
+cd ~/code/flow
+
+# 1. skills
+bash global/scripts/link-skills.sh
+
+# 2. scripts
+ln -sfn ~/code/flow/global/scripts ~/.claude/scripts
+
+# 3. rules — copied, not linked: this one becomes yours
+cp -n global/CLAUDE.md ~/.claude/CLAUDE.md
 ```
 
-The `check-skills.sh` SessionStart hook checks for required skills at the start of every session and tells you exactly what is missing.
+Then fill in `## The user` and `## Preferences` in `~/.claude/CLAUDE.md`. That copy is personal from here on; if you want it backed up, track `~/.claude/` in a private repo of your own.
 
-## Using this template
+Last, merge `global/settings.json` into `~/.claude/settings.json` by hand — it carries the git-mutation deny list and a few feature flags. It is merged rather than copied because your global settings hold personal things (model, effort level, plugins) that Flow shouldn't own. **Restart Claude Code afterwards**; settings load at startup.
 
-1. Click **Use this template** on GitHub to create a new repo with a clean git history.
-2. Clone it locally.
-3. Fill in the project context section at the top of `CLAUDE.md` (project name, stack, who you are).
-4. Install the companion skills if you haven't already.
+*(`setup-flow-globals` will automate all of the above. Not built yet.)*
+
+## Starting a new project
+
+Copy the scaffold in, then fill `## Project`:
+
+```bash
+cp -r ~/code/flow/project-template/. .
+```
+
+That's a `CLAUDE.md` with `## Project` and `## Project rules`, a `.gitignore` for `tmp/`, and an empty `docs/work/backlog.md`. Everything else you need is already global.
+
+For an existing codebase with its own docs and conventions, `migrate-to-flow` handles the conversion. *(Not built yet.)*
+
+## Scripts
+
+- `tree.sh` — filtered project tree: `bash ~/.claude/scripts/tree.sh [path] [--depth N] [--except pattern]`
+- `merge-files.js` — merge files or line ranges into one blob for large reads
+- `link-skills.sh` — re-link `skills/` into `~/.claude/skills/` after adding or renaming one
