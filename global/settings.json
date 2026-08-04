@@ -1,4 +1,17 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/scripts/guard.py\""
+          }
+        ]
+      }
+    ]
+  },
   "disableBundledSkills": true,
   "disableWorkflows": true,
   "disableRemoteControl": true,
@@ -6,6 +19,12 @@
   "disableArtifact": true,
   "autoMemoryEnabled": false,
   "permissions": {
+    "allow": [
+      "Bash",
+      "Edit",
+      "WebFetch",
+      "mcp__context7__*"
+    ],
     "deny": [
       "EnterPlanMode",
       "ExitPlanMode",

@@ -7,8 +7,8 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 | Path | What it is | Where it ends up |
 |---|---|---|
 | `global/CLAUDE.md` | the rules that apply in every directory, project or not | copied to `~/.claude/CLAUDE.md`, then personalized |
-| `global/settings.json` | git deny list, feature flags | merged into `~/.claude/settings.json` |
-| `global/scripts/` | `tree.sh`, `merge-files.js`, `link-skills.sh` | symlinked as `~/.claude/scripts` |
+| `global/settings.json` | permissions, the `PreToolUse` hook, feature flags — every key explained in `global/settings.md` | merged into `~/.claude/settings.json` |
+| `global/scripts/` | `tree.sh`, `merge-files.js`, `link-skills.sh`, `guard.py` | symlinked as `~/.claude/scripts` |
 | `skills/` | every skill, one folder each | symlinked into `~/.claude/skills/` |
 | `project-template/` | `CLAUDE.md` (`## Project` + `## Project rules`), `.gitignore`, `docs/work/backlog.md` | copied into a new project |
 

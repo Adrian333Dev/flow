@@ -36,7 +36,9 @@ cp -n global/CLAUDE.md ~/.claude/CLAUDE.md
 
 Then fill in `## The user` and `## Preferences` in `~/.claude/CLAUDE.md`. That copy is personal from here on; if you want it backed up, track `~/.claude/` in a private repo of your own.
 
-Last, merge `global/settings.json` into `~/.claude/settings.json` by hand — it carries the git-mutation deny list and a few feature flags. It is merged rather than copied because your global settings hold personal things (model, effort level, plugins) that Flow shouldn't own. **Restart Claude Code afterwards**; settings load at startup.
+Last, merge `global/settings.json` into `~/.claude/settings.json` by hand — it carries the permission rules, the `PreToolUse` guard hook, and a few feature flags. `global/settings.md` explains every key. It is merged rather than copied because your global settings hold personal things (model, effort level, plugins) that Flow shouldn't own. **Restart Claude Code afterwards**; settings load at startup.
+
+Merge it whole. The permission rules are one design: shell commands run without prompting, a deny list blocks git mutations outright, and `guard.py` catches the dangerous shell a deny list can't enumerate. Taking the permissions without the hook removes most of what's holding the line.
 
 *(`setup-flow-globals` will automate all of the above. Not built yet.)*
 
@@ -57,3 +59,4 @@ For an existing codebase with its own docs and conventions, `migrate-to-flow` ha
 - `tree.sh` — filtered project tree: `bash ~/.claude/scripts/tree.sh [path] [--depth N] [--except pattern]`
 - `merge-files.js` — merge files or line ranges into one blob for large reads
 - `link-skills.sh` — re-link `skills/` into `~/.claude/skills/` after adding or renaming one
+- `guard.py` — the `PreToolUse` hook: blocks privileged commands, pipe-to-shell and git mutations, and escalates dependency installs and out-of-repo deletes to a prompt. Never run by hand.
