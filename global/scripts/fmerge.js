@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * merge-files — Merge files/folders into a single LLM-friendly output streamed to stdout.
+ * fmerge — Merge files/folders into a single LLM-friendly output streamed to stdout.
  *
  * Each file becomes a fenced code block: ```lang path/to/file
  * Consecutive blank lines are collapsed to one.
  * If total output exceeds 2000 lines, prints a warning with per-file line counts instead.
  * Pass --force to bypass the limit.
  *
- * Usage: node scripts/merge-files.js [options] <path1> [path2] ...
+ * Usage: fmerge [options] <path1> [path2] ...
  *
  * Options:
  *   --ext ts,tsx,md    Include only files with these extensions (comma-separated)
@@ -171,7 +171,7 @@ function main() {
 
   if (pathArgs.length === 0 && rangedSpecs.length === 0) {
     process.stderr.write(
-      'Usage: node scripts/merge-files.js [--ext ts,tsx] [--except pattern] [--force] <path1[:N-M]> [path2] ...\n'
+      'Usage: fmerge [--ext ts,tsx] [--except pattern] [--force] <path1[:N-M]> [path2] ...\n'
     );
     process.exit(1);
   }

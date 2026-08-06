@@ -12,12 +12,12 @@ Settings load at startup. **Restart Claude Code after any change.**
 
 ```json
 "hooks": { "PreToolUse": [ { "matcher": "Bash", "hooks": [
-  { "type": "command", "command": "python3 \"$HOME/.claude/scripts/guard.py\"" } ] } ] }
+  { "type": "command", "command": "node \"$HOME/.claude/scripts/guard.js\"" } ] } ] }
 ```
 
-Runs `scripts/guard.py` before every Bash call. The script reads the pending command on stdin and returns `deny`, `ask`, or nothing.
+Runs `scripts/guard.js` before every Bash call. The script reads the pending command on stdin and returns `deny`, `ask`, or nothing.
 
-Python, not Node — `/usr/bin/python3` is a fixed path; a Node under nvm may not be on a hook's `PATH`.
+Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed under nvm has to be on it — but `flow` and `fmerge` are Node too, so that is already a hard requirement of the toolchain and this adds nothing new. What it removes is a third language in a five-file folder.
 
 **The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves only the deny list, which can name git commands but not the open set of everything else.
 
@@ -38,7 +38,7 @@ Rules evaluate **deny → ask → allow**, first match wins. A broad deny beats 
 
 A tool name written **without parentheses matches every use of that tool**.
 
-Why blanket rather than a curated list: approving a command through the permission dialog saves the *exact string* that ran, so `tree.sh --depth 3` and `tree.sh --depth 4` become two rules. A hand-kept list of command patterns never converges and goes stale the moment a path moves. The deny list plus the guard define the boundary instead.
+Why blanket rather than a curated list: approving a command through the permission dialog saves the *exact string* that ran, so `ptree --depth 3` and `ptree --depth 4` become two rules. A hand-kept list of command patterns never converges and goes stale the moment a path moves. The deny list plus the guard define the boundary instead.
 
 Not on the list, so still prompts: `Agent` (subagent spawns), and writes into protected paths — `.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends, which allow rules cannot pre-approve by design.
 
@@ -64,7 +64,7 @@ Read-only git — `status`, `log`, `diff`, `show` — is untouched and runs free
 
 The agent names the exact command; you run it. This is a **Flow default, not a personal preference**: git history is the one thing an agent cannot un-break, and a rewritten branch or a stray `reset --hard` costs work that exists nowhere else.
 
-`guard.py` blocks the same set independently, so a missing or overridden settings file still leaves git covered.
+`guard.js` blocks the same set independently, so a missing or overridden settings file still leaves git covered.
 
 ---
 

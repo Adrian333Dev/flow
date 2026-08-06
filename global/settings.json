@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$HOME/.claude/scripts/guard.py\""
+            "command": "node \"$HOME/.claude/scripts/guard.js\""
           }
         ]
       }

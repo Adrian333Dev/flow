@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Filtered directory tree. Run from project root.
-# Usage: bash scripts/tree.sh [path] [--depth N] [--except pattern]
+# Usage: ptree [path] [--depth N] [--except pattern]
 #   --depth N      Limit output depth (default: unlimited)
 #   --except pat   Exclude by name, folder name, or glob — repeatable
 #                  Examples: --except __tests__  --except .github  --except "*.md"

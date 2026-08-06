@@ -127,7 +127,7 @@ All tasks `[x]` → run the full verification suite one final time. State comple
 A Haiku task brief needing content from multiple sources can be built with line-range syntax instead of the file-reference approach:
 
 ```bash
-node ~/.claude/scripts/merge-files.js ~/.claude/skills/execute/haiku-worker.md plan.md:45-89
+fmerge ~/.claude/skills/execute/haiku-worker.md plan.md:45-89
 ```
 
 Capture the stdout and pass it as the Agent prompt directly.
