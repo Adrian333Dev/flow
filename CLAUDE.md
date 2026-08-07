@@ -10,9 +10,21 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 | `global/settings.json` | permissions, the `PreToolUse` hook, feature flags — every key explained in `global/settings.md` | merged into `~/.claude/settings.json` |
 | `global/scripts/` | `ptree.sh`, `fmerge.js`, `gsave.sh`, `guard.js`, `link-skills.sh`, `flow/flow.js` | the folder is symlinked as `~/.claude/scripts`; four of the files get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands |
 | `skills/` | every skill, one folder each | symlinked into `~/.claude/skills/` |
-| `project-template/` | `CLAUDE.md` (`## Project` + `## Project rules`), `.gitignore`, `docs/work/backlog.md` | copied into a new project |
+| `project-template/` | `CLAUDE.md` (`## Project` + `## Project rules`) and `.gitignore` — nothing else | copied into a new project |
+| `toolbox/` | **submodule** — [`Adrian333Dev/toolbox`](https://github.com/Adrian333Dev/toolbox), the catalog of external tools filed by job | symlinked as `~/.claude/toolbox`; the path `global/CLAUDE.md` names |
+| `wip/` | **temporary** — the design record this repo was built from, plus the archive material and dev-only scripts that came with it | nowhere; deleted when the build is done |
 
 `skills/CLAUDE.md` is the authoring guide for anything under `skills/`.
+
+## `wip/` is scaffolding
+
+It is the whole design lab, carried in when the `agentic-setup` workbench repo was deleted (2026-08-07) and this became the only repo. `remaining.md` is the live build checklist and `session-new-plugin.md` is the resume file — **start there.** The `design-*.md` files are the reasoning behind every locked decision; `v1-template/` and `framework-build/` are the previous generation, kept for comparison; `study-cases/`, `research/` and `archived-skills/` are the evidence behind the skills; `excalidraw/` holds three third-party diagram skills awaiting a verdict. `proxy.mjs` is a dev-only context auditor, not a shipped script.
+
+**Nothing under `wip/` is a Flow skill**, including the folders that contain a `SKILL.md`. `skills/` is the only place a live skill exists.
+
+None of it installs anywhere and none of it is part of the product. **The whole folder is deleted when the build is finished** — until then, edits to it are edits to the plan, not to the workflow. Never let a path inside `wip/` leak into a skill, `global/`, or `project-template/`.
+
+Never edit `toolbox/` as if it were part of this repo. It is a submodule with its own history and its own remote; changes are committed and pushed from inside that folder, then the new pointer is committed here.
 
 ## Two versions of every global file
 

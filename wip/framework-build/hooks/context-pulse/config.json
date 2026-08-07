@@ -1,0 +1,10 @@
+{
+  "trigger": {
+    "mode": "heartbeat",
+    "interval": 5
+  },
+  "display": {
+    "fields": ["used_pct", "remaining_pct"],
+    "windowSize": 160000
+  }
+}

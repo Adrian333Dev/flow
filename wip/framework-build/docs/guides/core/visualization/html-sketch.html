@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>[Sketch title]</title>
+  <style>
+    /* ─── shadcn/ui Zinc palette ─── */
+    :root {
+      --background:     oklch(0.985 0.001 286.375);
+      --card:           oklch(1 0 0);
+      --header-bg:      oklch(0.967 0.001 286.375);
+
+      --text-primary:   oklch(0.141 0.005 285.823);
+      --text-secondary: oklch(0.274 0.006 286.033);
+      --text-muted:     oklch(0.37 0.013 285.805);
+      --text-faint:     oklch(0.442 0.017 285.786);
+
+      --border:         oklch(0.80 0.004 286.32);
+      --border-inner:   oklch(0.87 0.003 286.32);
+    }
+
+    .dark {
+      --background:     oklch(0.141 0.005 285.823);
+      --card:           oklch(0.21 0.006 285.885);
+      --header-bg:      oklch(0.175 0.006 285.885);
+
+      --text-primary:   oklch(0.985 0 0);
+      --text-secondary: oklch(0.871 0.006 286.286);
+      --text-muted:     oklch(0.705 0.015 286.067);
+      --text-faint:     oklch(0.552 0.016 285.938);
+
+      --border:         oklch(1 0 0 / 18%);
+      --border-inner:   oklch(1 0 0 / 11%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { min-height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      background: var(--background);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 48px 40px;
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    /* ─── Light/dark toggle ─── */
+    .toggle {
+      position: fixed;
+      top: 14px; right: 16px;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 11px;
+      cursor: pointer;
+    }
+
+    /* ─── Scenario wrapper ─── */
+    .scenario        { display: flex; flex-direction: column; gap: 10px; }
+    .scenario-label  { font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+                       text-transform: uppercase; color: var(--text-faint); }
+    .scenario-desc   { font-size: 11px; color: var(--text-muted);
+                       max-width: 320px; line-height: 1.5; }
+
+    /* ─── Component-specific CSS goes here ─── */
+    /*
+      Add CSS for your component below. The vars above cover all base colors.
+      For accent/variant colors, hardcode hex only for the accent itself:
+        border-left-color: #4a8ef0;
+        background: color-mix(in srgb, #4a8ef0 8%, transparent);
+    */
+
+  </style>
+</head>
+<body>
+
+  <button class="toggle" onclick="document.documentElement.classList.toggle('dark')">
+    Light / Dark
+  </button>
+
+  <!-- Add one .scenario per state/case being compared. Labels stay external — never inside the component. -->
+
+  <div class="scenario">
+    <div class="scenario-label">A — [name]</div>
+    <div class="scenario-desc">[One sentence describing this state or condition.]</div>
+    <!-- Component HTML here -->
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-label">B — [name]</div>
+    <div class="scenario-desc">[One sentence describing this state or condition.]</div>
+    <!-- Component HTML here -->
+  </div>
+
+</body>
+</html>

@@ -21,7 +21,8 @@ A project then adds only what actually varies: its name and stack, and the rules
 ## Setup — once per machine
 
 ```bash
-git clone https://github.com/Adrian333Dev/flow ~/code/flow
+# --recurse-submodules matters: toolbox is a submodule and comes down empty without it
+git clone --recurse-submodules https://github.com/Adrian333Dev/flow ~/code/flow
 cd ~/code/flow
 
 # 1. skills
@@ -37,11 +38,16 @@ ln -sfn ~/code/flow/global/scripts/fmerge.js   ~/.local/bin/fmerge
 ln -sfn ~/code/flow/global/scripts/gsave.sh    ~/.local/bin/gsave
 ln -sfn ~/code/flow/global/scripts/flow/flow.js ~/.local/bin/flow
 
-# 4. rules — copied, not linked: this one becomes yours
+# 4. the tool catalog, at a path that doesn't depend on where you cloned flow
+ln -sfn ~/code/flow/toolbox ~/.claude/toolbox
+
+# 5. rules — copied, not linked: this one becomes yours
 cp -n global/CLAUDE.md ~/.claude/CLAUDE.md
 ```
 
 Every script lives once, in `global/scripts/`, and keeps its extension there so you can see what runs it. Steps 2 and 3 are two ways to reach the same files — a folder link for the ones named by path, per-file links for the ones you type. Symlinks throughout, so editing the repo changes the command with no reinstall step.
+
+Step 4 exists so the rules can name one fixed path. `toolbox` is its own repo, pinned here as a submodule; `~/.claude/toolbox` is what `global/CLAUDE.md` actually points at, which keeps that reference working no matter where flow was cloned. `git submodule update --remote toolbox` pulls newer entries.
 
 Then fill in `## The user` and `## Preferences` in `~/.claude/CLAUDE.md`. That copy is personal from here on; if you want it backed up, track `~/.claude/` in a private repo of your own.
 
@@ -59,7 +65,7 @@ Copy the scaffold in, then fill `## Project`:
 cp -r ~/code/flow/project-template/. .
 ```
 
-That's a `CLAUDE.md` with `## Project` and `## Project rules`, a `.gitignore` for `tmp/`, and an empty `docs/work/backlog.md`. Everything else you need is already global.
+That's a `CLAUDE.md` with `## Project` and `## Project rules`, and a `.gitignore` for `tmp/`. Nothing else — every `docs/` path is created on first write by whatever needs it, so a new project starts with two files rather than a tree of empty scaffolding.
 
 For an existing codebase with its own docs and conventions, `migrate-to-flow` handles the conversion. *(Not built yet.)*
 

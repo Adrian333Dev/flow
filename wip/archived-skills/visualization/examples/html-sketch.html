@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>[Sketch title]</title>
+  <style>
+    /* ─── Same color tokens as every SVG diagram in this skill — see references/svg-diagrams.md's base stylesheet ─── */
+    :root {
+      --surface-0:#fff; --surface-1:#f8f8f6; --surface-2:#fff;
+      --text-primary:#1a1a1a; --text-secondary:#5f5e5a; --text-muted:#888780;
+      --border:#d3d1c7; --border-strong:#b4b2a9;
+      --c-gray-50:#F1EFE8;   --c-gray-100:#D3D1C7;   --c-gray-600:#5F5E5A;  --c-gray-800:#444441;  --c-gray-900:#2C2C2A;
+      --c-blue-50:#E6F1FB;   --c-blue-100:#B5D4F4;   --c-blue-600:#185FA5;  --c-blue-800:#0C447C;  --c-blue-900:#042C53;
+      --c-teal-50:#E1F5EE;   --c-teal-100:#9FE1CB;   --c-teal-600:#0F6E56;  --c-teal-800:#085041;  --c-teal-900:#04342C;
+      --c-coral-50:#FAECE7;  --c-coral-100:#F5C4B3;  --c-coral-600:#993C1D; --c-coral-800:#712B13; --c-coral-900:#4A1B0C;
+      --c-purple-50:#EEEDFE; --c-purple-100:#CECBF6; --c-purple-600:#534AB7;--c-purple-800:#3C3489;--c-purple-900:#26215C;
+      --c-amber-50:#FAEEDA;  --c-amber-100:#FAC775;  --c-amber-600:#854F0B;--c-amber-800:#633806; --c-amber-900:#412402;
+      --c-red-50:#FCEBEB;    --c-red-100:#F7C1C1;    --c-red-600:#A32D2D;  --c-red-800:#791F1F;   --c-red-900:#501313;
+      --c-green-50:#EAF3DE;  --c-green-100:#C0DD97;  --c-green-600:#3B6D11;--c-green-800:#27500A; --c-green-900:#173404;
+      --c-pink-50:#FBEAF0;   --c-pink-100:#F4C0D1;   --c-pink-600:#993556; --c-pink-800:#72243E;  --c-pink-900:#4B1528;
+    }
+    /* Manual toggle instead of prefers-color-scheme — mockups default to dark and let you flip
+       either state on demand, independent of OS setting, so both can be checked side by side. */
+    .dark {
+      --surface-0:#16161a; --surface-1:#1c1c20; --surface-2:#222226;
+      --text-primary:#ededea; --text-secondary:#a8a69e; --text-muted:#76756f;
+      --border:#393834; --border-strong:#4a4944;
+      --c-gray-50:#2C2C2A;   --c-gray-100:#444441;   --c-gray-600:#B4B2A9;  --c-gray-800:#D3D1C7;  --c-gray-900:#F1EFE8;
+      --c-blue-50:#042C53;   --c-blue-100:#0C447C;   --c-blue-600:#85B7EB;  --c-blue-800:#B5D4F4;  --c-blue-900:#E6F1FB;
+      --c-teal-50:#04342C;   --c-teal-100:#085041;   --c-teal-600:#5DCAA5;  --c-teal-800:#9FE1CB;  --c-teal-900:#E1F5EE;
+      --c-coral-50:#4A1B0C;  --c-coral-100:#712B13;  --c-coral-600:#F0997B; --c-coral-800:#F5C4B3; --c-coral-900:#FAECE7;
+      --c-purple-50:#26215C; --c-purple-100:#3C3489; --c-purple-600:#AFA9EC;--c-purple-800:#CECBF6;--c-purple-900:#EEEDFE;
+      --c-amber-50:#412402;  --c-amber-100:#633806;  --c-amber-600:#EF9F27;--c-amber-800:#FAC775; --c-amber-900:#FAEEDA;
+      --c-red-50:#501313;    --c-red-100:#791F1F;    --c-red-600:#F09595;  --c-red-800:#F7C1C1;   --c-red-900:#FCEBEB;
+      --c-green-50:#173404;  --c-green-100:#27500A;  --c-green-600:#97C459;--c-green-800:#C0DD97; --c-green-900:#EAF3DE;
+      --c-pink-50:#4B1528;   --c-pink-100:#72243E;   --c-pink-600:#ED93B1; --c-pink-800:#F4C0D1;  --c-pink-900:#FBEAF0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { min-height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      background: var(--surface-1);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 48px 40px;
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    /* ─── Light/dark toggle ─── */
+    .toggle {
+      position: fixed;
+      top: 14px; right: 16px;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-muted);
+      background: var(--surface-0);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 11px;
+      cursor: pointer;
+    }
+
+    /* ─── Scenario wrapper ─── */
+    .scenario        { display: flex; flex-direction: column; gap: 10px; }
+    .scenario-label  { font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+                       text-transform: uppercase; color: var(--text-muted); }
+    .scenario-desc   { font-size: 11px; color: var(--text-secondary);
+                       max-width: 320px; line-height: 1.5; }
+
+    /* ─── Component-specific CSS goes here ─── */
+    /*
+      Add CSS for your component below. The vars above cover all base colors.
+      For accent/variant colors, hardcode hex only for the accent itself:
+        border-left-color: #4a8ef0;
+        background: color-mix(in srgb, #4a8ef0 8%, transparent);
+    */
+
+  </style>
+</head>
+<body>
+
+  <button class="toggle" onclick="document.documentElement.classList.toggle('dark')">
+    Light / Dark
+  </button>
+
+  <!-- Add one .scenario per state/case being compared. Labels stay external — never inside the component. -->
+
+  <div class="scenario">
+    <div class="scenario-label">A — [name]</div>
+    <div class="scenario-desc">[One sentence describing this state or condition.]</div>
+    <!-- Component HTML here -->
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-label">B — [name]</div>
+    <div class="scenario-desc">[One sentence describing this state or condition.]</div>
+    <!-- Component HTML here -->
+  </div>
+
+</body>
+</html>
