@@ -2,9 +2,10 @@
 
 ## READ THIS FIRST — state as of 2026-08-07
 
-> **START HERE — `wip/remaining.md` is the single master checklist**: every item left to build, in
-> build order, each pointing at where its design lives. Read it before this file. (`backlog.md` was fully
-> absorbed into it and **deleted 2026-08-07** — do not look for it.)
+> **This file is the historical log — read it third.** `wip/handoff.md` is where things stand and what to do
+> next; `wip/remaining.md` is the master checklist of everything left to build, in build order, each item
+> pointing at where its design lives. Come here for *why* a decision was made, not for what to do.
+> (`backlog.md` was fully absorbed into `remaining.md` and **deleted 2026-08-07** — do not look for it.)
 >
 > ### Where everything is now — the repo moved 2026-08-07
 >

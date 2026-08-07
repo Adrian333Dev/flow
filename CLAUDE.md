@@ -2,6 +2,20 @@
 
 Flow is a Claude Code workflow for a solo developer: global rules, a skill set, and a small project scaffold. This file governs work **on** this repo. It is not installed anywhere.
 
+**It is not finished.** The design is close to done; almost nothing is built, and the skills on disk still describe an older chain. Read **`wip/handoff.md` first** — it is the current state and the next action. Then `wip/remaining.md`, the master checklist.
+
+## How to work here
+
+**None of Flow's own rules are loaded right now.** `global/CLAUDE.md` is a template that installs to `~/.claude/CLAUDE.md`, and that install has not happened — it is step 3 of the build. Until it does, this section is the whole rule set, and the skills in `skills/` are files on disk that no session loads. Do not assume a rule applies because it is written in `global/CLAUDE.md`.
+
+- **Never run git mutations.** No `add`, `commit`, `push`, `checkout`, `reset`, `rebase`, `merge`, `stash`. Print the exact command and let the user run it. `gsave` is the user's own commit-and-push command — name it, never invoke it. Reads (`status`, `log`, `diff`, `ls-files`) are fine. This applies to the `toolbox` submodule too.
+- **Propose a plan and wait for approval before changing files.** Recording a decision the user has already locked needs no second approval.
+- **Deletes need their own explicit confirmation**, even inside an approved plan. Moving is not deleting. The one exception: something this session just superseded — converted, replaced, rewritten under a new name — where the dead copy goes immediately.
+- **Designing this workflow uses plain conversation.** Never invoke a brainstorming skill to design Flow itself, neither `superpowers:brainstorming` nor Flow's own.
+- **Scratch files go in `tmp/`**, which is gitignored. Never `/tmp`, never the repo root.
+- **The user's profile is `wip/user-profile.md`.** Read it before writing anything for them — the short version is voice-to-text input with transcription errors, no filler, and a committed recommendation instead of a neutral list of options.
+- **Explanations go at the end of the turn, after every tool call.** The user copies the last message; never emit prose and then edit files.
+
 ## Layout
 
 | Path | What it is | Where it ends up |
@@ -18,7 +32,7 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 
 ## `wip/` is scaffolding
 
-It is the whole design lab, carried in when the `agentic-setup` workbench repo was deleted (2026-08-07) and this became the only repo. `remaining.md` is the live build checklist and `session-new-plugin.md` is the resume file — **start there.** The `design-*.md` files are the reasoning behind every locked decision; `v1-template/` and `framework-build/` are the previous generation, kept for comparison; `study-cases/`, `research/` and `archived-skills/` are the evidence behind the skills; `excalidraw/` holds three third-party diagram skills awaiting a verdict. `proxy.mjs` is a dev-only context auditor, not a shipped script.
+It is the whole design lab, carried in when the `agentic-setup` workbench repo was deleted (2026-08-07) and this became the only repo. Three files, in reading order: **`handoff.md`** is where things stand and what to do next; **`remaining.md`** is the master build checklist; **`session-new-plugin.md`** is the historical log, newest at the bottom, where a decision's origin is found. The `design-*.md` files are the reasoning behind every locked decision; `v1-template/` and `framework-build/` are the previous generation, kept for comparison; `study-cases/`, `research/` and `archived-skills/` are the evidence behind the skills; `excalidraw/` holds three third-party diagram skills awaiting a verdict. `proxy.mjs` is a dev-only context auditor, not a shipped script.
 
 **Nothing under `wip/` is a Flow skill**, including the folders that contain a `SKILL.md`. `skills/` is the only place a live skill exists.
 

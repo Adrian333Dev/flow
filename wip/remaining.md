@@ -3,6 +3,9 @@
 Master checklist for Flow v1. Ordered by **what blocks what**, not by size. Every item names where its
 design already lives; **no pointer means the design does not exist yet** and deciding it is part of the item.
 
+**Read `wip/handoff.md` first** — current state, machine state, and the next action. This file is what is
+left to build; `session-new-plugin.md` is the historical log for why a decision was made.
+
 Absorbs the old `backlog.md` in full — see the last section.
 
 Legend: ⛔ blocks the items under it · ❓ needs a decision before it can be built · 🔁 rewrite of a file that exists
