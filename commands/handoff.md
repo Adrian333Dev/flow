@@ -1,6 +1,6 @@
 ---
-name: handoff
-description: Write the document a fresh session resumes the work from — the relevant state, not a summary of the conversation. Reach for it when a phase closes (brainstorm, spec, plan, execution, milestone) or context is filling.
+description: Write the document a fresh session resumes the work from — the relevant state, not a summary of the conversation. Reach for it when a phase closes (brainstorm, spec, plan, execution) or context is filling.
+argument-hint: [what to aim it at]
 ---
 
 # Handoff
@@ -9,11 +9,19 @@ Replaces `/compact`. This session ends; the work continues in a fresh one that r
 
 `/compact` summarizes everything. This keeps what the next step needs and drops the rest.
 
+Aim: **$ARGUMENTS** — empty means resume, same work, same next step.
+
+Uncommitted work:
+!`git status --short 2>/dev/null || echo "(not a git repo)"`
+
+Tickets and topics:
+!`flow status 2>/dev/null || echo "(no flow project here)"`
+
 ## The job
 
 Resume — same work, same next step, from where this session stopped. That's the default and most of what gets written.
 
-An argument aims it: "focus on the failing tests", "the migration landed, start from the API". Still a resume, just steered.
+An aim steers it — "focus on the failing tests", "the migration landed, start from the API" — without changing it into anything else.
 
 Name a different job outright — brainstorm another idea, investigate something in parallel, start the next milestone — and it becomes a brief for that job, carrying only what that job needs. Worth writing at the moment this session knows something the next one can't get anywhere else: decisions made here that constrain it, gotchas in the code it will touch.
 
@@ -28,7 +36,7 @@ Name a different job outright — brainstorm another idea, investigate something
 Shape follows the work — a debugging handoff and a brainstorm handoff share nothing but the filename. Cover these however they fit:
 
 - **The job** — what's being done and why, current tense.
-- **Where it stands** — done, in flight, broken. Run `git status --short` and record anything uncommitted or half-applied; a fresh session walking into edits it doesn't know about is the worst outcome this file can cause.
+- **Where it stands** — done, in flight, broken. `git status --short` is already above: record anything uncommitted or half-applied. A fresh session walking into edits it doesn't know about is the worst outcome this file can cause.
 - **What binds it** — decisions locked, corrections given, approaches ruled out and why. Weight what was said out loud and never written into any file; that's what the reset destroys. Dead ends as conclusions.
 - **What to read** — every file the next step touches: full path, a few words on why, line range when the file is long. Verify the paths before writing them. This is the part that stops the next session hunting.
 - **The first action** — concrete enough to start on. Name the skill when it is one.

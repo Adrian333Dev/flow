@@ -94,7 +94,7 @@ for tidiness is churn.
 | `debug-web-pages` | **skill**, gains dispatch | same split as general `debug`: method here, hunt in an agent |
 | `organize` | **skill** — no change | user-fired, but takes no argument; inbox preload is a single tool call. Not worth the move |
 | `curate-skills` | **skill** — no change | benefits from neither of the two things a command buys |
-| `handoff` | **command**, ⚠️ shaky | takes a steering argument, and its content depends on `git status --short` + ticket state that `` !`…` `` can put in the prompt *before* the model reasons. **Stays model-invocable** — the planned context-pulse hook exists so the agent can fire it. Shaky because 2i rewrites this skill's whole resolution ladder; re-check after |
+| `handoff` | **command**, confirmed 2026-08-08 | takes a steering argument, and its content depends on `git status --short` + ticket state that `` !`…` `` can put in the prompt *before* the model reasons. **A command is still model-invocable** — that is what `disable-model-invocation` exists to switch off, and it stays off here. Reason strengthened, not weakened: the user fires this deliberately, which is test #2 exactly. **Context-pulse is deferred indefinitely** (user, 2026-08-08) — it answered short context windows on older models; at 1M it is user-triggered in practice, so nothing depends on auto-firing. **Built 2026-08-08** — `skills/handoff/SKILL.md` → `commands/handoff.md`, prefetching `git status --short` and `flow status`. The earlier "wait for the skill rewrite" argument was wrong: the rewrite changes where the file gets written and the resume-vs-brief split, which is disjoint from frontmatter and prefetch |
 | `start` (new) | **command** | strongest case in Flow: takes an id, needs the ticket text inlined, fired deliberately, opens the pickup judgment `remaining.md` 2e calls "the only real decision in the system" |
 | `debug` (unbuilt) | **skill + agent** | the method must run where the edits happen; the hunt — reproduce, bisect, read logs — is context-heavy and disposable |
 | `code-review` (unbuilt) | **agent**, triggered by `flow review <id>` | `remaining.md` 2g already specifies a reviewer subagent |
@@ -196,7 +196,11 @@ parked excalidraw verdict rather than assuming either way.
       `.claude/agents/` and `.claude/commands/` per project. Flow is global-only, so: `agents/` and
       `commands/` folders in this repo beside `skills/`, symlinked in by an extended `link-skills.sh`, and
       `setup-flow-globals` gains the two link jobs. Mechanically identical to what already exists. The
-      agent posed this as a blocking design question; it was neither blocking nor a design question
+      agent posed this as a blocking design question; it was neither blocking nor a design question.
+      **Built 2026-08-08:** `link-skills.sh` renamed **`link.sh`** and extended to all three groups — one
+      symlink per item, never a folder symlink, because those `~/.claude/` folders are shared with entries
+      Flow does not own. `commands/grill.md` is the first. No new job for `setup-flow-globals`: it already
+      runs the script, so the two extra groups come for free
 - [ ] Whether **judgment**'s critic is a subagent (see that thread).
 - [ ] Whether `flow`/`ptree`/`fmerge`/`gsave` gain slash-command wrappers, and what that buys over the bare
       PATH command.

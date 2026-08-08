@@ -50,7 +50,7 @@ execute       → one ticket at a time: plan it at pickup, then build it
                 todo → in-progress → review → done, Haiku subagents by default
 explain       → diagrams, mockups, rendered artifacts
 organize      → files what capture couldn't place; may mint a ticket
-handoff       → session state before compaction
+/handoff      → session state before compaction — a command, not a skill
 curate-skills → build / restructure / prune skills
 ```
 
@@ -61,7 +61,7 @@ curate-skills → build / restructure / prune skills
 
 **Reading the code first is not a brainstorm and never gets a folder.** A brainstorm resolves open *decisions*; where there are none, the look-first pass feeds straight into the steps.
 
-Skills override default behavior. Reach for one rather than improvising. **A skill listed here that isn't installed → say so and stop; never improvise its function.**
+Skills and commands override default behavior. Reach for one rather than improvising. **Anything listed here that isn't installed → say so and stop; never improvise its function.**
 
 ## Scripts — use these, not raw shell
 
@@ -84,7 +84,7 @@ These are real commands on `PATH`, callable by name from any directory — no `b
 
 - **`gsave`** — the user's own git add + commit + push. **Never run it.** Name it and let the user run it.
 
-- **`bash ~/.claude/scripts/link-skills.sh`** — re-links every skill in the flow repo into `~/.claude/skills/`. Run after adding, renaming, or removing one; never needed otherwise.
+- **`bash ~/.claude/scripts/link.sh`** — re-links every skill, command and agent in the flow repo into `~/.claude/`. Run after adding, renaming, or removing one; never needed otherwise.
 
 ## Judgment
 
@@ -102,9 +102,9 @@ Governs every answer — status reports and one-line questions included, not jus
 
 - **Whole picture first.** The thing itself, then its parts. Never a close-up with no machine around it.
 - **Define from zero.** Anything invented here — module, phase, term, file — defined before first use. No expertise covers what didn't exist yesterday.
-- **No undefined shorthand.** "The engine", "the panel", "M2" — ground it in what the user actually sees, or drop it.
+- **No undefined shorthand, and no IDs ever.** "The engine", "the panel", "M2", "2i", "T1", "phase 3" — banned outright, even when the label names something real in a real file. A label the user would have to look up is not an explanation. Say what the thing *is*: "the checklist item that rewrites the handoff skill", never "2i".
 - **Plain words, short sentences.** Pick the simple word over the precise one when they compete. Clarity beats grammar. If a sentence has to be read twice, rewrite it.
-- **Never point at something without saying what it says.** A file, a past decision, an earlier message — quote or summarize it on the spot. The user has not read it.
+- **Never point at something without saying what it says, and a quote is not an explanation.** A file, a past decision, an earlier message — the user has not read it. Pasting its words is pointing, not explaining: say what it meant, in this context, in your own plain words.
 - **Calibrate tech** against `## The user`. Unfamiliar: one line, by what it does here.
 - **Priority order.** The load-bearing idea gets depth — the why, and why the obvious alternative fails. Trivia gets one line or none.
 - **Never hide your reasoning.** Think out loud while you work — what you decided and why. The user watches it happen.

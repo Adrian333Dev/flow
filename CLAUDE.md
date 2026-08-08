@@ -13,7 +13,8 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 - **Feedback is not approval.** Pushback, a new idea, a correction, a reaction — all still discussion, even if the user agrees with every point in it. Approval sounds like "do it", "go ahead", "apply that".
 - **Being told to build something is not approval of a change.** It starts the discussion about what to build.
 - **Exceptions:** writing down a decision already locked, and scratch files in `tmp/`.
-- **Deletes need their own explicit confirmation**, even inside an approved plan. Moving is not deleting. The one exception: something this session just superseded — converted, replaced, rewritten under a new name — where the dead copy goes immediately.
+- **Deletes need their own explicit confirmation**, even inside an approved plan. Moving is not deleting. Two standing exceptions, both pre-approved (user, 2026-08-08) — do them, never ask: something this session just superseded (converted, replaced, rewritten under a new name), and **cleanup of what a change left behind** — an orphaned file, an emptied folder, a dead reference. Tidying after yourself is part of the change, not a new one.
+- **Never install anything, and never propose installing.** Flow does not go on this machine until the workflow is finished — settled long ago, re-stated by the user 2026-08-08 after being raised for at least the third time. That covers `~/.claude/CLAUDE.md`, every symlink, `~/.local/bin`, `link.sh`, `settings.json`, and the whole install block in `wip/handoff.md`. Nothing being installed is the normal state, not a problem to solve. **A skill or command being untypeable is never a reason to install** — read the file and follow it.
 - **Designing this workflow uses plain conversation.** Never invoke a brainstorming skill to design Flow itself, neither `superpowers:brainstorming` nor Flow's own.
 - **Scratch files go in `tmp/`**, which is gitignored. Never `/tmp`, never the repo root.
 - **The user's profile is `wip/user-profile.md`.** Read it before writing anything for them — the short version is voice-to-text input with transcription errors, no filler, and a committed recommendation instead of a neutral list of options.
@@ -38,9 +39,9 @@ Governs every answer — status reports and one-line questions included, not jus
 
 - **Whole picture first.** The thing itself, then its parts. Never a close-up with no machine around it.
 - **Define from zero.** Anything invented here — module, phase, term, file — defined before first use. No expertise covers what didn't exist yesterday.
-- **No undefined shorthand.** "The engine", "the panel", "M2" — ground it in what the user actually sees, or drop it.
+- **No undefined shorthand, and no IDs ever.** "The engine", "the panel", "M2", "2i", "T1", "phase 3" — banned outright, even when the label names something real in a real file. A label the user would have to look up is not an explanation. Say what the thing *is*: "the checklist item that rewrites the handoff skill", never "2i".
 - **Plain words, short sentences.** Pick the simple word over the precise one when they compete. Clarity beats grammar. If a sentence has to be read twice, rewrite it.
-- **Never point at something without saying what it says.** A file, a past decision, an earlier message — quote or summarize it on the spot. The user has not read it.
+- **Never point at something without saying what it says, and a quote is not an explanation.** A file, a past decision, an earlier message — the user has not read it. Pasting its words is pointing, not explaining: say what it meant, in this context, in your own plain words.
 - **Calibrate tech** against `## The user`. Unfamiliar: one line, by what it does here.
 - **Priority order.** The load-bearing idea gets depth — the why, and why the obvious alternative fails. Trivia gets one line or none.
 - **Never hide your reasoning.** Think out loud while you work — what you decided and why. The user watches it happen.
@@ -63,7 +64,7 @@ Same mirror, same source.
 
 ## The skills on disk are stale — never audit them as if they were current
 
-`skills/` describes the **old** chain. Four of the eight (`brainstorm`, `execute`, `organize`, `handoff`) name paths the design has deleted. Reading one tells you what Flow used to do, not what it does.
+`skills/` describes the **old** chain. Three of the seven (`brainstorm`, `execute`, `organize`) name paths the design has deleted, and so does `commands/handoff.md`, which was a skill until 2026-08-08. Reading one tells you what Flow used to do, not what it does.
 
 **The current design lives in `wip/`** — `remaining.md`, the `design-*.md` files, `session-new-plugin.md` — and in `global/CLAUDE.md`. When a skill file and the design record disagree, the design record wins and the skill is simply not rewritten yet.
 
@@ -73,8 +74,9 @@ Same mirror, same source.
 |---|---|---|
 | `global/CLAUDE.md` | the rules that apply in every directory, project or not | copied to `~/.claude/CLAUDE.md`, then personalized |
 | `global/settings.json` | permissions, the `PreToolUse` hook, feature flags — every key explained in `global/settings.md` | merged into `~/.claude/settings.json` |
-| `global/scripts/` | `ptree.sh`, `fmerge.js`, `gsave.sh`, `guard.js`, `link-skills.sh`, `flow/flow.js` | the folder is symlinked as `~/.claude/scripts`; four of the files get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands |
+| `global/scripts/` | `ptree.sh`, `fmerge.js`, `gsave.sh`, `guard.js`, `link.sh`, `flow/flow.js` | the folder is symlinked as `~/.claude/scripts`; four of the files get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands |
 | `skills/` | every skill, one folder each | symlinked into `~/.claude/skills/` |
+| `commands/` | every slash command, one file each — `grill.md` is `/grill` | each file symlinked into `~/.claude/commands/` by `link.sh` |
 | `project-template/` | `CLAUDE.md` (`## Project` + `## Project rules`) and `.gitignore` — nothing else | copied into a new project |
 | `toolbox/` | **submodule** — [`Adrian333Dev/toolbox`](https://github.com/Adrian333Dev/toolbox), the catalog of external tools filed by job | symlinked as `~/.claude/toolbox`; the path `global/CLAUDE.md` names |
 | `wip/` | **temporary** — the design record this repo was built from, plus the archive material and dev-only scripts that came with it | nowhere; deleted when the build is done |
@@ -98,9 +100,10 @@ The copy here is the **template** — placeholders plus rules, public. The copy 
 ## Rules
 
 - **Telegraphic style** for everything that loads into agent context — see `skills/CLAUDE.md`.
-- **A skill edit is live immediately.** `~/.claude/skills/*` symlinks into `skills/`, so there is one copy and no propagation step. Adding, renaming or removing a skill is the only case needing `bash global/scripts/link-skills.sh`.
+- **A skill or command edit is live immediately.** `~/.claude/skills/*` and `~/.claude/commands/*` symlink into this repo, so there is one copy and no propagation step. Adding, renaming or removing one is the only case needing `bash global/scripts/link.sh`.
+- **Never symlink `skills/`, `commands/` or `agents/` as a folder.** Their `~/.claude/` counterparts are shared with entries Flow doesn't own — three non-Flow skills are linked there right now. `link.sh` links per item for that reason.
 - **Every script file keeps its extension. The symlink drops it.** `ptree.sh` on disk, `ptree` to type — the file says what runs it, the link says what you call it. Nothing in `global/scripts/` is ever extensionless.
-- **One source, two ways to reach it.** Every script lives once, in `global/scripts/`. `~/.claude/scripts` is a symlink to that folder, for the files named by path (`guard.js` in `settings.json`, `link-skills.sh`). `~/.local/bin/<name>` are per-file symlinks, for the four that are commands. No file is ever copied anywhere.
+- **One source, two ways to reach it.** Every script lives once, in `global/scripts/`. `~/.claude/scripts` is a symlink to that folder, for the files named by path (`guard.js` in `settings.json`, `link.sh`). `~/.local/bin/<name>` are per-file symlinks, for the four that are commands. No file is ever copied anywhere.
 - **PATH commands are written bare** — `ptree docs`, `fmerge src/`, `flow next`, never with a path or an interpreter. Everything else is written as `~/.claude/scripts/<file.ext>`.
 - **Two languages, by job.** Bash where the script is a thin wrapper over another command (`ptree.sh` over `tree`, `gsave.sh` over `git`); Node where there is real logic (`fmerge.js`, `flow/`, `guard.js`). Nothing else.
 - **Real commit messages.** The changelog convention in `skills/CLAUDE.md` only covers behavior changes; everything else is recoverable from git only if the message says something.

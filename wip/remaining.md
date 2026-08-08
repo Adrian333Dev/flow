@@ -140,7 +140,7 @@ commands are Flow-specific and only mean anything inside a Flow project.
       and already existed, so nothing had to be configured. Each command is a **symlink** into it pointing
       at the file in this repo — nothing is copied, so editing the repo changes the command instantly.
       `~/.claude/scripts/` stays a separate concern: it is a folder symlink for the two things that are
-      *not* PATH commands (`guard.js`, referenced by `settings.json`'s hook, and `link-skills.sh`).
+      *not* PATH commands (`guard.js`, referenced by `settings.json`'s hook, and `link.sh`).
       Aliases stay rejected: bash does not expand them in non-interactive shells, so the agent could not
       call them. **`setup-flow-globals` (build step 3) must create all four `~/.local/bin` links plus the
       `~/.claude/scripts` folder link** — they exist on this machine already, but a new machine has none.
@@ -149,7 +149,7 @@ commands are Flow-specific and only mean anything inside a Flow project.
       collide with what those words already mean around git, so the one-letter prefix says which noun the
       command operates on — **f**ile merge, **g**it save
 - [x] **Extensions stay on every file; the symlink drops them** (user, 2026-08-07, reversing the same
-      morning's call to strip them). `ptree.sh`, `fmerge.js`, `gsave.sh`, `guard.js`, `link-skills.sh`,
+      morning's call to strip them). `ptree.sh`, `fmerge.js`, `gsave.sh`, `guard.js`, `link.sh`,
       `flow/flow.js` on disk; `~/.local/bin/ptree` → `…/ptree.sh` and so on. The stripped version failed on
       its own terms: it was meant to be consistent and wasn't — `flow.js` kept an extension because it sits
       in a package folder — and an extensionless file shows no type in an editor. The symlink layer already
@@ -189,7 +189,7 @@ commands are Flow-specific and only mean anything inside a Flow project.
 - [x] **`guard.py` deleted 2026-08-07**, the moment `guard.js` replaced it. The deletes rule now carves
       out superseded files explicitly, in both this workbench's `CLAUDE.md` and `global/CLAUDE.md` — asking
       about a file the same session just replaced is friction, not safety
-- [x] **`~/.claude/scripts` folder symlink created 2026-08-07**, so `guard.js` and `link-skills.sh` are
+- [x] **`~/.claude/scripts` folder symlink created 2026-08-07**, so `guard.js` and `link.sh` are
       reachable at the path `settings.json` and the docs name. The hook itself is still not installed:
       `~/.claude/settings.json` has no `hooks` key yet — that is `setup-flow-globals`' job
 - [x] **`flow ticket new --body -` — built 2026-08-07.** Reads the whole file body from stdin and uses it
@@ -529,7 +529,10 @@ entries, overwhelmingly terminal.
 
 - [ ] `organize/SKILL.md` — "route decisions to the topic's `spec.md`" (topics have no spec.md now); "skills
       mean the ones under `.claude/skills/`" (skills are global-only since #H1)
-- [ ] 🔁 `handoff/SKILL.md` — **needs a new resolution ladder, not a path fix.** It currently knows two
+- [ ] 🔁 `commands/handoff.md` — **converted to a command 2026-08-08**; the file moved out of `skills/` and
+      now prefetches `git status --short` and `flow status` into the prompt, so the ladder below can be read
+      off rather than reasoned out. What remains here is content only. **Needs a new resolution ladder, not a
+      path fix.** It currently knows two
       locations (`docs/work/topics/t<NN>-<slug>/handoff.md`, else `docs/work/handoff.md`); both paths are
       dead, and the user raised 2026-08-06 that **a handoff is needed per ticket too** — mid-implementation
       is exactly when a session runs out. Product brainstorms need one as well: they are multi-session by
@@ -544,7 +547,7 @@ entries, overwhelmingly terminal.
       | none of the above | `docs/handoff.md` |
 
 - [ ] **A resume handoff and a job brief are different things — the skill already says so, and tickets give
-      the second one a home.** `handoff/SKILL.md` today: the default is *resume the same work*, overwritten,
+      the second one a home.** `commands/handoff.md` today: the default is *resume the same work*, overwritten,
       one per context; naming a different job outright ("debug this", "investigate in parallel") makes it a
       **brief** for that job, written as its own file so it cannot clobber the resume. Several briefs can be
       live at once; there is only ever one resume. With folder-per-ticket both land inside the ticket folder:
@@ -575,11 +578,13 @@ Once per machine. Design: `design-init-flow.md` #G7.
 
 - [ ] Copies `global/CLAUDE.md` → `~/.claude/CLAUDE.md`, merges `global/settings.json` into
       `~/.claude/settings.json` (this is what installs the `guard.js` hook — a fresh machine has no `hooks`
-      key at all), runs `link-skills.sh`
+      key at all), runs `link.sh`
 - [ ] **Three symlink jobs, all of them:** the folder link `~/.claude/scripts` → `global/scripts/`, for files
       named by path · the four `~/.local/bin` per-file links that drop the extension (`ptree`, `fmerge`,
       `gsave`, `flow`) · **`~/.claude/toolbox` → the `toolbox/` submodule**, which is the path
       `global/CLAUDE.md` names for the tool catalog. Miss the last one and every external-tool lookup breaks
+      ⚠️ `commands/` and `agents/` are **not** here — `link.sh` links those per file, same as skills, because
+      `~/.claude/{skills,commands,agents}/` are shared namespaces. A folder symlink evicts every non-Flow entry
 - [ ] **Creates `~/.claude/flow/` and never writes inside it.** `notes.md` there belongs to the user, not the
       template — silent and unrecoverable if it is overwritten
 - [ ] Interviews once for `## The user` and `## Preferences`. **Source material is `wip/user-profile.md`**,
@@ -654,9 +659,11 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
 
 ## Housekeeping
 
-- [ ] **Link the skills globally** once the set is final: `bash global/scripts/link-skills.sh` from the repo
-      root. Not before — nothing loads until then, and that is deliberate. As of 2026-08-07 `~/.claude/skills/`
-      holds only three unrelated folders from May; no Flow skill is installed anywhere
+- [ ] **Link skills and commands globally** once the set is final: `bash global/scripts/link.sh` from the
+      repo root. Not before — nothing loads until then, and that is deliberate. As of 2026-08-07
+      `~/.claude/skills/` holds only three unrelated folders from May (`find-skills`,
+      `improve-codebase-architecture`, `write-a-skill`, all linked to `~/.agents/skills/`) and
+      `~/.claude/commands/` does not exist; no Flow skill or command is installed anywhere
 - [ ] **Tune `guard.js`'s deny/ask lists** against real use. Written from the hard rules, never against
       observed false positives; a `deny` verdict cannot be overridden in-session
 - [ ] **Real commit messages.** Nearly every commit in `flow` says `save`, which is why per-skill changelogs
@@ -692,10 +699,20 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
       stack skills, which is why it was deferred
 - [ ] **Audit** — checking current work against a skill's accumulated best practices. Parked as ecosystem
       issue #4; needs scoping to the skills the work actually touched, or it is unbounded reads
-- [ ] **Red-team / grill mode** — an adversarial pass that attacks a design before it locks. Captured
-      2026-07-23, never designed. Ancestor: delapse's `grill-me` / `grill-with-docs`.
-      **Overlaps `wip/threads.md`, thread `judgment`**, which is the always-on version covering every
-      proposal in every phase; decide there whether it absorbs this one or they stay two things
+- [x] **Red-team / grill mode** — designed and built 2026-08-08 as **`commands/grill.md`**, typed `/grill`.
+      A prompt template fired at the same agent for a second pass: restate the target as mechanism, run named
+      cases through it *and* through its rivals (what exists today, the cheap patch, doing nothing), filter,
+      report findings only. Ancestors read and mostly rejected — Matt Pocock's `grill-me` interviews the user,
+      which is the opposite job; `doubt-driven-development`'s "strip your reasoning or you get back validation
+      of your conclusions" is the one idea kept. **Two layers, not one** (the question this entry left open):
+      the always-on half is `## Judgment` in both `CLAUDE.md` files, `/grill` is the invoked half.
+      ⚠️ `wip/threads.md` thread `judgment` still lists name, form, trigger and depth as undecided — stale
+- [ ] **Cold-reader `/grill`** — parked upgrade, the known weakness of the version built. Same context means
+      the agent can walk the motions and pass itself; the filters push back, a reader that never saw the
+      argument pushes harder. Later version hands the stripped mechanism + bar to subagents that never saw the
+      conversation — one attacking the target, one walking the rivals *without ever seeing the target*, so it
+      cannot defend either side. Blocked on the `extension-points` thread, and argue it against the
+      1.1M-token subagent study case in `session-new-plugin.md` before building
 
 ---
 

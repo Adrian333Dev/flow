@@ -22,6 +22,11 @@ the reasoning behind each locked decision.
 
 **Flow does not run on this machine.** This is the fact most likely to cause confusion.
 
+**This is deliberate and it is not yours to fix.** Nothing gets installed until the workflow is finished —
+the user has now said so at least three times, most recently 2026-08-08. Never run the commands below, never
+suggest running them, never treat a skill or command being untypeable as a blocker. Read the file on disk and
+follow it. The list is here so a session knows why `ptree` fails, not as a to-do.
+
 - `~/.claude/skills/` holds three unrelated folders from May and no Flow skill
 - `~/.claude/CLAUDE.md` has not been written, so **none of `global/CLAUDE.md`'s rules load**
 - `~/.claude/settings.json` has no `hooks` key, so the `guard.js` PreToolUse hook is not active
@@ -29,7 +34,7 @@ the reasoning behind each locked decision.
 
 The four PATH commands and `~/.claude/scripts` pointed into the `agentic-setup` workbench repo, which was
 deleted outright on 2026-08-07 (GitHub repo included) after everything worth keeping was carried into `wip/`.
-They broke with it. Re-point them:
+They broke with it. What *would* re-point them, for the record only — **do not run this**:
 
 ```bash
 ln -sfn ~/code/flow/global/scripts               ~/.claude/scripts

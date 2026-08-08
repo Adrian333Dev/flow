@@ -16,6 +16,7 @@ A project then adds only what actually varies: its name and stack, and the rules
 |---|---|
 | `global/` | what gets installed into `~/.claude/` — rules, settings, scripts |
 | `skills/` | every skill, symlinked into `~/.claude/skills/` |
+| `commands/` | every slash command, symlinked into `~/.claude/commands/` — `handoff.md` is `/handoff` |
 | `project-template/` | the two-and-a-bit files a new project starts with |
 
 ## Setup — once per machine
@@ -25,8 +26,8 @@ A project then adds only what actually varies: its name and stack, and the rules
 git clone --recurse-submodules https://github.com/Adrian333Dev/flow ~/code/flow
 cd ~/code/flow
 
-# 1. skills
-bash global/scripts/link-skills.sh
+# 1. skills, commands, agents
+bash global/scripts/link.sh
 
 # 2. the scripts folder, for the files referenced by path
 ln -sfn ~/code/flow/global/scripts ~/.claude/scripts
@@ -80,5 +81,5 @@ Four are commands on `PATH`, called by name from anywhere:
 
 Two are referenced by path, never typed:
 
-- `link-skills.sh` — re-link `skills/` into `~/.claude/skills/` after adding or renaming one
+- `link.sh` — re-link `skills/`, `commands/` and `agents/` into `~/.claude/` after adding or renaming one
 - `guard.js` — the `PreToolUse` hook: blocks privileged commands, pipe-to-shell and git mutations, and escalates dependency installs and out-of-repo deletes to a prompt. Never run by hand.
