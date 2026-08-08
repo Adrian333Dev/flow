@@ -49,3 +49,40 @@ made explicit.
 **Open question this raises.** A rule that is present in context and still broken is evidence
 that always-on rules do not catch this class. Candidate for the same treatment as proposal
 review — a check that runs against the drafted message, not a line in a file.
+
+---
+
+## 2026-08-09 — borrowed vocabulary from the design record
+
+**Context.** Explaining what separates two ways a brainstorm can end: create the tickets now,
+or write a spec first and create tickets from it over months.
+
+**What was sent (excerpt):**
+
+> **Will tickets keep being minted from this for months, or is this a one-time mint?**
+> […] You can mint three tickets off a decision tree today; you cannot mint ticket #47 off it
+> in month six.
+
+Plus a table column headed **"minting"**, and *"`prod-vision.md` in your kb is that spec in
+embryo"*.
+
+**User's reaction:** *"I didn't understand a single fucking sentence"*, *"why the fuck are you
+using mint? What the fuck does mint mean here?"*, *"Do not use some rare terminology that I have
+never heard of."*
+
+**The fault.** `mint` appears throughout `wip/remaining.md` and `global/CLAUDE.md` — *"it commits
+by minting the child tickets"*. It was absorbed from the design record and used in conversation
+as if it were shared vocabulary. It is not: the user never wrote it and never used it back. The
+plain word is **create**, and it is not one character longer in meaning. `in embryo` was the same
+failure in a second register.
+
+**Why the existing rules missed it.** `## Explaining` bans *undefined shorthand* and *IDs*, and
+`mint` is neither — it is an ordinary English word in a specialised sense. The rule needs a third
+category: **a word that appears in Flow's own files is not thereby shared with the user.** Written
+docs and conversation are separate vocabularies; the design record may use terms of art, a message
+may not.
+
+**Second fault, same message.** The distinction being drawn was real and the user accepted it
+immediately once restated in plain words. So the idea was never the problem — only the words
+carrying it. Length was not the issue either; the section was six lines. **A short paragraph made
+of the wrong words fails exactly as hard as a long one.**

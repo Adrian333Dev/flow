@@ -16,11 +16,15 @@ Legend: ⛔ blocks the items under it · ❓ needs a decision before it can be b
 
 The design is close to done. **Almost nothing is built.**
 
-`flow/skills/` holds eight skills written against the **old** chain — `brainstorm.md → spec.md → plan.md`,
+`skills/` holds skills written against the **old** chain — `brainstorm.md → spec.md → plan.md`,
 topic folders at `docs/work/topics/t<NN>-<slug>/`, milestones. The 2026-08-05 and 2026-08-06 sessions
-replaced that chain with **topics → one flat ticket pool → a `## Plan` section inside the ticket**, and
-added product mode on top. So the skills on disk describe a system that no longer exists. Four of the eight
-(`brainstorm`, `execute`, `organize`, `handoff`) name paths and files that the design has deleted.
+replaced that chain with topics plus a flat ticket pool and a `## Plan` section inside the ticket; **2026-08-08
+then deleted topics too**, and **2026-08-09 cut brainstorms loose from any container** — see the two locked
+sections below. So the files on disk describe a system that no longer exists. `brainstorm`, `execute` and
+`organize` name deleted paths, and so does `commands/handoff.md`, which was a skill until 2026-08-08.
+
+`skills/` holds eight as of 2026-08-09: `grill` moved in from `commands/` that day. `commands/` now holds
+`handoff.md` only.
 
 Nothing is symlinked into `~/.claude/` and nothing is installed — deliberate, until the skill set is final.
 
@@ -35,90 +39,347 @@ nothing in it is part of the product. Never let a `wip/` path leak into a skill,
 
 ---
 
-## ⏸ PARKED — "delete the topic; a ticket holds its own brainstorm" (2026-08-07)
+## ✅ LOCKED — one entity: the ticket absorbs the topic (approved 2026-08-08)
 
-**Status: fully explained to the user, deliberately NOT approved. Parked so other work goes first.**
-Do not implement. Do not re-open unprompted. When it is re-opened, everything needed is below — the
-conversation it came from is gone.
+**Approved by the user 2026-08-08 after a full walk-through. Build it.** Proposed and parked 2026-08-07;
+re-opened and reworked 2026-08-08. The status set, the drop semantics and `reason:` are new in the rework and
+were never part of the parked version. Everything below is decided unless marked otherwise.
 
-**Where the system stands today — three containers.** (1) `docs/brainstorm/`, the product brainstorm, one
-per project, output `docs/spec/`. (2) `docs/topics/<slug>/`, a brainstorm about one subject — `topic.md` +
-`brainstorm/`; thinking, never work; produces tickets, is never built. (3) `docs/tickets/tNNN-slug/`, one
-unit of work — `ticket.md` + `handoff.md` + job briefs; gets built. **Brainstorms may live only in (1) and
-(2). A ticket cannot hold one.**
+### What a project holds afterwards
 
-**The problem the user raised, and it is real.** He states — and it is his work, so it is his call — that
-**most tickets need a genuine brainstorm at pickup**, tree and all, and that **most of those do not split
-into sub-tickets.** His example: a small isolated feature, minted during an earlier brainstorm with partial
-detail; at pickup you think it through, lock the behaviors, build it. One ticket in, one ticket out. Today
-that forces creating a topic — a container whose entire purpose is decomposition — for something that does
-not decompose.
+```
+docs/brainstorms/  thinking not attached to a ticket. Any number of them, two modes
+     │
+     │  product mode ends by writing
+     ▼
+docs/spec/         what the product is
+     │
+     │  tickets are created from it, for as long as the product lives
+     ▼
+docs/tickets/      the work pool. Flat, every ticket at one level
+```
 
-**The argument that actually decides it (user, and the agent had missed it):** *you cannot know at the start
-of a brainstorm whether it will split.* Therefore no rule can make the brainstorm's **location** depend on
-its **outcome**. Any "put it in the ticket, move it to a topic if it splits" scheme dies on the locked
-invariant that a ticket's path never changes during its life (handoffs and job briefs sit in that folder).
+**`docs/topics/` is deleted, and so is `flow topic`.**
 
-**The proposal — two containers instead of three.**
+**Superseded in part, 2026-08-09.** This diagram originally read `docs/brainstorm/` — singular,
+product only, "once, before any work item exists" — and the text called it two containers split by
+altitude. The plural folder and the two modes replaced that; see the 2026-08-09 locked section below.
+
+### One ticket on disk
 
 ```
 docs/tickets/t047-daemon-detection/
-  ticket.md          metadata + description + ## Plan
-  brainstorm/        tree.md + a detail file per branch that grew.  ALWAYS here, never elsewhere
-  handoff.md
-  <slug>.md          job briefs
+├─ ticket.md        frontmatter, description, ## Plan
+├─ brainstorm/      tree.md + one file per branch that grew. ALWAYS present, from birth
+├─ handoff.md       resume state, overwritten, at most one
+└─ <slug>.md        job briefs, one per dispatched job
 ```
 
-- `docs/topics/` deleted. `flow topic …` deleted.
-- Frontmatter: **`topic:` → `parent:`** (the ticket this one was split out of; empty for most).
-- **Statuses gain `parked`** — thought it through, deliberately not building it. Absorbs the one topic
-  status with no ticket equivalent; `dropped` means abandoned, which is a different fact.
-- A ticket with children is never built; the children are the work; it is done when they are.
-- `docs/brainstorm/` (product) **unchanged** — it happens once, before any work item exists, and produces
-  the spec. Two containers, split cleanly by altitude.
-- Pickup becomes: `flow start t047` → does it already carry its decisions? *(rare)* plan and build →
-  otherwise brainstorm it **in its own folder** → then either children fall out
-  (`flow ticket new … --parent t047`, t047 stays `in-progress`) or they do not (write `## Plan`, build).
-  Or `flow park t047`. **Nothing ever moves, either way.**
+Frontmatter `topic:` becomes **`parent:`** — the ticket this one was split out of, empty for most. A ticket
+with children is never built itself; the children are the work, and it is done when they are. `docs/tickets/`
+stays flat on disk — the hierarchy is frontmatter, rendered by `flow` on demand.
 
-**Objections raised against it, and where each landed** (the agent argued this down twice before conceding;
-keep the record so it is not re-argued from scratch):
+### The problem it solves
+
+Most tickets need a genuine brainstorm at pickup, tree and all, and **most of those do not split.** One ticket
+in, one ticket out. The old rule forced creating a topic — a container whose entire purpose is decomposition
+— for something that does not decompose.
+
+### The argument that decides it (user's; the agent had missed it)
+
+**You cannot know at the start of a brainstorm whether it will split.** Therefore no rule may make a
+brainstorm's *location* depend on its *outcome*. That also kills the cheap patch — start it in the ticket,
+move it to a topic if it splits — for a second, independent reason: a ticket's path is fixed for life,
+because `handoff.md` and the job briefs sit in that folder and are referenced by path.
+
+Hence `brainstorm/` exists from birth, always. **Nothing ever moves, in any branch.**
+
+### Statuses — seven, replacing ten
+
+Today: tickets carry `todo, in-progress, review, done, dropped, superseded`; topics carry
+`in-progress, parked, committed, dropped`. `in-progress` is the weak one — it is true while thinking, while
+coding and while checking, so it answers nothing.
+
+| status | means | next move |
+|---|---|---|
+| `todo` | minted, never picked up | `flow start` |
+| `thinking` | picked up; evaluating, brainstorming, researching | resolve the open decisions |
+| `building` | the plan is written, code is being written | work the plan |
+| `review` | built, being checked | verify, then close |
+| `done` | finished | terminal |
+| `parked` | thought through, deliberately not now | `flow start` revives it |
+| `dropped` | abandoned | terminal |
+
+- **`thinking`, not `brainstorming`** — every ticket passes through it including the ones needing no
+  brainstorm at all, and it also covers reading the code and doing research. "Brainstorming" would be a lie
+  in the common case.
+- **`committed` dissolves** — "children exist" is data `flow` reads off, never a state.
+- **`superseded` dissolves too**, see *Drop* below.
+- A parent that split sits in `building` like anything else; its work is being done by its children. `flow`
+  renders `2/3` where a normal ticket shows a plan.
+
+### Pickup
+
+```
+flow start t047
+│
+└─ evaluate: read the code, read what the ticket already carries
+   │
+   ├─ decisions all present     write ## Plan            ──▶ building
+   │
+   └─ open decisions            brainstorm/ tree, resolve it
+      │
+      ├─ one unit of work       write ## Plan            ──▶ building
+      │
+      ├─ several units          mint children            ──▶ building
+      │                         t047 is done when they are
+      │
+      └─ not worth building     flow park t047           ──▶ parked
+```
+
+The evaluation is **not a status.** It is the first minutes of `thinking`; a state occupied for ninety
+seconds does not earn a name.
+
+### Drop, and what happens to dependents
+
+`deps` is stored on one side only — `t060` carries `deps: [t047]`, and `t047` records nothing about `t060`.
+`flow` finds dependents by scanning. So when `t047` dies, the data that goes stale lives on a ticket the user
+was not thinking about, and every repair edits *that* ticket. That asymmetry is the whole issue.
+
+Left alone, a dropped dependency counts as permanently unmet, so `t060` never appears in `flow next` again —
+invisible rather than lost. `flow check` already reports exactly this.
+
+**Bare `drop` refuses when live dependents exist**, and lists them **transitively** — `t070` behind `t060`
+behind `t047` all appear before anything is destroyed. Two ways out, mutually exclusive:
+
+```
+flow ticket drop t047 --by t051      live dependents re-point: deps [t047] becomes [t051]
+flow ticket drop t047 --force        live dependents are dropped too, each with an automatic reason
+```
+
+`--by` requires `t051` to exist and prints every ticket it touched. Dependents already `done` or `review` are
+left alone either way — their history is not rewritten. **The `by:` frontmatter field is not kept**: `--by`
+needs the replacement only at the moment it runs, nothing queries it afterwards, and the trail lives in
+`reason:` instead.
+
+This is the old `supersede` behaviour, minus the status and the separate command. The user rejected
+`superseded` as a status on 2026-08-08 — *"too specific and most of the time we won't be needing it"* — after
+the agent had first recommended deleting the mechanism outright, which was wrong: the mechanism is the only
+thing that rescues dependents, and the code comment said so.
+
+### `reason:` — why a status changed
+
+New in the rework, user's idea. One frontmatter field, overwritten on each change that carries one; git holds
+the previous values, so an append-only log would buy history that already exists.
+
+| transition | reason |
+|---|---|
+| `todo → thinking → building → review → done` | none — the workflow *is* the reason |
+| `→ parked` | **required**, typed by the user |
+| `→ dropped` | **required**, typed by the user |
+| dropped by a `--force` cascade | **automatic** |
+
+```
+flow park t047 "vendor API changes land in Q3, pointless before that"
+flow ticket drop t047 "we're not shipping a daemon at all"
+
+reason: dropped with t047 (detect the daemon), which it depended on     ← the automatic one
+```
+
+An optional reason is a reason nobody writes; requiring it on exactly the two exits where the *why* is
+unrecoverable makes it stick without taxing the daily path. **Reviving a parked ticket clears the field** —
+a stale reason is worse than none.
+
+### Closed: does a parent auto-close when its last child finishes?
+
+**No — `flow done` refuses on a parent with open children and leaves the call to the user.** Decided
+2026-08-08; the user was indifferent and left it to the agent. Closing a parent is a judgment about whether
+the original question got answered, and the children finishing is evidence, not proof.
+
+### Deleted by this decision
+
+`docs/topics/` · `flow topic` and all its subcommands · topic statuses `in-progress`, `parked`, `committed`,
+`dropped` as a separate set · ticket status `superseded` · `flow ticket supersede` · the `by:` field · the
+`superseded` branch in `unmetDeps` · the `supersededDeps` section of `flow check` · topic frontmatter
+`from:`.
+
+### The one real loss
+
+Topic frontmatter had **`from: [t014, t018]` as an array** — several tickets feeding one design session, for
+when two open questions are really one design problem. A ticket has exactly one `parent`, so that goes.
+Workaround: mint one ticket owning the combined question with `deps` on both. Clumsier, and a genuine trade.
+
+### Objections raised against the merge, and where each landed
+
+The agent argued this down twice before conceding; the record is kept so it is not re-argued from scratch.
 
 1. *Topic and ticket statuses are incompatible — a topic has no `done` because "a topic is a document, not
-   work".* **Resolved.** With one kind, `committed` is derivable (children exist), topic `in-progress` is
-   the same word tickets use, and `parked` becomes a ticket status.
+   work".* **Resolved.** With one kind, `committed` is derivable, and `parked` becomes a ticket status.
 2. *`parent` was deliberately removed once.* **Resolved.** The stated reason was **redundancy with `topic`**
    — *"`topic` already groups, and the containment link is stored once on the topic side (`from:`)"*. Remove
    topics and the redundancy is gone. The separate cycle objection was aimed at collapsing parent *into*
    `deps`, which this does not do.
 3. *Product mode does not collapse — `docs/brainstorm/` can never be a ticket, so you end with two concepts,
    not one.* **True, and accepted as fine.** An honest split by altitude with no overlap, and simpler than
-   today's three where two of them (topic, parent ticket) do the same job. The user's instinct that product
-   mode needs its own container was right; the inference that it therefore needs topics too was not.
+   three where two of them (topic, parent ticket) did the same job.
+   **Overturned 2026-08-09.** The acceptance was wrong, and wrong for a reason nobody checked at the time:
+   `docs/brainstorm/` allowed exactly **one per repo**, and that is false in three of the user's four real
+   directories. The fix was not to make the product brainstorm a ticket — it is a folder that holds
+   brainstorms, plural, in either of two modes. See the 2026-08-09 section.
 4. *Hierarchy was rejected on evidence* — delapse's `e1-web-app/` + `s01-*.md` + `t14-*.md` mixture the user
    could not parse. **Survives but does not bite:** `docs/tickets/` stays flat, the link is frontmatter, and
    `flow` renders the tree on demand.
 5. *The merge is not needed to fix the case — one folder would do.* **Overtaken.** Killing the ticket→topic
-   conversion leaves topics with no birth mechanism in the loop (the only other entry, "a subject with no
-   ticket yet", is already served by `flow ticket new` + brainstorm), so they wither. Half-keeping them is
-   worse than either alternative.
+   conversion leaves topics with no birth mechanism, so they wither. Half-keeping them is worse than either
+   alternative.
 
-**The one real loss.** Topic frontmatter had **`from: [t014, t018]` as an array** — several tickets feeding
-one design session, for when two open questions are really one design problem. A ticket has exactly one
-`parent`, so that goes. Workaround: mint one ticket owning the combined question with `deps` on both —
-clumsier, and a genuine trade.
+### Build cost
 
-**Cost if approved.** `flow` (~950 lines): strip topic commands, add `--parent` / `--under` / `park`; touches
-`store.js`, `graph.js`, `render.js` and the surface. Then a sweep of `global/CLAUDE.md`, this file,
-`design-brainstorm-rework.md`, and the `brainstorm` skill. **Cheaper before 2c–2g than after** — four skills
-are about to be written against whichever shape wins.
+- **`flow` (~950 lines)** — strip the topic commands; add `--parent`, `park`, `reason:`, the transitive
+  dependent check on drop, `--by` / `--force`; rename two statuses and add one; delete `superseded`
+  everywhere; refuse `done` on a parent with open children. Touches `store.js`, `graph.js`, `render.js` and
+  the command surface.
+- **`global/CLAUDE.md`** — the `## Workflow` block still describes three containers and carries a
+  **two-outcome** pickup ladder (plan it, or open a topic) written 2026-08-07. Both get replaced by the
+  pickup tree above. Also the `docs/tickets/` and `docs/handoff.md` table rows.
+- **`wip/design-brainstorm-rework.md`** and the `brainstorm` skill — written against topics.
+- The five skill rewrites below were blocked on this call. **They are unblocked now**, and every one of them
+  gets written against the shape above.
 
-**Open sub-question, unanswered:** when the last child of a parent finishes, does `flow` mark the parent
-`done` automatically, or refuse `flow done` on a parent with open children and leave the call to the user?
-Agent leans the second.
+---
 
-**Knock-on if it is approved:** `global/CLAUDE.md`'s `## Workflow` currently carries a **two-outcome** pickup
-ladder (plan it, or open a topic) written 2026-08-07 against the *existing* design. It gets replaced.
+## ✅ LOCKED — brainstorms stand alone, in two modes (approved 2026-08-09)
+
+**Approved by the user 2026-08-09**, after walking the design against three real directories outside this
+repo. Supersedes the `docs/brainstorm/` row of the 2026-08-08 section and overturns its objection #3.
+
+### The change, in one line
+
+**A brainstorm no longer needs a container Flow owns.** It is a shape that can sit anywhere, and it has two
+modes chosen when it starts.
+
+### The evidence that forced it
+
+Three directories the user named, none of them a plain software project:
+
+| Directory | What it is | Verdict |
+|---|---|---|
+| `~/code/toolbox` | tool catalog, being rebuilt as an automated crawler + queryable library | **fits already.** It is a real software product. Only open question is how an existing repo enters Flow — that is `migrate-to-flow` |
+| `~/code/playground` | one git repo holding four unrelated things: `delapse`, `real-aloud-app`, `sap`, `yt-workflow` | **breaks the singular product folder.** There is no "the product" to brainstorm |
+| `~/kb_v0` | personal notes with its own complete filing system, documented in its `GUIDE.md` | **never gets tickets.** But brainstorms happen there, before any repo exists |
+
+Damage already on disk in those repos, all from one cause — a brainstorm having nowhere legitimate to sit:
+
+- `reader-app` material exists in **both** `kb_v0/20-projects/planned/reader-app/` and
+  `playground/real-aloud-app/` (`prod-vision.md`, `voiceover-feature/` in each). `delapse` material is split
+  three ways. Nothing marks which copy is live.
+- `kb_v0/20-projects/planned/` holds **seven** stalled brainstorms — browser-agent, reader-app, lang-app,
+  marketing-toolkit, media-recommendation-app, yt-media-reply — with no status, no date, no recorded reason.
+
+### The two modes
+
+Chosen when the brainstorm starts. There is no test and no rule about outcomes.
+
+| | **Normal mode** | **Product mode** |
+|---|---|---|
+| subject | anything — a topic, a question, a feature, a ticket's own thinking | a whole product |
+| how it ends | create tickets, or write a document, or nothing | write `docs/spec/` |
+| after it ends | finished | tickets are created **from the spec**, for as long as the product lives |
+
+**Started normal and it turns out to be a product?** Start a fresh brainstorm in product mode and list the
+earlier ones as references at the top of its `tree.md`. Nothing converts, nothing moves, the old ones stay
+untouched. This is the user's answer (2026-08-09) to the agent's objection that a mode cannot be chosen up
+front because the outcome is unknowable — **the objection is withdrawn**; a wrong guess costs one new folder.
+
+### Where a brainstorm lives
+
+```
+docs/
+├─ brainstorms/              not attached to a ticket. Both modes, any number
+│  ├─ toolbox-rebuild/       product mode
+│  │  ├─ tree.md             mode recorded at the top, not in the path
+│  │  └─ <branch>.md
+│  └─ sap-network/           normal mode
+│
+├─ spec/                     written by a product-mode brainstorm
+│  ├─ product.md
+│  └─ tech.md
+│
+└─ tickets/
+   └─ t047-scrub-back/
+      └─ brainstorm/         normal mode, this ticket's own thinking. Present from birth
+```
+
+Outside a project — `~/kb_v0`, a bare directory — a brainstorm sits **wherever you are standing**, same
+shape, no reserved path. `docs/brainstorm/` singular is **deleted**: it allowed exactly one per repo.
+
+### The two outputs — only one of them travels
+
+Every brainstorm produces two things, and confusing them is what put `reader-app` in two repos:
+
+- **the working material** — `tree.md` plus a file per branch that grew. **Stays where the thinking
+  happened**, always, with one exception below.
+- **the finished document** — a spec, a product vision, a research writeup. **Files wherever it belongs**,
+  which is often not where the thinking happened.
+
+**One live copy of anything; everywhere else is a one-line pointer.** This is the rule that would have
+prevented the observed three-way `delapse` split.
+
+### When the folder does move
+
+A loose brainstorm turning out to be **one unit of work**: the whole folder moves into the ticket it
+becomes, as that ticket's `brainstorm/`, and nothing is left behind. Legal because the ticket does not exist
+until the move — "a ticket's path is fixed for life" starts at that moment.
+
+Turning out to be **several units**: the folder **stays** and becomes the design record; the tickets link to
+it. Reason it does not move into a parent ticket instead: terminal tickets move to `docs/tickets/archive/`,
+so a parent closing would bury the design record for shipped work in an archive folder.
+
+**A loose brainstorm in a directory that becomes a project during the ending** — greenfield, `docs/` is
+created right then — is placed into `docs/brainstorms/<slug>/` at that moment. Otherwise it sits at repo
+root beside a `docs/` tree forever.
+
+### Rulings that came out of the same walk
+
+- **"Project" means `## Project` is present, never "a `CLAUDE.md` exists."** A directory can want rules
+  without being a project. `~/kb_v0` gets a rules-only `CLAUDE.md` — no `## Project`, no `docs/` table, no
+  tickets, no `flow` — and it grows over time.
+- **Every path Flow names is a default.** A path written in `## Preferences` (machine-wide) or in a
+  directory's own `CLAUDE.md` (that directory only) wins. Stated **once** in `global/CLAUDE.md`; no
+  per-path override syntax, no `## Paths` block, nothing in `project-template/`. Pattern copied from
+  superpowers' brainstorming skill, which names one default path and adds a single parenthetical.
+- **Prototypes.** Loose brainstorm → the prototype sits inside the brainstorm folder. Inside a project →
+  `protos/` at repo root, because `docs/` must not hold runnable code; the brainstorm links to it.
+- **Brainstorm always precedes the prototype.** The agent claimed a prototype can come first and produce the
+  question; the user corrected it — `real-aloud-app` went brainstorm, then research, then prototype. No
+  change to the chain.
+- **A global register of loose brainstorms is PARKED, not dropped.** Proposed as
+  `~/.claude/flow/brainstorms.md`, one line each — date, path, one-line subject, and the session id, which is
+  real and reachable (`CLAUDE_CODE_SESSION_ID`, transcripts at `~/.claude/projects/<path-slug>/<id>.jsonl`).
+  User's reason for parking: brainstorms will now have fixed homes, so nothing will be lost. **What would
+  revive it:** a brainstorm the user actually cannot find. The seven stalled folders in `kb_v0` were argued
+  as evidence for building it and did not carry the day, on the grounds that they stalled under the old shape.
+- **`grill` is a skill, not a command** — **done 2026-08-09**, moved to `skills/grill/SKILL.md`. The rule it
+  establishes: a command is a one-shot prompt and is the right shape only when shell output must land
+  *before* the model reasons (`/handoff` needs `git status` and `flow status`). A method that governs a
+  stretch of conversation is a skill.
+
+### Vocabulary — user-facing text
+
+**Say "create", never "mint".** The word is all over this file and `global/CLAUDE.md`; it was never shared
+with the user and reading it back to them failed outright (2026-08-09, recorded in
+`wip/study-cases/bad-explanations/`). A word appearing in Flow's own files is not thereby a word the user
+knows. Not swept from the existing design record — that is a build item, below.
+
+### Build cost
+
+- **`global/CLAUDE.md`** — `## Key docs`: delete the `docs/topics/` row, replace the `docs/brainstorm/` row
+  with `docs/brainstorms/`. `## Workflow`: delete "topic mode" and "product mode" from the chain, replace the
+  two-outcome pickup ladder. Add the one-line path-default rule. Sweep "mint".
+- **`project-template/`** — a second `CLAUDE.md` shape for a plain directory: rules only, no `## Project`.
+- **`brainstorm` skill (2c below)** — every topic path, plus the two modes, the three endings, the
+  reference-earlier-brainstorms move, and where the folder may sit.
+- **`flow`** — unaffected by this section. It never knew about brainstorms.
 
 ---
 
@@ -368,6 +629,12 @@ and short ids (`t5`) parsed and normalized on the next write.
 
 The engine survives ("brainstorm's core is not up for rewrite — the failure was at the seam"), but every
 path, the tree notation and the whole close phase change.
+
+> **The bullets below predate 2026-08-08 and 2026-08-09 and are stale wherever they name topics, a singular
+> `docs/brainstorm/`, or a topic-vs-product test.** Build this against the two locked sections at the top of
+> this file, not against the list here. Specifically dead: the topic paths, the topic frontmatter and its
+> four statuses, the topic-vs-product discriminator, and "two exits". Live replacements: two modes chosen at
+> the start, three endings, `docs/brainstorms/<slug>/` or wherever you are standing.
 
 - [ ] Zero-based branch indices (`0`, `1`, `2`; children `0.0`, `0.1`) replacing `A`/`B`/`C1`
 - [ ] Output split: `tree.md` always whole in one file + `<index>-<name>.md` detail **only for branches that
@@ -705,14 +972,26 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
       report findings only. Ancestors read and mostly rejected — Matt Pocock's `grill-me` interviews the user,
       which is the opposite job; `doubt-driven-development`'s "strip your reasoning or you get back validation
       of your conclusions" is the one idea kept. **Two layers, not one** (the question this entry left open):
-      the always-on half is `## Judgment` in both `CLAUDE.md` files, `/grill` is the invoked half.
+      the always-on half is `## Judgment` in both `CLAUDE.md` files, grill is the invoked half.
       ⚠️ `wip/threads.md` thread `judgment` still lists name, form, trigger and depth as undecided — stale
+      **Moved to `skills/grill/SKILL.md` on 2026-08-09** — a command is one-shot, and grill is a method that
+      runs across a whole discussion. The text above is accurate for its own date; the file is no longer a
+      command and is no longer typed with a slash.
 - [ ] **Cold-reader `/grill`** — parked upgrade, the known weakness of the version built. Same context means
       the agent can walk the motions and pass itself; the filters push back, a reader that never saw the
       argument pushes harder. Later version hands the stripped mechanism + bar to subagents that never saw the
       conversation — one attacking the target, one walking the rivals *without ever seeing the target*, so it
       cannot defend either side. Blocked on the `extension-points` thread, and argue it against the
       1.1M-token subagent study case in `session-new-plugin.md` before building
+- [ ] **Where the user's complaints get written down — one file will not hold it** (raised 2026-08-08).
+      The standing decision was: whenever something in the workflow annoys the user, he tells the agent to
+      write it into a **single running file**, and the batch gets tackled later. That breaks now that the
+      **study-case treatment is wanted for the same material** — the offending output kept verbatim, the
+      rule it broke named, the fix recorded, so it can be studied later
+      (`wip/study-cases/bad-explanations/README.md` is the first one, written 2026-08-08 after a rejected
+      explanation). A study case is long, structured, and read one at a time; a one-line annoyance is none
+      of those. One file cannot serve both. Needs a shape: how many files, what splits them, what triggers
+      a write, who prunes. **Raised by the user, deliberately deferred — discuss later, do not design it now**
 
 ---
 

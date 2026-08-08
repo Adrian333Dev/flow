@@ -1,13 +1,13 @@
 ---
-description: Attack a design before it locks — run it through cases until something breaks
-argument-hint: <what to attack> [scope]
+name: grill
+description: Attack a design, plan, spec or decision before it locks — run it through concrete cases until a step cannot be finished. Reach for it when something is about to be agreed, and keep it running across a whole discussion, not just one turn.
 ---
 
 # Grill
 
 Second pass on something about to lock. Hunt the case that breaks it.
 
-Target: **$ARGUMENTS**. None given → ask, stop.
+Target: whatever is under discussion. Ambiguous → name what you are attacking in one line, then attack it.
 
 ## Inputs
 

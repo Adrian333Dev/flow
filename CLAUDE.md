@@ -64,7 +64,7 @@ Same mirror, same source.
 
 ## The skills on disk are stale — never audit them as if they were current
 
-`skills/` describes the **old** chain. Three of the seven (`brainstorm`, `execute`, `organize`) name paths the design has deleted, and so does `commands/handoff.md`, which was a skill until 2026-08-08. Reading one tells you what Flow used to do, not what it does.
+`skills/` describes the **old** chain. `brainstorm`, `execute` and `organize` name paths the design has deleted, and so does `commands/handoff.md`, which was a skill until 2026-08-08. Reading one tells you what Flow used to do, not what it does. Two exceptions, both current: `explain` and `grill` — `grill` moved in from `commands/` on 2026-08-09, which leaves `handoff.md` as the only command.
 
 **The current design lives in `wip/`** — `remaining.md`, the `design-*.md` files, `session-new-plugin.md` — and in `global/CLAUDE.md`. When a skill file and the design record disagree, the design record wins and the skill is simply not rewritten yet.
 
@@ -76,7 +76,7 @@ Same mirror, same source.
 | `global/settings.json` | permissions, the `PreToolUse` hook, feature flags — every key explained in `global/settings.md` | merged into `~/.claude/settings.json` |
 | `global/scripts/` | `ptree.sh`, `fmerge.js`, `gsave.sh`, `guard.js`, `link.sh`, `flow/flow.js` | the folder is symlinked as `~/.claude/scripts`; four of the files get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands |
 | `skills/` | every skill, one folder each | symlinked into `~/.claude/skills/` |
-| `commands/` | every slash command, one file each — `grill.md` is `/grill` | each file symlinked into `~/.claude/commands/` by `link.sh` |
+| `commands/` | every slash command, one file each — `handoff.md` is `/handoff`, and it is the only one | each file symlinked into `~/.claude/commands/` by `link.sh` |
 | `project-template/` | `CLAUDE.md` (`## Project` + `## Project rules`) and `.gitignore` — nothing else | copied into a new project |
 | `toolbox/` | **submodule** — [`Adrian333Dev/toolbox`](https://github.com/Adrian333Dev/toolbox), the catalog of external tools filed by job | symlinked as `~/.claude/toolbox`; the path `global/CLAUDE.md` names |
 | `wip/` | **temporary** — the design record this repo was built from, plus the archive material and dev-only scripts that came with it | nowhere; deleted when the build is done |

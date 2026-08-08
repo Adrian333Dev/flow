@@ -636,3 +636,84 @@ Five study cases read (`tmp/study-cases/`), issues defined, two design docs crea
 **Do NOT touch `framework-build/` files (read-only reference). Do NOT reference the deprecated v1 `project-init.md`.**
 
 _Updated: 2026-07-17 (session 9)._
+
+---
+
+## 2026-08-08 — the ticket absorbs the topic; `/grill`; `handoff` becomes a command
+
+**Full decision record: `remaining.md` → `## ✅ LOCKED — one entity: the ticket absorbs the topic`.** Only the
+origins live here.
+
+- **Topics deleted, approved by the user after a full walk-through.** Proposed and parked 2026-08-07,
+  re-opened 2026-08-08 at the user's request specifically so `/grill` would have something real to attack.
+  The parked write-up survived intact; what changed in the rework is the **status set**, the **drop
+  semantics** and **`reason:`**, none of which existed before.
+- **`in-progress` split into `thinking` and `building`** — user's objection, and correct: `in-progress` was
+  true while thinking, while coding and while checking, so it answered nothing. Seven statuses now cover what
+  took ten across two entities.
+- **`superseded` — the agent got this wrong twice in one session.** First recommended deleting it as a
+  duplicate of parent/children, having never read the implementation; it is in fact the only thing that
+  repairs dependents when a ticket dies, and the source comment says so outright. Then recommended keeping
+  the machinery as `drop --by`. The user rejected the *automatic re-point* as too specific, and asked for two
+  explicit outcomes instead — `--by` re-points, `--force` cascades — with a bare `drop` refusing while live
+  dependents exist. That is what landed.
+- **`reason:` on status changes is the user's idea**, raised while settling the cascade: a dropped or parked
+  ticket should say why. Required on those two exits only; automatic on cascade; cleared on revive.
+- **Parent auto-close: refuse.** User was indifferent and left the call to the agent.
+- **Naming.** The user asked whether "ticket" still fits now that it absorbs topics. Kept — `item` was the
+  only alternative worth considering and the gain is a word against a sweep of every id, command and document.
+- **`/grill` built** as `commands/grill.md` (see the design threads section), and **`handoff` converted from
+  a skill to `commands/handoff.md`**, prefetching `git status --short` and `flow status` so the write-path
+  ladder can be read off rather than reasoned out. The earlier "wait for the skill rewrite" argument was
+  wrong: the rewrite changes where the file gets written, which is disjoint from frontmatter and prefetch.
+- **`link-skills.sh` renamed `link.sh`** and extended to link commands and agents per item. Folder-level
+  symlinks are banned: `~/.claude/{skills,commands,agents}/` are shared with entries Flow does not own.
+- **Two explaining rules hardened** after the user rejected a message outright: checklist IDs (`2i`, `M2`,
+  `T1`) banned in user-facing text, and "a quote is not an explanation". First entry written to
+  `wip/study-cases/bad-explanations/`.
+- **Never install, re-stated a third time** and written into the root `CLAUDE.md` as a hard rule, along with
+  cleanup-after-a-change being pre-approved and never needing a delete confirmation.
+
+## 2026-08-09 — brainstorms cut loose from any container
+
+Origins only; the decided content lives in `wip/remaining.md` under the second locked section.
+
+- **The session opened with the user re-opening a locked call** — merging `docs/brainstorm/` into tickets —
+  and with three real directories offered as test cases: `~/code/toolbox`, `~/code/playground`, `~/kb_v0`.
+  They were named as *unrelated scenarios*, not one system. The agent's first pass treated them as one
+  family and invented a "construction vs operation" fault around the toolbox, reading "rebuild" as manual
+  filing. **Completely wrong** — the rebuild is a scheduled crawler plus a queryable library, an ordinary
+  software product the workflow already fits. Fault withdrawn the same turn.
+- **The real fault was the agent's second pass**, and it held: Flow assumed a brainstorm sits inside a
+  container Flow owns. Evidence was pulled from the user's own disk, not from reasoning — `reader-app` in two
+  repos, `delapse` in three, seven undated stalled brainstorms in `kb_v0/20-projects/planned/`.
+- **The user rejected two consecutive explanations.** The second failure was the word **"mint"**, lifted
+  from this repo's own files and used as if shared; the idea underneath was accepted immediately once
+  restated as "create". Recorded as the second entry in `wip/study-cases/bad-explanations/` — a short
+  paragraph made of the wrong words fails exactly as hard as a long one.
+- **Two modes are the user's call, against the agent's argument.** The agent held that a mode cannot be
+  chosen up front because you cannot know whether a brainstorm becomes a product, and proposed choosing an
+  *ending* at resolution instead. The user's counter closed it: if a normal brainstorm turns out to be a
+  product, start a fresh product-mode brainstorm and reference the earlier ones — nothing converts, nothing
+  moves, a wrong guess costs one folder. **Objection withdrawn.** The agent's "will you still be creating
+  tickets in six months" test was deleted with it.
+- **The loose brainstorm folder is what topics should have been.** The user's read, and it is right: it is a
+  brainstorm not attached to a ticket *yet*, with no command, no statuses, no birth rule and no forced
+  ending. The agent flagged the honest version of the objection — structurally this is `docs/topics/` under a
+  new name — and the answer stands: what failed about topics was the machinery that forced a declaration at
+  the start, and none of it comes back.
+- **The product brainstorm keeps its own mode, against the agent's proposal to delete it.** The agent had
+  argued the product case collapses into an ordinary brainstorm that happens to write a spec. The user
+  pushed back on the grounds that the *output* differs — research, prototyping, a full tree, and a spec — and
+  that this is a specific type of task with its own requirements. Accepted.
+- **The global register of loose brainstorms was proposed by the agent and parked by the user** after one
+  round of argument. `CLAUDE_CODE_SESSION_ID` was verified to exist before the session-id line was proposed.
+- **`grill` moved from `commands/` to `skills/`** at the user's request, with the reason stated generally: a
+  command is one-shot and is right only when shell output must land before the model reasons. This does not
+  reverse the handoff conversion the day before — `/handoff` prefetches `git status` and `flow status`, which
+  is exactly the case commands exist for.
+- **Path overrides settled small.** The user asked for one rule rather than per-path machinery and pointed at
+  superpowers; its brainstorming skill names one default path and adds a single parenthetical saying user
+  preferences override it. Copied.
+- **The user stopped the agent from implementing.** Approval covered *recording* the decisions and the
+  `grill` move only. What gets built, and in what order, is a separate decision not yet made.
