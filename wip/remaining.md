@@ -674,7 +674,8 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
 - [ ] **Skills vs. agents vs. commands — never actually decided** (raised 2026-08-07). Claude Code offers
       three extension points and Flow reflexively puts everything in skills. Worth deciding deliberately
       which of the three each capability belongs to, and whether anything now a skill should move.
-      **Parked by the user: record it, do not open it yet**
+      **Un-parked by the user 2026-08-08 — moved to `wip/threads.md`, thread `extension-points`**, which
+      carries the full statement and is the active thread
 - [ ] **How a growing collection of global scripts gets managed** (raised 2026-08-07). The set keeps growing
       and **most of it is not Flow-specific** — `gsave` is the model: a general-purpose command that merely
       happens to live in this repo. Needs a story for where general tools live, how they get registered, and
@@ -692,7 +693,9 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
 - [ ] **Audit** — checking current work against a skill's accumulated best practices. Parked as ecosystem
       issue #4; needs scoping to the skills the work actually touched, or it is unbounded reads
 - [ ] **Red-team / grill mode** — an adversarial pass that attacks a design before it locks. Captured
-      2026-07-23, never designed. Ancestor: delapse's `grill-me` / `grill-with-docs`
+      2026-07-23, never designed. Ancestor: delapse's `grill-me` / `grill-with-docs`.
+      **Overlaps `wip/threads.md`, thread `judgment`**, which is the always-on version covering every
+      proposal in every phase; decide there whether it absorbs this one or they stay two things
 
 ---
 

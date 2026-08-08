@@ -9,12 +9,63 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 **None of Flow's own rules are loaded right now.** `global/CLAUDE.md` is a template that installs to `~/.claude/CLAUDE.md`, and that install has not happened — it is step 3 of the build. Until it does, this section is the whole rule set, and the skills in `skills/` are files on disk that no session loads. Do not assume a rule applies because it is written in `global/CLAUDE.md`.
 
 - **Never run git mutations.** No `add`, `commit`, `push`, `checkout`, `reset`, `rebase`, `merge`, `stash`. Print the exact command and let the user run it. `gsave` is the user's own commit-and-push command — name it, never invoke it. Reads (`status`, `log`, `diff`, `ls-files`) are fine. This applies to the `toolbox` submodule too.
-- **Propose a plan and wait for approval before changing files.** Recording a decision the user has already locked needs no second approval.
+- **Never edit a file until the user approves a specific plan.** Two things must exist first: a message from you saying what would change, and a message from the user saying yes. Missing either one, write the proposal instead.
+- **Feedback is not approval.** Pushback, a new idea, a correction, a reaction — all still discussion, even if the user agrees with every point in it. Approval sounds like "do it", "go ahead", "apply that".
+- **Being told to build something is not approval of a change.** It starts the discussion about what to build.
+- **Exceptions:** writing down a decision already locked, and scratch files in `tmp/`.
 - **Deletes need their own explicit confirmation**, even inside an approved plan. Moving is not deleting. The one exception: something this session just superseded — converted, replaced, rewritten under a new name — where the dead copy goes immediately.
 - **Designing this workflow uses plain conversation.** Never invoke a brainstorming skill to design Flow itself, neither `superpowers:brainstorming` nor Flow's own.
 - **Scratch files go in `tmp/`**, which is gitignored. Never `/tmp`, never the repo root.
 - **The user's profile is `wip/user-profile.md`.** Read it before writing anything for them — the short version is voice-to-text input with transcription errors, no filler, and a committed recommendation instead of a neutral list of options.
-- **Explanations go at the end of the turn, after every tool call.** The user copies the last message; never emit prose and then edit files.
+
+## Judgment
+
+Copied verbatim from `global/CLAUDE.md` because that file is a template that is **not installed**, so none of it loads. `global/CLAUDE.md` is the source; this section and the two below it are mirrors. Edit there first, then carry it across. Both copies go away here when `setup-flow-globals` runs and the real file lands at `~/.claude/CLAUDE.md`.
+
+Attack your own proposal before showing it. Attack it by running it, not by rating it.
+
+- **Walk it through a real case, start to finish.** Pick a concrete example, go step by step, say every step. A fault shows up as a step you cannot finish.
+- **Then walk the awkward cases.** Empty, huge, repeated, interrupted halfway. Every "usually" and "most of the time" in your reasoning is a case you skipped.
+- **Walk what already exists the same way**, not only the change. Most faults found late were in the thing already written, because nobody ever ran it.
+- **A missing step never shows up on the page.** Rereading your proposal will not find it. You find it by needing it mid-walk and having nowhere to go.
+- **Say which argument decides it**, and what would have to be true to overturn it.
+
+## Explaining
+
+Same mirror, same source.
+
+Governs every answer — status reports and one-line questions included, not just designs.
+
+- **Whole picture first.** The thing itself, then its parts. Never a close-up with no machine around it.
+- **Define from zero.** Anything invented here — module, phase, term, file — defined before first use. No expertise covers what didn't exist yesterday.
+- **No undefined shorthand.** "The engine", "the panel", "M2" — ground it in what the user actually sees, or drop it.
+- **Plain words, short sentences.** Pick the simple word over the precise one when they compete. Clarity beats grammar. If a sentence has to be read twice, rewrite it.
+- **Never point at something without saying what it says.** A file, a past decision, an earlier message — quote or summarize it on the spot. The user has not read it.
+- **Calibrate tech** against `## The user`. Unfamiliar: one line, by what it does here.
+- **Priority order.** The load-bearing idea gets depth — the why, and why the obvious alternative fails. Trivia gets one line or none.
+- **Never hide your reasoning.** Think out loud while you work — what you decided and why. The user watches it happen.
+- **Assume they only read the final message.** It comes after the last tool call and repeats everything that matters. Nothing said earlier counts as explained, and no scratch file, subagent brief or working doc ever stands in as the answer.
+- **Report what changed.** Every file touched, and what changed in it.
+- **Outline before typing.** Never discover the structure on the way.
+- **No preamble.** Content starts at sentence one.
+- **UI is rendered, never described.** Layout, density, hierarchy, colour don't survive as sentences — invoke `explain`.
+
+**`explain` is not installed either.** `skills/explain/SKILL.md` is on disk and no session loads it. Read the file and follow it; never improvise a diagram or a mockup in its place.
+
+## Communication
+
+Same mirror, same source.
+
+- **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
+- **Explain artifacts from zero.** Assume no file and no report has been read.
+- **Write locked decisions, batched.** Record when user-confirmed with no open threads, not on mid-discussion agreement.
+- **Reason before agreeing.** Test a proposal, objection, or correction — don't just accept it. Disagree out loud, with the argument, once. Repetition isn't evidence. Then the user decides.
+
+## The skills on disk are stale — never audit them as if they were current
+
+`skills/` describes the **old** chain. Four of the eight (`brainstorm`, `execute`, `organize`, `handoff`) name paths the design has deleted. Reading one tells you what Flow used to do, not what it does.
+
+**The current design lives in `wip/`** — `remaining.md`, the `design-*.md` files, `session-new-plugin.md` — and in `global/CLAUDE.md`. When a skill file and the design record disagree, the design record wins and the skill is simply not rewritten yet.
 
 ## Layout
 
