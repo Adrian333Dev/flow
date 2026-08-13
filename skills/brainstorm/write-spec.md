@@ -1,148 +1,154 @@
-# Write Spec — Reference
+# Write the spec
 
-Synthesize the brainstorm output and existing codebase context into a clean implementation spec. This is not more brainstorming — the decisions are locked in `brainstorm.md`. The job here is to read, explore, and write.
+Read this when a brainstorm settled something worth keeping — what the thing must do, how it is built, or why a call was made.
 
----
+**Not only for software.** A content pipeline, a business, a workflow — anything built out of parts that hand things to each other gets the same document. Where a section names a signature or a schema, that is the software case, not the definition.
 
-## Step 1 — Check brainstorm state
+**A ticket-sized brainstorm that turns up a new direction lands here too.** There is no size gate.
 
-Read `brainstorm.md` in the active topic folder.
+## 1. Pick the file
 
-If it doesn't exist, stop:
+One test, asked of each decision: **does it outlive the thing being built?**
 
-> "brainstorm.md not found. The brainstorm must be complete before writing the spec."
+- **No, it dies with the build** → `design.md` beside `map.md`, or `brainstorm/design.md` in the ticket that owns it.
+- **Yes, and it says what the product must do** → `docs/spec/product.md`.
+- **Yes, and it says how the system is built** → `docs/spec/tech.md`.
+- **Yes, and it says why a call was made** → `docs/spec/decisions.md`.
 
-If open `[ ]` branches exist, flag them:
+One brainstorm usually writes two of these. Creates `docs/spec/` if there is none, edits it if there is.
 
-> "These branches are still open in brainstorm.md: [list]. Confirm they're out of scope or deferred before I write the spec, or close them first."
+`product.md` and `tech.md` are the base pair. `decisions.md` appears the moment something is locked with a reason worth keeping, which at project start is immediately.
 
-Wait for confirmation. If the user says proceed anyway, note each open branch as deferred in the spec's Open questions section.
+A subject gets its own file beside them only when all three hold: no fact appears in two files, the boundary is statable in one sentence, and it is not a section of an existing file. Past three files, add an index naming each one and what it holds.
 
----
+**No project here** → one `design.md` where you are standing, same shape.
 
-## Step 2 — Explore the codebase
+**Not this file's job:** how a library ended up bent out of shape, written after the build so the next person can change it. That is a durable project fact — `docs/context/<subject>.md`, written by `execute`.
 
-Skip this step for greenfield projects with no existing codebase.
+## 2. Before writing
 
-Read the files directly relevant to what's being built. Stay focused on what the brainstorm touched:
+1. **Re-read `map.md`.** Open `[ ]` branches → name them and confirm they are deferred, or go back and walk them. A spec written over an open branch buries it.
+2. **Read what exists** — the code, the current spec, whatever this touches. A contradiction with a settled decision → raise it and reopen that branch. Never quietly write around it.
+3. **List every closed branch, one line each, with the file it lands in.**
 
-- Existing files that will be modified
-- Data models, schemas, types the spec will reference
-- Patterns in use that the implementation must follow
-- Anything the brainstorm referenced by name but didn't fully define
+Step 3 is the whole defence against a spec that quietly loses half the brainstorm. **List branches, never behaviors** — a UI decision, a refused approach and a cost ceiling are all branches, and none of them is a behavior. A 5,000-line map is maybe 120 lines of this. Several map files → one at a time.
 
-**If exploration reveals a contradiction** — something that conflicts with a brainstorm decision — pause immediately:
+Write the list before any prose. Tick each line as it lands. Verify at the end: an unticked line is a decision that vanished.
 
-> "Found [X] which contradicts what we decided in the brainstorm ([Y]). I need to resolve this before writing the spec."
+## 3. Write it
 
-Re-open brainstorming on the specific conflicting branch only (not a full re-brainstorm). Once `brainstorm.md` is updated with the resolution, re-read it and continue from where spec writing left off.
+One pass, after the map closes. The decisions were agreed while walking the map, so re-approving them section by section bills the same conversation twice. Save as each section completes.
 
-**If a research gap appears** — you need accurate current knowledge about something external to write a concrete requirement — invoke the research skill inline. Incorporate findings directly into the relevant spec section. Research during spec writing goes into the spec itself, not back to `brainstorm.md`.
+**Write every requirement concrete and checkable.** "Fast", "robust", "user-friendly" are not requirements.
 
----
+**Draw wherever a drawing carries the point — invoke `visualize`.** One place or five, in whichever sections are spatial. Never head a section "architecture" and leave no picture under it.
 
-## Step 3 — Write spec.md
+Markdown only. No frontmatter, no copied artifacts.
 
-Write to `docs/work/topics/t<NN>-<slug>/spec.md` — the same topic folder as `brainstorm.md`. Write each section progressively — update the file as each section completes. Never hold the full spec in memory before writing.
+### What it must do — `product.md`
 
-**Structure:**
+Always, however small the product:
 
-```markdown
-# [Feature / milestone name] — Spec
+1. **What it is and who it is for** — one paragraph a stranger follows.
+2. **The problem, and why now.**
+3. **Every behavior**, grouped how the product is actually shaped — by surface, by job, by whatever the map used. Each carries a mark.
+4. **How you know it worked** — the observable outcome, the check, the number.
 
-## Goal
-[1–2 sentences. What this builds and why.]
+Then only what a branch actually covered. Most specs use three or four of these, and a subject nobody walked writes nothing here:
 
-## Scope
-**In scope:**
-- [concrete item]
+- **The domain model** — the concepts this is built on, and how they relate.
+- **Named principles** — the constraints that settle later arguments before they start.
+- **The interaction surface** — screens, cards, flows, at the depth the brainstorm reached.
+- **Constraints that are not code** — money, law, privacy, policy.
+- **What it competes against**, and why this holds up. The survey itself belongs in `docs/research/`.
+- **The glossary** — every term invented here.
 
-**Out of scope:**
-- [concrete item — things that could be confused as in-scope]
+**Every behavior carries a mark:** `V1` · `next` · `later` · `never`.
 
-## Key decisions
-[Decisions locked during brainstorming — pulled from brainstorm.md.
-One entry per decision. Complete where the decision is nuanced, brief where it isn't.]
+- **V1** — ships first. The only mark tickets are created from.
+- **next** — committed, not yet.
+- **later** — wanted, no commitment.
+- **never** — deliberately refused. The reason goes in `decisions.md`.
 
-## Architecture / Technical approach
-[How the system is structured: file layout, module boundaries, data flow, component
-relationships. Enough for an implementer to understand the shape before reading requirements.
-Omit this section only if the work has no meaningful structural decisions.]
+The spec is finished when every behavior carries a mark, never when the thinking feels done.
 
-## Requirements
-[Concrete, unambiguous requirements. Each one must be specific enough that an implementer
-can't misread it. No "appropriate error handling", "good performance", or "intuitive UX" —
-name the exact behavior. Each requirement must be testable.]
+**Write the whole product, at every version.** Scope the *building*, never the *writing* — a spec that opens "ship phase 1" and pushes the rest out of scope loses every phase after the first.
 
-## Success criteria
-[How you know this is done. Observable, testable outcomes.]
+### How it is built — `tech.md` or `design.md`
 
-## Open questions / deferred
-[Items deliberately left unresolved. Each entry says WHY it's deferred and what
-would need to be true to resolve it.]
-```
+Same skeleton at both scopes. `tech.md` is the whole system and outlives every feature; `design.md` is one thing and dies when that thing is built.
 
-**Scope check while writing:** If the spec ends up covering multiple independent subsystems, stop and flag it:
+**Always write one. Never skip it for being simple.** Sections scale down to a sentence each; the document does not disappear. Simple-looking work is where unexamined assumptions cost the most.
 
-> "This spec spans [X] and [Y] which are independent and could each have their own plan. I'd recommend splitting into two specs. Should I continue as-is or split?"
+1. **The goal** — one paragraph a stranger follows.
+2. **Scope** — what is in, and what is out. Both named.
+3. **The parts** — what each one owns, and what it depends on. A part is a module, a stage, a team, a channel: whatever this thing is actually built out of.
+4. **What passes between them** — concrete wherever it was decided. A function signature and an event payload in software; a rendered file, an approval, a paid invoice elsewhere.
+5. **One real case, end to end** — followed part by part, start to finish. One request from click to stored row. One video from idea to published. One customer from first ad to money in the account. A design that looks fine as a diagram falls apart here first.
+6. **How it fails** — every way it goes wrong, and what happens on each.
+7. **How you know it worked** — the observable outcome, the check, the number. A design with no answer here produces work nobody can call finished.
+8. **What is locked** — one line per decision. The reasoning stays where it was written.
 
-Wait for the user's call before continuing.
+`tech.md` adds two things, and only because its scope is the whole system:
 
----
+- **The stack and the repo layout** — what each piece is for, which folders exist, what lives in them.
+- **The parts are the system's parts** — backend, frontend, services, workers, packages. Never one feature's.
 
-## Step 4 — Self-review
+### Why it is this way — `decisions.md`
 
-Before showing the spec to the user:
+Only for reasoning that outlives the build. A ticket-sized call stays in `map.md`, which sits beside the work and gets read there.
 
-1. **Placeholder scan** — any "TBD", "TODO", vague requirements, or incomplete sections? Fix them.
-2. **Internal consistency** — do any sections contradict each other? Does the architecture match the requirements?
-3. **Scope check** — focused enough for a single implementation plan?
-4. **Ambiguity check** — can any requirement be interpreted two different ways? If yes, pick one and make it explicit.
-5. **YAGNI** — any unrequested features or over-engineering crept in? Remove them.
+- **Each locked decision, with its reason.** Dated, newest last.
+- **What was refused, and why.** The reason is the point. Without it the same idea comes back every quarter.
+- **The bets** — assumptions the whole thing rests on, unverified, and load-bearing enough that being wrong changes the approach. A risk is a bet already known to be shaky, so it goes here too, with what happens if it fires.
+- **What is still open** — grouped by kind, each saying what would settle it.
 
-Fix issues inline. No need to re-review after fixing.
+## 4. Review it yourself
 
----
+Read it once with fresh eyes and fix what you find inline:
 
-## Step 5 — User review gate
+- **Placeholders** — any TBD, TODO, or half-written section.
+- **Contradictions** — sections that disagree, or a drawing that does not match the parts under it.
+- **Vague requirements** — anything not concrete and checkable.
+- **Invented material** — anything in the document that no branch decided.
+- **Ambiguity** — any requirement that could be read two ways. Pick one and say it.
+- **The branch list** — every line ticked.
 
-> "Spec written to `<path>`. Please review it before we write the plan."
+No second review. Fix and move on.
 
-Wait for their response. If they request changes, make them and re-run self-review (Step 4). Only proceed once they approve.
+## 5. Show it and stop
 
----
+Give the paths. The user reads and approves before anything is created from it.
 
-## Step 6 — Define milestone 1
+**An objection is not a new brainstorm.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
 
-Once the user approves the spec, scope the first milestone before moving to write-plan.md.
+Approved and there is work to cut → **invoke `write-tickets`**.
 
-Ask:
+## Editing a spec that already exists
 
-> "Spec approved. Is this single-milestone work, or does it need to be split into multiple milestones?"
+Same steps, scoped to what changed.
 
-**If single milestone:** The entire spec is milestone 1. Ask for a milestone name (e.g., `m1-foundation`) and create the folder `docs/work/topics/t<NN>-<slug>/m1-<name>/`.
+- **A behavior changed** → edit it in place. Never append a second version of it elsewhere.
+- **A behavior was refused** → move it to `never` and write the reason in `decisions.md`. Never delete it; deleting is how "why not X" comes back.
+- **The direction changed** → say plainly what it was and what it is now, in the section it belongs to. The spec states the present, and the old direction survives in `decisions.md`.
+- **A section was replaced wholesale** in a file too large to reread → leave one line saying what replaced it and where.
 
-**If multiple milestones:** Ask the user to describe milestone 1's scope:
-- Name (e.g., `m1-foundation`)
-- Goal — one sentence: what does completing this milestone achieve?
-- What's in scope for this milestone
-- What's deliberately deferred to later milestones
+## What stays out
 
-This does not need to be a full roadmap — a few sentences is enough. Future milestones are scoped at milestone wrap time, not upfront. After a milestone ships, the design may change — don't lock in M2+ scope now.
+The deliberation · the options weighed and dropped mid-discussion · the history of the conversation · anything still open, in `product.md` or `tech.md`.
 
-Create the folder `docs/work/topics/t<NN>-<slug>/m1-<name>/`.
+Reasoning that outlives the build goes to `decisions.md`. Everything else stays in `map.md`. `product.md` says what the thing **is**, and `tech.md` says how it is **built**.
 
-Then continue with `write-plan.md` in this skill's folder.
-
-**REQUIRED NEXT STEP:** write-plan.md
-
----
+A decision resting on evidence — a research report, a prototype, a drawing — names it **inline, on that decision**, plus a short reference list at the end of the file. No global index.
 
 ## Hard rules
 
-- **brainstorm.md is required.** If it doesn't exist, stop and say so.
-- **No interview.** The brainstorm already happened. If something is genuinely unclear, flag it — don't turn this into another brainstorm session.
-- **No placeholders.** Every section must be real content before moving to self-review.
-- **Codebase exploration is required** (unless greenfield). Don't write a spec that references types, files, or patterns you haven't verified exist.
-- **Write progressively.** Each section goes to file as it completes — never hold the full spec in working memory.
-- **User reviews before plans.** Never start write-plan.md without explicit user approval of the spec.
+- **List every closed branch before writing, and tick each as it lands.** An unticked line is a decision that vanished.
+- **Every behavior carries a mark.**
+- **The whole product goes in, at every version.** Never scope `product.md` to what ships first.
+- **One pass, after the map closes.** Never section by section for approval.
+- **At least one drawing.**
+- **Every spec says how you know it worked.**
+- **No fact in two files.**
+- **Nothing still open goes in `product.md` or `tech.md`.** It goes in `decisions.md`.
+- **Never create a ticket from here** — that is `write-tickets`, after approval.

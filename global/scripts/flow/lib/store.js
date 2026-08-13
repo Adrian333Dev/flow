@@ -1,9 +1,9 @@
 'use strict';
 /**
- * The ticket and topic model on disk.
+ * The ticket model on disk. One entity — a ticket absorbs what used to be a
+ * separate "topic", so a ticket that decomposes just has children.
  *
  *   docs/tickets/t047-daemon-detection/ticket.md    folder from birth, constant inner name
- *   docs/topics/local-daemon/topic.md
  *
  * Frontmatter is owned by these commands; the body is written by hand. That is
  * why templates hold body only — the frontmatter is generated, never templated.
@@ -14,18 +14,37 @@ const path = require('path');
 const frontmatter = require('./frontmatter');
 const { FlowError } = require('./error');
 
-const TICKET_KEYS = ['id', 'title', 'status', 'type', 'topic', 'deps', 'by'];
-const TOPIC_KEYS = ['slug', 'title', 'status', 'from'];
+const TICKET_KEYS = ['id', 'title', 'status', 'type', 'priority', 'parent', 'deps', 'reason'];
 
-const TICKET_STATUSES = ['todo', 'in-progress', 'review', 'done', 'dropped', 'superseded'];
+// `thinking` covers evaluating, brainstorming and researching — every ticket
+// passes through it, including the ones that need no brainstorm at all.
+// `building` starts when the plan is written. The pair replaces `in-progress`,
+// which was true during all of it and therefore answered nothing.
+const TICKET_STATUSES = ['todo', 'thinking', 'building', 'review', 'done', 'parked', 'dropped'];
 const TICKET_TYPES = ['feature', 'issue', 'chore', 'research'];
-const TOPIC_STATUSES = ['in-progress', 'parked', 'committed', 'dropped'];
+
+// Only `high` and `low` reach disk. `normal` is the name for the missing field,
+// so an ordinary ticket carries no priority line at all — which is the whole
+// defence against the usual rot, where everything is stamped at creation and
+// `high` stops meaning anything a year in. Nothing sets it but the user asking.
+const TICKET_PRIORITIES = ['high', 'normal', 'low'];
+const STORED_PRIORITIES = ['high', 'low'];
+
+/** Anything that is not a stored value — including `normal` — means unset. */
+const toPriority = (v) => {
+  const s = String(v || '').trim().toLowerCase();
+  return STORED_PRIORITIES.includes(s) ? s : '';
+};
+
+// Statuses whose `reason:` is required and typed by the user. Everywhere else
+// the workflow is its own explanation.
+const REASON_STATUSES = ['parked', 'dropped'];
 
 // Terminal tickets move to docs/tickets/archive/ so the live pool stays
 // readable in a file tree. Two buckets, never one per status — a folder per
 // status would make location duplicate `status`, which is the thing that
-// killed promote-on-in-progress.
-const TERMINAL_STATUSES = ['done', 'dropped', 'superseded'];
+// killed promote-on-building. `parked` is revivable, so it stays in the pool.
+const TERMINAL_STATUSES = ['done', 'dropped'];
 const ARCHIVE = 'archive';
 
 const ID_WIDTH = 3;
@@ -33,7 +52,6 @@ const SLUG_MAX = 48;
 
 const ticketsDir = (root) => path.join(root, 'docs', 'tickets');
 const archiveDir = (root) => path.join(root, 'docs', 'tickets', ARCHIVE);
-const topicsDir = (root) => path.join(root, 'docs', 'topics');
 
 /**
  * t47 / 47 / T047 all normalize to t047. Returns null for anything else.
@@ -102,10 +120,14 @@ function scanTicketDir(dir, root, out) {
     const { data, body } = frontmatter.parse(fs.readFileSync(file, 'utf8'));
     data.id = normalizeId(data.id) || entry.name.split('-')[0];
     data.deps = toIdList(data.deps);
-    data.by = toIdList(data.by);
+    // One parent at most — the ticket this one was split out of. Unparseable
+    // values survive as written so `check` can report them.
+    data.parent = data.parent ? (normalizeId(data.parent) || String(data.parent).trim()) : '';
     data.status = data.status || 'todo';
     data.type = data.type || 'feature';
+    data.priority = toPriority(data.priority);
     data.title = data.title || entry.name;
+    data.reason = data.reason ? String(data.reason).trim() : '';
 
     out.push({ id: data.id, dirName: entry.name, dir: path.join(dir, entry.name), file, data, body, root });
   }
@@ -144,7 +166,7 @@ function relocate(t) {
 
 // `tickets` is passed in when the caller already read the pool — at a few
 // thousand tickets a second scan is the most expensive thing a command does.
-function createTicket(root, { title, type, topic, deps, tickets, body: given }) {
+function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, fromBrainstorm }) {
   const id = nextId(tickets || readTickets(root));
   const slug = slugify(title);
   const dir = path.join(ticketsDir(root), `${id}-${slug}`);
@@ -155,9 +177,10 @@ function createTicket(root, { title, type, topic, deps, tickets, body: given }) 
     title: String(title).trim(),
     status: 'todo',
     type: type || 'feature',
-    topic: topic || '',
+    priority: toPriority(priority),
+    parent: parent || '',
     deps: deps || [],
-    by: [],
+    reason: '',
   };
   // A supplied body replaces the template outright — the caller wrote the whole
   // file, so creating and filling a ticket is one command instead of two.
@@ -167,7 +190,24 @@ function createTicket(root, { title, type, topic, deps, tickets, body: given }) 
   const file = path.join(dir, 'ticket.md');
   fs.writeFileSync(file, frontmatter.stringify(data, TICKET_KEYS, body));
 
-  return { id, dirName: `${id}-${slug}`, dir, file, data, body, root };
+  // `brainstorm/` exists from birth, always. You cannot know at the start
+  // whether a ticket's thinking will split it, so its location must never
+  // depend on that outcome — and a ticket's path is fixed for life.
+  const brainstormDir = path.join(dir, 'brainstorm');
+  if (fromBrainstorm) {
+    // A loose brainstorm that turned out to be exactly one unit of work moves
+    // in whole and leaves nothing behind, so there is never a second copy to
+    // drift. Same filesystem by construction: both paths are under `root`.
+    fs.renameSync(fromBrainstorm, brainstormDir);
+  } else {
+    fs.mkdirSync(brainstormDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(brainstormDir, 'map.md'),
+      renderTemplate('map.md', { id, title: data.title })
+    );
+  }
+
+  return { id, dirName: `${id}-${slug}`, dir, file, data, body, root, movedFrom: fromBrainstorm || null };
 }
 
 /** Resolves an id (t047, t47, 47), a slug, or a folder name. */
@@ -199,63 +239,6 @@ function ambiguous(needle, matches) {
     matches.map((t) => `  ${t.id}  ${t.data.title}`).join('\n');
 }
 
-// ---------------------------------------------------------------- topics
-
-function readTopics(root) {
-  const dir = topicsDir(root);
-  if (!fs.existsSync(dir)) return [];
-
-  const topics = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const file = path.join(dir, entry.name, 'topic.md');
-    if (!fs.existsSync(file)) continue;
-
-    const { data, body } = frontmatter.parse(fs.readFileSync(file, 'utf8'));
-    data.slug = data.slug || entry.name;
-    data.status = data.status || 'in-progress';
-    data.title = data.title || entry.name;
-    data.from = toIdList(data.from);
-
-    topics.push({ slug: data.slug, dir: path.join(dir, entry.name), file, data, body });
-  }
-
-  topics.sort((a, b) => a.slug.localeCompare(b.slug));
-  return topics;
-}
-
-function writeTopic(tp) {
-  fs.writeFileSync(tp.file, frontmatter.stringify(tp.data, TOPIC_KEYS, tp.body));
-}
-
-function createTopic(root, { title, slug, from }) {
-  const finalSlug = slug ? slugify(slug) : slugify(title);
-  const dir = path.join(topicsDir(root), finalSlug);
-  if (fs.existsSync(dir)) throw new FlowError(`topic "${finalSlug}" already exists at ${dir}.`);
-
-  const data = {
-    slug: finalSlug,
-    title: String(title).trim(),
-    status: 'in-progress',
-    from: from || [],
-  };
-  const body = renderTemplate('topic.md', { slug: finalSlug, title: data.title });
-
-  fs.mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, 'topic.md');
-  fs.writeFileSync(file, frontmatter.stringify(data, TOPIC_KEYS, body));
-
-  return { slug: finalSlug, dir, file, data, body };
-}
-
-function findTopic(topics, ref) {
-  const needle = String(ref || '').trim();
-  if (!needle) throw new FlowError('which topic? give its slug.');
-  const hit = topics.find((tp) => tp.slug === needle);
-  if (!hit) throw new FlowError(`no topic "${needle}".`);
-  return hit;
-}
-
 // ---------------------------------------------------------------- templates
 
 function renderTemplate(name, vars) {
@@ -267,9 +250,9 @@ function renderTemplate(name, vars) {
 }
 
 module.exports = {
-  TICKET_KEYS, TOPIC_KEYS, TICKET_STATUSES, TICKET_TYPES, TOPIC_STATUSES, TERMINAL_STATUSES,
-  ticketsDir, archiveDir, topicsDir,
-  normalizeId, idNumber, requireId, slugify, toIdList,
+  TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES,
+  ticketsDir, archiveDir,
+  normalizeId, idNumber, requireId, slugify, toIdList, toPriority,
   readTickets, nextId, writeTicket, createTicket, findTicket,
-  readTopics, writeTopic, createTopic, findTopic,
+  renderTemplate, // cases.js borrows this and slugify; nothing else is shared
 };

@@ -15,7 +15,7 @@ a plain question: why was it deferred, and what next.
 
 **What was sent (excerpt):**
 
-> The real one, recorded in `wip/handoff.md` under "Sequencing note": *"Deciding the extension
+> The real one, recorded in `wip/context/handoff.md` under "Sequencing note": *"Deciding the extension
 > point for something unbuilt is cheap. Deciding it for something on disk is unreliable, because
 > those files describe the old chain — fold that call into each skill's rewrite instead."*
 
@@ -27,7 +27,7 @@ Plus a table headed **"2i changes"** and six references to `2i` with no gloss.
 
 **Three faults, in order of damage.**
 
-1. **A checklist ID used as if it were a word.** `2i` is a heading inside `wip/remaining.md`.
+1. **A checklist ID used as if it were a word.** `2i` is a heading inside `wip/context/remaining.md`.
    The user never reads by ID. Every one of the six uses could have said "the checklist item
    that rewrites the handoff skill". This is the repeat offence — same failure as `M2` and
    `T1` in earlier sessions.
@@ -70,7 +70,7 @@ embryo"*.
 using mint? What the fuck does mint mean here?"*, *"Do not use some rare terminology that I have
 never heard of."*
 
-**The fault.** `mint` appears throughout `wip/remaining.md` and `global/CLAUDE.md` — *"it commits
+**The fault.** `mint` appears throughout `wip/context/remaining.md` and `global/CLAUDE.md` — *"it commits
 by minting the child tickets"*. It was absorbed from the design record and used in conversation
 as if it were shared vocabulary. It is not: the user never wrote it and never used it back. The
 plain word is **create**, and it is not one character longer in meaning. `in embryo` was the same

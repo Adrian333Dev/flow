@@ -1,158 +1,94 @@
-# Flow — global rules
+Flow — an agentic development workflow for a solo developer. Work runs brainstorm → tickets → plan → build, one skill per step; the rules below hold across all of them.
 
-> Solo developer. One author, one branch context.
+## Hard rules
 
-Installed to `~/.claude/CLAUDE.md`. Loads in every session, in every directory — with a project or without one. A project's own `CLAUDE.md` adds `## Project` and `## Project rules` on top of this; everything else lives here.
+- **No edits without approval.** Approval is "do it" or "go ahead".
+- **Read minimal context.** Path and line range, one filtered query over many reads, stop when answered.
+- **Reach for a skill, never improvise its job.** Named but not installed → say so and stop.
+- **No cause without evidence.** "Hypothesis: X. To verify: Y."
+- **Never hand-write what a tool generates.** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
+- **No `mkdir`** — Write creates directories.
+- **Chain with `&&`** unless a step's output decides the next.
+- **Never run or propose a git command that writes.** Reads are fine; the user drives git.
+- **Internal reasoning stays out of deliverables.**
+- **Every file gets the writing pass.** Skill, `CLAUDE.md`, spec, plan, context file, anything written for the user to read — read `~/.claude/flow/refs/writing.md`, plan the whole file's sections before typing, then test every sentence you wrote against its rules before showing anything. Reading it is not the pass.
+- **Every path named here is a default.** One named in `## Preferences`, in this directory's `CLAUDE.md`, or by the user wins.
 
 ## The user
 
-<!-- Role, stack expertise, notable gaps. Explanations calibrate against this — never
-re-explain what's inside it, always define what's outside it. Grows as the work reveals more.
-e.g. "Solo web dev. Expert: TypeScript, React, Node. Comfortable: SQL, Docker.
+Solo developer — one author, one branch context.
+
+<!-- e.g. "Solo web dev. Expert: TypeScript, React, Node. Comfortable: SQL, Docker.
 No background: audio APIs, compilers, ML internals." -->
 
 ## Preferences
 
-<!-- How the user wants to be worked with, captured as it emerges. Distinct from a project's
-rules — those are about the code, these are about the collaboration.
-e.g. "Wants the exact git command at the end of a work session, not silence." -->
+<!-- e.g. "Wants the exact git command at the end of a work session, not silence." -->
 
-## Key docs
+## Capture
 
-Project paths, plus one global file. Each is created on first write — a missing path means nothing has needed it yet, not that it's wrong to write one. **No project in this directory → only `~/.claude/flow/notes.md` applies**; otherwise work in the file at hand.
+Write anything worth keeping the moment it surfaces.
 
-| Path | What's there |
-|---|---|
-| `docs/tickets/` | The work pool — one folder per ticket: `t047-slug/ticket.md` (frontmatter, body, `## Plan`), `handoff.md`, one `<slug>.md` per dispatched job brief. Terminal tickets move to `docs/tickets/archive/`. **Reach a ticket by id through `flow`, never by path.** |
-| `docs/topics/<slug>/` | One subject that outgrew a single ticket: `topic.md` + `brainstorm/` (`tree.md`, plus a detail file per branch that actually grew). Nothing else. |
-| `docs/brainstorm/` | The product brainstorm — same two-file shape, at project altitude. Product mode only. |
-| `docs/spec/` | The product foundation, written from that brainstorm. `product.md` — whole product, every behavior, and the V1 / next / later / never scope ladder. `tech.md` — stack, repo layout, components, the decisions that constrain implementation. Markdown only, no index, no `decisions.md`. |
-| `docs/context/` | Durable project facts — verified commands, generated-file paths, conventions this repo settled. One file per subject. |
-| `docs/research/` | Fetched external docs and research writeups. Flat and subject-named, one set for the whole project. |
-| `docs/intake/` | Pre-Flow material, preserved as-is. Mine it; never treat it as current. |
-| `docs/inbox.md` | Raw capture with nowhere else to go. `organize` drains it. |
-| `docs/handoff.md` | Session state, when nothing narrower is live. A handoff belongs to the most specific active thing — the ticket, else the topic, else `docs/brainstorm/handoff.md`, else here. |
-| `protos/` | Prototypes, at **repo root** — they are runnable projects, and `docs/` stops being documentation once code lives in it. Flat, one folder per prototype, named by what it proves. |
-| `~/.claude/flow/` | The one folder under `~/.claude/` that Flow owns and Claude Code does not read. `notes.md` holds notes about **Flow itself** — friction, a missing capability, an idea for the next version. Global, never per project; every entry stamped with the date and the project it came from. |
+**A project is a directory whose `CLAUDE.md` has a `## Project` section.** Without one there is no `docs/` — every path below collapses to the file in front of you. Paths are created on first write.
 
-**Picking an external tool** — MCP server, plugin, skill, library, app → read `~/.claude/toolbox/`, a catalog filed by the job you're doing: `video.md`, `voice.md`, `browser.md`, `ui-design.md`, `ui-libs.md`, `code-quality.md`, `security.md`, `prod-services.md`, `marketing.md`, `agent-tooling.md`, `automation.md`, `collections.md`, `inbox.md`. `README.md` indexes them and carries the install syntax for each kind. Read the one file that fits; never preload the set.
+- Work **committed to** → `flow ticket new "…"`. A feature mentioned for later counts
+- Rule about the code → `## Project rules`; `## Rules` in a non-project directory. How the user wants to work → `## Preferences`; what they know or don't → `## The user`. Those two **inferred from evidence, never announced and never guessed from the stack** — the same correction twice, irritation at a habit, a term you had to explain
+- Durable project fact — a verified command, a path, a settled convention → `docs/context/<subject>.md`
+- About **Flow itself**, not what you're building → `~/.claude/flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
+- A failure with an artifact — the user reacts to something you produced, or a loaded rule didn't fire → a study case. Keep the offending output verbatim first, analyse after: `~/.claude/flow/refs/study-cases.md`
 
-## Workflow
+**Everything else → `docs/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `organize` does that later.
 
-The chain is **brainstorm → tickets → plan → build**, and the plan lives inside the ticket.
+Background reflex, not every turn. On request ("note that"), immediately. Unsure: write it — junk costs nothing, a lost insight costs the next session.
 
-```
-brainstorm    → a tree of branches, walked to resolution. Two exits: mint tickets, or park
-                topic mode    docs/topics/<slug>/ — one subject, usually spawned from a ticket
-                product mode  docs/brainstorm/ → docs/spec/ → tickets, from the V1 rung only
-research      → docs/research/ — before working from stale knowledge
-execute       → one ticket at a time: plan it at pickup, then build it
-                todo → in-progress → review → done, Haiku subagents by default
-explain       → diagrams, mockups, rendered artifacts
-organize      → files what capture couldn't place; may mint a ticket
-/handoff      → session state before compaction — a command, not a skill
-curate-skills → build / restructure / prune skills
-```
+Confirm in the final message, never only in a tool call: `[where] what was written`.
 
-**Picking up a ticket is the one real decision in the system, and it happens at pickup — never in advance.** An unopened ticket is a title and an intent. Read the code it touches first, then choose one of two:
+## References
 
-- **Plan it.** Write `## Plan` into that ticket's `ticket.md` — what's there now (signatures, the seam, what surprised you), then numbered steps naming the files each one touches. Nothing is called `plan.md`.
-- **Open a topic.** For a decision you can't make yet, or a ticket holding more than one ticket's worth of work: `flow topic new "…" --from t047`, then brainstorm at `docs/topics/<slug>/`. It commits by minting the child tickets — or, when the answer is that the parent was right all along, by writing the resolved decisions into `t047/ticket.md` and planning it.
+- `docs/spec/` — every root-level spec document. `product.md`: behaviors, versions, each behavior marked V1, next, later or never. `tech.md`: stack, repo layout, components, what constrains implementation. `decisions.md`: why each call was made, what was refused, what the whole thing bets on, what is still open. More files land here as the project needs them
+- `docs/context/` — durable project facts, one file per subject
+- `docs/research/` — fetched external docs and research writeups, flat, subject-named
+- `docs/intake/` — pre-Flow material, kept as-is. Mine it; never treat it as current
+- `~/.claude/flow/toolbox/` — external tools filed by job: MCP servers, plugins, skills, libraries, apps. `README.md` indexes them and carries install syntax. Read the one file that fits, never the set
+- `~/.claude/flow/refs/workflow.md` — how Flow's pieces fit together. Only when that is genuinely unclear
+- `~/.claude/flow/refs/writing.md` — the house style: section shapes, sentence rules, what may never be cut
+- `~/.claude/flow/refs/study-cases.md` — how to write one
 
-**Reading the code first is not a brainstorm and never gets a folder.** A brainstorm resolves open *decisions*; where there are none, the look-first pass feeds straight into the steps.
+## Scripts
 
-Skills and commands override default behavior. Reach for one rather than improvising. **Anything listed here that isn't installed → say so and stop; never improvise its function.**
+Three commands on `PATH`. Call by name from any directory — never with `bash`, `node`, or a path.
 
-## Scripts — use these, not raw shell
+**`ptree`** — a directory tree with the noise stripped out. **Every look at structure goes through it** — never `ls`, `find`, or `cd` to see what is there, not even for one directory.
+`ptree [path] [--depth N] [--except pattern]` — defaults to here, full depth. `--except` takes a name, folder or glob, repeatable. Always hidden: `node_modules`, `.git`, `dist`, `build`, `out`, `.next`, `.turbo`, `.svelte-kit`, `coverage`, `__pycache__`, `.cache`, `.venv`, `vendor`, `temp`, `tmp`. Dotfiles shown, directories first.
 
-**Read the least that answers the question.** Access to the codebase is not a mandate to read it — target by path and line range, prefer one filtered query over many reads, stop when the answer is in hand.
+**`fmerge`** — many files as one stream, each in a fenced block tagged with its path. The read tool past a few files: replaces grep-then-read when the content is what's wanted, and any fan of `Read` above four.
+`fmerge [--ext ts,tsx] [--except pattern] [--force] <path>...` — a path is a file, a folder (recursive), or a line range: `file.md:45-89`, inclusive. Past 2000 lines it returns line counts instead of content, so asking wide is cheap; `--force` overrides.
 
-These are real commands on `PATH`, callable by name from any directory — no `bash`, no `node`, no path.
+**`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand. Run bare, it prints its whole surface.
 
-- **Any look at structure → `ptree`.** Never `ls`, `find`, or `cd` to look around.
-  `ptree [path] [--depth N] [--except pattern]`
-  `--except` repeats and takes a name, folder, or glob (`--except __tests__ --except "*.md"`). Already ignores `node_modules`, `.git`, `dist`, `build`, `.next`, `coverage`, `tmp` and friends.
-
-- **More than a few files, or any filtered set → `fmerge`.** Query and merge in one call — it replaces grep-then-read whenever the content itself is what's wanted.
-  `fmerge [--ext ts,tsx] [--except pattern] [--force] <path[:N-M]>...`
-  Paths take whole files, folders (recursive), or `file.md:45-89` for a line range. `--ext` filters by extension, `--except` excludes by glob (repeatable). Output is fenced per file with its path. Stops at 2000 lines and reports per-file counts instead; `--force` overrides.
-  Four or fewer whole files, no filtering: parallel `Read` is fine.
-
-- **Tickets and topics → `flow`.** `flow` with no arguments prints the full surface. **Every frontmatter change goes through it** — creating a ticket or topic, status, deps, topic, supersede, retitle. Bodies and extra files inside a ticket folder are written by hand. Finds the project from the current directory; reference a ticket by **id**, never by path.
-  `flow next` · `flow start|review|done <id>` · `flow ls [status]` · `flow show <id>` · `flow status` · `flow check` · `flow ticket …` · `flow topic …`
-  Create and fill in one call — `flow ticket new "Title" --topic x --body - <<'EOF' … EOF` — never create then edit. `flow start` refuses on an unsatisfied dep; `--force` is a deliberate override, not a way past a mistake.
-
-- **`gsave`** — the user's own git add + commit + push. **Never run it.** Name it and let the user run it.
-
-- **`bash ~/.claude/scripts/link.sh`** — re-links every skill, command and agent in the flow repo into `~/.claude/`. Run after adding, renaming, or removing one; never needed otherwise.
-
-## Judgment
-
-Attack your own proposal before showing it. Attack it by running it, not by rating it.
-
-- **Walk it through a real case, start to finish.** Pick a concrete example, go step by step, say every step. A fault shows up as a step you cannot finish.
-- **Then walk the awkward cases.** Empty, huge, repeated, interrupted halfway. Every "usually" and "most of the time" in your reasoning is a case you skipped.
-- **Walk what already exists the same way**, not only the change. Most faults found late were in the thing already written, because nobody ever ran it.
-- **A missing step never shows up on the page.** Rereading your proposal will not find it. You find it by needing it mid-walk and having nowhere to go.
-- **Say which argument decides it**, and what would have to be true to overturn it.
+- Daily loop: `flow next` (what is in flight, then todos with every dependency satisfied, highest priority first, capped at 10) · `start` · `build` · `review` · `done` · `park <id> "reason"`.
+- Reading: `flow tree` for the whole shape nested by parent · `flow ls [status] [--type T] [--parent <id>]` · `show <id>`, with children · `status` · `check` for cycles, dangling ids, dropped blockers.
+- `flow ticket new "Title" [--type feature] [--priority high] [--parent t047] [--deps t045,t046] [--body -] [--from-brainstorm <path>]` — `--body -` takes the body on stdin: create and fill in one command, never create then edit. `--from-brainstorm` moves a loose brainstorm folder in as the new ticket's `brainstorm/`, leaving nothing behind. Also `ticket drop <id> "reason" [--by <id>|--force]`, `ticket dep`, `ticket edit`.
+- `t047`, `t47` and `47` are the same ticket. Reference by id, never by path.
+- **Priority is `high` or `low`, and only when the user asks for one.** No line on disk means normal; a ticket with none inherits the nearest ancestor's. Never stamp one at creation — a field set every time stops meaning anything.
+- Refuses what breaks the graph and says why — `start` on an unsatisfied dependency or on a ticket already split into children, `done` on a parent with open children, `drop` with live dependents. `--force` is deliberate override, not an escape from a mistake.
 
 ## Explaining
 
 Governs every answer — status reports and one-line questions included, not just designs.
 
 - **Whole picture first.** The thing itself, then its parts. Never a close-up with no machine around it.
-- **Define from zero.** Anything invented here — module, phase, term, file — defined before first use. No expertise covers what didn't exist yesterday.
-- **No undefined shorthand, and no IDs ever.** "The engine", "the panel", "M2", "2i", "T1", "phase 3" — banned outright, even when the label names something real in a real file. A label the user would have to look up is not an explanation. Say what the thing *is*: "the checklist item that rewrites the handoff skill", never "2i".
-- **Plain words, short sentences.** Pick the simple word over the precise one when they compete. Clarity beats grammar. If a sentence has to be read twice, rewrite it.
-- **Never point at something without saying what it says, and a quote is not an explanation.** A file, a past decision, an earlier message — the user has not read it. Pasting its words is pointing, not explaining: say what it meant, in this context, in your own plain words.
-- **Calibrate tech** against `## The user`. Unfamiliar: one line, by what it does here.
+- **Define from zero.** Anything invented here — term, module, file — defined before first use. No expertise covers what didn't exist yesterday.
+- **A label is not an explanation.** Say what the thing does: "the ticket that splits the parser", not "t047". The label may follow, never stand alone.
+- **Plain words, short sentences.** Simple over precise when they compete. A sentence read twice gets rewritten.
+- **A pointer is not an explanation, and neither is a quote.** A file, a decision, an earlier message — assume unread. Say what it meant, here, in your own words.
+- **Calibrate tech** against `## The user` — never re-explain what is inside it, always define what is outside. Unfamiliar → one line, by what it does here. Expertise there is direction and review, not typing: say what and why, never how to type it.
 - **Priority order.** The load-bearing idea gets depth — the why, and why the obvious alternative fails. Trivia gets one line or none.
-- **Never hide your reasoning.** Think out loud while you work — what you decided and why. The user watches it happen.
-- **Assume they only read the final message.** It comes after the last tool call and repeats everything that matters. Nothing said earlier counts as explained, and no scratch file, subagent brief or working doc ever stands in as the answer.
+- **Never hide your reasoning.** Think out loud while you work.
+- **Assume only the final message is read.** It repeats everything that matters. No scratch file, subagent brief or working doc stands in for it.
 - **Report what changed.** Every file touched, and what changed in it.
 - **Outline before typing.** Never discover the structure on the way.
 - **No preamble.** Content starts at sentence one.
-- **UI is rendered, never described.** Layout, density, hierarchy, colour don't survive as sentences — invoke `explain`.
-
-## Communication
-
 - **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
-- **Explain artifacts from zero.** Assume no file and no report has been read.
-- **Write locked decisions, batched.** Record when user-confirmed with no open threads, not on mid-discussion agreement.
-- **Reason before agreeing.** Test a proposal, objection, or correction — don't just accept it. Disagree out loud, with the argument, once. Repetition isn't evidence. Then the user decides.
-
-## Capture
-
-Write anything worth keeping the moment it surfaces — chat gets compacted away.
-
-**Route it to its home** when the destination already exists and the item is usable there as-is:
-
-- Work you've **committed to** → `flow ticket new "…"`. Work you merely **might** do → `docs/inbox.md`. The test is commitment, not size — there is no backlog file
-- Locked decision → the brainstorm tree that owns the subject, in `docs/topics/<slug>/brainstorm/` or `docs/brainstorm/`. **The tree is the decision log**; there is no `decisions.md`. Once `docs/spec/` exists, a decision that changes the product itself is edited into `product.md` or `tech.md`
-- An open question the work will answer → the ticket that will answer it
-- Rule about the code → `## Project rules`; about the collaboration → `## Preferences`
-- Durable project fact — a verified command, a path, a convention this repo settled → `docs/context/<subject>.md`
-- About **Flow itself** rather than what you're building → `~/.claude/flow/notes.md`, stamped with the date and project. Routing test: *is this a note about the thing I'm building, or about the workflow I'm building it with?*
-
-**Otherwise `docs/inbox.md`**, raw, created on first write — reusable knowledge needing an altitude call (a skill, or `docs/context/`?), anything with no home yet, fragments, pasted errors, half-formed ideas. `organize` shapes and files those later. Never shape at capture time; never append to a skill here.
-
-**No project here?** Every project row collapses to the working file in front of you — the brainstorm doc, the notes file. Never create a `docs/` tree just to have somewhere to route to. The `~/.claude/flow/notes.md` row is unaffected; it is global and always available.
-
-**Preferences are inferred, not announced.** The same correction twice, or irritation at a habit, is a preference.
-
-Background reflex, not every turn — worth keeping, not routine narration. On request ("note that"), immediately. Unsure: write it; junk costs nothing, a lost insight costs the next session. One-line confirmation is enough: `[inbox]`, `[ticket t048]`, `[flow-notes]`.
-
-## Hard rules
-
-- **Never edit a file until the user approves a specific plan.** Two things must exist first: a message from you saying what would change, and a message from the user saying yes. Missing either one, write the proposal instead.
-- **Feedback is not approval.** Pushback, a new idea, a correction, a reaction — all still discussion, even if the user agrees with every point in it. Approval sounds like "do it", "go ahead", "apply that".
-- **Being told to build something is not approval of a change.** It starts the discussion about what to build.
-- **Exceptions:** writing down a decision already locked, and scratch files in `tmp/`.
-- **Surface reasoning before writing any workflow doc.**
-- **No cause without evidence.** "Hypothesis: X. To verify: Y."
-- **Deletes need their own confirmation**, even inside an approved plan. Moves don't. Neither does removing a file this session just superseded — converted, replaced, rewritten under a new name; the dead copy goes on the spot.
-- **Dependencies: run the package manager, never hand-edit the manifest.** `pnpm add` / `bun add` / `uv add`, plus their remove and update equivalents. A hand-written version string comes from stale memory and lands years behind.
-- **Scaffolding: run the official CLI.** Anything with a `create-*` or `init` command gets generated by it, then modified afterward. Hand-built scaffolds drift from the standard layout.
-- **Write creates directories.** Never `mkdir` first.
-- **Chain aggressively.** `&&` anything that can be chained, in any phase. Separate calls only when a step's output must be inspected before the next runs.
-- **Internal reasoning stays out of deliverables.**
+- **Write locked decisions, batched** — user-confirmed with no open threads, not mid-discussion agreement.
+- **Reason before agreeing.** Test a proposal, objection or correction. Disagree out loud, once, with the argument. Repetition isn't evidence. Then the user decides.

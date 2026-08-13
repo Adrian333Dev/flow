@@ -12,12 +12,10 @@ Flow installs **once per machine**, not once per project. The rules live at `~/.
 
 A project then adds only what actually varies: its name and stack, and the rules its spec implies.
 
-| Path | What it is |
-|---|---|
-| `global/` | what gets installed into `~/.claude/` — rules, settings, scripts |
-| `skills/` | every skill, symlinked into `~/.claude/skills/` |
-| `commands/` | every slash command, symlinked into `~/.claude/commands/` — `handoff.md` is `/handoff` |
-| `project-template/` | the two-and-a-bit files a new project starts with |
+- `global/` — what gets installed into `~/.claude/`: rules, settings, scripts, reference files
+- `skills/` — every skill, symlinked into `~/.claude/skills/`
+- `commands/` — no slash commands ship today. `link.sh` still links this folder when one appears
+- `project-template/` — the two-and-a-bit files a new project starts with
 
 ## Setup — once per machine
 
@@ -39,8 +37,11 @@ ln -sfn ~/code/flow/global/scripts/fmerge.js   ~/.local/bin/fmerge
 ln -sfn ~/code/flow/global/scripts/gsave.sh    ~/.local/bin/gsave
 ln -sfn ~/code/flow/global/scripts/flow/flow.js ~/.local/bin/flow
 
-# 4. the tool catalog, at a path that doesn't depend on where you cloned flow
-ln -sfn ~/code/flow/toolbox ~/.claude/toolbox
+# 4. Flow's own folder — reference files and the tool catalog, at paths that
+#    don't depend on where you cloned flow
+mkdir -p ~/.claude/flow
+ln -sfn ~/code/flow/global/refs ~/.claude/flow/refs
+ln -sfn ~/code/flow/toolbox     ~/.claude/flow/toolbox
 
 # 5. rules — copied, not linked: this one becomes yours
 cp -n global/CLAUDE.md ~/.claude/CLAUDE.md
@@ -48,7 +49,7 @@ cp -n global/CLAUDE.md ~/.claude/CLAUDE.md
 
 Every script lives once, in `global/scripts/`, and keeps its extension there so you can see what runs it. Steps 2 and 3 are two ways to reach the same files — a folder link for the ones named by path, per-file links for the ones you type. Symlinks throughout, so editing the repo changes the command with no reinstall step.
 
-Step 4 exists so the rules can name one fixed path. `toolbox` is its own repo, pinned here as a submodule; `~/.claude/toolbox` is what `global/CLAUDE.md` actually points at, which keeps that reference working no matter where flow was cloned. `git submodule update --remote toolbox` pulls newer entries.
+Step 4 exists so the rules can name fixed paths. `~/.claude/flow/` is the one folder under `~/.claude/` that Flow owns and Claude Code does not read — nothing in it loads on its own, which is what makes it the right home for material the rules point at rather than carry. It holds pointers into this repo (`refs/`, `toolbox/`) alongside Flow's own output, which lands there on first write: `notes.md`, and `study-cases/`. **The repo is never cloned into it** — it stays wherever you put it, and `setup-flow-globals` will run from there. `toolbox` is its own repo, pinned here as a submodule; `git submodule update --remote toolbox` pulls newer entries.
 
 Then fill in `## The user` and `## Preferences` in `~/.claude/CLAUDE.md`. That copy is personal from here on; if you want it backed up, track `~/.claude/` in a private repo of your own.
 
@@ -76,7 +77,7 @@ Four are commands on `PATH`, called by name from anywhere:
 
 - `ptree` (`ptree.sh`) — filtered project tree: `ptree [path] [--depth N] [--except pattern]`
 - `fmerge` (`fmerge.js`) — merge files or line ranges into one blob for large reads
-- `flow` (`flow/flow.js`) — tickets and topics: `flow next`, `flow start <id>`, `flow ls`, `flow ticket new "…"`
+- `flow` (`flow/flow.js`) — tickets: `flow next`, `flow start <id>`, `flow build <id>`, `flow tree`, `flow ls`, `flow ticket new "…"`. Also `flow study-case …`, which records study cases under `~/.claude/flow/` — the one group that works outside a project
 - `gsave` (`gsave.sh`) — `git add` + `commit` + `push` in one command. Nothing else; anything git can already do stays a git command. User-run only.
 
 Two are referenced by path, never typed:

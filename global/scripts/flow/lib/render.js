@@ -7,41 +7,98 @@
 const path = require('path');
 const graph = require('./graph');
 
-function table(headers, rows) {
-  const widths = headers.map((h, i) =>
-    Math.max(h.length, ...rows.map((r) => String(r[i] ?? '').length), 0)
-  );
-  const line = (cells) => cells.map((c, i) => String(c ?? '').padEnd(widths[i])).join('  ').trimEnd();
-  return [line(headers), ...rows.map(line)].join('\n');
+/** Aligned columns with no header row — the tree needs the padding without one. */
+function columns(rows) {
+  const widths = [];
+  for (const r of rows) {
+    r.forEach((c, i) => { widths[i] = Math.max(widths[i] || 0, String(c ?? '').length); });
+  }
+  return rows
+    .map((r) => r.map((c, i) => String(c ?? '').padEnd(widths[i])).join('  ').trimEnd())
+    .join('\n');
 }
 
-const ticketRow = (t) => [t.id, t.data.status, t.data.type, t.data.topic || '-', t.data.title];
+const table = (headers, rows) => columns([headers, ...rows]);
 
-function ticketTable(tickets) {
+/**
+ * Effective priority, so a child of a high parent reads `high` even though its
+ * own file says nothing. `normal` prints as `-`: the column exists to show the
+ * exceptions, and a column full of the word "normal" would bury them.
+ */
+const priCell = (t, index) => {
+  const p = graph.effectivePriority(t, index);
+  return p === 'normal' ? '-' : p;
+};
+
+const ticketRow = (t, index) =>
+  [t.id, t.data.status, t.data.type, priCell(t, index), t.data.parent || '-', t.data.title];
+
+// `pool` is the full ticket set when the list being printed is a filtered slice
+// of it — priority is inherited, so a parent outside the slice still decides.
+function ticketTable(tickets, pool) {
   if (tickets.length === 0) return 'no tickets.';
-  return table(['ID', 'STATUS', 'TYPE', 'TOPIC', 'TITLE'], tickets.map(ticketRow));
+  const index = graph.indexById(pool || tickets);
+  return table(['ID', 'STATUS', 'TYPE', 'PRI', 'PARENT', 'TITLE'], tickets.map((t) => ticketRow(t, index)));
 }
 
-function topicTable(topics, tickets) {
-  if (topics.length === 0) return 'no topics.';
-  const rows = topics.map((tp) => {
-    const own = tickets.filter((t) => t.data.topic === tp.slug);
-    const done = own.filter((t) => t.data.status === 'done').length;
-    return [tp.slug, tp.data.status, own.length ? `${done}/${own.length}` : '-',
-      tp.data.from.length ? tp.data.from.join(',') : '-', tp.data.title];
-  });
-  return table(['SLUG', 'STATUS', 'DONE', 'FROM', 'TITLE'], rows);
+/**
+ * The forest, drawn. One line per ticket: the branch, then status, priority and
+ * whatever single fact matters most about it — how much of a parent is done,
+ * what a blocked ticket waits on, why a parked one was set aside.
+ */
+function tree(nodes, all) {
+  if (!nodes.length) return 'nothing to show.';
+  const index = graph.indexById(all);
+  const rows = [];
+
+  const walk = (list, prefix, root) => {
+    list.forEach((n, i) => {
+      const last = i === list.length - 1;
+      const t = n.ticket;
+      rows.push([
+        prefix + (root ? '' : last ? '└── ' : '├── ') + `${t.id}  ${t.data.title}`,
+        t.data.status,
+        priCell(t, index),
+        treeNote(t, all, index),
+      ]);
+      if (n.children.length) walk(n.children, root ? '' : prefix + (last ? '    ' : '│   '), false);
+    });
+  };
+
+  walk(nodes, '', true);
+  return columns(rows);
 }
 
-const reasonText = (u) =>
+// Counted against every ticket, never the visible slice: a parent whose
+// children are all done must still read 3/3 once those children are hidden.
+function treeNote(t, all, index) {
+  const kids = graph.children(all, t.id);
+  if (kids.length) return `${progressOf(t, all)} done`;
+  if (t.data.status === 'todo') {
+    const unmet = graph.unmetDeps(t, index);
+    if (unmet.length) return `blocked by ${unmet.map((u) => u.dep).join(', ')}`;
+  }
+  return t.data.reason || '';
+}
+
+/**
+ * A parent shows how many of its children are finished where a leaf shows
+ * whether it has a plan — that count is the parent's whole progress story.
+ */
+function progressOf(t, tickets) {
+  const kids = graph.children(tickets, t.id);
+  if (kids.length === 0) return null;
+  return `${kids.filter((k) => k.data.status === 'done').length}/${kids.length}`;
+}
+
+const blockText = (u) =>
   u.reason === 'missing' ? `${u.dep} does not exist`
   : u.reason === 'dropped' ? `${u.dep} was dropped — this ticket can never become ready`
-  : u.reason === 'superseded' ? `${u.dep} was superseded${u.by && u.by.length ? ` by ${u.by.join(', ')}` : ''} — re-point this dep`
   : `${u.dep} is ${u.reason}`;
 
 const blockedLines = (entries) =>
   entries.map(({ ticket, unmet }) =>
-    `  ${ticket.id}  ${ticket.data.title}\n` + unmet.map((u) => `        ${reasonText(u)}`).join('\n')
+    `  ${ticket.id}  ${ticket.data.title}\n` + unmet.map((u) => `        ${blockText(u)}`).join('\n')
   ).join('\n');
 
 function show(ticket, tickets, root) {
@@ -52,15 +109,22 @@ function show(ticket, tickets, root) {
     return t ? `${d} (${t.data.status})` : `${d} (MISSING)`;
   });
   const dependents = graph.dependents(tickets, ticket.id).map((t) => `${t.id} (${t.data.status})`);
+  const kids = graph.children(tickets, ticket.id);
 
   const header = [
     `${ticket.id}  ${ticket.data.title}`,
-    `status: ${ticket.data.status}   type: ${ticket.data.type}   topic: ${ticket.data.topic || '-'}`,
+    `status: ${ticket.data.status}   type: ${ticket.data.type}   parent: ${ticket.data.parent || '-'}`,
+    // The one place inheritance is spelled out, so "which ticket do I edit to
+    // change this" has an answer somewhere. The daily lists stay uncluttered.
+    `priority:   ${priorityLine(ticket, index)}`,
+    ticket.data.reason ? `reason:     ${ticket.data.reason}` : null,
     `deps:       ${deps.length ? deps.join(', ') : '-'}`,
     `dependents: ${dependents.length ? dependents.join(', ') : '-'}`,
-    ticket.data.by.length ? `superseded by: ${ticket.data.by.join(', ')}` : null,
+    kids.length
+      ? `children:   ${progressOf(ticket, tickets)} done — ${kids.map((k) => `${k.id} (${k.data.status})`).join(', ')}`
+      : null,
     ticket.data.status === 'todo'
-      ? (unmet.length ? `blocked:    ${unmet.map(reasonText).join('; ')}` : 'ready:      yes')
+      ? (unmet.length ? `blocked:    ${unmet.map(blockText).join('; ')}` : 'ready:      yes')
       : null,
     `path:       ${path.relative(root, ticket.file)}`,
   ].filter(Boolean).join('\n');
@@ -68,28 +132,43 @@ function show(ticket, tickets, root) {
   return `${header}\n${'-'.repeat(60)}\n${ticket.body.trimEnd()}`;
 }
 
-function status(tickets, topics) {
+function priorityLine(ticket, index) {
+  if (ticket.data.priority) return ticket.data.priority;
+  const effective = graph.effectivePriority(ticket, index);
+  if (effective === 'normal') return 'normal';
+  let p = ticket.data.parent ? index.get(ticket.data.parent) : null;
+  while (p && !p.data.priority) p = p.data.parent ? index.get(p.data.parent) : null;
+  return `${effective} — inherited from ${p ? p.id : '?'}`;
+}
+
+function status(tickets) {
   const by = (s) => tickets.filter((t) => t.data.status === s);
-  const activeTopics = topics.filter((tp) => tp.data.status === 'in-progress');
   const ready = graph.readyTickets(tickets);
   const blocked = graph.blockedTickets(tickets);
+  const inFlight = [...by('thinking'), ...by('building')];
 
   const out = [];
-  out.push(`tickets: ${tickets.length}   todo ${by('todo').length}   in-progress ${by('in-progress').length}   ` +
-    `review ${by('review').length}   done ${by('done').length}   dropped ${by('dropped').length}   ` +
-    `superseded ${by('superseded').length}`);
-  out.push('');
-
-  out.push(`active topic${activeTopics.length === 1 ? '' : 's'}: ` +
-    (activeTopics.length ? activeTopics.map((tp) => tp.slug).join(', ') : 'none'));
+  out.push(`tickets: ${tickets.length}   todo ${by('todo').length}   thinking ${by('thinking').length}   ` +
+    `building ${by('building').length}   review ${by('review').length}   done ${by('done').length}   ` +
+    `parked ${by('parked').length}   dropped ${by('dropped').length}`);
 
   out.push('');
-  out.push(`in flight (${by('in-progress').length}):`);
-  out.push(by('in-progress').length ? indent(ticketTable(by('in-progress'))) : '  none');
+  out.push(`in flight (${inFlight.length}):`);
+  out.push(inFlight.length ? indent(ticketTable(graph.rank(inFlight, tickets), tickets)) : '  none');
 
   out.push('');
   out.push(`in review (${by('review').length}):`);
-  out.push(by('review').length ? indent(ticketTable(by('review'))) : '  none');
+  out.push(by('review').length ? indent(ticketTable(graph.rank(by('review'), tickets), tickets)) : '  none');
+
+  // Parked tickets are invisible in the daily loop by design; a count here is
+  // the one place they surface, so a deliberate "not now" cannot quietly
+  // become "forgotten".
+  const parked = by('parked');
+  if (parked.length) {
+    out.push('');
+    out.push(`parked (${parked.length}):`);
+    out.push(indent(table(['ID', 'TITLE', 'REASON'], parked.map((t) => [t.id, t.data.title, t.data.reason || '-']))));
+  }
 
   out.push('');
   out.push(`ready: ${ready.length}   blocked: ${blocked.length}   (flow next)`);
@@ -116,11 +195,9 @@ function checkReport(problems) {
     for (const d of problems.droppedBlockers) out.push(`  ${d.ticket.id} depends on ${d.dep} (dropped)`);
     out.push('');
   }
-  if (problems.supersededDeps.length) {
-    out.push(`superseded deps (${problems.supersededDeps.length}) — re-point them:`);
-    for (const d of problems.supersededDeps) {
-      out.push(`  ${d.ticket.id} depends on ${d.dep}, superseded by ${d.by.length ? d.by.join(', ') : '(nothing)'}`);
-    }
+  if (problems.danglingParents.length) {
+    out.push(`dangling parents (${problems.danglingParents.length}) — the parent does not exist:`);
+    for (const d of problems.danglingParents) out.push(`  ${d.ticket.id} has parent ${d.parent}`);
     out.push('');
   }
   return out.join('\n').trimEnd();
@@ -128,4 +205,43 @@ function checkReport(problems) {
 
 const indent = (text) => text.split('\n').map((l) => '  ' + l).join('\n');
 
-module.exports = { table, ticketTable, topicTable, blockedLines, reasonText, show, status, checkReport, indent };
+// ---------------------------------------------------------------- study cases
+
+/**
+ * The index that decides where a new case goes. One line per issue, because it
+ * is read before every create — the rules are here because "is my failure this
+ * one?" is answered by the rule that failed far more often than by the name.
+ */
+function issueTable(issues) {
+  if (issues.length === 0) return 'no issues yet — the first study case creates one.';
+  return table(
+    ['ISSUE', 'CASES', 'OPEN', 'LATEST', 'RULES'],
+    issues.map((i) => [i.issue, i.total, i.open, i.latest || '-', i.rules.length ? i.rules.join('; ') : '-'])
+  );
+}
+
+function caseList(cases) {
+  if (cases.length === 0) return 'no study cases.';
+
+  const byIssue = new Map();
+  for (const c of cases) {
+    if (!byIssue.has(c.issue)) byIssue.set(c.issue, []);
+    byIssue.get(c.issue).push(c);
+  }
+
+  const out = [];
+  for (const [issue, list] of [...byIssue.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    out.push(`${issue} (${list.length})`);
+    out.push(indent(table(
+      ['DATE', 'STATUS', 'CASE', 'RULE', 'PROJECT'],
+      list.map((c) => [c.data.date || '-', c.data.status, c.slug, c.data.rule || '-', c.data.project || '-'])
+    )));
+    out.push('');
+  }
+  return out.join('\n').trimEnd();
+}
+
+module.exports = {
+  columns, table, ticketTable, tree, progressOf, blockedLines, blockText, show, status, checkReport, indent,
+  issueTable, caseList,
+};

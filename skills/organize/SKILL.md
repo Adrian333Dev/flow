@@ -1,17 +1,17 @@
 ---
 name: organize
-description: File the captures that had no obvious home — decide which skill owns a reusable lesson, shape raw fragments into something fileable, flag knowledge with no home skill. Drains `docs/work/inbox.md`, plus the `brainstorm.md` / `spec.md` of a topic you just finished.
+description: File the captures that had no obvious home — decide which skill owns a reusable lesson, shape raw fragments into something fileable, flag knowledge with no home skill. Drains `docs/inbox.md`, plus the brainstorm tree of work you just finished.
 disable-model-invocation: true
 ---
 
 # Organize
 
-The filing pass. Capture routes whatever has an obvious home the moment it surfaces (project `CLAUDE.md` → Capture); `docs/work/inbox.md` collects only what it couldn't place. This drains that.
+The filing pass. Capture routes whatever has an obvious home the moment it surfaces (`## Capture` in `~/.claude/CLAUDE.md`); `docs/inbox.md` collects only what it couldn't place. This drains that.
 
 ## Inputs
 
-- **`docs/work/inbox.md`** — always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
-- **The topic worked this session, once it's done** — sweep its `brainstorm.md` / `spec.md`: promote reusable lessons into skills, move out strays that fell outside its scope. No topic in play, or it's still open? Inbox only — never go digging through topic files that aren't yours this session.
+- **`docs/inbox.md`** — always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
+- **The brainstorm worked this session, once it closes** — sweep its `map.md`: promote reusable lessons into skills, move out strays that fell outside its scope. Nothing closed this session, or it is still open? Inbox only — never go digging through maps that aren't yours this session.
 
 ## Method — batch, don't crawl
 
@@ -28,14 +28,12 @@ Triage speed, not deep work — keep it quick and light.
 
 The judgment calls this pass exists for:
 
-| Item | Home |
-|---|---|
-| Reusable (tip / pattern / gotcha / method) | the skill that already covers it, by **altitude** (below) |
-| Reusable, no skill yet | flag in `docs/work/backlog.md`: `needs skill: <topic> — <note>` |
+- **Reusable — a tip, pattern, gotcha or method** → the skill that already covers it, chosen by **altitude** (below).
+- **Reusable, no skill covers it yet** → flag it in `docs/inbox.md` as `needs skill: <subject> — <note>`.
 
-Everything else goes to the homes listed under `## Capture` in the project `CLAUDE.md` — backlog, decisions, project rules, preferences. It reached the inbox because it was raw, not because it was homeless.
+Everything else goes to the homes listed under `## Capture` — a ticket, a brainstorm tree, `docs/context/`, project rules, preferences, `~/.claude/flow/notes.md`. It reached the inbox because it was raw, not because it was homeless.
 
-**Defer to what exists.** No project `spec/`? Route decisions to the topic's `spec.md`. Never invent parallel doc buckets.
+**Defer to what exists.** No `docs/spec/`? A locked decision goes to the brainstorm tree that owns the subject — the tree *is* the decision log. Never invent parallel doc buckets.
 
 ## Altitude — which skill
 
@@ -48,11 +46,13 @@ Match the note's scope to the skill's scope:
 
 Never a "tool-A-with-tool-B" skill. One home per fact; pointers elsewhere; never duplicate.
 
-Skills mean the ones under `.claude/skills/` — append there.
+Skills are global, one copy per machine, under `~/.claude/skills/` — append there. There is no project-local skill to file into.
 
 ## Not here
 
 Building or reshaping a skill is a separate pass. Adding a line to a skill that exists = `organize`. When `needs skill:` flags pile up, suggest `curate-skills` in one line.
+
+Creating a ticket is fair game when an inbox item turns out to be committed work — `flow ticket new`. Work you merely *might* do stays in the inbox; the test is commitment, not size.
 
 ## Hard rules
 
