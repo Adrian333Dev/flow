@@ -9,6 +9,26 @@
             "command": "node \"$HOME/.claude/scripts/guard.js\""
           }
         ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/snapshot.js\" --before"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/snapshot.js\" --after"
+          }
+        ]
       }
     ]
   },
@@ -18,11 +38,16 @@
   "disableClaudeAiConnectors": true,
   "disableArtifact": true,
   "autoMemoryEnabled": false,
+  "worktree": {
+    "bgIsolation": "none"
+  },
   "permissions": {
+    "disableBypassPermissionsMode": "disable",
     "allow": [
       "Bash",
       "Edit",
       "WebFetch",
+      "WebSearch",
       "mcp__context7__*"
     ],
     "deny": [
@@ -31,7 +56,10 @@
       "DesignSync",
       "NotebookEdit",
       "SendMessage",
+      "ListAgents",
       "PushNotification",
+      "SendUserFile",
+      "ShareOnboardingGuide",
       "RemoteTrigger",
       "ReportFindings",
       "ScheduleWakeup",
@@ -39,6 +67,8 @@
       "CronCreate",
       "CronDelete",
       "CronList",
+      "EnterWorktree",
+      "Agent(isolation:worktree)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",

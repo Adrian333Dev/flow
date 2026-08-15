@@ -178,7 +178,7 @@ Confirm every branch is resolved or deliberately deferred, then send each decisi
 - Several units, each useful alone → **it stays**, and becomes the design record the tickets link back to.
 - Several units, useless shipped apart → one parent ticket with children, created with the same flag so the folder lands on the parent.
 
-**Then say what happens next.** `flow next` lists what is workable; **`execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `execute`, against the code as it stands that day — never here, and never in advance.
+**Then say what happens next.** `flow next` lists what is workable, and **`execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `execute`, against the code as it stands that day. Writing one here dates it before the build starts.
 
 ## Asking questions
 
@@ -204,9 +204,9 @@ Applies in Phases 1 and 2 both.
 
 A markdown checklist. Zero-based indices, children extending the parent, nested as deep as the subject needs.
 
-**Every leaf is a question.** A question can be walked to an answer and ticked; a topic never can, so a map of topics never closes.
+**Every leaf is a question.** A question walks to an answer and gets ticked. A topic never can, so a map of topics never closes.
 
-**A big subject groups its questions under topic parents, written in Title Case.** Case is what separates the two on sight: `Distribution` is a group, `which platform do we publish to first?` is a question. A topic parent closes when its children close, and it always has children — a topic with nothing under it is an agenda, not a map. A small subject skips grouping and lists questions flat.
+**A big subject groups its questions under topic parents, written in Title Case.** Case separates the two on sight: `Distribution` is a group, `which platform do we publish to first?` is a question. A topic parent always has children, and closes when they close. A topic with nothing under it is an agenda. A small subject skips grouping and lists questions flat.
 
 ```markdown
 - [ ] 0 — Distribution

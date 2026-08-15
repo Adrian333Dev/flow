@@ -46,12 +46,11 @@ Using what came back:
 
 Megabytes of docs or a cloned codebase read inline burns the main context. Level 2 past a few pages, and level 3 always: delegate the reading to a subagent on a cheaper model. The main agent reads only the findings file.
 
-The brief assumes **zero** conversation context:
+**The brief is a handoff** — `handoff` writes it, as an assignment delivered in the prompt rather than as a file. Three things it carries that belong to reading specifically:
 
-- the question(s), precisely stated
-- the constraints that shape the answer — stack, versions, decisions already locked
-- the sources: cache paths under `tmp/refs/<tool>/`, the clone path, or URLs to fetch
-- required output: findings written into the question's research file, each one citing where in the sources it came from
+- **The sources** — cache paths under `tmp/refs/<tool>/`, the clone path, or URLs to fetch.
+- **The question**, precisely stated, with the constraints that shape the answer: stack, versions, decisions already locked.
+- **The output** — findings written into the question's research file, each citing where in the sources it came from.
 
 ## External prompt research
 

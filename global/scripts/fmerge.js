@@ -136,7 +136,9 @@ function parseArgs() {
   let force = false;
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--ext' && args[i + 1]) {
+    if (args[i] === '--') {
+      break; // everything after is prose for the model, never a path
+    } else if (args[i] === '--ext' && args[i + 1]) {
       extList.push(...args[++i].split(',').map((e) => {
         const t = e.trim();
         return t.startsWith('.') ? t : '.' + t;
@@ -171,7 +173,7 @@ function main() {
 
   if (pathArgs.length === 0 && rangedSpecs.length === 0) {
     process.stderr.write(
-      'Usage: fmerge [--ext ts,tsx] [--except pattern] [--force] <path1[:N-M]> [path2] ...\n'
+      'Usage: fmerge [--ext ts,tsx] [--except pattern] [--force] <path1[:N-M]> [path2] ... [-- note]\n'
     );
     process.exit(1);
   }

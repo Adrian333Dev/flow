@@ -32,7 +32,7 @@ ln -sfn ~/code/flow/global/scripts ~/.claude/scripts
 
 # 3. the four PATH commands — the link drops the extension (~/.local/bin must be on PATH)
 mkdir -p ~/.local/bin
-ln -sfn ~/code/flow/global/scripts/ptree.sh    ~/.local/bin/ptree
+ln -sfn ~/code/flow/global/scripts/ptree.js    ~/.local/bin/ptree
 ln -sfn ~/code/flow/global/scripts/fmerge.js   ~/.local/bin/fmerge
 ln -sfn ~/code/flow/global/scripts/gsave.sh    ~/.local/bin/gsave
 ln -sfn ~/code/flow/global/scripts/flow/flow.js ~/.local/bin/flow
@@ -67,7 +67,7 @@ Copy the scaffold in, then fill `## Project`:
 cp -r ~/code/flow/project-template/. .
 ```
 
-That's a `CLAUDE.md` with `## Project` and `## Project rules`, and a `.gitignore` for `tmp/`. Nothing else — every `docs/` path is created on first write by whatever needs it, so a new project starts with two files rather than a tree of empty scaffolding.
+That's a `CLAUDE.md` with `## Project` and `## Rules`, and a `.gitignore` for `tmp/`. Nothing else — every `docs/` path is created on first write by whatever needs it, so a new project starts with two files rather than a tree of empty scaffolding.
 
 For an existing codebase with its own docs and conventions, `migrate-to-flow` handles the conversion. *(Not built yet.)*
 
@@ -75,7 +75,7 @@ For an existing codebase with its own docs and conventions, `migrate-to-flow` ha
 
 Four are commands on `PATH`, called by name from anywhere:
 
-- `ptree` (`ptree.sh`) — filtered project tree: `ptree [path] [--depth N] [--except pattern]`
+- `ptree` (`ptree.js`) — filtered project tree, each entry's own `description:` line beside it: `ptree [path] [--depth N] [--except pattern]`
 - `fmerge` (`fmerge.js`) — merge files or line ranges into one blob for large reads
 - `flow` (`flow/flow.js`) — tickets: `flow next`, `flow start <id>`, `flow build <id>`, `flow tree`, `flow ls`, `flow ticket new "…"`. Also `flow study-case …`, which records study cases under `~/.claude/flow/` — the one group that works outside a project
 - `gsave` (`gsave.sh`) — `git add` + `commit` + `push` in one command. Nothing else; anything git can already do stays a git command. User-run only.

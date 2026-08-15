@@ -25,7 +25,7 @@ The `handoff` skill covers everything else an assigned job needs — what turns 
 
 **Missing pass and fail → stop and ask.** Criteria written after the run match whatever came out.
 
-## Appearance questions
+### When the question is about appearance
 
 **Colour, density and type weight cost one round in `visualize`** — one HTML file, opened from disk, no session split. Where only the running stack answers it — real components, real data at volume, motion, a device — build a prototype.
 

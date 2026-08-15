@@ -947,7 +947,13 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
 
 ## Skills — not blocking the chain
 
-- [ ] **`debug` — the general systematic-debugging skill. Never designed, never built.** Raised again by
+- [x] **`debug` — BUILT 2026-08-15**, designed the same day. `skills/debug/SKILL.md`, `agents/debug.md`
+      (model `opus`), and `worktree.bgIsolation: "none"` in `global/settings.json`. The reasoning is in
+      `wip/context/design-debug.md`: the red command as the core, the gate that blocks naming any cause
+      until that command has failed, three ranked hypotheses shown to the user before any is tested, the
+      user as an instrument, and dispatch as an attachable background session (`claude --agent debug --bg`),
+      which reports to a file and is polled with `claude agents --json`. The original
+      entry, kept for its reasoning: Raised again by
       the user 2026-08-06 and missing from the first version of this list. It was named as a needed skill
       back in the original problem inventory, and its core principle already shipped as a hard rule in
       `global/CLAUDE.md` (*"No cause without evidence. Hypothesis: X. To verify: Y."*) — but the rule is one
@@ -957,17 +963,16 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
       The disjointness rule applies to skills too — the general skill owns the *method*, the domain skill
       owns browser specifics. Today `debug-web-pages` is the only debugging skill Flow has and it silently
       stands in for a general one it was never scoped to be
-- [ ] **`prototype` — brainstorm it before building it.** Product mode leans on it for three jobs
-      (feasibility spikes, UI mockups, proof-of-concept builds) and what the skill *is* has never been
-      decided. Un-parked 2026-08-06
+- [x] ~~**`prototype` — brainstorm it before building it.**~~ **BUILT 2026-08-12**, `skills/prototype/SKILL.md`.
+      The full record is the entry under `## Design threads still open` above; this one is the older duplicate
 - [x] ~~**A router skill, in the shape of `ask-matt`.**~~ **Dropped 2026-08-07 (user).** It exists to
       orient *newcomers*, and there are none — one user, who is building the thing. If Flow is ever opened
       up, the narrative it would carry (main flow, on-ramps, what is standalone, how work crosses sessions)
       goes in `README.md` or a guide file, which is cheaper and cannot go stale in context. Not a skill
 - [ ] **`testing` — decide, leaning no.** Stack-specific testing knowledge belongs in that stack's skill;
       project-specific conventions belong in `docs/context/`
-- [ ] 🔁 **`explain`'s mockup output is weak** (user's verdict). The ASCII/structural side works; the mockup
-      side needs its own pass
+- [ ] 🔁 **`visualize`'s mockup output is weak** (user's verdict; the skill was called `explain` then). The
+      ASCII/structural side works; the mockup side needs its own pass
 - [ ] 🔁 **Telegraphic refactor pass** over `brainstorm`, `research`, `execute`, `debug-web-pages`
 - [ ] `debug-web-pages` is prototype-adjacent but narrow — revisit alongside the `prototype` brainstorm
 
@@ -1017,8 +1022,11 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
       closes its own branch. A third session only appears when the first runs out of context. The skill is
       now the middle box only: stand it up · build only what the question needs · report. `map.md` never
       appears in it.
-      **Two edits it still assumes, neither done:** `visualize`'s HTML-preview section moves here, and
-      `project-template/.gitignore` gains a `protos/` artifacts line. The `brainstorm` line is done.
+      **Both follow-ups closed 2026-08-14.** `visualize` keeps its HTML-preview section — moving it here was
+      reversed by the locked decision that `prototype` owns appearance only where the real stack answers the
+      question. `project-template/.gitignore` now carries `protos/*/node_modules/`, which is the artifacts
+      line: a prototype's code and `REPORT.md` are committed, so the folder itself is never ignored. The
+      `brainstorm` line is done.
 - [x] ~~**Drop "brief" as a word**~~ — **DONE 2026-08-12**, and it turned into a real fix rather than a
       rename. The gap was in `/handoff` itself: it listed five things every handoff answers, and three of
       the six a prototype needs landed nowhere. What those three share is that **someone is waiting for an
@@ -1040,10 +1048,12 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
       `## Where` lead with the general rule and demote Flow's ticket paths to examples, so the skill is not
       tied to one project layout. `commands/` is deleted — it held only this file. `link.sh` skips a
       missing folder, so it was left alone; `CLAUDE.md` and `README.md` layout lines updated.
-- [ ] **The resume handoff should be disposable, not tracked** (user, 2026-08-12) — the mechanism half,
-      still open. `skills/handoff/SKILL.md` now says to delete the file once the job it describes finishes,
-      never at the moment it is read, since a session that dies mid-job needs it again. What is still
-      missing is keeping it out of git; likely a script or a `.gitignore` line, which the user deferred.
+- [x] **The resume handoff should be disposable, not tracked** (user, 2026-08-12) — **closed 2026-08-15.**
+      `skills/handoff/SKILL.md` says to delete the file once the job it describes finishes, never at the
+      moment it is read, since a session that dies mid-job needs it again. The gitignore half was tried and
+      **reversed**: a handoff file is tracked like every other file. Deleting it is what makes it disposable,
+      and git holding the old one is the point. `.gitignore` is back to `tmp/` alone, and the user restated
+      the rule 2026-08-15 — **handoff files are never gitignored.**
 - [ ] **Subagent assignments never got the same treatment.** `skills/research/SKILL.md:49` still describes
       a subagent prompt with its own four-item shape — the question, the constraints, the sources, the
       required output — which is the assign shape under a different name. `execute` dispatches subagents
@@ -1122,7 +1132,9 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
       which is the opposite job; `doubt-driven-development`'s "strip your reasoning or you get back validation
       of your conclusions" is the one idea kept. **Two layers, not one** (the question this entry left open):
       the always-on half is `## Judgment` in both `CLAUDE.md` files, grill is the invoked half.
-      ⚠️ `wip/context/threads.md` thread `judgment` still lists name, form, trigger and depth as undecided — stale
+      ✅ `wip/context/threads.md` thread `judgment` settled all four — name, form, trigger and depth — on 2026-08-13.
+      **`grill` no longer exists**, deleted 2026-08-11 into `brainstorm` Phase 3, so there is no invoked half left.
+      `## Judgment` is the whole mechanism, and it carries its own depth gate.
       **Moved to `skills/grill/SKILL.md` on 2026-08-09** — a command is one-shot, and grill is a method that
       runs across a whole discussion. The text above is accurate for its own date; the file is no longer a
       command and is no longer typed with a slash.
@@ -1225,12 +1237,15 @@ and parked at `wip/rejected-init-flow/` — the input to the rewrite, never patc
   ticket produces, or be a filter you would actually run.* Watch for "design X" tickets — designing is not
   researching
 - Splitting `~/.claude/flow/notes.md` — allowed **by kind, never by project**, and only once one file hurts
-- **A one-line description at the top of any file, rendered by `ptree` beside the filename** (raised 2026-08-10).
-  Frontmatter exists for tickets; this is a much thinner version of the same idea for everything else, code
-  files included — one line, form depending on the file type. `ptree` picks it up when present and prints it
-  as that file's description in the tree, so the tree explains itself without opening anything. **Strictly
-  optional and never a migration** — worth it on new files and on the genuinely complex ones, nowhere else.
-  Open: the syntax per language, how `ptree` truncates, whether it costs a read per file
+- [x] **A one-line description at the top of any file, rendered by `ptree` beside the filename — BUILT
+  2026-08-15.** `global/scripts/ptree.js` replaces `ptree.sh` and drops the `tree` dependency. One marker,
+  `description:`, in a comment in any language or in markdown frontmatter; found anywhere in the first 50
+  lines but only on a comment line, which is what keeps a SQL column of that name out. Multi-line reads to the
+  paragraph break; display cuts to one sentence, then 60 characters. A folder describes itself in a `.info`
+  file it carries, README as fallback. All three open questions closed: one reader covers every language, the
+  two display cuts always apply, and the read costs 21 ms across 2,947 files — a cache was measured and
+  rejected, since the freshness check alone costs 9 ms of that. Authoring rule in `global/CLAUDE.md`
+  `## Hard rules`. **Strictly optional and never a migration** — most files need none.
 - **Structured frontmatter for files other than tickets** (raised 2026-08-10, user unsure). Spec files are the
   likely first case — a status, maybe other metadata. Only an idea; no case has forced it yet
 - **An interview at setup to fill `## The user`** (raised 2026-08-10, user unsure). `setup-flow-globals` could

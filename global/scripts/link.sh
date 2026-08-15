@@ -39,4 +39,4 @@ link_group() {
 
 link_group skills   '*/'      # one folder per skill
 link_group commands '*.md'    # one file per command, extension kept — /<name> comes from it
-link_group agents   '*.md'    # not built yet; skipped until the folder exists
+link_group agents   '*.md'    # one file per agent, name from its frontmatter

@@ -7,7 +7,8 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 ## Hard rules
 
 - **Never run git mutations.** No `add`, `commit`, `push`, `checkout`, `reset`, `rebase`, `merge`, `stash`. Print the exact command and let the user run it. `gsave` is the user's own commit-and-push command — name it, never invoke it. Reads (`status`, `log`, `diff`, `ls-files`) are fine. Applies to the `toolbox` submodule too.
-- **Never edit a file until the user approves a specific plan.** Two messages must exist first: yours saying what would change, theirs saying yes. Missing either, write the proposal instead.
+- **Never edit a file until the user approves a specific plan.** Two messages must exist first: yours saying what would change, theirs approving it. Missing either, write the proposal instead.
+- **Silence on a decision is a yes.** Raise a point, get no pushback, and it is settled — however many topics have passed since. **This never starts an edit.** The discussion runs on until the user says to build; then every decision they never argued with is already approved and in scope. Never set one aside because the message that carried it moved on to a different topic. Named by the user 2026-08-15 as the delay that annoys them most.
 - **Feedback is not approval.** Pushback, a new idea, a correction, a reaction — all still discussion, even when the user agrees with every point in it. Approval sounds like "do it", "go ahead", "apply that".
 - **Hedging is a no.** "Maybe", "I don't know", "I'm not sure", "possibly", "or something like that", or a message ending in a question — the user is thinking, not instructing. Reply with reasoning and a recommendation; write nothing. A long list of feedback is a long list of topics, not a work order.
 - **Being told to build something is not approval of a change.** It starts the discussion about what to build.
@@ -26,27 +27,39 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 
 The design is done and the main build landed 2026-08-09: `global/CLAUDE.md`, the `flow` tool, `project-template/`, every skill rewrite.
 
-**Still unbuilt:** the two install skills (`setup-flow-globals`, `migrate-to-flow`), `prototype`, `code-review`, a test suite for `flow`, the real migration of the user's own projects. `skills/brainstorm/SKILL.md` already invokes `prototype` by name, so a brainstorm that needs running code will halt.
+**Still unbuilt:** the two install skills (`setup-flow-globals`, `migrate-to-flow`), a test suite for `flow`, and the real migration of the user's own projects.
 
-**The skills on disk are current as of 2026-08-12. `wip/context/remaining.md` is the stale one.** On 2026-08-11 `brainstorm` lost its two modes; `create-tickets.md` left to become the `write-tickets` skill; `explain` was renamed `visualize`; `grill` was **deleted**, its content folded into `brainstorm`'s Phase 3. On 2026-08-12 `write-prod-spec.md` and `write-design.md` merged into one **`write-spec.md`**, which also writes the new `docs/spec/decisions.md`. `curate-skills` and `debug-web-pages` never named a path the design changed.
+**`code-review` is never getting built.** Review runs in the same session, never a subagent, and the criteria live beside whichever skill produced the artifact — `skills/execute/review-code.md` is that file for code.
+
+**The skills on disk are current as of 2026-08-14. `wip/context/remaining.md` is the stale one.** On 2026-08-11 `brainstorm` lost its two modes; `create-tickets.md` left to become the `write-tickets` skill; `explain` was renamed `visualize`; `grill` was **deleted**, its content folded into `brainstorm`'s Phase 3. On 2026-08-12 `write-prod-spec.md` and `write-design.md` merged into one **`write-spec.md`**, which also writes the new `docs/spec/decisions.md`. On 2026-08-14 `commands/` came back, and `debug` got a placeholder that **2026-08-15 replaced with the real thing** — `skills/debug/SKILL.md`, `agents/debug.md`, and `worktree.bgIsolation: "none"` in `global/settings.json`, which is what lets a dispatched session write a fix at all. `curate-skills` and `debug-web-pages` never named a path the design changed. On 2026-08-15 `ptree.sh` became **`ptree.js`** and now prints each entry's `description:` line beside it; `project-template/` lost `CLAUDE-directory.md` and the `### Layout` section, leaving **one template** whose `## Project` section is what makes a directory a project.
 
 **Where skill and record disagree, suspect the record.** The sections of `remaining.md` marked BUILT still carry the content bullets they were written with, some describing design that the two locked sections at the top of that file later reversed. Those locked sections win over anything below them.
 
 ## Judgment
 
-The only copy — `global/CLAUDE.md` dropped this section on 2026-08-10 because the `grill` skill duplicated it, and that skill is now deleted.
+Mirror of `## Judgment` in `global/CLAUDE.md`, restored there 2026-08-13. That copy is the source and does not load. Edit there first, then carry it across. Goes away when `setup-flow-globals` runs.
 
-Attack your own proposal before showing it. Attack it by running it, not by rating it.
+Governs anything shown to the user for a yes — a design, a plan before `flow build`, a diff at review, an answer.
+
+- **Say which argument decides it**, and what would have to be true to overturn it.
+- **Lead with the finding that matters.** One structural fault among ten small ones is the whole review; printed under them it reads as a list of small ones.
+
+### When it has parts — a design, a plan, a mechanism, a diff across files
+
+Attack it before showing it. Attack it by running it. Rating it finds nothing.
 
 - **Walk it through a real case, start to finish.** Pick a concrete example, go step by step, say every step. A fault shows up as a step you cannot finish.
 - **Then walk the awkward cases.** Empty, huge, repeated, interrupted halfway. Every "usually" and "most of the time" in your reasoning is a case you skipped.
 - **Walk what already exists the same way**, not only the change. Most faults found late were in the thing already written, because nobody ever ran it.
-- **A missing step never shows up on the page.** Rereading your proposal will not find it. You find it by needing it mid-walk and having nowhere to go.
-- **Say which argument decides it**, and what would have to be true to overturn it.
+- **A missing step never shows up on the page.** Rereading will not find it. You find it by needing it mid-walk and having nowhere to go.
+
+A rename, a fact, a one-line answer, a fix with one moving part — none of this. There is nothing to walk.
 
 ## Explaining
 
 Mirror of `## Explaining` in `global/CLAUDE.md`, which is the source and does not load. Edit there first, then carry it across. Goes away when `setup-flow-globals` runs.
+
+**Two bullets deviate on purpose.** `Calibrate tech` points at `wip/context/user-profile.md`, because this file has no `## The user` section to read. `UI is drawn` exists only here — in the global copy it would repeat `visualize`'s own description, which loads there and does not load here.
 
 Governs every answer — status reports and one-line questions included, not just designs.
 
@@ -56,7 +69,7 @@ Governs every answer — status reports and one-line questions included, not jus
 - **Plain words, short sentences.** Simple over precise when they compete. A sentence read twice gets rewritten.
 - **A pointer is not an explanation, and neither is a quote.** A file, a decision, an earlier message — assume unread. Say what it meant, here, in your own words.
 - **Prefer a list to a table**, especially in anything the user reads.
-- **Calibrate tech** against `## The user`. Unfamiliar → one line, by what it does here.
+- **Calibrate tech** against `wip/context/user-profile.md`. Unfamiliar → one line, by what it does here.
 - **Priority order.** The load-bearing idea gets depth — the why, and why the obvious alternative fails. Trivia gets one line or none.
 - **Never hide your reasoning.** Think out loud while you work.
 - **Assume only the final message is read.** It repeats everything that matters. No scratch file, subagent brief or working doc stands in for it.
@@ -85,7 +98,7 @@ To add one: create `<name>/SKILL.md` with `name` and `description` frontmatter, 
 - **`organize` is the density to aim for.** Style itself lives in `global/refs/writing.md`, including how to write the `description`.
 - **Skill triggers live in the skill's own `description`**, never as a rule in a `CLAUDE.md`. If the agent should reach for a skill in situation X, name X in that description, in directive form.
 - **One skill, one folder. Flat for now** — topic buckets (`frontend/`, `backend/`, `tooling/`) only once flat gets noisy. Never a vague `misc/`.
-- **Length is not a reason to split.** Under ~300 lines is fine, up to ~500 when the material earns it. Split only when parts are genuinely **conditional** — read on some runs and not others (`write-spec.md`, `haiku-worker.md`). Splitting what every run needs just buys extra reads.
+- **Length is not a reason to split.** Under ~300 lines is fine, up to ~500 when the material earns it. Split only when parts are genuinely **conditional** — read on some runs and not others (`write-spec.md`). Splitting what every run needs just buys extra reads.
 - **Names are verb-first.** Folders and sub-files state the action — `execute`, `research`, `write-spec.md` — never gerunds (`writing-plans`) or noun forms.
 - **Plain, common words — no invented or rare terms** (user, 2026-08-11). "Rung" for a step on a list is the case that triggered this. Binds what skills produce as hard as what they say, because the user reads the output.
 - **Executables live in `scripts/`.** `research/scripts/fetch-docs.sh`, `debug-web-pages/scripts/capture.js`. Markdown sub-files stay at the folder root or in purpose folders like `knowledge/`.
@@ -97,11 +110,12 @@ To add one: create `<name>/SKILL.md` with `name` and `description` frontmatter, 
 
 - **`global/CLAUDE.md`** — rules that apply in every directory, project or not. Copied to `~/.claude/CLAUDE.md`, then personalized
 - **`global/settings.json`** — permissions, the `PreToolUse` hook, feature flags; every key explained in `global/settings.md`. Merged into `~/.claude/settings.json`
-- **`global/scripts/`** — `ptree.sh`, `fmerge.js`, `gsave.sh`, `guard.js`, `link.sh`, `flow/flow.js`. Symlinked as `~/.claude/scripts`; four get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands
+- **`global/scripts/`** — `ptree.js`, `fmerge.js`, `gsave.sh`, `guard.js`, `snapshot.js`, `link.sh`, `flow/flow.js`. Symlinked as `~/.claude/scripts`; four get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands. `guard.js` and `snapshot.js` are hooks, named by path in `settings.json` and never typed
 - **`global/refs/`** — reference files Flow ships but rarely loads: `writing.md` (how to write a file that loads into context), `workflow.md` (how the pieces fit), `study-cases.md` (how to record a failure). Symlinked as `~/.claude/flow/refs`
 - **`skills/`** — every skill, one folder each. Symlinked into `~/.claude/skills/`
-- **`commands/`** — **gone 2026-08-12.** `handoff` became a skill, and it was the only command. Flow ships none. A skill is typeable as `/<name>` too, so nothing was lost; `link.sh` keeps the loop and skips a missing folder
-- **`project-template/`** — `CLAUDE.md` (`## Project` + `## Project rules`), `CLAUDE-directory.md` (`## Rules` only, for a directory that is not a project), `.gitignore`. Nothing else. One of the two `CLAUDE.md` shapes is copied in and renamed
+- **`agents/`** — subagent definitions, one `.md` file each: a system prompt plus a tool allowlist plus a model. Symlinked into `~/.claude/agents/`. Two of them — `haiku-worker`, named for its model so the folder reads at a glance, and `debug` (2026-08-14), which reads the `debug` skill for its method
+- **`commands/`** — `start.md` and `merge.md`, **back 2026-08-14** after being emptied on 2026-08-12. A command earns its place only by running something *before* the model thinks, which is the one thing a skill cannot do: `/start t047` runs `flow start && flow show`, `/merge` runs `fmerge`. Nothing else belongs here, because a skill is typeable as `/<name>` too — that is why `handoff` became a skill
+- **`project-template/`** — `CLAUDE.md` (`## Project` + `## Rules`) and `.gitignore`. Nothing else. One template, copied in as-is; a directory that is not a project deletes `## Project`, which is the section that makes it one
 - **`toolbox/`** — **submodule**, [`Adrian333Dev/toolbox`](https://github.com/Adrian333Dev/toolbox), external tools filed by job. Symlinked as `~/.claude/flow/toolbox`
 - **`wip/`** — **temporary**, the design lab. Ships nowhere; deleted when the build is done
 
@@ -111,7 +125,7 @@ The design record this repo was built from, carried in when the `agentic-setup` 
 
 **Every context file lives in `wip/context/`** — one folder, flat, no loose markdown at the top of `wip/` (user, 2026-08-09; there were fifteen).
 
-- **`handoff.md`** — session-start orientation only. Disposable: once read it needs no tracking, and it is cleared and rewritten by `/handoff`. Never treat a pointer inside it as something to maintain
+- **`handoff.md`** — session-start orientation only. Read once, then left alone: never updated as the work moves, and replaced only by writing a new one. Never treat a pointer inside it as something to maintain
 - **`remaining.md`** — the master build checklist. Locked sections at the top win over everything below
 - **`refactor-agenda.md`** — the cleanup work now in progress
 - **`session-new-plugin.md`** — historical log, newest at the bottom. Where a decision's origin is found
@@ -131,10 +145,10 @@ Everything beside `context/` is a folder and stays one:
 
 - **A skill or command edit is live immediately.** `~/.claude/skills/*` and `~/.claude/commands/*` symlink into this repo, so there is one copy and no propagation step. Adding, renaming or removing one is the only case needing `bash global/scripts/link.sh`.
 - **Never symlink `skills/`, `commands/` or `agents/` as a folder.** Their `~/.claude/` counterparts hold entries Flow doesn't own — three non-Flow skills are linked there right now. `link.sh` links per item for that reason.
-- **Every script file keeps its extension. The symlink drops it.** `ptree.sh` on disk, `ptree` to type. Nothing in `global/scripts/` is ever extensionless.
+- **Every script file keeps its extension. The symlink drops it.** `ptree.js` on disk, `ptree` to type. Nothing in `global/scripts/` is ever extensionless.
 - **One source, two ways to reach it.** Every script lives once, in `global/scripts/`. `~/.claude/scripts` is a symlink to that folder, for files named by path (`guard.js` in `settings.json`, `link.sh`). `~/.local/bin/<name>` are per-file symlinks, for the four that are commands. No file is ever copied anywhere.
 - **PATH commands are written bare** — `ptree docs`, `fmerge src/`, `flow next`, never with a path or an interpreter. Everything else is written as `~/.claude/scripts/<file.ext>`.
-- **Two languages, by job.** Bash where the script wraps another command (`ptree.sh` over `tree`, `gsave.sh` over `git`); Node where there is real logic (`fmerge.js`, `flow/`, `guard.js`). Nothing else.
+- **Two languages, by job.** Bash where the script wraps another command (`gsave.sh` over `git`, `link.sh` over `ln`); Node where there is real logic (`ptree.js`, `fmerge.js`, `flow/`, `guard.js`). Nothing else.
 - **Never edit `toolbox/` as part of this repo.** It is a submodule with its own history and remote; changes are committed and pushed from inside that folder, then the new pointer is committed here.
 - **Every global file exists twice.** The copy here is the **template** — placeholders plus rules, public. The copy at `~/.claude/` is **personalized** and belongs to the machine. They drift apart on purpose. Never write personal profile content into this repo, and never expect an edit to `~/.claude/CLAUDE.md` to flow back — carry it across by hand when it is a rule worth shipping.
 - **A placeholder comment is deleted the first time its section is filled in.** So it holds a shape and an example, never a rule — a rule written inside one disappears exactly when it starts to matter. Anything load-bearing belongs in a section that survives: `## Capture` for what gets written down, `## Explaining` for how.

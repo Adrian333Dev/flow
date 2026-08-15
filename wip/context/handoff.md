@@ -1,92 +1,58 @@
-# Handoff — 2026-08-12
+# Resume — Flow
 
-Read every file listed under "What to read" in one parallel batch, then start on the first action. The decisions below are settled.
+The list under **What to open** is complete. Read it in one batch, then start on the first action.
 
 ## The job
 
-Building Flow's skills, in plain conversation, one skill at a time. This session finished `prototype`, converted `handoff` from a slash command into a skill, and added a hard rule about following the house writing style.
-
-**The user is angry, with cause.** Two things earned it. The writing rules got broken repeatedly across many sessions, including twice in this one. And `prototype` was handed over for review while a piece it depends on was never moved — see the first action.
+Designing Flow in plain conversation, one topic at a time. The `handoff` rewrite just landed. Next is a queue of topics the user deferred on purpose, to be discussed — not built.
 
 ## Where it stands
 
-Files written this session:
+Two pieces of work finished this session, both approved and verified.
 
-- **`skills/handoff/SKILL.md`** — new, 88 lines. Was `commands/handoff.md`.
-- **`skills/prototype/SKILL.md`** — restructured, 80 lines. Second pass.
-- **`skills/brainstorm/SKILL.md`** — one line, in `### When the user is not the one who can answer`.
-- **`skills/execute/SKILL.md`** — three lines, 102 / 112 / 129.
-- **`CLAUDE.md`** — new last hard rule; `## Writing any file` lost a bullet; `commands/` layout line.
-- **`global/CLAUDE.md`** — new hard rule; trimmed the `writing.md` reference bullet.
-- **`global/refs/workflow.md`**, **`global/settings.md`**, **`README.md`** — one line each.
-- **`commands/handoff.md`** — deleted, and the folder with it.
-- **`wip/context/remaining.md`** — three entries.
+**The `description:` feature.** `global/scripts/ptree.js` replaces `ptree.sh` and drops the `tree` dependency. It prints each entry's own description beside its name. One marker, `description:`, found anywhere in the first 50 lines but only on a comment line — that restriction is what keeps a SQL column of that name out. Markdown uses frontmatter instead. Multi-line reads to the paragraph break; display cuts to one sentence, then 60 characters. A folder describes itself in a `.info` file it carries, README as fallback. Measured at 21 ms across 2,947 files, so a cache was rejected — the freshness check alone would cost 9 ms of that.
 
-**Never run `git status` here.** The tree has been uncommitted since 2026-08-09, so it returns 60 lines that cannot separate this session's work from three weeks of it. The user raised this directly.
+**The `handoff` rewrite**, four changes to `skills/handoff/SKILL.md`, 99 → 108 lines:
 
-## What binds it — decisions locked this session
+1. The pointer rule inverted. Write the state out; a path is only for a file the first action opens.
+2. New slot, **what is still open** — unresolved threads and the position you were leaning toward.
+3. The hard rule re-aimed from "never summarize the conversation" to **write what is true now**. The old wording banned the payload along with the narration.
+4. Every list entry bounded — path, line range, what the reader gets. Plus **"the list is complete"** on the reader's side.
 
-1. **A prototype takes two sessions, not three.** The brainstorm names the question, writes the handoff, and **waits**. A fresh session builds and reports back. The brainstorm reads the report and closes its own branch. A third session appears only when the first runs out of context.
-2. **`prototype` owns the middle only.** Naming the question, writing the handoff, and closing the branch all belong to the brainstorm. The first draft had the prototype session writing its own handoff, which cannot happen — that document already exists by the time the skill runs. `map.md` now appears nowhere in the skill.
-3. **The gap was in `handoff`, not in `prototype`.** Three of the six things a prototype handoff needs landed nowhere on `handoff`'s list. What those three share is that **someone is waiting for an answer** — nothing to do with prototypes. So `handoff` now names two jobs, **resume** and **assign**, and an assigned job carries four extra things: what turns on the answer · what done looks like · what to produce · what to say back.
-4. **Two repairs to what every handoff answers.** *What is already set up* is now its own line, covering the machine and not just the work — the install that ran, the server still listening, the read-only folder. *What was found* is now its own line, and it reverses the old test: writing out a fact costs less than re-deriving it, so "point at what's on disk" was suppressing exactly the payloads and endpoints that took an hour to extract.
-5. **"Brief" is retired.** Every job document is a handoff. A resume file is overwritten; an assigned job takes its own filename and never clobbers it.
-6. **`handoff` is a skill, not a command.** A command can only be typed, yet the file's own trigger list asked it to fire when a brainstorm resolves. A skill is still typeable as `/handoff`. The bigger win: `git status` and `flow status` were baked in and fired every time, so they became step 2, *gather only what this job needs*, where nothing runs by default.
-7. **Every file gets the writing pass.** New hard rule in both `CLAUDE.md` files. Reading `writing.md` is not the pass — plan the whole file's sections before typing, then test every sentence you wrote against its rules before showing anything.
+Other files touched: `project-template/CLAUDE.md` (lost `### Layout`, `## Project rules` → `## Rules`), `project-template/CLAUDE-directory.md` and `global/scripts/ptree.sh` (both deleted), `global/CLAUDE.md` (new hard rule about `description:`, `## Scripts` entry rewritten), `CLAUDE.md` and `README.md` (swept for `ptree.js` and the single template), and three record corrections in `wip/context/`.
 
-Decisions locked earlier and still binding: a prototype is naive by design and **never promoted**; the real build reads it and starts again. Layout locks in ASCII inside `visualize`, then HTML varies colour and density on the frozen frame — and `visualize:100`'s claim that an HTML preview takes one round is **correct** given that order.
+## What binds it
+
+- **Never install anything, and never propose it.** Nothing in Flow loads in any session; this repo's `CLAUDE.md` is the whole rule set in force. A skill being untypeable is not a reason to install — read the file and follow it.
+- **Never run a git mutation**, and never run `git status` here. The tree has been uncommitted since 2026-08-09 and that is the expected state.
+- **Design Flow in plain conversation.** Never invoke a brainstorming skill for it.
+- **Every file gets the writing pass** — `global/refs/writing.md`, read in full, plan the whole file's sections before typing. The user calls this the failure that repeats most.
+- **⛔ Changelogs: stop raising the subject** (user, 2026-08-15, emphatically). `skills/debug-web-pages/CHANGELOG.md` exists and stays. `CLAUDE.md` says every changelog was deleted on 2026-08-09; that sentence is wrong, the user knows, and it is deliberately not being fixed.
+- **Handoff files are tracked, never gitignored.** The gitignore experiment ran 2026-08-14 and was reversed the next day. The user restated the rule 2026-08-15. Do not raise it again.
+- **One marker word: `description:`.** No `desc:`, no `info:` — markdown frontmatter forces the full word, so every language matches it (user, 2026-08-15).
+
+## What is still open
+
+Three topics, all deferred by the user rather than unfinished. Nothing here is decided.
+
+1. **assignments** — delete the assign half of `handoff`. A job handed to another session is work, and Flow already has a place for work, so the dispatched job becomes a child ticket of the ticket that dispatched it, with the brief as the ticket body. `handoff` would shrink to one job, resume. Four questions are written up for a cold reopen: whether a brief and a ticket body are the same document, what happens where there is no ticket system, who closes it, and where the report lands.
+2. **install** — `setup-flow-globals` and `migrate-to-flow` collapse into one skill. The user's reason: the starting states are open-ended and there is no clean line to cut two skills along. **This is the last gate.** Nothing installs until Flow is finished, so this skill's design closes the project.
+3. **The remaining essentials**, agreed this session: the install skill, a test suite for `flow`, then a writing pass over `brainstorm`, `research`, `execute`, `debug-web-pages`. Everything else — the `visualize` mockups, `debug-web-pages`, a `testing` skill, excalidraw, the `flow` simplification, the `PreCompact` hook — was cut from essential on one argument: each needs a real case to decide, and Flow has never produced one.
+
+**Recommendation for order: assignments first.** It edits `skills/handoff/SKILL.md`, which was just rewritten, so settling it now avoids a second pass over the same file.
 
 ## What was found
 
-- **`skills/handoff/SKILL.md` has a defect, unfixed.** Step 2 tells a build resume to run `git status --short` with no guard for a repo nobody commits. Proposed fix, not yet approved: name the files this session changed, and fall back to `git status` only where the tree is committed regularly.
-- Deleting `commands/` needed no change to `global/scripts/link.sh` — it skips a missing folder by design.
-- Two uses of "brief" survive on purpose: `skills/execute/SKILL.md:93` is the ordinary adjective inside a prompt string, and `global/CLAUDE.md:87` is generic prose mirrored in this repo's `CLAUDE.md`, so changing one silently desyncs the pair.
+- **`execute` was already rewritten and is current.** `remaining.md:1069` says the rewrite is "not started, no scope agreed" — written 2026-08-11, four days stale. The agent quoted it and the user corrected them. This repo's `CLAUDE.md` says in bold that the skills on disk are current and `remaining.md` is the stale one. Trust the skill.
+- **`remaining.md` is 1,272 lines and stale by its own header.** Not worth cleaning: `wip/` gets deleted when the build lands.
+- **Past sessions are searchable and settle "did we decide this" questions.** Transcripts sit at `~/.claude/projects/-home-me-code-flow/*.jsonl`, one per session, greppable. That is how the second handoff complaint was found — announced 2026-08-14 22:07, detailed at 23:00, and recorded in `threads.md` as never detailed. The record was wrong; the transcript was not.
+- **Two record files disagreed about the handoff gitignore, in opposite directions.** Both corrected. Where the record fights itself, check the disk.
 
-## What to read
+## What to open
 
-- **`skills/prototype/SKILL.md`** — 80 lines. The skill this session was about.
-- **`skills/visualize/SKILL.md:96-107`** — the `## HTML previews` section that has to move, plus its frontmatter description, which still advertises it.
-- **`skills/handoff/SKILL.md`** — 88 lines, and the defect above lives in step 2.
-- **`global/refs/writing.md`** — 169 lines. Read it fully before writing any file, then test what you wrote against section 5.
-- **`wip/context/user-profile.md`** — who this is for. Voice-to-text, no filler, a committed recommendation over a neutral list.
-- **`wip/context/remaining.md`** — the master checklist. Locked sections at the top beat everything below.
-- **`wip/context/design-browser-tooling.md`** — `debug-web-pages` versus `browser-harness`, deferred to after V1. Do not act on it.
+- **`wip/context/threads.md:378-428`** — the `assignments` thread, then the `install` thread. Both written to be read cold, and they are the whole agenda.
+- **`skills/handoff/SKILL.md`** — 108 lines. The file the `assignments` discussion would change.
 
 ## The first action
 
-**Move `## HTML previews` out of `visualize` and into `prototype`.** The user is angriest about this one, so do it first.
-
-The state today: `prototype` says HTML varies colour, density, weight and spacing on a locked frame, while `visualize` still carries the whole HTML-preview section and still advertises it in its own frontmatter description. Two skills claim one job. **`prototype` is incomplete until this lands**, which is why reviewing it wasted the user's time.
-
-The move needs three things: the section out of `visualize`, the `visualize` description edited so it stops offering HTML previews, and `visualize`'s medium-choosing list repointed at `prototype` for the colour case.
-
-## Then, in order
-
-- **`project-template/.gitignore`** gains a `protos/` line. It is one line today, `tmp/`. A prototype folder holds `node_modules`, model caches and generated media; one real harness reached 779 MB.
-- **Fix the `git status` defect** in `skills/handoff/SKILL.md` step 2.
-- **Subagent assignments never got the same treatment.** `skills/research/SKILL.md:49` describes a subagent prompt with its own four-item shape — the question, the constraints, the sources, the required output — which is the assign shape under another name. `execute` dispatches subagents too. Decide whether an in-session subagent dispatch is the same document type as a cross-session assignment. Nothing contradicts anything today; this is a unification, so it needs the user's call.
-- **Make the resume handoff untracked.** The skill already says to delete it once the job finishes. Keeping it out of git is the missing half, and the user deferred the mechanism.
-
-## Never reviewed — on disk from an earlier session
-
-Shown to the user, and they never said keep or revert. Do not treat these as blessed.
-
-- **`skills/execute/SKILL.md`** rewritten end to end, 122 → 129 lines, including the decision to keep the name `execute`.
-- **`flow ticket new --from-brainstorm <path>`** in `global/scripts/flow/flow.js` and `lib/store.js`.
-- **The `map.md` format** — every leaf a question, topic parents in Title Case.
-
-## Known style debt — 13 sentences
-
-Audited against `writing.md` in an earlier session, still unfixed. `skills/brainstorm/SKILL.md` lines 181, 207, 209. `skills/execute/SKILL.md` lines 3, 28, 37, 43, 55 (twice), 102, 112. Also `skills/organize/SKILL.md:36` still says "the brainstorm **tree**", renamed to "map" long ago.
-
-## Evidence on disk
-
-- **`wip/tmp/tts-lab/`** — a real feasibility prototype from the read-aloud app. 779 MB, 441 lines of test scripts, a 226-line `REPORT.md`, and a `HANDOFF.md` that every rule in `prototype` was derived from. The most useful file in the repo on this subject.
-- **`wip/refs/`** — cloned third-party repos. Read with `cat`, never with `Read`; reading a file inside auto-loads that repo's own `CLAUDE.md`.
-
-## Standing state
-
-- **Nothing is installed.** `global/CLAUDE.md` is a template that would install to `~/.claude/CLAUDE.md`, and that has not happened. No Flow rule and no Flow skill loads in any session. This repo's `CLAUDE.md` is the whole rule set in force. **Never propose installing.**
-- **No commits.** The tree is meant to be dirty until the refactor finishes. Never offer `gsave`, never run a git mutation.
-- **Approval is explicit.** Feedback is not approval. Hedging is a no. A long list of feedback is a list of topics, not a work order.
-- **Still unbuilt overall:** `setup-flow-globals`, `migrate-to-flow`, `code-review`, a test suite for `flow`, and the real migration of the user's own projects.
+Open the `assignments` thread with the user and walk its four questions. Nothing gets edited until a specific plan is approved — feedback is not approval, and hedging is a no.

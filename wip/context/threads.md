@@ -11,6 +11,9 @@ produces one.
 | **extension-points** | skills vs. commands vs. agents — Flow uses skills for everything and never compared them | **← active, 2026-08-08** |
 | **judgment** | the agent proposes without criticizing its own proposals first; the user is the only judge | next, and the important one |
 | **refs** | mine the repos cloned at `wip/refs/` for ideas | pulled from as needed, not a session of its own |
+| **subagent-mechanics** | what a parent can do to a subagent, and what it would take to run several at once | parked 2026-08-14, revisit when a subagent actually runs |
+| **assignments** | a dispatched job may not need a handoff document at all — a child ticket may already be one | raised 2026-08-15, to discuss |
+| **install** | `setup-flow-globals` and `migrate-to-flow` collapse into one skill covering every starting state | raised 2026-08-15, to discuss |
 
 `remaining.md` → `## Design threads still open` holds the older parked list. This file holds these three,
 which are bigger and one of which may reshape the workflow. When a thread closes, its outcome moves into
@@ -269,12 +272,12 @@ only when it occurred to the user. Nothing in the process was looking for it.
 - `wip/refs/agent-skills/skills/doubt-driven-development/` — a third-party skill squarely in this space,
   unread as of writing. Check it before designing from scratch.
 
-### Open, undecided
+### Settled 2026-08-13 — all four
 
-- **Name.** Nothing chosen.
-- **Form.** Skill, subagent, hook, always-on global rule, or several — blocked on **extension-points**.
-- **Trigger.** Always-on vs. invoked vs. fired by a hook on certain message shapes.
-- **Depth control.** A one-line proposal and a design that reshapes the workflow cannot get the same pass.
+- **Name.** `## Judgment`, a section in `global/CLAUDE.md`.
+- **Form.** An always-on global rule, and nothing else. No skill, no subagent, no hook. The user ruled 2026-08-13 that review runs in the same session, never a subagent, so the cold-reader form is off the table here as well.
+- **Trigger.** Always on, scoped by a line naming the moment: anything shown to the user for a yes — a design, a plan before `flow build`, a diff at review, an answer.
+- **Depth control.** Two levels. Two cheap bullets always fire. The four walk bullets sit under `### When it has parts` — a design, a plan, a mechanism, a diff across files — and a rename, a fact, a one-line answer or a one-part fix gets none of them. **The gate is whether the thing has parts, never whether it seems big.** Size is a judgment the agent makes about its own work, which is the faculty this section exists because it does not trust; parts are countable.
 
 ---
 
@@ -303,3 +306,123 @@ Areas the user named: **the three extension points**, **context gathering**, **s
 accident on 2026-08-08 — three of them landed at once, several thousand tokens of instructions written for
 *their* repos, none of which apply here. Survey these with `ls` and targeted reads, run the deep passes in
 subagents, and never let a ref repo's `CLAUDE.md` be mistaken for a rule that governs Flow.
+
+---
+
+## subagent-mechanics — what a parent can do to a subagent it dispatched
+
+**Parked by the user 2026-08-14, deliberately.** Four questions raised while designing `execute`'s dispatch,
+none of them blocking it. Written down so they are not rediscovered from scratch. **No subagent has ever run
+on this machine**, so nothing here is confirmed by observation. Everything below comes from the official hooks
+reference the user downloaded to `wip/research/claude-code-docs/hooks.md`, which is authoritative and answers
+more than the tool surfaces did.
+
+- **Pre-loading the prompt — possible, and the mechanism exists.** The user wants a dispatch to carry command
+  output the subagent would otherwise fetch itself. A **`SubagentStart`** hook returns
+  `hookSpecificOutput.additionalContext`, "added to the subagent's context at the start of its conversation,
+  before its first prompt". Its matcher filters by agent type, so it can fire for one agent and no other, and
+  its payload carries `agent_id` and `agent_type`. A hook could expand a marker such as `{{step:t047#3}}` into
+  the step text and the context files, and the parent would never hold the expansion.
+- **Killing one.** A background agent is addressable and can be stopped. A foreground one cannot — the parent
+  is blocked while it runs, so there is no moment to issue the kill. All subagents die with the session; none
+  outlives it. A finished agent needs no kill, so this only matters for one that is stuck or wrong.
+- **Reading its full history.** Each subagent writes **its own transcript**, in a nested `subagents/` folder
+  beside the session's. A `SubagentStop` hook is handed the path as `agent_transcript_path`, along with
+  `last_assistant_message`, the final response as text, so a hook never has to parse the file to read the
+  answer. In-session the parent still sees only the returned report.
+- **The two kinds, and which Flow should use.** The user reports two shapes: one nested and opaque, visible
+  only as something running, and one that appears in the session and can be switched to, watched and talked to.
+  Background dispatch is what makes an agent addressable, so **the interactive kind is the background one**.
+  The user wants that kind always. It does not conflict with the parent waiting: the flag decides whether the
+  agent can be reached, the parent's own instruction decides whether it proceeds meanwhile.
+
+### Running several subagents at once
+
+**Raised by the user 2026-08-14, on approving the `Agent(isolation:worktree)` deny.** That deny is a hold so
+nothing breaks quietly. This is the topic it holds open, and the user asked for it in writing before it gets
+lost.
+
+**How the snapshot works, from zero.** Two hooks fire around every `Agent` call. The first records the whole
+working tree as a git tree object — one hash standing for every file exactly as it sits, dirty parts included.
+The second records it again when the subagent returns, and `git diff-tree` prints what differs. Two records of
+one directory, taken at two moments.
+
+**Why that forces one subagent at a time.** The difference between the two records is everything that happened
+in that window, not everything *that subagent* did. Two subagents running together each get a diff holding
+both their work, and neither report can be checked against it. `execute` states the rule — one worker, and the
+parent starts nothing while it runs — but the rule is a workaround for a mechanism that cannot tell two
+writers apart.
+
+**Why worktrees look like the answer.** A git worktree is a second checkout of the same repository in its own
+directory, sharing one object store. A subagent given `isolation: worktree` works there and touches nothing in
+the main checkout, so two subagents never turn up in each other's diff. `git write-tree` runs fine in a
+worktree and returns a hash comparable with any other, because the object store is shared — the snapshot
+mechanism itself has no objection to this.
+
+**What blocks it today.** `snapshot.js` records the working directory at the first event and gives up when the
+second reports a different one. That check exists to stop a nonsense diff across two unrelated directories,
+and it stops the legitimate case with it.
+
+**To answer before lifting the deny:**
+
+- Which directory does each hook see when the subagent has its own? The payload carries `agent_id` and
+  `agent_type`; whether it carries the subagent's working directory is unverified.
+- The work lands in a checkout the parent is not in. Who merges it back, and when? Merging is a git mutation,
+  so the user runs it, which puts a manual step inside every dispatch.
+- Does `flow` work from a worktree? Ticket paths resolve from the project root.
+- **Does parallelism pay at all here?** The 1.1M-token study case above found the cost of a dispatch to be the
+  cold start, not the waiting. Four cold starts at once are not cheaper than four in a row.
+
+---
+
+## assignments — does a dispatched job need a handoff document?
+
+**Raised by the user 2026-08-15, to be discussed later. Nothing here is decided.**
+
+Today `handoff` has two jobs: **resume** this work later, and **assign** a job to a session that reports back.
+The assignment half writes its own file, named for the job, sitting beside the resume file — that is what the
+skill calls a parallel handoff, and `debug` dispatches one.
+
+**The idea: delete the assignment half.** A job handed to another session is work, and Flow already has a place
+for work — a ticket. So the dispatched job becomes a **child ticket of the ticket that dispatched it**, and the
+brief is the ticket body. `handoff` shrinks to one job, resume.
+
+Raised in the same message as a second `handoff` complaint, which the user detailed in the very next turn:
+the skill wrote a reading list instead of the state, so the next session read seven files where two would do.
+**That one is fixed** — `skills/handoff/SKILL.md`, 2026-08-15. This idea is the half that stayed open.
+
+**To answer when it opens:**
+
+- **A brief and a ticket body are not the same document.** A ticket says what to build; a brief says what
+  failed, what the error was, what changed, and what was already ruled out. Does that fit a ticket body, or
+  does the ticket grow a section it only has sometimes?
+- **What happens with no ticket system** — a fresh session that types `/debug`, or a directory with no `docs/`.
+  Assignments work there today because a file works anywhere.
+- **Who closes it.** A child ticket has a status the parent's `flow` graph reads, which is strictly better than
+  a file nobody marks done. That may be the strongest argument for the change.
+- **The report.** `debug` appends its result to the brief file it was started on. As a ticket, the result would
+  land in the ticket body — check that against `flow`'s rule that only `flow` writes frontmatter.
+
+## install — one skill instead of two
+
+**Raised by the user 2026-08-15, to be discussed later. Nothing here is decided.**
+
+The plan was two skills: `setup-flow-globals` to install Flow on a machine that has none, `migrate-to-flow` to
+convert a project that already has its own workflow. Neither is built.
+
+**The idea: one skill for both.** The user's reason is that the starting states are open-ended — a bare machine,
+a machine with Flow and a fresh project, a project with its own `CLAUDE.md` and docs, a project half-converted —
+and there is no clean line to cut two skills along. Writing one skill per scenario means writing a skill per
+scenario forever.
+
+**To answer when it opens:**
+
+- **What the single skill branches on.** Whatever it detects first — global rules present or absent, project
+  `CLAUDE.md` present or absent, foreign docs present or absent. Those three flags are eight states, and most
+  collapse.
+- **Whether install and convert really share a spine**, or only share a trigger. Installing writes to
+  `~/.claude/`; converting writes inside a repo. One skill that does both crosses the boundary every other
+  Flow skill respects.
+- **The name.** `setup-flow-globals` and `migrate-to-flow` are both verb-first and both describe half the job.
+- **Nothing installs until Flow is finished** — this skill is the thing that finally runs, so its design is
+  what closes the whole project.

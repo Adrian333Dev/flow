@@ -1,6 +1,6 @@
 ---
 name: organize
-description: File the captures that had no obvious home — decide which skill owns a reusable lesson, shape raw fragments into something fileable, flag knowledge with no home skill. Drains `docs/inbox.md`, plus the brainstorm tree of work you just finished.
+description: File the captures that had no obvious home — decide which skill owns a reusable lesson, shape raw fragments into something fileable, flag knowledge with no home skill. Drains `docs/inbox.md`, plus the brainstorm map of work you just finished.
 disable-model-invocation: true
 ---
 
@@ -31,9 +31,9 @@ The judgment calls this pass exists for:
 - **Reusable — a tip, pattern, gotcha or method** → the skill that already covers it, chosen by **altitude** (below).
 - **Reusable, no skill covers it yet** → flag it in `docs/inbox.md` as `needs skill: <subject> — <note>`.
 
-Everything else goes to the homes listed under `## Capture` — a ticket, a brainstorm tree, `docs/context/`, project rules, preferences, `~/.claude/flow/notes.md`. It reached the inbox because it was raw, not because it was homeless.
+Everything else goes to the homes listed under `## Capture` — a ticket, a brainstorm map, `docs/context/`, project rules, preferences, `~/.claude/flow/notes.md`. It reached the inbox because it was raw, not because it was homeless.
 
-**Defer to what exists.** No `docs/spec/`? A locked decision goes to the brainstorm tree that owns the subject — the tree *is* the decision log. Never invent parallel doc buckets.
+**Defer to what exists.** No `docs/spec/`? A locked decision goes to the brainstorm that owns the subject — its `map.md` *is* the decision log. Never invent parallel doc buckets.
 
 ## Altitude — which skill
 

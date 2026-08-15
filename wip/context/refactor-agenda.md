@@ -51,6 +51,15 @@ Two observations from the user, not yet acted on:
 The same test applies to any other skill that loads nearly every time. Which ones those are has not been
 worked out.
 
+### ✅ DONE 2026-08-12, by a different mechanism than this item proposed
+
+`explain` was **renamed `visualize`**, not archived, and nothing moved into `global/CLAUDE.md`. What made the
+skill fire without the user naming it was its own `description`, which sits in context every turn — so the
+trigger became always-loaded while the skill body stayed on demand. That is this item's goal (*"70–80% of
+the time everything essential is already in `CLAUDE.md`"*) reached without growing the always-loaded file at
+all, which the measurement rule below asks for. The repo `CLAUDE.md` carries a `UI is drawn` bullet that the
+global copy deliberately lacks, for exactly this reason: there, `visualize`'s description already says it.
+
 **Measure the whole context window, never one file** (user's correction, 2026-08-09). The agent objected that
 item 2 grows `global/CLAUDE.md` while item 5 shrinks it, and called that a tension. It is not. Today's cost is
 `CLAUDE.md` **plus the entire `explain` skill**, because the skill loads almost every turn. Afterwards it is
@@ -143,6 +152,12 @@ Named specifically:
   are already loaded, so their descriptions are already in context; the file is repeating them. **Naming them
   may be enough.** This gets worse as more core skills are added.
 
+### ✅ DONE — all three targets are gone
+
+`global/CLAUDE.md` has no ticket-pickup diagram, no `## Key docs` and no `## Workflow`. `## Workflow` went
+furthest: rather than being compressed, it was deleted outright, and the one line pointing at
+`~/.claude/flow/refs/workflow.md` replaced it.
+
 ## 6. The handoff file is read once, then discarded
 
 A correction aimed at the agent's behaviour. The agent has been **actively tracking and updating
@@ -230,11 +245,11 @@ that lands. The depth material — reformulation, forced distant analogue, three
 | # | Item | State |
 |---|---|---|
 | 1 | changelogs suspended | ✅ **done** — suspended, not deleted, in `skills/CLAUDE.md` |
-| 2 | frequently-loaded skills into `CLAUDE.md`; archive `explain` | direction given, nothing designed. **Next.** |
+| 2 | frequently-loaded skills into `CLAUDE.md`; archive `explain` | ✅ **done 2026-08-12**, by another mechanism — the skill's `description` became the always-loaded part. See the DONE note under item 2 |
 | 3 | compress everything; research first | direction given; caveman researched, see 3a |
 | 4 | move context files into one folder | ✅ **done** — `wip/context/`. Contents not yet cleaned (4b) |
-| 5 | cut `global/CLAUDE.md` down | direction given, specific targets named |
-| 6 | handoff is read-once | correction accepted; the `commands/handoff.md` edit is not approved |
+| 5 | cut `global/CLAUDE.md` down | ✅ **done** — the pickup diagram, `## Key docs` and `## Workflow` are all gone |
+| 6 | handoff is read-once | ✅ **done** — `handoff` is a skill and it says to delete the file once the job finishes. Handoff files are **tracked, never gitignored**: that experiment ran 2026-08-14 and was reversed the next day |
 | 7 | no commits until done | standing |
 | 8 | stale `~/.local/bin` symlinks point at the deleted workbench repo | deferred by the user, 2026-08-09 |
 | 9 | `brainstorm` reworked to generate options, not structure input | ✅ **done** — 180 → 223 lines. Depth half still owed to `execute` and the debug skill |

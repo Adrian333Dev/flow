@@ -32,6 +32,13 @@ const DENY = [
     'git mutation'],
 ];
 
+// One exemption: `git add` into a throwaway index is a read. GIT_INDEX_FILE
+// points staging at a scratch file, so the real index, the working tree and HEAD
+// all stay untouched — it writes objects and moves nothing. `execute` snapshots a
+// dirty tree that way, before and after a subagent runs. Only `add` is exempt;
+// `commit` moves HEAD whichever index it reads from.
+const SCRATCH_ADD = /(^|[;&|]\s*)GIT_INDEX_FILE=\S+\s+git\s+add\b/g;
+
 // Legitimate often enough to warrant a prompt rather than a wall.
 const ASK = [
   [/\b(npm|pnpm|yarn|bun)\s+(i|install|add|remove|rm|uninstall|up|update)\b/, 'dependency change'],
@@ -118,8 +125,11 @@ try {
 const cmd = (data.tool_input && data.tool_input.command) || '';
 const cwd = data.cwd || process.cwd();
 
+// Scratch-index staging drops out first, so the deny scan never sees it.
+const scanned = cmd.replace(SCRATCH_ADD, ' ');
+
 for (const [pattern, reason] of DENY) {
-  if (pattern.test(cmd)) verdict('deny', `${reason} — name the command, the user runs it`);
+  if (pattern.test(scanned)) verdict('deny', `${reason} — name the command, the user runs it`);
 }
 
 for (const [pattern, reason] of ASK) {
