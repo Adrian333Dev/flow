@@ -116,7 +116,7 @@ To add one: create `<name>/SKILL.md` with `name` and `description` frontmatter, 
 - **`commands/`** — `start.md` and `merge.md`. A command earns its place only by running something *before* the model thinks, which is the one thing a skill cannot do: `/start t047` runs `flow start && flow show`, `/merge` runs `fmerge`. Nothing else belongs here, because a skill is typeable as `/<name>` too — that is why `handoff` became a skill
 - **`project-template/`** — `CLAUDE.md` (`## Project` + `## Rules`) and `.gitignore`. Nothing else. One template, copied in as-is; a directory that is not a project deletes `## Project`, which is the section that makes it one
 - **`toolbox/`** — **submodule**, [`Adrian333Dev/toolbox`](https://github.com/Adrian333Dev/toolbox), external tools filed by job. Symlinked as `~/.claude/flow/toolbox`
-- **`wip/`** — **temporary**, the design lab. Ships nowhere; deleted when the build is done
+- **`wip/`** — the design lab. Ships nowhere and never gets deleted: Flow keeps being improved, so this shrinks to what is still live instead. **The name is wrong and changes later** — nothing in it says design lab
 
 ## `wip/`
 

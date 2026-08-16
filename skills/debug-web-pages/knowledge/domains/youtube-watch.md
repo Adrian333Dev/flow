@@ -77,7 +77,7 @@ Verified live 2026-07-13 (paused **and** playing), resolving the scrub-back spik
   ```
   (`composedPath()[0]` recovers the true focused node even across shadow
   boundaries — keyboard events are `composed:true`.)
-- **For a WXT/MV3 content script:** register at `document_start`. Because
+- **For an MV3 content script:** register at `document_start`. Because
   window-capture is topmost and uncontested, registration timing vs YouTube's own
   scripts doesn't matter (there's no window-level competitor to lose a race to);
   an isolated-world `window` listener still participates in the page's dispatch.
@@ -91,8 +91,10 @@ Verified live 2026-07-13 (paused **and** playing), resolving the scrub-back spik
     client-side navigation (window survives the route change), so no re-arm needed.
 
 ## Fullscreen — mechanism & state (verified 2026-07-16, live FS-RECON probe)
-This account runs YouTube's **full-bleed / cinematics** player (classes
-`full-bleed-player`, `cinematics-active`, `ytp-full-bleed-player`).
+**Check the player variant before trusting this section.** It was verified against
+YouTube's **full-bleed / cinematics** player (classes `full-bleed-player`,
+`cinematics-active`, `ytp-full-bleed-player`), which is one of several configurations
+YouTube serves. Classic configs differ — see the warning under A1.
 
 - **A1 — the fullscreen element is `<html>`, not the player.**
   `document.fullscreenElement === document.documentElement`. Modern YouTube calls
@@ -148,7 +150,7 @@ This account runs YouTube's **full-bleed / cinematics** player (classes
 - **The fullscreen related-videos grid is wheel-DRIVEN, not a scroll.** In fullscreen, wheeling
   reveals/moves YouTube's **"videowall"**: `.ytp-fullscreen-grid` → `.ytp-fullscreen-grid-main-content`
   → `.ytp-fullscreen-grid-stills-container` → `.ytp-modern-videowall-still` tiles (all `ytp-*` **light
-  DOM inside `#movie_player`**; sample HTML saved to `tmp/out/yt-related-videos-overlay.html`). It
+  DOM inside `#movie_player`**). It
   moves via YouTube's JS off `deltaY` — **no element's `scrollTop`/`scrollLeft` changes and no
   `scroll` event fires**, and in fullscreen `<body>` is `.no-scroll` (`overflow:hidden`) so the page
   can't scroll either. ⇒ **a scroll-position / `scroll`-event probe reports false silence here** —
@@ -156,7 +158,7 @@ This account runs YouTube's **full-bleed / cinematics** player (classes
   no native scroll chain to contain.)
 
 ### ✅ PROVEN: stop an in-overlay wheel from leaking into YouTube's grid
-A child overlay mounted **inside `#movie_player`** (e.g. the Delapse popup) leaks the mouse wheel
+A child overlay mounted **inside `#movie_player`** leaks the mouse wheel
 into that grid: `wheel` is **`composed:true`**, so it bubbles OUT of the overlay's shadow root into
 the passive `#movie_player`/`body` handlers. (Dragging the scrollbar **thumb** emits *no* `wheel`
 event → never leaks; only the wheel does — the discriminating symptom that points straight at
@@ -168,7 +170,7 @@ event → never leaks; only the wheel does — the discriminating symptom that p
   ```js
   window.addEventListener("wheel", (e) => {
     const overOverlay = e.composedPath().some(
-      (n) => n instanceof Element && /* overlay marker class, e.g. */ n.classList.contains("dp-popup-surface"));
+      (n) => n instanceof Element && n.classList.contains(OVERLAY_CLASS));  // your overlay's own marker class
     if (!overOverlay) return;        // bare-video wheel → leave YouTube's grid behavior untouched
     e.stopPropagation();             // preventDefault is NOT needed; native list scroll still works
   }, true);                          // capture phase
@@ -200,12 +202,12 @@ event → never leaks; only the wheel does — the discriminating symptom that p
 ## Open questions / gotchas
 - **Fullscreen mechanism — RESOLVED 2026-07-16.** Fullscreen element is `<html>`
   (full-bleed player), `#movie_player` does not re-parent, no containing-context
-  traps, chrome z-index ceiling 6000 — see the **Fullscreen** section above. Basis
-  for the fake-fullscreen test stage (`delapse/youtube-fake-frame-build-spec.md`).
+  traps, chrome z-index ceiling 6000 — see the **Fullscreen** section above. This is
+  the basis for building a fake-fullscreen test stage.
 - **Escape in fullscreen — WON'T-FIX (browser-native).** Esc is consumed by the
   browser to exit fullscreen *above* the page's JS listeners, so no `keydown` handler
-  can reliably intercept it. Confirmed as a hard constraint; the extension does not
-  bind Esc, and any fake stage using the real Fullscreen API inherits this for free.
+  can reliably intercept it. Confirmed as a hard constraint — never bind Esc, and any
+  fake stage using the real Fullscreen API inherits the behavior for free.
 - **ArrowLeft (←) −5 s seek — RESOLVED 2026-07-13.** Intercepted via `window`
   capture-phase `stopImmediatePropagation()` on `keydown`; see the proven
   intervention above. The seeker never surfaced from a closed shadow root — it's

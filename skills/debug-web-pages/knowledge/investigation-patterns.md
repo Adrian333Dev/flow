@@ -66,8 +66,8 @@ A task that keeps failing is a signal to **change the approach, not repeat it**:
 3. **Cross the modes.** Stuck live? Capture and read `listeners.json` to see where
    the handler *really* is. Stuck static? A live probe reveals runtime-only behavior.
 4. **Suspect a blind spot.** If the mechanism is nowhere visible, it's likely
-   behind a closed shadow root or on a non-DOM target — that needs the CDP backend
-   ([`../ROADMAP.md`](../ROADMAP.md)); say so rather than looping.
+   behind a closed shadow root or on a non-DOM target, which the console backend
+   cannot reach at all. Say so rather than looping.
 5. **Measure the right primitive.** A probe that logs *nothing* is only evidence if
    it watches the actual mechanism. A visual "scroll" may be **wheel-driven JS**
    (moves via transform, fires no `scroll` event, changes no `scrollTop`) — a

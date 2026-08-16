@@ -86,5 +86,5 @@ Frameworks + site globals; capture metadata, metrics, warnings, blindSpots.
 
 Artifacts are sampled across a few ms of a live, mutating page — a few
 `listeners.json` node paths may not resolve in `page.html`. Treat a non-resolving
-path as "was there at capture time," not a bug. Only the CDP backend fully removes
-this (see [`../ROADMAP.md`](../ROADMAP.md)).
+path as "was there at capture time," not a bug. Only a CDP backend takes an atomic
+snapshot and removes this; the console snippet cannot.

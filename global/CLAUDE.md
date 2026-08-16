@@ -6,6 +6,7 @@ Flow — an agentic development workflow for a solo developer. Work runs brainst
 - **A handoff file you booted from is read once, then left alone** — never updated as the work moves. Only two things touch it again: a fresh one written over it, or a delete once its job is done. **Inside a ticket the state is a section instead, and that one is kept current** — `## State`, rewritten whole whenever something becomes true that no other file records.
 - **Read minimal context.** Path and line range, one filtered query over many reads, stop when answered.
 - **Reach for a skill, never improvise its job.** Named but not installed → say so and stop.
+- **When Flow fights the work, set that part aside.** The case it never considered, or a rule that makes the work worse — name the part, say why, carry on. **The permission is standing; never ask for it.** Silently forcing a bad fit is the failure this prevents.
 - **No cause without evidence.** "Hypothesis: X. To verify: Y."
 - **Never hand-write what a tool generates.** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
 - **A file whose name doesn't say what it holds → a `description:` line at the top.** In a comment (`// description: …`), or in frontmatter where the file has one; below a shebang or a license header, never above. A folder describes itself in a `.info` file it carries. Most files need none — a description on everything signals nothing.

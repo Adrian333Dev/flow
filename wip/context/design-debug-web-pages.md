@@ -1,4 +1,24 @@
-# Design: debug-web-pages skill
+# `debug-web-pages` — the design record
+
+**Three documents written 2026-07-12 to 07-23, before Flow existed.** They sat inside `skills/debug-web-pages/` until 2026-08-16, where they read as current and are not. The skill no longer points at them.
+
+**Read `design-browser-tooling.md` first.** It supersedes most of what follows: once `browser-harness` is installed, the capture engine described below is deleted and the skill drops to roughly 150 lines of method. This file is the record of what gets replaced, kept so the migration has the original reasoning.
+
+## What is still true
+
+- **The bundle format and the console-snippet backend.** `capture.js` and `unpack.js` run today and are the only thing that works under WSL, so everything describing them is current.
+- **The Chrome 136+ constraint** — `--remote-debugging-port` is ignored on the default profile, so CDP needs a non-default `--user-data-dir` or a dedicated debug profile. `browser-harness` hits the same wall.
+- **The maintenance discipline** — separate content by how often it changes, promote a tactic once it reaches two domain files, prune for no-ops. Generalized into `skills/update-context/write-skills.md`, which is the live copy. The version below is the original.
+
+## What is dead
+
+- **The packaging plan (Axis 1).** It proposed lifting the skill into a hostable multi-skill repo with `plugin.json`, category folders and an install script. Flow settled the opposite: one symlinked copy per machine, no versions, no manifest, no install CLI.
+- **The capture-engine roadmap (Axis 2).** Slices 4 and 5 describe building a CDP backend that pierces closed shadow roots and captures parsed JS. `browser-harness` already does this, which is why the skill is being split rather than extended.
+- **Every "project-local" claim.** The skill is global, symlinked from this repo by `link.sh`, and the paths naming `playground/.claude/skills/` and `tmp/repos/skills/` no longer exist.
+
+---
+
+## Design: debug-web-pages skill
 
 This doc is the technical design of the skill's **capture engine** (the page →
 bundle → query pipeline), which is the architecture-heavy part. The **live
@@ -13,7 +33,7 @@ experiment** mode is procedural — its design lives in
   Capture is one of two **modes** (the other is live experiments); `SKILL.md` is the entry point.
   Future packaging (hostable multi-skill repo) is in `ROADMAP.md`. Unrelated to superpowers.
 
-## Problem
+### Problem
 
 When building browser extensions (e.g. a Chrome MV3 / WXT + React extension on YouTube),
 we constantly need to investigate the *client side* of a live page — not just its markup,
@@ -30,7 +50,7 @@ omits JS, CSS, listeners, network, and runtime state. We want a repeatable way t
 **comprehensive, structured bundle** of any page and save it locally so an agent can freely
 investigate and query it offline.
 
-## Goals
+### Goals
 
 - Capture a page **broadly** — full HTML is always included, plus DOM structure (incl. shadow
   DOM), event listeners with phase info, CSS, JS, runtime/framework state, and (optionally)
@@ -47,7 +67,7 @@ investigate and query it offline.
 - Support a **hybrid capture** model: arm → interact with the page → dump. Point-in-time state
   is a snapshot; network is recorded over the interaction interval.
 
-## Non-Goals
+### Non-Goals
 
 - Not building the ArrowLeft extension feature itself — this is investigation tooling.
 - Not a general web crawler/scraper — it captures a single page, not a site.
@@ -55,7 +75,7 @@ investigate and query it offline.
   internals are noted as boundaries, not pierced.
 - Not a hosted service — a local developer tool.
 
-## Key Concepts
+### Key Concepts
 
 1. **Bundle format** — the canonical output. A directory with a `README.md` index (for
    humans/agents), a `manifest.json` (machine index), and per-layer files. This is the
@@ -65,7 +85,7 @@ investigate and query it offline.
 3. **Hybrid capture** — snapshot (state at dump time) + interval log (network over the
    session). "Scroll/click first, then dump" simply snapshots a more interesting state.
 
-### Backend reach (why we support several, not one)
+#### Backend reach (why we support several, not one)
 
 | Capability | Console snippet | CDP | Native HAR |
 |---|---|---|---|
@@ -84,7 +104,7 @@ The last two rows are the point: **the console snippet is the only backend that 
 user's actual everyday logged-in browser** — Chrome 136+ forbids remote-debugging the default
 profile. Each backend has a niche, so we make them pluggable rather than picking one.
 
-## Architecture
+### Architecture
 
 ```
                  ┌─────────────────────────────────────────────┐
@@ -122,7 +142,7 @@ profile. Each backend has a niche, so we make them pluggable rather than picking
 - **`profile-helper`** (phase 3) — copies the real profile or launches a dedicated debug
   profile for the CDP backend.
 
-## The Bundle Format
+### The Bundle Format
 
 ```
 captures/<slug>-<YYYY-MM-DD-HHMMSS>/
@@ -145,7 +165,7 @@ captures/<slug>-<YYYY-MM-DD-HHMMSS>/
     capture.raw.json # provenance: the raw producer output
 ```
 
-### `manifest.json` (machine index)
+#### `manifest.json` (machine index)
 
 ```json
 {
@@ -165,7 +185,7 @@ captures/<slug>-<YYYY-MM-DD-HHMMSS>/
 }
 ```
 
-### `README.md` (agent-facing index)
+#### `README.md` (agent-facing index)
 
 Generated from the manifest. Contains: URL/title/time, which backends ran, a one-line
 description of each file, the recorded warnings/blind-spots, a short "start here" pointer
@@ -174,7 +194,7 @@ for behavior read `listeners.json`"), and a **"How to query this bundle"** secti
 are multi-MB, so the intended access pattern is *query, don't wholesale-read*: `grep`/`cheerio`
 for `page.html`, `jq` for the JSON layers.
 
-### `listeners.json` (grouped, not truncated)
+#### `listeners.json` (grouped, not truncated)
 
 Listeners are captured by a **full DOM-tree walk** (all open shadow roots), then **grouped by
 event type and identical handler source** so a page with hundreds of nodes stays readable:
@@ -203,7 +223,7 @@ event type and identical handler source** so a page with hundreds of nodes stays
 - `source` is `handler.toString()` (may be `[native code]` or minified); `handlerHash` groups
   identical handlers so duplicates collapse.
 
-## Capture Workflow (hybrid)
+### Capture Workflow (hybrid)
 
 1. **(optional) Arm network** — paste `arm-network.js` first (phase 2), or start recording in
    the DevTools Network panel.
@@ -215,7 +235,7 @@ event type and identical handler source** so a page with hundreds of nodes stays
 4. **Unpack** — `node unpack.js ~/Downloads/capture.json [--har page.har] [-o captures/]`
    explodes it into the bundle directory, fetching external assets Node-side.
 
-## Console-Snippet Backend (`capture.js`) — details
+### Console-Snippet Backend (`capture.js`) — details
 
 Must be **pasted into the DevTools console** (not injected as a page script): `getEventListeners`
 is a console-only Command Line API. If it's absent, record a warning and still produce
@@ -243,7 +263,7 @@ everything else. Steps:
 7. **Package + deliver** — assemble one JSON object and trigger a Blob download as
    `capture.json`. Download (not clipboard) because HTML alone can be megabytes.
 
-## CDP Backend (`cdp-capture.mjs`) — phase 3, designed-in
+### CDP Backend (`cdp-capture.mjs`) — phase 3, designed-in
 
 Connects to a Chrome started with `--remote-debugging-port` **and a non-default profile**
 (Chrome 136+ forbids the default profile). Enables `Page`, `DOM`, `CSS`, `Debugger`, `Network`,
@@ -259,7 +279,7 @@ the same machine/OS-user cookies decrypt, though it's a point-in-time copy that 
 (b) a dedicated debug profile logged into the target sites once and reused. Never the live
 default profile.
 
-## Error Handling & Edge Cases
+### Error Handling & Edge Cases
 
 - `getEventListeners` undefined (snippet not run in console) → `warnings` entry; rest still
   produced.
@@ -272,7 +292,7 @@ default profile.
 - Large HTML → handled by download path, never clipboard.
 - All node references serialized as CSS-path strings, never live nodes.
 
-## Testing Strategy
+### Testing Strategy
 
 - **`bundle-writer` + `bundle-schema`/`validate-bundle`** — pure Node, TDD-friendly: feed a
   fixture normalized-capture object, assert the exact directory contents and a schema-valid
@@ -284,7 +304,7 @@ default profile.
 - **`cdp-capture.mjs`** (phase 3) — integration test against headless Chrome for Testing on a
   local fixture page; assert a valid bundle with the CDP-only layers present.
 
-## Incremental Build Approach
+### Incremental Build Approach
 
 We deliberately do **not** write a detailed upfront implementation plan. This tool pokes at live
 browser internals (`getEventListeners`, shadow-DOM traversal, real minified pages), and any full
@@ -322,7 +342,7 @@ Rough slice order (a guide, not a contract — expect it to change as we learn):
 
 `validate-bundle` (schema check) is introduced alongside Slice 1's format and grows with it.
 
-## Skill Layout
+### Skill Layout
 
 ```
 .claude/skills/debug-web-pages/
@@ -341,8 +361,159 @@ Rough slice order (a guide, not a contract — expect it to change as we learn):
 Captures (output bundles) do NOT live in the skill — `unpack.js` writes them to
 `./captures/` in the CWD of the project being investigated (override with `-o`).
 
-## Open Follow-ups (not blocking)
+### Open Follow-ups (not blocking)
 
 - Whether to also capture computed styles per node (expensive) — deferred; add behind a flag if
   a future scraping task needs it.
 - `jq` is not guaranteed to be installed; `knowledge/capturing-and-querying.md` gives a Node fallback.
+
+---
+
+## debug-web-pages — Roadmap
+
+Where this is going. Two independent axes: **the capture engine** (what we can
+extract from a page) and **the packaging** (how the skill itself is hosted and
+shared). Plus the knowledge base, which grows continuously as a side effect of
+use.
+
+### Axis 1 — Packaging: project skill → hostable multi-skill repo
+
+Today this is a single, project-local skill at
+`playground/.claude/skills/debug-web-pages/`. That's deliberate: one skill, used
+in one place, no install machinery. The future is to lift it into a **standalone,
+hostable personal-skills repo** so any of these skills can be installed with one
+command — modeled on `mattpocock/skills` (studied in
+`tmp/repos/skills/`).
+
+Target shape when we convert (do NOT build until it's warranted):
+
+```
+skills-repo/                     # its own git repo, hostable (e.g. GitHub)
+  skills/<category>/debug-web-pages/ # this skill, moved here verbatim
+  scripts/link-skills.sh          # symlink every skill into ~/.claude/skills + ~/.agents/skills
+  scripts/list-skills.sh
+  .claude-plugin/plugin.json      # lists skills → installable as one named plugin
+  README.md  CLAUDE.md
+```
+
+Key mechanics we liked and will adopt:
+- **Symlink install** (`link-skills.sh`): each skill is symlinked into the agent
+  skill dirs, so `git pull` / edit-in-place updates every project live.
+- **Categories** (`engineering/`, `productivity/`, …) plus `in-progress/` (WIP,
+  not linked) and `deprecated/` (kept, excluded from install).
+- **`plugin.json`** so the whole set installs by name, not only via symlinks.
+
+Deliberately **skipped** until/unless we publish for real: changesets +
+CHANGELOG, ADRs, a `docs/` tree. Those are release-discipline for strangers; not
+needed for a private set.
+
+Migration is low-friction by design: converting = *adding* the install script,
+`plugin.json`, and README around a folder that already exists — no move of the
+skill's internals, no path rewrites inside it.
+
+### Axis 2 — Capture engine: more backends & layers
+
+Current backend: **console-snippet** (`scripts/capture.js`) — the only one that
+runs in the user's real logged-in Chrome, paste-and-go, no automation. It cannot
+see closed shadow roots, non-DOM EventTargets, or full parsed JS. Planned:
+
+- **Slice 2 — styles + scripts:** inline captured in-snippet; external
+  `href`/`src` fetched Node-side in `unpack.js`; written to `styles/` + `scripts/`.
+- **Slice 3 — richer runtime + safe-serialize hardening** (depth/size caps,
+  circular guard).
+- **Slice 4 — network:** fold in a native HAR via `unpack.js --har`, then an
+  `arm-network.js` snippet for forward capture.
+- **Slice 5 — CDP backend (`cdp-capture.mjs`):** the big one. Pierces **closed
+  shadow roots** (`DOM.getDocument {pierce:true}`), grabs all parsed JS + source
+  maps, execution coverage, screenshots, and atomic snapshots — reusing the same
+  bundle format so investigation habits don't change. This is what unblocks the
+  YouTube player internals (see `knowledge/domains/youtube-watch.md`).
+  - **Chrome 136+ constraint:** `--remote-debugging-port` is ignored on the
+    default profile. Workarounds (a `profile-helper`): copy the profile to a
+    non-default `--user-data-dir` (durable, keeps your login), use a dedicated
+    debug profile, or Chrome for Testing. Sources:
+    <https://developer.chrome.com/blog/remote-debugging-port>,
+    <https://chromeenterprise.google/policies/remote-debugging-allowed/>,
+    <https://github.com/browser-use/browser-use/issues/1520>.
+  - A **remote-Chrome** variant (attach to an already-running instance) is the
+    logical extension once the local CDP path works.
+
+The bundle format is backend-agnostic on purpose: a richer backend fills in more
+layers, but the directory an agent reads — and every query recipe in
+`knowledge/` — stays the same.
+
+### Axis 3 — Knowledge base (continuous)
+
+Every investigation should leave the skill smarter:
+- Append verified findings to the relevant `knowledge/domains/<page>.md`, or
+  create one from `_TEMPLATE.md`.
+- When a tactic recurs across domains, promote it into
+  `knowledge/investigation-patterns.md` or `capturing-and-querying.md`.
+
+This is the whole point of making it a skill rather than a script: the tooling is
+fixed, but the *expertise* compounds.
+
+---
+
+## Maintaining debug-web-pages
+
+This skill is expanded **often** — every investigation can add to it. That makes
+it prone to the two ways a growing skill dies: **sediment** (stale layers pile up
+because adding feels safe and removing feels risky) and **sprawl** (simply too
+long). This doc is the discipline that keeps it healthy. Read it before any
+structural change (a new mode, a new knowledge file, promoting/pruning content).
+
+### Manage churn by separating content by how often it changes
+
+- **Stable core — `SKILL.md`.** The loop + mode selection + pointers. Changes
+  rarely. It's the predictability anchor: keep investigation detail **out** of it.
+  If you're tempted to add specifics here, they belong in a knowledge file.
+- **Slow shared knowledge — `knowledge/*.md`** (`capturing-and-querying`,
+  `live-experiments`, `investigation-patterns`). Edit only when you learn a
+  *general* tactic that applies across pages.
+- **High-churn, append-only, isolated — `knowledge/domains/<page>.md`.** One
+  independent file per page. Adding or growing one **touches nothing else** — no
+  `SKILL.md` edit, no merge risk. This is where routine growth goes.
+
+### Where new knowledge goes
+
+- A fact about **one page** → its `domains/<page>.md` (create from `_TEMPLATE.md`).
+- A tactic that helped on **one page but is general** → the matching shared file.
+- A brand-new **capability/mode** → new `scripts/` script(s) + one knowledge file +
+  a mode entry in `SKILL.md`. This is the only change that touches the core.
+
+### Two rituals
+
+- **Promotion.** When the same tactic appears in **≥2 domain files**, lift it into
+  the relevant shared file (its single source of truth) and leave the domains
+  pointing at it. Do this *before* it spreads to a third.
+- **Pruning.** Periodically pass every file for **relevance** (does this line still
+  bear on what the skill does?) and **no-ops** (would the agent already do this by
+  default? then it's costing tokens to say nothing). Delete aggressively — sediment
+  is the *default* outcome without this pass, not an edge case.
+
+### Domain-file hygiene
+
+Domain files are trusted by future runs, so: **verified findings only** (mark
+guesses as open questions), **dated**, and **cite the source** (bundle name or
+session). Prefer a handler's `handlerHash` / css-path over prose.
+
+### Writing style (keeps sprawl out)
+
+- **Prompt the positive.** State the target behavior; don't steer by prohibition
+  (naming the bad behavior makes it more available, not less). Keep a "don't" only
+  as a hard guardrail you can't phrase positively — and pair it with the do.
+- **Single source of truth.** One authoritative place per fact, so a behavior
+  change is a one-place edit.
+- **Reach for leading words** — a compact term the model already knows (a *probe*,
+  a *bundle*, the *loop*) beats a restated phrase, and anchors behavior in fewer
+  tokens.
+
+### Scope
+
+This is a project-local Claude Code skill, unrelated to superpowers. Its future
+packaging (converting into a hostable multi-skill repo) lives in
+[`ROADMAP.md`](ROADMAP.md) — don't build that until it's warranted.
+
+---
+

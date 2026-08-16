@@ -34,7 +34,9 @@ Theirs is better engineered. Two stores of the same facts drift, so `knowledge/d
 
 ## Why it waits
 
-`browser-harness` needs Python 3.12, `uv`, and a Chrome launched with remote debugging plus a permission click the user makes by hand. Flow installs nothing until the workflow is finished, and that rule is not being bent for this.
+**The platform blocks it** (stated 2026-08-16). Flow runs on Windows under WSL, and driving a browser from there — Playwright, or Chrome over CDP — hits more problems than it is worth fighting. The user moves to Linux in **two to three weeks**, and expects to be on it before this work starts. Nothing here is scheduled before that move.
+
+`browser-harness` also needs Python 3.12, `uv`, and a Chrome launched with remote debugging plus a permission click the user makes by hand. Flow installs nothing until the workflow is finished, and that rule is not being bent for this.
 
 Until it is installed, `capture.js` is the only thing that works. **Nothing gets deleted before the install.** Deleting the transport first would leave a skill that cannot do anything.
 

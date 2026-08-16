@@ -23,6 +23,14 @@ Read this when a skill has to be created or restructured. Style is not here — 
 
 One file until one file stops working.
 
+## Knowledge files
+
+**A knowledge file holds what is true for anyone.** Anything true only because of one project — a class name from your own UI, a decision your app made, a path in another repo — belongs in that project's `docs/context/`.
+
+Future runs trust these files without re-checking them, so a project fact filed here gets read as a fact about the subject. Date every entry and cite what proved it.
+
+**Once a tactic appears in two files, promote it** into the shared file both then point at. Prune on the same pass — a line the agent would follow by default says nothing.
+
 ## Frontmatter
 
 ```
