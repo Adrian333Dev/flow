@@ -4,16 +4,16 @@ The map: every place in the workflow and the routes between them. Never the proc
 
 ## The pieces
 
-- **Ticket** — one unit of committed work, and the only thing that ever gets built. On disk it is a folder under `docs/tickets/` holding `ticket.md`: what to do, why, and the plan once there is one. Its state — status, parent, dependencies — lives in that file's frontmatter and is written only by `flow`.
+- **Ticket** — one unit of committed work, and the only thing that ever gets built. On disk it is a folder under `docs/tickets/` holding `ticket.md` — what to do, why, and where it stands — beside whatever the work itself produces. Its status, parent and dependencies live in that file's frontmatter and are written only by `flow`.
 - **Brainstorm** — a list of open branches walked until each is resolved. It is the thinking, not the product of it; what comes out is tickets, a spec, a design, or nothing at all.
 - **Design** — the shape of one solution: the parts, and how they talk. Written in one pass when a brainstorm closes, beside its map or in `docs/spec/tech.md`. Only earned when the answer was a structure.
-- **Plan** — the numbered steps that build one ticket, written into that ticket as a `## Plan` section. Never a file of its own.
+- **Plan** — the numbered steps that build one ticket, in `plan.md` inside that ticket's folder. Written at pickup, and each step's detail fills in as the build reaches it.
 - **Spec** — what the product is and why it is that way, in `docs/spec/`. Any brainstorm can create or edit it, and it outlives every ticket that came out of it.
 - **Prototype** — runnable code written to answer one question, in `protos/`. Thrown away or promoted; never the product itself.
 
 ## The chain
 
-**brainstorm → tickets → plan → build.** The plan is a `## Plan` section inside `ticket.md`. Nothing is ever `plan.md`.
+**brainstorm → tickets → plan → build.** The plan is `plan.md`, in the ticket's own folder, written at pickup.
 
 Not every job walks the whole chain. A small fix is a ticket with a plan and no brainstorm. A question is neither.
 
@@ -39,13 +39,13 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 
 ## Inside each place
 
-- **`docs/tickets/t047-slug/`** — `ticket.md` (frontmatter, body, `## Plan`), `brainstorm/` (present from birth, always), `handoff.md`, one `<slug>.md` per assigned job. Terminal tickets move to `docs/tickets/archive/`.
+- **`docs/tickets/t047-slug/`** — `ticket.md` (frontmatter, body, `## Done when`, `## State`) and `brainstorm/`, both from birth; `plan.md` and `report.md` appear when the work writes them. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `docs/tickets/archive/`.
 - **`docs/brainstorms/<slug>/`** — `map.md`, every branch and decision in one file, plus a detail file per branch that actually grew, plus `design.md` when one was earned. Nothing else.
 - **`docs/spec/`** — `product.md`: every behavior, every version, each marked V1 / next / later / never. `tech.md`: stack, repo layout, components, the decisions that constrain implementation. `decisions.md`: why each call was made, what was refused, what the whole thing bets on, what is still open. Markdown only. More files as the project needs them, and an index once there are more than three.
 - **`protos/`** — at repo root, never under `docs/`; a prototype is runnable code, and `docs/` stops being documentation once code lives in it. Flat, one folder each, named by what it proves. A prototype born in a loose brainstorm sits in that brainstorm's folder instead, linked from it.
 - **`docs/research/`** — fetched external docs and research writeups. Flat, subject-named, one set for the whole project.
 - **`docs/intake/`** — pre-Flow material, preserved as-is. Mine it; never treat it as current.
-- **`docs/handoff.md`** — session state when nothing narrower is live. A handoff belongs to the most specific thing being worked: a ticket → its folder; a brainstorm → its folder; neither → here.
+- **`docs/handoff.md`** — session state when nothing narrower is live. State belongs to the most specific thing being worked: a ticket → its `## State`; a brainstorm → `handoff.md` in that folder; neither → here.
 
 ## Departing
 

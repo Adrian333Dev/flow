@@ -51,30 +51,31 @@ function unmetDeps(ticket, index) {
   return unmet;
 }
 
-/** True once a ticket has been split. A dropped child leaves nothing behind. */
-function isParent(tickets, id) {
-  return tickets.some((t) => t.data.parent === id && t.data.status !== 'dropped');
+/** True while children still owe work. Done and dropped children leave nothing. */
+function hasOpenChildren(tickets, id) {
+  return openChildren(tickets, id).length > 0;
 }
 
 /**
- * todo, every dep satisfied, and not a container.
+ * todo, every dep satisfied, and nothing left open underneath.
  *
- * A ticket with children holds no work of its own — the children hold all of
- * it — so offering one under "what can I work on now" offers something that
- * cannot be built. It reappears the moment its last live child is dropped.
+ * A parent keeps whatever work no child holds — the wiring, the integration
+ * test, the final suite — and that work runs after they close. Offering it
+ * while they are open offers something that cannot be built yet, so it appears
+ * the moment the last child closes.
  */
 function readyTickets(tickets) {
   const index = indexById(tickets);
   return tickets.filter((t) =>
-    t.data.status === 'todo' && !isParent(tickets, t.id) && unmetDeps(t, index).length === 0
+    t.data.status === 'todo' && !hasOpenChildren(tickets, t.id) && unmetDeps(t, index).length === 0
   );
 }
 
-/** todo but blocked, each with the reasons. Containers are excluded as above. */
+/** todo but blocked, each with the reasons. Parents wait on children as above. */
 function blockedTickets(tickets) {
   const index = indexById(tickets);
   return tickets
-    .filter((t) => t.data.status === 'todo' && !isParent(tickets, t.id))
+    .filter((t) => t.data.status === 'todo' && !hasOpenChildren(tickets, t.id))
     .map((t) => ({ ticket: t, unmet: unmetDeps(t, index) }))
     .filter((x) => x.unmet.length > 0);
 }
@@ -303,7 +304,7 @@ function wouldCycle(tickets, ticketId, dep) {
 
 module.exports = {
   SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, PRIORITY_RANK, STATUS_RANK,
-  indexById, unmetDeps, readyTickets, blockedTickets, isParent,
+  indexById, unmetDeps, readyTickets, blockedTickets, hasOpenChildren,
   effectivePriority, rank, rankByStatus,
   dependents, transitiveDependents, children, openChildren, descendants, forest, wouldOrphan,
   findCycles, check, hasProblems, wouldCycle,

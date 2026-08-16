@@ -33,6 +33,10 @@ Four steps, in order. A step you cannot finish is the finding: say so and stop t
 
 4. **Fix the cause, then re-run the red command.** Nothing else verifies it. A fix checked against a different command, a manual click, or your own reading of the diff is unverified.
 
+**Write the hunt down as it runs** — the red command, every hypothesis and how it died, what survived. Inside a ticket that is `## State`; without one, `handoff` writes a file. Nothing else records any of it, which makes an interrupted hunt the most expensive thing in Flow to lose.
+
+**Once the cause is proved, write `report.md`** in the ticket folder: what failed, the red command, which hypotheses died and how, the cause, the fix, and the output that proves it. `## State` is deleted when the ticket closes and this is not — a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely — a verified command, a settled convention — goes to `docs/context/<subject>.md` as well.
+
 ### When you need an observation only the user can make
 
 A browser you cannot drive, a database behind a VPN, a phone, a service behind a login. Asking early is correct, and it is never defeat.
@@ -78,20 +82,25 @@ Dispatch where the hunt is long and its context is disposable — running the re
 
 A background session, never the `Agent` tool. `Agent()` blocks or detaches and returns one report either way, and neither can be answered mid-hunt. This hunt asks questions.
 
-Write the brief to a file with `handoff`, then start a session on it:
+**The brief is a child ticket.** `handoff` writes it, and `flow` takes it on stdin — so an untruncated stack trace never passes through shell quoting:
 
 ```bash
-claude --agent debug --bg --name "<ticket-or-slug>" "Read <path-to-brief> and start."
+flow ticket new "<what failed>" --type issue --parent t047 --body - <<'EOF'
+<the brief>
+EOF
+claude --agent debug --bg --name "t123" "Run flow start t123, read it, and start."
 ```
 
-The brief goes in a file rather than in the argument, because an untruncated stack trace does not survive shell quoting. It carries four things and never the conversation:
+The brief carries four things and never the conversation:
 
 - **What failed** — the step, the command, or what the user did
 - **The error**, in full, untruncated
 - **What changed** — the diff, or the last state known to work
 - **Already tried** — one line each, and what it ruled out
 
-**Tell it to append its result to the brief file itself**, under a `## Result` heading. One file holds what was asked and what came back, which is what makes it worth keeping. An assignment never overwrites the resume handoff.
+**Tell it to write its answer into `report.md`, in its own ticket folder.** The ticket is what makes this safe to dispatch: it carries a status, and the dispatching ticket's `flow done` refuses to close around it while it is open — which is what a file nobody marks finished could never do.
+
+**No ticket system here** → `handoff` writes a file instead, and the session reads that.
 
 ### While it runs
 

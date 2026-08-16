@@ -18,7 +18,7 @@ A ticket is a commitment to build, so one cut from a `later` behavior turns an i
 One ticket per unit of work: something that can be picked up, planned and built without waiting on a decision nobody has made.
 
 - A behavior needing an unmade decision is still one ticket — the decision gets made at pickup, in that ticket's own `brainstorm/`.
-- A behavior too big for one pickup gets a parent ticket plus children carrying `parent:`. The parent is never built itself.
+- A behavior too big for one pickup gets a parent ticket plus children carrying `parent:`. The parent keeps only what no child holds — the wiring, the test that covers them together — and `flow` withholds it until they close.
 - Order that matters is `deps`, not sequence in the file.
 
 ## Writing each one

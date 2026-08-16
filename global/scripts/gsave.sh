@@ -34,6 +34,15 @@ done
 
 git rev-parse --show-toplevel >/dev/null 2>&1 || { echo "gsave: not inside a git repository." >&2; exit 1; }
 
+# A submodule is checked out at a commit rather than a branch, so gsave lands here
+# often. Detached, the commit is reachable by SHA alone and the push cannot name a
+# remote branch. Refuse before staging, rather than stranding a commit and failing.
+if ! git symbolic-ref -q HEAD >/dev/null; then
+  echo "gsave: HEAD is detached — a commit here would belong to no branch." >&2
+  echo "       Put one on it first: git switch -c <branch>" >&2
+  exit 1
+fi
+
 run() {
   if [ "$dry" = 1 ]; then
     local out; out=$(printf '%q ' "$@"); echo "  ${out% }"

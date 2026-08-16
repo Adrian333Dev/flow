@@ -377,7 +377,10 @@ and it stops the legitimate case with it.
 
 ## assignments — does a dispatched job need a handoff document?
 
-**Raised by the user 2026-08-15, to be discussed later. Nothing here is decided.**
+**CLOSED 2026-08-16 — discussed, decided and built.** A dispatched job is a child ticket; `handoff` lost
+its assign half and writes `## Where it stands` inside `ticket.md`. The four questions below were all
+answered in the build: a brief is a ticket body, no ticket system falls back to `handoff.md`, `flow done`
+refuses to close a parent around an open child, and the report lands in `## Result`. Kept for the reasoning.
 
 Today `handoff` has two jobs: **resume** this work later, and **assign** a job to a session that reports back.
 The assignment half writes its own file, named for the job, sitting beside the resume file — that is what the

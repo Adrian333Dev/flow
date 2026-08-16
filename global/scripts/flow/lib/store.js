@@ -210,6 +210,32 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
   return { id, dirName: `${id}-${slug}`, dir, file, data, body, root, movedFrom: fromBrainstorm || null };
 }
 
+/**
+ * Step progress, counted from `plan.md` rather than stored anywhere.
+ *
+ * A tally kept by hand in the ticket drifts the first time a step is marked in
+ * one file and not the other, so the plan is the only record and this reads it.
+ * Returns null when there is no plan — a research ticket never gets one.
+ *
+ * Top-level checkboxes only. A step's detail is written underneath it, indented,
+ * and may carry checklists of its own; the indent is what separates a step from
+ * the notes below it.
+ */
+function planProgress(t) {
+  const file = path.join(t.dir, 'plan.md');
+  if (!fs.existsSync(file)) return null;
+
+  let done = 0;
+  let total = 0;
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+    const m = line.match(/^(?:[-*]|\d+\.)\s+\[([ xX])\]/);
+    if (!m) continue;
+    total++;
+    if (m[1] !== ' ') done++;
+  }
+  return total ? { done, total } : null;
+}
+
 /** Resolves an id (t047, t47, 47), a slug, or a folder name. */
 function findTicket(tickets, ref) {
   const id = normalizeId(ref);
@@ -253,6 +279,6 @@ module.exports = {
   TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES,
   ticketsDir, archiveDir,
   normalizeId, idNumber, requireId, slugify, toIdList, toPriority,
-  readTickets, nextId, writeTicket, createTicket, findTicket,
+  readTickets, nextId, writeTicket, createTicket, findTicket, planProgress,
   renderTemplate, // cases.js borrows this and slugify; nothing else is shared
 };

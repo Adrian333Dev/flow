@@ -23,8 +23,8 @@ the daily loop
   flow next [-n 10] [--all]          what is already in flight, then what could be started —
                                      todo, every dep satisfied, highest priority first. Capped
                                      at 10 and it always says how many it held back
-  flow start <id> [--force]          → thinking; refuses on an unsatisfied dep, and on a ticket
-                                     that has been split into children
+  flow start <id> [--force]          → thinking; refuses on an unsatisfied dep, and on a parent
+                                     with open children
   flow build <id>                    → building; the plan is written, code starts
   flow review <id>                   → review
   flow done <id> [--force]           → done; refuses on a parent with open children
@@ -65,11 +65,15 @@ study cases                        recorded failures — the one group that work
                                      → fixed, recording the file that changed. Nothing is deleted
 
 ids     t047, t47 and 47 all mean the same ticket — reference tickets by id, never by path
-layout  docs/tickets/<id>-<slug>/ticket.md while live, with brainstorm/ from birth; done
-        and dropped tickets move to docs/tickets/archive/ and move back if reopened
+layout  docs/tickets/<id>-<slug>/ — ticket.md and brainstorm/ from birth, plan.md and
+        report.md written by the work. Done and dropped tickets move to
+        docs/tickets/archive/ and move back if reopened
+steps   flow counts the top-level checkboxes in plan.md, so progress is read and never
+        stored. A step's own nested checklist does not count
 parent  a ticket split out of another carries parent: t047. Disk stays flat; the
-        hierarchy is frontmatter. A ticket with children is never built itself — it leaves
-        flow next, and flow start refuses on it
+        hierarchy is frontmatter. A parent waits while its children are open — it leaves
+        flow next, and flow start refuses on it — then returns for whatever work no
+        child holds
 pri     high or low on disk and nothing else: normal is the absent field, so an ordinary
         ticket has no priority line to go stale. A ticket with none inherits the nearest
         ancestor's, and an explicit value always beats an inherited one — so marking one
@@ -200,15 +204,15 @@ function cmdTransition(args, status) {
     );
   }
 
-  // The pair to `done` refusing on open children. Until now the guard existed
-  // only at the finish line, so a container could be picked up and built, and
-  // the contradiction surfaced at the one moment it was too late to matter.
-  if (status === 'thinking' && graph.isParent(tickets, t.id) && !flags.force) {
-    const kids = graph.children(tickets, t.id).filter((c) => c.data.status !== 'dropped');
+  // The pair to `done` refusing on open children. A parent keeps whatever work
+  // no child holds — the wiring, the final suite — and that work runs after
+  // they close, so this refuses early rather than at the finish line.
+  if (status === 'thinking' && graph.hasOpenChildren(tickets, t.id) && !flags.force) {
+    const kids = graph.openChildren(tickets, t.id);
     throw new FlowError(
-      `${t.id} has been split into ${kids.length} ticket${kids.length === 1 ? '' : 's'} — the work is theirs:\n` +
+      `${t.id} has ${kids.length} open child ticket${kids.length === 1 ? '' : 's'} — finish those first:\n` +
       kids.map((c) => `  ${c.id}  ${c.data.status.padEnd(8)} ${c.data.title}`).join('\n') +
-      `\n  Start one of those, or override with: flow start ${t.id} --force`
+      `\n  Or override with: flow start ${t.id} --force`
     );
   }
 

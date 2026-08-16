@@ -89,7 +89,7 @@ One branch at a time. Interview until the decision is genuinely clear. A first a
 
 Batching two or three locked decisions into one write is fine. Never gate a write behind a yes/no question, and never end a session with a settled branch unwritten.
 
-Sub-branches surface mid-conversation. Add them as `[ ]` children immediately and walk them after the parent closes.
+Sub-branches surface mid-conversation. Add them as `[ ]` children immediately and walk them after the parent closes. A branch that turns out to be its own subject can leave instead — `flow ticket new "…" --type research --parent <id>` gives it its own map and its own session. Most never need it.
 
 **Never expose the bookkeeping.** No index numbers, no checkboxes, no "branch 2.1". Plain prose: situation, options, recommendation.
 
@@ -103,6 +103,8 @@ Sub-branches surface mid-conversation. Add them as `[ ]` children immediately an
 - **Something documented elsewhere** → **invoke `research`**, levels 1–2.
 - **Past what the documentation says** → **invoke `research`**, level 3: get the source and read it. **This is the case that sinks plans** — committing to a tool's internals unread produces a design that dies four steps into the build.
 - **Nothing written can answer it** → run something. A cheap check — one command, a ten-second script — runs here. Anything needing an install, a server, a download, or more than a couple of turns → **invoke `prototype`**: name the question, write pass and fail, hand it to a fresh session, then wait.
+
+**A landscape too big to read here goes to a subagent**, never a ticket — reading asks no questions back, so nothing needs to watch it. `research` owns the brief. The branch stays `[ ]` until the report lands in `docs/research/`; cut it mid-map and keep walking, because waiting is only for a branch nothing downstream can move without. A whole-product brainstorm is where this fires, since reading three tool landscapes inline spends the map's context on material the map never keeps.
 
 ### When the branch is genuinely hard
 

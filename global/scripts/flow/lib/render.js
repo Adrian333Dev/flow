@@ -6,6 +6,7 @@
 
 const path = require('path');
 const graph = require('./graph');
+const store = require('./store');
 
 /** Aligned columns with no header row — the tree needs the padding without one. */
 function columns(rows) {
@@ -30,15 +31,32 @@ const priCell = (t, index) => {
   return p === 'normal' ? '-' : p;
 };
 
-const ticketRow = (t, index) =>
-  [t.id, t.data.status, t.data.type, priCell(t, index), t.data.parent || '-', t.data.title];
+/** `4/9` while a plan exists, blank otherwise. */
+const stepCell = (t) => {
+  const p = store.planProgress(t);
+  return p ? `${p.done}/${p.total}` : '-';
+};
+
+const ticketRow = (t, index, steps) => [
+  t.id, t.data.status, t.data.type, priCell(t, index),
+  ...(steps ? [stepCell(t)] : []),
+  t.data.parent || '-', t.data.title,
+];
 
 // `pool` is the full ticket set when the list being printed is a filtered slice
 // of it — priority is inherited, so a parent outside the slice still decides.
+//
+// The STEPS column appears only where something in this list has a plan. Most
+// lists are todo tickets, and a column of dashes across all of them costs width
+// for nothing.
 function ticketTable(tickets, pool) {
   if (tickets.length === 0) return 'no tickets.';
   const index = graph.indexById(pool || tickets);
-  return table(['ID', 'STATUS', 'TYPE', 'PRI', 'PARENT', 'TITLE'], tickets.map((t) => ticketRow(t, index)));
+  const steps = tickets.some((t) => store.planProgress(t));
+  return table(
+    ['ID', 'STATUS', 'TYPE', 'PRI', ...(steps ? ['STEPS'] : []), 'PARENT', 'TITLE'],
+    tickets.map((t) => ticketRow(t, index, steps))
+  );
 }
 
 /**
@@ -78,6 +96,8 @@ function treeNote(t, all, index) {
     const unmet = graph.unmetDeps(t, index);
     if (unmet.length) return `blocked by ${unmet.map((u) => u.dep).join(', ')}`;
   }
+  const plan = store.planProgress(t);
+  if (plan) return `${plan.done}/${plan.total} steps`;
   return t.data.reason || '';
 }
 
@@ -123,6 +143,7 @@ function show(ticket, tickets, root) {
     kids.length
       ? `children:   ${progressOf(ticket, tickets)} done — ${kids.map((k) => `${k.id} (${k.data.status})`).join(', ')}`
       : null,
+    planLine(ticket),
     ticket.data.status === 'todo'
       ? (unmet.length ? `blocked:    ${unmet.map(blockText).join('; ')}` : 'ready:      yes')
       : null,
@@ -130,6 +151,17 @@ function show(ticket, tickets, root) {
   ].filter(Boolean).join('\n');
 
   return `${header}\n${'-'.repeat(60)}\n${ticket.body.trimEnd()}`;
+}
+
+/**
+ * The plan lives beside the ticket, so `show` prints how far it got and the
+ * path to read. Nothing here parses the steps themselves — a plan is read by
+ * opening it, and a summary in the header would be a second copy to trust.
+ */
+function planLine(ticket) {
+  const p = store.planProgress(ticket);
+  if (!p) return null;
+  return `plan:       ${p.done}/${p.total} steps — plan.md`;
 }
 
 function priorityLine(ticket, index) {

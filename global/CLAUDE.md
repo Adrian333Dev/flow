@@ -3,7 +3,7 @@ Flow — an agentic development workflow for a solo developer. Work runs brainst
 ## Hard rules
 
 - **No edits without approval.** Approval is "do it" or "go ahead".
-- **A handoff you booted from is read once, then left alone.** It orients this session and nothing else — never updated as the work moves, never kept current. Only two things touch it again: a new handoff written over it, or a delete once its job is done.
+- **A handoff file you booted from is read once, then left alone** — never updated as the work moves. Only two things touch it again: a fresh one written over it, or a delete once its job is done. **Inside a ticket the state is a section instead, and that one is kept current** — `## State`, rewritten whole whenever something becomes true that no other file records.
 - **Read minimal context.** Path and line range, one filtered query over many reads, stop when answered.
 - **Reach for a skill, never improvise its job.** Named but not installed → say so and stop.
 - **No cause without evidence.** "Hypothesis: X. To verify: Y."
@@ -33,13 +33,15 @@ Write anything worth keeping the moment it surfaces.
 
 **A project is a directory whose `CLAUDE.md` has a `## Project` section.** Without one there is no `docs/` — every path below collapses to the file in front of you. Paths are created on first write.
 
+**`flow` needs only a git repo**, so committed work gets a ticket nearly everywhere, project or not. The exceptions are a directory under no repo at all, and a repo belonging to someone else.
+
 - Work **committed to** → `flow ticket new "…"`. A feature mentioned for later counts
 - Rule about the code → `## Rules`. How the user wants to work → `## Preferences`; what they know or don't → `## The user`. Those two **inferred from evidence, never announced and never guessed from the stack** — the same correction twice, irritation at a habit, a term you had to explain
 - Durable project fact — a verified command, a path, a settled convention → `docs/context/<subject>.md`
 - About **Flow itself**, not what you're building → `~/.claude/flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
 - A failure with an artifact — the user reacts to something you produced, or a loaded rule didn't fire → a study case. Keep the offending output verbatim first, analyse after: `~/.claude/flow/refs/study-cases.md`
 
-**Everything else → `docs/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `organize` does that later.
+**Everything else → `docs/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `update-context` does that later.
 
 Background reflex, not every turn. On request ("note that"), immediately. Unsure: write it — junk costs nothing, a lost insight costs the next session.
 
@@ -69,11 +71,11 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 **`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand. Run bare, it prints its whole surface.
 
 - Daily loop: `flow next` (what is in flight, then todos with every dependency satisfied, highest priority first, capped at 10) · `start` · `build` · `review` · `done` · `park <id> "reason"`.
-- Reading: `flow tree` for the whole shape nested by parent · `flow ls [status] [--type T] [--parent <id>]` · `show <id>`, with children · `status` · `check` for cycles, dangling ids, dropped blockers.
+- Reading: `flow tree` for the whole shape nested by parent · `flow ls [status] [--type T] [--parent <id>]` · `show <id>`, with children · `status` · `check` for cycles, dangling ids, dropped blockers. Step progress is counted from `plan.md`'s top-level checkboxes, never stored, so it cannot go stale.
 - `flow ticket new "Title" [--type feature] [--priority high] [--parent t047] [--deps t045,t046] [--body -] [--from-brainstorm <path>]` — `--body -` takes the body on stdin: create and fill in one command, never create then edit. `--from-brainstorm` moves a loose brainstorm folder in as the new ticket's `brainstorm/`, leaving nothing behind. Also `ticket drop <id> "reason" [--by <id>|--force]`, `ticket dep`, `ticket edit`.
 - `t047`, `t47` and `47` are the same ticket. Reference by id, never by path.
 - **Priority is `high` or `low`, and only when the user asks for one.** No line on disk means normal; a ticket with none inherits the nearest ancestor's. Never stamp one at creation — a field set every time stops meaning anything.
-- Refuses what breaks the graph and says why — `start` on an unsatisfied dependency or on a ticket already split into children, `done` on a parent with open children, `drop` with live dependents. `--force` is deliberate override, not an escape from a mistake.
+- Refuses what breaks the graph and says why — `start` and `done` both on a parent with open children, `start` on an unsatisfied dependency, `drop` with live dependents. A parent returns to `flow next` once its last child closes, for whatever work no child held. `--force` is deliberate override, not an escape from a mistake.
 
 ## Judgment
 

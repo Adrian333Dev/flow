@@ -46,7 +46,7 @@ Using what came back:
 
 Megabytes of docs or a cloned codebase read inline burns the main context. Level 2 past a few pages, and level 3 always: delegate the reading to a subagent on a cheaper model. The main agent reads only the findings file.
 
-**The brief is a handoff** — `handoff` writes it, as an assignment delivered in the prompt rather than as a file. Three things it carries that belong to reading specifically:
+**The brief is a handoff** — `handoff` writes it, delivered in the subagent's prompt rather than as a file. Three things it carries that belong to reading specifically:
 
 - **The sources** — cache paths under `tmp/refs/<tool>/`, the clone path, or URLs to fetch.
 - **The question**, precisely stated, with the constraints that shape the answer: stack, versions, decisions already locked.
@@ -79,12 +79,14 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 `docs/research/<question>.md` — **flat, and shared by the whole project.** Never inside a ticket or a brainstorm folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds. No project here → beside the file you are working in.
 
+**A question never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent. `flow`'s `research` type is for a *subject* nobody has decided yet — a pricing model, a marketing approach — and that opens a brainstorm, not this skill.
+
 Level 1 answers inline, no file. Level 2 and up always writes one.
 
 **Distilled conclusions** land where the work lives, with source URLs and dates:
 
 - brainstorm running → the branch it belongs to in `map.md`, with a pointer to the full report
-- spec or `## Plan` being written → straight into the relevant section, pointer included
+- spec or `plan.md` being written → straight into the relevant section, pointer included
 - a durable fact rather than a finding — a verified command, a settled convention → `docs/context/<subject>.md`
 
 ## Hard rules

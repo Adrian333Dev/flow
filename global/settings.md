@@ -83,7 +83,7 @@ These are **bare tool names**, which removes each tool from the model's context 
 
 | Entry | Why |
 |---|---|
-| `EnterPlanMode`, `ExitPlanMode` | Flow owns planning: `brainstorm` → tickets → the ticket's `## Plan`. Built-in plan mode also blocks the file writes those phases depend on. |
+| `EnterPlanMode`, `ExitPlanMode` | Flow owns planning: `brainstorm` → tickets → the ticket's `plan.md`. Built-in plan mode also blocks the file writes those phases depend on. |
 | `AskUserQuestion` | Presents a canned multiple-choice list. Flow's rule is the inverse — the agent commits to a recommendation and the user reacts. |
 | `SendMessage`, `ListAgents` | Agent-to-agent messaging, and the tool that finds agents to message. `execute` dispatches subagents with self-contained assignments; there is no back-channel to keep open. |
 | `PushNotification`, `ScheduleWakeup`, `RemoteTrigger`, `ReportFindings` | Out-of-band and unattended operation. One author, one terminal, every session watched. |

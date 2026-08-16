@@ -21,7 +21,7 @@ The brainstorm writes these. The building session checks they arrived, and stops
 - **Pass and fail**, for a question that can come out false. What each answer means, and what each one changes. Skip a question whose two answers lead to the same decision.
 - **The comparison plan**, for a question only the user can judge. What is being compared, and how many variants. Pass and fail do not exist here; the user's reaction is the result.
 
-The `handoff` skill covers everything else an assigned job needs — what turns on the answer, what is already set up, what was found, what to say back. Never restate any of that here.
+The `handoff` skill covers everything else a handed-over job needs — what turns on the answer, what is already set up, what was found, what to say back. Never restate any of that here.
 
 **Missing pass and fail → stop and ask.** Criteria written after the run match whatever came out.
 
