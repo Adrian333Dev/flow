@@ -31,6 +31,7 @@ Put the highest-stakes rules first or last. Material in the middle of a long fil
 - Every fact in exactly one place, a pointer everywhere else. Two copies drift and the reader cannot tell which is current.
 - Never restate what is already loaded: the global `CLAUDE.md`, the project `CLAUDE.md`, or any skill's own description.
 - Never rule against a behavior nothing here instructs. A ban on something the workflow never sets up invents the problem it forbids.
+- Never forbid reaching for another skill. Naming which skill owns a *job* is routing and belongs; writing that a kind of work — reading, drawing, hunting a bug — is another skill's reads as a ban, and strands whoever needs it mid-task. Any skill may invoke any other.
 
 **The test for an always-loaded file:** name a moment the rule fires and no skill is loaded. Cannot → it belongs in the skill.
 

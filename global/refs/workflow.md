@@ -27,7 +27,7 @@ There are no modes. Any brainstorm, any size, routes what it decided — often t
 - a durable fact about the project → `docs/context/<subject>.md`
 - decided but not now, and anything else that dies with the build → the map itself
 
-**A brainstorm lives where the thinking happens** — inside its ticket, in `docs/brainstorms/<slug>/`, or, with no project around it, right where you are standing.
+**A brainstorm lives where the thinking happens** — inside its ticket, or in `docs/brainstorms/<slug>/`.
 
 ## Tickets
 
@@ -39,7 +39,7 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 
 ## Inside each place
 
-- **`docs/tickets/t047-slug/`** — `ticket.md` (frontmatter, body, `## Done when`, `## State`) and `brainstorm/`, both from birth; `plan.md` and `report.md` appear when the work writes them. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `docs/tickets/archive/`.
+- **`docs/tickets/t047-slug/`** — `ticket.md` (frontmatter, body, `## Done when`, `## State`) and `brainstorm/`, both from birth; `plan.md` and `reports/` appear when the work writes them — one report per thing answered, named after what it answers. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `docs/tickets/archive/`.
 - **`docs/brainstorms/<slug>/`** — `map.md`, every branch and decision in one file, plus a detail file per branch that actually grew, plus `design.md` when one was earned. Nothing else.
 - **`docs/spec/`** — `product.md`: every behavior, every version, each marked V1 / next / later / never. `tech.md`: stack, repo layout, components, the decisions that constrain implementation. `decisions.md`: why each call was made, what was refused, what the whole thing bets on, what is still open. Markdown only. More files as the project needs them, and an index once there are more than three.
 - **`protos/`** — at repo root, never under `docs/`; a prototype is runnable code, and `docs/` stops being documentation once code lives in it. Flat, one folder each, named by what it proves. A prototype born in a loose brainstorm sits in that brainstorm's folder instead, linked from it.

@@ -74,7 +74,7 @@ Governs every answer — status reports and one-line questions included, not jus
 
 The design is done and the main build landed 2026-08-09: `global/CLAUDE.md`, the `flow` tool, `project-template/`, every skill.
 
-**Still unbuilt:** the two install skills (`setup-flow-globals`, `migrate-to-flow`), a test suite for `flow`, and the real migration of the user's own projects.
+**Still unbuilt:** the install skill — one skill covering every starting state, and the last thing Flow gets — a test suite for `flow`, and the real migration of the user's own projects.
 
 **`code-review` is never getting built.** Review runs in the same session, never a subagent, and the criteria live beside whichever skill produced the artifact — `skills/execute/review-code.md` is that file for code.
 
@@ -94,7 +94,7 @@ One folder per skill under `skills/`; `global/scripts/link.sh` symlinks each int
 
 To add one: create `<name>/SKILL.md` with `name` and `description` frontmatter, then run `bash global/scripts/link.sh`. Model-invoked is the default; add `disable-model-invocation: true` to make a skill reachable only when the user types `/<name>`.
 
-- **`update-context` is the density to aim for.** Style itself lives in `global/refs/writing.md`, including how to write the `description`.
+- **`file-findings` is the density to aim for.** Style itself lives in `global/refs/writing.md`, including how to write the `description`.
 - **Skill triggers live in the skill's own `description`**, never as a rule in a `CLAUDE.md`. If the agent should reach for a skill in situation X, name X in that description, in directive form.
 - **One skill, one folder. Flat for now** — topic buckets (`frontend/`, `backend/`, `tooling/`) only once flat gets noisy. Never a vague `misc/`.
 - **Length is not a reason to split.** Under ~300 lines is fine, up to ~500 when the material earns it. Split only when parts are genuinely **conditional** — read on some runs and not others (`write-spec.md`). Splitting what every run needs just buys extra reads.
@@ -138,7 +138,7 @@ Everything beside `context/` is a folder and stays one:
 - **`study-cases/`, `research/`, `archived-skills/`** — the evidence behind the skills
 - **`excalidraw/`** — three third-party diagram skills awaiting a verdict
 - **`refs/`** — cloned third-party repos. Read with `cat`, never with `Read`
-- **`tmp/`** — real projects copied in as evidence, `lumacraft_v2` among them. Survey material, never a pattern to copy
+- **`tmp/`** — real projects copied in as evidence. **`Delapse/` is the live one**, a Chrome extension in daily development, and the project to cite when a real case is needed. `lumacraft_v2/` is archived and kept only for comparison; the user corrected a long-running mix-up of the two. Survey material, never a pattern to copy
 - **`proxy.mjs`** — a dev-only context auditor, not a shipped script
 
 ## Repo rules

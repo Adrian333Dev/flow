@@ -23,8 +23,12 @@ the daily loop
   flow next [-n 10] [--all]          what is already in flight, then what could be started —
                                      todo, every dep satisfied, highest priority first. Capped
                                      at 10 and it always says how many it held back
-  flow start <id> [--force]          → thinking; refuses on an unsatisfied dep, and on a parent
-                                     with open children
+  flow start                         the session opener, when you do not know what is next:
+                                     what you closed last and what it reported, what is in
+                                     flight, what was cut out of it, then what could start.
+                                     Writes nothing — picking is a separate act
+  flow start <id> [--force]          → thinking, then prints the ticket; refuses on an
+                                     unsatisfied dep, and on a parent with open children
   flow build <id>                    → building; the plan is written, code starts
   flow review <id>                   → review
   flow done <id> [--force]           → done; refuses on a parent with open children
@@ -33,11 +37,12 @@ the daily loop
 looking around
   flow tree [--parent t047] [--all]  the whole shape, nested by parent, siblings by priority.
                                      Done and dropped collapse into the parent's count
-  flow ls [status] [--type T] [--parent <id>]
+  flow ls [status] [--type T] [--parent <id>] [--unfiled]
                                      status: todo|thinking|building|review|done|parked|dropped
+                                     --unfiled: done tickets the filing pass has not swept yet
   flow show <id|slug>                children, progress, and where a priority came from
-  flow status                        in flight, in review, parked, ready count
-  flow check                         cycles, dangling ids, dropped blockers, dangling parents
+  flow status                        in flight, in review, parked, ready and unfiled counts
+  flow check                         cycles, dangling ids, dropped blockers, dangling and closed parents
 
 ticket edits
   flow ticket new "<title>" [--type feature] [--priority high] [--parent t047]
@@ -51,6 +56,9 @@ ticket edits
                                      transitively. --by re-points them, --force drops them too
   flow ticket dep <id> [--on|--off] <dep-id>
   flow ticket edit <id> [--title "..."] [--type T] [--priority P] [--parent <id>]
+  flow ticket filed <id>... [--force]
+                                     stamps today's date on every ticket the filing pass swept,
+                                     including the ones that taught nothing. --force re-dates one
 
 study cases                        recorded failures — the one group that works outside a project
   flow study-case issues             every issue with its counts and the rules that failed. Read
@@ -66,10 +74,11 @@ study cases                        recorded failures — the one group that work
 
 ids     t047, t47 and 47 all mean the same ticket — reference tickets by id, never by path
 layout  docs/tickets/<id>-<slug>/ — ticket.md and brainstorm/ from birth, plan.md and
-        report.md written by the work. Done and dropped tickets move to
-        docs/tickets/archive/ and move back if reopened
-steps   flow counts the top-level checkboxes in plan.md, so progress is read and never
-        stored. A step's own nested checklist does not count
+        reports/ written by the work. One report per thing answered, named after what it
+        answers, whether a hunt found it or a prototype did. Done and dropped tickets move
+        to docs/tickets/archive/ and move back if reopened
+steps   flow never counts them. A plan is read by opening plan.md; out here, status says
+        whether a ticket is being built, waiting on review, or finished
 parent  a ticket split out of another carries parent: t047. Disk stays flat; the
         hierarchy is frontmatter. A parent waits while its children are open — it leaves
         flow next, and flow start refuses on it — then returns for whatever work no
@@ -84,7 +93,7 @@ cases   ~/.claude/flow/study-cases/<issue>/<date>-<slug>.md — global, filed by
 
 const out = (s) => process.stdout.write(s.endsWith('\n') ? s : s + '\n');
 
-const BOOLEAN_FLAGS = ['on', 'off', 'force', 'all'];
+const BOOLEAN_FLAGS = ['on', 'off', 'force', 'all', 'unfiled'];
 
 // The one short flag. `-n 5` is worth it because a ceiling is adjusted mid-loop;
 // nothing else here is typed often enough to earn an alias.
@@ -182,6 +191,25 @@ function cmdNext(args) {
 
 const COMMAND_FOR = { thinking: 'start', building: 'build', review: 'review', done: 'done' };
 
+/**
+ * Bare `flow start` opens the session; with an id it picks that ticket up.
+ *
+ * One verb, because both are the same act — you are starting. The form that
+ * writes is the form that names a target, so nothing ever moves by surprise,
+ * and the branch lives here rather than in shell inside a slash command.
+ */
+function cmdStart(args) {
+  const { positional, flags } = parseArgs(args);
+  if (positional.length) {
+    cmdTransition(args, 'thinking');
+    out('');
+    return cmdShow([positional[0]]);
+  }
+  const { tickets } = load();
+  out(render.brief(tickets, nextLimit(flags)));
+  return 0;
+}
+
 function cmdTransition(args, status) {
   const { positional, flags } = parseArgs(args);
   const verb = COMMAND_FOR[status];
@@ -233,6 +261,9 @@ function cmdTransition(args, status) {
   const before = graph.readyTickets(tickets).map((x) => x.id);
   const revived = from === 'parked' && t.data.reason;
   t.data.status = status;
+  // The moment work stopped. Any move back to a live status clears it, because
+  // a ticket in flight has no finish to point at.
+  t.data.closed = status === 'done' ? store.now() : '';
   // A reason outlives only the status it explains. Carrying "waiting on the Q3
   // API" into a ticket now being built is worse than carrying nothing.
   t.data.reason = '';
@@ -278,6 +309,7 @@ function cmdPark(args) {
 
   t.data.status = 'parked';
   t.data.reason = reason;
+  t.data.closed = '';
   const moved = store.writeTicket(t);
   out(`${t.id}  ${from} → parked   ${t.data.title}`);
   out(`      reason: ${reason}`);
@@ -305,6 +337,10 @@ function cmdLs(args) {
     const parent = store.requireId(flags.parent);
     list = list.filter((t) => t.data.parent === parent);
   }
+  // The filing pass runs this first, to get the ids it will sweep. Done only:
+  // a dropped ticket's reason is its whole record, and an open one is still
+  // producing the material the pass would file.
+  if (flags.unfiled) list = list.filter((t) => t.data.status === 'done' && !t.data.filed);
 
   out(render.ticketTable(graph.rankByStatus(list, tickets), tickets));
   if (list.length) out(`\n${list.length} of ${tickets.length}.`);
@@ -369,6 +405,7 @@ function cmdTicket(args) {
     case 'drop': return ticketDrop(rest);
     case 'dep': return ticketDep(rest);
     case 'edit': return ticketEdit(rest);
+    case 'filed': return ticketFiled(rest);
     default: throw new FlowError(`unknown: flow ticket ${sub || ''}\n\n${USAGE}`);
   }
 }
@@ -465,6 +502,31 @@ function ticketDrop(args) {
     if (byId === t.id) throw new FlowError(`${t.id} cannot replace itself.`);
     replacement = tickets.find((x) => x.id === byId);
     if (!replacement) throw new FlowError(`--by names ${byId}, which does not exist.`);
+
+    // A dropped replacement blocks every dependent forever, which is the exact
+    // harm --by exists to prevent. `done` is fine: the edge is satisfied on
+    // arrival, so it costs nothing beyond a line of frontmatter.
+    if (replacement.data.status === 'dropped') {
+      throw new FlowError(
+        `--by names ${replacement.id}, which is itself dropped — those dependents could never become ready.\n` +
+        `  Pick a live replacement, or drop them too with --force.`
+      );
+    }
+
+    // `ticket dep` refuses an edge that would close a loop. --by writes the
+    // same kind of edge and used to write it unchecked, so the cycle surfaced
+    // only at the next `flow check`, if anyone ran one. Checked before the drop
+    // is written, because a refusal after it would leave the graph half-edited.
+    const loops = graph.dependents(tickets, t.id).filter((d) =>
+      graph.LIVE.has(d.data.status) && d.id !== replacement.id && graph.wouldCycle(tickets, d.id, replacement.id)
+    );
+    if (loops.length) {
+      throw new FlowError(
+        `re-pointing at ${replacement.id} would close a dependency cycle:\n` +
+        loops.map((d) => `  ${d.id} → ${replacement.id} → … → ${d.id}`).join('\n') +
+        `\n  Pick a different replacement, or drop them too with --force.`
+      );
+    }
   }
 
   const affected = graph.transitiveDependents(tickets, t.id);
@@ -481,6 +543,7 @@ function ticketDrop(args) {
   const from = t.data.status;
   t.data.status = 'dropped';
   t.data.reason = reason;
+  t.data.closed = store.now();
   const moved = store.writeTicket(t);
   out(`${t.id}  ${from} → dropped   ${t.data.title}`);
   out(`      reason: ${reason}`);
@@ -508,6 +571,7 @@ function ticketDrop(args) {
     for (const d of affected) {
       d.data.status = 'dropped';
       d.data.reason = `dropped with ${t.id} (${t.data.title}), which it depended on`;
+      d.data.closed = store.now();
       store.writeTicket(d);
       out(`  ${d.id}  ${d.data.title}`);
     }
@@ -587,6 +651,39 @@ function ticketEdit(args) {
   // The folder name is the ticket's identity — links and briefs point at it, so
   // a retitle never moves it.
   if (flags.title !== undefined) out(`\nfolder unchanged: ${rel(root, t.dir)}`);
+  return 0;
+}
+
+/**
+ * The filing pass marks what it swept. Several ids at once, because sweeping a
+ * batch of closed tickets is the normal case rather than the exception — and
+ * every id gets stamped, including the tickets that produced nothing worth
+ * keeping. A ticket nobody looked at and a ticket that taught nothing are
+ * indistinguishable from the outside, so only the mark drains the queue.
+ */
+function ticketFiled(args) {
+  const { positional, flags } = parseArgs(args);
+  if (!positional.length) throw new FlowError('usage: flow ticket filed <id>... [--force]');
+
+  const { tickets } = load();
+  const stamp = store.today();
+  const targets = positional.map((ref) => store.findTicket(tickets, ref));
+
+  for (const t of targets) {
+    if (t.data.filed && !flags.force) {
+      out(`${t.id}  already filed ${t.data.filed}   ${t.data.title}`);
+      continue;
+    }
+    const previous = t.data.filed;
+    t.data.filed = stamp;
+    store.writeTicket(t);
+    out(`${t.id}  filed ${stamp}${previous ? ` (was ${previous})` : ''}   ${t.data.title}`);
+  }
+
+  const left = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
+  out(left.length
+    ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled — flow ls --unfiled`
+    : '\nnothing left unfiled.');
   return 0;
 }
 
@@ -713,7 +810,7 @@ function main() {
   const [cmd, ...rest] = argv;
   switch (cmd) {
     case 'next': return cmdNext(rest);
-    case 'start': return cmdTransition(rest, 'thinking');
+    case 'start': return cmdStart(rest);
     case 'build': return cmdTransition(rest, 'building');
     case 'review': return cmdTransition(rest, 'review');
     case 'done': return cmdTransition(rest, 'done');

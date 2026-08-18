@@ -35,7 +35,7 @@ Four steps, in order. A step you cannot finish is the finding: say so and stop t
 
 **Write the hunt down as it runs** — the red command, every hypothesis and how it died, what survived. Inside a ticket that is `## State`; without one, `handoff` writes a file. Nothing else records any of it, which makes an interrupted hunt the most expensive thing in Flow to lose.
 
-**Once the cause is proved, write `report.md`** in the ticket folder: what failed, the red command, which hypotheses died and how, the cause, the fix, and the output that proves it. `## State` is deleted when the ticket closes and this is not — a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely — a verified command, a settled convention — goes to `docs/context/<subject>.md` as well.
+**Once the cause is proved, write the report** — `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the red command, which hypotheses died and how, the cause, the fix, and the output that proves it. `## State` is deleted when the ticket closes and this is not — a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely — a verified command, a settled convention — goes to `docs/context/<subject>.md` as well.
 
 ### When you need an observation only the user can make
 
@@ -98,7 +98,7 @@ The brief carries four things and never the conversation:
 - **What changed** — the diff, or the last state known to work
 - **Already tried** — one line each, and what it ruled out
 
-**Tell it to write its answer into `report.md`, in its own ticket folder.** The ticket is what makes this safe to dispatch: it carries a status, and the dispatching ticket's `flow done` refuses to close around it while it is open — which is what a file nobody marks finished could never do.
+**Tell it to write its answer into `reports/<failure>.md`, in its own ticket folder.** The ticket is what makes this safe to dispatch: it carries a status, and the dispatching ticket's `flow done` refuses to close around it while it is open — which is what a file nobody marks finished could never do.
 
 **No ticket system here** → `handoff` writes a file instead, and the session reads that.
 

@@ -1,6 +1,6 @@
 ---
 name: execute
-description: ALWAYS invoke when starting work on a ticket, or when the user names a ticket id and says to build it. Takes one ticket from pickup to done, writing its plan at pickup against the code as it stands that day. Routes a bug to `debug` and an undecided subject to `brainstorm` instead of planning either as code. Not for work nobody has made a ticket for, and never for a parent while its children are open.
+description: ALWAYS invoke when starting work on a `feature` or `chore` ticket, or when the user names a ticket id and says to build it. Takes one ticket from pickup to done, writing its plan at pickup against the code as it stands that day. The other three types belong elsewhere and it says so at pickup — `issue` to `debug`, `research` to `brainstorm`, `prototype` to `prototype`. Not for work nobody has made a ticket for, and never for a parent while its children are open.
 ---
 
 # Execute
@@ -29,12 +29,13 @@ Never build a child's work in its parent. `flow ls --parent t047` lists the chil
 
 ## The ticket folder
 
-Four files, four owners. Never write into one another skill owns.
+Five files, five owners. Never write into one another skill owns.
 
-- **`ticket.md`** — frontmatter (`flow`), the body and `## Done when` (whoever created it), `## State` (`handoff`).
+- **`ticket.md`** — frontmatter (`flow`), the body and `## Done when` (whoever created it), `## State` (`handoff` owns its shape, whoever works the ticket writes it).
 - **`plan.md`** — this skill. What the code looks like now, then the steps.
 - **`brainstorm/map.md`** — `brainstorm`. Every decision and its reasoning.
-- **`report.md`** — `debug`. Written only where a hunt ran.
+- **`reports/`** — one file per thing answered, named after what it answers. `debug` writes a cause here, a prototype writes what it measured. Appears only where something was answered.
+- **`issues.md`** — whoever builds. Written only where the build produced a finding worth keeping, and it outlives the ticket.
 
 ## Phase 1 — pick up
 
@@ -42,10 +43,13 @@ Four files, four owners. Never write into one another skill owns.
 
 `flow start t047` puts it in `thinking`. Read the ticket body, its `## State` where one exists, its `brainstorm/map.md`, and the code it touches.
 
+**A ticket born in conversation has no `## Done when`.** `flow ticket new` writes a title and leaves the template's comment where the check belongs. Write that check here, from whatever the ticket turns out to be, and show it with the plan. A ticket cut from a spec arrived with one.
+
 **Then the type decides which loop runs.** Every type still moves through the same statuses; what changes is what happens between them.
 
 - **`feature`, `chore`** → the rest of this file.
 - **`issue`** → **`debug`** owns it end to end. Come back only if the fix turns out to need a plan of its own.
+- **`prototype`** → **`prototype`** owns it. The ticket is a question only code can answer — does this library hold sync under load, is this approach fast enough — and it closes on the report rather than on shipped code. There is no build phase to reach.
 - **`research`** → **`brainstorm`** owns it. The ticket is a subject nobody has decided yet — a marketing approach, a pricing model, a caching strategy — and it gets its own `brainstorm/map.md`. Where the map's answers turn out to be work, cut children for them; where the answers are the deliverable, the ticket closes on the map. There is no build phase to reach.
 
 **A feature or a chore then takes one of four:**
@@ -69,7 +73,9 @@ The last two rewrite the ticket graph, so the user decides them. The first two a
 
 ### Pass 1 — what is there now
 
-Read the code this ticket changes, then **write it down before anything else**: the signatures, the seam the change goes through, what surprised you.
+**Open `docs/context/` before the code**, and read what touches this ticket. It holds what the project already learned about this code — a verified command, a convention it settled on, a path that matters. Opened at review instead, it can only judge code that already exists.
+
+Then read the code this ticket changes, and **write it down before anything else**: the signatures, the seam the change goes through, what surprised you.
 
 **This is the load-bearing half, and the one skipped under pressure.** A plan written without it is a guess about code nobody read. A design does not cover it — a design says what to build, never what the code looks like today. It is also the most expensive pass, which is why it reaches disk first.
 
@@ -88,7 +94,7 @@ One line each: title, the files it touches, and the check that proves it.
 
 Each step is finishable and checkable on its own, and names a scoped check wherever the full suite is slow. A wide refactor goes **expand → migrate → contract**, never one sweeping step.
 
-**A step is a top-level `1. [ ]` and nothing else is.** `flow` counts these to report progress, so anything else checkable goes indented, underneath the step it belongs to.
+**Anything else checkable goes indented, underneath the step it belongs to.** The indent is what tells a session picking this up which lines are the plan and which are working notes.
 
 **No detail yet.** Step 5's body written now is a guess about code that steps 1–4 have not produced. Written when the build reaches it, it is written against code that exists.
 
@@ -111,6 +117,10 @@ Detail goes underneath its step, indented to stay inside the list item.
 **Run the check the step names, then mark it `[x]`.** Never substitute a default like `npm test`. Never mark a step without the output that proves it. The full suite runs once, in Phase 4.
 
 **Keep `## State` current as you build.** Write to it every time something becomes true that no other file records — a discovery mid-step, a step that landed differently than planned, a decision deferred. Never step status; `plan.md` owns that. Then `handoff` at the end is a check rather than a reconstruction, which is the one moment context cannot pay for one.
+
+**What cost real effort to learn goes to `issues.md` instead** — a version that turned out to matter, a workaround a broken library forced, a lint rule this repo enables that no design mentions. Create it the first time this build produces one, in whatever shape fits, and leave it out of every ticket that produces none. `## State` dies at review because each line describes work in flight; a finding stays true after the ticket closes.
+
+**It takes only what is neither work nor a decision.** A discovery that changes a decision goes to `brainstorm/map.md`, and separable work becomes its own ticket — **When the plan turns out wrong** below routes both.
 
 ### Whether to delegate
 
@@ -136,7 +146,7 @@ A step needing the code read to decide what to write stays yours at any width. A
 
 3. **Start nothing while it runs.** Whatever you touch lands in its diff.
 4. **Read the diff.** It arrives with the report — a hook records the working tree either side of the dispatch and hands you what changed. A patch too large to inline arrives as a file list plus a path; read the patch.
-5. **No diff means nothing changed**, the honest answer for a worker that stopped early. A worker that reports files it edited and still produces no diff is running without the hooks — say so, and read those files yourself.
+5. **No diff means verify the step yourself before marking it.** Silence is the honest answer for a worker that stopped early, and it is also what a broken hook returns — from here the two look identical. A worker that reports files it edited and still produces no diff is running without the hooks: say so, and read those files yourself.
 6. **A file in the diff that no step named is the finding.** Tell the user before continuing.
 
 **A worker reporting success is not evidence.** The diff is.
@@ -180,7 +190,7 @@ Then two passes, kept apart. One can hide the other: code that follows every con
 - **Against the plan** — every step delivered, and nothing delivered that no step asked for.
 - **Against the code** — read `review-code.md`. Skip it where the ticket produced no code.
 
-**Then delete `## State` from `ticket.md`.** Every line in it describes work in progress, which is false the moment this ticket closes. `plan.md` stays — it is the record of what was built. Git keeps the old state.
+**Move anything durable in `## State` to `issues.md`, then delete the section from `ticket.md`.** Every line left in it describes work in progress, which is false the moment this ticket closes. `plan.md` and `issues.md` both stay — one records what was built, the other what it taught. Git keeps the old state.
 
 `flow review t047` hands it over. It also satisfies other tickets' `deps`, so it already unblocks work — it prints what became ready.
 
@@ -189,6 +199,8 @@ Then two passes, kept apart. One can hide the other: code that follows every con
 **One unclear item stops all of them.** Six notes with two you do not follow → ask about those two before implementing any of the four. The items are usually related, and a partial reading produces the wrong fix.
 
 Check each note against the code before implementing it. A note that would break something gets said so, once, with the reason.
+
+**Then `flow build t047`, before the first edit.** Left in `review` while its code is being rewritten, the ticket reports itself as waiting on the user, and every ticket depending on it reads as ready — so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps, since the old ones are all `[x]` and record none of it.
 
 Then `flow done t047`, once the user says it is done.
 

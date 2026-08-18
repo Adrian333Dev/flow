@@ -22,7 +22,6 @@ Same four phases at any size. Three words or ten paragraphs — long input means
 
 - Belongs to a ticket → that ticket's `brainstorm/`, created with the ticket.
 - Inside a project, belongs to nothing yet → `docs/brainstorms/<slug>/`.
-- No project here → where you are standing, same shape.
 
 Never pick the folder from a guess at the outcome. You cannot know yet whether this becomes six tickets or one.
 
@@ -102,7 +101,7 @@ Sub-branches surface mid-conversation. Add them as `[ ]` children immediately an
 - **What already exists here** → read it. The code, the documents, the files. Never burn a branch on what they already say.
 - **Something documented elsewhere** → **invoke `research`**, levels 1–2.
 - **Past what the documentation says** → **invoke `research`**, level 3: get the source and read it. **This is the case that sinks plans** — committing to a tool's internals unread produces a design that dies four steps into the build.
-- **Nothing written can answer it** → run something. A cheap check — one command, a ten-second script — runs here. Anything needing an install, a server, a download, or more than a couple of turns → **invoke `prototype`**: name the question, write pass and fail, hand it to a fresh session, then wait.
+- **Nothing written can answer it** → run something. A cheap check — one command, a ten-second script — runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail, a child of this work where there is one: `flow ticket new "<question>" --type prototype --parent <id>`. **Never build it here** — a fresh session does that. Keep walking the branches that do not need the answer; when the ticket closes, the finding is in its `reports/`.
 
 **A landscape too big to read here goes to a subagent**, never a ticket — reading asks no questions back, so nothing needs to watch it. `research` owns the brief. The branch stays `[ ]` until the report lands in `docs/research/`; cut it mid-map and keep walking, because waiting is only for a branch nothing downstream can move without. A whole-product brainstorm is where this fires, since reading three tool landscapes inline spends the map's context on material the map never keeps.
 

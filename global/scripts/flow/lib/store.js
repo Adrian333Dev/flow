@@ -14,14 +14,14 @@ const path = require('path');
 const frontmatter = require('./frontmatter');
 const { FlowError } = require('./error');
 
-const TICKET_KEYS = ['id', 'title', 'status', 'type', 'priority', 'parent', 'deps', 'reason'];
+const TICKET_KEYS = ['id', 'title', 'status', 'type', 'priority', 'parent', 'deps', 'reason', 'closed', 'filed'];
 
 // `thinking` covers evaluating, brainstorming and researching — every ticket
 // passes through it, including the ones that need no brainstorm at all.
 // `building` starts when the plan is written. The pair replaces `in-progress`,
 // which was true during all of it and therefore answered nothing.
 const TICKET_STATUSES = ['todo', 'thinking', 'building', 'review', 'done', 'parked', 'dropped'];
-const TICKET_TYPES = ['feature', 'issue', 'chore', 'research'];
+const TICKET_TYPES = ['feature', 'issue', 'chore', 'research', 'prototype'];
 
 // Only `high` and `low` reach disk. `normal` is the name for the missing field,
 // so an ordinary ticket carries no priority line at all — which is the whole
@@ -39,6 +39,20 @@ const toPriority = (v) => {
 // Statuses whose `reason:` is required and typed by the user. Everywhere else
 // the workflow is its own explanation.
 const REASON_STATUSES = ['parked', 'dropped'];
+
+// `closed` is the moment work stopped — written by `flow done` and `flow ticket
+// drop`, cleared by any move back to a live status. It carries a clock time and
+// not just a date because its only job is ordering, and several tickets close
+// in one day. Nothing else on a ticket can answer "what did I finish last":
+// `filed` is stamped days later by the filing pass, ids are creation order and
+// not finishing order, and a file's mtime is rewritten by `git checkout` and by
+// `flow ticket filed`.
+//
+// `filed` holds the date the filing pass swept this ticket, and only that pass
+// writes it. `status: done` says the work is finished; `filed` says the
+// knowledge was harvested — two different claims, and nothing else on the
+// ticket makes the second one. It is set even where the ticket taught nothing,
+// because recording that it was looked at is what drains the queue.
 
 // Terminal tickets move to docs/tickets/archive/ so the live pool stays
 // readable in a file tree. Two buckets, never one per status — a folder per
@@ -75,6 +89,21 @@ function requireId(ref) {
   const id = normalizeId(ref);
   if (!id) throw new FlowError(`not a ticket id: ${ref}`);
   return id;
+}
+
+/** Local date, not UTC — a date stamped a day behind the user's own calendar
+ *  is wrong in the only way this field can be wrong. */
+function today() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** `today()` plus the clock, for `closed` — see the note on that field. */
+function now() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${today()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function slugify(title) {
@@ -128,6 +157,8 @@ function scanTicketDir(dir, root, out) {
     data.priority = toPriority(data.priority);
     data.title = data.title || entry.name;
     data.reason = data.reason ? String(data.reason).trim() : '';
+    data.closed = data.closed ? String(data.closed).trim() : '';
+    data.filed = data.filed ? String(data.filed).trim() : '';
 
     out.push({ id: data.id, dirName: entry.name, dir: path.join(dir, entry.name), file, data, body, root });
   }
@@ -181,6 +212,8 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
     parent: parent || '',
     deps: deps || [],
     reason: '',
+    closed: '',
+    filed: '',
   };
   // A supplied body replaces the template outright — the caller wrote the whole
   // file, so creating and filling a ticket is one command instead of two.
@@ -211,30 +244,28 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
 }
 
 /**
- * Step progress, counted from `plan.md` rather than stored anywhere.
+ * Whether this ticket has a plan. Existence only — nothing counts the steps.
  *
- * A tally kept by hand in the ticket drifts the first time a step is marked in
- * one file and not the other, so the plan is the only record and this reads it.
- * Returns null when there is no plan — a research ticket never gets one.
- *
- * Top-level checkboxes only. A step's detail is written underneath it, indented,
- * and may carry checklists of its own; the indent is what separates a step from
- * the notes below it.
+ * `flow` used to report `4/9` by matching top-level checkboxes in `plan.md`,
+ * which made a regex over hand-written prose decide what the daily lists said,
+ * and quietly read zero whenever a plan was shaped any other way. A step count
+ * only means anything inside the plan itself; out in a list, `status` already
+ * answers the question the count was there for.
  */
-function planProgress(t) {
-  const file = path.join(t.dir, 'plan.md');
-  if (!fs.existsSync(file)) return null;
+const hasPlan = (t) => fs.existsSync(path.join(t.dir, 'plan.md'));
 
-  let done = 0;
-  let total = 0;
-  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-    const m = line.match(/^(?:[-*]|\d+\.)\s+\[([ xX])\]/);
-    if (!m) continue;
-    total++;
-    if (m[1] !== ' ') done++;
-  }
-  return total ? { done, total } : null;
-}
+/**
+ * Reports written into the ticket, one per thing answered. A folder rather than
+ * a single `report.md` for the reason `brainstorm/` is a folder: you cannot
+ * know at the start whether a ticket answers one question or three. Unlike
+ * `brainstorm/` it appears on first write, because a report's location never
+ * moves — it just may not exist.
+ */
+const reportFiles = (t) => {
+  const dir = path.join(t.dir, 'reports');
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort();
+};
 
 /** Resolves an id (t047, t47, 47), a slug, or a folder name. */
 function findTicket(tickets, ref) {
@@ -278,7 +309,7 @@ function renderTemplate(name, vars) {
 module.exports = {
   TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES,
   ticketsDir, archiveDir,
-  normalizeId, idNumber, requireId, slugify, toIdList, toPriority,
-  readTickets, nextId, writeTicket, createTicket, findTicket, planProgress,
-  renderTemplate, // cases.js borrows this and slugify; nothing else is shared
+  normalizeId, idNumber, requireId, slugify, toIdList, toPriority, today, now,
+  readTickets, nextId, writeTicket, createTicket, findTicket, hasPlan, reportFiles,
+  renderTemplate, // cases.js borrows this, slugify and today; nothing else is shared
 };

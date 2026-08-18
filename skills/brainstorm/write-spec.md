@@ -21,8 +21,6 @@ One brainstorm usually writes two of these. Creates `docs/spec/` if there is non
 
 A subject gets its own file beside them only when all three hold: no fact appears in two files, the boundary is statable in one sentence, and it is not a section of an existing file. Past three files, add an index naming each one and what it holds.
 
-**No project here** → one `design.md` where you are standing, same shape.
-
 **Not this file's job:** how a library ended up bent out of shape, written after the build so the next person can change it. That is a durable project fact — `docs/context/<subject>.md`, written by `execute`.
 
 ## 2. Before writing

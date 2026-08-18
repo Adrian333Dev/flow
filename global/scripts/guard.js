@@ -11,6 +11,10 @@
  * permissions.deny list stays the final authority and a bug here cannot widen
  * anything.
  *
+ * git is the one command judged by an allowlist rather than a blocklist: a read
+ * passes, everything else denies. The user drives git, and enumerating the ways
+ * git writes is a losing game.
+ *
  * Scope rule: this file installs to ~/.claude/ and therefore runs in every
  * directory. Only put rules here that hold everywhere. A rule that belongs to
  * one repo goes in that repo's .claude/settings.json, never here.
@@ -23,7 +27,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-// Wrong in every project.
+// Wrong in every project. The git line is a fast path with a precise reason;
+// GIT_READS below is what actually decides a git command, and it catches these
+// too. Kept because it also fires on a segment the tokenizer cannot split.
 const DENY = [
   [/(^|[;&|]\s*)(sudo|su)\s/, 'privileged command'],
   [/\b(curl|wget)\b[^|]*\|\s*(sudo\s+)?(ba)?sh\b/, 'pipe-to-shell'],
@@ -32,12 +38,28 @@ const DENY = [
     'git mutation'],
 ];
 
-// One exemption: `git add` into a throwaway index is a read. GIT_INDEX_FILE
-// points staging at a scratch file, so the real index, the working tree and HEAD
-// all stay untouched — it writes objects and moves nothing. `execute` snapshots a
-// dirty tree that way, before and after a subagent runs. Only `add` is exempt;
-// `commit` moves HEAD whichever index it reads from.
-const SCRATCH_ADD = /(^|[;&|]\s*)GIT_INDEX_FILE=\S+\s+git\s+add\b/g;
+// Every git subcommand that only reads. Anything missing from this set denies —
+// a write, an alias, a typo, a subcommand a future git adds.
+//
+// Inverted deliberately. A list of forbidden writes is only ever as complete as
+// whoever last edited it, and the one it replaced was missing `apply`, `tag`,
+// `config`, `update-ref` and `submodule`, each of which writes. Denying by
+// default costs a rejected read now and then; the other direction costs history.
+const GIT_READS = new Set([
+  'status', 'log', 'diff', 'show', 'describe', 'blame', 'shortlog', 'grep',
+  'ls-files', 'ls-tree', 'ls-remote', 'rev-parse', 'rev-list', 'cat-file',
+  'for-each-ref', 'show-ref', 'diff-tree', 'diff-index', 'whatchanged',
+  'check-ignore', 'check-attr', 'count-objects', 'var', 'help', 'version',
+  '--version', '--help', // options rather than subcommands, and both only print
+]);
+
+// Writes Flow itself instructs, so denying them would fight the workflow.
+// `research` level 3 says to clone a source repo without asking. Nothing else
+// belongs here: an entry is a rule Flow states somewhere, never a convenience.
+const GIT_INSTRUCTED = new Set(['clone']);
+
+// git's own options, before the subcommand, that swallow the token after them.
+const GIT_OPTS_WITH_VALUE = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--exec-path']);
 
 // Legitimate often enough to warrant a prompt rather than a wall.
 const ASK = [
@@ -110,6 +132,24 @@ function realpathish(p) {
 
 const expandUser = (p) => (p === '~' || p.startsWith('~/') ? path.join(os.homedir(), p.slice(1)) : p);
 
+/** Drops leading `VAR=value` assignments, so `GIT_INDEX_FILE=x git add` still reads as git. */
+function stripAssignments(tokens) {
+  let i = 0;
+  while (i < tokens.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[i])) i++;
+  return tokens.slice(i);
+}
+
+/** The subcommand from a git invocation, or '' when there is none. */
+function gitSubcommand(tokens) {
+  let i = 1;
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (!t.startsWith('-') || GIT_READS.has(t)) return t;
+    i += GIT_OPTS_WITH_VALUE.has(t) ? 2 : 1;
+  }
+  return '';
+}
+
 const isInside = (root, target) => {
   const rel = path.relative(root, target);
   return rel === '' || (!rel.startsWith('..' + path.sep) && rel !== '..' && !path.isAbsolute(rel));
@@ -125,21 +165,43 @@ try {
 const cmd = (data.tool_input && data.tool_input.command) || '';
 const cwd = data.cwd || process.cwd();
 
-// Scratch-index staging drops out first, so the deny scan never sees it.
-const scanned = cmd.replace(SCRATCH_ADD, ' ');
-
 for (const [pattern, reason] of DENY) {
-  if (pattern.test(scanned)) verdict('deny', `${reason} — name the command, the user runs it`);
+  if (pattern.test(cmd)) verdict('deny', `${reason} — name the command, the user runs it`);
 }
 
 for (const [pattern, reason] of ASK) {
   if (pattern.test(cmd)) verdict('ask', reason);
 }
 
-// Recursive delete reaching outside the working directory.
-for (const segment of cmd.split(/&&|\|\||[;|]/)) {
-  const tokens = shellSplit(segment);
-  if (!tokens || !tokens.length || path.basename(tokens[0]) !== 'rm') continue;
+// Per-command checks: which git subcommand, and where an `rm -r` points.
+//
+// `&&` matches before the character class, so it still splits as one operator.
+// A command substitution — `$(rm -rf ~)`, backticks — is not split at all, and
+// separating it properly needs a real shell parser. The DENY patterns above
+// still see inside one, so what escapes here is the `rm` check alone.
+for (const segment of cmd.split(/&&|\|\||[;|&]/)) {
+  const raw = shellSplit(segment);
+
+  // Unbalanced quotes. A segment naming git is worth a prompt, since the
+  // subcommand cannot be read and the DENY list covers only the common writes.
+  if (!raw) {
+    if (/\bgit\b/.test(segment)) verdict('ask', 'git command that could not be parsed');
+    continue;
+  }
+
+  const tokens = stripAssignments(raw);
+  if (!tokens.length) continue;
+  const program = path.basename(tokens[0]);
+
+  if (program === 'git') {
+    const sub = gitSubcommand(tokens);
+    if (!GIT_READS.has(sub) && !GIT_INSTRUCTED.has(sub)) {
+      verdict('deny', `git ${sub || '<no subcommand>'} is not a read — name the command, the user runs it`);
+    }
+    continue;
+  }
+
+  if (program !== 'rm') continue;
 
   const rest = tokens.slice(1);
   if (!rest.some((t) => t.startsWith('-') && /[rRf]/.test(t))) continue;

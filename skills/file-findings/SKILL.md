@@ -1,21 +1,20 @@
 ---
-name: update-context
+name: file-findings
 description: File what a session learned into the skills, rules and context files that will load it next time — and build or reshape one where nothing fits.
 disable-model-invocation: true
 ---
 
-# Update context
+# File findings
 
-The filing pass. Capture routes whatever has an obvious home the moment it surfaces (`## Capture` in `~/.claude/CLAUDE.md`); `docs/inbox.md` collects only what it could not place. This drains that, and fixes the destinations when none of them fit.
+The filing pass, and the second half of a pair. Capture writes a finding the moment it surfaces and decides nothing about where it belongs — `## Capture` in `~/.claude/CLAUDE.md` names the homes, and a build's own findings land in its ticket's `issues.md`. This is the step that decides altitude, and the only one that writes into skills. It also builds or reshapes a destination when none of them fit.
 
 **Context file** means anything an agent reads on a later run — a skill, a `CLAUDE.md`, a file under `docs/context/`. All of them are in scope here.
 
 ## Inputs
 
 - **`docs/inbox.md`** — always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
-- **The brainstorm worked this session, once it closes** — sweep its `map.md`: promote reusable lessons into skills, move out strays that fell outside its scope. Nothing closed this session, or it is still open? Inbox only — never go digging through maps that aren't yours this session.
-
-No project here → whatever loose material this session produced, and no inbox file to drain.
+- **Closed tickets nobody has filed yet** — `flow ls --unfiled` gives the ids. In each folder read `issues.md` for what the build learned and everything in `reports/` for what was answered. Sweeping several at once is the normal case, not the exception, and the queue holds closed tickets only — nothing here describes work still moving.
+- **The brainstorm worked this session, once it closes** — sweep its `map.md`: promote reusable lessons into skills, move out strays that fell outside its scope. Nothing closed this session, or it is still open? Leave it — never go digging through maps that aren't yours this session.
 
 ## Method — batch, don't crawl
 
@@ -23,8 +22,9 @@ No project here → whatever loose material this session produced, and no inbox 
 2. Sort every item by destination in one pass (group them).
 3. Shape what needs it — a fragment has to read like the thing it's about to become.
 4. Apply per destination — a few grouped edits, not one item at a time.
-5. Clear filed items from the inbox (git remembers them).
-6. Report what you filed and what you flagged.
+5. Clear filed items from the inbox (git remembers them). **Never empty an `issues.md`** — it stays as the record of what happened, the same way a hunt keeps its report.
+6. Mark every ticket you swept — `flow ticket filed t047 t048 t049`, including the ones that taught nothing. Recording that a ticket was looked at is what drains the queue.
+7. Report what you filed and what you flagged.
 
 Triage speed, not deep work — keep it quick and light.
 
@@ -62,5 +62,7 @@ That is the slow half and it runs on few passes. Appending a line to a skill tha
 
 - **Batch, stay light** — triage speed, not deep work.
 - **Clear what you file; report what you flag** — no silent half-drain.
+- **Mark every ticket you swept** — including the ones that taught nothing. Nothing else drains the queue.
+- **Never empty an `issues.md`.** It is the record, not a queue.
 - **Defer to existing structure; never duplicate a fact.**
 - **Never build a skill from one flag.**

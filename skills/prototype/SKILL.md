@@ -1,6 +1,6 @@
 ---
 name: prototype
-description: ALWAYS invoke when a session opens on a handoff asking for throwaway code that answers one named question — a claim about how a tool really behaves, a cost nobody has measured, a state model that has to be driven to be judged, a look only real components, real data and motion can settle. Builds the smallest thing that answers it, then reports what it found. Reading documentation or source is `research`, never this. A static preview file is `visualize`, never this. Not for work already committed to a ticket.
+description: ALWAYS invoke when a session opens on a `prototype` ticket, or on a handoff asking for throwaway code that answers one named question — a claim about how a tool really behaves, a cost nobody has measured, a state model that has to be driven to be judged, a look only real components, real data and motion can settle. Builds the smallest thing that answers it, then reports what it found. A job that is only reading documentation or source is `research`, never this. A static preview file is `visualize`, never this.
 ---
 
 # Prototype
@@ -9,19 +9,19 @@ Code written to answer one named question, then deleted.
 
 **Naive on purpose.** No tests, no error handling, no abstractions. The real build reads the prototype as a reference and starts again — nothing written here is ever promoted.
 
-**Two sessions.** The brainstorm names the question and writes the handoff, then waits. A fresh session opens on that handoff and builds. **Never do both in one session** — the session that invented the question will accept a vague one, because it already knows what it meant.
+**Two sessions.** A brainstorm that hits a question talking cannot settle cuts a child ticket typed `prototype`, carrying the question, and waits. A fresh session picks that ticket up and builds. **Never do both in one session** — the session that invented the question will accept a vague one, because it already knows what it meant.
 
-**Talking failed and reading failed — that is the entry condition.** Reading documentation or source is `research` level 3, never this.
+**Talking failed and reading failed — that is the entry condition.** A page of documentation costs less than code, so where reading would settle the question, reading settles it and nothing gets built.
 
-## What the handoff must carry
+## What the ticket must carry
 
-The brainstorm writes these. The building session checks they arrived, and stops if they did not.
+The brainstorm writes these into the ticket body. The building session checks they arrived, and stops if they did not. Handed over without a ticket, it is the same three wherever the handoff put them.
 
 - **The question, in one sentence.** Three at most — past three it is a project.
 - **Pass and fail**, for a question that can come out false. What each answer means, and what each one changes. Skip a question whose two answers lead to the same decision.
 - **The comparison plan**, for a question only the user can judge. What is being compared, and how many variants. Pass and fail do not exist here; the user's reaction is the result.
 
-The `handoff` skill covers everything else a handed-over job needs — what turns on the answer, what is already set up, what was found, what to say back. Never restate any of that here.
+The `handoff` skill covers everything else a picked-up job needs — what turns on the answer, what is already set up, what was found, what to say back. Never restate any of that here.
 
 **Missing pass and fail → stop and ask.** Criteria written after the run match whatever came out.
 
@@ -47,16 +47,17 @@ Build nothing that serves a second purpose. Cut tests, error handling past runna
 
 ## 3. Report what you found
 
-- **Measured** → write `REPORT.md` beside the code. Top-line answers first, in the words the question used. Give the numbers. A verdict alone rots: "timestamps are fine" means nothing in six months, "ratio 0.83 to 1.01, no desync" still does. Keep the raw output beside it.
+**`reports/<question>.md` in the ticket folder**, named after what it answers, one file per question. No ticket → `REPORT.md` beside the code.
+
+- **Measured** → top-line answers first, in the words the question used. Give the numbers. A verdict alone rots: "timestamps are fine" means nothing in six months, "ratio 0.83 to 1.01, no desync" still does. Keep the raw output beside it and cite the code by its `protos/` path.
 - **Judged** → show the variants. Attach no recommendation until the user has looked.
 
-Then say the answers out loud, in the words the handoff asked for, and stop there. The brainstorm reads the report and closes its own branch.
+Then say the answers out loud, in the words the question asked for, and stop there. The brainstorm reads the report and closes its own branch.
 
 ## Where it lives
 
 - **`protos/<name>/`** — repo root, flat, named by what it proves. Never under `docs/`, which stops being documentation once code lives in it
-- **The brainstorm's own folder** — when that brainstorm sits loose, with no project around it
-- **Committed** — the scripts and the report. The spec cites them for years
+- **Committed** — the scripts, and the report wherever it landed. The spec cites them for years
 - **Ignored** — `node_modules/`, model caches, generated media. One harness reached 779 MB
 
 ## When it is not a prototype
@@ -69,7 +70,7 @@ A generated-video pipeline has a script step, an image step, a voice step and an
 
 ## Hard rules
 
-- **Never start a prototype the brainstorm did not ask for.**
+- **Never start a prototype nobody asked for.**
 - **Never build in the session that named the question.**
 - **Write pass and fail before building**, on every measured question.
 - **Never build one variant** for a judged question. One variant gets approved by default.

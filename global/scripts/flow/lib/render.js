@@ -31,31 +31,19 @@ const priCell = (t, index) => {
   return p === 'normal' ? '-' : p;
 };
 
-/** `4/9` while a plan exists, blank otherwise. */
-const stepCell = (t) => {
-  const p = store.planProgress(t);
-  return p ? `${p.done}/${p.total}` : '-';
-};
-
-const ticketRow = (t, index, steps) => [
+const ticketRow = (t, index) => [
   t.id, t.data.status, t.data.type, priCell(t, index),
-  ...(steps ? [stepCell(t)] : []),
   t.data.parent || '-', t.data.title,
 ];
 
 // `pool` is the full ticket set when the list being printed is a filtered slice
 // of it — priority is inherited, so a parent outside the slice still decides.
-//
-// The STEPS column appears only where something in this list has a plan. Most
-// lists are todo tickets, and a column of dashes across all of them costs width
-// for nothing.
 function ticketTable(tickets, pool) {
   if (tickets.length === 0) return 'no tickets.';
   const index = graph.indexById(pool || tickets);
-  const steps = tickets.some((t) => store.planProgress(t));
   return table(
-    ['ID', 'STATUS', 'TYPE', 'PRI', ...(steps ? ['STEPS'] : []), 'PARENT', 'TITLE'],
-    tickets.map((t) => ticketRow(t, index, steps))
+    ['ID', 'STATUS', 'TYPE', 'PRI', 'PARENT', 'TITLE'],
+    tickets.map((t) => ticketRow(t, index))
   );
 }
 
@@ -96,14 +84,13 @@ function treeNote(t, all, index) {
     const unmet = graph.unmetDeps(t, index);
     if (unmet.length) return `blocked by ${unmet.map((u) => u.dep).join(', ')}`;
   }
-  const plan = store.planProgress(t);
-  if (plan) return `${plan.done}/${plan.total} steps`;
   return t.data.reason || '';
 }
 
 /**
- * A parent shows how many of its children are finished where a leaf shows
- * whether it has a plan — that count is the parent's whole progress story.
+ * How many of a parent's children are finished — the parent's whole progress
+ * story, and the only counting `flow` does. It reads `status` in frontmatter,
+ * which these commands own outright, so it cannot disagree with anything.
  */
 function progressOf(t, tickets) {
   const kids = graph.children(tickets, t.id);
@@ -144,6 +131,9 @@ function show(ticket, tickets, root) {
       ? `children:   ${progressOf(ticket, tickets)} done — ${kids.map((k) => `${k.id} (${k.data.status})`).join(', ')}`
       : null,
     planLine(ticket),
+    reportsLine(ticket),
+    ticket.data.closed ? `closed:     ${ticket.data.closed}` : null,
+    ticket.data.filed ? `filed:      ${ticket.data.filed}` : null,
     ticket.data.status === 'todo'
       ? (unmet.length ? `blocked:    ${unmet.map(blockText).join('; ')}` : 'ready:      yes')
       : null,
@@ -154,15 +144,17 @@ function show(ticket, tickets, root) {
 }
 
 /**
- * The plan lives beside the ticket, so `show` prints how far it got and the
- * path to read. Nothing here parses the steps themselves — a plan is read by
- * opening it, and a summary in the header would be a second copy to trust.
+ * The plan lives beside the ticket, so `show` says whether there is one. How
+ * far it got is not summarized here: a plan is read by opening it, and any
+ * digest in the header would be a second copy to keep true.
  */
-function planLine(ticket) {
-  const p = store.planProgress(ticket);
-  if (!p) return null;
-  return `plan:       ${p.done}/${p.total} steps — plan.md`;
-}
+const planLine = (ticket) => (store.hasPlan(ticket) ? 'plan:       plan.md' : null);
+
+/** Named, not counted — a report is read by opening it, and the name says what it answers. */
+const reportsLine = (ticket) => {
+  const files = store.reportFiles(ticket);
+  return files.length ? `reports:    ${files.map((f) => `reports/${f}`).join(', ')}` : null;
+};
 
 function priorityLine(ticket, index) {
   if (ticket.data.priority) return ticket.data.priority;
@@ -205,11 +197,85 @@ function status(tickets) {
   out.push('');
   out.push(`ready: ${ready.length}   blocked: ${blocked.length}   (flow next)`);
 
+  // Printed only when something is owed. A zero here on every run is a line the
+  // reader learns to skip, and this exists to be noticed.
+  const unfiled = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
+  if (unfiled.length) {
+    out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow ls --unfiled)`);
+    out.push('         run file-findings to sweep them');
+  }
+
   return out.join('\n');
 }
 
+/**
+ * The session opener, printed by bare `flow start`. Four questions in order:
+ * what did I finish last, what is still open, what continues it, what could
+ * start. Read-only on purpose — this is the view for not knowing what is next,
+ * and picking is a separate act.
+ */
+function brief(tickets, limit) {
+  if (!tickets.length) return 'no tickets yet.';
+  const out = [];
+
+  // The context a new session has lost. Nothing else on screen says what the
+  // last piece of work even was. Id and title only: the status, the stamp and
+  // the report list all pushed the title off to the right, where it read as
+  // noise. `closed` still decides which ticket this is; it just does not print.
+  const last = graph.lastClosed(tickets);
+  if (last) {
+    out.push(`last closed  ${last.id}  ${last.data.title}`);
+    out.push('');
+  }
+
+  const inFlight = tickets.filter((t) => graph.IN_FLIGHT.has(t.data.status));
+  if (inFlight.length) {
+    out.push(`in flight (${inFlight.length}) — finish these before starting more:`);
+    out.push(indent(ticketTable(graph.rank(inFlight, tickets), tickets)));
+    out.push('');
+  }
+
+  // Above the ready list even when a high-priority ticket is sitting in it:
+  // unfinished work beats new work, and a ticket nobody has started is new
+  // however it is marked. Priority only orders inside a band.
+  const continuing = graph.continuingTickets(tickets);
+  if (continuing.length) {
+    out.push(`continues open work (${continuing.length}):`);
+    out.push(indent(ticketTable(continuing, tickets)));
+    out.push('');
+  }
+
+  const carried = new Set(continuing.map((t) => t.id));
+  const ready = graph.readyTickets(tickets).filter((t) => !carried.has(t.id));
+  if (ready.length) {
+    const shown = graph.rank(ready, tickets).slice(0, limit);
+    out.push(`ready (${shown.length < ready.length ? `${shown.length} of ${ready.length}` : ready.length}):`);
+    out.push(indent(ticketTable(shown, tickets)));
+    if (shown.length < ready.length) out.push('  flow next --all for the rest');
+    out.push('');
+  } else if (!inFlight.length && !continuing.length) {
+    const blocked = graph.blockedTickets(tickets);
+    out.push(blocked.length
+      ? `nothing ready. ${blocked.length} todo ticket${blocked.length === 1 ? '' : 's'} blocked:\n${blockedLines(blocked.slice(0, 8))}`
+      : 'nothing ready and nothing blocked — no todo tickets left.');
+    out.push('');
+  }
+
+  // Both print only when owed. A line that reads "none" every run is a line
+  // the reader learns to skip, and these exist to be noticed.
+  const unfiled = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
+  if (unfiled.length) {
+    out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow ls --unfiled)`);
+    out.push('         run file-findings to sweep them');
+  }
+  const problems = graph.check(tickets);
+  if (graph.hasProblems(problems)) out.push('the ticket graph has problems — flow check');
+
+  return out.join('\n').replace(/\n+$/, '');
+}
+
 function checkReport(problems) {
-  if (!graph.hasProblems(problems)) return 'no problems: no cycles, no dangling ids, no dropped blockers.';
+  if (!graph.hasProblems(problems)) return 'no problems: no cycles, no dangling ids, no dropped blockers, no closed parents.';
 
   const out = [];
   if (problems.cycles.length) {
@@ -230,6 +296,13 @@ function checkReport(problems) {
   if (problems.danglingParents.length) {
     out.push(`dangling parents (${problems.danglingParents.length}) — the parent does not exist:`);
     for (const d of problems.danglingParents) out.push(`  ${d.ticket.id} has parent ${d.parent}`);
+    out.push('');
+  }
+  if (problems.closedParents.length) {
+    out.push(`closed parents (${problems.closedParents.length}) — the parent finished while this was still open:`);
+    for (const d of problems.closedParents) {
+      out.push(`  ${d.ticket.id} (${d.ticket.data.status}) has parent ${d.parent.id}, which is ${d.parent.data.status}`);
+    }
     out.push('');
   }
   return out.join('\n').trimEnd();
@@ -274,6 +347,6 @@ function caseList(cases) {
 }
 
 module.exports = {
-  columns, table, ticketTable, tree, progressOf, blockedLines, blockText, show, status, checkReport, indent,
+  columns, table, ticketTable, tree, progressOf, blockedLines, blockText, show, status, brief, checkReport, indent,
   issueTable, caseList,
 };

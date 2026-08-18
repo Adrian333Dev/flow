@@ -18,7 +18,7 @@ const path = require('path');
 const frontmatter = require('./frontmatter');
 const { FlowError } = require('./error');
 const { projectRoot } = require('./root');
-const { slugify, renderTemplate } = require('./store');
+const { slugify, renderTemplate, today } = require('./store');
 
 const CASE_KEYS = ['date', 'project', 'rule', 'status', 'fix'];
 const CASE_STATUSES = ['open', 'fixed'];
@@ -29,12 +29,6 @@ const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.claude
 const casesDir = () => path.join(flowHome(), 'study-cases');
 
 const NAME_RE = /^(\d{4}-\d{2}-\d{2})-(.+)$/;
-
-function today() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
 
 /** The project a case happened in, as a name. Empty outside a repo — a study
  *  case is worth recording wherever it happened, so this never refuses. */

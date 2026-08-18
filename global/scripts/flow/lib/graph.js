@@ -118,6 +118,36 @@ const rankByStatus = (list, pool) => {
     PRIORITY_RANK[effectivePriority(a, index)] - PRIORITY_RANK[effectivePriority(b, index)]);
 };
 
+/**
+ * Ready tickets cut out of work that is still open — the child a brainstorm
+ * split off so it could keep going, picked up in a later session.
+ *
+ * Membership carries the whole signal, so order inside the band stays
+ * oldest-first like everywhere else. Recency was the obvious alternative and it
+ * is wrong: a brainstorm that decomposes cuts three children at once, and those
+ * get worked in the order they were cut.
+ */
+function continuingTickets(tickets) {
+  const index = indexById(tickets);
+  return readyTickets(tickets).filter((t) => {
+    const parent = t.data.parent ? index.get(t.data.parent) : null;
+    return !!parent && IN_FLIGHT.has(parent.data.status);
+  });
+}
+
+/**
+ * The ticket that finished most recently. `closed` is the only field that can
+ * answer it — ids are creation order, and `filed` is stamped days later.
+ * Sorts as a string because `YYYY-MM-DD HH:MM` already sorts chronologically.
+ */
+function lastClosed(tickets) {
+  const closed = tickets.filter((t) => TERMINAL.has(t.data.status) && t.data.closed);
+  if (!closed.length) return null;
+  // `>=` on a tie: the list is in id order, so two tickets closed in the same
+  // minute resolve to the later one, which is the likelier answer.
+  return closed.reduce((best, t) => (t.data.closed >= best.data.closed ? t : best));
+}
+
 function dependents(tickets, id) {
   return tickets.filter((t) => t.data.deps.includes(id));
 }
@@ -271,22 +301,36 @@ function check(tickets) {
   const dangling = [];
   const droppedBlockers = [];
   const danglingParents = [];
+  const closedParents = [];
 
   for (const t of tickets) {
+    // Parent problems are judged over OPEN rather than LIVE: a ticket in
+    // review still owes work, so a broken parent above it is still a problem.
+    if (OPEN.has(t.data.status) && t.data.parent) {
+      const parent = index.get(t.data.parent);
+      if (!parent) danglingParents.push({ ticket: t, parent: t.data.parent });
+      // `flow done --force` closes a parent around its open children. Nothing
+      // recorded the override before this: the parent said its work belonged to
+      // them, then finished without them, and `flow tree` nests live work under
+      // an archived ticket. Readiness never consults a parent, so nothing is
+      // lost — only the claim, which is what this reports.
+      else if (TERMINAL.has(parent.data.status)) closedParents.push({ ticket: t, parent });
+    }
+
     if (!LIVE.has(t.data.status)) continue;
     for (const dep of t.data.deps) {
       const d = index.get(dep);
       if (!d) { dangling.push({ ticket: t, dep }); continue; }
       if (d.data.status === 'dropped') droppedBlockers.push({ ticket: t, dep });
     }
-    if (t.data.parent && !index.get(t.data.parent)) danglingParents.push({ ticket: t, parent: t.data.parent });
   }
 
-  return { cycles: findCycles(tickets), dangling, droppedBlockers, danglingParents };
+  return { cycles: findCycles(tickets), dangling, droppedBlockers, danglingParents, closedParents };
 }
 
 const hasProblems = (p) =>
-  p.cycles.length + p.dangling.length + p.droppedBlockers.length + p.danglingParents.length > 0;
+  p.cycles.length + p.dangling.length + p.droppedBlockers.length +
+  p.danglingParents.length + p.closedParents.length > 0;
 
 /** Would adding `dep` to `ticket` close a loop? */
 function wouldCycle(tickets, ticketId, dep) {
@@ -305,7 +349,7 @@ function wouldCycle(tickets, ticketId, dep) {
 module.exports = {
   SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, PRIORITY_RANK, STATUS_RANK,
   indexById, unmetDeps, readyTickets, blockedTickets, hasOpenChildren,
-  effectivePriority, rank, rankByStatus,
+  effectivePriority, rank, rankByStatus, continuingTickets, lastClosed,
   dependents, transitiveDependents, children, openChildren, descendants, forest, wouldOrphan,
   findCycles, check, hasProblems, wouldCycle,
 };

@@ -44,7 +44,9 @@ Using what came back:
 
 ## Delegating heavy reading
 
-Megabytes of docs or a cloned codebase read inline burns the main context. Level 2 past a few pages, and level 3 always: delegate the reading to a subagent on a cheaper model. The main agent reads only the findings file.
+**`Explore` is the agent.** Claude Code ships it read-only and built for reading — nothing in `agents/` defines it, and nothing needs to. Where the job has to run something before it can read, `general-purpose` does the same work with the full tool set.
+
+**Dispatch on how much there is to read.** The level never decides it. A cloned codebase, megabytes of cached docs, a question that means opening twenty files: that much reading buries the session it lands in. Send it out and read the findings. A page or two, one grep for a signature, a file whose name you already have: read it here. A dispatch costs a brief, a wait, and everything the subagent saw but never wrote down.
 
 **The brief is a handoff** — `handoff` writes it, delivered in the subagent's prompt rather than as a file. Three things it carries that belong to reading specifically:
 
@@ -77,7 +79,7 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 **The research itself** — one file per question, the prompt or question at the top and the findings below it in the same file. Same shape whether an external LLM, a subagent or you answered it.
 
-`docs/research/<question>.md` — **flat, and shared by the whole project.** Never inside a ticket or a brainstorm folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds. No project here → beside the file you are working in.
+`docs/research/<question>.md` — **flat, and shared by the whole project.** Never inside a ticket or a brainstorm folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds.
 
 **A question never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent. `flow`'s `research` type is for a *subject* nobody has decided yet — a pricing model, a marketing approach — and that opens a brainstorm, not this skill.
 
@@ -96,5 +98,5 @@ Level 1 answers inline, no file. Level 2 and up always writes one.
 - **State what you are researching and why** before touching any tool.
 - **Don't over-research.** Enough for a confident answer at the current level → stop and answer.
 - **`llms-full.txt` is grep-only.**
-- **Heavy reading goes to a subagent**, not the main context.
+- **Where the reading would bury the session, dispatch `Explore`.** A page or two stays here.
 - **Record findings.** The synthesis has to survive compaction.

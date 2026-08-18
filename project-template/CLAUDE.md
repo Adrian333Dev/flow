@@ -12,5 +12,5 @@ and the judgment steps are skills run by hand. Nothing is deployed." -->
 > Rules from the spec that can't be inferred from conventions.
 
 <!-- Everything else — the user profile, workflow, scripts, explaining, capture, hard rules —
-is global, at ~/.claude/CLAUDE.md, and loads automatically. If it isn't there, run
-setup-flow-globals from the flow repo. -->
+is global, at ~/.claude/CLAUDE.md, and loads automatically. If it isn't there, run the
+install skill from the flow repo. -->

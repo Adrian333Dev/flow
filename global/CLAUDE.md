@@ -32,7 +32,7 @@ No background: audio APIs, compilers, ML internals." -->
 
 Write anything worth keeping the moment it surfaces.
 
-**A project is a directory whose `CLAUDE.md` has a `## Project` section.** Without one there is no `docs/` — every path below collapses to the file in front of you. Paths are created on first write.
+**`docs/` always exists**, project or not, repo or not. Paths are created on first write.
 
 **`flow` needs only a git repo**, so committed work gets a ticket nearly everywhere, project or not. The exceptions are a directory under no repo at all, and a repo belonging to someone else.
 
@@ -42,7 +42,9 @@ Write anything worth keeping the moment it surfaces.
 - About **Flow itself**, not what you're building → `~/.claude/flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
 - A failure with an artifact — the user reacts to something you produced, or a loaded rule didn't fire → a study case. Keep the offending output verbatim first, analyse after: `~/.claude/flow/refs/study-cases.md`
 
-**Everything else → `docs/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `update-context` does that later.
+**Everything else → `docs/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `file-findings` does that later.
+
+**Past 200 lines, offer `file-findings`.** Nothing reads the inbox on its own, so its length is the only signal that it needs draining — and length beats counting entries, which have no fixed shape to count.
 
 Background reflex, not every turn. On request ("note that"), immediately. Unsure: write it — junk costs nothing, a lost insight costs the next session.
 
@@ -72,10 +74,14 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 **`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand. Run bare, it prints its whole surface.
 
 - Daily loop: `flow next` (what is in flight, then todos with every dependency satisfied, highest priority first, capped at 10) · `start` · `build` · `review` · `done` · `park <id> "reason"`.
-- Reading: `flow tree` for the whole shape nested by parent · `flow ls [status] [--type T] [--parent <id>]` · `show <id>`, with children · `status` · `check` for cycles, dangling ids, dropped blockers. Step progress is counted from `plan.md`'s top-level checkboxes, never stored, so it cannot go stale.
-- `flow ticket new "Title" [--type feature] [--priority high] [--parent t047] [--deps t045,t046] [--body -] [--from-brainstorm <path>]` — `--body -` takes the body on stdin: create and fill in one command, never create then edit. `--from-brainstorm` moves a loose brainstorm folder in as the new ticket's `brainstorm/`, leaving nothing behind. Also `ticket drop <id> "reason" [--by <id>|--force]`, `ticket dep`, `ticket edit`.
+- **Bare `flow start` opens a session and writes nothing** — what closed last and what it reported, what is in flight, what was cut out of it, then what could start. It is the view for not knowing what is next; naming a ticket is what picks one up. **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked.
+- Reading: `flow tree` for the whole shape nested by parent · `flow ls [status] [--type T] [--parent <id>] [--unfiled]` · `show <id>`, with children · `status` · `check` for cycles, dangling ids, dropped blockers, closed parents. Plan steps are never counted — open `plan.md` for those; a parent counts its finished children.
+- `flow ticket new "Title" [--type feature] [--priority high] [--parent t047] [--deps t045,t046] [--body -] [--from-brainstorm <path>]` — `--body -` takes the body on stdin: create and fill in one command, never create then edit. `--from-brainstorm` moves a loose brainstorm folder in as the new ticket's `brainstorm/`, leaving nothing behind. Also `ticket drop <id> "reason" [--by <id>|--force]`, `ticket dep`, `ticket edit`, `ticket filed <id>…`.
 - `t047`, `t47` and `47` are the same ticket. Reference by id, never by path.
 - **Priority is `high` or `low`, and only when the user asks for one.** No line on disk means normal; a ticket with none inherits the nearest ancestor's. Never stamp one at creation — a field set every time stops meaning anything.
+- **`closed` is stamped by `flow done` and `flow ticket drop`**, and cleared by any move back to a live status. It carries a clock time because ordering finished work is its only job, and nothing else can do it: `filed` lands days later, ids are creation order, and a file's timestamp is rewritten by things that are not work.
+- **A ticket's answers go in `reports/`**, one file per thing answered, named after what it answers — a hunt's cause, a prototype's measurement. Written by the skill that ran, never by `flow`.
+- **A closed ticket is filed once its knowledge has been harvested** — `flow ticket filed t047 t048`, written by `file-findings` and by nothing else. `status: done` says the work finished; `filed` says the lessons were taken out of it. `flow ls --unfiled` is that skill's queue and `flow status` counts it.
 - Refuses what breaks the graph and says why — `start` and `done` both on a parent with open children, `start` on an unsatisfied dependency, `drop` with live dependents. A parent returns to `flow next` once its last child closes, for whatever work no child held. `--force` is deliberate override, not an escape from a mistake.
 
 ## Judgment

@@ -98,7 +98,7 @@ Durable knowledge goes to its own home the moment it surfaces — Capture in the
 
 ## 4. Land it
 
-**In a ticket** — `## State`, at the bottom of `ticket.md`. Rewrite that section whole and touch no other: `flow` owns the frontmatter, `execute` owns `plan.md`, `debug` owns `report.md`, and the body belongs to whoever created the ticket.
+**In a ticket** — `## State`, at the bottom of `ticket.md`. Rewrite that section whole and touch no other: `flow` owns the frontmatter, `execute` owns `plan.md`, `debug` and `prototype` own `reports/`, and the body belongs to whoever created the ticket.
 
 **Delete the section at `flow review`.** "Step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
 
@@ -112,7 +112,7 @@ Read every listed file in one parallel batch, then start on the first action. Th
 
 **Where `## State` disagrees with anything else in the ticket, it wins.** It is the newer of the two.
 
-A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names — `report.md` for a hunt, `docs/research/<question>.md` for a question. `## State` carries the job's progress, never its answer.
+A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names — `reports/<failure>.md` for a hunt, `docs/research/<question>.md` for a question. `## State` carries the job's progress, never its answer.
 
 **A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `flow start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top: the list is complete, read it in one batch, then start on the first action.
 

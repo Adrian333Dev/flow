@@ -25,7 +25,7 @@ Never dispatch another agent.
 
 ## What to report, and where
 
-Write it into `report.md`, beside the `ticket.md` you were started on — or into the brief file, where you were given one instead. Then say the same thing in your final message. What you wrote is what survives; nobody reads your transcript.
+Write it into `reports/<failure>.md`, beside the `ticket.md` you were started on — or into the brief file, where you were given one instead. Then say the same thing in your final message. What you wrote is what survives; nobody reads your transcript.
 
 **Keep `## State` in `ticket.md` current while you hunt.** Every hypothesis you kill goes there as it dies. A session that runs out mid-hunt loses everything it never wrote.
 
