@@ -7,10 +7,10 @@ argument-hint: [ticket-id]
 
 **A ticket is above and now in `thinking`** — route on its `type:` line, and read nothing else first:
 
-- `feature` or `chore` → invoke `execute`, Phase 1
-- `issue` → invoke `debug`
-- `research` → invoke `brainstorm`
-- `prototype` → invoke `prototype`
+- `feature` or `chore` → invoke `/execute`, Phase 1
+- `issue` → invoke `/debug`
+- `research` → invoke `/brainstorm`
+- `prototype` → invoke `/prototype`
 
 `flow` refused instead → say why and stop. It refuses what would break the ticket graph.
 

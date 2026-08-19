@@ -1,10 +1,6 @@
 # Write the spec
 
-Read this when a brainstorm settled something worth keeping — what the thing must do, how it is built, or why a call was made.
-
 **Not only for software.** A content pipeline, a business, a workflow — anything built out of parts that hand things to each other gets the same document. Where a section names a signature or a schema, that is the software case, not the definition.
-
-**A ticket-sized brainstorm that turns up a new direction lands here too.** There is no size gate.
 
 ## 1. Pick the file
 
@@ -15,21 +11,21 @@ One test, asked of each decision: **does it outlive the thing being built?**
 - **Yes, and it says how the system is built** → `docs/spec/tech.md`.
 - **Yes, and it says why a call was made** → `docs/spec/decisions.md`.
 
-One brainstorm usually writes two of these. Creates `docs/spec/` if there is none, edits it if there is.
+One brainstorm usually writes 2 of these. Creates `docs/spec/` if there's none, edits it if there is.
 
 `product.md` and `tech.md` are the base pair. `decisions.md` appears the moment something is locked with a reason worth keeping, which at project start is immediately.
 
-A subject gets its own file beside them only when all three hold: no fact appears in two files, the boundary is statable in one sentence, and it is not a section of an existing file. Past three files, add an index naming each one and what it holds.
+A subject gets its own file beside them only when all 3 hold: no fact appears in 2 files, the boundary is statable in one sentence, and it isn't a section of an existing file. Past 3 files, add an index naming each and what it holds.
 
-**Not this file's job:** how a library ended up bent out of shape, written after the build so the next person can change it. That is a durable project fact — `docs/context/<subject>.md`, written by `execute`.
+**Not this file's job:** how a library ended up bent out of shape, written after the build so the next person can change it. That's a durable project fact — `docs/context/<subject>.md`, written by `/execute`.
 
 ## 2. Before writing
 
-1. **Re-read `map.md`.** Open `[ ]` branches → name them and confirm they are deferred, or go back and walk them. A spec written over an open branch buries it.
-2. **Read what exists** — the code, the current spec, whatever this touches. A contradiction with a settled decision → raise it and reopen that branch. Never quietly write around it.
+1. **Re-read `map.md`.** Open `[ ]` branches → name them and confirm they're deferred, or go back and walk them. A spec written over an open branch buries it.
+2. **Read what exists** — code, the current spec, whatever this touches. A contradiction with a settled decision → raise it and reopen that branch. Never quietly write around it.
 3. **List every closed branch, one line each, with the file it lands in.**
 
-Step 3 is the whole defence against a spec that quietly loses half the brainstorm. **List branches, never behaviors** — a UI decision, a refused approach and a cost ceiling are all branches, and none of them is a behavior. A 5,000-line map is maybe 120 lines of this. Several map files → one at a time.
+Step 3 is the whole defence against a spec that quietly loses half the brainstorm. **List branches, never behaviors** — a UI decision, a refused approach and a cost ceiling are all branches, and none is a behavior. A 5,000-line map is maybe 120 lines of this. Several map files → one at a time.
 
 Write the list before any prose. Tick each line as it lands. Verify at the end: an unticked line is a decision that vanished.
 
@@ -39,7 +35,7 @@ One pass, after the map closes. The decisions were agreed while walking the map,
 
 **Write every requirement concrete and checkable.** "Fast", "robust", "user-friendly" are not requirements.
 
-**Draw wherever a drawing carries the point — invoke `visualize`.** One place or five, in whichever sections are spatial. Never head a section "architecture" and leave no picture under it.
+**Draw wherever a drawing carries the point — invoke `/visualize`.** One place or 5, in whichever sections are spatial. Never head a section "architecture" and leave no picture under it.
 
 Markdown only. No frontmatter, no copied artifacts.
 
@@ -52,7 +48,7 @@ Always, however small the product:
 3. **Every behavior**, grouped how the product is actually shaped — by surface, by job, by whatever the map used. Each carries a mark.
 4. **How you know it worked** — the observable outcome, the check, the number.
 
-Then only what a branch actually covered. Most specs use three or four of these, and a subject nobody walked writes nothing here:
+Then only what a branch actually covered. Most specs use 3 or 4 of these, and a subject nobody walked writes nothing here:
 
 - **The domain model** — the concepts this is built on, and how they relate.
 - **Named principles** — the constraints that settle later arguments before they start.
@@ -76,7 +72,7 @@ The spec is finished when every behavior carries a mark, never when the thinking
 
 Same skeleton at both scopes. `tech.md` is the whole system and outlives every feature; `design.md` is one thing and dies when that thing is built.
 
-**Always write one. Never skip it for being simple.** Sections scale down to a sentence each; the document does not disappear. Simple-looking work is where unexamined assumptions cost the most.
+**Always write one. Never skip it for being simple.** Sections scale down to a sentence each; the document doesn't disappear. Simple-looking work is where unexamined assumptions cost the most.
 
 1. **The goal** — one paragraph a stranger follows.
 2. **Scope** — what is in, and what is out. Both named.
@@ -87,7 +83,7 @@ Same skeleton at both scopes. `tech.md` is the whole system and outlives every f
 7. **How you know it worked** — the observable outcome, the check, the number. A design with no answer here produces work nobody can call finished.
 8. **What is locked** — one line per decision. The reasoning stays where it was written.
 
-`tech.md` adds two things, and only because its scope is the whole system:
+`tech.md` adds 2 things, and only because its scope is the whole system:
 
 - **The stack and the repo layout** — what each piece is for, which folders exist, what lives in them.
 - **The parts are the system's parts** — backend, frontend, services, workers, packages. Never one feature's.
@@ -98,7 +94,7 @@ Only for reasoning that outlives the build. A ticket-sized call stays in `map.md
 
 - **Each locked decision, with its reason.** Dated, newest last.
 - **What was refused, and why.** The reason is the point. Without it the same idea comes back every quarter.
-- **The bets** — assumptions the whole thing rests on, unverified, and load-bearing enough that being wrong changes the approach. A risk is a bet already known to be shaky, so it goes here too, with what happens if it fires.
+- **The bets** — Phase 3 names them. A risk is a bet already known to be shaky, so it goes here too, with what happens if it fires.
 - **What is still open** — grouped by kind, each saying what would settle it.
 
 ## 4. Review it yourself
@@ -106,10 +102,10 @@ Only for reasoning that outlives the build. A ticket-sized call stays in `map.md
 Read it once with fresh eyes and fix what you find inline:
 
 - **Placeholders** — any TBD, TODO, or half-written section.
-- **Contradictions** — sections that disagree, or a drawing that does not match the parts under it.
+- **Contradictions** — sections that disagree, or a drawing that doesn't match the parts under it.
 - **Vague requirements** — anything not concrete and checkable.
 - **Invented material** — anything in the document that no branch decided.
-- **Ambiguity** — any requirement that could be read two ways. Pick one and say it.
+- **Ambiguity** — any requirement that could be read 2 ways. Pick one and say it.
 - **The branch list** — every line ticked.
 
 No second review. Fix and move on.
@@ -120,7 +116,7 @@ Give the paths. The user reads and approves before anything is created from it.
 
 **An objection is not a new brainstorm.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
 
-Approved and there is work to cut → **invoke `write-tickets`**.
+Approved and there's work to cut → **invoke `/write-tickets`**.
 
 ## Editing a spec that already exists
 
@@ -149,4 +145,4 @@ A decision resting on evidence — a research report, a prototype, a drawing —
 - **Every spec says how you know it worked.**
 - **No fact in two files.**
 - **Nothing still open goes in `product.md` or `tech.md`.** It goes in `decisions.md`.
-- **Never create a ticket from here** — that is `write-tickets`, after approval.
+- **Never create a ticket from here** — that is `/write-tickets`, after approval.
