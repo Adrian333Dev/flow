@@ -14,6 +14,7 @@ produces one.
 | **subagent-mechanics** | what a parent can do to a subagent, and what it would take to run several at once | parked 2026-08-14, revisit when a subagent actually runs |
 | **assignments** | a dispatched job may not need a handoff document at all — a child ticket may already be one | raised 2026-08-15, to discuss |
 | **install** | `setup-flow-globals` and `migrate-to-flow` collapse into one skill covering every starting state | raised 2026-08-15, to discuss |
+| **ascii-engine** | hand it JSON, get back the drawing — full write-up in `design-ascii-engine.md` | raised 2026-08-19, to brainstorm in its own session |
 
 `remaining.md` → `## Design threads still open` holds the older parked list. This file holds these three,
 which are bigger and one of which may reshape the workflow. When a thread closes, its outcome moves into
@@ -429,3 +430,17 @@ scenario forever.
 - **The name.** `setup-flow-globals` and `migrate-to-flow` are both verb-first and both describe half the job.
 - **Nothing installs until Flow is finished** — this skill is the thing that finally runs, so its design is
   what closes the whole project.
+
+## ascii-engine — hand it JSON, get back the drawing
+
+Raised by the user 2026-08-19, at the end of the `visualize` rework. **Nothing is decided and it may never be
+built.** The skill works without an engine today and must keep working without one.
+
+**The whole thread lives in `wip/context/design-ascii-engine.md`** — what an engine is, the same diagram typed
+by hand and as JSON, the two halves of the job, the five existing tools worth trying first, three tiers of
+ambition, the readability trap, and the questions the brainstorm has to settle. Written to open cold, so
+nothing is restated here.
+
+**The user has read that file and mostly disagrees with its recommendation**, and intends a different
+direction they have not stated yet. Ask for it before arguing anything in there. What they have said twice:
+JSON goes in, and the engine does the whole rendering.

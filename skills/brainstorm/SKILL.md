@@ -162,7 +162,7 @@ Confirm every branch is resolved or deliberately deferred, then send each decisi
 
 - **Work committed to here** → a ticket per unit of work, `flow ticket new "…"`, each carrying what the map decided.
 - **Work already written into `docs/spec/product.md`** → **invoke `/write-tickets`**. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
-- **Anything settled that outlives the build** — what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `write-spec.md`** in this folder. It picks the file. A new direction reached in _any_ brainstorm goes there, including a ticket-sized one.
+- **Anything settled that outlives the build** — what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `refs/write-spec.md`**. It picks the file. A new direction reached in _any_ brainstorm goes there, including a ticket-sized one.
 - **A durable fact about this project** → `docs/context/<subject>.md`.
 - **Settled and dying with the build**, this build's non-goals included → already written in `map.md`. Leave it there.
 - **Decided, but not now** → `## Deferred` in the map, with the reason.

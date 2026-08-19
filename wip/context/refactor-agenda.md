@@ -238,6 +238,34 @@ that lands. The depth material — reformulation, forced distant analogue, three
 **Naming collision, unresolved:** Flow's `grill` attacks a finished design by running cases. Matt's
 `grill-me` is the interview. Same word, opposite activities. Typing "grill me" here gets the case-walker.
 
+## 10. Every skill gets the whole `writing.md` pass — in progress
+
+One skill at a time, each read end to end against `global/refs/writing.md`: plan the sections before typing,
+then test every sentence. Not a compression pass — structure, word choice and where each fact lives.
+
+**`visualize` is done, 2026-08-19**, and it set three conventions the rest of the queue inherits:
+
+- **`SKILL.md` is the only file at a skill's root.** Everything else goes in a folder — `scripts/` for
+  executables, `refs/` for markdown read on some runs and not others, or a purpose name where one fits
+  better. Written into the repo `CLAUDE.md`. `brainstorm/write-spec.md` moved the same day.
+- **A skill never restates a rule `global/CLAUDE.md` already carries.** Found when *Preferred over a table*
+  turned out to duplicate a line in the always-loaded file.
+- **An agent-facing file states the rule; the reasoning behind it goes in a document written for the user.**
+  Found when a measured cost figure was cut out of `visualize` — the agent needs the instruction, and the
+  argument for adopting it belongs where the user reads it.
+
+**The queue**, each still owed the pass: `execute` (+`review-code.md`), `file-findings` (+`write-skills.md`),
+`debug`, `handoff`, `prototype`, `research`, `write-tickets`. `debug-web-pages` is excluded. `brainstorm`
+had its rework at item 9 but not this pass.
+
+**Two skills break the new root rule** and are the natural next pair: `execute/review-code.md` and
+`file-findings/write-skills.md`.
+
+**Also owed, found during `visualize`:** sweep the `/skill-name` form — `skills/prototype/SKILL.md` writes
+`visualize` bare in 4 places where `brainstorm` writes `/visualize`. Check `handoff/`, `execute/` and
+`global/refs/study-cases.md` the same way. And `handoff/SKILL.md:97` — "Capture in the project `CLAUDE.md`"
+looks wrong.
+
 ---
 
 ## Status
@@ -253,3 +281,4 @@ that lands. The depth material — reformulation, forced distant analogue, three
 | 7 | no commits until done | standing |
 | 8 | stale `~/.local/bin` symlinks point at the deleted workbench repo | deferred by the user, 2026-08-09 |
 | 9 | `brainstorm` reworked to generate options, not structure input | ✅ **done** — 180 → 223 lines. Depth half still owed to `execute` and the debug skill |
+| 10 | every skill gets the whole `writing.md` pass | in progress — `visualize` done 2026-08-19, 7 skills owed |
