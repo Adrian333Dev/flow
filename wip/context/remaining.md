@@ -1,7 +1,10 @@
 # Remaining — the whole build in one list
 
-Master checklist for Flow v1. Ordered by **what blocks what**, not by size. Every item names where its
-design already lives; **no pointer means the design does not exist yet** and deciding it is part of the item.
+**Open items are indexed in `backlog.md`, at the repo root.** This file holds the reasoning behind them; it is not a place to check for work.
+
+The build record, written as a checklist and ordered by **what blocks what**. Every item names where its
+design already lives; **no pointer means the design was never written**. Superseded as a work list by
+`backlog.md`; kept for the reasoning under each item.
 
 **Read `wip/context/handoff.md` first** — current state, machine state, and the next action. This file is what is
 left to build; `session-new-plugin.md` is the historical log for why a decision was made.

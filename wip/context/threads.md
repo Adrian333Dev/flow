@@ -1,5 +1,7 @@
 # Threads — opened one at a time
 
+**Open items are indexed in `backlog.md`, at the repo root.** This file holds the reasoning behind them; it is not a place to check for work.
+
 Discussion threads, added as the user raises them. Each is written to be re-opened **cold**, months
 later, by an agent that has read nothing else. Nothing here is decided; nothing here is a build item until it
 produces one.

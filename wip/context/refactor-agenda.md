@@ -1,5 +1,7 @@
 # Refactor agenda — user notes, 2026-08-09 (late)
 
+**Open items are indexed in `backlog.md`, at the repo root.** This file holds the reasoning behind them; it is not a place to check for work.
+
 Parked at the user's request, mid-conversation, **nothing here is designed and nothing is approved.** One
 message, eight items. Written down so the conversation can proceed one item at a time without losing the rest.
 

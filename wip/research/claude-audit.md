@@ -2,6 +2,8 @@
 
 **Research report — August 21, 2026**
 
+**This is research, not a plan.** The task it feeds — tracking every session, subagent and tool call — sits in `backlog.md` at the repo root under *Sessions still to hold*, and nothing about it is designed yet.
+
 ## 0. Purpose and framing
 
 You're building a custom harness/framework around Claude Code (comparable in ambition to things like Superpowers, but broader in scope). A core requirement of that harness is full-fidelity observability: every session, every subagent, every tool call, per-file access history (read counts, which session touched what, lock state), and a live-updating snapshot of "where things stand" as a session progresses. This document is a research dump plus design analysis, meant as raw material for your own brainstorming — not a single prescribed solution. Several viable approaches exist and they're not mutually exclusive.

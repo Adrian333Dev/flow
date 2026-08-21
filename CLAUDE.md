@@ -109,6 +109,7 @@ To add one: create `<name>/SKILL.md` with `name` and `description` frontmatter, 
 
 ## Layout
 
+- **`backlog.md`** — every open item in Flow, one line each, checkboxes. The only place an open item lives; `wip/context/` holds the reasoning behind them
 - **`global/CLAUDE.md`** — rules that apply in every directory, project or not. Copied to `~/.claude/CLAUDE.md`, then personalized
 - **`global/settings.json`** — permissions, the `PreToolUse` hook, feature flags; every key explained in `global/settings.md`. Merged into `~/.claude/settings.json`
 - **`global/scripts/`** — `ptree.js`, `fmerge.js`, `gsave.sh`, `guard.js`, `snapshot.js`, `link.sh`, `flow/flow.js`. Symlinked as `~/.claude/scripts`; four get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands. `guard.js` and `snapshot.js` are hooks, named by path in `settings.json` and never typed
@@ -127,7 +128,7 @@ The design record this repo was built from. **Nothing under `wip/` is a Flow ski
 **Every context file lives in `wip/context/`** — one folder, flat, no loose markdown at the top of `wip/`.
 
 - **`handoff.md`** — session-start orientation only. Read once, then left alone: never updated as the work moves, and replaced only by writing a new one. Never treat a pointer inside it as something to maintain
-- **`remaining.md`** — the master build checklist. Locked sections at the top win over everything below
+- **`remaining.md`** — the build record. Locked sections at the top win over everything below. `backlog.md` replaced it as the work list
 - **`refactor-agenda.md`** — the cleanup work now in progress
 - **`session-new-plugin.md`** — historical log, newest at the bottom. Where a decision's origin is found
 - **`user-profile.md`** — who you are writing for
