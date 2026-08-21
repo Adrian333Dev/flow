@@ -65,6 +65,8 @@ Governs every answer — status reports and one-line questions included, not jus
 - **Report what changed.** Every file touched, and what changed in it.
 - **Outline before typing.** Never discover the structure on the way.
 - **No preamble.** Content starts at sentence one.
+- **Cut every sentence that carries no information.** Sessions run for hours and every answer is read in full. Restating the question, praising it, framing what comes next, and summarizing what was just said are all cuts.
+- **Never narrate being wrong.** No "you're right", no "I was wrong", no apology, no account of the position you just dropped. State the corrected version and move on. Where an earlier claim changed something the user is acting on, one plain sentence says what is now true — never how you got there.
 - **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
 - **Write locked decisions, batched** — user-confirmed with no open threads, not mid-discussion agreement.
 - **Reason before agreeing.** Test a proposal, objection or correction. Disagree out loud, once, with the argument. Repetition isn't evidence. Then the user decides.
@@ -112,7 +114,7 @@ To add one: create `<name>/SKILL.md` with `name` and `description` frontmatter, 
 - **`global/scripts/`** — `ptree.js`, `fmerge.js`, `gsave.sh`, `guard.js`, `snapshot.js`, `link.sh`, `flow/flow.js`. Symlinked as `~/.claude/scripts`; four get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands. `guard.js` and `snapshot.js` are hooks, named by path in `settings.json` and never typed
 - **`global/refs/`** — reference files Flow ships but rarely loads: `writing.md` (how to write a file that loads into context), `workflow.md` (how the pieces fit), `study-cases.md` (how to record a failure). Symlinked as `~/.claude/flow/refs`
 - **`skills/`** — every skill, one folder each. Symlinked into `~/.claude/skills/`
-- **`agents/`** — subagent definitions, one `.md` file each: a system prompt plus a tool allowlist plus a model. Symlinked into `~/.claude/agents/`. Two of them: `haiku-worker`, named for its model so the folder reads at a glance, and `debug`, which reads the `debug` skill for its method
+- **`agents/`** — subagent definitions, one `.md` file each: a system prompt plus a tool allowlist plus a model. Symlinked into `~/.claude/agents/`. One of them: `haiku-worker`, named for its model so the folder reads at a glance
 - **`commands/`** — `start.md` and `merge.md`. A command earns its place only by running something *before* the model thinks, which is the one thing a skill cannot do: `/start t047` runs `flow start && flow show`, `/merge` runs `fmerge`. Nothing else belongs here, because a skill is typeable as `/<name>` too — that is why `handoff` became a skill
 - **`project-template/`** — `CLAUDE.md` (`## Project` + `## Rules`) and `.gitignore`. Nothing else. One template, copied in as-is; a directory that is not a project deletes `## Project`, which is the section that makes it one
 - **`toolbox/`** — **submodule**, [`Adrian333Dev/toolbox`](https://github.com/Adrian333Dev/toolbox), external tools filed by job. Symlinked as `~/.claude/flow/toolbox`

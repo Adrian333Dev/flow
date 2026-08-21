@@ -14,7 +14,7 @@ The filing pass, and the second half of a pair. Capture writes a finding the mom
 
 - **`docs/inbox.md`** — always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
 - **Closed tickets nobody has filed yet** — `flow ls --unfiled` gives the ids. In each folder read `issues.md` for what the build learned and everything in `reports/` for what was answered. Sweeping several at once is the normal case, not the exception, and the queue holds closed tickets only — nothing here describes work still moving.
-- **The brainstorm worked this session, once it closes** — sweep its `map.md`: promote reusable lessons into skills, move out strays that fell outside its scope. Nothing closed this session, or it is still open? Leave it — never go digging through maps that aren't yours this session.
+- **The groundwork worked this session, once it closes** — sweep its `map.md`: promote reusable lessons into skills, move out strays that fell outside its scope. Nothing closed this session, or it is still open? Leave it — never go digging through maps that aren't yours this session.
 
 ## Method — batch, don't crawl
 
@@ -35,9 +35,9 @@ The judgment calls this pass exists for:
 - **Reusable — a tip, pattern, gotcha or method** → the skill that already covers it, chosen by **altitude** (below).
 - **Reusable, no skill covers it yet** → flag it in `docs/inbox.md` as `needs skill: <subject> — <note>`. Several flags on one subject earn a skill; one flag is not evidence.
 
-Everything else goes to the homes listed under `## Capture` — a ticket, a brainstorm map, `docs/context/`, project rules, preferences, `~/.claude/flow/notes.md`. It reached the inbox because it was raw, not because it was homeless.
+Everything else goes to the homes listed under `## Capture` — a ticket, a groundwork map, `docs/context/`, project rules, preferences, `~/.claude/flow/notes.md`. It reached the inbox because it was raw, not because it was homeless.
 
-**Defer to what exists.** No `docs/spec/`? A locked decision goes to the brainstorm that owns the subject — its `map.md` *is* the decision log. Never invent parallel doc buckets.
+**Defer to what exists.** No `docs/spec/`? A locked decision goes to the groundwork that owns the subject — its `map.md` *is* the decision log. Never invent parallel doc buckets.
 
 Creating a ticket is fair game when an inbox item turns out to be committed work — `flow ticket new`. Work you merely *might* do stays in the inbox; the test is commitment, not size.
 

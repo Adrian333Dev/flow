@@ -360,8 +360,8 @@ flow-with-return-paths to a generator.
 
 ## Open
 
-- **`execute/review-code.md` and `file-findings/write-skills.md` still sit at their skill roots**, which the
-  rule set 2026-08-19 forbids. Both skills are due a full rewrite; the move goes with it.
+- **`file-findings/write-skills.md` still sits at its skill root**, which the rule set 2026-08-19 forbids.
+  That skill is due a full rewrite; the move goes with it. `execute/review-code.md` moved 2026-08-20.
 - **The glyph probe is a markdown file, not a script.** At `wip/research/ascii-glyph-probe.md`, out of the
   gitignored `tmp/`, since it is evidence behind a skill rather than something a skill reads. Turning it into
   `scripts/glyph-probe.js` — characters in, aligned frame out — would make "show it to the user first" an

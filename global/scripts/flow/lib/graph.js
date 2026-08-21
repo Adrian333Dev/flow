@@ -15,14 +15,14 @@ const SATISFYING = new Set(['review', 'done']);
 // pair: a ticket that is built and being checked has already used its deps, so
 // rewriting them would rewrite history rather than rescue anything. `parked`
 // is in, because `flow start` brings it back.
-const LIVE = new Set(['todo', 'thinking', 'building', 'parked']);
+const LIVE = new Set(['todo', 'groundwork', 'planning', 'building', 'parked']);
 const TERMINAL = new Set(['done', 'dropped']);
 
 // Children that still owe work. A parent is only closable when this is empty.
-const OPEN = new Set(['todo', 'thinking', 'building', 'review', 'parked']);
+const OPEN = new Set(['todo', 'groundwork', 'planning', 'building', 'review', 'parked']);
 
 // Picked up and not finished. `flow next` leads with these.
-const IN_FLIGHT = new Set(['thinking', 'building', 'review']);
+const IN_FLIGHT = new Set(['groundwork', 'planning', 'building', 'review']);
 
 // `normal` sits between the two deliberate answers, and is what an absent field
 // means — so a ticket nobody has judged never outranks one judged low.
@@ -31,7 +31,9 @@ const PRIORITY_RANK = { high: 0, normal: 1, low: 2 };
 // Unfinished first, then what could start, then what was set aside, then
 // history. `ls` is the only view holding every status at once, so the order
 // lives here rather than being implied by the status list's declaration order.
-const STATUS_RANK = { thinking: 0, building: 1, review: 2, todo: 3, parked: 4, done: 5, dropped: 6 };
+const STATUS_RANK = {
+  groundwork: 0, planning: 1, building: 2, review: 3, todo: 4, parked: 5, done: 6, dropped: 7,
+};
 
 const indexById = (tickets) => new Map(tickets.map((t) => [t.id, t]));
 
@@ -119,12 +121,12 @@ const rankByStatus = (list, pool) => {
 };
 
 /**
- * Ready tickets cut out of work that is still open — the child a brainstorm
+ * Ready tickets cut out of work that is still open — the child a groundwork session
  * split off so it could keep going, picked up in a later session.
  *
  * Membership carries the whole signal, so order inside the band stays
  * oldest-first like everywhere else. Recency was the obvious alternative and it
- * is wrong: a brainstorm that decomposes cuts three children at once, and those
+ * is wrong: a subject that decomposes cuts three children at once, and those
  * get worked in the order they were cut.
  */
 function continuingTickets(tickets) {

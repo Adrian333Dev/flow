@@ -3,15 +3,19 @@ description: Open a session, or pick up a ticket
 argument-hint: [ticket-id]
 ---
 
-!`flow start $ARGUMENTS`
+!`flow start $ARGUMENTS || true`
 
-**A ticket is above and now in `thinking`** — route on its `type:` line, and read nothing else first:
+**`flow` refused, or printed nothing** → say why and stop. It refuses what would break the ticket graph.
 
-- `feature` or `chore` → invoke `/execute`, Phase 1
-- `issue` → invoke `/debug`
-- `research` → invoke `/brainstorm`
-- `prototype` → invoke `/prototype`
+**No ticket named** — the session opener is above and nothing has moved. Recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
 
-`flow` refused instead → say why and stop. It refuses what would break the ticket graph.
+**A ticket is above.** Route on its `type:` and `status:` lines, read nothing else first, then invoke:
 
-**No ticket named, so the session opener is above and nothing has moved.** Recommend one ticket and say what decides it: work already in flight comes before work cut out of it, and both come before anything new, whatever its priority. Then wait — the user picks, and `flow start <id>` routes as above.
+- `issue` → `/debug`
+- `prototype` → `/prototype`
+- `topic` → `/groundwork`
+- `feature`, `chore` → `/groundwork` at `groundwork`; `/execute` at `planning`, `building` or `review`
+
+**A ticket cut from a spec arrives decided.** Its body already carries what to build and the decisions behind it, so run `flow plan <id>` and hand it to `/execute`. **Open *decisions* are what send a ticket to `/groundwork`**, never code left to read.
+
+Route, and stop there. Whether this ticket splits, and whether it is worth building at all, are answers a map produces — `/groundwork` owns both.

@@ -1,4 +1,4 @@
-Flow — an agentic development workflow for a solo developer. Work runs brainstorm → tickets → plan → build, one skill per step; the rules below hold across all of them.
+Flow — an agentic development workflow for a solo developer. Work runs groundwork → tickets → plan → build, one skill per step; the rules below hold across all of them.
 
 ## Hard rules
 
@@ -73,16 +73,17 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 
 **`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand. Run bare, it prints its whole surface.
 
-- Daily loop: `flow next` (what is in flight, then todos with every dependency satisfied, highest priority first, capped at 10) · `start` · `build` · `review` · `done` · `park <id> "reason"`.
+- Daily loop: `flow next` (what is in flight, then todos with every dependency satisfied, highest priority first, capped at 10) · `start` · `groundwork` · `plan` · `build` · `review` · `done` · `park <id> "reason"`.
+- **`flow start <id>` picks a ticket up at the first status its type uses** — `groundwork` for a `feature`, `chore` or `topic`; `building` for an `issue` or `prototype`, neither of which has questions to settle first.
 - **Bare `flow start` opens a session and writes nothing** — what closed last and what it reported, what is in flight, what was cut out of it, then what could start. It is the view for not knowing what is next; naming a ticket is what picks one up. **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked.
 - Reading: `flow tree` for the whole shape nested by parent · `flow ls [status] [--type T] [--parent <id>] [--unfiled]` · `show <id>`, with children · `status` · `check` for cycles, dangling ids, dropped blockers, closed parents. Plan steps are never counted — open `plan.md` for those; a parent counts its finished children.
-- `flow ticket new "Title" [--type feature] [--priority high] [--parent t047] [--deps t045,t046] [--body -] [--from-brainstorm <path>]` — `--body -` takes the body on stdin: create and fill in one command, never create then edit. `--from-brainstorm` moves a loose brainstorm folder in as the new ticket's `brainstorm/`, leaving nothing behind. Also `ticket drop <id> "reason" [--by <id>|--force]`, `ticket dep`, `ticket edit`, `ticket filed <id>…`.
+- `flow ticket new "Title" [--type feature] [--priority high] [--parent t047] [--deps t045,t046] [--body -] [--from-groundwork <path>]` — `--body -` takes the body on stdin: create and fill in one command, never create then edit. `--from-groundwork` moves a loose groundwork folder in as the new ticket's `groundwork/`, leaving nothing behind. Also `ticket drop <id> "reason" [--by <id>|--force]`, `ticket dep`, `ticket edit`, `ticket filed <id>…`.
 - `t047`, `t47` and `47` are the same ticket. Reference by id, never by path.
 - **Priority is `high` or `low`, and only when the user asks for one.** No line on disk means normal; a ticket with none inherits the nearest ancestor's. Never stamp one at creation — a field set every time stops meaning anything.
 - **`closed` is stamped by `flow done` and `flow ticket drop`**, and cleared by any move back to a live status. It carries a clock time because ordering finished work is its only job, and nothing else can do it: `filed` lands days later, ids are creation order, and a file's timestamp is rewritten by things that are not work.
 - **A ticket's answers go in `reports/`**, one file per thing answered, named after what it answers — a hunt's cause, a prototype's measurement. Written by the skill that ran, never by `flow`.
 - **A closed ticket is filed once its knowledge has been harvested** — `flow ticket filed t047 t048`, written by `file-findings` and by nothing else. `status: done` says the work finished; `filed` says the lessons were taken out of it. `flow ls --unfiled` is that skill's queue and `flow status` counts it.
-- Refuses what breaks the graph and says why — `start` and `done` both on a parent with open children, `start` on an unsatisfied dependency, `drop` with live dependents. A parent returns to `flow next` once its last child closes, for whatever work no child held. `--force` is deliberate override, not an escape from a mistake.
+- Refuses what breaks the graph and says why — `start`, `plan` and `done` on a parent with open children, `start` on an unsatisfied dependency, `drop` with live dependents. A parent returns to `flow next` once its last child closes, for whatever work no child held. `--force` is deliberate override, not an escape from a mistake.
 
 ## Judgment
 
@@ -119,6 +120,8 @@ Governs every answer — status reports and one-line questions included, not jus
 - **Report what changed.** Every file touched, and what changed in it.
 - **Outline before typing.** Never discover the structure on the way.
 - **No preamble.** Content starts at sentence one.
+- **Cut every sentence that carries no information.** Sessions run for hours and every answer is read in full. Restating the question, praising it, framing what comes next, and summarizing what was just said are all cuts.
+- **Never narrate being wrong.** No "you're right", no "I was wrong", no apology, no account of the position you just dropped. State the corrected version and move on. Where an earlier claim changed something the user is acting on, one plain sentence says what is now true — never how you got there.
 - **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
 - **Write locked decisions, batched** — user-confirmed with no open threads, not mid-discussion agreement.
 - **Reason before agreeing.** Test a proposal, objection or correction. Disagree out loud, once, with the argument. Repetition isn't evidence. Then the user decides.

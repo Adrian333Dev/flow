@@ -79,15 +79,15 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 **The research itself** — one file per question, the prompt or question at the top and the findings below it in the same file. Same shape whether an external LLM, a subagent or you answered it.
 
-`docs/research/<question>.md` — **flat, and shared by the whole project.** Never inside a ticket or a brainstorm folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds.
+`docs/research/<question>.md` — **flat, and shared by the whole project.** Never inside a ticket or a groundwork folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds.
 
-**A question never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent. `flow`'s `research` type is for a *subject* nobody has decided yet — a pricing model, a marketing approach — and that opens a brainstorm, not this skill.
+**A question never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent.
 
 Level 1 answers inline, no file. Level 2 and up always writes one.
 
 **Distilled conclusions** land where the work lives, with source URLs and dates:
 
-- brainstorm running → the branch it belongs to in `map.md`, with a pointer to the full report
+- groundwork running → the branch it belongs to in `map.md`, with a pointer to the full report
 - spec or `plan.md` being written → straight into the relevant section, pointer included
 - a durable fact rather than a finding — a verified command, a settled convention → `docs/context/<subject>.md`
 

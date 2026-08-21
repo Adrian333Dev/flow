@@ -9,13 +9,13 @@ Code written to answer one named question, then deleted.
 
 **Naive on purpose.** No tests, no error handling, no abstractions. The real build reads the prototype as a reference and starts again — nothing written here is ever promoted.
 
-**Two sessions.** A brainstorm that hits a question talking cannot settle cuts a child ticket typed `prototype`, carrying the question, and waits. A fresh session picks that ticket up and builds. **Never do both in one session** — the session that invented the question will accept a vague one, because it already knows what it meant.
+**Two sessions.** Groundwork that hits a question talking cannot settle cuts a child ticket typed `prototype`, carrying the question, and waits. A fresh session picks that ticket up and builds. **Never do both in one session** — the session that invented the question will accept a vague one, because it already knows what it meant.
 
 **Talking failed and reading failed — that is the entry condition.** A page of documentation costs less than code, so where reading would settle the question, reading settles it and nothing gets built.
 
 ## What the ticket must carry
 
-The brainstorm writes these into the ticket body. The building session checks they arrived, and stops if they did not. Handed over without a ticket, it is the same three wherever the handoff put them.
+Groundwork writes these into the ticket body. The building session checks they arrived, and stops if they did not. Handed over without a ticket, it is the same three wherever the handoff put them.
 
 - **The question, in one sentence.** Three at most — past three it is a project.
 - **Pass and fail**, for a question that can come out false. What each answer means, and what each one changes. Skip a question whose two answers lead to the same decision.
@@ -24,6 +24,12 @@ The brainstorm writes these into the ticket body. The building session checks th
 The `handoff` skill covers everything else a picked-up job needs — what turns on the answer, what is already set up, what was found, what to say back. Never restate any of that here.
 
 **Missing pass and fail → stop and ask.** Criteria written after the run match whatever came out.
+
+### When the approach is not obvious
+
+Confirm it in one message before standing anything up: what gets built, which library and version, the fallback route if the machinery will not run, and how many variants a judged question needs. Then build.
+
+Nothing here reaches disk — the report is the deliverable, and the ticket stays in `building` throughout. Interrupted mid-round, `## State` in `ticket.md` carries what was agreed.
 
 ### When the question is about appearance
 
@@ -52,7 +58,7 @@ Build nothing that serves a second purpose. Cut tests, error handling past runna
 - **Measured** → top-line answers first, in the words the question used. Give the numbers. A verdict alone rots: "timestamps are fine" means nothing in six months, "ratio 0.83 to 1.01, no desync" still does. Keep the raw output beside it and cite the code by its `protos/` path.
 - **Judged** → show the variants. Attach no recommendation until the user has looked.
 
-Then say the answers out loud, in the words the question asked for, and stop there. The brainstorm reads the report and closes its own branch.
+Then say the answers out loud, in the words the question asked for, and stop there. `flow review <id>` hands it over, and `flow done <id>` closes it once the user accepts the answer. Groundwork reads the report and closes its own branch.
 
 ## Where it lives
 
@@ -66,7 +72,7 @@ Give each unknown its own prototype. One prototype for a whole system answers no
 
 A generated-video pipeline has a script step, an image step, a voice step and an assembly step. Each unknown gets its own. Wiring those prototypes together into something that runs end to end is fine, and often the point — it stays a set of naive parts, and the real version gets written afterwards from the spec.
 
-**Spans more than one session → split it.** A prototype needing a plan is a ticket.
+**Spans more than one session → split it.**
 
 ## Hard rules
 
@@ -77,4 +83,4 @@ A generated-video pipeline has a script step, an image step, a voice step and an
 - **Lock the layout in `visualize` first.** A running prototype never settles layout.
 - **Never promote prototype code.** The real build reads it, then starts again.
 - **The report is the deliverable**, never the code.
-- **Never write to `map.md`.** The brainstorm closes its own branch.
+- **Never write to `map.md`.** Groundwork closes its own branch.

@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: ALWAYS invoke when context fills, when a stretch of work closes, or when a job needs its own session — a brainstorm resolved, a ticket half-built, a prototype to run, a failure to debug in parallel. Also before compacting, and when untracked work turns out to be worth a ticket. Writes the state a session that was not here needs: written out, never a reading list. Inside a ticket it writes into the ticket itself.
+description: ALWAYS invoke when context fills, when a stretch of work closes, or when a job needs its own session — groundwork resolved, a ticket half-built, a prototype to run, a failure to debug in parallel. Also before compacting, and when untracked work turns out to be worth a ticket. Writes the state a session that was not here needs: written out, never a reading list. Inside a ticket it writes into the ticket itself.
 ---
 
 # Handoff
@@ -31,7 +31,7 @@ Nothing here runs by default. Pick what the next session will trip over.
 - **Mid-build** → name the files this session changed, and what changed in each. Nothing hurts more than a fresh session editing on top of changes it never saw. `git status --short` gets you that in a repo committed regularly; on a tree nobody has committed for weeks it returns everything and separates nothing.
 - **Inside a ticket system** → `flow status`, for what is in flight.
 - **Handing a job over** → whatever waits for the receiving session: a server already listening, a half-finished install, a folder that is read-only.
-- **A brainstorm, or a prototype question** → nothing. A question about how a library behaves gains nothing from the working tree.
+- **Groundwork, or a prototype question** → nothing. A question about how a library behaves gains nothing from the working tree.
 
 ## 3. Write it
 
@@ -42,7 +42,7 @@ Nothing here runs by default. Pick what the next session will trip over.
 Short by construction. Four other files already carry most of it, and none of it gets restated here:
 
 - **`plan.md`** holds the steps and which ones landed.
-- **`brainstorm/map.md`** holds every decision and its reasoning.
+- **`groundwork/map.md`** holds every decision and its reasoning.
 - **The ticket body** holds why the work exists; `## Done when` holds what finishes it.
 - **`docs/research/<question>.md`** holds the findings.
 
@@ -53,7 +53,7 @@ What is left is what nobody wrote down, under four labels:
 - **Open** — decisions half-made, threads nobody closed, the option you were leaning toward and why. A half-made decision dies in a reset exactly like a locked one.
 - **Touched** — files this session changed that no step in `plan.md` names.
 
-**How many fill depends entirely on the work, and most of the time it is two.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. A brainstorm fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all four and runs long**, because `debug` writes nothing durable while it hunts.
+**How many fill depends entirely on the work, and most of the time it is two.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. Groundwork fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all four and runs long**, because `debug` writes nothing durable while it hunts.
 
 A fat state section on a build ticket means the plan carries too little.
 
@@ -102,7 +102,7 @@ Durable knowledge goes to its own home the moment it surfaces — Capture in the
 
 **Delete the section at `flow review`.** "Step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
 
-**In a file** — `handoff.md` beside the most specific thing being worked: the brainstorm's own folder, or the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
+**In a file** — `handoff.md` beside the most specific thing being worked: the groundwork's own folder, or the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
 
 ## Booting from one
 

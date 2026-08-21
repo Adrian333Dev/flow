@@ -2,6 +2,22 @@
 
 Read at Phase 4, on a ticket that produced code. A ticket that produced a document or a decision skips this file.
 
+## Against what this ticket was pointed at
+
+**`## References` in `ticket.md` names what this work had to respect** — a convention, an integration's shape, a library's constraints. Check the diff against each line. No section → straight to the baseline below.
+
+It runs first because everything below it reads the same way on any codebase, and this is the only check that can catch a mistake specific to this project.
+
+**A convention nobody referenced was never in scope.** Review the ticket, never the project.
+
+## Correctness
+
+**Read the tests first.** They say what the author thought the code should do, and the rest of the diff reads faster after them.
+
+- **The error path** — what happens when the call fails, the file is missing, the response comes back malformed.
+- **Empty, one, and the boundary** — an empty list, a single item, the first and last index, zero, a null where one is possible.
+- **Whether the test asserts the right thing.** A test that passes while checking the wrong value is worse than no test, and nothing but a review catches it.
+
 ## The smell baseline
 
 Twelve shapes worth naming, each as what it is and what to do about it. Match them against what the ticket changed, never against the whole file.
@@ -21,7 +37,7 @@ Twelve shapes worth naming, each as what it is and what to do about it. Match th
 
 Two rules bind the list:
 
-- **The project overrides.** A convention written down in `docs/context/` or in `CLAUDE.md` wins. Where it endorses what the baseline would flag, drop the flag.
+- **The project overrides.** A convention named in `## References` or in `CLAUDE.md` wins. Where it endorses what the baseline would flag, drop the flag.
 - **Every one is a judgement call.** Report "possible feature envy", never a violation. Skip anything a linter already catches.
 
 ## Two conditional checks
@@ -40,6 +56,6 @@ Two levels, and no more:
 - **Fix before `flow done`** — it is wrong, it is unsafe, or it does not do what the ticket asked.
 - **Noted** — everything else. It gets said once and left alone.
 
-**One structural problem and ten nits means the structural problem is the review.** Lead with it. A real finding buried under formatting notes reads as a list of formatting notes.
+**Uncertain → say what would settle it.** A finding you cannot prove names the command, the file or the question that would.
 
 Say what is genuinely good, and say it specifically. A review that only lists faults gets discounted whole.

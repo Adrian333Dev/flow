@@ -1,10 +1,10 @@
 # Threads — opened one at a time
 
-Three discussion threads, opened by the user 2026-08-08. Each is written to be re-opened **cold**, months
+Discussion threads, added as the user raises them. Each is written to be re-opened **cold**, months
 later, by an agent that has read nothing else. Nothing here is decided; nothing here is a build item until it
 produces one.
 
-**Refer to a thread by its name, never by a number.** The three names:
+**Refer to a thread by its name, never by a number.** The names:
 
 | Thread | One line | State |
 |---|---|---|
@@ -15,9 +15,12 @@ produces one.
 | **assignments** | a dispatched job may not need a handoff document at all — a child ticket may already be one | raised 2026-08-15, to discuss |
 | **install** | `setup-flow-globals` and `migrate-to-flow` collapse into one skill covering every starting state | raised 2026-08-15, to discuss |
 | **ascii-engine** | hand it JSON, get back the drawing — full write-up in `design-ascii-engine.md` | raised 2026-08-19, to brainstorm in its own session |
+| **pickup** | `/start` owns pickup, `execute` owns plan → build → review; the skill is `groundwork`, the type is `topic` — full write-up in `design-pickup.md` | **built 2026-08-20**, `execute`'s rewrite still owed |
+| **execute-cost** | the build loop reads expensive — the plan passes, mid-build debugging, the review passes | **built 2026-08-20** — all six parts; `execute` and `debug` rewritten, `agents/debug.md` deleted |
+| **command-surface** | `flow`'s arguments, several ids at once, and one command that runs any shell | raised 2026-08-20, to discuss |
 
-`remaining.md` → `## Design threads still open` holds the older parked list. This file holds these three,
-which are bigger and one of which may reshape the workflow. When a thread closes, its outcome moves into
+`remaining.md` → `## Design threads still open` holds the older parked list. This file holds the ones
+above, which are bigger and some of which may reshape the workflow. When a thread closes, its outcome moves into
 `remaining.md` and the entry here is deleted.
 
 **Why extension-points is active first,** reversing the recommendation given earlier the same day: the user
@@ -29,6 +32,12 @@ do-the-work-twice risk as the parked topic decision.
 ---
 
 ## extension-points — skills vs. commands vs. agents
+
+**Premise changed, 2026-08-20.** Claude Code merged custom commands into skills: a file at
+`commands/x.md` and a skill at `skills/x/SKILL.md` both create `/x` and behave the same, and a skill body
+can run `` !`cmd` `` before the model reads it. The test this whole thread used to sort them — a command
+runs something first, a skill cannot — no longer separates anything. Everything below was decided against
+the old test. See `design-pickup.md`.
 
 **Recorded 2026-08-07 as parked. Un-parked by the user 2026-08-08. Active.**
 Supersedes the one-line entry in `remaining.md` → `## Design threads still open`.
@@ -313,10 +322,11 @@ subagents, and never let a ref repo's `CLAUDE.md` be mistaken for a rule that go
 ## subagent-mechanics — what a parent can do to a subagent it dispatched
 
 **Parked by the user 2026-08-14, deliberately.** Four questions raised while designing `execute`'s dispatch,
-none of them blocking it. Written down so they are not rediscovered from scratch. **No subagent has ever run
-on this machine**, so nothing here is confirmed by observation. Everything below comes from the official hooks
-reference the user downloaded to `wip/research/claude-code-docs/hooks.md`, which is authoritative and answers
-more than the tool surfaces did.
+none of them blocking it. Written down so they are not rediscovered from scratch.
+
+**Corrected 2026-08-20.** An earlier line here said no subagent had ever run on this machine. The user has run
+both kinds. Everything below comes from the official docs the user downloaded to
+`wip/research/claude-code-docs/` — `hooks.md`, `sub-agents.md` and `agent-view.md`.
 
 - **Pre-loading the prompt — possible, and the mechanism exists.** The user wants a dispatch to carry command
   output the subagent would otherwise fetch itself. A **`SubagentStart`** hook returns
@@ -331,11 +341,44 @@ more than the tool surfaces did.
   beside the session's. A `SubagentStop` hook is handed the path as `agent_transcript_path`, along with
   `last_assistant_message`, the final response as text, so a hook never has to parse the file to read the
   answer. In-session the parent still sees only the returned report.
-- **The two kinds, and which Flow should use.** The user reports two shapes: one nested and opaque, visible
-  only as something running, and one that appears in the session and can be switched to, watched and talked to.
-  Background dispatch is what makes an agent addressable, so **the interactive kind is the background one**.
-  The user wants that kind always. It does not conflict with the parent waiting: the flag decides whether the
-  agent can be reached, the parent's own instruction decides whether it proceeds meanwhile.
+### The shapes, settled from the docs 2026-08-20
+
+Three mechanisms, not two modes of one thing. All three can be talked to, with one exception noted below.
+
+- **A subagent** — the `Agent` tool, and it has two modes. **Foreground** blocks the parent, looks like an
+  ordinary tool call, and cannot be typed to. **Background** puts a named row in the panel above the prompt:
+  `Enter` opens its transcript, *"follow-up messages and skills go to that agent"*, `x` stops it, and the
+  parent keeps working. Neither is ever a row in `claude agents`, and both die with the session.
+  - **The mode is not a preference.** Fork mode is on by default in an interactive session, and under it every
+    subagent runs in the background and the parameter asking for the foreground is removed. Foreground appears
+    in headless runs, the SDK, or under `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`. **`background: true` in an
+    agent's frontmatter pins it** wherever it runs.
+  - **Background costs a tool set.** A background subagent keeps only `Read, Grep, Glob, Bash, PowerShell,
+    Edit, Write, NotebookEdit, WebFetch, WebSearch, TodoWrite, Skill, ToolSearch, EnterWorktree, ExitWorktree,
+    Monitor, TaskStop, SendMessage, Artifact`, and everything else is stripped **even when the agent file asks
+    for it**. Flow's two agents ask for nothing outside that list. Forks skip the filter.
+  - **It cannot ask.** `AskUserQuestion` is removed from every subagent, so ending a turn is how it returns.
+    The user barges in; the agent never prompts.
+- **A background session** — `claude --bg`, `/background`, or a prompt typed into agent view. Its own row in
+  `claude agents`, `Space` to peek and reply, `Enter` to attach, and it outlives the parent because a
+  supervisor process runs it.
+- **A fork** — `/subtask`, or the `fork` subagent type. A subagent that **inherits the whole conversation**
+  instead of starting cold: same system prompt, tools, model and history, its own tool calls kept out of the
+  parent's window, only the result returned. **It cannot be given an agent definition** — no separate rules,
+  tools or model, because it inherited the parent's.
+  - **The cache saving is one request, corrected 2026-08-20.** `prompt-caching.md`: a fork's first request
+    reads the parent's cache, and after that it warms its own. A cache read still bills at roughly 10% of the
+    input rate, and a fork of a long session carries that whole conversation into every turn it takes. The
+    cache is also scoped per directory, worktrees included, so worktree isolation costs a full cold read.
+
+**`run_in_background` is not a parameter to pass.** Fork mode is on by default in an interactive session, and
+under it Claude Code *"runs the subagents Claude spawns in the background, forks and named subagents alike"*
+and *"removes the Agent tool's `run_in_background` parameter, so Claude can't ask for the foreground."* A
+background subagent's result arrives as a completion notification in a later turn, it runs with a smaller
+built-in tool set, and its permission prompts surface in the parent session.
+
+**Limits:** 20 subagents running at once, nesting three layers deep, both configurable. A finished subagent is
+resumable with `SendMessage`, keeping its full history.
 
 ### Running several subagents at once
 
@@ -444,3 +487,235 @@ nothing is restated here.
 **The user has read that file and mostly disagrees with its recommendation**, and intends a different
 direction they have not stated yet. Ask for it before arguing anything in there. What they have said twice:
 JSON goes in, and the engine does the whole rendering.
+
+---
+
+## execute-cost — the build loop costs too much
+
+**Raised by the user 2026-08-20, one message, six parts. Nothing here is decided.** It blocks `execute`'s
+owed rewrite, so it opens before that rewrite is attempted again.
+
+The user's summary: *"we should possibly try to make the execution phase as cheap as possible without causing
+any trouble. And right now… it feels like something very expensive."* They twice said their reading is not the
+source of truth and asked to be argued with.
+
+**The finding that matters: two of the six describe behaviour `execute` never instructs.** The file already
+says to read the code before planning, and already says the plan costs three writes. The user read it and came
+away believing the opposite of both. Whatever the rewrite decides, the current wording failed at the one job a
+skill file has.
+
+### 1. The plan gets written without reading the code
+
+The user's fear: the agent is told to read context files and not the files it will change, so a wrong plan
+survives until the build runs into it, and something important gets missed.
+
+**The instruction exists.** Phase 2 Pass 1 opens `docs/context/` first, then *"read the code this ticket
+changes, and write it down before anything else: the signatures, the seam the change goes through, what
+surprised you"*, and the file calls that the load-bearing half. Two things to settle anyway:
+
+- **Why it did not read that way.** `docs/context/` gets the bold sentence, the code gets a subordinate
+  clause, and the heading over both — *what is there now* — names neither.
+- **Whether an instruction is enough.** `remaining.md` 2e carries the same complaint from an earlier
+  generation: *"nothing forces the 'examine current state first' pass, and it is the load-bearing half of the
+  plan."* **extension-points** proposed `codebase-explorer` for exactly this, on the argument that a pass
+  which is a dispatch cannot be skipped the way a paragraph of instructions can.
+
+**Decided 2026-08-20 on the first, and the user agreed the instruction was already there.** The heading is now
+`### Pass 1 — read the code`, the read is the pass's first sentence and carries the bold, and the reason moved
+to the bottom. **The second is still open** and belongs to **extension-points**, not here.
+
+### 2. Write the plan in chunks, not in micro-edits
+
+**What the user meant by incremental**, given because the first rewrite took it too far: superpowers writes a
+2000-line plan in one shot, and the alternative they had in mind was five to eight chunks. Never two hundred
+small edits. They also noted Flow's tickets are smaller than that workflow's, so the problem is milder here.
+
+**Phase 2 already costs three writes**, one per pass. The churn they are describing is real, and it is in
+**Phase 3** — per step it writes the step's detail, runs the check, ticks the box, and updates `## State`.
+Three or four edits each, on a file rewritten in place.
+
+**Decided 2026-08-20: the count stays, and the sentence describing it was the actual defect.** Phase 2 costs
+two writes, not three — Pass 3 ends at the user's approval and writes nothing, while the file claimed *"three
+passes, each ending at a write"*. Phase 3 costs two per step, so a six-step ticket writes `plan.md` 14 times,
+nowhere near the 200 the user pictured. The detail write and the tick stay separate because the check runs
+between them, and merging them would cost the resume point an interrupted build depends on.
+
+### 3. An issue hit mid-build should not become a ticket
+
+The user's model: dispatch a debug agent then and there, the way a step dispatches a worker, hand it what it
+needs, let the user talk to it while it runs, take its report. A ticket gets created only when the fix turns
+out not to be quick — and then it belongs to a fresh session, not to this one. They also want more than one
+fix attempt before escalating, scaled to how obvious the failure is: a bundler config or a version pin is
+mechanical and worth several tries, a subtle failure is not.
+
+**Two of those three premises are already Flow's position, which means the files failed to say so.**
+
+- **The one-attempt rule is `execute`'s, not `debug`'s** — *"A step you ran yourself and could not verify gets
+  one inline fix attempt, then `/debug`."*
+- **`/debug` is not a dispatch.** Its first line under `## Dispatching the hunt` is *"Debug here by default"* —
+  same session, no ticket, no agent. It dispatches only where the hunt is long and its context disposable:
+  fifty reproductions, a bisect, a large log. The escalation being objected to costs one file read.
+- **Where `debug` does dispatch, it refuses the `Agent` tool on purpose:** *"A background session, never the
+  `Agent` tool. `Agent()` blocks or detaches and returns one report either way, and neither can be answered
+  mid-hunt. This hunt asks questions."* The brief is a child ticket, because a ticket carries a status and the
+  parent's `flow done` refuses to close around it, which no file does.
+
+**That last one is factually wrong, checked against the docs 2026-08-20.** A running subagent appears in the
+panel below the prompt, and opening its transcript sends it follow-up messages. **subagent-mechanics** above
+now carries the three shapes and what separates them. So the user's model is buildable as stated, and a
+**fork** is the shape that fits it — it inherits the conversation, so the hunt starts knowing what the build
+knows, and the cold-start cost that argued against dispatching mid-build does not apply to it.
+
+**`execute` never names the debug agent.** It hardcodes `haiku-worker` for a step and writes `/debug` for a
+failure — the skill, which by default hunts in this session. `agents/debug.md` exists and is written for the
+background-session dispatch: *"You are a background session, not a silent subagent."* So Flow has both
+dispatch shapes and no in-session debug agent at all. That is the gap.
+
+### Decided and built 2026-08-20
+
+- **Escalation is a ladder of three**, and what decides each rung is the failure, never a count. Fix it inline
+  while every attempt stays mechanical — a version pin, a config key, a wrong path. Stop after one where the
+  code runs and the answer is wrong. Then `/debug`, which hunts in this session by default.
+- **The in-session dispatch is a named subagent, never a fork.** The deciding argument is not cost: **a fork
+  cannot be given `agents/debug.md`**, because it inherits the parent's instructions, tools and model. Its
+  bound, its tool list, its model and its report format would all vanish, leaving the build agent hunting with
+  the whole build conversation in front of it — the fixation the hunt exists to escape.
+- **A ticket is what a subagent's failure becomes**, plus work that is plainly separable. Starting that
+  session immediately is optional; a fresh session tomorrow picks up the same ticket.
+- **`agents/debug.md` stays one file.** Only two lines assumed a background session, and they became a
+  `## How you are reached` section covering both. It also gained `background: true`, which pins the
+  addressable mode wherever it runs.
+- **The build never works while a hunt runs.** One copy of the files sits on disk and both write to it, so the
+  last save wins silently; and the snapshot hook's diff would carry both agents' work with no way to separate
+  them. The user is not blocked — they can open the agent and type to it.
+
+### Reversed the same day — there is no subagent hunt
+
+Two of the bullets above lasted hours. The user asked whether a dispatched hunt can genuinely work *with*
+them, and the answer collapsed the shape.
+
+- **A subagent cannot ask.** `AskUserQuestion` is on the list of tools stripped from every subagent, "even
+  when listed in the `tools` field". Nothing enables it, so there was nothing to isolate either.
+- **A message to the parent does not arrive until the user types.** The docs: *"A background subagent's
+  results reach Claude as a completion notification in a later turn."* The main agent acts in turns, and an
+  idle session has no turn for a message to land in. So the `SendMessage`-to-`main` route — background
+  subagents do keep `SendMessage`, and the sibling roster does list `main` — reaches the user no faster than
+  the panel they already have. Proposed and withdrawn.
+- **The subagent bought no parallel progress.** The bullet above already forbids the build working while a
+  hunt runs. What was left was an automatic handoff, paid for with a second dispatch shape carrying its own
+  brief, report path, and edit-collision rules.
+- **So `debug` has one exit, not two:** hunt here, and where the fix needs a decision nobody gave or the
+  hypotheses ran out, write a child ticket and hand it back. The user opens it in a fresh session, which talks
+  to them directly and needs no agent file.
+- **`agents/debug.md` is deleted.** Its three report statuses — `FIXED`, `FOUND_NOT_FIXED`, `UNPROVEN` — moved
+  into the skill's report paragraph, where they make a report scannable a week later. Everything else in it
+  was either covered by the skill or specific to the dispatch that went. `agents/` now holds `haiku-worker`
+  alone, which `execute` still dispatches for a wide mechanical step.
+- **The long-hunt case did not save the subagent.** Fifty reproductions is a `for` loop around the red
+  command, which the skill already prescribes and which costs the session a summary, not a window.
+
+### 4. Phase 3 and Phase 4 are not compressed
+
+The user on Phase 3: no compression applied, messy, unclearly structured, too much detail, not a concise flow.
+On Phase 4: too detailed given `refs/review-code.md` already exists.
+
+**Built 2026-08-20** with the rewrite. What-goes-where — `## State`, `issues.md`, `map.md`, a new ticket —
+was stated in three places across Phases 3 and 4 and the folder list; it is now one `→` list in Phase 3 for
+the routing and one line per file in `## The ticket folder` for the ownership. 2757 words to 2144.
+
+### 5. Too many review passes
+
+The user expects roughly one pass over the plan and one over the implementation.
+
+Today: the user approves the plan, every step runs its own check, the full suite runs at Phase 4, the work is
+read against the plan, then read again against the code through `refs/review-code.md`, then the user approves
+the work, and feedback reopens the build.
+
+The two user gates are the loop's whole shape and stay.
+
+**Decided 2026-08-20: the split stays, and the file now says the two passes read one diff.** The
+one-hides-the-other argument held — collapsing them means asking both questions during a single read, which
+answers the code question and assumes the plan one. The cost impression came from the file never saying the
+diff is read once, which was one sentence.
+
+### 6. The whole plan at once, against step by step
+
+The user's own doubt, raised with the caveat that they may be wrong: writing the whole plan and then
+implementing everything might simply cost less than this.
+
+**The agent's position, not a decision.** The step loop is not where the money goes. Reading the code costs the
+same either way, and a plan composed whole loses the resume point the three passes bought — a context that
+fills mid-plan takes everything unwritten with it. The measured expensive thing in this repo is the cold start:
+`study-cases/handy-workspaces/`, 1.1M tokens and 90 minutes for 15 minutes of work, root-caused to per-task
+subagents that each began from nothing.
+
+**Decided 2026-08-20, and the user agreed the diagnosis was the point.** The expense was never planning per
+step — it was **stopping** per step, since six steps meant six reports to read. Phase 3 now says build
+straight through: finish a step, run its check, mark it, start the next, with no report between. It stops for
+a failed check, a decision only the user can make, or a dispatch in flight. Same plan, same checks, one
+report. The write count was never the problem either: two writes in Phase 2 and two per step in Phase 3 is 14
+writes on a six-step ticket, not the 200 the user pictured.
+
+### Found while checking the docs — `execute`'s dispatch cannot do what it says
+
+Not raised by the user. `execute` dispatches a step with `Agent(subagent_type="haiku-worker",
+run_in_background=False, …)` and then instructs *"dispatch one worker, in the foreground, and wait"* and
+*"start nothing while it runs"*. **Fork mode removes that parameter**, so the worker runs in the background
+whatever is passed, and its result arrives as a completion notification in a later turn.
+
+That matters past the wrong argument: the one-worker-at-a-time rule exists because the snapshot hook records
+the whole working tree either side of a dispatch and cannot tell two writers apart. A protocol that assumed a
+blocking call has to be rewritten against a mechanism that never blocks.
+
+---
+
+## command-surface — what the user types
+
+**Raised by the user 2026-08-20. Nothing here is decided.** Two halves, and the second builds without the
+first.
+
+### `flow` has a verb per status
+
+The complaint: too many parameters, and most of them are just status names. Seven of `flow`'s fifteen
+top-level commands move a status — `start`, `groundwork`, `plan`, `build`, `review`, `done`, `park` — so
+adding a status means editing the script. The user wants fewer arguments and a shape flexible enough that a
+new status costs no code, and said the same applies past tickets to the rest of the surface.
+
+Their sketch, offered as an illustration and not a proposal:
+
+```
+flow tickets|-t|--t edit <ticket_id> status|-s=<new_status>
+```
+
+- **The vocabulary is already data.** `TICKET_STATUSES` in `lib/store.js` is one array. What is not data: the
+  `case` in the dispatch, the sort rank in `graph.js`, and the four sets there — live, open, in-flight,
+  satisfying. **A new status still has to say where it sorts and which of those it joins**, and no argument
+  design removes that. Any "no code change" claim has to cover it.
+- **Seven verbs buy `flow build t047`.** The generic form spends twenty more characters on the move every
+  skill file writes and the user types daily. Whether that is a cost or the point is the real question.
+- **Both can exist.** The generic form as the surface, the verbs generated from the status list as aliases —
+  a new status then gets its verb for free, and nothing is written twice.
+
+### Several tickets at once
+
+**Every transition takes exactly one id.** `flow ticket filed t047 t048` already takes a list, so the surface
+is inconsistent as well as narrow. The case the user named: `file-findings` closes several tickets in one
+pass, then has to move each one separately.
+
+To answer: which commands take a list, and what a partial failure prints when one id in a list refuses. `flow`
+refuses on purpose and says why; a list turns one refusal into a report.
+
+### One command that runs anything
+
+**Replace `/merge`.** It is ten lines that run `fmerge $ARGUMENTS` and paste the output. The user wants one
+command that runs any shell command or script and drops its output into the session, covering `fmerge`,
+`ptree` and whatever comes next, so no tool ever needs its own command file again.
+
+To answer:
+
+- **A non-zero exit aborts the whole invocation** and the model receives nothing, so it needs `|| true` and a
+  line saying what a failure looks like. Same trap fixed in `/start` and `/merge` on 2026-08-20.
+- **Whether `/merge` survives beside it.** `/merge` carries an instruction a generic runner has nowhere to
+  put: no `--` means the files are context, so wait for what comes next.
+- **Permissions.** `guard.js` and the allow list in `settings.json` decide what runs without a prompt. A
+  command whose whole point is running anything types straight past the surface both were written against.

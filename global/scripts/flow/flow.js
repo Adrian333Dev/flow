@@ -27,9 +27,14 @@ the daily loop
                                      what you closed last and what it reported, what is in
                                      flight, what was cut out of it, then what could start.
                                      Writes nothing — picking is a separate act
-  flow start <id> [--force]          → thinking, then prints the ticket; refuses on an
+  flow start <id> [--force]          picks it up at the first status its type uses, then
+                                     prints it: groundwork for feature, chore and topic;
+                                     building for issue and prototype. Refuses on an
                                      unsatisfied dep, and on a parent with open children
-  flow build <id>                    → building; the plan is written, code starts
+  flow groundwork <id> [--force]     → groundwork; the questions are still open
+  flow plan <id> [--force]           → planning; the questions are settled, the plan is
+                                     being written
+  flow build <id>                    → building; the plan is approved, code starts
   flow review <id>                   → review
   flow done <id> [--force]           → done; refuses on a parent with open children
   flow park <id> "<reason>"          → parked; revive it with flow start
@@ -38,7 +43,8 @@ looking around
   flow tree [--parent t047] [--all]  the whole shape, nested by parent, siblings by priority.
                                      Done and dropped collapse into the parent's count
   flow ls [status] [--type T] [--parent <id>] [--unfiled]
-                                     status: todo|thinking|building|review|done|parked|dropped
+                                     status: todo|groundwork|planning|building|review|
+                                             done|parked|dropped
                                      --unfiled: done tickets the filing pass has not swept yet
   flow show <id|slug>                children, progress, and where a priority came from
   flow status                        in flight, in review, parked, ready and unfiled counts
@@ -46,11 +52,11 @@ looking around
 
 ticket edits
   flow ticket new "<title>" [--type feature] [--priority high] [--parent t047]
-                            [--deps t045,t046] [--body -] [--from-brainstorm <path>]
+                            [--deps t045,t046] [--body -] [--from-groundwork <path>]
                                      --body - reads the whole file body from stdin, so
                                      creating and filling a ticket is one command
-                                     --from-brainstorm moves a loose brainstorm folder in
-                                     as this ticket's brainstorm/, leaving nothing behind
+                                     --from-groundwork moves a loose groundwork folder in
+                                     as this ticket's groundwork/, leaving nothing behind
   flow ticket drop <id> "<reason>" [--by <id> | --force]
                                      refuses while live dependents exist and lists them
                                      transitively. --by re-points them, --force drops them too
@@ -73,7 +79,7 @@ study cases                        recorded failures — the one group that work
                                      → fixed, recording the file that changed. Nothing is deleted
 
 ids     t047, t47 and 47 all mean the same ticket — reference tickets by id, never by path
-layout  docs/tickets/<id>-<slug>/ — ticket.md and brainstorm/ from birth, plan.md and
+layout  docs/tickets/<id>-<slug>/ — ticket.md and groundwork/ from birth, plan.md and
         reports/ written by the work. One report per thing answered, named after what it
         answers, whether a hunt found it or a prototype did. Done and dropped tickets move
         to docs/tickets/archive/ and move back if reopened
@@ -189,7 +195,9 @@ function cmdNext(args) {
   return 0;
 }
 
-const COMMAND_FOR = { thinking: 'start', building: 'build', review: 'review', done: 'done' };
+const COMMAND_FOR = {
+  groundwork: 'groundwork', planning: 'plan', building: 'build', review: 'review', done: 'done',
+};
 
 /**
  * Bare `flow start` opens the session; with an id it picks that ticket up.
@@ -201,7 +209,7 @@ const COMMAND_FOR = { thinking: 'start', building: 'build', review: 'review', do
 function cmdStart(args) {
   const { positional, flags } = parseArgs(args);
   if (positional.length) {
-    cmdTransition(args, 'thinking');
+    cmdTransition(args, entryStatus(positional[0]), 'start');
     out('');
     return cmdShow([positional[0]]);
   }
@@ -210,9 +218,24 @@ function cmdStart(args) {
   return 0;
 }
 
-function cmdTransition(args, status) {
+/**
+ * The first status a type actually uses. An `issue` and a `prototype` have no
+ * questions to settle before work starts — a bug's cause is hunted while the fix
+ * is written, and a prototype's question arrives with the ticket — so both open
+ * at `building` rather than resting in a status that describes neither.
+ */
+const ENTRY_STATUS = { issue: 'building', prototype: 'building' };
+function entryStatus(idOrSlug) {
+  const { tickets } = load();
+  return ENTRY_STATUS[store.findTicket(tickets, idOrSlug).data.type] || 'groundwork';
+}
+
+// `typedVerb` keeps a refusal quoting the command the user actually ran:
+// `flow start` moves a ticket to `groundwork`, and printing the other verb's
+// name in the override line sends them to a command they never typed.
+function cmdTransition(args, status, typedVerb) {
   const { positional, flags } = parseArgs(args);
-  const verb = COMMAND_FOR[status];
+  const verb = typedVerb || COMMAND_FOR[status];
   if (!positional[0]) throw new FlowError(`usage: flow ${verb} <id>`);
 
   const { root, tickets } = load();
@@ -223,24 +246,30 @@ function cmdTransition(args, status) {
 
   // Starting on a blocked ticket refuses rather than warns. A warning is a line
   // of text an agent reads past; a non-zero exit is the thing it cannot ignore.
-  const unmet = status === 'thinking' ? graph.unmetDeps(t, graph.indexById(tickets)) : [];
+  // Keyed to where the ticket is coming from, never to where it is going. The
+  // entry status varies by type, so a target-status test lets `flow start` on an
+  // issue walk past both refusals. `planning` is guarded as well because
+  // groundwork is where children get cut: a parent whose work just moved into
+  // its children cannot have a plan written for it until they close.
+  const ENTRY = from === 'todo' || from === 'parked' || status === 'planning';
+  const unmet = ENTRY ? graph.unmetDeps(t, graph.indexById(tickets)) : [];
   if (unmet.length && !flags.force) {
     throw new FlowError(
       `${t.id} is blocked — deps are not satisfied:\n` +
       unmet.map((u) => `  ${render.blockText(u)}`).join('\n') +
-      `\n  Clear those first, or override with: flow start ${t.id} --force`
+      `\n  Clear those first, or override with: flow ${verb} ${t.id} --force`
     );
   }
 
   // The pair to `done` refusing on open children. A parent keeps whatever work
   // no child holds — the wiring, the final suite — and that work runs after
   // they close, so this refuses early rather than at the finish line.
-  if (status === 'thinking' && graph.hasOpenChildren(tickets, t.id) && !flags.force) {
+  if (ENTRY && graph.hasOpenChildren(tickets, t.id) && !flags.force) {
     const kids = graph.openChildren(tickets, t.id);
     throw new FlowError(
       `${t.id} has ${kids.length} open child ticket${kids.length === 1 ? '' : 's'} — finish those first:\n` +
-      kids.map((c) => `  ${c.id}  ${c.data.status.padEnd(8)} ${c.data.title}`).join('\n') +
-      `\n  Or override with: flow start ${t.id} --force`
+      kids.map((c) => `  ${c.id}  ${c.data.status.padEnd(10)} ${c.data.title}`).join('\n') +
+      `\n  Or override with: flow ${verb} ${t.id} --force`
     );
   }
 
@@ -252,7 +281,7 @@ function cmdTransition(args, status) {
     if (open.length && !flags.force) {
       throw new FlowError(
         `${t.id} has ${open.length} open child ticket${open.length === 1 ? '' : 's'} — its work is theirs:\n` +
-        open.map((c) => `  ${c.id}  ${c.data.status.padEnd(8)} ${c.data.title}`).join('\n') +
+        open.map((c) => `  ${c.id}  ${c.data.status.padEnd(10)} ${c.data.title}`).join('\n') +
         `\n  Finish those, or close it anyway with: flow done ${t.id} --force`
       );
     }
@@ -413,7 +442,7 @@ function cmdTicket(args) {
 function ticketNew(args) {
   const { positional, flags } = parseArgs(args);
   const title = positional.join(' ').trim();
-  if (!title) throw new FlowError('usage: flow ticket new "<title>" [--type T] [--priority P] [--parent <id>] [--deps t045,t046] [--body -] [--from-brainstorm <path>]');
+  if (!title) throw new FlowError('usage: flow ticket new "<title>" [--type T] [--priority P] [--parent <id>] [--deps t045,t046] [--body -] [--from-groundwork <path>]');
 
   // `--body -` reads the file body from stdin, so a ticket is created and
   // written in one command instead of create-then-edit.
@@ -445,30 +474,30 @@ function ticketNew(args) {
     if (!tickets.some((t) => t.id === parent)) throw new FlowError(`--parent names ${parent}, which does not exist.`);
   }
 
-  // `--from-brainstorm` moves an existing loose brainstorm in as this ticket's
-  // own, for the case where the thinking resolved to exactly one unit of work.
-  let fromBrainstorm = '';
-  if (flags['from-brainstorm'] != null) {
-    const given = String(flags['from-brainstorm']).trim();
-    if (!given) throw new FlowError('--from-brainstorm expects the path of an existing brainstorm folder.');
-    fromBrainstorm = path.resolve(given);
-    if (!fs.existsSync(fromBrainstorm) || !fs.statSync(fromBrainstorm).isDirectory()) {
-      throw new FlowError(`--from-brainstorm names ${given}, which is not a folder.`);
+  // `--from-groundwork` moves an existing loose groundwork in as this ticket's
+  // own, for the case where the groundwork resolved to exactly one unit of work.
+  let fromGroundwork = '';
+  if (flags['from-groundwork'] != null) {
+    const given = String(flags['from-groundwork']).trim();
+    if (!given) throw new FlowError('--from-groundwork expects the path of an existing groundwork folder.');
+    fromGroundwork = path.resolve(given);
+    if (!fs.existsSync(fromGroundwork) || !fs.statSync(fromGroundwork).isDirectory()) {
+      throw new FlowError(`--from-groundwork names ${given}, which is not a folder.`);
     }
-    if (!fs.existsSync(path.join(fromBrainstorm, 'map.md'))) {
-      throw new FlowError(`${given} holds no map.md, so it is not a brainstorm folder.`);
+    if (!fs.existsSync(path.join(fromGroundwork, 'map.md'))) {
+      throw new FlowError(`${given} holds no map.md, so it is not a groundwork folder.`);
     }
     const live = store.ticketsDir(root);
-    if (fromBrainstorm === live || fromBrainstorm.startsWith(live + path.sep)) {
+    if (fromGroundwork === live || fromGroundwork.startsWith(live + path.sep)) {
       throw new FlowError(`${given} is inside docs/tickets/, so it already belongs to a ticket.`);
     }
   }
 
-  const t = store.createTicket(root, { title, type, priority, parent, deps, tickets, body, fromBrainstorm });
+  const t = store.createTicket(root, { title, type, priority, parent, deps, tickets, body, fromGroundwork });
   out(`created ${t.id}  ${t.data.title}`);
   out(`        ${rel(root, t.file)}`);
-  out(`        ${rel(root, path.join(t.dir, 'brainstorm', 'map.md'))}`);
-  if (t.movedFrom) out(`        moved  ${rel(root, t.movedFrom)}/ → brainstorm/`);
+  out(`        ${rel(root, path.join(t.dir, 'groundwork', 'map.md'))}`);
+  if (t.movedFrom) out(`        moved  ${rel(root, t.movedFrom)}/ → groundwork/`);
   if (t.data.priority) out(`        priority: ${t.data.priority}`);
   if (parent) out(`        parent: ${parent}`);
   if (deps.length) out(`        deps: ${deps.join(', ')}`);
@@ -533,7 +562,7 @@ function ticketDrop(args) {
   if (affected.length && !flags.by && !flags.force) {
     throw new FlowError(
       `${t.id} has ${affected.length} live dependent${affected.length === 1 ? '' : 's'}, directly or through others:\n` +
-      affected.map((d) => `  ${d.id}  ${d.data.status.padEnd(8)} ${d.data.title}`).join('\n') +
+      affected.map((d) => `  ${d.id}  ${d.data.status.padEnd(10)} ${d.data.title}`).join('\n') +
       `\n\nLeft alone they can never become ready. Pick one:\n` +
       `  flow ticket drop ${t.id} "${reason}" --by <id>    re-point them at the replacement\n` +
       `  flow ticket drop ${t.id} "${reason}" --force      drop them too`
@@ -811,6 +840,8 @@ function main() {
   switch (cmd) {
     case 'next': return cmdNext(rest);
     case 'start': return cmdStart(rest);
+    case 'groundwork': return cmdTransition(rest, 'groundwork');
+    case 'plan': return cmdTransition(rest, 'planning');
     case 'build': return cmdTransition(rest, 'building');
     case 'review': return cmdTransition(rest, 'review');
     case 'done': return cmdTransition(rest, 'done');

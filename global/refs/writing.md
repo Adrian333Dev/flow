@@ -163,7 +163,7 @@ A `## Rendering` section, near word-for-word what the drawing skill already said
 True, and useless to a reader already reading it.
 
 - **49w:** a title, a blockquote, and a paragraph on where the file installs and what a project adds on top.
-- **31w:** "Flow — an agentic development workflow for a solo developer. Work runs brainstorm → tickets → plan → build, one skill per step; the rules below hold across all of them."
+- **31w:** "Flow — an agentic development workflow for a solo developer. Work runs groundwork → tickets → plan → build, one skill per step; the rules below hold across all of them."
 
 ### Rejected: structure absorbs repetition
 

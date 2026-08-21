@@ -169,10 +169,11 @@ function status(tickets) {
   const by = (s) => tickets.filter((t) => t.data.status === s);
   const ready = graph.readyTickets(tickets);
   const blocked = graph.blockedTickets(tickets);
-  const inFlight = [...by('thinking'), ...by('building')];
+  const inFlight = [...by('groundwork'), ...by('planning'), ...by('building')];
 
   const out = [];
-  out.push(`tickets: ${tickets.length}   todo ${by('todo').length}   thinking ${by('thinking').length}   ` +
+  out.push(`tickets: ${tickets.length}   todo ${by('todo').length}   ` +
+    `groundwork ${by('groundwork').length}   planning ${by('planning').length}   ` +
     `building ${by('building').length}   review ${by('review').length}   done ${by('done').length}   ` +
     `parked ${by('parked').length}   dropped ${by('dropped').length}`);
 

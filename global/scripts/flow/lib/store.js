@@ -16,12 +16,24 @@ const { FlowError } = require('./error');
 
 const TICKET_KEYS = ['id', 'title', 'status', 'type', 'priority', 'parent', 'deps', 'reason', 'closed', 'filed'];
 
-// `thinking` covers evaluating, brainstorming and researching — every ticket
-// passes through it, including the ones that need no brainstorm at all.
-// `building` starts when the plan is written. The pair replaces `in-progress`,
-// which was true during all of it and therefore answered nothing.
-const TICKET_STATUSES = ['todo', 'thinking', 'building', 'review', 'done', 'parked', 'dropped'];
-const TICKET_TYPES = ['feature', 'issue', 'chore', 'research', 'prototype'];
+// Three statuses cover the work, and each one names what is happening.
+// `groundwork` — the questions are still open. `planning` — they are settled
+// and the plan is being written. `building` — the plan is approved and code
+// starts. The trio replaces `in-progress`, which was true during all of it and
+// answered nothing, and then `thinking`, which covered the first two at once
+// and so could not say whether a ticket was still undecided.
+//
+// Every type uses a subsequence of this order, never a different order, which
+// is why one set covers all five. `flow start` picks the entry status from the
+// type: an `issue` and a `prototype` open at `building`, because neither has
+// questions to settle first — a bug's cause is hunted while the fix is written,
+// and a prototype's question arrives with the ticket.
+const TICKET_STATUSES = ['todo', 'groundwork', 'planning', 'building', 'review', 'done', 'parked', 'dropped'];
+
+// `topic` is a ticket whose deliverable is a settled answer rather than code.
+// It was called `research` until the name collided with the `research` skill,
+// which fetches documentation and decides nothing.
+const TICKET_TYPES = ['feature', 'issue', 'chore', 'topic', 'prototype'];
 
 // Only `high` and `low` reach disk. `normal` is the name for the missing field,
 // so an ordinary ticket carries no priority line at all — which is the whole
@@ -197,7 +209,7 @@ function relocate(t) {
 
 // `tickets` is passed in when the caller already read the pool — at a few
 // thousand tickets a second scan is the most expensive thing a command does.
-function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, fromBrainstorm }) {
+function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, fromGroundwork }) {
   const id = nextId(tickets || readTickets(root));
   const slug = slugify(title);
   const dir = path.join(ticketsDir(root), `${id}-${slug}`);
@@ -223,24 +235,24 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
   const file = path.join(dir, 'ticket.md');
   fs.writeFileSync(file, frontmatter.stringify(data, TICKET_KEYS, body));
 
-  // `brainstorm/` exists from birth, always. You cannot know at the start
-  // whether a ticket's thinking will split it, so its location must never
+  // `groundwork/` exists from birth, always. You cannot know at the start
+  // whether groundwork will split a ticket, so its location must never
   // depend on that outcome — and a ticket's path is fixed for life.
-  const brainstormDir = path.join(dir, 'brainstorm');
-  if (fromBrainstorm) {
-    // A loose brainstorm that turned out to be exactly one unit of work moves
+  const groundworkDir = path.join(dir, 'groundwork');
+  if (fromGroundwork) {
+    // A loose groundwork that turned out to be exactly one unit of work moves
     // in whole and leaves nothing behind, so there is never a second copy to
     // drift. Same filesystem by construction: both paths are under `root`.
-    fs.renameSync(fromBrainstorm, brainstormDir);
+    fs.renameSync(fromGroundwork, groundworkDir);
   } else {
-    fs.mkdirSync(brainstormDir, { recursive: true });
+    fs.mkdirSync(groundworkDir, { recursive: true });
     fs.writeFileSync(
-      path.join(brainstormDir, 'map.md'),
+      path.join(groundworkDir, 'map.md'),
       renderTemplate('map.md', { id, title: data.title })
     );
   }
 
-  return { id, dirName: `${id}-${slug}`, dir, file, data, body, root, movedFrom: fromBrainstorm || null };
+  return { id, dirName: `${id}-${slug}`, dir, file, data, body, root, movedFrom: fromGroundwork || null };
 }
 
 /**
@@ -256,9 +268,9 @@ const hasPlan = (t) => fs.existsSync(path.join(t.dir, 'plan.md'));
 
 /**
  * Reports written into the ticket, one per thing answered. A folder rather than
- * a single `report.md` for the reason `brainstorm/` is a folder: you cannot
+ * a single `report.md` for the reason `groundwork/` is a folder: you cannot
  * know at the start whether a ticket answers one question or three. Unlike
- * `brainstorm/` it appears on first write, because a report's location never
+ * `groundwork/` it appears on first write, because a report's location never
  * moves — it just may not exist.
  */
 const reportFiles = (t) => {

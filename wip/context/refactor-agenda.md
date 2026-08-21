@@ -241,7 +241,14 @@ that lands. The depth material — reformulation, forced distant analogue, three
 ## 10. Every skill gets the whole `writing.md` pass — in progress
 
 One skill at a time, each read end to end against `global/refs/writing.md`: plan the sections before typing,
-then test every sentence. Not a compression pass — structure, word choice and where each fact lives.
+then test every sentence.
+
+**It is a compression pass — reversed by the user 2026-08-20**, after the first `execute` attempt did
+structure only and they rejected it: *"there is zero compression, all the sentences are just too much
+detail, too much over explanation. I fully disapprove this shit."* The standard they gave: **instruct, do
+not justify.** Why Flow decided something goes in a document written for the user, never in the file an
+agent loads. The line held so far, and not yet overruled: cut the design justification, keep a reason only
+where it tells the agent what to do in a case the rule does not name.
 
 **`visualize` is done, 2026-08-19**, and it set three conventions the rest of the queue inherits:
 
@@ -254,17 +261,126 @@ then test every sentence. Not a compression pass — structure, word choice and 
   Found when a measured cost figure was cut out of `visualize` — the agent needs the instruction, and the
   argument for adopting it belongs where the user reads it.
 
-**The queue**, each still owed the pass: `execute` (+`review-code.md`), `file-findings` (+`write-skills.md`),
-`debug`, `handoff`, `prototype`, `research`, `write-tickets`. `debug-web-pages` is excluded. `brainstorm`
-had its rework at item 9 but not this pass.
+**`execute` — first attempt rejected, still owed.** The dedup pass landed (221 → 204 lines,
+`review-code.md` moved to `refs/`, no rule lost) and stays as the base, but the file is not done: the user
+rejected it for over-explaining, and its scope then shrank twice — pickup moved to `/start` 2026-08-20, and
+the pickup fork itself came out of Phase 1 the same day, leaving 186 lines. See `design-pickup.md`. That pass still set two conventions the queue inherits:
 
-**Two skills break the new root rule** and are the natural next pair: `execute/review-code.md` and
-`file-findings/write-skills.md`.
+- **A `## Hard rules` section is a home, not a recap.** `execute`'s 13 bullets were a table of contents for
+  its own body: 10 restated a bold rule sitting in the phase where it fires, 1 restated `global/CLAUDE.md`,
+  and 2 existed nowhere else — which is the drift `writing.md` §3 predicts. The whole section went, after
+  folding those 2 back in. The other 7 sections were read the same way and stay: theirs carry rules their
+  bodies never state.
+- **`/name` names a skill. Bare backticks name a ticket type, a file or a command.** Found on the line that
+  read "**`prototype`** → **`prototype`** owns it", where the type and the skill rendered identically.
 
-**Also owed, found during `visualize`:** sweep the `/skill-name` form — `skills/prototype/SKILL.md` writes
-`visualize` bare in 4 places where `brainstorm` writes `/visualize`. Check `handoff/`, `execute/` and
-`global/refs/study-cases.md` the same way. And `handoff/SKILL.md:97` — "Capture in the project `CLAUDE.md`"
-looks wrong.
+**The queue**, each still owed the pass: `file-findings` (+`write-skills.md`), `debug`, `handoff`,
+`prototype`, `research`, `write-tickets`. `debug-web-pages` is excluded. `groundwork` — renamed from
+`brainstorm` 2026-08-20 — had its rework at item 9 but not this pass.
+
+**`debug` — parked with a batch, 2026-08-21.** The user read the skill, could not follow it, and asked
+whether it had ever had the pass. It has not. Everything below waits and lands in one go, at the pass:
+
+- **Bring the collaboration loop out of `debug-web-pages` and make it general.** Its write-it, you-run-it,
+  paste-it-back exchange is the only place in Flow that handles a failure the agent cannot reproduce itself.
+  `debug` needs the same shape for a failure with no domain tooling and no access to where it happens.
+  Handing off to `debug-web-pages` stays exactly as it is; this is for everything that is not a page.
+- **The failing check is not always a command.** Sometimes it is steps the user runs and reports back. The
+  file states it as "one command" in its second sentence and only qualifies that 30 to 50 lines below, under
+  headings a reader reaches after already deciding the skill does not fit.
+- **Rename "the red command" to "the failing check".** "Red" is borrowed from red/green testing and never
+  defined in the file. The replacement reads correctly in all eight places it appears.
+- **Two lines carry no meaning as written.** `Bound it first where you can…` means find one case that works
+  and one that breaks — in time (`git bisect`), in the input, or in the machine — and says none of it.
+  `one from the data, one from the environment, one from the ordering` means the three hypotheses must be
+  different kinds of cause, and gives no example of any of the three.
+
+**`file-findings/write-skills.md` is the last file breaking the root rule**, and that skill is the natural
+next one.
+
+**Also owed:** finish the `/skill-name` sweep — `skills/prototype/SKILL.md` writes `visualize` bare in 4
+places. Check `handoff/`, `research/` and `global/refs/study-cases.md` the same way. And
+`handoff/SKILL.md:97` — "Capture in the project `CLAUDE.md`" looks wrong.
+
+## 11. Three corrections after the pickup build — 2026-08-20
+
+The user read the built result and named three. Two are settled — `graph.js` keeps its name, the folder is
+renamed. The routing line is still open, and is written below as they put it, next to what the code does.
+
+### The `/start` routing line is unreadable
+
+`commands/start.md` carries `` - `feature`, `chore` → `/groundwork` at `groundwork`; `/execute` at `planning`,
+`building` or `review` ``. The first `groundwork` is the skill and the second is the status, and nothing on the
+line says so — the user worked it out rather than being told, and called the line confusing twice.
+
+**Their fix: the status leads, and the arrow points at the skill**, possibly with the skill in parentheses.
+Sketch:
+
+```
+- `groundwork` → `/groundwork`
+- `planning`, `building`, `review` → `/execute`
+```
+
+**The type half stays.** `issue`, `prototype` and `topic` each route on type alone; only `feature` and `chore`
+branch on status. So the fix is a nested list under those two, never a flat list of statuses.
+
+**They also object to the word `route`** — nothing is routed anywhere, since the same session loads the skill
+and carries straight on.
+
+**Counter-argument, for the discussion.** `route` is Flow's own term, defined in `writing.md`: *"Naming which
+skill owns a job is routing and belongs."* `groundwork` Phase 4 is titled *route what was decided* and
+`file-findings` has a `## Routing` section, so renaming it in `/start` alone gives Flow two words for one idea.
+The ambiguity the user hit is real and it comes from somewhere else: `/start` never says the skill loads here,
+in this session. One added line fixes that and keeps the term.
+
+### `graph.js` keeps its name — closed 2026-08-20
+
+The user proposed `ticket-tree.js`, on the grounds that `ptree` already exists so `graph` reads as some other
+structure. **Withdrawn the same day, on the counter-argument: half the file is not a tree.** `forest`,
+`children`, `descendants` and `wouldOrphan` walk the parent nesting, which is one. `unmetDeps`, `dependents`,
+`findCycles` and `wouldCycle` walk the dependency edges, which are not — a ticket takes several blockers,
+blockers converge, and `findCycles` exists because they can loop. A name saying tree makes that half
+unfindable.
+
+### The ticket folder is still `brainstorm/` — ✅ **done 2026-08-21**
+
+The user's argument: the folder holds the whole pre-build record — `map.md`, the branch files, `design.md` —
+and the skill that owns it is `groundwork`, so a folder named after the retired skill name misleads whoever
+opens it. Renamed everywhere: the ticket's `brainstorm/` → `groundwork/`, `docs/brainstorms/<slug>/` →
+`docs/groundwork/<slug>/`, `--from-brainstorm` → `--from-groundwork`, plus the identifiers in `store.js` and
+`flow.js`. Verified by creating a ticket and moving a loose folder in.
+
+Nothing on disk needed migrating — no project has been migrated to Flow yet, which is why it was worth doing
+now rather than after Delapse moves.
+
+**It leaves one name carrying four meanings:** the skill `/groundwork`, the ticket status `groundwork`, the
+`flow groundwork <id>` verb, and now the folder. That makes the `/start` routing line above worse, not
+better — `` `feature`, `chore` → `/groundwork` at `groundwork` `` now sits next to a folder with the same
+name. Fixing that line is still open.
+
+### `## References` in `ticket.md` — built 2026-08-21
+
+**The user's rule: never make the agent work out what is relevant, hand it the references.** Flow already
+had this for one entry path — `write-tickets` carried *"artifact references travel with the ticket"* as a
+hard rule — and it now holds for all of them, under a fixed section name.
+
+- **Groundwork adds a line to `## References` in `map.md` the moment it reads something the build will
+  need**, rather than assembling the list at the end, where half of it is forgotten. Phase 4 copies each
+  ticket the lines that ticket needs, never the whole list — `/execute` reads every one, so a ticket pointed
+  at everything is pointed at nothing.
+- **`execute` Pass 1 starts there** instead of browsing `docs/context/`. A ticket born in conversation has no
+  section: look once, then write back what you found so the next session does not repeat the search.
+- **`review-code.md` checks the diff against it, first**, before the smell baseline. A convention nobody
+  referenced was never in scope, which is what stops review turning into an audit.
+- **It survives the ticket.** Review deletes `## State` and leaves this.
+
+**Rejected on the way:** a Phase 4 step in `execute` writing an integration reference to `docs/context/`,
+modelled on LumaCraft's `customizations.md`. That document only existed because LumaCraft had no groundwork,
+no research phase and no prototyping, so everything discovered mid-build had to be written down afterwards.
+Under Flow that content is produced upstream — the prototype answers whether the library can do it, the
+design states the shape, the research file holds the API calls. Never compare an artifact from that project
+to this workflow one-to-one.
+
 
 ---
 
@@ -281,4 +397,6 @@ looks wrong.
 | 7 | no commits until done | standing |
 | 8 | stale `~/.local/bin` symlinks point at the deleted workbench repo | deferred by the user, 2026-08-09 |
 | 9 | `brainstorm` reworked to generate options, not structure input | ✅ **done** — 180 → 223 lines. Depth half still owed to `execute` and the debug skill |
-| 10 | every skill gets the whole `writing.md` pass | in progress — `visualize` done 2026-08-19, 7 skills owed |
+| 10 | every skill gets the whole `writing.md` pass, now including compression | in progress — `visualize` 2026-08-19, `execute` 2026-08-20; `debug` parked with a batch; 6 skills owed |
+| 11 | `/start`'s routing line, `graph.js`'s name, the `brainstorm/` ticket folder | raised 2026-08-20 — `graph.js` closed, the name stays; the folder renamed to `groundwork/` 2026-08-21; the routing line still open |
+| 12 | `## References` in `ticket.md` — the build is handed what to read, never left to find it | ✅ **done 2026-08-21** — written by `groundwork` and `write-tickets`, read by `execute` Pass 1 and `review-code.md` |

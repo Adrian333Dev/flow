@@ -35,7 +35,9 @@ Four steps, in order. A step you cannot finish is the finding: say so and stop t
 
 **Write the hunt down as it runs** — the red command, every hypothesis and how it died, what survived. Inside a ticket that is `## State`; without one, `handoff` writes a file. Nothing else records any of it, which makes an interrupted hunt the most expensive thing in Flow to lose.
 
-**Once the cause is proved, write the report** — `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the red command, which hypotheses died and how, the cause, the fix, and the output that proves it. `## State` is deleted when the ticket closes and this is not — a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely — a verified command, a settled convention — goes to `docs/context/<subject>.md` as well.
+**When the hunt ends, write the report** — `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the red command, which hypotheses died and how, the cause, the fix, and the output that proves it. `## State` is deleted when the ticket closes and this is not — a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely — a verified command, a settled convention — goes to `docs/context/<subject>.md` as well.
+
+**Open it with a status**, so the answer is the first line a week later: `FIXED`, `FOUND_NOT_FIXED` where the cause is proved and the fix needs a decision nobody gave, or `UNPROVEN` where the hypotheses ran out. `UNPROVEN` is a real result — what got ruled out is the whole deliverable then, and it is worth as much as a fix.
 
 ### When you need an observation only the user can make
 
@@ -72,51 +74,32 @@ Still nothing → say so, list what was ruled out and what would settle it, then
 
 Stop fixing. Three failed fixes means the hypothesis was never the problem — the shape of the code is. Name the structure that makes this bug possible, and hand the decision back. A fourth attempt from the same understanding costs the same and lands the same.
 
-## Dispatching the hunt
+## Handing it back
 
-**Debug here by default.** The fix lands in code this session already knows, and a cold session re-derives all of it first.
+**Hunt here.** The fix lands in code this session already knows, and anything that starts elsewhere re-derives that first.
 
-Dispatch where the hunt is long and its context is disposable — running the reproduction fifty times, bisecting a history, reading a large log, trying six variants of one command. That reading fills a window and none of it is worth keeping. The cause and the evidence are.
+Two things end the hunt here: **the fix needs a decision nobody gave**, or **the hypotheses ran out**. Both go the same way — a ticket, then the user.
 
-### How to dispatch
-
-A background session, never the `Agent` tool. `Agent()` blocks or detaches and returns one report either way, and neither can be answered mid-hunt. This hunt asks questions.
-
-**The brief is a child ticket.** `handoff` writes it, and `flow` takes it on stdin — so an untruncated stack trace never passes through shell quoting:
-
-```bash
-flow ticket new "<what failed>" --type issue --parent t047 --body - <<'EOF'
-<the brief>
-EOF
-claude --agent debug --bg --name "t123" "Run flow start t123, read it, and start."
-```
-
-The brief carries four things and never the conversation:
+**The ticket body carries four things and never the conversation:**
 
 - **What failed** — the step, the command, or what the user did
 - **The error**, in full, untruncated
 - **What changed** — the diff, or the last state known to work
 - **Already tried** — one line each, and what it ruled out
 
-**Tell it to write its answer into `reports/<failure>.md`, in its own ticket folder.** The ticket is what makes this safe to dispatch: it carries a status, and the dispatching ticket's `flow done` refuses to close around it while it is open — which is what a file nobody marks finished could never do.
-
-**No ticket system here** → `handoff` writes a file instead, and the session reads that.
-
-### While it runs
-
-**Tell the user it is running, and name the row.** They are the one who answers it.
-
-**Touch nothing it might touch.** Two sessions editing one checkout is how a proved fix gets overwritten.
-
-Check when the answer is next needed, never in a loop:
+`flow` takes the body on stdin, so an untruncated stack trace never passes through shell quoting:
 
 ```bash
-claude agents --json --cwd .
+flow ticket new "<what failed>" --type issue --parent t047 --body - <<'EOF'
+<the four things>
+EOF
 ```
 
-`state` reads `working`, `blocked`, `done`, `failed` or `stopped`. `blocked` with `waitingFor: "input needed"` means it is asking the user — say so, and name the row. `done` means read the report file.
+**The ticket is what makes this safe:** it carries a status, and the parent's `flow done` refuses to close around it while it is open, which a file nobody marks finished could never do.
 
-When it lands, re-run the red command yourself. Its verification output is its own claim.
+**No ticket system here** → `handoff` writes a file instead, and say where it is.
+
+Then stop. The user opens it in a fresh session, and works the hunt there directly with whoever picks it up. When a fix comes back, re-run the red command yourself — someone else's verification output is their claim, not yours.
 
 ## Hard rules
 

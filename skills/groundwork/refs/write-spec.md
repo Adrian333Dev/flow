@@ -6,12 +6,12 @@
 
 One test, asked of each decision: **does it outlive the thing being built?**
 
-- **No, it dies with the build** → `design.md` beside `map.md`, or `brainstorm/design.md` in the ticket that owns it.
+- **No, it dies with the build** → `design.md` beside `map.md`, or `groundwork/design.md` in the ticket that owns it.
 - **Yes, and it says what the product must do** → `docs/spec/product.md`.
 - **Yes, and it says how the system is built** → `docs/spec/tech.md`.
 - **Yes, and it says why a call was made** → `docs/spec/decisions.md`.
 
-One brainstorm usually writes 2 of these. Creates `docs/spec/` if there's none, edits it if there is.
+One run usually writes 2 of these. Creates `docs/spec/` if there's none, edits it if there is.
 
 `product.md` and `tech.md` are the base pair. `decisions.md` appears the moment something is locked with a reason worth keeping, which at project start is immediately.
 
@@ -25,7 +25,7 @@ A subject gets its own file beside them only when all 3 hold: no fact appears in
 2. **Read what exists** — code, the current spec, whatever this touches. A contradiction with a settled decision → raise it and reopen that branch. Never quietly write around it.
 3. **List every closed branch, one line each, with the file it lands in.**
 
-Step 3 is the whole defence against a spec that quietly loses half the brainstorm. **List branches, never behaviors** — a UI decision, a refused approach and a cost ceiling are all branches, and none is a behavior. A 5,000-line map is maybe 120 lines of this. Several map files → one at a time.
+Step 3 is the whole defence against a spec that quietly loses half the map. **List branches, never behaviors** — a UI decision, a refused approach and a cost ceiling are all branches, and none is a behavior. A 5,000-line map is maybe 120 lines of this. Several map files → one at a time.
 
 Write the list before any prose. Tick each line as it lands. Verify at the end: an unticked line is a decision that vanished.
 
@@ -52,7 +52,7 @@ Then only what a branch actually covered. Most specs use 3 or 4 of these, and a 
 
 - **The domain model** — the concepts this is built on, and how they relate.
 - **Named principles** — the constraints that settle later arguments before they start.
-- **The interaction surface** — screens, cards, flows, at the depth the brainstorm reached.
+- **The interaction surface** — screens, cards, flows, at the depth the groundwork reached.
 - **Constraints that are not code** — money, law, privacy, policy.
 - **What it competes against**, and why this holds up. The survey itself belongs in `docs/research/`.
 - **The glossary** — every term invented here.
@@ -114,7 +114,7 @@ No second review. Fix and move on.
 
 Give the paths. The user reads and approves before anything is created from it.
 
-**An objection is not a new brainstorm.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
+**An objection is not new groundwork.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
 
 Approved and there's work to cut → **invoke `/write-tickets`**.
 
