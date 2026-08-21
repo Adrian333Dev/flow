@@ -12,7 +12,7 @@ Sections group by area. Only `## In front of us` is ordered.
 ## In front of us
 
 - [ ] **The `flow` command redesign** — a verb per status, so a new status costs no code. `threads.md` → `command-surface`
-- [ ] **`/run`, one command that runs any shell command** — replaces `/merge`, and covers `fmerge`, `ptree` and whatever comes next. Needs `|| true`, or a non-zero exit hands the model nothing. `threads.md` → `command-surface`
+- [x] **`/run`, one command that runs any shell command** — replaces `/merge`, and covers `fmerge`, `ptree` and whatever comes next. Needs `|| true`, or a non-zero exit hands the model nothing. `threads.md` → `command-surface`
 - [ ] **`/start`'s routing line** — the status leads and the arrow points at the skill, nested under `feature` and `chore`. `refactor-agenda.md` item 11
 - [ ] **`execute`'s rewrite** — 193 lines toward 100. Instruct, do not justify. `design-pickup.md`
 
