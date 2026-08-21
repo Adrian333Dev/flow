@@ -26,7 +26,7 @@ One ticket per unit of work: something that can be picked up, planned and built 
 Create and fill in one command — never create, then edit:
 
 ```bash
-flow ticket new "Title" --type feature --deps t045 --body - <<'EOF'
+flow tickets new "Title" --type feature --deps t045 --body - <<'EOF'
 What changes and why. One paragraph, from the spec section this came from.
 
 ## References
@@ -56,7 +56,7 @@ Nothing else changes. The spec is never annotated with ticket ids — that mappi
 ## Hard rules
 
 - **V1 only.** Promote in `product.md` first, then create.
-- **One command per ticket** — `flow ticket new … --body -`, never create-then-edit.
+- **One command per ticket** — `flow tickets new … --body -`, never create-then-edit.
 - **References travel with the ticket**, in a `## References` section.
 - **Never copy a spec section wholesale into a ticket.**
 - **Never edit a mark in `product.md` to justify a ticket you already created.**

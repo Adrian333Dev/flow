@@ -7,6 +7,7 @@
 const path = require('path');
 const graph = require('./graph');
 const store = require('./store');
+const statuses = require('./statuses');
 
 /** Aligned columns with no header row — the tree needs the padding without one. */
 function columns(rows) {
@@ -165,29 +166,22 @@ function priorityLine(ticket, index) {
   return `${effective} — inherited from ${p ? p.id : '?'}`;
 }
 
-function status(tickets) {
+/**
+ * Where the work stands: the counts across every status, then the 4 questions
+ * `brief` answers, then parked.
+ *
+ * The counts come off the status table, so a new status appears here without
+ * this line being touched. Parked tickets are invisible in the daily loop by
+ * design, and this is the one place they surface — a deliberate "not now"
+ * cannot quietly become "forgotten".
+ */
+function status(tickets, limit) {
+  if (!tickets.length) return 'no tickets yet.';
   const by = (s) => tickets.filter((t) => t.data.status === s);
-  const ready = graph.readyTickets(tickets);
-  const blocked = graph.blockedTickets(tickets);
-  const inFlight = [...by('groundwork'), ...by('planning'), ...by('building')];
 
-  const out = [];
-  out.push(`tickets: ${tickets.length}   todo ${by('todo').length}   ` +
-    `groundwork ${by('groundwork').length}   planning ${by('planning').length}   ` +
-    `building ${by('building').length}   review ${by('review').length}   done ${by('done').length}   ` +
-    `parked ${by('parked').length}   dropped ${by('dropped').length}`);
+  const counts = statuses.NAMES.map((name) => `${name} ${by(name).length}`).join('   ');
+  const out = [`tickets: ${tickets.length}   ${counts}`, '', brief(tickets, limit)];
 
-  out.push('');
-  out.push(`in flight (${inFlight.length}):`);
-  out.push(inFlight.length ? indent(ticketTable(graph.rank(inFlight, tickets), tickets)) : '  none');
-
-  out.push('');
-  out.push(`in review (${by('review').length}):`);
-  out.push(by('review').length ? indent(ticketTable(graph.rank(by('review'), tickets), tickets)) : '  none');
-
-  // Parked tickets are invisible in the daily loop by design; a count here is
-  // the one place they surface, so a deliberate "not now" cannot quietly
-  // become "forgotten".
   const parked = by('parked');
   if (parked.length) {
     out.push('');
@@ -195,22 +189,11 @@ function status(tickets) {
     out.push(indent(table(['ID', 'TITLE', 'REASON'], parked.map((t) => [t.id, t.data.title, t.data.reason || '-']))));
   }
 
-  out.push('');
-  out.push(`ready: ${ready.length}   blocked: ${blocked.length}   (flow next)`);
-
-  // Printed only when something is owed. A zero here on every run is a line the
-  // reader learns to skip, and this exists to be noticed.
-  const unfiled = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
-  if (unfiled.length) {
-    out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow ls --unfiled)`);
-    out.push('         run file-findings to sweep them');
-  }
-
   return out.join('\n');
 }
 
 /**
- * The session opener, printed by bare `flow start`. Four questions in order:
+ * The session opener, printed by `flow status`. Four questions in order:
  * what did I finish last, what is still open, what continues it, what could
  * start. Read-only on purpose — this is the view for not knowing what is next,
  * and picking is a separate act.
@@ -266,7 +249,7 @@ function brief(tickets, limit) {
   // the reader learns to skip, and these exist to be noticed.
   const unfiled = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
   if (unfiled.length) {
-    out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow ls --unfiled)`);
+    out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow tickets ls --unfiled)`);
     out.push('         run file-findings to sweep them');
   }
   const problems = graph.check(tickets);

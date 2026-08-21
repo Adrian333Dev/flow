@@ -13,7 +13,7 @@ The filing pass, and the second half of a pair. Capture writes a finding the mom
 ## Inputs
 
 - **`docs/inbox.md`** — always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
-- **Closed tickets nobody has filed yet** — `flow ls --unfiled` gives the ids. In each folder read `issues.md` for what the build learned and everything in `reports/` for what was answered. Sweeping several at once is the normal case, not the exception, and the queue holds closed tickets only — nothing here describes work still moving.
+- **Closed tickets nobody has filed yet** — `flow tickets ls --unfiled` gives the ids. In each folder read `issues.md` for what the build learned and everything in `reports/` for what was answered. Sweeping several at once is the normal case, not the exception, and the queue holds closed tickets only — nothing here describes work still moving.
 - **The groundwork worked this session, once it closes** — sweep its `map.md`: promote reusable lessons into skills, move out strays that fell outside its scope. Nothing closed this session, or it is still open? Leave it — never go digging through maps that aren't yours this session.
 
 ## Method — batch, don't crawl
@@ -23,7 +23,7 @@ The filing pass, and the second half of a pair. Capture writes a finding the mom
 3. Shape what needs it — a fragment has to read like the thing it's about to become.
 4. Apply per destination — a few grouped edits, not one item at a time.
 5. Clear filed items from the inbox (git remembers them). **Never empty an `issues.md`** — it stays as the record of what happened, the same way a hunt keeps its report.
-6. Mark every ticket you swept — `flow ticket filed t047 t048 t049`, including the ones that taught nothing. Recording that a ticket was looked at is what drains the queue.
+6. Mark every ticket you swept — `flow tickets filed t047 t048 t049`, including the ones that taught nothing. Recording that a ticket was looked at is what drains the queue.
 7. Report what you filed and what you flagged.
 
 Triage speed, not deep work — keep it quick and light.
@@ -39,7 +39,7 @@ Everything else goes to the homes listed under `## Capture` — a ticket, a grou
 
 **Defer to what exists.** No `docs/spec/`? A locked decision goes to the groundwork that owns the subject — its `map.md` *is* the decision log. Never invent parallel doc buckets.
 
-Creating a ticket is fair game when an inbox item turns out to be committed work — `flow ticket new`. Work you merely *might* do stays in the inbox; the test is commitment, not size.
+Creating a ticket is fair game when an inbox item turns out to be committed work — `flow tickets new`. Work you merely *might* do stays in the inbox; the test is commitment, not size.
 
 ## Altitude — which skill
 

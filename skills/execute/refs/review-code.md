@@ -53,7 +53,7 @@ Name what this change orphaned — the function nothing calls now, the constant 
 
 Two levels, and no more:
 
-- **Fix before `flow done`** — it is wrong, it is unsafe, or it does not do what the ticket asked.
+- **Fix before the ticket closes** — it is wrong, it is unsafe, or it does not do what the ticket asked.
 - **Noted** — everything else. It gets said once and left alone.
 
 **Uncertain → say what would settle it.** A finding you cannot prove names the command, the file or the question that would.

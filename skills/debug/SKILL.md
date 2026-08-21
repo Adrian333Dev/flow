@@ -90,12 +90,12 @@ Two things end the hunt here: **the fix needs a decision nobody gave**, or **the
 `flow` takes the body on stdin, so an untruncated stack trace never passes through shell quoting:
 
 ```bash
-flow ticket new "<what failed>" --type issue --parent t047 --body - <<'EOF'
+flow tickets new "<what failed>" --type issue --parent t047 --body - <<'EOF'
 <the four things>
 EOF
 ```
 
-**The ticket is what makes this safe:** it carries a status, and the parent's `flow done` refuses to close around it while it is open, which a file nobody marks finished could never do.
+**The ticket is what makes this safe:** it carries a status, and the parent refuses to close around it while it is open, which a file nobody marks finished could never do.
 
 **No ticket system here** → `handoff` writes a file instead, and say where it is.
 

@@ -16,7 +16,7 @@ It knows the repo. It knows nothing about this conversation.
 Decide this first. Everything else follows from it.
 
 - **Working a ticket** → `## State` inside that ticket's `ticket.md`.
-- **Handing a job to a session that reports back** → a new ticket, `flow ticket new "…" --body -`. A child of the ticket that dispatched it, where one exists.
+- **Handing a job to a session that reports back** → a new ticket, `flow tickets new "…" --body -`. A child of the ticket that dispatched it, where one exists.
 - **A subagent starting right now** → the prompt. It reads that and nothing else, so a file would be a second copy that goes stale the moment either one changes.
 - **No ticket system here** → `handoff.md`, beside the work. `flow` needs only a git repo, so this is the rare case: no repo at all, or one belonging to someone else. A path the user names beats all of it.
 
@@ -100,7 +100,7 @@ Durable knowledge goes to its own home the moment it surfaces — Capture in the
 
 **In a ticket** — `## State`, at the bottom of `ticket.md`. Rewrite that section whole and touch no other: `flow` owns the frontmatter, `execute` owns `plan.md`, `debug` and `prototype` own `reports/`, and the body belongs to whoever created the ticket.
 
-**Delete the section at `flow review`.** "Step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
+**Delete the section when the ticket reaches `review`.** "Step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
 
 **In a file** — `handoff.md` beside the most specific thing being worked: the groundwork's own folder, or the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
 
@@ -114,7 +114,7 @@ Read every listed file in one parallel batch, then start on the first action. Th
 
 A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names — `reports/<failure>.md` for a hunt, `docs/research/<question>.md` for a question. `## State` carries the job's progress, never its answer.
 
-**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `flow start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top: the list is complete, read it in one batch, then start on the first action.
+**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `flow tickets start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top: the list is complete, read it in one batch, then start on the first action.
 
 ## Hard rules
 

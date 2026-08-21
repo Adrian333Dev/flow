@@ -12,23 +12,13 @@
 const fs = require('fs');
 const path = require('path');
 const frontmatter = require('./frontmatter');
+const statuses = require('./statuses');
 const { FlowError } = require('./error');
 
 const TICKET_KEYS = ['id', 'title', 'status', 'type', 'priority', 'parent', 'deps', 'reason', 'closed', 'filed'];
 
-// Three statuses cover the work, and each one names what is happening.
-// `groundwork` — the questions are still open. `planning` — they are settled
-// and the plan is being written. `building` — the plan is approved and code
-// starts. The trio replaces `in-progress`, which was true during all of it and
-// answered nothing, and then `thinking`, which covered the first two at once
-// and so could not say whether a ticket was still undecided.
-//
-// Every type uses a subsequence of this order, never a different order, which
-// is why one set covers all five. `flow start` picks the entry status from the
-// type: an `issue` and a `prototype` open at `building`, because neither has
-// questions to settle first — a bug's cause is hunted while the fix is written,
-// and a prototype's question arrives with the ticket.
-const TICKET_STATUSES = ['todo', 'groundwork', 'planning', 'building', 'review', 'done', 'parked', 'dropped'];
+// The vocabulary and every property of it live in one table — see statuses.js.
+const TICKET_STATUSES = statuses.NAMES;
 
 // `topic` is a ticket whose deliverable is a settled answer rather than code.
 // It was called `research` until the name collided with the `research` skill,
@@ -50,15 +40,15 @@ const toPriority = (v) => {
 
 // Statuses whose `reason:` is required and typed by the user. Everywhere else
 // the workflow is its own explanation.
-const REASON_STATUSES = ['parked', 'dropped'];
+const REASON_STATUSES = [...statuses.NEEDS_REASON];
 
-// `closed` is the moment work stopped — written by `flow done` and `flow ticket
-// drop`, cleared by any move back to a live status. It carries a clock time and
+// `closed` is the moment work stopped — stamped when a ticket reaches `done`
+// or `dropped`, cleared by any move back to a live status. It carries a clock time and
 // not just a date because its only job is ordering, and several tickets close
 // in one day. Nothing else on a ticket can answer "what did I finish last":
 // `filed` is stamped days later by the filing pass, ids are creation order and
 // not finishing order, and a file's mtime is rewritten by `git checkout` and by
-// `flow ticket filed`.
+// `flow tickets filed`.
 //
 // `filed` holds the date the filing pass swept this ticket, and only that pass
 // writes it. `status: done` says the work is finished; `filed` says the
@@ -70,11 +60,16 @@ const REASON_STATUSES = ['parked', 'dropped'];
 // readable in a file tree. Two buckets, never one per status — a folder per
 // status would make location duplicate `status`, which is the thing that
 // killed promote-on-building. `parked` is revivable, so it stays in the pool.
-const TERMINAL_STATUSES = ['done', 'dropped'];
+const TERMINAL_STATUSES = [...statuses.TERMINAL];
 const ARCHIVE = 'archive';
 
 const ID_WIDTH = 3;
 const SLUG_MAX = 48;
+
+// The label on the end of an id — `t047-parser-split`. Short enough to read at
+// a glance in a list, and long enough to say what the ticket is. The number
+// stays the identity, so a label that goes stale breaks nothing.
+const LABEL_WORDS = 3;
 
 const ticketsDir = (root) => path.join(root, 'docs', 'tickets');
 const archiveDir = (root) => path.join(root, 'docs', 'tickets', ARCHIVE);
@@ -129,6 +124,41 @@ function slugify(title) {
   const cut = base.slice(0, SLUG_MAX);
   const lastDash = cut.lastIndexOf('-');
   return (lastDash > 12 ? cut.slice(0, lastDash) : cut).replace(/-+$/, '');
+}
+
+// Dropped before the label is cut to length. "Fix the login redirect loop"
+// would otherwise spend a third of the label on "the".
+const LABEL_SKIP = new Set(['a', 'an', 'the', 'of', 'to', 'in', 'on', 'for', 'and', 'or', 'into', 'with', 'from', 'that', 'this', 'its', 'it']);
+
+/** The 1-3 word label that follows the number in an id. */
+function labelize(text) {
+  const words = slugify(text).split('-');
+  const kept = words.filter((w) => !LABEL_SKIP.has(w));
+  return (kept.length ? kept : words).slice(0, LABEL_WORDS).join('-');
+}
+
+/** The label part of a folder name, with the number stripped off. */
+const labelOf = (t) => t.dirName.replace(/^t\d+-/, '');
+
+/**
+ * Renames the folder, and only the folder. Nothing stores a label: `deps` and
+ * `parent` hold bare ids, so a rename has no references to chase and cannot
+ * strand one.
+ */
+function relabel(t, given) {
+  const from = labelOf(t);
+  const to = labelize(given);
+  if (to === from) return { from, to };
+
+  const dirName = `${t.id}-${to}`;
+  const wanted = path.join(path.dirname(t.dir), dirName);
+  if (fs.existsSync(wanted)) throw new FlowError(`${wanted} already exists.`);
+
+  fs.renameSync(t.dir, wanted);
+  t.dir = wanted;
+  t.dirName = dirName;
+  t.file = path.join(wanted, 'ticket.md');
+  return { from, to };
 }
 
 function toIdList(v) {
@@ -209,9 +239,9 @@ function relocate(t) {
 
 // `tickets` is passed in when the caller already read the pool — at a few
 // thousand tickets a second scan is the most expensive thing a command does.
-function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, fromGroundwork }) {
+function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, fromGroundwork, label }) {
   const id = nextId(tickets || readTickets(root));
-  const slug = slugify(title);
+  const slug = labelize(label || title);
   const dir = path.join(ticketsDir(root), `${id}-${slug}`);
   if (fs.existsSync(dir)) throw new FlowError(`${dir} already exists.`);
 
@@ -321,7 +351,7 @@ function renderTemplate(name, vars) {
 module.exports = {
   TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES,
   ticketsDir, archiveDir,
-  normalizeId, idNumber, requireId, slugify, toIdList, toPriority, today, now,
+  normalizeId, idNumber, requireId, slugify, labelize, labelOf, relabel, toIdList, toPriority, today, now,
   readTickets, nextId, writeTicket, createTicket, findTicket, hasPlan, reportFiles,
   renderTemplate, // cases.js borrows this, slugify and today; nothing else is shared
 };

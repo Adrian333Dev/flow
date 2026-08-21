@@ -14,7 +14,7 @@ Flow — an agentic development workflow for a solo developer. Work runs groundw
 - **Chain with `&&`** unless a step's output decides the next.
 - **Never run or propose a git command that writes.** Reads are fine; the user drives git.
 - **Internal reasoning stays out of deliverables.**
-- **Every file gets the writing pass.** Skill, `CLAUDE.md`, spec, plan, context file, anything written for the user to read — read `~/.claude/flow/refs/writing.md`, plan the whole file's sections before typing, then test every sentence you wrote against its rules before showing anything. Reading it is not the pass.
+- **Every file gets the writing pass, inside the edit that touched it.** Skill, `CLAUDE.md`, spec, plan, context file, anything written for the user to read — read `~/.claude/flow/refs/writing.md`, plan the whole file's sections before typing, then test every sentence you wrote against its rules before showing anything. Reading it is not the pass. **Never leave a file for a later pass.** Every one deferred comes back as a rewrite.
 - **Every path named here is a default.** One named in `## Preferences`, in this directory's `CLAUDE.md`, or by the user wins.
 
 ## The user
@@ -36,7 +36,7 @@ Write anything worth keeping the moment it surfaces.
 
 **`flow` needs only a git repo**, so committed work gets a ticket nearly everywhere, project or not. The exceptions are a directory under no repo at all, and a repo belonging to someone else.
 
-- Work **committed to** → `flow ticket new "…"`. A feature mentioned for later counts
+- Work **committed to** → `flow tickets new "…"`. A feature mentioned for later counts
 - Rule about the code → `## Rules`. How the user wants to work → `## Preferences`; what they know or don't → `## The user`. Those two **inferred from evidence, never announced and never guessed from the stack** — the same correction twice, irritation at a habit, a term you had to explain
 - Durable project fact — a verified command, a path, a settled convention → `docs/context/<subject>.md`
 - About **Flow itself**, not what you're building → `~/.claude/flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
@@ -59,6 +59,7 @@ Confirm in the final message, never only in a tool call: `[where] what was writt
 - `~/.claude/flow/toolbox/` — external tools filed by job: MCP servers, plugins, skills, libraries, apps. `README.md` indexes them and carries install syntax. Read the one file that fits, never the set
 - `~/.claude/flow/refs/workflow.md` — how Flow's pieces fit together. Only when that is genuinely unclear
 - `~/.claude/flow/refs/writing.md` — the house style: section shapes, sentence rules, what may never be cut
+- `~/.claude/flow/refs/cli-design.md` — the rules `flow`'s own surface follows. Only when adding a command, an action or a flag
 - `~/.claude/flow/refs/study-cases.md` — how to write one
 
 ## Scripts
@@ -71,23 +72,36 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 **`fmerge`** — many files as one stream, each in a fenced block tagged with its path. The read tool past a few files: replaces grep-then-read when the content is what's wanted, and any fan of `Read` above four.
 `fmerge [--ext ts,tsx] [--except pattern] [--force] <path>... [-- note]` — a path is a file, a folder (recursive), or a line range: `file.md:45-89`, inclusive. Path parsing stops at `--`, so an argument line can end in an instruction. Past 2000 lines it returns line counts instead of content, so asking wide is cheap; `--force` overrides.
 
-**`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand. Run bare, it prints its whole surface.
+**`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand.
 
-- Daily loop: `flow next` (what is in flight, then todos with every dependency satisfied, highest priority first, capped at 10) · `start` · `groundwork` · `plan` · `build` · `review` · `done` · `park <id> "reason"`.
-- **`flow start <id>` picks a ticket up at the first status its type uses** — `groundwork` for a `feature`, `chore` or `topic`; `building` for an `issue` or `prototype`, neither of which has questions to settle first.
-- **Bare `flow start` opens a session and writes nothing** — what closed last and what it reported, what is in flight, what was cut out of it, then what could start. It is the view for not knowing what is next; naming a ticket is what picks one up. **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked.
-- Reading: `flow tree` for the whole shape nested by parent · `flow ls [status] [--type T] [--parent <id>] [--unfiled]` · `show <id>`, with children · `status` · `check` for cycles, dangling ids, dropped blockers, closed parents. Plan steps are never counted — open `plan.md` for those; a parent counts its finished children.
-- `flow ticket new "Title" [--type feature] [--priority high] [--parent t047] [--deps t045,t046] [--body -] [--from-groundwork <path>]` — `--body -` takes the body on stdin: create and fill in one command, never create then edit. `--from-groundwork` moves a loose groundwork folder in as the new ticket's `groundwork/`, leaving nothing behind. Also `ticket drop <id> "reason" [--by <id>|--force]`, `ticket dep`, `ticket edit`, `ticket filed <id>…`.
-- `t047`, `t47` and `47` are the same ticket. Reference by id, never by path.
-- **Priority is `high` or `low`, and only when the user asks for one.** No line on disk means normal; a ticket with none inherits the nearest ancestor's. Never stamp one at creation — a field set every time stops meaning anything.
-- **`closed` is stamped by `flow done` and `flow ticket drop`**, and cleared by any move back to a live status. It carries a clock time because ordering finished work is its only job, and nothing else can do it: `filed` lands days later, ids are creation order, and a file's timestamp is rewritten by things that are not work.
-- **A ticket's answers go in `reports/`**, one file per thing answered, named after what it answers — a hunt's cause, a prototype's measurement. Written by the skill that ran, never by `flow`.
-- **A closed ticket is filed once its knowledge has been harvested** — `flow ticket filed t047 t048`, written by `file-findings` and by nothing else. `status: done` says the work finished; `filed` says the lessons were taken out of it. `flow ls --unfiled` is that skill's queue and `flow status` counts it.
-- Refuses what breaks the graph and says why — `start`, `plan` and `done` on a parent with open children, `start` on an unsatisfied dependency, `drop` with live dependents. A parent returns to `flow next` once its last child closes, for whatever work no child held. `--force` is deliberate override, not an escape from a mistake.
+**The shape never changes: `flow <things> <action> [target] [--flags]`, and the action always comes second.** Shorten any name to an unambiguous prefix — `flow t e t047 --status building`. Write full names in every file; abbreviate only at the prompt. Run `flow` bare for the full surface.
+
+- `flow status` — where the work stands. Opens a session, writes nothing
+- `flow next` — what is workable, ranked
+- `flow check` — cycles, dangling ids, dropped blockers, orphaned parents
+- `flow tickets start <id>` — pick one up, at the first status its type uses
+- `flow tickets edit <id> --status <status> [--reason "<why>"] [--title|--label|--type|--priority|--parent <value>]`
+- `flow tickets new "<title>" [--type <type>] [--priority <level>] [--parent <id>] [--deps <id,id>] [--body -]`
+- `flow tickets ls [--status <status>] [--type <type>] [--parent <id>] [--unfiled]`, `get <id>`, `tree`
+- `flow tickets drop <id> --reason "<why>" [--by <id>]` — `--by` re-points whatever depended on it
+- `flow tickets filed <id>…` — `status: done` says the work finished; `filed` says the lessons were taken out of it. `file-findings` stamps it, and nothing else does
+
+The values:
+
+- **`--status`** — `todo → groundwork → planning → building → review → done`, plus `parked` and `dropped` off the line, both needing `--reason`. Every status is a value, never a verb
+- **`--type`** — `feature`, `issue`, `chore`, `topic`, `prototype`
+- **`--priority`** — `high`, `normal` or `low`. **Set one only when the user asks.** `normal` stores no line, so a ticket without one inherits the nearest ancestor's. Never stamp a priority at creation — a field set every time stops meaning anything
+
+The rules:
+
+- **Reference a ticket by id, never a path** — `t047`, `47`, `parser` and `t047-parser-split` all resolve, because the number is the identity and the label is decoration
+- **Create and fill in one command** — `--body -` takes the body on stdin. Never create then edit
+- **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked
+- **Refuses what would break the graph, and says why** — starting on an unsatisfied dependency, closing a parent with open children, dropping with live dependents. Read the refusal; `--force` is deliberate override, not an escape from a mistake
 
 ## Judgment
 
-Governs anything shown to the user for a yes — a design, a plan before `flow build`, a diff at review, an answer.
+Governs anything shown to the user for a yes — a design, a plan before the build, a diff at review, an answer.
 
 - **Say which argument decides it**, and what would have to be true to overturn it.
 - **Lead with the finding that matters.** One structural fault among ten small ones is the whole review; printed under them it reads as a list of small ones.

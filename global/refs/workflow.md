@@ -33,7 +33,7 @@ There are no modes. Any run, any size, routes what it decided — often to more 
 
 `todo → groundwork → planning → building → review → done`. Two off the line: `parked` (revivable) and `dropped` (terminal), each needing a written reason.
 
-**Every type uses a subsequence of that order, never a different order** — which is why one set covers all five, and why `flow ls building` means the same thing whatever it lists:
+**Every type uses a subsequence of that order, never a different order** — which is why one set covers all five, and why `flow tickets ls --status building` means the same thing whatever it lists:
 
 - **`feature`** — all of them.
 - **`chore`** — the same, usually skipping `groundwork`; upkeep rarely has a decision in it.

@@ -15,18 +15,18 @@ One ticket at a time, start to finish. `flow next` says which are workable; the 
 4. **Review** — check the work against the plan, then hand it back.
 
 ```
-flow start t047     → groundwork   /start routes here
-flow plan t047      → planning     Phase 1, then Phase 2
+flow tickets start t047                  → groundwork   /start routes here
+flow tickets edit t047 --status planning → planning     Phase 1, then Phase 2
                                    the user approves the plan
-flow build t047     → building     Phase 3
-flow review t047    → review       Phase 4
+flow tickets edit t047 --status building → building     Phase 3
+flow tickets edit t047 --status review   → review       Phase 4
                                    the user approves the work
-flow done t047      → done
+flow tickets edit t047 --status done     → done
 ```
 
 Two gates, and both belong to the user. Nothing else in the loop stops.
 
-Never build a child's work in its parent. `flow ls --parent t047` lists the children; the parent keeps whatever none of them holds, and `flow start` and `flow plan` both refuse it until they close.
+Never build a child's work in its parent. `flow tickets ls --parent t047` lists the children; the parent keeps whatever none of them holds, and starting or planning it both refuse until they close.
 
 ## Phase 1 — pick up
 
@@ -34,7 +34,7 @@ Never build a child's work in its parent. `flow ls --parent t047` lists the chil
 
 Read the ticket body, its `## State` where one exists, and its `groundwork/map.md`.
 
-**A ticket born in conversation has no `## Done when`.** `flow ticket new` writes a title and leaves the template's comment where the check belongs. Write that check here, from whatever the ticket turns out to be, and show it with the plan. A ticket cut from a spec arrived with one.
+**A ticket born in conversation has no `## Done when`.** `flow tickets new` writes a title and leaves the template's comment where the check belongs. Write that check here, from whatever the ticket turns out to be, and show it with the plan. A ticket cut from a spec arrived with one.
 
 ## Phase 2 — write the plan
 
@@ -75,7 +75,7 @@ More than one step, or more than one file → the user reads the whole plan, wha
 
 They are approving the shape — the order, the seam, the step that is missing. That is what plans get wrong, and all of it is visible without a line of detail. Reading it costs a minute; reading the diff it turns into costs an hour.
 
-Then `flow build t047`.
+Then `flow tickets edit t047 --status building`.
 
 ## Phase 3 — build
 
@@ -143,7 +143,7 @@ Whether you ran it or a worker did.
 
 ### Handing a job to a separate session
 
-A job a separate session picks up becomes a **child ticket** — `/handoff` writes it with `--parent t047`. Several run at once, and `flow done` refuses to close this ticket while any is open. Someone has to see its status, and nobody watches a file.
+A job a separate session picks up becomes a **child ticket** — `/handoff` writes it with `--parent t047`. Several run at once, and closing this ticket refuses while any is open. Someone has to see its status, and nobody watches a file.
 
 **A worker dispatched for a step never needs one.** It gets the step's text and reports back here.
 
@@ -153,11 +153,11 @@ Something turns up mid-build that the plan did not account for. Three outcomes, 
 
 - **Rewrite the plan in place** — the discovery changes how *this* ticket gets built. Yours, and say what changed.
 - **New ticket** — the work is genuinely separable: finishable and checkable without this one. Propose it.
-- **Drop this ticket** — the discovery invalidates it. Propose it; on a yes, `flow ticket drop t047 "<reason>" --by <id>` re-points anything that depended on it.
+- **Drop this ticket** — the discovery invalidates it. Propose it; on a yes, `flow tickets drop t047 --reason "<why>" --by <id>` re-points anything that depended on it.
 
 ## Phase 4 — review and finish
 
-Every step `[x]` → run the full suite Pass 1 named → review what was built → `flow review t047`.
+Every step `[x]` → run the full suite Pass 1 named → review what was built → `flow tickets edit t047 --status review`.
 
 **Verification is fresh or it does not count.** Run the suite in the turn you report it — a pass from three steps ago says nothing about the step you just finished.
 
@@ -168,7 +168,7 @@ Then two passes over the same diff, read once. Asked together, one question hide
 
 **Move anything durable in `## State` to `issues.md`, then delete the section from `ticket.md`.** Git keeps the old state.
 
-`flow review t047` hands it over. It also satisfies other tickets' `deps`, so it already unblocks work — it prints what became ready.
+`flow tickets edit t047 --status review` hands it over. It also satisfies other tickets' `deps`, so it already unblocks work — it prints what became ready.
 
 ### When the user sends review notes
 
@@ -178,9 +178,9 @@ They read the diff and sent back a list. Read the whole list before touching any
 
 Check each note against the code. A note that would break something gets said so, once, with the reason.
 
-**Then `flow build t047`, before the first edit.** Left in `review` while its code is being rewritten, the ticket reports itself as waiting on the user, and every ticket depending on it reads as ready — so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps, since the old ones are all `[x]` and record none of it.
+**Then `flow tickets edit t047 --status building`, before the first edit.** Left in `review` while its code is being rewritten, the ticket reports itself as waiting on the user, and every ticket depending on it reads as ready — so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps, since the old ones are all `[x]` and record none of it.
 
-Then `flow done t047`, once the user says it is done.
+Then `flow tickets edit t047 --status done`, once the user says it is done.
 
 ## The ticket folder
 

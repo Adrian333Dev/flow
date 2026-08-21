@@ -1,0 +1,8 @@
+{
+  "claudeMdExcludes": [
+    "**/wip/**/CLAUDE.md",
+    "**/toolbox/**/CLAUDE.md",
+    "**/global/CLAUDE.md",
+    "**/project-template/CLAUDE.md"
+  ]
+}

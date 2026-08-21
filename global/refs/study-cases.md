@@ -10,12 +10,12 @@ A study case when **an artifact exists that will be gone tomorrow**: output the 
 
 ## Writing one
 
-    flow study-case issues
-    flow study-case new "<title>" --issue <issue> [--rule "<the rule that did not fire>"]
+    flow cases issues
+    flow cases new "<title>" --issue <issue> [--rule "<the rule that did not fire>"]
 
 `flow` owns the path, the date and the frontmatter, and fills the project in from wherever you are. You write the body.
 
-**Run `flow study-case issues` first, every time.** The issue is a folder and it is the whole mechanism: three instances of one failure only add up while they share a name. Name the **kind of failure**, never this instance of it — `premature-implementation`, not `rewrote-the-rules-early`. A near-miss on an existing issue refuses; `--force` means it really is a new kind.
+**Run `flow cases issues` first, every time.** The issue is a folder and it is the whole mechanism: three instances of one failure only add up while they share a name. Name the **kind of failure**, never this instance of it — `premature-implementation`, not `rewrote-the-rules-early`. A near-miss on an existing issue refuses; `--force` means it really is a new kind.
 
 `--rule` names the rule that was loaded and did not fire. Omit it when none was.
 
@@ -39,4 +39,4 @@ Cases are files, at `~/.claude/flow/study-cases/<issue>/<date>-<slug>.md`. A fol
 
 ## Closing
 
-`flow study-case fix <ref> --by <file>`. The file that changed is the point — a fix nobody can point at is not one. Nothing is ever deleted: a fixed case is the evidence for why a rule exists, and is what stops it being compressed away later.
+`flow cases edit <ref> --status fixed --by <file>`. The file that changed is the point — a fix nobody can point at is not one. Nothing is ever deleted: a fixed case is the evidence for why a rule exists, and is what stops it being compressed away later.

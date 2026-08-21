@@ -11,9 +11,9 @@ Sections group by area. Only `## In front of us` is ordered.
 
 ## In front of us
 
-- [ ] **The `flow` command redesign** — a verb per status, so a new status costs no code. `threads.md` → `command-surface`
+- [x] **The `flow` command redesign** — one shape, statuses as data, prefix matching, per-command flag declarations. The rules are in `global/refs/cli-design.md`
 - [x] **`/run`, one command that runs any shell command** — replaces `/merge`, and covers `fmerge`, `ptree` and whatever comes next. Needs `|| true`, or a non-zero exit hands the model nothing. `threads.md` → `command-surface`
-- [ ] **`/start`'s routing line** — the status leads and the arrow points at the skill, nested under `feature` and `chore`. `refactor-agenda.md` item 11
+- [ ] **`/start`'s routing line** — the status leads and the arrow points at the skill, nested under `feature` and `chore`. The shell branch and the command names are already updated. `refactor-agenda.md` item 11
 - [ ] **`execute`'s rewrite** — 193 lines toward 100. Instruct, do not justify. `design-pickup.md`
 
 ## Mixed
@@ -22,7 +22,7 @@ Sections group by area. Only `## In front of us` is ordered.
 - [ ] possibly full restructure of the current directory structure. And possibly improving the state to simplify the testing of latest tooling, skills, commands, or anything.
 - [ ] Introducing development skills.
 
-## The writing pass — 7 skills owed
+## The writing pass — still owed
 
 Each read end to end against `global/refs/writing.md`: plan the sections, then test every sentence. It is a compression pass as well.
 
@@ -33,15 +33,18 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 - [ ] **`research`**
 - [ ] **`write-tickets`**
 - [ ] **`groundwork`** — had its rework, never this pass
+- [ ] **A second pass on `global/CLAUDE.md`** — apply the always-loaded test in `writing.md` §3 to every section, not just `## Scripts`: name a moment the rule fires with no skill loaded, and where you cannot, move it to the skill that owns it. The `flow` block had this pass 2026-08-21
 - [ ] **Finish the `/skill-name` sweep** — `handoff/`, `research/`, `global/refs/study-cases.md`
 - [ ] **`debug-web-pages`** — excluded until it is rebuilt on `browser-harness`, under `## Structure and names`
 
 ## `flow` and the commands
 
-- [ ] **Several ticket ids at once** — every transition takes exactly one, and `file-findings` closes several in a pass. Decide what a partial failure prints. `threads.md` → `command-surface`
-- [ ] **A test suite for `flow`** — about 1,900 lines of Node, verified only by hand. The walks already produced the case material. `handoff.md`
+- [ ] **Several ticket ids at once** — `edit`, `start` and `drop` still take exactly one, and `file-findings` closes several in a pass. The parser already collects a list; decide what a partial failure prints. `threads.md` → `command-surface`
+- [ ] **A test suite for `flow`** — about 2,000 lines of Node, verified only by hand. The redesign was walked command by command in `tmp/flowtest/`, which is the case material. `handoff.md`
 - [ ] **`flow` crashes with `EPIPE`** when its output is piped into `head` — Node's default stdout handling
+- [ ] **`closed` records only the minute, so `last closed` guesses on a tie** — `graph.js:135` breaks it by highest id, which was wrong in the walk on 2026-08-21. Seconds would settle it
 - [ ] **`refs/review-code.md:3` says "Read at Phase 4"** — renumber it with `execute`'s rewrite
+- [ ] **Existing tickets keep their long labels** — `labelize` cuts to 3 words at creation, and nothing rewrites what is already on disk. `flow tickets edit <id> --label` does one at a time
 - [ ] **Simplify `flow`, maybe** — how many concepts it makes you hold, never the code. Low priority, and deliberately vague. `remaining.md`
 
 ## Sessions still to hold
@@ -57,6 +60,8 @@ Each needs its own conversation before anything gets built.
 - [ ] **Tracking every session, subagent and tool call** — hooks carry `session_id`, `agent_id` and the file path natively, and are the only layer that can also block a call. Not designed. `wip/research/claude-audit.md`
 - [ ] **`grill`** — decided and undesigned: a skill you fire at a finished artifact, `disable-model-invocation: true`, never model-invoked. `handoff.md`
 - [ ] **Excalidraw** — 3 third-party skills kept at `wip/excalidraw/`, still no verdict
+- [ ] **Read `deepseek-harness` for ideas** — a plugin-based agent harness where everything is a plugin, cloned at `wip/research/deepseek-harness/`. Carries a second question: whether Flow ever runs outside Claude Code. Ranked below every other session here — github.com/deepseek-ai/deepseek-harness
+- [ ] **Expand `## Explaining` from the two ADHD skills** — both exist to stop an agent burying the answer, and neither is cloned yet: github.com/ayghri/i-have-adhd, github.com/UditAkhourii/adhd. Outranks the `deepseek-harness` read, because explanations to the user keep missing
 
 ## Structure and names
 

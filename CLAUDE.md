@@ -24,13 +24,13 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 - **Read `wip/context/user-profile.md` before writing anything for the user** — voice-to-text input with transcription errors, no filler, a committed recommendation instead of a neutral list of options.
 - **"Tracked" from the user never means git.** It means the agent maintaining a file as the work moves — reading it back, updating it in place. A handoff is untracked in exactly that sense: read once, left alone, rewritten whole next time. Git is settled and separate, and handoff files are committed like everything else. Misread as git repeatedly.
 - **No commits for a while.** The user is not committing until the refactor started 2026-08-09 is finished. An uncommitted tree is the expected state — never offer `gsave` at a checkpoint, never treat the diff size as a problem.
-- **Every file gets the writing pass. No exceptions.** Skill, command, `CLAUDE.md`, context file, workflow doc, anything written for the user to read — read `global/refs/writing.md`, plan the whole file's sections before typing, then test every sentence you wrote against its rules before showing anything. **Reading the file is not the pass.** Editing one section still means planning the whole file. The user named this the failure that repeats most.
+- **Every file gets the writing pass, inside the edit that touched it. No exceptions.** Skill, command, `CLAUDE.md`, context file, workflow doc, anything written for the user to read — read `global/refs/writing.md`, plan the whole file's sections before typing, then test every sentence you wrote against its rules before showing anything. **Reading the file is not the pass.** Editing one section still means planning the whole file. **Never leave a file for a later pass.** Every one deferred comes back as a rewrite. The user named this the failure that repeats most.
 
 ## Judgment
 
 Mirror of `global/CLAUDE.md`, which is the source and does not load. Edit there first, then carry it across.
 
-Governs anything shown to the user for a yes — a design, a plan before `flow build`, a diff at review, an answer.
+Governs anything shown to the user for a yes — a design, a plan before the build, a diff at review, an answer.
 
 - **Say which argument decides it**, and what would have to be true to overturn it.
 - **Lead with the finding that matters.** One structural fault among ten small ones is the whole review; printed under them it reads as a list of small ones.
@@ -109,14 +109,15 @@ To add one: create `<name>/SKILL.md` with `name` and `description` frontmatter, 
 
 ## Layout
 
+- **`.claude/settings.json`** — this repo's own settings, committed. Holds `claudeMdExcludes`, which keeps the 16 `CLAUDE.md` files under `wip/`, `toolbox/`, `global/` and `project-template/` from loading when a file beside one gets read
 - **`backlog.md`** — every open item in Flow, one line each, checkboxes. The only place an open item lives; `wip/context/` holds the reasoning behind them
 - **`global/CLAUDE.md`** — rules that apply in every directory, project or not. Copied to `~/.claude/CLAUDE.md`, then personalized
 - **`global/settings.json`** — permissions, the `PreToolUse` hook, feature flags; every key explained in `global/settings.md`. Merged into `~/.claude/settings.json`
-- **`global/scripts/`** — `ptree.js`, `fmerge.js`, `gsave.sh`, `guard.js`, `snapshot.js`, `link.sh`, `flow/flow.js`. Symlinked as `~/.claude/scripts`; four get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands. `guard.js` and `snapshot.js` are hooks, named by path in `settings.json` and never typed
-- **`global/refs/`** — reference files Flow ships but rarely loads: `writing.md` (how to write a file that loads into context), `workflow.md` (how the pieces fit), `study-cases.md` (how to record a failure). Symlinked as `~/.claude/flow/refs`
+- **`global/scripts/`** — `ptree.js`, `fmerge.js`, `gsave.sh`, `guard.js`, `snapshot.js`, `link.sh`, `flow/` (`flow.js` is the entry; `lib/` holds the argument layer and the model, `commands/` one file per command group). Symlinked as `~/.claude/scripts`; four get a second symlink in `~/.local/bin` named without the extension, which is what makes `ptree`, `fmerge`, `gsave` and `flow` commands. `guard.js` and `snapshot.js` are hooks, named by path in `settings.json` and never typed
+- **`global/refs/`** — reference files Flow ships but rarely loads: `writing.md` (how to write a file that loads into context), `workflow.md` (how the pieces fit), `study-cases.md` (how to record a failure), `cli-design.md` (the rules `flow`'s command surface follows). Symlinked as `~/.claude/flow/refs`
 - **`skills/`** — every skill, one folder each. Symlinked into `~/.claude/skills/`
 - **`agents/`** — subagent definitions, one `.md` file each: a system prompt plus a tool allowlist plus a model. Symlinked into `~/.claude/agents/`. One of them: `haiku-worker`, named for its model so the folder reads at a glance
-- **`commands/`** — `start.md` and `run.md`. A command earns its place only by running something *before* the model thinks, which is the one thing a skill cannot do: `/start t047` runs `flow start && flow show`, `/run` runs whatever you type. Nothing else belongs here, because a skill is typeable as `/<name>` too — that is why `handoff` became a skill
+- **`commands/`** — `start.md` and `run.md`. A command earns its place only by running something *before* the model thinks, which is the one thing a skill cannot do: `/start` runs `flow status` and `/start t047` runs `flow tickets start t047`, `/run` runs whatever you type. Nothing else belongs here, because a skill is typeable as `/<name>` too — that is why `handoff` became a skill
 - **`project-template/`** — `CLAUDE.md` (`## Project` + `## Rules`) and `.gitignore`. Nothing else. One template, copied in as-is; a directory that is not a project deletes `## Project`, which is the section that makes it one
 - **`toolbox/`** — **submodule**, [`Adrian333Dev/toolbox`](https://github.com/Adrian333Dev/toolbox), external tools filed by job. Symlinked as `~/.claude/flow/toolbox`
 - **`wip/`** — the design lab. Ships nowhere and never gets deleted: Flow keeps being improved, so this shrinks to what is still live instead. **The name is wrong and changes later** — nothing in it says design lab

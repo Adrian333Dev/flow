@@ -58,7 +58,7 @@ Build nothing that serves a second purpose. Cut tests, error handling past runna
 - **Measured** → top-line answers first, in the words the question used. Give the numbers. A verdict alone rots: "timestamps are fine" means nothing in six months, "ratio 0.83 to 1.01, no desync" still does. Keep the raw output beside it and cite the code by its `protos/` path.
 - **Judged** → show the variants. Attach no recommendation until the user has looked.
 
-Then say the answers out loud, in the words the question asked for, and stop there. `flow review <id>` hands it over, and `flow done <id>` closes it once the user accepts the answer. Groundwork reads the report and closes its own branch.
+Then say the answers out loud, in the words the question asked for, and stop there. `flow tickets edit <id> --status review` hands it over, and `--status done` closes it once the user accepts the answer. Groundwork reads the report and closes its own branch.
 
 ## Where it lives
 
