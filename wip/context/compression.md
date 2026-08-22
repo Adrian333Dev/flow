@@ -75,3 +75,30 @@ Read once, in full. Do not read again.
 - `wip/refs/caveman/skills/caveman-compress` — thin. Only read-only regions ported.
 - `wip/refs/agent-skills` — addyosmani, workflow skills, the same category as Flow. Unmined.
 - Anthropic, *Effective context engineering for AI agents* — attention budget, context rot, "minimal does not necessarily mean short".
+
+## Splitting a skill into `refs/` — measured 2026-08-22
+
+The question: pull rarely-needed sections out of a `SKILL.md` so they load only when they fire. **Rejected for the process skills, on the numbers.**
+
+- `execute` is ~3350 tokens. Its largest coherent conditional block — the 4 delegation sections, `Whether to delegate` through `Handing a job to a separate session` — is 776, or 23% of the file.
+- Pulling all 776 out saves **0.4% of a 200k window**, and about 78 token-equivalents per turn at cache-read price.
+- All 10 skills together are under 21k tokens, and a single 800-line source file read during a build costs more than the whole of `execute`.
+
+Two arguments that do survive:
+
+- **Attention.** 50 lines of delegation machinery between Phase 3's build loop and Phase 4 dilutes what fires on every run. That is the existing rewrite goal — instruct, do not justify — not a splitting goal.
+- **Accumulation.** 2 to 10 skills loaded at once is realistic once domain skills exist. At `groundwork`'s size that is 8k–41k, and the top end is material.
+
+**The lever is the size of the domain skills, not surgery on the process skills.** 15 domain skills written at 800 tokens instead of 3000 is the difference between 12k and 45k — 3 to 5 times what splitting returns, and it costs nothing because the files do not exist yet.
+
+### The two shapes
+
+- **Process skill** — `execute`, `groundwork`, `debug`. A loop with branches, read in order, and every run needs all of it because no run knows which branch fires. Naturally one file. Splitting buys extra reads, which `writing.md` §3 already rules against.
+- **Domain skill** — how an ORM does migrations, how a framework's boundaries behave. A lookup table, where a run needs **one entry, not the file**. Naturally split: a thin `SKILL.md` index over `refs/`, fetched by name. `debug-web-pages` is already this — 504 tokens over 5k of `knowledge/`.
+
+### Loading facts behind this
+
+- **A skill body enters context once, on invocation, and stays for the session.** Claude Code does not re-read the file on later turns.
+- **Re-invoking with identical rendered content adds a note, not a copy.** Different arguments or different `` !`cmd` `` output re-append the whole body.
+- **`/clear` discards it entirely**, so the next cycle pays the full body again — 4152 tokens for `groundwork`, 4 cycles being ~16.6k. Small against the code and tool output refilling the window anyway.
+- **Auto-compaction is not in play** — the user does not use it.

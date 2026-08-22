@@ -70,6 +70,14 @@ Verified by running the whole loop against a scratch tree — every type's entry
 ## Still open
 
 - **The ticket folder was still `brainstorm/`** — ✅ renamed 2026-08-21, along with `docs/brainstorms/<slug>/` → `docs/groundwork/<slug>/` and `--from-brainstorm` → `--from-groundwork`. Keeping it had been settled on a premise that turned out false: "it is data on disk in live projects", when Flow is installed nowhere and no project has been migrated, so no such data existed. Full entry in `refactor-agenda.md` item 11.
-- **`execute` still owes its rewrite.** The first attempt was rejected for over-explanation: *"there is zero compression... I fully disapprove this shit."* The standard: **instruct, do not justify.** Target is roughly 186 lines to 100, three phases, no numbering change beyond what Phase 1 already lost. `refs/review-code.md:3` still says "Read at Phase 4" and renumbers with it.
+- **`execute`'s rewrite — ✅ done 2026-08-22.** 207 → 178 lines, 2513 → 2110 words. Phase numbering unchanged, so `refs/review-code.md:3` still reads "Read at Phase 4" correctly.
+
+  The first attempt was rejected for over-explanation: *"there is zero compression... I fully disapprove this shit."* The standard held to: **instruct, do not justify.**
+
+  **The 100-line target was not met, and is not reachable without cutting rules.** It was set against 186 lines, before this session deliberately added `### When the built thing is wrong` — the U-turn, ~15 lines. `writing.md` §7 bans cutting rule count as a strategy, and every remaining section is dense with rules: `Dispatching a step` is 6 numbered rules plus 3 status outcomes, `The ticket folder` is 5 owners.
+
+  What actually returned words, in order: **deleting duplication, not trimming sentences.** The 4-item loop list restated the 4 phase headings; the `## Scripts`-style status diagram restated command syntax the global `CLAUDE.md` already loads; `### Handing a job to a separate session` folded into `### Whether to delegate` as one bullet; the "Invoked on a `feature` or `chore`" opener restated the skill's own description verbatim. Line-level trimming returned about 1%, matching what `compression.md` measured on `brainstorm`.
+
+  **A real path to 100 would have to move rules, not cut them** — `Dispatching a step` (266 words) is the only block that could leave whole. Rejected 2026-08-22: it is the block whose omission does silent damage, an unread diff or files pasted into a worker's prompt, and a ref that must be read to avoid silent damage is the worst split candidate. Reversible cheaply once the user knows how often delegation actually fires.
 - **The repo `CLAUDE.md` carries a dead rule** — that a command earns its place by running something before the model thinks. Now factually false. It is the project instruction file, so it waits for the user.
 - **`flow` crashes with `EPIPE` when its output is piped into `head`.** Node's default stdout handling, not introduced by any of this.

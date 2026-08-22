@@ -20,6 +20,7 @@ produces one.
 | **pickup** | `/start` owns pickup, `execute` owns plan → build → review; the skill is `groundwork`, the type is `topic` — full write-up in `design-pickup.md` | **built 2026-08-20**, `execute`'s rewrite still owed |
 | **execute-cost** | the build loop reads expensive — the plan passes, mid-build debugging, the review passes | **built 2026-08-20** — all six parts; `execute` and `debug` rewritten, `agents/debug.md` deleted |
 | **command-surface** | `flow`'s arguments, several ids at once, and one command that runs any shell | raised 2026-08-20, to discuss |
+| **resume** | `/handoff` → `/clear` → carry on, with the third step automatic — full write-up in `design-resume.md` | raised 2026-08-22, mechanics confirmed, shape open |
 
 `remaining.md` → `## Design threads still open` holds the older parked list. This file holds the ones
 above, which are bigger and some of which may reshape the workflow. When a thread closes, its outcome moves into
