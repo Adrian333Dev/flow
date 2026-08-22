@@ -307,9 +307,9 @@ places. Check `handoff/`, `research/` and `global/refs/study-cases.md` the same 
 ## 11. Three corrections after the pickup build — 2026-08-20
 
 The user read the built result and named three. Two are settled — `graph.js` keeps its name, the folder is
-renamed. The routing line is still open, and is written below as they put it, next to what the code does.
+renamed. The routing line landed 2026-08-22 and is written below as they put it, next to what the code does.
 
-### The `/start` routing line is unreadable
+### The `/start` routing line is unreadable — ✅ **done 2026-08-22**
 
 `commands/start.md` carries `` - `feature`, `chore` → `/groundwork` at `groundwork`; `/execute` at `planning`,
 `building` or `review` ``. The first `groundwork` is the skill and the second is the status, and nothing on the

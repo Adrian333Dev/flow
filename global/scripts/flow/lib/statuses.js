@@ -60,6 +60,15 @@ const NEEDS_REASON = setOf('reason');
 const RANK = Object.fromEntries(STATUSES.map((s) => [s.name, s.rank]));
 
 /**
+ * How far along the line a status sits, for asking whether a ticket has already
+ * passed some point. Row order is lifecycle order, so the index answers it.
+ *
+ * `parked` and `dropped` sit off the line and their numbers mean nothing here —
+ * handle both before comparing.
+ */
+const ORDER = Object.fromEntries(STATUSES.map((s, i) => [s.name, i]));
+
+/**
  * The first status a type actually uses. An `issue` and a `prototype` have no
  * questions to settle before work starts — a bug's cause is hunted while the
  * fix is written, and a prototype's question arrives with the ticket — so both
@@ -69,7 +78,7 @@ const ENTRY_STATUS = { issue: 'building', prototype: 'building' };
 const entryStatusFor = (type) => ENTRY_STATUS[type] || 'groundwork';
 
 module.exports = {
-  STATUSES, NAMES, RANK,
+  STATUSES, NAMES, RANK, ORDER,
   OPEN, LIVE, IN_FLIGHT, SATISFYING, TERMINAL, NEEDS_REASON,
   entryStatusFor,
 };

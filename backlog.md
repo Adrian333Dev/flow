@@ -13,7 +13,7 @@ Sections group by area. Only `## In front of us` is ordered.
 
 - [x] **The `flow` command redesign** — one shape, statuses as data, prefix matching, per-command flag declarations. The rules are in `global/refs/cli-design.md`
 - [x] **`/run`, one command that runs any shell command** — replaces `/merge`, and covers `fmerge`, `ptree` and whatever comes next. Needs `|| true`, or a non-zero exit hands the model nothing. `threads.md` → `command-surface`
-- [ ] **`/start`'s routing line** — the status leads and the arrow points at the skill, nested under `feature` and `chore`. The shell branch and the command names are already updated. `refactor-agenda.md` item 11
+- [x] **`/start`'s routing line** — the status leads and the arrow points at the skill, nested under `feature` and `chore`. The shell branch and the command names are already updated. `refactor-agenda.md` item 11
 - [ ] **`execute`'s rewrite** — 193 lines toward 100. Instruct, do not justify. `design-pickup.md`
 
 ## Mixed

@@ -123,10 +123,20 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
     for (const u of unmet) out(`  ${render.blockText(u)}`);
   }
 
-  const unblocked = graph.readyTickets(tickets).filter((x) => !before.includes(x.id));
+  const ready = graph.readyTickets(tickets).map((x) => x.id);
+  const unblocked = tickets.filter((x) => ready.includes(x.id) && !before.includes(x.id));
   if (unblocked.length) {
     out('\nnow ready:');
     out(render.indent(render.ticketTable(unblocked)));
+  }
+
+  // The mirror. A move back down the line un-satisfies deps, so work `flow next`
+  // was offering stops being workable — and the ticket that moved is not one of
+  // them, since leaving `todo` drops it from the ready list on every pickup.
+  const blocked = tickets.filter((x) => x.id !== t.id && before.includes(x.id) && !ready.includes(x.id));
+  if (blocked.length) {
+    out('\nnow blocked:');
+    out(render.indent(render.ticketTable(blocked)));
   }
   if (status === 'parked') out(`\nrevive with: flow tickets start ${t.id}`);
   return 0;
@@ -338,6 +348,27 @@ actions.start = {
     const { root, tickets } = load();
     const t = store.findTicket(tickets, positional[0]);
     const status = statuses.entryStatusFor(t.data.type);
+    const from = t.data.status;
+
+    // Picking up finished work is either a slip or a deliberate reopen, and
+    // neither should happen silently.
+    if (statuses.TERMINAL.has(from)) {
+      throw new FlowError(
+        `${t.id} is ${from}. Reopening is deliberate:\n` +
+        `  flow tickets edit ${t.id} --status ${status}`
+      );
+    }
+
+    // `start` reads the type, never the status, so on a ticket already in flight
+    // it would write a status behind the work — a feature at `building` reset to
+    // `groundwork`, silently, on the command you type to resume it. `parked` is
+    // the exception the whole revive path runs through.
+    if (from !== 'parked' && statuses.ORDER[from] >= statuses.ORDER[status]) {
+      out(`${t.id} is already ${from}.`);
+      out('');
+      out(render.show(t, tickets, root));
+      return 0;
+    }
 
     transition(t, tickets, root, status, {
       force: flags.force,

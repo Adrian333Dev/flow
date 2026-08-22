@@ -35,9 +35,9 @@ Every stored thing gets these 5:
 - **`edit`** — change a field on one
 - **`drop`** — remove one
 
-- **Extra actions are allowed** where a thing needs them. Tickets add `start`, `tree`, `dep` and `filed`.
+- **Extra actions are allowed, and one test decides.** `edit` sets one field, on one ticket, to a value you typed. An extra action earns its place by breaking one of those three: `start` computes the value from the ticket's type, `drop` re-points every ticket that depended on this one, `filed` stamps several tickets at once, `dep` edits a list and so takes `--on` and `--off` rather than a value. `tree` writes nothing at all.
 - **A missing action is deliberate, and the file says why.** Cases have no `drop`, because a recorded failure is never removed — keeping it is the point of writing it down.
-- **Never add an action that sets a field.** Setting a status is `edit --status`, never a verb per status. Six verbs that each wrote one field is what this design replaced, and a new status meant new code every time.
+- **Never add an action that sets a field.** `flow tickets review t047` sets one field, on one ticket, to a value you typed, so it is `edit --status review`. Six verbs that each wrote one status is what this design replaced, and a new status meant new code every time.
 
 ## Flags
 

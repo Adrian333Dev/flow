@@ -149,10 +149,11 @@ A job a separate session picks up becomes a **child ticket** — `/handoff` writ
 
 ### When the plan turns out wrong
 
-Something turns up mid-build that the plan did not account for. Three outcomes, and two of them are the user's call:
+Something turns up mid-build that the plan did not account for. Four outcomes, and three of them are the user's call:
 
 - **Rewrite the plan in place** — the discovery changes how *this* ticket gets built. Yours, and say what changed.
 - **New ticket** — the work is genuinely separable: finishable and checkable without this one. Propose it.
+- **Back to `groundwork`** — what you built changed what this ticket should be. The steps are under **When the built thing is wrong**, in Phase 4.
 - **Drop this ticket** — the discovery invalidates it. Propose it; on a yes, `flow tickets drop t047 --reason "<why>" --by <id>` re-points anything that depended on it.
 
 ## Phase 4 — review and finish
@@ -181,6 +182,19 @@ Check each note against the code. A note that would break something gets said so
 **Then `flow tickets edit t047 --status building`, before the first edit.** Left in `review` while its code is being rewritten, the ticket reports itself as waiting on the user, and every ticket depending on it reads as ready — so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps, since the old ones are all `[x]` and record none of it.
 
 Then `flow tickets edit t047 --status done`, once the user says it is done.
+
+### When the built thing is wrong
+
+They tested it and it is not what they wanted — not a list of corrections, a different answer. The decisions were sound against what anyone knew before there was something to look at, and building it produced the rest. Nothing here is a fault, and none of it earns a study case.
+
+**The two paths split on what came back.** A list of changes to what was built → `building`, above. A changed understanding of what this ticket should be → `groundwork`, here.
+
+Same ticket. Its subject has not changed, and a new one strands the map, the `## References` and the history.
+
+1. **Write what building it taught into `issues.md`**, before anything moves. The reopened map runs on it, and left in the conversation it is gone by the next session.
+2. **Ask what happens to the code** — kept as reference, or reverted. Print the git command; the user runs it. A rejected implementation left in the tree is what the next build starts from.
+3. **`flow tickets edit t047 --status groundwork`**, then `/groundwork`. Read what it prints: leaving `review` stops satisfying other tickets' `deps`, so work that was ready stops being ready.
+4. **`plan.md` is replaced, never extended.** Every step is `[x]` and all of them describe the old shape. Phase 1 writes the new one against the code as it stands that day.
 
 ## The ticket folder
 
