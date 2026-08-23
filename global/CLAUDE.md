@@ -36,7 +36,7 @@ Write anything worth keeping the moment it surfaces.
 
 **`flow` needs only a git repo**, so committed work gets a ticket nearly everywhere, project or not. The exceptions are a directory under no repo at all, and a repo belonging to someone else.
 
-- Work **committed to** → `flow tickets new "…"`. A feature mentioned for later counts
+- Work **committed to** → `flow new "…"`. A feature mentioned for later counts
 - Rule about the code → `## Rules`. How the user wants to work → `## Preferences`; what they know or don't → `## The user`. Those two **inferred from evidence, never announced and never guessed from the stack** — the same correction twice, irritation at a habit, a term you had to explain
 - Durable project fact — a verified command, a path, a settled convention → `docs/context/<subject>.md`
 - About **Flow itself**, not what you're building → `~/.claude/flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
@@ -74,21 +74,22 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 
 **`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand.
 
-**The shape never changes: `flow <things> <action> [target] [--flags]`, and the action always comes second.** Shorten any name to an unambiguous prefix — `flow t e t047 --status building`. Write full names in every file; abbreviate only at the prompt. Run `flow` bare for the full surface.
+**`flow <command> [id] [--flags]`.** A word naming no command is read as a ticket id, which is what makes `flow t047` show one. Shorten any name to an unambiguous prefix — `flow b t047`. Write full names in every file; abbreviate only at the prompt. Run `flow` bare for the full surface.
 
 - `flow status` — where the work stands. Opens a session, writes nothing
 - `flow next` — what is workable, ranked
 - `flow check` — cycles, dangling ids, dropped blockers, orphaned parents
-- `flow tickets start <id>` — pick one up, at the first status its type uses
-- `flow tickets edit <id> --status <status> [--reason "<why>"] [--title|--label|--type|--priority|--parent <value>]`
-- `flow tickets new "<title>" [--type <type>] [--priority <level>] [--parent <id>] [--deps <id,id>] [--body -]`
-- `flow tickets ls [--status <status>] [--type <type>] [--parent <id>] [--unfiled]`, `get <id>`, `tree`
-- `flow tickets drop <id> --reason "<why>" [--by <id>]` — `--by` re-points whatever depended on it
-- `flow tickets filed <id>…` — `status: done` says the work finished; `filed` says the lessons were taken out of it. `file-findings` stamps it, and nothing else does
+- `flow <id>` — one ticket in full, and the command it is waiting for
+- `flow new "<title>" [--type <type>] [--priority <level>] [--parent <id>] [--deps <id,id>] [--body -]`
+- `flow edit <id> [--title|--label|--type|--priority|--parent <value>]` — every field but the status
+- `flow ls [--status <status>] [--type <type>] [--parent <id>] [--unfiled]`, `flow tree`
+- `flow drop <id> --reason "<why>" [--by <id>]` — `--by` re-points whatever depended on it
+- `flow file <id>…` — `status: done` says the work finished; `filed` says the lessons were taken out of it. `file-findings` stamps it, and nothing else does
+
+**A status move is its own command, named after where it lands** — `flow groundwork|plan|build|review|done|todo <id>`, and `flow park <id> --reason "<why>"`. The line is `todo → groundwork → planning → building → review → done`; `parked` and `dropped` sit off it, and both need a reason.
 
 The values:
 
-- **`--status`** — `todo → groundwork → planning → building → review → done`, plus `parked` and `dropped` off the line, both needing `--reason`. Every status is a value, never a verb
 - **`--type`** — `feature`, `issue`, `chore`, `topic`, `prototype`
 - **`--priority`** — `high`, `normal` or `low`. **Set one only when the user asks.** `normal` stores no line, so a ticket without one inherits the nearest ancestor's. Never stamp a priority at creation — a field set every time stops meaning anything
 
@@ -97,7 +98,8 @@ The rules:
 - **Reference a ticket by id, never a path** — `t047`, `47`, `parser` and `t047-parser-split` all resolve, because the number is the identity and the label is decoration
 - **Create and fill in one command** — `--body -` takes the body on stdin. Never create then edit
 - **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked
-- **Refuses what would break the graph, and says why** — starting on an unsatisfied dependency, closing a parent with open children, dropping with live dependents. Read the refusal; `--force` is deliberate override, not an escape from a mistake
+- **Refuses what would break the graph, and says why** — picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents. Read the refusal; `--force` is deliberate override, not an escape from a mistake
+- **Nothing moves a ticket but a status command.** `flow <id>` prints the one a `todo` or `parked` ticket is waiting for, and printing is all it does
 
 ## Judgment
 

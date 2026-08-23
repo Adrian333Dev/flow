@@ -3,8 +3,8 @@
  * The argument layer: one resolver, one parser, one dispatcher, and the help
  * text generated from what the commands declare.
  *
- * Nothing here knows what a ticket is. A command group hands over a table of
- * actions, each declaring the flags it accepts, and this file turns argv into
+ * Nothing here knows what a ticket is. The entry point hands over a table of
+ * commands, each declaring the flags it accepts, and this file turns argv into
  * a call.
  */
 
@@ -16,7 +16,7 @@ const HELP_WORDS = ['-h', '--help', 'help'];
 
 /**
  * Matches a typed word against the names that are legal in its position — the
- * stored thing, the action, a flag, a flag's value.
+ * command, a group's action, a flag, a flag's value.
  *
  * An exact match always wins, so no name is ever hidden by being the start of
  * a longer one. A single prefix match resolves. Several fail and list the
@@ -24,15 +24,23 @@ const HELP_WORDS = ['-h', '--help', 'help'];
  * the day a new name is added beside it.
  */
 function resolve(word, candidates, label, prefix = '') {
-  const show = (list) => list.map((c) => prefix + c).join(', ');
-  if (candidates.includes(word)) return word;
+  const hit = match(word, candidates, prefix);
+  if (hit) return hit;
+  const show = candidates.map((c) => prefix + c).join(', ');
+  throw new FlowError(`unknown ${label} "${prefix}${word}" — one of: ${show}`);
+}
 
+/**
+ * `resolve` without the last refusal: nothing matched returns null, so the
+ * caller can try the word as something other than a name. Ambiguity still
+ * throws — two commands start with `p`, and picking one would be a guess.
+ */
+function match(word, candidates, prefix = '') {
+  if (candidates.includes(word)) return word;
   const hits = candidates.filter((c) => c.startsWith(word));
   if (hits.length === 1) return hits[0];
-  if (hits.length === 0) {
-    throw new FlowError(`unknown ${label} "${prefix}${word}" — one of: ${show(candidates)}`);
-  }
-  throw new FlowError(`"${prefix}${word}" is ambiguous — ${show(hits)}`);
+  if (hits.length === 0) return null;
+  throw new FlowError(`"${prefix}${word}" is ambiguous — ${hits.map((c) => prefix + c).join(', ')}`);
 }
 
 /**
@@ -87,28 +95,31 @@ function parseArgs(argv, decl = {}) {
   return { positional, flags };
 }
 
-function runAction(action, argv, usage) {
+function runAction(action, argv, usage, extra) {
   const { positional, flags } = parseArgs(argv, { ...action, usage });
-  return action.run({ positional, flags, usage });
+  return action.run({ positional, flags, usage, ...extra });
 }
 
 /**
- * Two kinds of command, and the first word says which. A board command answers
- * a question about the work as a whole; everything else names a stored thing
- * and the action comes next.
+ * The first word is the command. Almost every one of them acts on a ticket, so
+ * tickets have no name of their own here — `flow ls`, `flow build t047`. A word
+ * that names no command is a ticket id, which is what makes `flow t047` show
+ * one. Only `cases` keeps a group, because it is a different stored thing.
  */
-function dispatch(argv, { groups, board, title, notes }) {
+function dispatch(argv, { commands, groups, fallback, sections, title, notes }) {
   if (!argv.length || HELP_WORDS.includes(argv[0])) {
-    out(help({ groups, board, title, notes }));
+    out(help({ commands, groups, sections, title, notes }));
     return 0;
   }
 
   const [first, ...rest] = argv;
   if (first.startsWith('-')) throw new FlowError(`"${first}" is a flag — a command comes first.`);
 
-  const name = resolve(first, [...Object.keys(board), ...Object.keys(groups)], 'command');
+  const names = [...Object.keys(commands), ...Object.keys(groups)];
+  const name = match(first, names);
 
-  if (board[name]) return runAction(board[name], rest, `flow ${name}`);
+  if (!name) return runAction(fallback, argv, 'flow <id>', { unnamed: names });
+  if (commands[name]) return runAction(commands[name], rest, `flow ${name}`);
 
   const group = groups[name];
   const [typed, ...args] = rest;
@@ -134,21 +145,36 @@ function flagText(action) {
  * one line ran past 200 characters on `new` and `edit`, which is where the
  * flags matter most.
  */
+function line(left, summary) {
+  const pad = ' '.repeat(GUTTER);
+  return left.length < GUTTER ? left.padEnd(GUTTER) + summary : `${left}\n${pad}${summary}`;
+}
+
 function actionLines(prefix, actions) {
   const pad = ' '.repeat(GUTTER);
   const lines = [];
   for (const [name, action] of Object.entries(actions)) {
-    const left = `  ${prefix} ${name}${action.args ? ' ' + action.args : ''}`;
-    lines.push(left.length < GUTTER ? left.padEnd(GUTTER) + action.summary : `${left}\n${pad}${action.summary}`);
+    lines.push(line(`  ${prefix} ${name}${action.args ? ' ' + action.args : ''}`, action.summary));
     const flags = flagText(action);
     if (flags) lines.push(pad + flags);
   }
   return lines;
 }
 
-function help({ groups, board, title, notes }) {
-  const lines = [title, '', 'the board'];
-  lines.push(...actionLines('flow', board));
+/**
+ * Commands print in sections, though they all live in one flat namespace. The
+ * sections are for reading: 18 commands in one alphabetical block hides which
+ * ones move a ticket and which ones only look at it.
+ */
+function help({ commands, groups, sections, title, notes }) {
+  const lines = [title];
+  for (const s of sections) {
+    const picked = Object.fromEntries(Object.entries(commands).filter(([, a]) => a.section === s.key));
+    if (!Object.keys(picked).length && !s.lead) continue;
+    lines.push('', s.title);
+    for (const [left, summary] of s.lead || []) lines.push(line(`  ${left}`, summary));
+    lines.push(...actionLines('flow', picked));
+  }
   for (const [name, group] of Object.entries(groups)) {
     lines.push('', group.summary ? `${name} — ${group.summary}` : name);
     lines.push(...actionLines(`flow ${name}`, group.actions));
@@ -163,4 +189,4 @@ function groupHelp(name, group) {
   return lines.join('\n');
 }
 
-module.exports = { out, resolve, parseArgs, dispatch };
+module.exports = { out, resolve, match, parseArgs, dispatch };

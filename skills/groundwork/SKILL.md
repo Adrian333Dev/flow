@@ -16,6 +16,16 @@ The work before the work: every open decision found, walked to a written answer,
 
 Same 4 phases at any size. 3 words or 10 paragraphs — long input means more to extract, less to generate.
 
+## Arriving on a ticket
+
+Groundwork also runs on a loose subject with no ticket, and then none of this applies.
+
+**Nothing has moved the ticket — `/start` only read it.** The status says where the work stopped, `map.md` says whether it finished, and this skill writes the move.
+
+- **`todo`** → `flow groundwork <id>`, then Phase 1
+- **`groundwork`, anything still `[ ]`** → keep walking it, from Phase 2
+- **`groundwork`, nothing left `[ ]`** → Phase 4 routes what the map decided. Then `flow plan <id>` and hand the ticket to `/execute` — or `flow done <id>` on a `topic`, where the map was the deliverable
+
 ## Phase 1 — build the map
 
 ### 1. Pick the folder
@@ -88,7 +98,7 @@ One branch at a time. Interview until the decision is genuinely clear. A first a
 
 Batching 2–3 locked decisions into 1 write is fine. Never gate a write behind a yes/no question, never end a session with a settled branch unwritten.
 
-Sub-branches surface mid-conversation. Add them as `[ ]` children immediately, walk them after the parent closes. A branch that turns out to be its own subject can leave instead — `flow tickets new "…" --type topic --parent <id>` gives it its own map and session. Most never need it.
+Sub-branches surface mid-conversation. Add them as `[ ]` children immediately, walk them after the parent closes. A branch that turns out to be its own subject can leave instead — `flow new "…" --type topic --parent <id>` gives it its own map and session. Most never need it.
 
 **Never expose the bookkeeping.** No index numbers, no checkboxes, no "branch 2.1". Plain prose: situation, options, recommendation.
 
@@ -101,7 +111,7 @@ Sub-branches surface mid-conversation. Add them as `[ ]` children immediately, w
 - **What already exists here** → read it. Code, documents, files. Never burn a branch on what they already say.
 - **Something documented elsewhere** → **invoke `/research`**, levels 1–2.
 - **Past what the documentation says** → **invoke `/research`**, level 3: get the source and read it. **This is the case that sinks plans** — committing to a tool's internals unread produces a design that dies 4 steps into the build.
-- **Nothing written can answer it** → run something. A cheap check — one command, a 10-second script — runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail, a child of this work where there is one: `flow tickets new "<question>" --type prototype --parent <id>`. **Never build it here** — a fresh session does that, then this groundwork resumes and reads the finding in the ticket's `reports/`. Keep walking branches that don't need the answer; when nothing else can move, say the map is waiting on that ticket and stop.
+- **Nothing written can answer it** → run something. A cheap check — one command, a 10-second script — runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail, a child of this work where there is one: `flow new "<question>" --type prototype --parent <id>`. **Never build it here** — a fresh session does that, then this groundwork resumes and reads the finding in the ticket's `reports/`. Keep walking branches that don't need the answer; when nothing else can move, say the map is waiting on that ticket and stop.
 
 **A landscape too big to read here goes to a subagent**, never a ticket — reading asks no questions back, so nothing needs to watch it. `/research` owns the brief. The branch stays `[ ]` until the report lands in `docs/research/`; cut it mid-map and keep walking, because waiting is only for a branch nothing downstream can move without. A whole product is where this fires, since reading 3 tool landscapes inline spends the map's context on material the map never keeps.
 
@@ -162,20 +172,20 @@ Run at 3 moments: the user asks it of a specific proposal, your own proposal loo
 
 Confirm every branch is resolved or deliberately deferred, then send each decision to the file that owns it. **Every route is conditional** — most runs use 1 or 2, several at once is normal.
 
-- **Work committed to here** → a ticket per unit of work, `flow tickets new "…"`, each carrying what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list** — `/execute` reads every one of them, and a ticket pointed at everything is pointed at nothing.
+- **Work committed to here** → a ticket per unit of work, `flow new "…"`, each carrying what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list** — `/execute` reads every one of them, and a ticket pointed at everything is pointed at nothing.
 - **Work already written into `docs/spec/product.md`** → **invoke `/write-tickets`**. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
 - **Anything settled that outlives the build** — what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `refs/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
 - **A durable fact about this project** → `docs/context/<subject>.md`.
 - **Settled and dying with the build**, this build's non-goals included → already written in `map.md`. Leave it there.
 - **Decided, but not now** → `## Deferred` in the map, with the reason.
 - **Nothing** → deliberate. Say so out loud and say why, in `map.md`.
-- **Not worth building, on a ticket** → propose parking it. On a yes, `flow tickets edit <id> --status parked --reason "<why>"`.
+- **Not worth building, on a ticket** → propose parking it. On a yes, `flow park <id> --reason "<why>"`.
 
 **Nothing** is a legitimate outcome. Groundwork that resolves to "not worth doing" did its job.
 
 **Then move the folder, once, and only here:**
 
-- Exactly 1 unit of work → `flow tickets new "…" --from-groundwork <path>`. The tool moves the folder in as that ticket's `groundwork/` and leaves nothing behind. Never move it by hand.
+- Exactly 1 unit of work → `flow new "…" --from-groundwork <path>`. The tool moves the folder in as that ticket's `groundwork/` and leaves nothing behind. Never move it by hand.
 - Several units, each useful alone → **it stays**, and becomes the design record the tickets link back to.
 - Several units, useless shipped apart → one parent ticket with children, created with the same flag so the folder lands on the parent. **The parent keeps only what no child holds** — the wiring, the integration test, the final suite.
 

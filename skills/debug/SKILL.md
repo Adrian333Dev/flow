@@ -9,6 +9,8 @@ Find the cause by evidence, prove it, then fix it. The fix is the cheap part.
 
 **The red command** — one command that fails on this exact bug, every run, and prints something that moves when the bug does. Everything below reads from it.
 
+**On a ticket** → `flow build <id>` before step 1. An `issue` has no phase before building, and nothing has moved the ticket already.
+
 ## The loop
 
 Four steps, in order. A step you cannot finish is the finding: say so and stop there.
@@ -90,7 +92,7 @@ Two things end the hunt here: **the fix needs a decision nobody gave**, or **the
 `flow` takes the body on stdin, so an untruncated stack trace never passes through shell quoting:
 
 ```bash
-flow tickets new "<what failed>" --type issue --parent t047 --body - <<'EOF'
+flow new "<what failed>" --type issue --parent t047 --body - <<'EOF'
 <the four things>
 EOF
 ```

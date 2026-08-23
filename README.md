@@ -14,7 +14,7 @@ A project then adds only what actually varies: its name and stack, and the rules
 
 - `global/` — what gets installed into `~/.claude/`: rules, settings, scripts, reference files
 - `skills/` — every skill, symlinked into `~/.claude/skills/`
-- `commands/` — no slash commands ship today. `link.sh` still links this folder when one appears
+- `commands/` — `/start` and `/run`, symlinked into `~/.claude/commands/`
 - `project-template/` — the two-and-a-bit files a new project starts with
 
 ## Setup — once per machine
@@ -77,7 +77,7 @@ Four are commands on `PATH`, called by name from anywhere:
 
 - `ptree` (`ptree.js`) — filtered project tree, each entry's own `description:` line beside it: `ptree [path] [--depth N] [--except pattern]`
 - `fmerge` (`fmerge.js`) — merge files or line ranges into one blob for large reads
-- `flow` (`flow/flow.js`) — tickets: `flow next`, `flow start <id>`, `flow build <id>`, `flow tree`, `flow ls`, `flow ticket new "…"`. Also `flow study-case …`, which records study cases under `~/.claude/flow/` — the one group that works outside a project
+- `flow` (`flow/flow.js`) — tickets: `flow status`, `flow next`, `flow t047`, `flow build t047`, `flow tree`, `flow ls`, `flow new "…"`. Also `flow cases …`, which records study cases under `~/.claude/flow/` — the one group that works outside a project
 - `gsave` (`gsave.sh`) — `git add` + `commit` + `push` in one command. Nothing else; anything git can already do stays a git command. User-run only.
 
 Two are referenced by path, never typed:

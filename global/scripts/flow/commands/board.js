@@ -1,7 +1,9 @@
 'use strict';
 /**
- * The 3 commands about the work as a whole. None of them names a stored thing,
- * which is the test for belonging here rather than under `flow tickets`.
+ * The 3 commands that answer a question about the work as a whole rather than
+ * about one ticket. Everything ticket-shaped lives in commands/tickets.js; the
+ * two files land in one flat namespace, and `section` decides where help
+ * prints each command.
  */
 
 const { FlowError } = require('../lib/error');
@@ -39,6 +41,7 @@ const board = {};
  * picking up the next thing.
  */
 board.next = {
+  section: 'board',
   summary: 'what to work on, ranked',
   flags: { limit: { arg: '<n>' }, all: { bool: true } },
   run({ flags }) {
@@ -69,7 +72,7 @@ board.next = {
     }
     out(`nothing ready. ${blocked.length} todo ticket${blocked.length === 1 ? '' : 's'} blocked:\n`);
     out(render.blockedLines(blocked.slice(0, 8)));
-    if (blocked.length > 8) out(`\n  … and ${blocked.length - 8} more (flow tickets ls --status todo)`);
+    if (blocked.length > 8) out(`\n  … and ${blocked.length - 8} more (flow ls --status todo)`);
     return 0;
   },
 };
@@ -80,6 +83,7 @@ board.next = {
  * across every status. Read-only on purpose — picking is a separate act.
  */
 board.status = {
+  section: 'board',
   summary: 'where the work stands',
   flags: { limit: { arg: '<n>' }, all: { bool: true } },
   run({ flags }) {
@@ -89,6 +93,7 @@ board.status = {
 };
 
 board.check = {
+  section: 'board',
   summary: 'cycles, dangling ids, dropped blockers, orphaned parents',
   run() {
     const problems = graph.check(load());

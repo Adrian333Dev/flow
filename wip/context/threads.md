@@ -19,7 +19,7 @@ produces one.
 | **ascii-engine** | hand it JSON, get back the drawing — full write-up in `design-ascii-engine.md` | raised 2026-08-19, to brainstorm in its own session |
 | **pickup** | `/start` owns pickup, `execute` owns plan → build → review; the skill is `groundwork`, the type is `topic` — full write-up in `design-pickup.md` | **built 2026-08-20**, `execute`'s rewrite still owed |
 | **execute-cost** | the build loop reads expensive — the plan passes, mid-build debugging, the review passes | **built 2026-08-20** — all six parts; `execute` and `debug` rewritten, `agents/debug.md` deleted |
-| **command-surface** | `flow`'s arguments, several ids at once, and one command that runs any shell | raised 2026-08-20, to discuss |
+| **command-surface** | `flow`'s arguments, several ids at once, and one command that runs any shell | **built 2026-08-23** — full write-up in `design-cli-rework.md` |
 | **resume** | `/handoff` → `/clear` → carry on, with the third step automatic — full write-up in `design-resume.md` | raised 2026-08-22, mechanics confirmed, shape open |
 
 `remaining.md` → `## Design threads still open` holds the older parked list. This file holds the ones
@@ -674,8 +674,10 @@ blocking call has to be rewritten against a mechanism that never blocks.
 
 ## command-surface — what the user types
 
-**Raised by the user 2026-08-20. Nothing here is decided.** Two halves, and the second builds without the
-first.
+**Raised by the user 2026-08-20. Settled 2026-08-22 — `design-cli-rework.md` holds the answer to all 3 parts
+and everything below is superseded by it.** Read it instead: the verb question resolved as *both*, several
+ids died because the case behind it turned out not to exist, and `/run` shipped. Two halves, and the second
+builds without the first.
 
 ### `flow` has a verb per status
 

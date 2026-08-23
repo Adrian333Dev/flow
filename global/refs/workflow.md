@@ -33,7 +33,7 @@ There are no modes. Any run, any size, routes what it decided — often to more 
 
 `todo → groundwork → planning → building → review → done`. Two off the line: `parked` (revivable) and `dropped` (terminal), each needing a written reason.
 
-**Every type uses a subsequence of that order, never a different order** — which is why one set covers all five, and why `flow tickets ls --status building` means the same thing whatever it lists:
+**Every type uses a subsequence of that order, never a different order** — which is why one set covers all five, and why `flow ls --status building` means the same thing whatever it lists:
 
 - **`feature`** — all of them.
 - **`chore`** — the same, usually skipping `groundwork`; upkeep rarely has a decision in it.
@@ -43,7 +43,7 @@ There are no modes. Any run, any size, routes what it decided — often to more 
 
 `docs/tickets/` stays flat on disk — the hierarchy is `parent:` in frontmatter, and `flow` renders it on demand.
 
-Pickup is where a ticket's shape gets decided, and it is the one real decision in the system. `/start` walks it: it routes on `type:` and `status:`, and nothing else happens there. `groundwork` settles what the ticket is; `execute` plans, builds and reviews it.
+Pickup is where a ticket's shape gets decided, and it is the one real decision in the system. `/start` walks it: it routes on `type:` and `status:`, and nothing else happens there. **The ticket does not move at pickup** — the skill that takes it writes the status, after opening the phase's own artifact. `groundwork` settles what the ticket is; `execute` plans, builds and reviews it.
 
 ## Inside each place
 

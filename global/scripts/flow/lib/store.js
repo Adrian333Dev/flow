@@ -15,7 +15,7 @@ const frontmatter = require('./frontmatter');
 const statuses = require('./statuses');
 const { FlowError } = require('./error');
 
-const TICKET_KEYS = ['id', 'title', 'status', 'type', 'priority', 'parent', 'deps', 'reason', 'closed', 'filed'];
+const TICKET_KEYS = ['id', 'title', 'status', 'type', 'priority', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
 
 // The vocabulary and every property of it live in one table — see statuses.js.
 const TICKET_STATUSES = statuses.NAMES;
@@ -40,15 +40,21 @@ const toPriority = (v) => {
 
 // Statuses whose `reason:` is required and typed by the user. Everywhere else
 // the workflow is its own explanation.
+//
+// `resume` is the other half of parking: the status the ticket left, so it
+// comes back where it stopped. It lives and dies with `reason` — both are
+// written when a ticket is parked and cleared by the move off it.
 const REASON_STATUSES = [...statuses.NEEDS_REASON];
 
 // `closed` is the moment work stopped — stamped when a ticket reaches `done`
-// or `dropped`, cleared by any move back to a live status. It carries a clock time and
-// not just a date because its only job is ordering, and several tickets close
-// in one day. Nothing else on a ticket can answer "what did I finish last":
+// or `dropped`, cleared by any move back to a live status. It carries the clock
+// down to the second because its only job is ordering, and closing a batch puts
+// several tickets inside one minute — which then tie, and `last closed` picks
+// whichever the directory happened to list first. Nothing else on a ticket can
+// answer "what did I finish last":
 // `filed` is stamped days later by the filing pass, ids are creation order and
 // not finishing order, and a file's mtime is rewritten by `git checkout` and by
-// `flow tickets filed`.
+// `flow file`.
 //
 // `filed` holds the date the filing pass swept this ticket, and only that pass
 // writes it. `status: done` says the work is finished; `filed` says the
@@ -110,7 +116,7 @@ function today() {
 function now() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, '0');
-  return `${today()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${today()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 function slugify(title) {
@@ -286,15 +292,30 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
 }
 
 /**
- * Whether this ticket has a plan. Existence only — nothing counts the steps.
+ * Whether this ticket has a plan, and how far it got.
  *
- * `flow` used to report `4/9` by matching top-level checkboxes in `plan.md`,
- * which made a regex over hand-written prose decide what the daily lists said,
- * and quietly read zero whenever a plan was shaped any other way. A step count
- * only means anything inside the plan itself; out in a list, `status` already
- * answers the question the count was there for.
+ * `flow` used to report `4/9` in every list, which put a regex over
+ * hand-written prose into the daily views and read zero whenever a plan was
+ * shaped any other way. The count is back in `flow <id>` alone. There it
+ * answers the question a session picking the ticket up actually has — is the
+ * plan written, and is it finished — and it is counted at read time, so it
+ * cannot drift from the file the way a stored number would. A plan with no
+ * checkboxes reports no count at all rather than `0/0`.
  */
-const hasPlan = (t) => fs.existsSync(path.join(t.dir, 'plan.md'));
+const planFile = (t) => path.join(t.dir, 'plan.md');
+const hasPlan = (t) => fs.existsSync(planFile(t));
+
+// `1. [ ] **Add the config table**` is a step. Anything indented under it is a
+// sub-check the build added, which `execute` says explicitly in the format it
+// writes — so the left margin is what separates the two.
+const STEP = /^ {0,3}(?:\d+[.)]|[-*])\s+\[([ xX])\]/;
+
+function planSteps(t) {
+  if (!hasPlan(t)) return null;
+  const boxes = fs.readFileSync(planFile(t), 'utf8').split('\n').map((l) => l.match(STEP)).filter(Boolean);
+  if (!boxes.length) return null;
+  return { done: boxes.filter((m) => m[1] !== ' ').length, total: boxes.length };
+}
 
 /**
  * Reports written into the ticket, one per thing answered. A folder rather than
@@ -352,6 +373,6 @@ module.exports = {
   TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES,
   ticketsDir, archiveDir,
   normalizeId, idNumber, requireId, slugify, labelize, labelOf, relabel, toIdList, toPriority, today, now,
-  readTickets, nextId, writeTicket, createTicket, findTicket, hasPlan, reportFiles,
+  readTickets, nextId, writeTicket, createTicket, findTicket, hasPlan, planSteps, reportFiles,
   renderTemplate, // cases.js borrows this, slugify and today; nothing else is shared
 };

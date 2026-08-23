@@ -178,7 +178,7 @@ function openChildren(tickets, id) {
   return children(tickets, id).filter((t) => OPEN.has(t.data.status));
 }
 
-/** Children, their children, and so on — what `flow tickets tree --parent` keeps. */
+/** Children, their children, and so on — what `flow tree --parent` keeps. */
 function descendants(tickets, id) {
   const found = [];
   const seen = new Set([id]);

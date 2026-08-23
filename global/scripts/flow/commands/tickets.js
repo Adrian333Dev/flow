@@ -2,10 +2,13 @@
 /**
  * Everything that acts on a ticket.
  *
- * `edit` owns every field change, including `status` — the six transition verbs
- * that used to live here were six ways to write one field, and each new status
- * meant new code. `drop` stays its own action because it repairs the tickets
- * that depended on the one being killed.
+ * None of it is spelled `flow tickets ...`. A ticket is what this tool is
+ * about, so these sit at the top level and the noun is left out — `flow ls`,
+ * `flow build t047`. Only `cases` keeps a group name, being a different thing.
+ *
+ * The status verbs are generated from the status table rather than written out.
+ * Each is the same call into `transition`, so a verb cannot skip a guard, and a
+ * status added to the table arrives with its command already working.
  */
 
 const fs = require('fs');
@@ -25,6 +28,23 @@ function load() {
 
 const rel = (root, p) => path.relative(root, p) || p;
 
+/**
+ * `flow t047` and `flow get t047` both land on the same lookup. The first got
+ * here because `t047` matched no command — which means a mistyped command,
+ * `flow buidl t047`, arrives here too and would fail with a message about
+ * tickets. `unnamed` is passed on that path only, and says what else it tried.
+ */
+function find(tickets, ref, unnamed) {
+  try {
+    return store.findTicket(tickets, ref);
+  } catch (e) {
+    if (unnamed && e instanceof FlowError) {
+      throw new FlowError(`${e.message}\n  "${ref}" is not a command either — flow help lists them.`);
+    }
+    throw e;
+  }
+}
+
 /** `--body -` reads the whole body from stdin, so creating and filling a ticket is one command. */
 function readBody(flags) {
   if (flags.body === '-') {
@@ -43,13 +63,14 @@ function readBody(flags) {
 // ---------------------------------------------------------------- moving
 
 /**
- * The one place a status is written.
+ * The one place a status is written. Every verb goes through it.
  *
  * Guards are keyed to where the ticket is coming from, never to where it is
- * going. The entry status varies by type, so a target-status test would let a
- * start on an issue walk past both refusals. `planning` is guarded as well
- * because groundwork is where children get cut: a parent whose work just moved
- * into its children cannot have a plan written for it until they close.
+ * going. The entry status varies by type, so a target-status test would let an
+ * issue picked up at `building` walk past both refusals. `planning` is guarded
+ * as well because groundwork is where children get cut: a parent whose work
+ * just moved into its children cannot have a plan written for it until they
+ * close.
  */
 function transition(t, tickets, root, status, { force, reason, verb }) {
   const from = t.data.status;
@@ -111,6 +132,11 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
   // A reason outlives only the status it explains. Carrying "waiting on the Q3
   // API" into a ticket now being built is worse than carrying nothing.
   t.data.reason = reason || '';
+  // Where a parked ticket comes back to. Nothing used to store this: revive
+  // recomputed the entry status from the type, so a feature parked at
+  // `building` came back at `groundwork` — losing two phases, on the command
+  // the tool printed for it. The status it left is the only thing that knows.
+  t.data.resume = status === 'parked' ? from : '';
 
   const moved = store.writeTicket(t);
   out(`${t.id}  ${from} → ${status}   ${t.data.title}`);
@@ -138,15 +164,92 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
     out('\nnow blocked:');
     out(render.indent(render.ticketTable(blocked)));
   }
-  if (status === 'parked') out(`\nrevive with: flow tickets start ${t.id}`);
+  if (status === 'parked') out(`\nrevive with: flow ${render.reviveVerb(t)} ${t.id}`);
   return 0;
 }
 
-// ---------------------------------------------------------------- actions
+// ---------------------------------------------------------------- the board
 
 const actions = {};
 
+actions.ls = {
+  section: 'board',
+  summary: 'list many, filtered',
+  flags: {
+    status: { values: statuses.NAMES, arg: '<status>' },
+    type: { values: store.TICKET_TYPES, arg: '<type>' },
+    parent: { arg: '<id>' },
+    unfiled: { bool: true },
+  },
+  run({ flags }) {
+    const { tickets } = load();
+    let list = tickets;
+
+    if (flags.status) list = list.filter((t) => t.data.status === flags.status);
+    if (flags.type) list = list.filter((t) => t.data.type === flags.type);
+    if (flags.parent) {
+      const parent = store.requireId(flags.parent);
+      list = list.filter((t) => t.data.parent === parent);
+    }
+    // The filing pass runs this first, to get the ids it will sweep. Done only:
+    // a dropped ticket's reason is its whole record, and an open one is still
+    // producing the material the pass would file.
+    if (flags.unfiled) list = list.filter((t) => t.data.status === 'done' && !t.data.filed);
+
+    out(render.ticketTable(graph.rankByStatus(list, tickets), tickets));
+    if (list.length) out(`\n${list.length} of ${tickets.length}.`);
+    return 0;
+  },
+};
+
+/**
+ * The whole shape, which nothing else shows. `ls` is a flat table with a parent
+ * column and `get` is one ticket — the hierarchy that `parent` builds had no
+ * renderer at all.
+ */
+actions.tree = {
+  section: 'board',
+  summary: 'the shape, nested by parent',
+  flags: { parent: { arg: '<id>' }, all: { bool: true } },
+  run({ flags }) {
+    const { tickets } = load();
+    if (!tickets.length) { out('no tickets yet.'); return 0; }
+
+    let pool = tickets;
+    if (flags.parent) {
+      const top = store.findTicket(tickets, flags.parent);
+      pool = [top, ...graph.descendants(tickets, top.id)];
+    }
+
+    // Done and dropped collapse into the parent's count by default. A tree
+    // carrying every finished ticket is the noise a tree exists to strip.
+    const visible = flags.all ? pool : pool.filter((t) => !statuses.TERMINAL.has(t.data.status));
+    if (!visible.length) { out('nothing live here — flow tree --all includes done and dropped.'); return 0; }
+
+    out(render.tree(graph.forest(visible), tickets));
+    const hidden = pool.length - visible.length;
+    out(`\n${visible.length} ticket${visible.length === 1 ? '' : 's'}` +
+      (hidden ? `, ${hidden} done or dropped hidden — flow tree --all` : ''));
+    return 0;
+  },
+};
+
+// ---------------------------------------------------------------- one ticket
+
+actions.get = {
+  section: 'tickets',
+  args: '<id>',
+  summary: 'the same, spelled out',
+  run({ positional, usage, unnamed }) {
+    if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
+    const { root, tickets } = load();
+    out(render.show(find(tickets, positional[0], unnamed), tickets, root));
+    return 0;
+  },
+};
+
 actions.new = {
+  section: 'tickets',
   args: '"<title>"',
   summary: 'create one',
   flags: {
@@ -208,65 +311,29 @@ actions.new = {
     if (t.data.priority) out(`        priority: ${t.data.priority}`);
     if (parent) out(`        parent: ${parent}`);
     if (deps.length) out(`        deps: ${deps.join(', ')}`);
+    out(`\npick up with: flow ${statuses.VERB_OF[statuses.entryStatusFor(t.data.type)]} ${t.id}`);
     return 0;
   },
 };
 
-actions.ls = {
-  summary: 'list many, filtered',
-  flags: {
-    status: { values: statuses.NAMES, arg: '<status>' },
-    type: { values: store.TICKET_TYPES, arg: '<type>' },
-    parent: { arg: '<id>' },
-    unfiled: { bool: true },
-  },
-  run({ flags }) {
-    const { tickets } = load();
-    let list = tickets;
-
-    if (flags.status) list = list.filter((t) => t.data.status === flags.status);
-    if (flags.type) list = list.filter((t) => t.data.type === flags.type);
-    if (flags.parent) {
-      const parent = store.requireId(flags.parent);
-      list = list.filter((t) => t.data.parent === parent);
-    }
-    // The filing pass runs this first, to get the ids it will sweep. Done only:
-    // a dropped ticket's reason is its whole record, and an open one is still
-    // producing the material the pass would file.
-    if (flags.unfiled) list = list.filter((t) => t.data.status === 'done' && !t.data.filed);
-
-    out(render.ticketTable(graph.rankByStatus(list, tickets), tickets));
-    if (list.length) out(`\n${list.length} of ${tickets.length}.`);
-    return 0;
-  },
-};
-
-actions.get = {
-  args: '<id>',
-  summary: 'show one in full',
-  run({ positional, usage }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
-    const { root, tickets } = load();
-    out(render.show(store.findTicket(tickets, positional[0]), tickets, root));
-    return 0;
-  },
-};
-
+/**
+ * Every field a ticket carries except `status`, which belongs to the verbs.
+ * Two spellings for one move meant skills wrote the long one — it was the
+ * documented general form — so the surface read as if the verbs did not exist.
+ */
 actions.edit = {
+  section: 'tickets',
   args: '<id>',
   summary: 'change a field',
   flags: {
-    status: { values: statuses.NAMES, arg: '<status>' },
-    reason: { arg: '"<why>"' },
     title: { arg: '"<title>"' },
     label: { arg: '<1-3 words>' },
     type: { values: store.TICKET_TYPES, arg: '<type>' },
     priority: { values: store.TICKET_PRIORITIES, arg: '<level>' },
     parent: { arg: '<id>' },
-    force: { bool: true },
   },
   run({ positional, flags, usage }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--status ...] [--title ...]`);
+    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--type ...]`);
 
     const { root, tickets } = load();
     const t = store.findTicket(tickets, positional[0]);
@@ -307,76 +374,87 @@ actions.edit = {
       changes.push(`label: ${renamed.from} → ${renamed.to}`);
     }
 
-    if (changes.length) {
-      store.writeTicket(t);
-      out(`${t.id}\n  ${changes.join('\n  ')}`);
-      if (renamed) out(`\nfolder → ${rel(root, t.dir)}`);
+    if (!changes.length) {
+      throw new FlowError(
+        'nothing to change — pass --title, --label, --type, --priority or --parent.\n' +
+        `  Status moves are their own commands: flow build ${t.id}, flow review ${t.id}, flow done ${t.id}.`
+      );
     }
 
-    if (flags.status === undefined) {
-      if (!changes.length) {
-        throw new FlowError('nothing to change — pass --status, --title, --label, --type, --priority or --parent.');
+    store.writeTicket(t);
+    out(`${t.id}\n  ${changes.join('\n  ')}`);
+    if (renamed) out(`\nfolder → ${rel(root, t.dir)}`);
+    return 0;
+  },
+};
+
+actions.dep = {
+  section: 'tickets',
+  args: '<id>',
+  summary: 'add or remove a dependency',
+  flags: { on: { arg: '<id>' }, off: { arg: '<id>' } },
+  run({ positional, flags, usage }) {
+    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> --on <id> | --off <id>`);
+    if (flags.on && flags.off) throw new FlowError('--on and --off are mutually exclusive.');
+    if (!flags.on && !flags.off) throw new FlowError(`${usage} needs --on <id> or --off <id>.`);
+
+    const { tickets } = load();
+    const t = store.findTicket(tickets, positional[0]);
+    const dep = store.requireId(flags.off || flags.on);
+
+    if (flags.off) {
+      if (!t.data.deps.includes(dep)) { out(`${t.id} does not depend on ${dep}.`); return 0; }
+      t.data.deps = t.data.deps.filter((d) => d !== dep);
+    } else {
+      if (dep === t.id) throw new FlowError('a ticket cannot depend on itself.');
+      if (!tickets.some((x) => x.id === dep)) throw new FlowError(`no ticket ${dep}.`);
+      if (t.data.deps.includes(dep)) { out(`${t.id} already depends on ${dep}.`); return 0; }
+      if (graph.wouldCycle(tickets, t.id, dep)) {
+        throw new FlowError(`${t.id} → ${dep} would close a dependency cycle. Run flow check.`);
       }
-      return 0;
+      t.data.deps = [...t.data.deps, dep];
     }
 
-    // Killing a ticket repairs whatever depended on it, and that repair only
-    // lives in `drop`. Routing here would strand those tickets silently.
-    if (flags.status === 'dropped') {
-      throw new FlowError(`dropping repairs the tickets that depend on this one: flow tickets drop ${t.id} --reason "..."`);
-    }
-
-    if (changes.length) out('');
-    return transition(t, tickets, root, flags.status, {
-      force: flags.force,
-      reason: flags.reason ? String(flags.reason).trim() : '',
-      verb: `flow tickets edit ${t.id} --status ${flags.status}`,
-    });
+    store.writeTicket(t);
+    out(`${t.id}  deps → [${t.data.deps.join(', ')}]`);
+    return 0;
   },
 };
 
 /**
- * Picking a ticket up. The one action that computes a status rather than taking
- * one, because which status a type opens at is a fact about the type.
+ * The filing pass marks what it swept. Several ids at once, because sweeping a
+ * batch of closed tickets is the normal case — and every id gets stamped,
+ * including the tickets that produced nothing worth keeping. A ticket nobody
+ * looked at and a ticket that taught nothing are indistinguishable from the
+ * outside, so only the mark drains the queue.
  */
-actions.start = {
-  args: '<id>',
-  summary: 'pick it up at the first status its type uses',
+actions.file = {
+  section: 'tickets',
+  args: '<id>...',
+  summary: 'stamp today on everything the filing pass swept',
   flags: { force: { bool: true } },
   run({ positional, flags, usage }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
-    const { root, tickets } = load();
-    const t = store.findTicket(tickets, positional[0]);
-    const status = statuses.entryStatusFor(t.data.type);
-    const from = t.data.status;
+    if (!positional.length) throw new FlowError(`usage: ${usage} <id>...`);
 
-    // Picking up finished work is either a slip or a deliberate reopen, and
-    // neither should happen silently.
-    if (statuses.TERMINAL.has(from)) {
-      throw new FlowError(
-        `${t.id} is ${from}. Reopening is deliberate:\n` +
-        `  flow tickets edit ${t.id} --status ${status}`
-      );
+    const { tickets } = load();
+    const stamp = store.today();
+    const targets = positional.map((ref) => store.findTicket(tickets, ref));
+
+    for (const t of targets) {
+      if (t.data.filed && !flags.force) {
+        out(`${t.id}  already filed ${t.data.filed}   ${t.data.title}`);
+        continue;
+      }
+      const previous = t.data.filed;
+      t.data.filed = stamp;
+      store.writeTicket(t);
+      out(`${t.id}  filed ${stamp}${previous ? ` (was ${previous})` : ''}   ${t.data.title}`);
     }
 
-    // `start` reads the type, never the status, so on a ticket already in flight
-    // it would write a status behind the work — a feature at `building` reset to
-    // `groundwork`, silently, on the command you type to resume it. `parked` is
-    // the exception the whole revive path runs through.
-    if (from !== 'parked' && statuses.ORDER[from] >= statuses.ORDER[status]) {
-      out(`${t.id} is already ${from}.`);
-      out('');
-      out(render.show(t, tickets, root));
-      return 0;
-    }
-
-    transition(t, tickets, root, status, {
-      force: flags.force,
-      reason: '',
-      verb: `flow tickets start ${t.id}`,
-    });
-    out('');
-    out(render.show(t, tickets, root));
+    const left = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
+    out(left.length
+      ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled — flow ls --unfiled`
+      : '\nnothing left unfiled.');
     return 0;
   },
 };
@@ -386,8 +464,12 @@ actions.start = {
  * the user was not thinking about: `deps` is stored on one side only, so
  * killing t047 silently strands whatever depended on it. Bare `drop` therefore
  * refuses while live dependents exist and prints the whole chain first.
+ *
+ * It is the one status with no verb, for that repair. `flow dropped t047` would
+ * be a verb that had to do something no other verb does.
  */
 actions.drop = {
+  section: 'tickets',
   args: '<id>',
   summary: 'kill it, and repair what depended on it',
   flags: {
@@ -443,14 +525,15 @@ actions.drop = {
         `${t.id} has ${affected.length} live dependent${affected.length === 1 ? '' : 's'}, directly or through others:\n` +
         affected.map((d) => `  ${d.id}  ${d.data.status.padEnd(10)} ${d.data.title}`).join('\n') +
         '\n\nLeft alone they can never become ready. Pick one:\n' +
-        `  flow tickets drop ${t.id} --reason "${reason}" --by <id>    re-point them at the replacement\n` +
-        `  flow tickets drop ${t.id} --reason "${reason}" --force      drop them too`
+        `  flow drop ${t.id} --reason "${reason}" --by <id>    re-point them at the replacement\n` +
+        `  flow drop ${t.id} --reason "${reason}" --force      drop them too`
       );
     }
 
     const from = t.data.status;
     t.data.status = 'dropped';
     t.data.reason = reason;
+    t.data.resume = '';
     t.data.closed = store.now();
     const moved = store.writeTicket(t);
     out(`${t.id}  ${from} → dropped   ${t.data.title}`);
@@ -479,6 +562,7 @@ actions.drop = {
       for (const d of affected) {
         d.data.status = 'dropped';
         d.data.reason = `dropped with ${t.id} (${t.data.title}), which it depended on`;
+        d.data.resume = '';
         d.data.closed = store.now();
         store.writeTicket(d);
         out(`  ${d.id}  ${d.data.title}`);
@@ -488,104 +572,37 @@ actions.drop = {
   },
 };
 
-/**
- * The whole shape, which nothing else shows. `ls` is a flat table with a parent
- * column and `get` is one ticket — the hierarchy that `parent` builds had no
- * renderer at all.
- */
-actions.tree = {
-  summary: 'the shape, nested by parent',
-  flags: { parent: { arg: '<id>' }, all: { bool: true } },
-  run({ flags }) {
-    const { tickets } = load();
-    if (!tickets.length) { out('no tickets yet.'); return 0; }
-
-    let pool = tickets;
-    if (flags.parent) {
-      const top = store.findTicket(tickets, flags.parent);
-      pool = [top, ...graph.descendants(tickets, top.id)];
-    }
-
-    // Done and dropped collapse into the parent's count by default. A tree
-    // carrying every finished ticket is the noise a tree exists to strip.
-    const visible = flags.all ? pool : pool.filter((t) => !statuses.TERMINAL.has(t.data.status));
-    if (!visible.length) { out('nothing live here — flow tickets tree --all includes done and dropped.'); return 0; }
-
-    out(render.tree(graph.forest(visible), tickets));
-    const hidden = pool.length - visible.length;
-    out(`\n${visible.length} ticket${visible.length === 1 ? '' : 's'}` +
-      (hidden ? `, ${hidden} done or dropped hidden — flow tickets tree --all` : ''));
-    return 0;
-  },
-};
-
-actions.dep = {
-  args: '<id>',
-  summary: 'add or remove a dependency',
-  flags: { on: { arg: '<id>' }, off: { arg: '<id>' } },
-  run({ positional, flags, usage }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> --on <id> | --off <id>`);
-    if (flags.on && flags.off) throw new FlowError('--on and --off are mutually exclusive.');
-    if (!flags.on && !flags.off) throw new FlowError(`${usage} needs --on <id> or --off <id>.`);
-
-    const { tickets } = load();
-    const t = store.findTicket(tickets, positional[0]);
-    const dep = store.requireId(flags.off || flags.on);
-
-    if (flags.off) {
-      if (!t.data.deps.includes(dep)) { out(`${t.id} does not depend on ${dep}.`); return 0; }
-      t.data.deps = t.data.deps.filter((d) => d !== dep);
-    } else {
-      if (dep === t.id) throw new FlowError('a ticket cannot depend on itself.');
-      if (!tickets.some((x) => x.id === dep)) throw new FlowError(`no ticket ${dep}.`);
-      if (t.data.deps.includes(dep)) { out(`${t.id} already depends on ${dep}.`); return 0; }
-      if (graph.wouldCycle(tickets, t.id, dep)) {
-        throw new FlowError(`${t.id} → ${dep} would close a dependency cycle. Run flow check.`);
-      }
-      t.data.deps = [...t.data.deps, dep];
-    }
-
-    store.writeTicket(t);
-    out(`${t.id}  deps → [${t.data.deps.join(', ')}]`);
-    return 0;
-  },
-};
+// ---------------------------------------------------------------- the verbs
 
 /**
- * The filing pass marks what it swept. Several ids at once, because sweeping a
- * batch of closed tickets is the normal case — and every id gets stamped,
- * including the tickets that produced nothing worth keeping. A ticket nobody
- * looked at and a ticket that taught nothing are indistinguishable from the
- * outside, so only the mark drains the queue.
+ * One command per status, built from the table. Every refusal lives in
+ * `transition`, so these carry no logic of their own beyond naming a target —
+ * which is why adding a status to `statuses.js` is the whole cost of adding a
+ * status.
  */
-actions.filed = {
-  args: '<id>...',
-  summary: 'stamp today on everything the filing pass swept',
-  flags: { force: { bool: true } },
-  run({ positional, flags, usage }) {
-    if (!positional.length) throw new FlowError(`usage: ${usage} <id>...`);
+for (const s of statuses.VERBS) {
+  const needsReason = statuses.NEEDS_REASON.has(s.name);
+  actions[s.verb] = {
+    section: 'status',
+    args: '<id>',
+    summary: statuses.DOES[s.verb],
+    flags: {
+      ...(needsReason
+        ? { reason: { required: true, arg: '"<why>"', missing: `${s.verb}ing needs a reason — in six months it is the only thing that explains the ticket.` } }
+        : {}),
+      force: { bool: true },
+    },
+    run({ positional, flags, usage }) {
+      if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
+      const { root, tickets } = load();
+      const t = store.findTicket(tickets, positional[0]);
+      return transition(t, tickets, root, s.name, {
+        force: flags.force,
+        reason: flags.reason ? String(flags.reason).trim() : '',
+        verb: `flow ${s.verb} ${t.id}`,
+      });
+    },
+  };
+}
 
-    const { tickets } = load();
-    const stamp = store.today();
-    const targets = positional.map((ref) => store.findTicket(tickets, ref));
-
-    for (const t of targets) {
-      if (t.data.filed && !flags.force) {
-        out(`${t.id}  already filed ${t.data.filed}   ${t.data.title}`);
-        continue;
-      }
-      const previous = t.data.filed;
-      t.data.filed = stamp;
-      store.writeTicket(t);
-      out(`${t.id}  filed ${stamp}${previous ? ` (was ${previous})` : ''}   ${t.data.title}`);
-    }
-
-    const left = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
-    out(left.length
-      ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled — flow tickets ls --unfiled`
-      : '\nnothing left unfiled.');
-    return 0;
-  },
-};
-
-module.exports = { summary: 'the work, in docs/tickets/', actions };
+module.exports = { actions, fallback: actions.get };

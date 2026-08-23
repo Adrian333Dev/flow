@@ -126,6 +126,7 @@ function show(ticket, tickets, root) {
     // change this" has an answer somewhere. The daily lists stay uncluttered.
     `priority:   ${priorityLine(ticket, index)}`,
     ticket.data.reason ? `reason:     ${ticket.data.reason}` : null,
+    ticket.data.status === 'parked' ? `resumes at: ${ticket.data.resume || '?'}` : null,
     `deps:       ${deps.length ? deps.join(', ') : '-'}`,
     `dependents: ${dependents.length ? dependents.join(', ') : '-'}`,
     kids.length
@@ -141,15 +142,54 @@ function show(ticket, tickets, root) {
     `path:       ${path.relative(root, ticket.file)}`,
   ].filter(Boolean).join('\n');
 
-  return `${header}\n${'-'.repeat(60)}\n${ticket.body.trimEnd()}`;
+  // Set apart from the fields above it, because it is the one line here that is
+  // an instruction rather than a fact about the ticket.
+  const pickup = pickupLine(ticket);
+  return `${header}\n${pickup ? `\n${pickup}\n` : ''}${'-'.repeat(60)}\n${ticket.body.trimEnd()}`;
 }
 
 /**
- * The plan lives beside the ticket, so `show` says whether there is one. How
- * far it got is not summarized here: a plan is read by opening it, and any
- * digest in the header would be a second copy to keep true.
+ * Where a parked ticket comes back to. Parking stores the status it left, so
+ * this is a lookup rather than a guess — the guess is what sent a feature
+ * parked at `building` back to `groundwork`. A ticket parked before that field
+ * existed, or parked straight out of `done`, has nothing stored and falls back
+ * to where its type opens.
  */
-const planLine = (ticket) => (store.hasPlan(ticket) ? 'plan:       plan.md' : null);
+const reviveVerb = (t) =>
+  statuses.VERB_OF[t.data.resume] || statuses.VERB_OF[statuses.entryStatusFor(t.data.type)];
+
+/**
+ * The one command this ticket is waiting for — printed, never run.
+ *
+ * `flow start` used to compute this status and write it, and `/start` ran that
+ * through an injected shell line, so a ticket moved before the model had read a
+ * word of it. The move now belongs to whichever skill picks the ticket up,
+ * after it opens the phase's own artifact. This line is what that skill copies.
+ *
+ * Only `todo` and `parked` get one. A ticket already in flight has no move to
+ * make at pickup: whether groundwork is finished is a question about `map.md`,
+ * and reading it is the skill's job.
+ */
+function pickupLine(ticket) {
+  const { status, type } = ticket.data;
+  if (status === 'todo') return `pick up with: flow ${statuses.VERB_OF[statuses.entryStatusFor(type)]} ${ticket.id}`;
+  if (status === 'parked') return `pick up with: flow ${reviveVerb(ticket)} ${ticket.id}`;
+  return null;
+}
+
+/**
+ * The plan, and how many of its steps are ticked.
+ *
+ * The count is safe here for the reason a stored one would not be: it is read
+ * off `plan.md` every time this prints, so there is no second copy to keep
+ * true. It stays out of `ls` and `tree`, where `status` already answers what
+ * the count was standing in for.
+ */
+const planLine = (ticket) => {
+  if (!store.hasPlan(ticket)) return null;
+  const steps = store.planSteps(ticket);
+  return steps ? `plan:       plan.md   ${steps.done}/${steps.total} steps` : 'plan:       plan.md';
+};
 
 /** Named, not counted — a report is read by opening it, and the name says what it answers. */
 const reportsLine = (ticket) => {
@@ -249,7 +289,7 @@ function brief(tickets, limit) {
   // the reader learns to skip, and these exist to be noticed.
   const unfiled = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
   if (unfiled.length) {
-    out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow tickets ls --unfiled)`);
+    out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow ls --unfiled)`);
     out.push('         run file-findings to sweep them');
   }
   const problems = graph.check(tickets);
@@ -332,5 +372,5 @@ function caseList(cases) {
 
 module.exports = {
   columns, table, ticketTable, tree, progressOf, blockedLines, blockText, show, status, brief, checkReport, indent,
-  issueTable, caseList,
+  reviveVerb, pickupLine, issueTable, caseList,
 };

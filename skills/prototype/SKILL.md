@@ -25,6 +25,8 @@ The `handoff` skill covers everything else a picked-up job needs — what turns 
 
 **Missing pass and fail → stop and ask.** Criteria written after the run match whatever came out.
 
+**Everything arrived → `flow build <id>`**, then stand it up. Nothing has moved the ticket already, and a prototype has no phase before building.
+
 ### When the approach is not obvious
 
 Confirm it in one message before standing anything up: what gets built, which library and version, the fallback route if the machinery will not run, and how many variants a judged question needs. Then build.
@@ -58,7 +60,7 @@ Build nothing that serves a second purpose. Cut tests, error handling past runna
 - **Measured** → top-line answers first, in the words the question used. Give the numbers. A verdict alone rots: "timestamps are fine" means nothing in six months, "ratio 0.83 to 1.01, no desync" still does. Keep the raw output beside it and cite the code by its `protos/` path.
 - **Judged** → show the variants. Attach no recommendation until the user has looked.
 
-Then say the answers out loud, in the words the question asked for, and stop there. `flow tickets edit <id> --status review` hands it over, and `--status done` closes it once the user accepts the answer. Groundwork reads the report and closes its own branch.
+Then say the answers out loud, in the words the question asked for, and stop there. `flow review <id>` hands it over, and `flow done <id>` closes it once the user accepts the answer. Groundwork reads the report and closes its own branch.
 
 ## Where it lives
 
