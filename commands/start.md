@@ -1,15 +1,23 @@
 ---
 description: Open a session, or pick up a ticket
-argument-hint: [ticket-id]
+argument-hint: [ticket-id [status]] | [path]
 ---
 
-!`if [ -z "$ARGUMENTS" ]; then flow status; else flow $ARGUMENTS; fi 2>&1 || true`
+!`flow open $ARGUMENTS 2>&1 || true`
 
-**`flow` printed a refusal, or nothing** → say why and stop. Nothing above writes, so a refusal means the id matched no ticket.
+**A refusal, or nothing** → say why and stop. The id matched no ticket, the path matched no file, or a status move hit a guard.
 
-**No ticket named** — the session opener is above. Recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
+**Nothing named** — the board is above. Recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
 
-**A ticket is above, and nothing has moved.** `flow` read it. The skill you route to writes the status, after it opens the phase's own artifact — never here, and never before something has been read.
+**A file is above and no ticket** — loose work. Carry on from whatever that file says comes next.
+
+## When a ticket is above
+
+**A `flow-open` block already loaded the files it names**, so the phase's artifact may be on screen. Read what is there before opening anything.
+
+**A line reading `planning → building` means the user named that move and `flow` made it.** Take the ticket at the status it now holds, and never move it again.
+
+**No such line means nothing has moved.** The skill you route to writes the status, after it opens the phase's own artifact.
 
 Its `type:` line picks the skill, and `feature` and `chore` read `status:` too. Read nothing else first, then invoke — the skill loads here, in this session.
 
@@ -24,6 +32,6 @@ Its `type:` line picks the skill, and `feature` and `chore` read `status:` too. 
 
 **`status: done` or `dropped`** → say the ticket is closed, and stop. Reopening is the user's call.
 
-**A ticket cut from a spec arrives decided.** Its body already carries what to build and the decisions behind it, so route it to `/execute`, which opens it at `planning`. **Open *decisions* are what send a ticket to `/groundwork`**, never code left to read.
+**Open decisions are what send a ticket to `/groundwork`** — never a long body, and never code left to read. A cleanup chore with nothing settled goes there like anything else. A ticket cut from a spec is the one that does not: its body already carries what to build and the decisions behind it, so route it to `/execute`, which opens it at `planning`.
 
 Route, and stop there. Whether this ticket splits, and whether it is worth building at all, are answers a map produces — `/groundwork` owns both.

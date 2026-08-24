@@ -104,7 +104,8 @@ function runAction(action, argv, usage, extra) {
  * The first word is the command. Almost every one of them acts on a ticket, so
  * tickets have no name of their own here — `flow ls`, `flow build t047`. A word
  * that names no command is a ticket id, which is what makes `flow t047` show
- * one. Only `cases` keeps a group, because it is a different stored thing.
+ * one. `cases` and `work` keep a group each, because each is a different
+ * stored thing.
  */
 function dispatch(argv, { commands, groups, fallback, sections, title, notes }) {
   if (!argv.length || HELP_WORDS.includes(argv[0])) {

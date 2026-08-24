@@ -8,15 +8,17 @@
  * in global/refs/cli-design.md.
  *
  * Frontmatter is owned by these commands; everything else in a ticket is
- * written by hand. The project root is found from the current directory, so no
- * command takes a path.
+ * written by hand. The project root is found from the current directory, so
+ * only `open` takes a path — loose work has no ticket id to name.
  */
 
 const { FlowError } = require('./lib/error');
 const cli = require('./lib/cli');
+const open = require('./commands/open');
 const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
+const work = require('./commands/work');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -31,12 +33,13 @@ const TITLE = 'flow — tickets, computed from docs/tickets/';
 
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
- * name of their own — `flow ls`, `flow build t047` — and `cases` keeps a group
- * because it is a different stored thing, typed a tenth as often.
+ * name of their own — `flow ls`, `flow build t047`. `cases` and `work` each
+ * keep a group, because each is a different stored thing, typed a tenth as
+ * often.
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...board, ...tickets.actions };
+const commands = { ...open, ...board, ...tickets.actions };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
@@ -59,9 +62,16 @@ steps   flow <id> counts the checkboxes in plan.md each time it prints, so the
         count cannot drift from the file. The lists never count: out there
         status already says whether a ticket is being built, waiting on
         review, or finished
-pickup  flow <id> prints the command a todo or parked ticket is waiting for.
-        It prints it rather than running it — the skill picking the ticket up
-        moves it, after reading the ticket rather than before
+pickup  flow <id> prints the command a todo or parked ticket is waiting for
+        and never runs it, so the skill picking the ticket up moves it after
+        reading. flow open t047 build is the other door: you name the status
+        yourself, so nothing is computed and nothing is guessed
+resume  flow open reads the ticket, then every file named in its fenced
+        flow-open block. handoff writes that block, and decides what goes in
+        it — an empty one is a real answer for a ticket that carries its own
+        context. Paths resolve beside the ticket first, then from the repo
+        root, and a line range passes through: src/parser.js:40-120. Nothing
+        is truncated, so a huge block costs what it costs
 park    parking stores the status it left, and reviving is the verb for that
         status. A feature parked at building comes back at building
 parent  a ticket split out of another carries parent: t047. Disk stays flat;
@@ -76,12 +86,20 @@ pri     high or low on disk and nothing else: normal is the absent field, so an
 root    the enclosing git repo; override with FLOW_PROJECT=/path
 cases   ~/.claude/flow/study-cases/<issue>/<date>-<slug>.md — global, filed by
         issue and never by project, because the payoff is seeing one failure
-        three times. Override with FLOW_HOME`;
+        three times. Override with FLOW_HOME
+work    uncommitted work, stored as a commit under refs/unfinished/<machine>/
+        <branch> and pushed. Not a branch: nothing switches to it and nothing
+        moves it. Send from one machine, get on the other. Name each machine
+        once with git config --global flow.machine <name>; sending refuses
+        until it is set, because two machines sharing one name overwrite each
+        other silently. Gitignored files travel only when named in
+        .flow-include at the project root. Full instructions in
+        ~/.claude/flow/refs/work-sync.md`;
 
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases },
+    groups: { cases, work },
     fallback: tickets.fallback,
     sections: SECTIONS,
     title: TITLE,

@@ -369,10 +369,43 @@ function renderTemplate(name, vars) {
   );
 }
 
+/**
+ * The `flow-open` block — what a resumed session reads before its first turn.
+ *
+ * A fenced block and not a bullet list, because a fence has hard edges: finding
+ * it is reading from one marker to the next, never a guess about where prose
+ * stops. `handoff` writes it, into `## State` on a ticket or into a `handoff.md`
+ * beside loose work, so the paths sit in the same file as the note explaining
+ * them. A separate file would be a second copy of `handoff`'s What to open.
+ *
+ * ```flow-open
+ * plan.md
+ * src/parser.js:40-120   # where step 4 stopped
+ * ```
+ *
+ * No minimum. A ticket cut from a spec carries everything in its own body, and
+ * an absent block is the honest answer there.
+ */
+const OPEN_START = /^```flow-open\s*$/;
+const OPEN_END = /^```\s*$/;
+
+function openBlock(text) {
+  const lines = String(text || '').split('\n');
+  const start = lines.findIndex((l) => OPEN_START.test(l));
+  if (start === -1) return [];
+  const specs = [];
+  for (let i = start + 1; i < lines.length; i++) {
+    if (OPEN_END.test(lines[i])) break;
+    const spec = lines[i].replace(/(^|\s)#.*$/, '').trim();
+    if (spec) specs.push(spec);
+  }
+  return specs;
+}
+
 module.exports = {
   TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES,
   ticketsDir, archiveDir,
   normalizeId, idNumber, requireId, slugify, labelize, labelOf, relabel, toIdList, toPriority, today, now,
-  readTickets, nextId, writeTicket, createTicket, findTicket, hasPlan, planSteps, reportFiles,
+  readTickets, nextId, writeTicket, createTicket, findTicket, hasPlan, planSteps, reportFiles, openBlock,
   renderTemplate, // cases.js borrows this, slugify and today; nothing else is shared
 };

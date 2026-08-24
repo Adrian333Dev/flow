@@ -53,7 +53,7 @@ A step whose content changes with the situation. Three kinds, each with its own 
 
 ## 5. Sentences
 
-Three tests. Run them on every sentence that carries a rule.
+Three tests. Run them on every sentence that carries a rule, and on every sentence written to the user.
 
 1. **Cover everything past word 2.** Is the direction already right? "Never expose the bookkeeping" — yes, at word 1. "Keep the bookkeeping out of the conversation" — no. Word 2 says preserve it; word 5 reverses that.
 2. **Read the last two words alone.** Do they carry the point? Readers stress whatever ends a sentence. "…the bookkeeping" lands it. "…the conversation" spends the loudest position in the sentence on its most generic word.
@@ -79,7 +79,7 @@ Three tests. Run them on every sentence that carries a rule.
 - **Write an action positive. Write a boundary negative.** A boundary's positive form is every allowed thing, which cannot be written; forcing it yields a false specific or a reversal. One negation, at word one, and none of the hidden ones: `unless`, `fail to`, `except`, `other than`.
 - **Give the agent a verb it can perform.** "The job is coverage, not fidelity" has none and gets cut. "Never expose the bookkeeping" has one and stays. Short and memorable was never the defect.
 - **Put a verb in each half of a contrast.** "Coverage, not fidelity" leaves the reader to derive the action from two abstract nouns.
-- **One idea per sentence.**
+- **One idea per sentence.** Split on every `and`, `so`, `then` and dash that joins two.
 - **Define anything invented before first use.**
 - **Use one word per concept, and the common word.**
 

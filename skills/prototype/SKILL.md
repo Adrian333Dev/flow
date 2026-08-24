@@ -25,7 +25,7 @@ The `handoff` skill covers everything else a picked-up job needs — what turns 
 
 **Missing pass and fail → stop and ask.** Criteria written after the run match whatever came out.
 
-**Everything arrived → `flow build <id>`**, then stand it up. Nothing has moved the ticket already, and a prototype has no phase before building.
+**Everything arrived → `flow build <id>`**, then stand it up. Skip the move where a `→ building` line above shows `/start` already made it. A prototype has no phase before building.
 
 ### When the approach is not obvious
 

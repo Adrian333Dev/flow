@@ -1,0 +1,9 @@
+# Gitignored files that travel with `flow work send`, one path per line.
+# Everything else git ignores stays on the machine that made it.
+#
+# A path named here is pushed to whatever remote this project uses. On a public
+# repository that publishes it. Name a secret here only when the remote is
+# private.
+#
+#   .env.local
+#   config/local-settings.json

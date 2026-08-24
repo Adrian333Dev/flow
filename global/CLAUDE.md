@@ -76,7 +76,10 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 
 **`flow <command> [id] [--flags]`.** A word naming no command is read as a ticket id, which is what makes `flow t047` show one. Shorten any name to an unambiguous prefix — `flow b t047`. Write full names in every file; abbreviate only at the prompt. Run `flow` bare for the full surface.
 
-- `flow status` — where the work stands. Opens a session, writes nothing
+- `flow open` — opens a session: the board, or a ticket with everything it needs. `/start` runs it
+- `flow open <id> [<status>]` — the ticket, then every file its `flow-open` block names, loaded before the first turn. Name a status and it moves the ticket first
+- `flow open <path>` — the same for loose work: a `handoff.md` and whatever its block names. The one shape needing no repo
+- `flow status` — where the work stands. Writes nothing
 - `flow next` — what is workable, ranked
 - `flow check` — cycles, dangling ids, dropped blockers, orphaned parents
 - `flow <id>` — one ticket in full, and the command it is waiting for
@@ -99,7 +102,8 @@ The rules:
 - **Create and fill in one command** — `--body -` takes the body on stdin. Never create then edit
 - **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked
 - **Refuses what would break the graph, and says why** — picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents. Read the refusal; `--force` is deliberate override, not an escape from a mistake
-- **Nothing moves a ticket but a status command.** `flow <id>` prints the one a `todo` or `parked` ticket is waiting for, and printing is all it does
+- **Nothing moves a ticket but a status command.** `flow <id>` prints the one a `todo` or `parked` ticket is waiting for, and printing is all it does. `flow open <id> <status>` is the other door, and the user types that one
+- **`handoff` writes the `flow-open` block, and decides what goes in it** — one path per line, `#` for a note, `:40-120` for a range. Never a minimum: a ticket carrying its own context writes no block
 
 ## Judgment
 
@@ -124,9 +128,12 @@ A rename, a fact, a one-line answer, a fix with one moving part — none of this
 Governs every answer — status reports and one-line questions included, not just designs.
 
 - **Whole picture first.** The thing itself, then its parts. Never a close-up with no machine around it.
-- **Define from zero.** Anything invented here — term, module, file — defined before first use. No expertise covers what didn't exist yesterday.
+- **Define from zero.** Every term defined before first use — Flow's own, and any word that is standard only inside a tool's own documentation. `HEAD`, `object` and `check out` are ordinary git vocabulary, and none of the three is shared. Build the meaning first, then name it: *git calls this a tree*.
 - **A label is not an explanation.** Say what the thing does: "the ticket that splits the parser", not "t047". The label may follow, never stand alone.
 - **Plain words, short sentences.** Simple over precise when they compete. A sentence read twice gets rewritten.
+- **One idea per sentence.** Split on every `and`, `so`, `then` and dash that joins two. Plain words do not rescue a clause carrying four ideas.
+- **Name the thing, never point at it.** No `this feature`, `that approach`, `the same thing`, or `it` reaching back across a sentence boundary. Repeat the noun.
+- **Restate each question before answering it**, in the user's own words. Ten points in, ten restatements out. A reply that only alludes to a point leaves its own author guessing.
 - **A pointer is not an explanation, and neither is a quote.** A file, a decision, an earlier message — assume unread. Say what it meant, here, in your own words.
 - **Prefer a list to a table.** A table earns its columns only where every row fills all of them.
 - **Calibrate tech** against `## The user` — never re-explain what is inside it, always define what is outside. Unfamiliar → one line, by what it does here. Expertise there is direction and review, not typing: say what and why, never how to type it.

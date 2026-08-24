@@ -20,7 +20,7 @@ Decide this first. Everything else follows from it.
 - **A subagent starting right now** → the prompt. It reads that and nothing else, so a file would be a second copy that goes stale the moment either one changes.
 - **No ticket system here** → `handoff.md`, beside the work. `flow` needs only a git repo, so this is the rare case: no repo at all, or one belonging to someone else. A path the user names beats all of it.
 
-**Inside a ticket the state is a living section.** Write to it as the work moves, every time something becomes true that no other file records — not after every edit, after every thing you learned. Running this skill at the end is then a check rather than a reconstruction, which is what makes it affordable at the one moment context is scarce. It also survives a session that dies before anyone runs anything.
+**Inside a ticket the state is a living section.** Write to it as the work moves, every time something becomes true that no other file records — after every thing you learned, never after every edit. Running this skill at the end is then a check rather than a reconstruction, which is what makes it affordable at the one moment context is scarce. It also survives a session that dies before anyone runs anything.
 
 **Everywhere else it is written once**, read once, and rewritten whole next time. Never updated in place.
 
@@ -36,6 +36,26 @@ Nothing here runs by default. Pick what the next session will trip over.
 ## 3. Write it
 
 **The destination decides the sections**, because it decides what already exists to be skipped. Drop any section nothing fills.
+
+### The `flow-open` block
+
+`/start` runs `flow open`, which finds this block and loads every file it names **before the session's first turn**. A path here is not a reading list. It is content, already in context when the reader wakes up.
+
+Write it fenced, inside `## State` on a ticket and near the top of a `handoff.md`:
+
+```flow-open
+plan.md
+src/parser.js:40-120   # where step 4 stopped
+```
+
+- **One path per line**, with a `#` note saying what the reader gets from it.
+- **Take a line range where you know one** — `path:40-120`, inclusive. Half a file costs half as much.
+- **Write the path that reads naturally.** A ticket's paths resolve beside the ticket first, then from the repo root, so `plan.md` and `src/parser.js` both land.
+- **Name what the first action opens, and nothing else.** No minimum. A ticket that carries its own context writes no block, and an absent block is a real answer.
+- **Nothing is truncated**, so naming a folder loads the whole folder.
+- **Verify every path.** One that moved prints as missing, and the session starts a file short.
+
+A subagent gets no block. It reads its prompt and never runs `/start`.
 
 ### In a ticket — `## State`
 
@@ -67,7 +87,6 @@ No ticket, so nothing else holds anything and this document carries all of it:
 - **What binds it** — decisions locked, corrections given, approaches ruled out and why. Weight what was said out loud and written nowhere; the reset destroys exactly that. Dead ends count as conclusions.
 - **What is still open** — threads nobody resolved, the options weighed, the one you were leaning toward and why.
 - **What was found** — versions, endpoints, exact payloads, traps already hit. Write out anything that cost real effort, source or no source.
-- **What to open** — the files the first action opens, and nothing else. Full path, line range, and what the reader gets from each. Verify every path.
 - **The first action** — concrete enough to start on. Name the skill when one applies.
 
 ### Handing a job over — a child ticket's body
@@ -87,14 +106,14 @@ Every section above, written into the ticket body instead of a file, plus four t
 
 **Write out what the next session must know. A path is for a file it must open.**
 
-You pay once, in a context that is ending. The reader pays out of the context it needs for the work, and it cannot tell a file it must study from one it must glance at — so it reads all of them.
+You pay once, in a context that is ending. The reader pays out of the context it needs for the work, and it cannot tell a file it must study from one it must glance at — so it reads all of them. A path in prose asks the reader to spend that context. A path in the block spends it for them.
 
 Two entries always cost more than they give:
 
 - **A file whose content you already wrote out here.** The reader reads both and cannot tell which one is current.
 - **A file the session must not act on.** Where a path exists only to stop the reader doing something, write that sentence and drop the path.
 
-Durable knowledge goes to its own home the moment it surfaces — Capture in the project `CLAUDE.md` names the file. This is disposable.
+Durable knowledge goes to its own home the moment it surfaces — `## Capture` in the global `CLAUDE.md` names the file. This is disposable.
 
 ## 4. Land it
 
@@ -106,15 +125,15 @@ Durable knowledge goes to its own home the moment it surfaces — Capture in the
 
 ## Booting from one
 
-Read every listed file in one parallel batch, then start on the first action. The decisions in it are settled.
+**Whatever the block named is already loaded.** `flow open` read it before this session's first turn, so it is on screen above. Start on the first action; open something else only when the work reaches it.
 
-**The list is complete.** Read nothing beyond it before the first action.
+**Anything listed in prose rather than in the block, read in one parallel batch.** The decisions in the document are settled.
 
 **Where `## State` disagrees with anything else in the ticket, it wins.** It is the newer of the two.
 
 A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names — `reports/<failure>.md` for a hunt, `docs/research/<question>.md` for a question. `## State` carries the job's progress, never its answer.
 
-**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `/start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top: the list is complete, read it in one batch, then start on the first action.
+**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `/start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top what the first action is.
 
 ## Hard rules
 

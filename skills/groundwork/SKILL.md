@@ -20,7 +20,7 @@ Same 4 phases at any size. 3 words or 10 paragraphs — long input means more to
 
 Groundwork also runs on a loose subject with no ticket, and then none of this applies.
 
-**Nothing has moved the ticket — `/start` only read it.** The status says where the work stopped, `map.md` says whether it finished, and this skill writes the move.
+**`/start` already moved the ticket only where the user named the status**, and a line like `todo → groundwork` above says so. Otherwise nothing has moved it. The status says where the work stopped, `map.md` says whether it finished, and this skill writes the move.
 
 - **`todo`** → `flow groundwork <id>`, then Phase 1
 - **`groundwork`, anything still `[ ]`** → keep walking it, from Phase 2

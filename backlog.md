@@ -12,7 +12,7 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 
 ## Next
 
-1. **The writing pass** — 10 skills, then the second pass on `global/CLAUDE.md`
+1. **The writing pass** — 6 skills left: `file-findings`, `write-tickets`, `prototype`, `research`, then `debug`, then `groundwork`. Then the second pass on `global/CLAUDE.md`
 2. **The repo restructure** — the layout, then `skills/` into subfolders
 3. **End-to-end testing** — after the restructure, so the setup is written against a layout that has stopped moving
 4. **The install skill, then Delapse** — last, and only once everything above is still
@@ -30,8 +30,11 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 - [x] **`flow start` on a parked ticket destroyed progress** — a `feature` parked at `building` revived at `groundwork`. Fixed by deleting `start`; `park` stores the status it left and revive returns there
 - [x] **Several ticket ids at once — dropped 2026-08-22.** The case behind it was a misreading: `file-findings` sweeps tickets that are *already* closed and marks them with `flow file t047 t048`, which already takes a list. `design-cli-rework.md`
 - [x] **Existing tickets keep their long labels — dead 2026-08-22.** A ticket is never renamed after creation, so there is nothing on disk to sweep and no migration to run. `design-cli-rework.md`
-- [ ] **Simplify `flow`, maybe** — how many concepts it makes you hold, never the code. Deliberately vague. **talk first**. `remaining.md`
-- [ ] **A fifth ticket type, for document work that is not research** — **parked**
+- [x] **Prototype the `refs/unfinished/` transport** — all 4 answered 2026-08-24, GitHub accepts the namespace. `design-work-sync.md`
+- [x] **`flow work` — move uncommitted work between the desktop and the laptop** — built 2026-08-24, 77 checks green including against a real GitHub remote. `design-work-sync.md`
+- [x] **`flow open` — the one command behind `/start`, built 2026-08-24.** Bare for the board, an id for the ticket plus every file its `flow-open` block names, a second word for a status move, a path for loose work with no ticket. `design-resume.md`
+- [x] **Simplify `flow` — dead 2026-08-24.** The item asked how many concepts the tool makes you hold, and the surface rework answered it: `flow build t047` replaced `flow tickets edit t047 --status building`
+- [x] **A sixth ticket type for document work — dead 2026-08-24.** `chore` carries it. `review-code.md:3` already exempts a document ticket, and `/start` routes on open decisions rather than on the shape of the output
 - [ ] **Frontmatter on files other than tickets**, spec files first — **parked**
 
 ## The writing pass
@@ -42,7 +45,7 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 - [x] **`refs/review-code.md:3` says "Read at Phase 4" — never a task.** The rewrite moved no phase number, so the line is correct as written
 - [ ] **`debug`** — 4 parked changes land with it: the collaboration loop generalized out of `debug-web-pages`, a failing check that is not always a command, "the red command" renamed, and 2 lines that carry no meaning as written. `refactor-agenda.md` item 10
 - [ ] **`file-findings`** — `write-skills.md` moves into `refs/` with it, the last file sitting at a skill root
-- [ ] **`handoff`** — `SKILL.md:97` needs checking too: "Capture in the project `CLAUDE.md`" looks wrong
+- [x] **`handoff` — done 2026-08-24**, inside the `flow open` build. Gained the `flow-open` block section, and `## Capture` is named in the global `CLAUDE.md` rather than the project one, which was the bug on the old line 97
 - [ ] **`prototype`** — it writes `visualize` bare at lines 3, 36, 38 and 83, where a skill is written `/visualize`
 - [ ] **`research`**
 - [ ] **`write-tickets`**
@@ -69,12 +72,15 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 
 ## Rules and always-loaded files
 
+- [x] **The two rejected explanations from 2026-08-23 — answered 2026-08-24.** `## Explaining` gained one idea per sentence, name the thing never point at it, and restate each question; `Define from zero` now reaches a word that is standard only inside a tool's own documentation. `writing.md` §5 widened to cover prose written to the user. `shit-explanations.md`
+- [ ] **Merge `wip/study-cases/bad-explanations/` into `wip/context/shit-explanations.md`** — same class of failure, two folders. That file's own header asks for it
 - [ ] **Two rules for `global/CLAUDE.md`, confirmed 2026-08-09, never written** — the agent may depart from the workflow, saying which part it set aside; and it records Flow's own faults unprompted. `remaining.md`
 - [ ] **The repo `CLAUDE.md` states a rule that is now false** — that a command earns its place by running something before the model thinks. Claude Code merged commands into skills. `design-pickup.md`
 - [ ] **Where the review paragraph lives** once a review step exists — the premise moved. `groundwork` Phase 3 is now *attack it before it stands*, delegating to `## Judgment`, so re-read it before deciding whether the question survives. **talk first**. `remaining.md`
 - [ ] **Dependency discipline** — a check before any dependency is added, and how a bulk version bump gets reviewed. **talk first**
 - [ ] **File size as its own review signal** — a small diff that pushes an already-large file past a healthy boundary. **talk first**
 - [ ] **The negation split** — a prohibition where the agent breaks a rule under pressure, a positive recipe where the output comes out the wrong shape. **talk first**. `compression.md`
+- [ ] **`wip` is banned as a word** — an abbreviation nobody expands. Covers `gsave.sh`, which generates `wip:` commit messages, and the folder rename already open below. `design-work-sync.md`
 - [ ] **Move the git rule from `## Hard rules` into `## Preferences`**, once that section carries real content — **parked**
 
 ## Subagents and dispatch
@@ -95,7 +101,8 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 
 ## Context and session boundaries
 
-- [ ] **Automate the resume after `/clear`** — `handoff` writes the file list as data, a `SessionStart` hook reads it back into the fresh session. Platform mechanics confirmed, shape undecided, not urgent. `design-resume.md`
+- [x] **Automate the resume after `/clear` — built 2026-08-24.** `handoff` writes a fenced `flow-open` block into `## State` or `handoff.md`, and `flow open` loads every file it names before the first turn. The `SessionStart` hook was not needed: `/start` is the second of the two typed steps, and `design-resume.md` set two as the ceiling
+- [ ] **Nothing loads on a bare `/start` with no ticket and no path** — a `handoff.md` sits beside whichever thing is being worked, so there can be several and no id points at one. Left out of the 2026-08-24 build
 - [ ] **Context engineering** — keep what loads as small as possible, and stop cache invalidation when a skill loads mid-session. **talk first**
 - [ ] **Splitting `~/.claude/flow/notes.md`** — by kind, never by project. **parked**
 - [ ] **A `PreCompact` hook** — a block-once state file, so auto-compaction gives way to `handoff`. The least important thing on this list, and the context-pulse hook beside it was deferred indefinitely 2026-08-08: at a 1M window you fire `handoff` yourself. **parked**
@@ -104,6 +111,7 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 
 - [ ] **Full end-to-end testing for every programmatic part** — `flow`, `ptree`, `fmerge`, `guard.js`. After the restructure, so the setup is written against a layout that has stopped moving
 - [ ] **A test suite for `flow`** — about 2,000 lines of Node, verified only by hand. Every redesign has been walked command by command in a scratch tree, which is the case material. `handoff.md`
+  - `tmp/proto-unfinished.sh` is 77 checks over `flow work`, written 2026-08-24, and `tmp/` is gitignored so it disappears on the next cleanup. Decide whether it is the first piece of this suite or a throwaway before that happens
 
 ## Repo structure
 
@@ -130,6 +138,7 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 ## Install and migration
 
 - [ ] **The install skill** — one skill covering every starting state, and the last thing Flow gets. `threads.md` → `install`
+- [ ] **The typed `flow`, `ptree`, `fmerge` and `gsave` run an old clone of this repo** — stopped at 2026-08-07, so `flow work` is unreachable by name. Still true 2026-08-24. `refactor-agenda.md` §8
 - [ ] **Test built-in `/init` with `CLAUDE_CODE_NEW_INIT=1`** against a real repo first — it already does the codebase survey, the gap questions and a reviewable proposal
 - [ ] **Migrate Delapse** — the real test, and where its conventions route into the project `CLAUDE.md` and `docs/context/`
 - [ ] **Delete the project-local skills afterwards** — skills are global, one copy per machine

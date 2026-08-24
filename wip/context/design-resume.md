@@ -1,6 +1,6 @@
 # Resuming after a clear
 
-Raised 2026-08-22, nothing built. The user rejected the first shape and named the direction; the mechanics below are confirmed against Claude Code's own docs and do not need re-deriving.
+Raised 2026-08-22, **built 2026-08-24**. What shipped is in `## What was built` at the bottom; everything above it is the reasoning that got there, kept because the rejected shapes are why the built one looks like it does.
 
 ## The problem
 
@@ -54,7 +54,7 @@ The docs say it directly: *"Write the text as factual statements rather than imp
 
 **Rejected — `cat`ing a `SKILL.md` into the resume.** Doubles the skill, per the dedup rule above. Worth knowing that no Flow skill uses `!` blocks or `${CLAUDE_SKILL_DIR}`, so a `cat` copy would at least be byte-identical; the fault is purely the missing registration.
 
-**Superseded — a `Read` label inside `## State`.** `handoff` writes a bullet list of paths with line ranges, and the resume greps the paths out and pipes them to `fmerge`. The user rejected the parsing: markdown scraped by a script is fragile.
+**Superseded — a `Read` label inside `## State`.** `handoff` writes a bullet list of paths with line ranges, and the resume greps the paths out and pipes them to `fmerge`. The user rejected the parsing: markdown scraped by a script is fragile. **The fence is what answered this 2026-08-24** — a bullet in prose has no edges, and a fenced block has two.
 
 ## The direction
 
@@ -78,3 +78,40 @@ Three properties that follow, and any shape has to hold all 3:
 `wip/framework-build/session.md:132` has an `## On resume` section from the previous generation — read this file, read that one, next action, and a note on what can wait. Same problem, solved by hand.
 
 `handoff/SKILL.md` already carries **What to open** for the no-ticket case: *"the files the first action opens, and nothing else. Full path, line range, and what the reader gets from each. Verify every path."* The ticket case has no equivalent.
+
+## What was built, 2026-08-24
+
+**A separate file was proposed and rejected by the user.** Their objection: a second file is one more thing to
+keep in step, and it duplicates something already written. The file proved them right —
+`handoff/SKILL.md:70` already carried **What to open**, so a `resume.txt` would have been a second copy of
+that section. One place, and the block sits where the note explaining each path already sits.
+
+- **The syntax is a fenced block**, `flow-open`, inside `## State` on a ticket or near the top of a
+  `handoff.md`. One path per line, `#` for a note, `:40-120` for a range. A fence has hard edges, which is
+  what separates it from the bullet list rejected on 2026-08-22.
+- **`flow open` is the reader** — `global/scripts/flow/commands/open.js`. Bare it prints the board; an id
+  prints the ticket and loads its block; a second word is a status verb and moves the ticket first; a path
+  route reads any file and its block, and is the one `flow` shape needing no git repo.
+- **`commands/start.md` line 6 is one call** — `flow open $ARGUMENTS`. The shell conditional is gone, and
+  every branch lives in Node where it can be tested.
+- **Nothing is truncated.** `fmerge --force`, deliberately: past 2000 lines the guard returns line counts,
+  which is right for an exploratory read and wrong for a resume. A header line prints the file and line
+  count so the cost stays visible.
+- **No minimum, and no maximum.** The user overturned a proposed floor of one. A ticket cut from a spec
+  carries its own context, and an absent block is the honest answer there.
+- **Paths resolve beside the ticket first, then from the repo root**, so `plan.md` and `src/parser.js` both
+  land. Output renders from the root, so every path printed is one a tool can take back.
+- **A guard stops the load.** A refused status move throws before anything is read, so a failed
+  `flow open t047 build` loads no files at all.
+
+### The four open questions, answered
+
+- **Where the list lives** — in the document, fenced. Frontmatter lost because `flow` owns ticket
+  frontmatter and `handoff` writes this.
+- **Whether `flow` gains a command** — yes, and it absorbed the branching too. The user offered a shell
+  script for the conditions; one Node command does the same job with one fewer file.
+- **How the skill gets loaded** — unchanged. `/start` routes, and the artifact the skill would have opened
+  is already in context, so routing now costs no read.
+- **Several tickets in flight, or none** — naming the id settles the first. The second is still open: a
+  bare `/start` has no id and no path, and a `handoff.md` sits beside whichever thing is worked, so several
+  can exist with nothing pointing at one. Left out on purpose, and on `backlog.md`.

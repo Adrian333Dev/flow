@@ -605,4 +605,6 @@ for (const s of statuses.VERBS) {
   };
 }
 
-module.exports = { actions, fallback: actions.get };
+// `transition` is shared with `open.js`, so a verb typed at `flow open t047 build`
+// hits the same guards as `flow build t047`. Two doors, one lock.
+module.exports = { actions, fallback: actions.get, transition };

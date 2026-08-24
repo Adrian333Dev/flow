@@ -20,7 +20,9 @@ Never build a child's work in its parent. `flow ls --parent t047` lists them; th
 
 ## Phase 1 — pick up
 
-**The status says where the work stopped; the artifact says whether that phase finished.** Read the artifact, then move the ticket. Nothing has moved it already — `/start` only read it.
+**The status says where the work stopped; the artifact says whether that phase finished.** Read the artifact, then move the ticket.
+
+**`/start` already moved it only where the user named the status**, and a line like `planning → building` above says so. Take the row for where it landed and leave the status alone.
 
 - **`todo`** — the ticket arrived decided, cut from a spec → `flow plan t047`, then Phase 2
 - **`planning`** — open `plan.md`. Written and approved → `flow build t047`, then Phase 3. Otherwise finish writing it
@@ -147,7 +149,7 @@ Every step `[x]` → run the full suite Pass 1 named → review it → `flow rev
 Then 2 passes over the same diff, read once. Asked together, one hides the other — code that follows every convention can still build the wrong thing.
 
 - **Against the plan** — every step delivered, and nothing delivered that no step asked for.
-- **Against the code** — read `refs/review-code.md`. Skip it where the ticket produced no code.
+- **Against the code** — read `refs/review-code.md`. A ticket that produced a document reads `writing.md` instead, and one that produced a decision skips both.
 
 **Move anything durable in `## State` to `issues.md`, then delete the section from `ticket.md`.** Git keeps the old state.
 
