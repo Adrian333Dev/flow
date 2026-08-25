@@ -73,7 +73,7 @@ What is left is what nobody wrote down, under four labels:
 - **Open** — decisions half-made, threads nobody closed, the option you were leaning toward and why. A half-made decision dies in a reset exactly like a locked one.
 - **Touched** — files this session changed that no step in `plan.md` names.
 
-**How many fill depends entirely on the work, and most of the time it is two.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. Groundwork fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all four and runs long**, because `debug` writes nothing durable while it hunts.
+**How many fill depends entirely on the work, and most of the time it is two.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. Groundwork fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all four and runs long**, because `/debug` writes nothing durable while it hunts.
 
 A fat state section on a build ticket means the plan carries too little.
 
@@ -98,7 +98,7 @@ Every section above, written into the ticket body instead of a file, plus four t
 - **What to produce** — the artifact and its shape: the questions it answers, in order.
 - **What to say back** — the two or three sentences this session needs to carry on.
 
-**A bug has no finished check yet.** Nobody has built the red command, and `debug` refuses to name a cause before one fails in front of it. Write the observable instead — the failure as seen, and what not seeing it would look like.
+**A bug has no finished check yet.** Nobody has built the failing check, and `/debug` refuses to name a cause before one fails in front of it. Write the observable instead — the failure as seen, and what not seeing it would look like.
 
 **A subagent starting now gets the same content in its prompt**, never a file and never a ticket. It reads the prompt and nothing else.
 
@@ -117,7 +117,7 @@ Durable knowledge goes to its own home the moment it surfaces — `## Capture` i
 
 ## 4. Land it
 
-**In a ticket** — `## State`, at the bottom of `ticket.md`. Rewrite that section whole and touch no other: `flow` owns the frontmatter, `execute` owns `plan.md`, `debug` and `prototype` own `reports/`, and the body belongs to whoever created the ticket.
+**In a ticket** — `## State`, at the bottom of `ticket.md`. Rewrite that section whole and touch no other: `flow` owns the frontmatter, `/execute` owns `plan.md`, `/debug` and `/prototype` own `reports/`, and the body belongs to whoever created the ticket.
 
 **Delete the section when the ticket reaches `review`.** "Step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
 

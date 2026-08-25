@@ -3,13 +3,13 @@ Flow — an agentic development workflow for a solo developer. Work runs groundw
 ## Hard rules
 
 - **No edits without approval.** Approval is "do it" or "go ahead".
-- **A handoff file you booted from is read once, then left alone** — never updated as the work moves. Only two things touch it again: a fresh one written over it, or a delete once its job is done. **Inside a ticket the state is a section instead, and that one is kept current** — `## State`, rewritten whole whenever something becomes true that no other file records.
+- **A handoff file you booted from is read once, then left alone.** Never update it as the work moves; write a fresh one over it, or delete it once its job is done. **Inside a ticket the state is a section instead, kept current** — `## State`, rewritten whole whenever something becomes true that no other file records.
 - **Read minimal context.** Path and line range, one filtered query over many reads, stop when answered.
 - **Reach for a skill, never improvise its job.** Named but not installed → say so and stop.
 - **When Flow fights the work, set that part aside.** The case it never considered, or a rule that makes the work worse — name the part, say why, carry on. **The permission is standing; never ask for it.** Silently forcing a bad fit is the failure this prevents.
 - **No cause without evidence.** "Hypothesis: X. To verify: Y."
 - **Never hand-write what a tool generates.** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
-- **A file whose name doesn't say what it holds → a `description:` line at the top.** In a comment (`// description: …`), or in frontmatter where the file has one; below a shebang or a license header, never above. A folder describes itself in a `.info` file it carries. Most files need none — a description on everything signals nothing.
+- **A file whose name doesn't say what it holds → a `description:` line at the top**, in a comment or in frontmatter, below any shebang or license header. A folder uses a `.info` file. Most files need none — a description on everything signals nothing.
 - **No `mkdir`** — Write creates directories.
 - **Chain with `&&`** unless a step's output decides the next.
 - **Never run or propose a git command that writes.** Reads are fine; the user drives git.
@@ -42,9 +42,9 @@ Write anything worth keeping the moment it surfaces.
 - About **Flow itself**, not what you're building → `~/.claude/flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
 - A failure with an artifact — the user reacts to something you produced, or a loaded rule didn't fire → a study case. Keep the offending output verbatim first, analyse after: `~/.claude/flow/refs/study-cases.md`
 
-**Everything else → `docs/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `file-findings` does that later.
+**Everything else → `docs/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `/file-findings` does that later.
 
-**Past 200 lines, offer `file-findings`.** Nothing reads the inbox on its own, so its length is the only signal that it needs draining — and length beats counting entries, which have no fixed shape to count.
+**Past 200 lines, offer `/file-findings`.** Nothing reads the inbox on its own, so its length is the only signal that it needs draining.
 
 Background reflex, not every turn. On request ("note that"), immediately. Unsure: write it — junk costs nothing, a lost insight costs the next session.
 
@@ -87,7 +87,7 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 - `flow edit <id> [--title|--label|--type|--priority|--parent <value>]` — every field but the status
 - `flow ls [--status <status>] [--type <type>] [--parent <id>] [--unfiled]`, `flow tree`
 - `flow drop <id> --reason "<why>" [--by <id>]` — `--by` re-points whatever depended on it
-- `flow file <id>…` — `status: done` says the work finished; `filed` says the lessons were taken out of it. `file-findings` stamps it, and nothing else does
+- `flow file <id>…` — `status: done` says the work finished; `filed` says the lessons were taken out of it. `/file-findings` stamps it, and nothing else does
 
 **A status move is its own command, named after where it lands** — `flow groundwork|plan|build|review|done|todo <id>`, and `flow park <id> --reason "<why>"`. The line is `todo → groundwork → planning → building → review → done`; `parked` and `dropped` sit off it, and both need a reason.
 
@@ -103,7 +103,7 @@ The rules:
 - **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked
 - **Refuses what would break the graph, and says why** — picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents. Read the refusal; `--force` is deliberate override, not an escape from a mistake
 - **Nothing moves a ticket but a status command.** `flow <id>` prints the one a `todo` or `parked` ticket is waiting for, and printing is all it does. `flow open <id> <status>` is the other door, and the user types that one
-- **`handoff` writes the `flow-open` block, and decides what goes in it** — one path per line, `#` for a note, `:40-120` for a range. Never a minimum: a ticket carrying its own context writes no block
+- **`/handoff` writes the `flow-open` block, and decides what goes in it** — one path per line, `#` for a note, `:40-120` for a range. Never a minimum: a ticket carrying its own context writes no block
 
 ## Judgment
 

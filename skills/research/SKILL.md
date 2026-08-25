@@ -1,19 +1,19 @@
 ---
 name: research
-description: Investigate before working from potentially stale knowledge — recommending a tool, writing a spec or plan against a library's API, or implementing with one. Fetches current docs (llms.txt route with local caching), escalates to source-code investigation, delegates heavy reading to subagents, and uses external-LLM prompts for broad comparative research.
+description: ALWAYS invoke before working against an external tool from memory — recommending one, writing a spec or plan against a library's API, or implementing with it. Also whenever a step is one a developer would normally Google, read the docs for, or check the source on before committing.
 ---
 
 # Research
 
 **Never work against an external tool from training memory alone.** Above all when writing a plan — a plan written from memory bakes a stale API into every step of it.
 
-**Trigger:** would a developer facing this step normally Google it, read the docs, or check the source before committing? If yes, research first.
+**Say what you are researching and why before touching any tool.**
 
----
+**Research before recommending.** A direction picked first turns every source into evidence for it.
 
 ## How deep to go
 
-Four levels. Match depth to the work, escalate when the current level cannot answer, never start higher than needed.
+Four levels. Match depth to the work, escalate when the current level cannot answer, and never start higher than needed. Enough for a confident answer at the current level → stop and answer.
 
 1. **Targeted question** — one API, one config flag, "is X still maintained?" → Context7 or a single doc-page fetch. Inline, quick.
 2. **Working against a tool** — planning or building a feature on it → fetch its current docs by the llms.txt route below, cache them, read the relevant pages before freezing any API into a spec or plan.
@@ -22,7 +22,7 @@ Four levels. Match depth to the work, escalate when the current level cannot ans
 
 ## Getting current docs — the llms.txt route
 
-Two files most tools publish: **`llms.txt`**, an index linking to per-page markdown docs, and **`llms-full.txt`**, the whole docs in one file, often megabytes. These are the most complete and current machine-readable docs there are — prefer them over Context7 for anything past level 1, which can lag.
+Two files most tools publish: **`llms.txt`**, an index linking to per-page markdown docs, and **`llms-full.txt`**, the whole docs in one file, often megabytes. These are the most complete and current machine-readable docs there are. Past level 1, prefer them over Context7, which lags.
 
 Fetch with the bundled script, run from the project root:
 
@@ -31,24 +31,24 @@ bash ~/.claude/skills/research/scripts/fetch-docs.sh <tool> <domain> [extra-urls
 # e.g.  bash ~/.claude/skills/research/scripts/fetch-docs.sh inngest inngest.com
 ```
 
-It chains every known candidate URL, keeps real hits only (rejects HTML error pages), grabs **both** variants when both exist, saves to `tmp/refs/<tool>/`, and records source URL and fetch date in `_sources.md` there. A newly discovered URL pattern is added to the script, never to this file.
+It chains every candidate URL, keeps real hits only, grabs **both** variants where both exist, and saves to `tmp/refs/<tool>/` with source URL and fetch date in `_sources.md`. **Add a newly discovered URL pattern to the script, never to this file.**
 
 Using what came back:
 
 - **`llms.txt`** — small; read it whole. It is the navigation map: pick the pages the task needs and fetch those too, by passing their URLs to the script.
 - **`llms-full.txt`** — **never read inline.** Grep it, read the matching slices. A searchable corpus, not a document.
 - Exact signatures and copy-paste examples come from these cached files verbatim. WebFetch summarizes — fine for "how does X work", wrong for a precise signature.
-- The cache survives sessions and tickets. Check `tmp/refs/<tool>/` before re-fetching; re-run the script when starting new work and the stamped dates look old.
+- The cache survives sessions and tickets. Check `tmp/refs/<tool>/` before re-fetching, and re-run the script when new work starts and the stamped dates look old.
 
 **No llms.txt anywhere:** Context7 → web search for the official docs, fetching useful pages into the same cache → ask the user for content or URLs. Never fall back to training memory.
 
 ## Delegating heavy reading
 
-**`Explore` is the agent.** Claude Code ships it read-only and built for reading — nothing in `agents/` defines it, and nothing needs to. Where the job has to run something before it can read, `general-purpose` does the same work with the full tool set.
+**`Explore` is the agent.** Claude Code ships it read-only and built for reading. Where the job has to run something before it can read, `general-purpose` does the same work with the full tool set.
 
 **Dispatch on how much there is to read.** The level never decides it. A cloned codebase, megabytes of cached docs, a question that means opening twenty files: that much reading buries the session it lands in. Send it out and read the findings. A page or two, one grep for a signature, a file whose name you already have: read it here. A dispatch costs a brief, a wait, and everything the subagent saw but never wrote down.
 
-**The brief is a handoff** — `handoff` writes it, delivered in the subagent's prompt rather than as a file. Three things it carries that belong to reading specifically:
+**The brief is a handoff** — `/handoff` writes it, delivered in the subagent's prompt rather than as a file. Three things it carries that belong to reading specifically:
 
 - **The sources** — cache paths under `tmp/refs/<tool>/`, the clone path, or URLs to fetch.
 - **The question**, precisely stated, with the constraints that shape the answer: stack, versions, decisions already locked.
@@ -83,20 +83,4 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 **A question never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent.
 
-Level 1 answers inline, no file. Level 2 and up always writes one.
-
-**Distilled conclusions** land where the work lives, with source URLs and dates:
-
-- groundwork running → the branch it belongs to in `map.md`, with a pointer to the full report
-- spec or `plan.md` being written → straight into the relevant section, pointer included
-- a durable fact rather than a finding — a verified command, a settled convention → `docs/context/<subject>.md`
-
-## Hard rules
-
-- **Never freeze an external API into a spec, plan or code from training memory alone.**
-- **Research before recommending**, not after — never pick a direction and then look for evidence for it.
-- **State what you are researching and why** before touching any tool.
-- **Don't over-research.** Enough for a confident answer at the current level → stop and answer.
-- **`llms-full.txt` is grep-only.**
-- **Where the reading would bury the session, dispatch `Explore`.** A page or two stays here.
-- **Record findings.** The synthesis has to survive compaction.
+Level 1 answers inline, no file. Level 2 and up always writes one — the synthesis has to survive compaction.

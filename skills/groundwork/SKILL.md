@@ -18,7 +18,7 @@ Same 4 phases at any size. 3 words or 10 paragraphs — long input means more to
 
 ## Arriving on a ticket
 
-Groundwork also runs on a loose subject with no ticket, and then none of this applies.
+**No ticket → skip this section.** Groundwork runs on a loose subject just as well.
 
 **`/start` already moved the ticket only where the user named the status**, and a line like `todo → groundwork` above says so. Otherwise nothing has moved it. The status says where the work stopped, `map.md` says whether it finished, and this skill writes the move.
 
@@ -92,7 +92,7 @@ Order is a dependency claim. Branches that constrain other branches go first —
 One branch at a time. Interview until the decision is genuinely clear. A first answer is not clarity.
 
 1. **Pose the branch.**
-2. **Recommend.** Commit to a position: "I'd go with X because Y."
+2. **Recommend.** Commit to a position: "I'd go with X because Y." A neutral list of options is not an answer.
 3. **Wait for the reaction.** Vague or partial → probe before closing.
 4. **Write the decision** once it's locked — user-confirmed, no open threads, not mid-discussion agreement. Mark it `[x]`.
 
@@ -111,9 +111,9 @@ Sub-branches surface mid-conversation. Add them as `[ ]` children immediately, w
 - **What already exists here** → read it. Code, documents, files. Never burn a branch on what they already say.
 - **Something documented elsewhere** → **invoke `/research`**, levels 1–2.
 - **Past what the documentation says** → **invoke `/research`**, level 3: get the source and read it. **This is the case that sinks plans** — committing to a tool's internals unread produces a design that dies 4 steps into the build.
-- **Nothing written can answer it** → run something. A cheap check — one command, a 10-second script — runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail, a child of this work where there is one: `flow new "<question>" --type prototype --parent <id>`. **Never build it here** — a fresh session does that, then this groundwork resumes and reads the finding in the ticket's `reports/`. Keep walking branches that don't need the answer; when nothing else can move, say the map is waiting on that ticket and stop.
+- **Nothing written can answer it** → run something. A cheap check — one command, a 10-second script — runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail, a child of this work where there is one: `flow new "<question>" --type prototype --parent <id>`. **Never build it here.** A fresh session does that, and this groundwork resumes from the finding in the ticket's `reports/`. When nothing else on the map can move, say it waits on that ticket and stop.
 
-**A landscape too big to read here goes to a subagent**, never a ticket — reading asks no questions back, so nothing needs to watch it. `/research` owns the brief. The branch stays `[ ]` until the report lands in `docs/research/`; cut it mid-map and keep walking, because waiting is only for a branch nothing downstream can move without. A whole product is where this fires, since reading 3 tool landscapes inline spends the map's context on material the map never keeps.
+**A landscape too big to read here goes to a subagent**, never a ticket — reading asks no questions back, so nothing needs to watch it. `/research` owns the brief. The branch stays `[ ]` until the report lands in `docs/research/`, and the walk carries on meanwhile. A whole product is where this fires: reading 3 tool landscapes inline spends the map's context on material the map never keeps.
 
 ### When the branch is genuinely hard
 
@@ -200,7 +200,7 @@ Applies in Phases 1 and 2 both.
 - **"I don't know" is a real answer.** Twice on one branch means talking can't settle it — draw it instead.
 - **Buzzword answers get one probe.** "Scalable", "clean", "modern", "best practice" → _if you didn't have to justify this to anyone, what would you actually want?_
 - **Stop test.** Can you predict the reaction to the next 3 questions you'd ask? No → keep going. Several rounds with your confidence flat → say so and reframe, because the questions are wrong.
-- **Agreement is not an answer.** 3 rounds of "yes, agreed" means the session went passive. Say so out loud. A long session that decided nothing feels productive and is not.
+- **Agreement is not an answer.** 3 rounds of "yes, agreed" means the session went passive. Say so out loud. A long session that decided nothing still feels productive.
 
 ## The files
 
@@ -209,7 +209,7 @@ Applies in Phases 1 and 2 both.
 
 **Everything else routes out.** Working material stays in this folder; finished documents go where they belong, one live copy each, a one-line pointer everywhere else.
 
-**`map.md` is the decision log for this build.** A decision that outlives the build is written to `docs/spec/decisions.md` as well.
+**`map.md` is the decision log for this build.** A decision that outlives the build routes out in Phase 4, which picks the file it lands in.
 
 ### `map.md` format
 
@@ -252,8 +252,5 @@ Nothing read this run → no section. Phase 4 splits the list across the tickets
 ## Hard rules
 
 - **Every map carries branches nobody raised.** None of them → widen didn't run. Go back.
-- **Recommend, never survey.** A neutral list of options is not an answer.
-- **One branch at a time in Phase 2.** Stacked questions disorient.
 - **Never print the map to the user.** It's a file.
-- **Phase 1 ends its message. Phase 2 starts the next.** Never both in one message.
 - **Never start building before the map closes.** "Just do it" mid-map → check whether the design is actually clear; if it is, close the map first, then act.

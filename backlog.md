@@ -12,10 +12,9 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 
 ## Next
 
-1. **The writing pass** — 6 skills left: `file-findings`, `write-tickets`, `prototype`, `research`, then `debug`, then `groundwork`. Then the second pass on `global/CLAUDE.md`
-2. **The repo restructure** — the layout, then `skills/` into subfolders
-3. **End-to-end testing** — after the restructure, so the setup is written against a layout that has stopped moving
-4. **The install skill, then Delapse** — last, and only once everything above is still
+1. **The repo restructure** — the layout, then `skills/` into subfolders
+2. **End-to-end testing** — after the restructure, so the setup is written against a layout that has stopped moving
+3. **The install skill, then Delapse** — last, and only once everything above is still
 
 ## Mixed
 
@@ -43,15 +42,15 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 
 - [x] **`execute`** — 207 → 178 lines, 2513 → 2110 words. Instruct, do not justify. 100 was unreachable without cutting rules; `design-pickup.md` records what a real path there would cost
 - [x] **`refs/review-code.md:3` says "Read at Phase 4" — never a task.** The rewrite moved no phase number, so the line is correct as written
-- [ ] **`debug`** — 4 parked changes land with it: the collaboration loop generalized out of `debug-web-pages`, a failing check that is not always a command, "the red command" renamed, and 2 lines that carry no meaning as written. `refactor-agenda.md` item 10
-- [ ] **`file-findings`** — `write-skills.md` moves into `refs/` with it, the last file sitting at a skill root
+- [x] **`debug` — done 2026-08-24**, 114 → 119 lines. All 4 parked changes landed: the paste-it-back exchange is now a loop, the check is defined as a command *or* a sequence the user runs, "the red command" is "the failing check" everywhere, and both meaningless lines were rewritten with examples
+- [x] **`file-findings` — done 2026-08-24**, 68 → 56 lines. `write-skills.md` moved to `refs/`, so no file sits at any skill root now. Method leads, inputs follow it, `## Hard rules` was 6 recaps and went
 - [x] **`handoff` — done 2026-08-24**, inside the `flow open` build. Gained the `flow-open` block section, and `## Capture` is named in the global `CLAUDE.md` rather than the project one, which was the bug on the old line 97
-- [ ] **`prototype`** — it writes `visualize` bare at lines 3, 36, 38 and 83, where a skill is written `/visualize`
-- [ ] **`research`**
-- [ ] **`write-tickets`**
-- [ ] **`groundwork`** — had its rework, never this pass
-- [ ] **A second pass on `global/CLAUDE.md`** — apply the always-loaded test in `writing.md` §3 to every section, not just `## Scripts`: name a moment the rule fires with no skill loaded, and where you cannot, move it to the skill that owns it. The `flow` block had this pass 2026-08-23
-- [ ] **Finish the `/skill-name` sweep** — `handoff/`, `research/`, `global/refs/study-cases.md`
+- [x] **`prototype` — done 2026-08-24**, 88 → 77 lines. `/visualize` swept, the appearance branch moved out from under *What the ticket must carry* into `## When it is not a prototype`, `## Hard rules` folded 3 unique rules back and went
+- [x] **`research` — done 2026-08-24**, 102 → 86 lines. The description listed the workflow, which `writing.md` §8 names as the failure that gets followed instead of the file
+- [x] **`write-tickets` — done 2026-08-24**, 62 → 54 lines
+- [x] **`groundwork` — done 2026-08-24**, 259 → 256 lines, and `refs/write-spec.md` 148 → 139 with it. Already close to the standard: the real finds were `map.md` naming `docs/spec/decisions.md` directly when Phase 4 says `write-spec.md` picks the file, and 3 of 6 hard rules being recaps
+- [x] **A second pass on `global/CLAUDE.md` — done 2026-08-24.** Every section passes the always-loaded test and nothing moved out to a skill. What it did find: 2 over-long rules, a rebuttal clause, and 4 bare skill names
+- [x] **The `/skill-name` sweep — done 2026-08-24.** `handoff/` and `research/` swept; `global/refs/study-cases.md` names no skill and never needed it. Bare backticks correctly still hold every ticket type and every status
 - [ ] **`debug-web-pages`** — excluded until it is rebuilt on `browser-harness`
 
 ## Skills and commands
@@ -74,6 +73,7 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 
 - [x] **The two rejected explanations from 2026-08-23 — answered 2026-08-24.** `## Explaining` gained one idea per sentence, name the thing never point at it, and restate each question; `Define from zero` now reaches a word that is standard only inside a tool's own documentation. `writing.md` §5 widened to cover prose written to the user. `shit-explanations.md`
 - [ ] **Merge `wip/study-cases/bad-explanations/` into `wip/context/shit-explanations.md`** — same class of failure, two folders. That file's own header asks for it
+- [ ] **`## Explaining` in `global/CLAUDE.md` has no *UI is drawn, never described* bullet**, which the repo `CLAUDE.md` carries. A layout question in plain conversation loads no skill, so the rule has a moment with no owner. **talk first**
 - [ ] **Two rules for `global/CLAUDE.md`, confirmed 2026-08-09, never written** — the agent may depart from the workflow, saying which part it set aside; and it records Flow's own faults unprompted. `remaining.md`
 - [ ] **The repo `CLAUDE.md` states a rule that is now false** — that a command earns its place by running something before the model thinks. Claude Code merged commands into skills. `design-pickup.md`
 - [ ] **Where the review paragraph lives** once a review step exists — the premise moved. `groundwork` Phase 3 is now *attack it before it stands*, delegating to `## Judgment`, so re-read it before deciding whether the question survives. **talk first**. `remaining.md`
@@ -126,6 +126,7 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 - [ ] **`remaining.md` is stale under every BUILT heading** — those sections still carry content the 2 locked sections at the top later reversed
 - [ ] **Restructure `remaining.md`** — move the migration steps out, split must from later, cut the settled argument out of the `[x]` items
 - [ ] **`session-new-plugin.md` carries a stale "skills still to build" list**
+- [ ] **`design-debug.md` still says "the red command"** in 3 places — the skill renamed it to "the failing check" 2026-08-24, so the origin record and the skill no longer share a word
 - [ ] **`refactor-agenda.md`'s status table contradicts its own body** — row 10 says the writing pass reached `execute` on 2026-08-20 and the body says done 2026-08-22; row 11 says the `/start` routing line is open and its own section says done. The sections were updated and the table was not
 - [ ] **Real commit messages** — changelogs are suspended until v1, so git is the only record of why something changed
 - [ ] **Delete `design-explain-rework.md`?** — its stated condition landed 2026-08-12. Check first whether it still holds anything unique. **talk first**, either way

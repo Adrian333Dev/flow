@@ -11,7 +11,7 @@ One test, asked of each decision: **does it outlive the thing being built?**
 - **Yes, and it says how the system is built** → `docs/spec/tech.md`.
 - **Yes, and it says why a call was made** → `docs/spec/decisions.md`.
 
-One run usually writes 2 of these. Creates `docs/spec/` if there's none, edits it if there is.
+One run usually writes 2 of these. Create `docs/spec/` where there is none.
 
 `product.md` and `tech.md` are the base pair. `decisions.md` appears the moment something is locked with a reason worth keeping, which at project start is immediately.
 
@@ -35,7 +35,7 @@ One pass, after the map closes. The decisions were agreed while walking the map,
 
 **Write every requirement concrete and checkable.** "Fast", "robust", "user-friendly" are not requirements.
 
-**Draw wherever a drawing carries the point — invoke `/visualize`.** One place or 5, in whichever sections are spatial. Never head a section "architecture" and leave no picture under it.
+**Draw wherever a drawing carries the point — invoke `/visualize`.** One place or 5, in whichever sections are spatial, and **every spec carries at least one**. Never head a section "architecture" and leave no picture under it.
 
 Markdown only. No frontmatter, no copied artifacts.
 
@@ -57,7 +57,7 @@ Then only what a branch actually covered. Most specs use 3 or 4 of these, and a 
 - **What it competes against**, and why this holds up. The survey itself belongs in `docs/research/`.
 - **The glossary** — every term invented here.
 
-**Every behavior carries a mark:** `V1` · `next` · `later` · `never`.
+**Every behavior carries a mark**, one of four:
 
 - **V1** — ships first. The only mark tickets are created from.
 - **next** — committed, not yet.
@@ -116,7 +116,7 @@ Give the paths. The user reads and approves before anything is created from it.
 
 **An objection is not new groundwork.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
 
-Approved and there's work to cut → **invoke `/write-tickets`**.
+Approved and there's work to cut → **invoke `/write-tickets`**. **Never create a ticket from here.**
 
 ## Editing a spec that already exists
 
@@ -129,20 +129,11 @@ Same steps, scoped to what changed.
 
 ## What stays out
 
-The deliberation · the options weighed and dropped mid-discussion · the history of the conversation · anything still open, in `product.md` or `tech.md`.
+- the deliberation
+- the options weighed and dropped mid-discussion
+- the history of the conversation
+- anything still open, which goes in `decisions.md`
 
 Reasoning that outlives the build goes to `decisions.md`. Everything else stays in `map.md`. `product.md` says what the thing **is**, and `tech.md` says how it is **built**.
 
-A decision resting on evidence — a research report, a prototype, a drawing — names it **inline, on that decision**, plus a short reference list at the end of the file. No global index.
-
-## Hard rules
-
-- **List every closed branch before writing, and tick each as it lands.** An unticked line is a decision that vanished.
-- **Every behavior carries a mark.**
-- **The whole product goes in, at every version.** Never scope `product.md` to what ships first.
-- **One pass, after the map closes.** Never section by section for approval.
-- **At least one drawing.**
-- **Every spec says how you know it worked.**
-- **No fact in two files.**
-- **Nothing still open goes in `product.md` or `tech.md`.** It goes in `decisions.md`.
-- **Never create a ticket from here** — that is `/write-tickets`, after approval.
+**No fact in two files.** One live copy, a pointer everywhere else. A decision resting on evidence — a research report, a prototype, a drawing — names it **inline, on that decision**, plus a short reference list at the end of the file. No global index.

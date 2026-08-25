@@ -79,7 +79,7 @@ Governs every answer — status reports and one-line questions included, not jus
 
 The design is done and the main build landed 2026-08-09: `global/CLAUDE.md`, the `flow` tool, `project-template/`, every skill.
 
-**Still unbuilt:** the install skill — one skill covering every starting state, and the last thing Flow gets — a test suite for `flow`, and the real migration of the user's own projects.
+**Still unbuilt:** the install skill — one skill covering every starting state, and the last thing Flow gets — and the real migration of the user's own projects. A test suite for `flow` waits for the repo restructure; **never raise it before that lands.**
 
 **`code-review` is never getting built.** Review runs in the same session, never a subagent, and the criteria live beside whichever skill produced the artifact — `skills/execute/review-code.md` is that file for code.
 
@@ -105,7 +105,7 @@ To add one: create `<name>/SKILL.md` with `name` and `description` frontmatter, 
 - **Length is not a reason to split.** Under ~300 lines is fine, up to ~500 when the material earns it. Split only when parts are genuinely **conditional** — read on some runs and not others (`refs/write-spec.md`). Splitting what every run needs just buys extra reads.
 - **Skill names are verb-first.** The folder states the action — `execute`, `research` — never gerunds (`writing-plans`) or noun forms. A file inside a skill is named whatever fits it, and needs no verb.
 - **Plain, common words — no invented or rare terms.** "Rung" for a step on a list is the case that triggered this. Binds what skills produce as hard as what they say, because the user reads the output.
-- **`SKILL.md` is the only file at a skill's root.** Everything else goes in a folder: `scripts/` for executables (`research/scripts/fetch-docs.sh`), `refs/` for markdown read on some runs and not others (`visualize/refs/draw-mockups.md`), or a purpose name where one fits better (`debug-web-pages/knowledge/`). Set by the user 2026-08-19, and applied to `visualize` and `brainstorm` that day.
+- **`SKILL.md` is the only file at a skill's root.** Everything else goes in a folder: `scripts/` for executables (`research/scripts/fetch-docs.sh`), `refs/` for markdown read on some runs and not others (`visualize/refs/draw-mockups.md`), or a purpose name where one fits better (`debug-web-pages/knowledge/`). Set by the user 2026-08-19, and true of every skill since `file-findings/refs/write-skills.md` moved 2026-08-24.
 - **Accumulated findings go in the skill body, not a changelog.** Dated entries in a `knowledge/` file (see `debug-web-pages`) are read when the skill runs; a changelog never is.
 - **⛔ `CHANGELOG.md` — SUSPENDED (user, 2026-08-09). Never write, update or create one.** Not "fewer" — none, and every existing one was deleted that day. Flow is pre-release and its own history is churn, so a changelog of a design still being reversed weekly is noise nobody reads. **It returns at Flow's first release**, convention unchanged: behavior only — a rule added, removed or reversed, a mode added, a mechanism replaced. Never renames, path fixes or reference sweeps; git owns those. Date headers (`## 2026-08-03`), newest first, no version numbers. Never loaded into context — it exists so the reasoning behind current wording survives, which commit messages do not carry.
 - **No versions, no plugin manifest, no install CLI.** One symlinked copy per machine means there is no distribution lag to track.
