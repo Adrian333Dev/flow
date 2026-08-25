@@ -172,8 +172,8 @@ Run at 3 moments: the user asks it of a specific proposal, your own proposal loo
 
 Confirm every branch is resolved or deliberately deferred, then send each decision to the file that owns it. **Every route is conditional** — most runs use 1 or 2, several at once is normal.
 
-- **Work committed to here** → a ticket per unit of work, `flow new "…"`, each carrying what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list** — `/execute` reads every one of them, and a ticket pointed at everything is pointed at nothing.
-- **Work already written into `docs/spec/product.md`** → **invoke `/write-tickets`**. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
+- **Work committed to here** → a ticket per unit of work, `flow new "…"`, each carrying what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list** — `/execute` reads every one of them, and a ticket pointed at everything is pointed at nothing. **Record order that matters as `deps`**; the order you walked the branches in carries none.
+- **Work already written into `docs/spec/product.md`** → **invoke `/cut-from-spec`**. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
 - **Anything settled that outlives the build** — what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `refs/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
 - **A durable fact about this project** → `docs/context/<subject>.md`.
 - **Settled and dying with the build**, this build's non-goals included → already written in `map.md`. Leave it there.

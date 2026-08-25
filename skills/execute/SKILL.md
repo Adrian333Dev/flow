@@ -43,6 +43,8 @@ Then read the ticket body, its `## State` where one exists, and its `groundwork/
 
 **Start with `## References` in the ticket** — whoever cut it already found what this work must respect. **No section** → look once in `docs/context/` and `docs/research/`, then write what you found into `## References`, so the next session skips the search.
 
+**Add a line the moment you read something the build will need**, in any pass, not only this one. Left until the end of the run, half of them are forgotten.
+
 **Read the code this ticket changes, then write down what you found** — the signatures, the seam the change goes through, what surprised you. Plan nothing before this. A design says what to build, never what the code looks like today.
 
 **Name the command that proves this ticket done.** Whatever this project uses, never a default like `npm test`. It pastes into every dispatch.

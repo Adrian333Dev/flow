@@ -1,9 +1,9 @@
 ---
-name: write-tickets
-description: Cut the next batch of work out of docs/spec/ into tickets. Reach for it when the ticket pool is empty or thin and the spec has work left in it, and right after a product spec is first approved.
+name: cut-from-spec
+description: ALWAYS invoke when the ticket pool is empty or thin and docs/spec/ still has work in it, and right after a product spec is first approved. Cuts the next batch of work out of the spec into tickets. Never for tickets a groundwork session just decided — that session cuts its own, holding the map this one would have to reconstruct.
 ---
 
-# Write tickets
+# Cut from spec
 
 **Work from `docs/spec/` and this file alone.** Months pass between runs, and the groundwork that produced the spec is long gone from context.
 
@@ -42,7 +42,7 @@ EOF
 Each ticket carries:
 
 - **What the spec says**, in the ticket's own words. Whoever picks it up will not re-read the spec.
-- **A `## References` section** — whatever the spec section attached, plus the conventions this work has to respect: a research report, a file under `docs/context/`. One line each, the path then what it settles. A reference left only in the spec is a reference nobody follows.
+- **A `## References` section** — whatever the spec section attached, plus the conventions this work has to respect: a research report, a file under `docs/context/`, a skill this work should reach for. One line each, the path then what it settles. A reference left only in the spec is a reference nobody follows.
 - **A `## Done when`** naming something observable.
 
 Never copy a whole spec section in. One live copy of anything — the ticket points at `docs/spec/product.md` for the full statement.

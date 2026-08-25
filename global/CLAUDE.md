@@ -3,7 +3,7 @@ Flow — an agentic development workflow for a solo developer. Work runs groundw
 ## Hard rules
 
 - **No edits without approval.** Approval is "do it" or "go ahead".
-- **A handoff file you booted from is read once, then left alone.** Never update it as the work moves; write a fresh one over it, or delete it once its job is done. **Inside a ticket the state is a section instead, kept current** — `## State`, rewritten whole whenever something becomes true that no other file records.
+- **A handoff file you booted from is read once, then left alone** — never updated as the work moves. **A ticket is the opposite**: whoever works it keeps it true.
 - **Read minimal context.** Path and line range, one filtered query over many reads, stop when answered.
 - **Reach for a skill, never improvise its job.** Named but not installed → say so and stop.
 - **When Flow fights the work, set that part aside.** The case it never considered, or a rule that makes the work worse — name the part, say why, carry on. **The permission is standing; never ask for it.** Silently forcing a bad fit is the failure this prevents.
@@ -56,7 +56,6 @@ Confirm in the final message, never only in a tool call: `[where] what was writt
 - `docs/context/` — durable project facts, one file per subject
 - `docs/research/` — fetched external docs and research writeups, flat, subject-named
 - `docs/intake/` — pre-Flow material, kept as-is. Mine it; never treat it as current
-- `~/.claude/flow/toolbox/` — external tools filed by job: MCP servers, plugins, skills, libraries, apps. `README.md` indexes them and carries install syntax. Read the one file that fits, never the set
 - `~/.claude/flow/refs/workflow.md` — how Flow's pieces fit together. Only when that is genuinely unclear
 - `~/.claude/flow/refs/writing.md` — the house style: section shapes, sentence rules, what may never be cut
 - `~/.claude/flow/refs/cli-design.md` — the rules `flow`'s own surface follows. Only when adding a command, an action or a flag

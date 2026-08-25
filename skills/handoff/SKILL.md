@@ -20,9 +20,9 @@ Decide this first. Everything else follows from it.
 - **A subagent starting right now** → the prompt. It reads that and nothing else, so a file would be a second copy that goes stale the moment either one changes.
 - **No ticket system here** → `handoff.md`, beside the work. `flow` needs only a git repo, so this is the rare case: no repo at all, or one belonging to someone else. A path the user names beats all of it.
 
-**Inside a ticket the state is a living section.** Write to it as the work moves, every time something becomes true that no other file records — after every thing you learned, never after every edit. Running this skill at the end is then a check rather than a reconstruction, which is what makes it affordable at the one moment context is scarce. It also survives a session that dies before anyone runs anything.
+**Inside a ticket the state is a living section.** Write to it as the work moves, every time something becomes true that no other file records — after every thing you learned or were told, never after every edit. **A sentence from the user counts**: a constraint, a correction, a leaning they have not locked. Running this skill at the end is then a check rather than a reconstruction, which is what makes it affordable at the one moment context is scarce. It also survives a session that dies before anyone runs anything.
 
-**Everywhere else it is written once**, read once, and rewritten whole next time. Never updated in place.
+**Everywhere else it is written once**, read once, and rewritten whole next time. Never updated in place. **The rewrite carries forward whatever the old file still holds true** — one written only from this session's memory drops everything the last session found.
 
 ## 2. Gather only what this job needs
 
@@ -73,6 +73,10 @@ What is left is what nobody wrote down, under four labels:
 - **Open** — decisions half-made, threads nobody closed, the option you were leaning toward and why. A half-made decision dies in a reset exactly like a locked one.
 - **Touched** — files this session changed that no step in `plan.md` names.
 
+**`Now` and `Touched` are rewritten whole every time.** Both describe this second, and appending to them stacks up half-finished steps nobody can date.
+
+**`Found` and `Open` are added to, never regenerated.** Both outlive the session that wrote them. A line goes in the moment you learn it, and comes out when it stops being true — a decision closes, or a fact moves to `docs/context/`. Rewriting these two from context is how something learned three hours ago disappears.
+
 **How many fill depends entirely on the work, and most of the time it is two.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. Groundwork fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all four and runs long**, because `/debug` writes nothing durable while it hunts.
 
 A fat state section on a build ticket means the plan carries too little.
@@ -117,9 +121,11 @@ Durable knowledge goes to its own home the moment it surfaces — `## Capture` i
 
 ## 4. Land it
 
-**In a ticket** — `## State`, at the bottom of `ticket.md`. Rewrite that section whole and touch no other: `flow` owns the frontmatter, `/execute` owns `plan.md`, `/debug` and `/prototype` own `reports/`, and the body belongs to whoever created the ticket.
+**In a ticket** — `## State` at the bottom of `ticket.md`, plus a line in `## References` for anything this session read that the build will need. While `map.md` is still open its own `## References` holds those, and Phase 4 splits them into the tickets it cuts.
 
-**Delete the section when the ticket reaches `review`.** "Step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
+Everything else has an owner: `flow` the frontmatter, `/execute` `plan.md`, `/debug` and `/prototype` `reports/`, and whoever created the ticket the body paragraph. `## Done when` moves only when a skill re-decides what the ticket is.
+
+**At `review`, empty `Found` before deleting the section.** Anything in it still true goes to `docs/context/<subject>.md`, or into `## References` as a line. Then the section goes — "step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
 
 **In a file** — `handoff.md` beside the most specific thing being worked: the groundwork's own folder, or the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
 

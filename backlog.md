@@ -57,6 +57,9 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 
 - [x] **`/run`, one command that runs any shell command** — replaces `/merge`, and covers `fmerge`, `ptree` and whatever comes next. Needs `|| true`, or a non-zero exit hands the model nothing. `threads.md` → `command-surface`
 - [x] **`/start`'s routing line** — the status leads and the arrow points at the skill, nested under `feature` and `chore`
+- [x] **`write-tickets` → `cut-from-spec`, narrowed 2026-08-25.** An audit found nearly all its general content already in `groundwork` Phase 4 or `global/CLAUDE.md` — one rule, `deps` for order, existed nowhere else and was copied across. The skill earns its place on the trigger, not the content: months later the pool is empty, the spec has `V1` work left, and nothing else fires there
+- [x] **`/debug` — 5 changes 2026-08-25.** Look for your own way in before asking the user, three handback exits not two, the handback ticket is thin and points at the report, the report has a no-ticket home, and the heading matches the words the skill already uses
+- [x] **`/handoff` — the `## State` rewrite splits 2026-08-25.** `Now` and `Touched` are rewritten whole, `Found` and `Open` are added to and pruned. A ticket's `## References` is written as the work moves, and `Found` routes out before the section dies at `review`
 - [ ] **Rebuild `debug-web-pages` on `browser-harness`** — 1,059 lines to roughly 150: 54 in `SKILL.md`, 514 in `knowledge/`, 491 in 2 scripts. The capture transport dies, the investigation method stays. Waits for the move to Linux. `design-browser-tooling.md`
 - [ ] **Introducing development skills** — **talk first**
 - [ ] **`grill`** — decided and undesigned: a skill you fire at a finished artifact, `disable-model-invocation: true`, never model-invoked. **talk first**. `handoff.md`
@@ -74,6 +77,9 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 - [x] **The two rejected explanations from 2026-08-23 — answered 2026-08-24.** `## Explaining` gained one idea per sentence, name the thing never point at it, and restate each question; `Define from zero` now reaches a word that is standard only inside a tool's own documentation. `writing.md` §5 widened to cover prose written to the user. `shit-explanations.md`
 - [ ] **Merge `wip/study-cases/bad-explanations/` into `wip/context/shit-explanations.md`** — same class of failure, two folders. That file's own header asks for it
 - [ ] **`## Explaining` in `global/CLAUDE.md` has no *UI is drawn, never described* bullet**, which the repo `CLAUDE.md` carries. A layout question in plain conversation loads no skill, so the rule has a moment with no owner. **talk first**
+- [x] **The toolbox is out of the workflow — 2026-08-25.** The `## References` bullet in `global/CLAUDE.md` and the `~/.claude/flow/toolbox` symlink in `README.md` are gone. The submodule stays in the repo, so every repo rule about it stands
+- [x] **`global/refs/writing.md` §9 keeps its toolbox example — kept 2026-08-25.** It quotes the deleted bullet as the before/after for *state the test, delete the illustrations*, and an example routes nobody anywhere. Replacing it would cost a hunt for another real pair and buy nothing
+- [ ] **`## Explaining` needs *resolve the referent*** — restating the user's words preserves their looseness, which is how a name the repo carries three times gets used bare. **talk first**. `shit-explanations.md` 2026-08-25
 - [ ] **Two rules for `global/CLAUDE.md`, confirmed 2026-08-09, never written** — the agent may depart from the workflow, saying which part it set aside; and it records Flow's own faults unprompted. `remaining.md`
 - [ ] **The repo `CLAUDE.md` states a rule that is now false** — that a command earns its place by running something before the model thinks. Claude Code merged commands into skills. `design-pickup.md`
 - [ ] **Where the review paragraph lives** once a review step exists — the premise moved. `groundwork` Phase 3 is now *attack it before it stands*, delegating to `## Judgment`, so re-read it before deciding whether the question survives. **talk first**. `remaining.md`
@@ -133,7 +139,7 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 
 ## Docs for whoever reads Flow
 
-- [ ] **`README.md` still owes its real pass** — the surface sweep fixed the stale `flow` and `commands/` lines, and the install steps and layout section get rewritten once the restructure has moved paths
+- [ ] **`README.md` still owes its real pass** — the install steps and layout section get rewritten once the restructure has moved paths. **Never edit it before then** (user, 2026-08-25): it is wrong as it stands, and the rewrite replaces it whole, so every patch until then is thrown away
 - [ ] **The guide** — the long form of `global/refs/workflow.md`, for a reader who knows none of this: every component, every decision, and the reasoning behind each
 
 ## Install and migration
@@ -144,7 +150,7 @@ Each read end to end against `global/refs/writing.md`: plan the sections, then t
 - [ ] **Migrate Delapse** — the real test, and where its conventions route into the project `CLAUDE.md` and `docs/context/`
 - [ ] **Delete the project-local skills afterwards** — skills are global, one copy per machine
 - [ ] **Harvest Delapse, `lumacraft_v2` and `framework-build` into skills** before that material is lost
-- [ ] **Run `link.sh`** once the skill set is final
+- [ ] **Run `link.sh`** once the skill set is final — it links per skill folder, so the `write-tickets` → `cut-from-spec` rename only reaches a machine through it
 - [ ] **Repoint the stale `~/.local/bin` symlinks** — `ptree`, `flow`, `fmerge` and `gsave` all resolve into the deleted workbench repo, so `flow` runs old code. `refactor-agenda.md` item 8
 - [ ] **Tune `guard.js`'s deny and ask lists** against real use — they were written from the rules, never against an observed false positive
 - [ ] **An interview at install to fill `## The user`** — **parked**

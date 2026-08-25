@@ -170,3 +170,67 @@ word choice and did not catch a four-idea clause made entirely of plain words.
   carries more than one.
 - **Never open with a heading the reader cannot evaluate.** The first line states the situation in
   plain words or it is cut.
+
+---
+
+## 2026-08-25 — naming a thing the repo has three of
+
+**Context.** The user sent a seven-topic message about `flow get`, the `flow-open` block,
+`write-tickets`, `## References`, the global `CLAUDE.md`, and two gaps in `/debug`. The reply
+answered all seven under headings that reused the user's own loose wording as labels.
+
+**What was sent (excerpts):**
+
+> ## 4. `## References` as a `flow-open` block
+
+> The backup motivation doesn't survive: the block only exists inside `flow open`.
+
+> So widen it, but bound the trigger by cost rather than by where the work came from: several
+> tickets at once, or material this session wasn't there for.
+
+**What the user said back:**
+
+> "I have no idea what the fuck are you referring to by references section. Like, which references
+> section? Where? Like, what are you exactly fucking referring to?"
+
+> "what do you mean the backup motivation? What's exactly the backup motivation?"
+
+> "Is terribly explained, and I didn't understand a single fucking thing from it. Like, I have no
+> idea what the fuck are you exactly proposing in that section."
+
+### Three faults
+
+1. **A name the repo carries three times, used bare.** Flow has `## References` in a ticket body,
+   `## References` at the bottom of `map.md`, and `## References` in `global/CLAUDE.md`. The reply
+   named none of them. The user had written "reference section", so restating their words restated
+   the ambiguity.
+2. **A label invented for the user's own reasoning, then argued against.** The user's stated reason
+   was *"in case the user doesn't actually utilize the start command."* The reply compressed that
+   into "the backup motivation" and spent a paragraph refuting the label. The user could not match
+   the label back to their own sentence.
+3. **A proposal made of three undefined abstractions.** "Bound the trigger by cost rather than by
+   where the work came from" — `trigger` means the skill's `description:` frontmatter line, `bound`
+   means narrowing that sentence, and `cost` means context spent loading a skill. None was said.
+   The one sentence carrying the whole recommendation was the least readable in the message.
+
+### Root cause
+
+Answering seven topics in one message, and compressing each one's subject into a short heading to
+fit. Every heading dropped the referent. The compression served the writer, who still had all seven
+subjects loaded, and cost the reader, who did not.
+
+### The rule that failed
+
+`## Explaining` carries *"Restate each question before answering it, in the user's own words"*,
+added 2026-08-24 from the entry above. It fired and did not help. Restating the user's words
+preserves their looseness — and dictated input is loose by construction. The rule names the wrong
+half of the job: the question was restated, the thing it referred to never was.
+
+### What would have been right
+
+- **Resolve the referent, not just the question.** Where the user's words name something the repo
+  has more than one of, say which one — the file, and the place in it — before answering.
+- **Never invent a label for something the user said.** Say their sentence back in full words. A
+  label the user cannot match to their own message makes the paragraph under it unreadable.
+- **Define a term inside the sentence that first uses it**, even in a recommendation. A proposal is
+  the worst place to spend an undefined word.

@@ -37,11 +37,10 @@ ln -sfn ~/code/flow/global/scripts/fmerge.js   ~/.local/bin/fmerge
 ln -sfn ~/code/flow/global/scripts/gsave.sh    ~/.local/bin/gsave
 ln -sfn ~/code/flow/global/scripts/flow/flow.js ~/.local/bin/flow
 
-# 4. Flow's own folder — reference files and the tool catalog, at paths that
-#    don't depend on where you cloned flow
+# 4. Flow's own folder — reference files at a path that doesn't depend on
+#    where you cloned flow
 mkdir -p ~/.claude/flow
 ln -sfn ~/code/flow/global/refs ~/.claude/flow/refs
-ln -sfn ~/code/flow/toolbox     ~/.claude/flow/toolbox
 
 # 5. rules — copied, not linked: this one becomes yours
 cp -n global/CLAUDE.md ~/.claude/CLAUDE.md
@@ -49,7 +48,7 @@ cp -n global/CLAUDE.md ~/.claude/CLAUDE.md
 
 Every script lives once, in `global/scripts/`, and keeps its extension there so you can see what runs it. Steps 2 and 3 are two ways to reach the same files — a folder link for the ones named by path, per-file links for the ones you type. Symlinks throughout, so editing the repo changes the command with no reinstall step.
 
-Step 4 exists so the rules can name fixed paths. `~/.claude/flow/` is the one folder under `~/.claude/` that Flow owns and Claude Code does not read — nothing in it loads on its own, which is what makes it the right home for material the rules point at rather than carry. It holds pointers into this repo (`refs/`, `toolbox/`) alongside Flow's own output, which lands there on first write: `notes.md`, and `study-cases/`. **The repo is never cloned into it** — it stays wherever you put it, and `setup-flow-globals` will run from there. `toolbox` is its own repo, pinned here as a submodule; `git submodule update --remote toolbox` pulls newer entries.
+Step 4 exists so the rules can name fixed paths. `~/.claude/flow/` is the one folder under `~/.claude/` that Flow owns and Claude Code does not read — nothing in it loads on its own, which is what makes it the right home for material the rules point at rather than carry. It holds a pointer into this repo (`refs/`) alongside Flow's own output, which lands there on first write: `notes.md`, and `study-cases/`. **The repo is never cloned into it** — it stays wherever you put it, and `setup-flow-globals` will run from there.
 
 Then fill in `## The user` and `## Preferences` in `~/.claude/CLAUDE.md`. That copy is personal from here on; if you want it backed up, track `~/.claude/` in a private repo of your own.
 

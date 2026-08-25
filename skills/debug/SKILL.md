@@ -39,13 +39,15 @@ Four steps, in order. A step you cannot finish is the finding: say so and stop t
 
 **Write the hunt down as it runs** — the failing check, every hypothesis and how it died, what survived. Inside a ticket that is `## State`; without one, `/handoff` writes a file. Nothing else records any of it, which makes an interrupted hunt the most expensive thing in Flow to lose.
 
-**When the hunt ends, write the report** — `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the failing check, which hypotheses died and how, the cause, the fix, and the output that proves it. `## State` is deleted when the ticket closes and this is not — a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely — a verified command, a settled convention — goes to `docs/context/<subject>.md` as well.
+**When the hunt ends, write the report** — `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the failing check, which hypotheses died and how, the cause, the fix, and the output that proves it. No ticket → `REPORT-<failure>.md` beside the work. `## State` is deleted when the ticket closes and this is not — a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely — a verified command, a settled convention — goes to `docs/context/<subject>.md` as well.
 
 **Open it with a status**, so the answer is the first line a week later: `FIXED`, `FOUND_NOT_FIXED` where the cause is proved and the fix needs a decision nobody gave, or `UNPROVEN` where the hypotheses ran out. `UNPROVEN` is a real result — what got ruled out is the whole deliverable then, and it is worth as much as a fix.
 
-### When you need an observation only the user can make
+### When the failure is somewhere you cannot reach
 
-A browser you cannot drive, a database behind a VPN, a phone, a service behind a login. Asking early is correct, and it is never defeat.
+**Look for your own way in first.** An MCP server already configured, a CLI already logged in, a local port, a log file on disk, a read-only replica. A database "behind a VPN" is often a `psql` this machine already runs, and one tool call beats a round trip through the user. Found a way in → build the failing check on it and carry on.
+
+No way in → ask, and ask early. It is never defeat.
 
 **The exchange is a loop, not one question.** Write the probe, the user runs it and pastes the output back, you read it and write the next one. Each round narrows the failure, and every round costs the user a context switch — so make each one earn its interruption.
 
@@ -79,32 +81,31 @@ Still nothing → say so, list what was ruled out and what would settle it, then
 
 ### When three fixes have failed
 
-Stop fixing. Three failed fixes means the hypothesis was never the problem — the shape of the code is. Name the structure that makes this bug possible, and hand the decision back. A fourth attempt from the same understanding costs the same and lands the same.
+Stop fixing. Three failed fixes means the hypothesis was never the problem — the shape of the code is. Name the structure that makes this bug possible, and hand the decision back under `FOUND_NOT_FIXED`: the structure is the cause, and replacing it is a decision nobody gave. A fourth attempt from the same understanding costs the same and lands the same.
 
 ## Handing it back
 
 **Hunt here.** The fix lands in code this session already knows, and a fresh session re-derives all of that first.
 
-Two things end the hunt here: **the fix needs a decision nobody gave**, or **the hypotheses ran out**. Both go the same way — a ticket, then the user.
+Three things end the hunt here: **the fix needs a decision nobody gave**, **the hypotheses ran out**, or **three fixes have failed**. All three go the same way — a ticket, then the user.
 
-**The ticket body carries four things and never the conversation:**
+**Write the report first, then cut a thin ticket at it.** The report already carries the error, every hypothesis and how it died. Copying that into a ticket body hands the next session two versions of one hunt.
 
-- **What failed** — the step, the command, or what the user did
-- **The error**, in full, untruncated
-- **What changed** — the diff, or the last state known to work
-- **Already tried** — one line each, and what it ruled out
+**The body carries three things and never the conversation:**
 
-`flow` takes the body on stdin, so an untruncated stack trace never passes through shell quoting:
+- **What failed**, in one line — the step, the command, or what the user did
+- **The report**, by its path from the repo root. It sits in *this* ticket's folder, and `flow open` resolves a path against the new ticket first, so a bare `reports/<failure>.md` points at an empty folder
+- **What would settle it** — the decision needed, or the evidence still missing
 
 ```bash
 flow new "<what failed>" --type issue --parent t047 --body - <<'EOF'
-<the four things>
+<the three things>
 EOF
 ```
 
 **The ticket is what makes this safe:** it carries a status, and the parent refuses to close around it while it is open, which a file nobody marks finished could never do.
 
-**No ticket system here** → `/handoff` writes a file instead, and say where it is.
+**No ticket system here** → the report is already beside the work, and `/handoff` writes the pickup beside it. The report is the evidence; the handoff is what the next session does with it.
 
 Then stop. The user opens it in a fresh session, and works the hunt there directly with whoever picks it up. When a fix comes back, re-run the failing check yourself — someone else's verification output is their claim, not yours.
 
