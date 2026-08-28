@@ -16,8 +16,8 @@ Decide this **before** drawing anything. Picking wrong is the most expensive mis
 - **Prose** — a rule, a reason, a sequence of events. The default, and what an ordinary answer uses.
 - **A list** — several items with the same shape and role, compared.
 - **ASCII** — structure, ownership, flow, containment.
-- **ASCII frame** — layout and proportion of a real screen → `refs/draw-mockups.md`.
-- **HTML preview** — colour, shade, density, elevation, type weight, spacing feel → `refs/draw-mockups.md`.
+- **ASCII frame** — layout and proportion of a real screen → `references/draw-mockups.md`.
+- **HTML preview** — colour, shade, density, elevation, type weight, spacing feel → `references/draw-mockups.md`.
 
 **ASCII first, especially for layout.** Settle structure in a frame, then dress it in colour. Colour first puts two undecided things in one artifact, and the reaction cannot be attributed to either.
 
@@ -192,7 +192,7 @@ Proven layouts. Pick one, combine several, or invent a better-fitting layout —
 **When:** a lifecycle, a state machine, a loop with escapes — a spine of ordered steps where some steps jump back.
 **How:** the spine runs straight down the middle; each return path gets its own column to the right, labelled at both ends; containers group the phases.
 **Failure:** a return path taller than the screen. That is where it splits into two diagrams.
-**At scale:** `refs/hooks-lifecycle.md` — 113 × 97, a 15-step spine, two nested containers, three return paths.
+**At scale:** `references/hooks-lifecycle.md` — 113 × 97, a 15-step spine, two nested containers, three return paths.
 
 ```
 ┌─  EACH TURN  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
@@ -237,8 +237,8 @@ core/
 
 ### Rarer forms
 
-- **A schedule, a data model, or two representations that must map onto each other** → `refs/rarer-forms.md`, which defines and draws all three.
-- **A screen, or anything floating over one** → `refs/draw-mockups.md`.
+- **A schedule, a data model, or two representations that must map onto each other** → `references/rarer-forms.md`, which defines and draws all three.
+- **A screen, or anything floating over one** → `references/draw-mockups.md`.
 
 ## Structure — adapt it, don't fill it in
 
@@ -250,4 +250,4 @@ Other shapes adapt. A *mechanism* explanation ends with "what this means for us,
 
 Use the sentences the material actually needs — no padding, and no artificial squeezing. Only the opener is deliberately short.
 
-`refs/worked-example.md` runs this shape once end to end, on a real architecture, and shows how much depth the load-bearing rule gets.
+`references/worked-example.md` runs this shape once end to end, on a real architecture, and shows how much depth the load-bearing rule gets.

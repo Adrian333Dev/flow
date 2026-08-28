@@ -17,7 +17,7 @@ Four levels. Match depth to the work, escalate when the current level cannot ans
 
 1. **Targeted question** — one API, one config flag, "is X still maintained?" → Context7 or a single doc-page fetch. Inline, quick.
 2. **Working against a tool** — planning or building a feature on it → fetch its current docs by the llms.txt route below, cache them, read the relevant pages before freezing any API into a spec or plan.
-3. **Deep customization** — extending a library past what its docs describe → docs will not answer it. Clone the source and read the code: `git clone --depth 1 <repo> tmp/refs/<tool>/repo`. Clone without asking — read-only and cheap — just announce it.
+3. **Deep customization** — extending a library past what its docs describe → docs will not answer it. Clone the source and read the code: `git clone --depth 1 <repo> tmp/references/<tool>/repo`. Clone without asking — read-only and cheap — just announce it.
 4. **Landscape** — surveying what exists, comparing options in depth, a domain you barely know → external prompt research, below.
 
 ## Getting current docs — the llms.txt route
@@ -31,14 +31,14 @@ bash ~/.claude/skills/research/scripts/fetch-docs.sh <tool> <domain> [extra-urls
 # e.g.  bash ~/.claude/skills/research/scripts/fetch-docs.sh inngest inngest.com
 ```
 
-It chains every candidate URL, keeps real hits only, grabs **both** variants where both exist, and saves to `tmp/refs/<tool>/` with source URL and fetch date in `_sources.md`. **Add a newly discovered URL pattern to the script, never to this file.**
+It chains every candidate URL, keeps real hits only, grabs **both** variants where both exist, and saves to `tmp/references/<tool>/` with source URL and fetch date in `_sources.md`. **Add a newly discovered URL pattern to the script, never to this file.**
 
 Using what came back:
 
 - **`llms.txt`** — small; read it whole. It is the navigation map: pick the pages the task needs and fetch those too, by passing their URLs to the script.
 - **`llms-full.txt`** — **never read inline.** Grep it, read the matching slices. A searchable corpus, not a document.
 - Exact signatures and copy-paste examples come from these cached files verbatim. WebFetch summarizes — fine for "how does X work", wrong for a precise signature.
-- The cache survives sessions and tickets. Check `tmp/refs/<tool>/` before re-fetching, and re-run the script when new work starts and the stamped dates look old.
+- The cache survives sessions and tickets. Check `tmp/references/<tool>/` before re-fetching, and re-run the script when new work starts and the stamped dates look old.
 
 **No llms.txt anywhere:** Context7 → web search for the official docs, fetching useful pages into the same cache → ask the user for content or URLs. Never fall back to training memory.
 
@@ -50,7 +50,7 @@ Using what came back:
 
 **The brief is a handoff** — `/handoff` writes it, delivered in the subagent's prompt rather than as a file. Three things it carries that belong to reading specifically:
 
-- **The sources** — cache paths under `tmp/refs/<tool>/`, the clone path, or URLs to fetch.
+- **The sources** — cache paths under `tmp/references/<tool>/`, the clone path, or URLs to fetch.
 - **The question**, precisely stated, with the constraints that shape the answer: stack, versions, decisions already locked.
 - **The output** — findings written into the question's research file, each citing where in the sources it came from.
 
@@ -75,7 +75,7 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 ## Where it goes
 
-**Fetched upstream material** — docs, clones — stays in `tmp/refs/<tool>/`. Gitignored, refetchable, disposable.
+**Fetched upstream material** — docs, clones — stays in `tmp/references/<tool>/`. Gitignored, refetchable, disposable.
 
 **The research itself** — one file per question, the prompt or question at the top and the findings below it in the same file. Same shape whether an external LLM, a subagent or you answered it.
 

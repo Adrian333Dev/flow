@@ -5,7 +5,7 @@
 # Usage:
 #   fetch-docs.sh <tool> <domain> [url...]
 #
-#   <tool>    cache folder name — files land in tmp/refs/<tool>/
+#   <tool>    cache folder name — files land in tmp/references/<tool>/
 #   <domain>  bare domain (e.g. ai-sdk.dev) — llms.txt candidates are derived
 #             from it. Pass "-" to skip discovery and only fetch the extra URLs.
 #   [url...]  extra URLs fetched verbatim (individual doc pages, raw markdown)
@@ -13,7 +13,7 @@
 # Tries the known llms.txt locations in a chain and keeps the first real hit
 # per variant (rejects HTML error pages), fetches BOTH llms.txt and
 # llms-full.txt when available, and records source URL + fetch date in
-# tmp/refs/<tool>/_sources.md
+# tmp/references/<tool>/_sources.md
 
 set -u
 
@@ -21,7 +21,7 @@ tool="${1:?usage: fetch-docs.sh <tool> <domain> [url...]}"
 domain="${2:?usage: fetch-docs.sh <tool> <domain> [url...]}"
 shift 2
 
-dest="tmp/refs/$tool"
+dest="tmp/references/$tool"
 mkdir -p "$dest"
 meta="$dest/_sources.md"
 

@@ -51,6 +51,6 @@ Never a "tool-A-with-tool-B" skill. One home per fact, a pointer everywhere else
 
 ## Building or reshaping a skill
 
-**Read `refs/write-skills.md`** before creating or restructuring one. It carries the shape, the frontmatter, where a new skill lives, and when to rewrite one rather than patch it.
+**Read `references/write-skills.md`** before creating or restructuring one. It carries the shape, the frontmatter, where a new skill lives, and when to rewrite one rather than patch it.
 
 Appending a line to a skill that already exists needs none of it.
