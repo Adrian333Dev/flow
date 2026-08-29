@@ -57,4 +57,4 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 
 ## Departing
 
-**Expected when the workflow fights the work.** Say which part you set aside and why, then carry on. Standing permission — never ask. It never reaches `## Hard rules`.
+**Expected when the workflow fights the work.** Say which part you set aside and why, then carry on. Standing permission — never ask.

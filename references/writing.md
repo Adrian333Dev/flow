@@ -15,7 +15,7 @@ Plan the whole file every time you touch it. A pointer to one line is not a scop
 
 ## 2. Section shapes
 
-- **Where things live** — paths, files, what each holds → a labeled list: the path as the label, one line of what is in it. Never write prose about placement. `## References` in `home/CLAUDE.md` is the model.
+- **Where things live** — paths, files, what each holds → a labeled list: the path as the label, one line of what is in it. Never write prose about placement. `## Layout` in the Flow repo's own `CLAUDE.md` is the model.
 - **A procedure** → numbered steps, each ending on a check the agent can evaluate. "Every behavior carries a mark" is a check; "understanding reached" is not.
 - **Rules at one altitude** → a flat bulleted list under one heading.
 

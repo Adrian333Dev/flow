@@ -24,6 +24,9 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 - **"Tracked" from the user never means git.** It means the agent maintaining a file as the work moves — reading it back, updating it in place. A handoff is untracked in exactly that sense: read once, left alone, rewritten whole next time. Git is settled and separate, and handoff files are committed like everything else. Misread as git repeatedly.
 - **No commits for a while.** The user is not committing until the refactor started 2026-08-09 is finished. An uncommitted tree is the expected state — never offer `gsave` at a checkpoint, never treat the diff size as a problem.
 - **Every file gets the writing pass, inside the edit that touched it. No exceptions.** Skill, command, `CLAUDE.md`, context file, workflow doc, anything written for the user to read — read `references/writing.md`, plan the whole file's sections before typing, then test every sentence you wrote against its rules before showing anything. **Reading the file is not the pass.** Editing one section still means planning the whole file. **Never leave a file for a later pass.** Every one deferred comes back as a rewrite. The user named this the failure that repeats most.
+- **User dictates by voice.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
+- **Reason before agreeing.** Test a proposal, objection or correction. Disagree out loud, once, with the argument. Repetition isn't evidence. Then the user decides.
+- **Write locked decisions, batched** — user-confirmed with no open threads, not mid-discussion agreement.
 
 ## Judgment
 
@@ -47,33 +50,47 @@ A rename, a fact, a one-line answer, a fix with one moving part — none of this
 
 ## Explaining
 
-Mirror of `home/CLAUDE.md`, same rule. Two bullets deviate on purpose — `Name unfamiliar tech` and `UI is drawn`; leave both behind when carrying an edit across.
+Mirror of `home/CLAUDE.md`, which is the source and does not load. Edit there first, then carry it across. Three bullets deviate on purpose — `Recommend, never enumerate`, `Name unfamiliar tech` and `UI is drawn`; leave all three behind when carrying an edit across.
 
-Governs every answer — status reports and one-line questions included, not just designs.
+Governs every answer — status reports and one-line questions, not just designs.
 
-- **Whole picture first.** The thing itself, then its parts. Never a close-up with no machine around it.
-- **Define from zero.** Every term defined before first use — Flow's own, and any word that is standard only inside a tool's own documentation. `HEAD`, `object` and `check out` are ordinary git vocabulary, and none of the three is shared. Build the meaning first, then name it: *git calls this a tree*.
-- **A label is not an explanation.** Say what the thing does: "the ticket that splits the parser", not "t047". The label may follow, never stand alone.
-- **Plain words, short sentences.** Simple over precise when they compete. A sentence read twice gets rewritten.
-- **One idea per sentence.** Split on every `and`, `so`, `then` and dash that joins two. Plain words do not rescue a clause carrying four ideas.
-- **Name the thing, never point at it.** No `this feature`, `that approach`, `the same thing`, or `it` reaching back across a sentence boundary. Repeat the noun.
-- **Restate each question before answering it**, in the user's own words. Ten points in, ten restatements out. A reply that only alludes to a point leaves its own author guessing.
-- **A pointer is not an explanation, and neither is a quote.** A file, a decision, an earlier message — assume unread. Say what it meant, here, in your own words.
-- **Prefer a list to a table**, especially in anything the user reads.
+**Length is not a cost.** 20 topics get 20 answers. Confusion is the only cost a message carries. A point cut to save space is the one loss re-reading cannot undo.
+
+### Before typing
+
+- **Name the subject first.** One plain sentence saying what the thing is, above any sentence arguing about it, reporting it, or listing its parts. Arguing for *testing the examples* without ever saying what testing the examples means leaves the section unreadable, however clean its sentences.
+- **Plan every section and its order before writing a sentence.** Never discover the structure on the way.
+
+### The message
+
+- **Open with the whole, then its parts.** Never a close-up with no machine around it.
+- **A heading states its answer.** "Overrides work — two hooks, because a skill can be invoked two ways", never "The hook fires — and the typed path bypasses it". An open question in a heading turns every sentence under it into evidence for either side.
+- **Answer a many-topic message topic by topic.** One section each, in the user's order, each readable on its own. Never merge two, never drop one, never rank them. Where their words name something the repo has more than one of, say which — the file, and the place in it.
+- **Match depth to weight.** The load-bearing idea gets the why, and why the obvious alternative fails. A minor point gets a line. Every point gets something.
 - **Recommend, never enumerate.** A neutral list of options hands the work back. Name the one to take, and say what the others lose on.
-- **Name unfamiliar tech by what it does here**, in one line, the first time it appears. This file carries no `## The user`, so nothing else supplies the calibration.
-- **Priority order.** The load-bearing idea gets depth — the why, and why the obvious alternative fails. Trivia gets one line or none.
-- **Never hide your reasoning.** Think out loud while you work.
-- **Assume only the final message is read.** It repeats everything that matters. No scratch file, subagent brief or working doc stands in for it.
-- **Report what changed.** Every file touched, and what changed in it.
-- **Outline before typing.** Never discover the structure on the way.
-- **No preamble.** Content starts at sentence one.
-- **Cut every sentence that carries no information.** Sessions run for hours and every answer is read in full. Restating the question, praising it, framing what comes next, and summarizing what was just said are all cuts.
-- **Never narrate being wrong.** No "you're right", no "I was wrong", no apology, no account of the position you just dropped. State the corrected version and move on. Where an earlier claim changed something the user is acting on, one plain sentence says what is now true — never how you got there.
-- **User dictates by voice.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
-- **Write locked decisions, batched** — user-confirmed with no open threads, not mid-discussion agreement.
-- **Reason before agreeing.** Test a proposal, objection or correction. Disagree out loud, once, with the argument. Repetition isn't evidence. Then the user decides.
+- **State the change, then the files.** One sentence saying what is now true. Then one line per file: path, what it now says, why it changed.
 - **UI is drawn, never described.** Layout, density, hierarchy, colour don't survive as sentences — invoke `visualize`. **`visualize` is not installed either**: `skills/tools/visualize/SKILL.md` is on disk and no session loads it. Read the file and follow it; never improvise a diagram or a mockup in its place.
+
+### Sentences
+
+- **One idea per sentence.** Split on every `and`, `so`, `then` and dash that joins two. Plain words do not rescue a clause carrying four ideas.
+- **Plain words, short sentences.** Simple over precise when they compete. A sentence read twice gets rewritten.
+- **Name the thing, never point at it.** No `this feature`, `that approach`, `the same thing`, or `it` reaching back across a sentence boundary. Repeat the noun.
+- **Write a list as a list.** One line per item, same grammar in each. Six facts joined by semicolons is a list the reader breaks apart themselves. Prefer a list to a table too, especially in anything the user reads.
+
+### Words
+
+- **Define from zero.** Every term defined before first use — Flow's own, and any word standard only inside a tool's own documentation. `HEAD`, `object` and `check out` are ordinary git vocabulary, and none of the three is shared. Build the meaning first, then name it: *git calls this a tree*.
+- **A label, a pointer and a quote are not explanations.** Say what the thing does, here, in your own words. A file, a decision, an earlier message, a citation — assume unread. `Aghajani ICSE 2019` is a label standing where a finding belongs.
+- **Name unfamiliar tech by what it does here**, in one line, the first time it appears. This file carries no `## The user`, so nothing else supplies the calibration.
+
+### Always
+
+- **The user does not remember the conversation.** It runs across days, and they forget their own last message. Restate anything from an earlier turn in full words — the decision, the proposal, the term you coined. A term settled yesterday is a term nobody holds today.
+- **Assume only the final message is read.** It repeats everything that matters. No scratch file, subagent brief or working doc stands in for it.
+- **Cut every sentence that carries no information.** Praising the question, framing what comes next, and summarizing what was just said are all cuts. Cut words, never a point.
+- **Think out loud while you work.** As you edit, say which file and why, in the same turn. A final report is the opposite: it states what is now true, never the sequence that produced it.
+- **Never narrate being wrong.** No "you're right", no "I was wrong", no apology, no account of the position you just dropped. State the corrected version and move on. Where an earlier claim changed something the user is acting on, one plain sentence says what is now true — never how you got there.
 
 ## Current state
 

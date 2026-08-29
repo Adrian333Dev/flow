@@ -167,7 +167,7 @@ report — never the per-sentence rules.
 
 **What breaks on a rename, a split or a renumber:**
 
-- **Routing pointers** — `home/CLAUDE.md:16` (the writing pass) and `:86` (the references list),
+- **Routing pointers** — the writing-pass rule in `home/CLAUDE.md` → `## Hard rules` (`## References` was deleted 2026-08-29, so the second pointer there is gone),
   `skills/commands/file-findings/references/write-skills.md:3`,
   `skills/phases/execute/SKILL.md:154`, and 2 in the repo's own `CLAUDE.md` (the hard rule, and
   `## Writing any file`)
