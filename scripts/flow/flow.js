@@ -19,6 +19,9 @@ const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
 const work = require('./commands/work');
+const overlays = require('./commands/overlays');
+const skills = require('./commands/skills');
+const install = require('./commands/install');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -39,17 +42,17 @@ const TITLE = 'flow — tickets, computed from docs/tickets/';
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...open, ...board, ...tickets.actions };
+const commands = { ...open, ...board, ...tickets.actions, ...install };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
   { key: 'tickets', title: 'tickets', lead: [['flow <id>', 'show one in full']] },
   { key: 'status', title: 'status — the move is the command' },
+  { key: 'setup', title: 'setup — this machine' },
 ];
 
 const NOTES = `shape   flow <command> [id] [--flags]. A word naming no command is read as a
-        ticket id, which is what makes flow t047 show one. Shorten any name
-        to an unambiguous prefix: flow b t047 is flow build t047
+        ticket id, which is what makes flow t047 show one
 ids     t047-parser-split. The number is the identity and the label is
         decoration, so t047, 47, parser and the whole thing all resolve. A
         ticket is never renamed, so a label that goes stale breaks nothing
@@ -94,12 +97,28 @@ work    uncommitted work, stored as a commit under refs/unfinished/<machine>/
         until it is set, because two machines sharing one name overwrite each
         other silently. Gitignored files travel only when named in
         .flow-include at the project root. Full instructions in
-        ~/.claude/flow/references/work-sync.md`;
+        ~/.claude/flow/references/work-sync.md
+skills  one real copy of each lives in the clone, filed under a group folder
+        that decides nothing else. Installing one means creating a symlink
+        named for it: home/skills names what links into ~/.claude/skills, and
+        .claude/flow/skills names what links into this project. A symlink
+        cannot be committed — git stores this machine's path and the next
+        machine keeps its clone elsewhere — so the lists carry names and
+        flow skills sync turns a list back into links
+overlay a project adds to a skill without editing it, because one copy of that
+        skill is shared by every project on the machine. Write
+        .claude/flow/overlays/<name>.md and every session in that project reads
+        it as part of the skill. The line runs at the bottom of the skill, so
+        a project with no overlay file prints nothing
+default cases, skills and overlays each read a bare word as an argument to
+        their most used action: flow overlays groundwork is flow overlays get
+        groundwork. work has none, because its get writes over the folder you
+        are standing in`;
 
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, work },
+    groups: { cases, work, skills, overlays },
     fallback: tickets.fallback,
     sections: SECTIONS,
     title: TITLE,

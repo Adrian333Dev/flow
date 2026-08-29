@@ -4,7 +4,7 @@
  *
  * A session that just cleared its context reads everything it needs before its
  * first turn: the ticket, then every file that ticket's `flow-open` block names.
- * One command rather than shell inside `commands/start.md`, for three reasons.
+ * One command rather than shell inside `/start`, for three reasons.
  * The branching is testable Node. The storage format stays private, so changing
  * it touches this file and nothing else. And the decision to skip the files
  * when the id does not resolve lives beside the lookup that failed.
@@ -21,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { FlowError } = require('../lib/error');
+const { cloneRoot } = require('../lib/clone');
 const { out } = require('../lib/cli');
 const { projectRoot } = require('../lib/root');
 const store = require('../lib/store');
@@ -28,7 +29,7 @@ const render = require('../lib/render');
 const statuses = require('../lib/statuses');
 const tickets = require('./tickets');
 
-const FMERGE = path.resolve(__dirname, '../../fmerge.js');
+const FMERGE = path.join(cloneRoot(), 'scripts', 'fmerge.js');
 const NEXT_LIMIT = 10;
 const RULE = '-'.repeat(60);
 

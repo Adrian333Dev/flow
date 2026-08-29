@@ -1,0 +1,5 @@
+What this project adds to a skill, one <skill-name>.md per skill.
+
+A skill exists once per machine and every project shares that copy, so a project
+extends one from here rather than editing it. Removing works by adding: "skip
+phase 3 here" is enough, because the overlay arrives after the phase it changes.

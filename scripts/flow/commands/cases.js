@@ -180,4 +180,4 @@ actions.issues = {
   },
 };
 
-module.exports = { summary: 'recorded failures, global and filed by issue', actions };
+module.exports = { summary: 'recorded failures, global and filed by issue', default: 'get', actions };

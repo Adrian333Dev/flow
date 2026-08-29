@@ -1,6 +1,6 @@
 # Designing a flow command
 
-`flow` is the ticket tool. This file holds the rules its surface follows and the reasoning behind each. Read it before adding a command or a flag.
+`flow` is the ticket tool, and it also sets this machine up and tells a project which skills it uses. This file holds the rules its surface follows and the reasoning behind each. Read it before adding a command or a flag.
 
 ## The shape
 
@@ -10,7 +10,6 @@ flow <command> [id]... [--flags]
 
 - **The command always sits at position 1**, in every command, without exception. A target is often absent — `ls`, `next` and `new` take none — so putting the target first would move the command between positions 1 and 2.
 - **A word naming no command is a ticket id.** `flow t047` shows one; `flow get t047` is the same thing spelled out.
-- **An ambiguous prefix fails rather than falling through to an id.** `flow p` prints `plan, park`. Guessing between two commands is worse than asking.
 - **Positionals name what the command acts on** — one id, several ids, or the title for `new`, where no ticket exists yet to point at.
 - **A second positional names a mode, never a second target.** `flow open t047 build` reads as *open it at building*. Reversed 2026-08-24, having said one target only: a status typed there is the user saying which one, and a flag would spell the same thing longer.
 - **A path positional is allowed only where the command must run outside a repo.** `flow open docs/handoff.md` is the one, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
@@ -22,14 +21,15 @@ Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build t
 
 **Exactly one stored thing goes unnamed, and it is the most typed.** Tickets are written 9 times for every case across the skills, so the common form gets the short spelling and the rare one gets the explicit prefix. A second unnamed noun would collide the moment both wanted `ls`.
 
-## The four kinds of command
+## The five kinds of command
 
 - **The board** — `open` bare, `next`, `status`, `check`, `ls`, `tree`. Each answers a question about the work as a whole.
 - **One ticket** — `<id>`, `new`, `edit`, `dep`, `file`, `drop`, and the status verbs. Each names a ticket and acts on it.
-- **A group** — `cases`, `work`. A different stored thing, carrying its own actions behind its own name.
+- **A group** — `cases`, `work`, `skills`, `overlays`. A different stored thing, carrying its own actions behind its own name.
 - **The session opener** — `open`, and only `open`. It spans the other kinds on purpose: the board with no argument, a ticket with one, a move and a ticket with two. `/start` runs it, so the branching lives in tested code instead of shell inside a markdown file.
+- **Setup** — `install`, and only `install`. It writes outside the project, into `~/.claude` and `~/.local/bin`, which no other command does. It is also the one run before `flow` is a command at all: on a machine that has just cloned Flow, it is typed by path, and it makes the link that lets everything else be typed by name.
 
-All three share one flat namespace, so a name is available exactly once. Help prints them in sections, which is the only place the distinction shows.
+All 5 share one flat namespace, so a name is available exactly once. Help prints them in sections, which is the only place the distinction shows.
 
 ## The actions
 
@@ -43,6 +43,8 @@ Every stored thing gets these 5:
 
 - **Extra commands are allowed, and one test decides.** `edit` sets one field, on one ticket, to a value you typed. An extra command earns its place by breaking one of those three: `drop` re-points every ticket that depended on this one, `file` stamps several tickets at once, `dep` edits a list and so takes `--on` and `--off` rather than a value. `tree` writes nothing at all.
 - **A missing action is deliberate, and the file says why.** Cases have no `drop`, because a recorded failure is never removed — keeping it is the point of writing it down.
+- **A group names its most typed action the default, and that word can be left out.** `flow overlays groundwork` is `flow overlays get groundwork`. It is the rule the flat namespace already runs one level up, where a word naming no command is read as a ticket id.
+- **`work` names no default**, because its `get` replays a stored copy over the folder you are standing in. A mistyped action falling through to a write of your working tree is the one worth refusing.
 
 ## Status verbs
 
@@ -64,10 +66,7 @@ The move belongs to the skill that picks the ticket up, after it opens the phase
 ## Flags
 
 - **Start every flag with two dashes.** One dash means a single letter, and single letters glue together — `-la` is `-l` and `-a` — so one dash followed by a word cannot be read reliably. Two dashes carries no second meaning.
-- **Shorten a flag by typing less of the word.** `--status`, `--stat` and `--st` all reach `--status`. Shortening never changes the dashes.
-- **An exact match beats a shorter one**, so no flag is ever hidden by being the start of another.
-- **An ambiguous prefix fails and lists every candidate.** `--p` prints `--parent` and `--priority`.
-- **Write the full name in every file.** Skills, `CLAUDE.md` files and scripts spell a flag out; abbreviation is for typing at the prompt, where an error costs 2 seconds. Adding a flag later can turn a stored abbreviation ambiguous, and nothing would catch it until the command failed.
+- **Type the whole name.** `--stat` reaches nothing. An abbreviation changes meaning the day a flag is added beside it, and tab completion already buys the typing back.
 
 ## Every command declares what it accepts
 
@@ -77,7 +76,7 @@ Four things read that list:
 
 1. **Parsing** — an undeclared flag fails. Before this, `--statuss` was ignored silently and the command exited 0 having changed nothing, which looks exactly like success.
 2. **Validation** — a bad value fails and prints the legal ones.
-3. **Prefix matching** — the resolver needs the legal names, and this is where they live.
+3. **Resolving** — a typed word is matched against the names legal in its position, and this is where they live.
 4. **The help text** — `flow` prints its surface from the declarations, so help can never describe a command that no longer exists.
 
 Point 4 is what makes the declarations worth the trouble. Help used to be an 80-line string kept in step by hand.

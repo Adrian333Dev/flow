@@ -16,31 +16,13 @@ const HELP_WORDS = ['-h', '--help', 'help'];
 
 /**
  * Matches a typed word against the names that are legal in its position — the
- * command, a group's action, a flag, a flag's value.
- *
- * An exact match always wins, so no name is ever hidden by being the start of
- * a longer one. A single prefix match resolves. Several fail and list the
- * candidates, because guessing is how an abbreviation silently changes meaning
- * the day a new name is added beside it.
+ * command, a group's action, a flag, a flag's value. The whole name, always:
+ * an abbreviation changes meaning the day a name is added beside it.
  */
 function resolve(word, candidates, label, prefix = '') {
-  const hit = match(word, candidates, prefix);
-  if (hit) return hit;
+  if (candidates.includes(word)) return word;
   const show = candidates.map((c) => prefix + c).join(', ');
   throw new FlowError(`unknown ${label} "${prefix}${word}" — one of: ${show}`);
-}
-
-/**
- * `resolve` without the last refusal: nothing matched returns null, so the
- * caller can try the word as something other than a name. Ambiguity still
- * throws — two commands start with `p`, and picking one would be a guess.
- */
-function match(word, candidates, prefix = '') {
-  if (candidates.includes(word)) return word;
-  const hits = candidates.filter((c) => c.startsWith(word));
-  if (hits.length === 1) return hits[0];
-  if (hits.length === 0) return null;
-  throw new FlowError(`"${prefix}${word}" is ambiguous — ${hits.map((c) => prefix + c).join(', ')}`);
 }
 
 /**
@@ -106,6 +88,10 @@ function runAction(action, argv, usage, extra) {
  * that names no command is a ticket id, which is what makes `flow t047` show
  * one. `cases` and `work` keep a group each, because each is a different
  * stored thing.
+ *
+ * A group may name a default action, and the same rule then runs one level
+ * down: a word naming no action is that action's argument, which is what makes
+ * `flow overlays debug` reach `flow overlays get debug`.
  */
 function dispatch(argv, { commands, groups, fallback, sections, title, notes }) {
   if (!argv.length || HELP_WORDS.includes(argv[0])) {
@@ -117,7 +103,7 @@ function dispatch(argv, { commands, groups, fallback, sections, title, notes }) 
   if (first.startsWith('-')) throw new FlowError(`"${first}" is a flag — a command comes first.`);
 
   const names = [...Object.keys(commands), ...Object.keys(groups)];
-  const name = match(first, names);
+  const name = names.includes(first) ? first : null;
 
   if (!name) return runAction(fallback, argv, 'flow <id>', { unnamed: names });
   if (commands[name]) return runAction(commands[name], rest, `flow ${name}`);
@@ -126,7 +112,12 @@ function dispatch(argv, { commands, groups, fallback, sections, title, notes }) 
   const [typed, ...args] = rest;
   if (!typed || HELP_WORDS.includes(typed)) { out(groupHelp(name, group)); return 0; }
 
-  const action = resolve(typed, Object.keys(group.actions), `${name} action`);
+  const actions = Object.keys(group.actions);
+  if (group.default && !actions.includes(typed)) {
+    return runAction(group.actions[group.default], rest, `flow ${name} ${group.default}`);
+  }
+
+  const action = resolve(typed, actions, `${name} action`);
   return runAction(group.actions[action], args, `flow ${name} ${action}`);
 }
 
@@ -163,6 +154,21 @@ function actionLines(prefix, actions) {
 }
 
 /**
+ * A group's actions, and the line saying which of them can be left out.
+ */
+function groupLines(name, group) {
+  const lines = actionLines(`flow ${name}`, group.actions);
+  if (group.default) {
+    const action = group.actions[group.default];
+    lines.push(line(
+      `  flow ${name}${action.args ? ' ' + action.args : ''}`,
+      `${group.default} is the default and can be left out`
+    ));
+  }
+  return lines;
+}
+
+/**
  * Commands print in sections, though they all live in one flat namespace. The
  * sections are for reading: 18 commands in one alphabetical block hides which
  * ones move a ticket and which ones only look at it.
@@ -178,7 +184,7 @@ function help({ commands, groups, sections, title, notes }) {
   }
   for (const [name, group] of Object.entries(groups)) {
     lines.push('', group.summary ? `${name} — ${group.summary}` : name);
-    lines.push(...actionLines(`flow ${name}`, group.actions));
+    lines.push(...groupLines(name, group));
   }
   if (notes) lines.push('', notes);
   return lines.join('\n');
@@ -186,8 +192,8 @@ function help({ commands, groups, sections, title, notes }) {
 
 function groupHelp(name, group) {
   const lines = [group.summary ? `flow ${name} — ${group.summary}` : `flow ${name}`, ''];
-  lines.push(...actionLines(`flow ${name}`, group.actions));
+  lines.push(...groupLines(name, group));
   return lines.join('\n');
 }
 
-module.exports = { out, resolve, match, parseArgs, dispatch };
+module.exports = { out, resolve, parseArgs, dispatch };

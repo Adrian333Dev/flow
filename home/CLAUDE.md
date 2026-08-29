@@ -1,11 +1,10 @@
-Flow — an agentic development workflow for a solo developer. Work runs groundwork → tickets → plan → build, one skill per step; the rules below hold across all of them.
+Flow — an agentic development workflow for a solo developer.
 
 ## Hard rules
 
 - **No edits without approval.** Approval is "do it" or "go ahead".
 - **A handoff file you booted from is read once, then left alone** — never updated as the work moves. **A ticket is the opposite**: whoever works it keeps it true.
 - **Read minimal context.** Path and line range, one filtered query over many reads, stop when answered.
-- **Reach for a skill, never improvise its job.** Named but not installed → say so and stop.
 - **When Flow fights the work, set that part aside.** The case it never considered, or a rule that makes the work worse — name the part, say why, carry on. **The permission is standing; never ask for it.** Silently forcing a bad fit is the failure this prevents.
 - **No cause without evidence.** "Hypothesis: X. To verify: Y."
 - **Never hand-write what a tool generates.** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
@@ -16,6 +15,33 @@ Flow — an agentic development workflow for a solo developer. Work runs groundw
 - **Internal reasoning stays out of deliverables.**
 - **Every file gets the writing pass, inside the edit that touched it.** Skill, `CLAUDE.md`, spec, plan, context file, anything written for the user to read — read `~/.claude/flow/references/writing.md`, plan the whole file's sections before typing, then test every sentence you wrote against its rules before showing anything. Reading it is not the pass. **Never leave a file for a later pass.** Every one deferred comes back as a rewrite.
 - **Every path named here is a default.** One named in `## Preferences`, in this directory's `CLAUDE.md`, or by the user wins.
+
+## Workflow
+
+One phase at a time. Each step leaves the thing the next one starts from:
+
+```
+/groundwork      → decisions written, each into the file that owns it
+/cut-from-spec   → the next batch of tickets
+/start           → the board, or one ticket
+/execute         → one ticket built and reviewed
+/file-findings   → the lessons taken out of it
+```
+
+Two steps sit off the line, and each fires on a situation rather than a phase:
+
+- **Something fails and the cause is unknown**, behavior that is wrong but runs included → `/debug`
+- **One named question that only running code answers**, where reading could not → `/prototype`
+
+Three fire inside any phase, and in bare conversation with none loaded:
+
+- **Before working against an external tool from memory** → `/research`
+- **Before conveying structure, architecture or layout** → `/visualize`
+- **When context fills, when a stretch of work closes, or when a job needs its own session** → `/handoff`
+
+**Always invoke the one that fires, and never improvise its job.** An obvious small task takes none of them, and reading what exists to learn how it works is never `/groundwork`.
+
+**`/start`, `/run`, `/cut-from-spec` and `/file-findings` are the user's to type, and nothing shows them to you.** One named in conversation is installed and reachable — say which line to type. A skill named and genuinely absent → say so and stop.
 
 ## The user
 
@@ -73,7 +99,7 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 
 **`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand.
 
-**`flow <command> [id] [--flags]`.** A word naming no command is read as a ticket id, which is what makes `flow t047` show one. Shorten any name to an unambiguous prefix — `flow b t047`. Write full names in every file; abbreviate only at the prompt. Run `flow` bare for the full surface.
+**`flow <command> [id] [--flags]`.** A word naming no command is read as a ticket id, which is what makes `flow t047` show one. Run `flow` bare for the full surface.
 
 - `flow open` — opens a session: the board, or a ticket with everything it needs. `/start` runs it
 - `flow open <id> [<status>]` — the ticket, then every file its `flow-open` block names, loaded before the first turn. Name a status and it moves the ticket first
@@ -87,6 +113,7 @@ Three commands on `PATH`. Call by name from any directory — never with `bash`,
 - `flow ls [--status <status>] [--type <type>] [--parent <id>] [--unfiled]`, `flow tree`
 - `flow drop <id> --reason "<why>" [--by <id>]` — `--by` re-points whatever depended on it
 - `flow file <id>…` — `status: done` says the work finished; `filed` says the lessons were taken out of it. `/file-findings` stamps it, and nothing else does
+- `flow skills ls` — every skill on this machine, including the ones you are not shown. Nothing else lists them
 
 **A status move is its own command, named after where it lands** — `flow groundwork|plan|build|review|done|todo <id>`, and `flow park <id> --reason "<why>"`. The line is `todo → groundwork → planning → building → review → done`; `parked` and `dropped` sit off it, and both need a reason.
 

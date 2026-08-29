@@ -46,6 +46,26 @@ test('an id that does not exist fails rather than printing nothing', () => {
   assert.match(result.stdout + result.stderr, /t999/);
 });
 
+test('a name is typed in full, and a group reads a stray word as an argument', () => {
+  const dir = project('flow-names');
+
+  // No prefix matching anywhere: "ne" starts new and next and reaches neither,
+  // so it falls through to the one thing an unknown word means.
+  const short = flow(dir, ['ne']);
+  assert.notStrictEqual(short.code, 0);
+  assert.match(short.stderr, /no ticket matching "ne"/);
+
+  // work names no default action, because its get writes over the folder.
+  const stray = flow(dir, ['work', 'g']);
+  assert.notStrictEqual(stray.code, 0);
+  assert.match(stray.stderr, /unknown work action "g"/);
+
+  // The other groups hand a stray word to get.
+  const skill = flow(dir, ['skills', 'groundwork']);
+  assert.strictEqual(skill.code, 0, skill.stderr);
+  assert.match(skill.stdout, /^name: groundwork$/m);
+});
+
 test('--help prints the surface without needing a project', () => {
   const dir = project('flow-help');
   const result = flow(dir, ['--help']);

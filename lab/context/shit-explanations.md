@@ -297,3 +297,83 @@ wants the state of the world, and every intermediate state is a false statement 
 - **Report the end state, never the path to it.** A superseded result is history, not a finding.
   Where the path itself matters — a dead end worth not repeating — it goes at the bottom, under its
   own heading, after the answer is closed.
+
+---
+
+## 2026-08-29 — a change reported as a run-on list of filenames
+
+**Context.** A build had just finished: every skill now installs everywhere, and a settings key
+decides what each session is shown for one. The final message reported it. The user had approved the
+work and wanted to know what happened.
+
+**What was sent, the paragraph the user singled out, verbatim:**
+
+> **Install and show, split apart** — `home/skills` names all 12 with a rewritten header;
+> `home/settings.json` gains `skillOverrides` with `web-pages` at `name-only`; `home/settings.md`
+> gains a `## skillOverrides` section carrying the four values, the verified merge rule and why this
+> is not `disable-model-invocation`; `write-skills.md` replaces its install-tier paragraphs and gains
+> a rule bounding the frontmatter flag; `scripts/flow/commands/skills.js` gets a new header paragraph
+> and a refusal that now points at `skillOverrides` instead of telling you to edit `home/skills`; the
+> repo `CLAUDE.md` records it in `## Current state` and fixes three lines;
+> `lab/context/design-skills.md` gains `## Installing and showing`, which marks the three tiers
+> superseded and holds the four verified facts.
+
+The other three paragraphs of that section had the same shape. The user rejected the section whole,
+not only this paragraph.
+
+**What the user said back:**
+
+> "specifically recorded as you know, like, worst example of explanation. This is like, you know,
+> worst example of explanation, which is, you know, no matter how many times you read it, you still
+> have a hard time like understanding it."
+
+> "Your whole response was shitty. Like, every file attached section was, you know, complete garbage.
+> You know, I had a hard time understanding, like, what the fuck are you talking about in that whole
+> section?"
+
+### Five faults, ordered by damage
+
+1. **The change itself is not in the paragraph.** What happened is one sentence: every skill now
+   installs on every machine, and a settings key decides what each session sees. The paragraph never
+   says it. Seven files are reported as having been edited, and the reader is left to reconstruct the
+   change from the edits — which is the writer's job, done backwards.
+2. **One sentence, seven subjects, joined by semicolons.** Nothing marks where to pause, nothing
+   ranks the seven, and nothing signals which are load-bearing. `home/settings.json` gaining one key
+   is the whole mechanism; `CLAUDE.md` fixing three lines is bookkeeping. Both got one clause.
+3. **A list was written as prose.** The material is a list — one file, one change, seven times. Prose
+   was chosen for it, so the reader has to do the line breaks in their head while reading.
+4. **Every clause has a different grammar.** *names*, *gains*, *gains a section carrying*, *replaces
+   and gains*, *gets a paragraph and a refusal that now points at*, *records and fixes*, *gains a
+   heading, which marks and holds*. Seven parallel facts in seven shapes, so no pattern forms and
+   every clause is parsed from scratch.
+5. **The heading is a coinage the reader has to decode.** *Install and show, split apart* uses *show*
+   as a noun invented two messages earlier. A heading is where the reader gets oriented, and this one
+   costs them a lookup.
+
+### Rules that were loaded and did not fire
+
+All from `## Explaining`, in context the whole time:
+
+- **One idea per sentence.** *Split on every `and`, `so`, `then` and dash that joins two.* The
+  paragraph is one sentence with six semicolons and nine `and`s.
+- **Plain words, short sentences.** *A sentence read twice gets rewritten.* The user read it more
+  than twice and still could not use it.
+- **Prefer a list to a table**, and by extension to prose that is a list wearing prose.
+
+### Root cause
+
+`## Explaining` carries *"Report what changed. Every file touched, and what changed in it."* That
+rule fired and produced this. It was read as a coverage requirement — name every file, miss none —
+and coverage then got compressed into the fewest sentences that would hold it. Completeness was
+treated as the deliverable and readability as the thing to trade against it. The rule asks for both,
+and where they compete the reader wins, because a report nobody can parse reports nothing.
+
+### What would have been right
+
+- **Say what changed, then where.** One sentence naming the change in the system, then the files
+  under it. A file list is an index to a change, never a substitute for stating it.
+- **A list of files is a list.** One line per file. The filename, then what it now says, in plain
+  words.
+- **Rank it.** The file carrying the mechanism goes first and gets a sentence of its own. A file that
+  gained a cross-reference gets four words, or gets dropped into a closing line that names the rest
+  together.

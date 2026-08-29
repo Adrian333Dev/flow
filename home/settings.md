@@ -40,7 +40,7 @@ Records the working tree before a subagent runs and again after, then hands the 
 
 Two consequences worth knowing:
 
-- **The diff covers the window, not the worker.** Everything that changed between the two events lands in it, whoever changed it, so one subagent at a time and a parent that touches nothing meanwhile. `execute` carries that as an instruction; this is where it comes from.
+- **The diff covers the window, not the worker.** Everything that changed between the two events lands in it, whoever changed it, so one subagent at a time and a parent that touches nothing meanwhile. `/execute` carries that as an instruction; this is where it comes from.
 - **`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state, and `guard.js` exempts exactly that form. The `Bash(git add:*)` deny rule below is a separate gate that has never been tested against it — under these hooks it does not matter, because a hook runs its own command rather than calling the Bash tool.
 
 ### Why worktree isolation is off
@@ -83,9 +83,9 @@ These are **bare tool names**, which removes each tool from the model's context 
 
 | Entry | Why |
 |---|---|
-| `EnterPlanMode`, `ExitPlanMode` | Flow owns planning: `groundwork` → tickets → the ticket's `plan.md`. Built-in plan mode also blocks the file writes those phases depend on. |
+| `EnterPlanMode`, `ExitPlanMode` | Flow owns planning: `/groundwork` → tickets → the ticket's `plan.md`. Built-in plan mode also blocks the file writes those phases depend on. |
 | `AskUserQuestion` | Presents a canned multiple-choice list. Flow's rule is the inverse — the agent commits to a recommendation and the user reacts. |
-| `SendMessage`, `ListAgents` | Agent-to-agent messaging, and the tool that finds agents to message. `execute` dispatches subagents with self-contained assignments; there is no back-channel to keep open. |
+| `SendMessage`, `ListAgents` | Agent-to-agent messaging, and the tool that finds agents to message. `/execute` dispatches subagents with self-contained assignments; there is no back-channel to keep open. |
 | `PushNotification`, `ScheduleWakeup`, `RemoteTrigger`, `ReportFindings` | Out-of-band and unattended operation. One author, one terminal, every session watched. |
 | `SendUserFile`, `ShareOnboardingGuide` | Send a file off the machine, to a device or behind a public link. Same reason, plus the work is not the agent's to publish. |
 | `CronCreate`, `CronDelete`, `CronList` | Scheduled background jobs. Same reason. |
@@ -118,6 +118,29 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 ---
 
+## `skillOverrides`
+
+**Every Flow skill installs on every machine, and every one is on by default.** A description sits in context from the moment a session starts, so a session pays for all of them. That is the trade: one author, who wants every skill reachable everywhere and would rather pay than hunt for one that was quietly switched off.
+
+**This file carries no entries, and that is the point.** The key belongs to a project. A project that does not want a skill names it in its own `.claude/settings.json`, so that file reads as the list of what this project turned off.
+
+Four values, keyed by skill name:
+
+- **`on`** — the name and the description. The default, and what a skill gets when it is named nowhere
+- **`name-only`** — the name, with no description. Still invocable by the model
+- **`user-invocable-only`** — the model is shown nothing, and `/name` still works
+- **`off`** — the model is shown nothing, and `/name` refuses with *disabled via skillOverrides*
+
+**A project turns a skill off with `off`.** Take `user-invocable-only` instead where you still want to type it. **Never `name-only`** — it removes the description and leaves the skill invocable, so the model keeps the power to fire it and loses the only thing it could judge with. All four verified 2026-08-29.
+
+**Nothing announces a skill a project turned off, and nothing should.** `flow skills ls` lists every skill on the machine, and the project's settings say which are off, so an agent that needs the full picture reads one of the two. Naming a skill in `~/.claude/CLAUDE.md` was rejected 2026-08-29: that file loads in every session, so the announcement would land in every project including the ones that turned the skill off.
+
+**A project's settings override this file, key by key.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill this file had set to `off`, a project setting `off` hid one this file never named, and an entry only this file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
+
+**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/start`, `/run`, `/cut-from-spec` and `/file-findings` carry it because *never* is true of them. Everything else is decided here.
+
+---
+
 ## Feature flags
 
 | Key | Value | Effect |
@@ -126,7 +149,7 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 | `disableWorkflows` | `true` | Built-in workflows off — Flow's skills are the workflow. |
 | `disableRemoteControl` | `true` | No driving the session from claude.ai or mobile. |
 | `disableClaudeAiConnectors` | `true` | No claude.ai connectors. |
-| `disableArtifact` | `true` | No artifact tool. `visualize` renders inline. |
+| `disableArtifact` | `true` | No artifact tool. `/visualize` renders inline. |
 | `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo — `CLAUDE.md`, `docs/`, or a skill. |
 
 ---

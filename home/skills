@@ -1,0 +1,23 @@
+# Skills linked into ~/.claude/skills/, one name per line.
+# `flow install` reads this file.
+#
+# Every Flow skill is named here, and this list has no exceptions. There is one
+# author, who wants every skill reachable in every project.
+#
+# Every skill is also on by default, so a session is shown every description.
+# A project that does not want one turns it off in its own
+# .claude/settings.json, under `skillOverrides`. That file is the list of what
+# is off there, and this one is the list of what exists.
+
+groundwork
+cut-from-spec
+execute
+prototype
+debug
+research
+visualize
+web-pages
+start
+run
+handoff
+file-findings

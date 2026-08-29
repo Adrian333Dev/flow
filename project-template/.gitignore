@@ -1,2 +1,9 @@
 tmp/
 node_modules
+
+# A skill here is a symlink into the Flow clone, which sits at a different path
+# on every machine — committed, it would point at nothing and load nothing.
+# .claude/flow/skills carries the names, and `flow skills sync` rebuilds the
+# links. Real folders still commit, which is how an external skill lives here.
+.claude/skills/*
+!.claude/skills/*/

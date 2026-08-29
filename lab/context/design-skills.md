@@ -5,7 +5,10 @@ way, and `## Rejected` holds both with the argument that killed each. Every test
 against Claude Code 2.1.246 in `tmp/hooktest/`, and `## What the platform does` records what they
 found.
 
-Read this file first. It is the whole design.
+This design was built 2026-08-28. `design-commands-as-skills.md` supersedes it on 4 points:
+`skills/commands/` is a fifth group, `debug-web-pages` is renamed, every description is rewritten
+again, and Claude Code has since merged commands into skills. Read that file first where the two
+disagree.
 
 ## The decision
 
@@ -21,6 +24,9 @@ Read this file first. It is the whole design.
 - **A description says what the skill is. A trigger is written only where one is wanted.**
 
 ## The groups
+
+**Reversed 2026-08-29: `commands/` holds every skill the user mainly invokes, and it wins wherever two groups fit.** `/cut-from-spec` moved out of `phases/`. The earlier rule — a phase files under `phases/` even when only the user invokes it — is dead, and the argument behind it (that `phases/` should answer "what are the phases" on disk) was already broken by `/file-findings` sitting in `commands/`. Closed by the user: *"we're fucking moving all of the commands, the skill that will be mainly utilized by the user under the commands folder. Period."*
+
 
 4 of them: `phases/`, `tools/`, `standards/`, `stack/`. Split by what decides whether you read one,
 never by subject.
@@ -40,6 +46,44 @@ carry a trigger are per-skill choices that move as the set grows.
 everything else. These 4 split by trigger, which is a question with an answer.
 
 Nothing outside Flow's own tree reads a group. Changing one later is a `mv`.
+
+## Installing and showing
+
+**Superseded 2026-08-29. The three tiers below are history; what follows here is live.**
+
+The tiers answered one question with one lever. *Not installed* was meant to keep a rarely-wanted skill out of context, and it also made the skill untypeable — which is the wrong trade on a machine with one user, who wants every skill reachable and pays for a description he never uses.
+
+Two questions, and they are separate:
+
+- **Is the skill here at all?** Answered by `home/skills` and a project's `.claude/flow/skills`, both unchanged.
+- **What does this session pay for it?** Answered by `skillOverrides`, a `settings.json` key nobody had read.
+
+**Every Flow skill installs on every machine.** `home/skills` names all 12. A skill the model is never shown costs nothing, so there is no reason to leave one unreachable.
+
+**`skillOverrides` is keyed by skill name and takes 4 values** — `on` (name and description), `name-only` (the name alone, still invocable), `user-invocable-only` (`/name` works, the model sees nothing), `off` (`/name` refuses too).
+
+**Every skill is `on` by default, and `home/settings.json` names none of them** (user, 2026-08-29, after two reversals). A project turns off what it does not want, so the project's settings file reads as the list of what is off there. The inverse — off on the machine, re-enabled per project — was proposed twice and rejected twice: it makes the common case the one you have to configure.
+
+**`name-only` is never the value.** It hides the description and leaves the skill invocable, so the model keeps the power to fire a skill and loses the only thing it could judge with. `off` blocks the typed path as well, which is right for a project opting out and wrong as a machine default.
+
+**Nothing announces a hidden skill, and a line in `~/.claude/CLAUDE.md` was rejected for it** (user, 2026-08-29). That file loads in every session, so a browser skill would announce itself in projects with no browser — the exact cost this key exists to remove. Discovery is a read, not a broadcast: `flow skills ls` lists every skill on the machine, and `settings.json` says what each is set to.
+
+### Verified, 2026-08-29, Claude Code 2.1.251
+
+Four `-p` runs against a scratch config built by `try.sh`:
+
+- **`off` at machine level hides the skill from the model.** `visualize` vanished from the list the session was handed.
+- **`name-only` lists the skill with no description.** `research` appeared by name, and the session reported no description text for it.
+- **A project's `.claude/settings.json` overrides the machine's, key by key.** Project `on` restored `visualize` after the machine had set `off`; project `off` hid `debug`, which the machine never named; `research` kept the machine's `name-only` throughout, so the objects merge rather than replace.
+- **An edit applies on the next run.** A newly created project `settings.json` did not apply until its second run, which is the workspace trust flow rather than this key.
+
+### What this costs
+
+**`flow skills add` loses its users.** It refuses a name already global, and every Flow skill now is, so the command's remaining job is a skill that is not Flow's — vendored in, or belonging to one project. None exists yet. `sync` still earns its place the day one does, and the refusal now points at `skillOverrides` instead of telling you to edit `home/skills`.
+
+**Kept rather than archived** (user, 2026-08-29). This design is young enough to be reversed, and `add` is the command a reversal would need back.
+
+**`disable-model-invocation` keeps a narrower job.** One copy of a skill serves every project, so the frontmatter line can only say *never fire anywhere*. `/start`, `/run`, `/cut-from-spec` and `/file-findings` carry it because *never* is true of them.
 
 ## Where a skill installs
 

@@ -89,6 +89,7 @@ Cut what lengthens a sentence without clarifying it. Readability first; the toke
 
 - Drop articles and filler verbs where the sentence still reads: "Grep it, read the matching slices", not "You should use grep on it and then read only the slices that match".
 - Digits, not words: `5`, not `five`.
+- Name a skill with its slash: `/groundwork`, never `groundwork`. The slash is what the user types, and it tells the skill from the ordinary word.
 - Grammar bends where meaning survives. A fragment beats a padded sentence.
 - Delete a whole sentence when it changes no behavior. Trimming it keeps the noise, and an instruction the model already follows by default says nothing.
 - Symbols only where genuinely clearer than the word — usually they are not. They also save nothing: `→` and `·` are each their own token, as are invented abbreviations like `cfg`.
@@ -104,12 +105,12 @@ Last pass, after the structure is right.
 
 ## 8. Frontmatter descriptions
 
-The description is always in context, and it is all the agent sees when deciding whether to load the skill.
+The description is in context from the moment a session starts, whether the skill is ever invoked or not.
 
-- **What it does in one clause, when to reach for it in detail, never the steps.** A description that summarizes the workflow gets followed instead of the file — an agent given "code review between tasks" did one review where the skill specified two.
-- **Open with a directive.** "ALWAYS invoke before X" fires; "helps with X" often does not.
-- Name the triggering situations explicitly, including words the user will not say.
-- User-invoked (`disable-model-invocation: true`) → one short line. The user already decided.
+- **What it is and what it covers. Never the steps.** A description that summarizes the workflow gets followed instead of the file — an agent given "code review between tasks" did one review where the skill specified two.
+- **Never when to invoke it.** A trigger written here is loaded by every session that never fires it. Write one only where it is wanted; `write-skills.md` names the 4 homes.
+- **Under-explaining is the failure to avoid.** Cover the subject in enough detail that a reader can tell what the skill reaches — `/visualize` names its media, because nothing else says what it draws. No word count overrides that.
+- **Typed-only (`disable-model-invocation: true`) → one short line.** The user already decided.
 
 ## 9. Transformations
 

@@ -1,0 +1,3 @@
+# Flow skills this project uses, one name per line.
+# `flow skills add <name>` writes a name here and links it; `flow skills sync`
+# rebuilds every link from this file, which is what a fresh clone needs.
