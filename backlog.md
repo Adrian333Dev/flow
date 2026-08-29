@@ -148,6 +148,7 @@ Each read end to end against `references/writing.md`: plan the sections, then te
 
 - [x] **Automate the resume after `/clear` — built 2026-08-24.** `handoff` writes a fenced `flow-open` block into `## State` or `handoff.md`, and `flow open` loads every file it names before the first turn. The `SessionStart` hook was not needed: `/start` is the second of the two typed steps, and `design-resume.md` set two as the ceiling
 - [ ] **Nothing loads on a bare `/start` with no ticket and no path** — a `handoff.md` sits beside whichever thing is being worked, so there can be several and no id points at one. Left out of the 2026-08-24 build
+- [ ] **A dropped file path costs a whole extra turn** — dragging a file from the editor into the terminal pastes its absolute path in quotes, and that is the only easy way to name a file `@` cannot find or that git ignores. The agent then spends one turn seeing the path and a second reading the file. Wanted: the content arrives with the prompt. `UserPromptSubmit` is the shape — it fires before the model processes the prompt and its stdout is added as context, so a hook could read every quoted absolute path and print the file. Undesigned. **talk first**. `lab/research/claude-code-docs/hooks.md`
 - [ ] **Context engineering** — keep what loads as small as possible, and stop cache invalidation when a skill loads mid-session. **talk first**
 - [ ] **Splitting `~/.claude/flow/notes.md`** — by kind, never by project. **parked**
 - [ ] **A `PreCompact` hook** — a block-once state file, so auto-compaction gives way to `handoff`. The least important thing on this list, and the context-pulse hook beside it was deferred indefinitely 2026-08-08: at a 1M window you fire `handoff` yourself. **parked**
@@ -188,6 +189,8 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 
 - [ ] **`README.md` still owes its real pass** — the install steps and layout section get rewritten once the restructure has moved paths. **Never edit it before then** (user, 2026-08-25): it is wrong as it stands, and the rewrite replaces it whole, so every patch until then is thrown away
 - [ ] **The guide** — `docs/`, the long form of `references/workflow.md`, for a reader who knows none of this: every component, every decision, and the reasoning behind each. The first folder someone reads after cloning
+- [ ] **`docs/` is designed and unwritten** — official documentation for a stranger, A to Z, 6 sections grouped by why you are reading. Nothing gets written until the workflow is finished and the install skill exists. The whole design lives in `handoff.md`, and the evidence behind it in `lab/research/doc-design/`
+- [x] **Testing the examples in `docs/` — rejected 2026-08-29.** Both research reports named it the only way to stop docs going stale that does not rely on remembering, and it still does not fit: hand-written examples would cover the obvious tenth of the scenarios and miss every tricky one, so a green suite would report a safety nobody has. Flow's examples are also shell lines and JSON rather than compilable code, so nothing can run them. Reconsider only once the workflow is battle-tested and real examples exist. `lab/research/doc-design/`
 
 ## Install and migration
 

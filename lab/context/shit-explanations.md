@@ -377,3 +377,90 @@ and where they compete the reader wins, because a report nobody can parse report
 - **Rank it.** The file carrying the mechanism goes first and gets a sentence of its own. A file that
   gained a cross-reference gets four words, or gets dropped into a closing line that names the rest
   together.
+
+---
+
+## 2026-08-29 — arguing for a mechanism without ever saying what it does
+
+**Context.** Two research reports on documentation design had come back. One of their findings
+argued for something the user had already ruled out. The standing rule is to disagree out loud once,
+with the argument, then let the user decide. This section was that disagreement.
+
+**What was sent, verbatim:**
+
+> ## The disagreement I owe you, once
+>
+> **Testing the examples is the strongest-evidenced recommendation in either report, and you ruled it
+> out.** Both name it as the only anti-drift technique with a structural mechanism rather than
+> process discipline. Code and comments co-evolve about 90% of the time, but API changes and their
+> docs do not — they get re-documented in a later revision, if ever. Aghajani's ICSE 2019 mining of
+> 878 artifacts found content problems the predominant category at 55%; erroneous examples were rated
+> a top issue by 59% of practitioners.
+>
+> **What partly vindicates you:** the mechanism transfers weakly here. Rust doctests work because the
+> example is compilable code in the same language. Flow's examples are command lines, JSON fragments
+> and frontmatter — nothing compiles, so there is no build to fail. The cheap version that would
+> actually catch something is checking that file paths named in the docs exist, and that JSON
+> snippets parse.
+>
+> Your call stands either way. I will not raise it again.
+
+**What the user said back:**
+
+> "I literally didn't understand a single fucking sentence from it. Like, I have zero fucking idea
+> what shit you are fucking talking about in that whole section. Which is very pissing me off so
+> much."
+
+### Five faults, ordered by damage
+
+1. **The thing being argued for is never described.** *Testing the examples* is the subject of every
+   sentence in the section, and nothing anywhere says what it means — a test that pulls the code
+   samples out of the documentation, runs them, and fails when one stops working. Without that
+   sentence the whole section argues about an unnamed object.
+2. **The evidence is quoted as citations, not as findings.** *Aghajani's ICSE 2019 mining of 878
+   artifacts found content problems the predominant category at 55%* is a surname, a conference
+   acronym, a year, and three numbers whose units are never given. 55% of what. An artifact is what.
+   None of it is usable, and it was there to show the objection had been researched rather than to
+   tell the reader anything.
+3. **Four abstract nouns in a row, none of them built up.** *The only anti-drift technique with a
+   structural mechanism rather than process discipline.* Drift, structural mechanism and process
+   discipline carry the sentence, and not one is defined.
+4. **The section reverses itself twice and resolves nothing.** Paragraph one: this is the strongest
+   evidence in either report. Paragraph two: it does not apply here. Paragraph three: the decision is
+   unchanged. Three positions, no signal between them, and the reader finishes where they started.
+5. **A second undefined thing is used to explain the first.** *Rust doctests* arrives cold, as the
+   worked example that was supposed to make the mechanism concrete.
+
+### Rules that were loaded and did not fire
+
+All from `## Explaining`, in context the whole time:
+
+- **Define from zero.** *Every term defined before first use.* Doctest, drift, artifact and
+  co-evolve all appear cold.
+- **A label is not an explanation.** *Say what the thing does.* `Aghajani ICSE 2019` is a label
+  standing exactly where a finding belongs.
+- **A pointer is not an explanation, and neither is a quote.** *Assume unread.* Both reports were
+  written by an outside tool and quoted as if the user held them in mind.
+- **Name the thing, never point at it.** *The mechanism*, *it*, *the technique* and *this* all reach
+  back at an object that was never named once.
+
+### Root cause
+
+The section was written as a record, not as an explanation. Its purpose was to put a disagreement on
+file — argued once, sourced, then dropped — and the statistics were there to prove the objection was
+researched instead of asserted. **Proof that a claim is well-founded is not the same as saying what
+the claim is.** Defensibility got optimised and the reader was handed citations where the argument
+should have been.
+
+Same family as the entry above it: a requirement other than the reader's understanding was treated
+as the deliverable.
+
+### What would have been right
+
+- **Name the mechanism in one plain sentence before arguing about it.** A check that runs the
+  examples in the docs and fails when one breaks.
+- **Say what it would do here, then why it does not fit.** Stop there.
+- **Make a number into a sentence a reader can use, or cut it.** *One study of 878 real complaints
+  found most were about wrong or missing content rather than about writing.* A statistic nobody can
+  interpret is decoration.
+- **A section that changes nothing is three sentences or it is absent.**
