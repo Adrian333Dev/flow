@@ -10,6 +10,7 @@ Flow is a Claude Code workflow for a solo developer: rules that load in every se
 
 ## The pages
 
+- [The repository layout](layout.md) — what is in every folder, and where a new file goes
 - [The two checkouts](checkout.md) — where you edit, and why there are two of them
 - [The scratch session](scratch-session.md) — running a change without installing it
 - [The tests](tests.md) — two suites, no dependencies

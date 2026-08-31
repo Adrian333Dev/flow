@@ -589,7 +589,7 @@ for what it touches. A skill's name is short and says what it is for.
 ## Still open
 
 - **Whether an install command replaces `link.sh`.** The restructure landed 2026-08-28 and fixed
-  every path, so `home/skills` sits beside `home/CLAUDE.md` and no longer moves. The install skill is
+  every path, so `home/skills` sits beside `home/CLAUDE.md` and no longer moves. The management skill is
   what would take `link.sh` over, and it is unbuilt. **talk first**
 - **The 10 description strings.** Written during the build, and tested by handing a fresh session the
   situation and watching whether it reaches for the skill.

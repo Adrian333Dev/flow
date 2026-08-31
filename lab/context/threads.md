@@ -460,7 +460,7 @@ the skill wrote a reading list instead of the state, so the next session read se
 
 ## install — one skill instead of two
 
-**Raised by the user 2026-08-15, to be discussed later. Nothing here is decided.**
+**Raised by the user 2026-08-15. One thing is decided since, at the bottom; the questions are open.**
 
 The plan was two skills: `setup-flow-globals` to install Flow on a machine that has none, `migrate-to-flow` to
 convert a project that already has its own workflow. Neither is built.
@@ -481,6 +481,12 @@ scenario forever.
 - **The name.** `setup-flow-globals` and `migrate-to-flow` are both verb-first and both describe half the job.
 - **Nothing installs until Flow is finished** — this skill is the thing that finally runs, so its design is
   what closes the whole project.
+
+**Decided 2026-09-01: it manages Flow's whole life, and installing is one job inside that.** The user's
+correction, on seeing it scoped as an installer. It owns every starting state, then everything after one:
+updating a machine, re-installing over the two personalised files, converting a project that already has its
+own workflow, and every migration that follows. **It is far larger than the item written down for it**, which
+is why it stays last.
 
 ## ascii-engine — hand it JSON, get back the drawing
 

@@ -11,15 +11,18 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 
 ## Next
 
-1. **End-to-end testing** — widen the two suites past the 15 and 29 tests they hold now
-2. **The install skill, then Delapse** — last, and only once everything above is still
+1. **`/file-findings` rewrite** — it never learned the groups exist
+2. **The git-mutation toggle** — it unblocks worktrees, and worktrees unblock parallel dispatch
+3. **Splitting `home/CLAUDE.md`** — before the hard rules grow again
+4. **End-to-end testing** — widen the two suites past the 15 and 29 tests they hold now
+5. **The management skill** — last, and only once everything above is still
 
 ## The skill system
 
 Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and rebuilt the same day. Flow keeps Claude Code's skills and adds 3 things: a group folder, which files a skill and decides only whether `drafts/` skips it; one shell line per skill for overlays; and a rule that a skill invoked over and over stays short. What a session is shown is per group — `phases/`, `commands/` and `tools/` on, `stack/` off, `standards/` decided per skill. Every argument is in `design-skills.md`.
 
 - [ ] **`project-template/` ships no `.claude/settings.json`** — with `stack/` off by default, turning one on is the first thing a project needs, and there is no file to write it in. Decide whether the template carries an empty `skillOverrides` or the docs just say where to write one
-- [ ] **`flow install` no longer prunes `~/.claude/commands/`** — a machine carrying an older Flow would keep dead links there beside the new skills. No machine has installed Flow, so nothing is broken; it belongs to the install skill
+- [ ] **`flow install` no longer prunes `~/.claude/commands/`** — a machine carrying an older Flow would keep dead links there beside the new skills. No machine has installed Flow, so nothing is broken; it belongs to the management skill
 - [ ] **External skills** — 1 project copies the folder into `.claude/skills/` and commits it. Several projects means vendoring it into Flow's tree with its origin recorded, then linking it like any Flow skill
 - [ ] **Plugins are a fourth install state Flow does not control** — off by default. `extraKnownMarketplaces` in the committed settings, `enabledPlugins` in `.claude/settings.local.json`, and a flip takes effect next session. `skillOverrides` is not an off switch: it leaves the commands and the hooks running
 - [ ] **Test whether a plugin skill beats a Flow skill of the same name** — 1 run, when a plugin goes in
@@ -50,20 +53,20 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 ## Rules and always-loaded files
 
 - [ ] **Git mutations become a toggle, and the blanket ban leaves `home/CLAUDE.md`** — decided 2026-08-30, undesigned. 3 places enforce it and `permissions.deny` is the blocker, because nothing can switch it at call time. Supersedes the parked *move the git rule into `## Preferences`* item; git worktrees waits on it. **talk first**. `threads.md` → `git-writes`
+- [ ] **Split `home/CLAUDE.md` before the hard rules grow again** — the always-loaded file only grows, and many more hard rules are coming. Two destinations: reference files it points at, and skills that fire on a situation. The example the user named is a skill firing whenever the agent plans a change, edits a file or runs a plan, carrying every rule about changing files. What it decides is which rules must be in context from turn 1 and which can arrive when they apply. **talk first**
 - [ ] **Re-ask the 7 rejected questions in a scratch session**, against the rebuilt `## Explaining`. The rewrite is unmeasured until then, and 6 earlier rounds of rule-writing were never tested either. Only the newest is in `shit-explanations.md`; the other 6 are in git — `git log -p -- lab/context/shit-explanations.md`
 - [ ] **`## Explaining` in `home/CLAUDE.md` has no *UI is drawn, never described* bullet**, which the repo `CLAUDE.md` carries. A layout question in plain conversation loads no skill, so the rule has a moment with no owner. **talk first**
 - [ ] **Where the review paragraph lives** once a review step exists — the premise moved. `/groundwork` Phase 3 is now *attack it before it stands*, delegating to `## Judgment`, so re-read it before deciding whether the question survives. **talk first**. `remaining.md`
 - [ ] **Dependency discipline** — a check before any dependency is added, and how a bulk version bump gets reviewed. **talk first**
 - [ ] **File size as its own review signal** — a small diff that pushes an already-large file past a healthy boundary. **talk first**
 - [ ] **The negation split** — a prohibition where the agent breaks a rule under pressure, a positive recipe where the output comes out the wrong shape. **talk first**. `compression.md`
-- [ ] **`wip` is banned as a word** — an abbreviation nobody expands. Covers `lab/util/commands/git/save.sh`, which generates `wip:` commit messages and is where `gsave.sh` went. `design-work-sync.md`
 
 ## `util`, the utility CLI
 
 Locked 2026-08-30 and built the same day, all 3 namespaces; `util install` followed on 2026-08-31. A second command-line tool, separate from `flow`, holding every general-purpose script. Its own repository, a submodule of this one at `lab/util/`. Every argument is in `design-util.md`, and `## Built 2026-08-30` there says what shipped and the decisions the design did not carry.
 
 - [ ] **`git init` never runs without `-b main`** anywhere in Flow — the install skill, the manual, any script that creates a repository. The `util` rename is what this is protecting against repeating
-- [ ] **Rewrite the toolbox** — external tools filed by job, and nothing loads it today. It comes under `lab/` as a submodule first, on `lab/util/`'s terms, and the rewrite happens there. `repos/toolbox` is the old plain clone, redundant once the submodule is added
+- [ ] **Rewrite the toolbox** — external tools filed by job, and nothing loads it today. It is a submodule at `lab/toolbox/`, added 2026-09-01, and the rewrite happens there on `lab/util/`'s terms. `repos/toolbox` is the old plain clone and is redundant now
 
 ## Subagents and dispatch
 
@@ -92,17 +95,15 @@ Locked 2026-08-30 and built the same day, all 3 namespaces; `util install` follo
 
 ## Testing
 
-- [ ] **Full end-to-end testing for every programmatic part** — `flow` and `guard.js` here, `fs tree` and `fs merge` in `util` once they move. The harness landed 2026-08-28 with 7 tests and holds 17, which prove the wiring and almost none of the behavior
+- [ ] **Full end-to-end testing for every programmatic part** — `flow` and `guard.js` here, `fs tree` and `fs merge` in `util` once they move. The harness landed 2026-08-28 with 7 tests and holds 15 here and 29 in `util`, which prove the wiring and almost none of the behavior
 - [ ] **A test suite for `flow`** — about 2,000 lines of Node, verified only by hand. Every redesign has been walked command by command in a scratch tree, which is the case material
-  - `tmp/proto-unfinished.sh` is 77 checks over `flow work`, written 2026-08-24, and `tmp/` is gitignored so it disappears on the next cleanup. Decide whether it is the first piece of this suite or a throwaway before that happens
+  - `tmp/proto-unfinished.sh` was 77 checks over `flow work`, written 2026-08-24. **It is gone** — `tmp/` is gitignored, so git never held a copy and nothing was salvaged. Those checks get written again from scratch
 
 ## Repo structure
 
 Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and the verified facts.
 
 - [ ] **Set up the dev checkout** — `git worktree add ../flow-dev <branch>`, so a multi-file rework is testable without reaching any real project. Works today with no code change: `lib/clone.js` derives the clone from `__dirname`, so a `try.sh` in the dev checkout installs the dev checkout. `design-dev-loop.md`
-- [ ] **Move `lab/proxy.mjs` into `lab/scripts/`** — the last loose file at `lab/`'s root, under a line saying everything beside `context/` is a folder
-- [ ] **Move `tmp/model-creativity.md` into the design record**
 
 ## The design record
 
@@ -115,17 +116,16 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 
 ## Install and migration
 
-- [ ] **The install skill** — one skill covering every starting state, and the last thing Flow gets. It links every skill outside `drafts/`, ships the machine's off list, then leaves each project to turn on what it wants. `threads.md` → `install`, and `design-project-docs.md` for what a migration harvests
-- [ ] **The install skill diffs the 2 personalised files on re-install** — `~/.claude/CLAUDE.md` and `~/.claude/settings.json` are copied then personalised, so a new Flow version never reaches them. Everything else updates with `git pull`, because every other path is a symlink. That is the whole migration problem. `design-dev-loop.md`
-- [ ] **Flow's install steps name `util` first** — the dependency landed 2026-08-30 with the move of `ptree` and `fmerge`. `home/CLAUDE.md` mandates `util fs tree` in every session, and `open.js` runs `util fs merge` off `PATH`. The install skill checks for `util` before anything else. Only acceptable while `util` is public. `design-util.md`
-- [ ] **The install skill reads `docs/` before writing into it** — a project that already has `docs/spec/` or `docs/research/` needs those merged, never overwritten. The working store moving to `.flow/` on 2026-08-30 removed most of the collision and not this part. `design-public-docs.md` → `## The docs collision`
-- [ ] **The install skill warns when a site generator serves `docs/`** — `docusaurus.config.js`, `mkdocs.yml` or a GitHub Pages setting means every markdown file under `docs/` is published, so Flow's `spec/` and `research/` would go live without anyone deciding to. `design-public-docs.md` → `## The docs collision`
-- [ ] **`docs/intake/` has no always-loaded mention** — it holds a project's pre-Flow material, and the `## References` section that named it was deleted from `home/CLAUDE.md` on 2026-08-29. `references/workflow.md` is the only file naming it now, and that loads only when the workflow is unclear. Its real owner is the install skill
+- [ ] **The management skill** — Flow's whole life in one skill, and the last thing Flow gets. Installing is one job inside it: every starting state, then updating a machine, re-installing over the two personalised files, converting a project that has its own workflow, and every migration after that. **Far larger than an installer**, decided 2026-09-01. `threads.md` → `install`, and `design-project-docs.md` for what a migration harvests
+- [ ] **The management skill diffs the 2 personalised files on re-install** — `~/.claude/CLAUDE.md` and `~/.claude/settings.json` are copied then personalised, so a new Flow version never reaches them. Everything else updates with `git pull`, because every other path is a symlink. That is the whole migration problem. `design-dev-loop.md`
+- [ ] **Flow's install steps name `util` first** — the dependency landed 2026-08-30 with the move of `ptree` and `fmerge`. `home/CLAUDE.md` mandates `util fs tree` in every session, and `open.js` runs `util fs merge` off `PATH`. The management skill checks for `util` before anything else. Only acceptable while `util` is public. `design-util.md`
+- [ ] **The management skill reads `docs/` before writing into it** — a project that already has `docs/spec/` or `docs/research/` needs those merged, never overwritten. The working store moving to `.flow/` on 2026-08-30 removed most of the collision and not this part. `design-public-docs.md` → `## The docs collision`
+- [ ] **`docs/intake/` has no always-loaded mention** — it holds a project's pre-Flow material, and the `## References` section that named it was deleted from `home/CLAUDE.md` on 2026-08-29. `references/workflow.md` is the only file naming it now, and that loads only when the workflow is unclear. Its real owner is the management skill
 - [ ] **Every typed command runs a dead clone** — `flow`, `ptree`, `fmerge` and `gsave` resolve through `~/.local/bin` into the workbench repo deleted on 2026-08-07, so `flow work` is unreachable by name and `flow` runs old code. `flow install` repoints `flow` and `fw`, and `util install` adds `util` and `u`. The 3 old names belong to nobody now and get deleted by hand. Waits until the skill set is final. `refactor-agenda.md` §8
 - [ ] **Test built-in `/init` with `CLAUDE_CODE_NEW_INIT=1`** against a real repo first — it already does the codebase survey, the gap questions and a reviewable proposal
-- [ ] **Migrate Delapse** — the real test, and where its conventions route into the project `CLAUDE.md` and `docs/context/`. `design-project-docs.md` carries the routing test and the 2026-07-29 survey of its docs
-- [ ] **Keep Delapse's project-local skills, converted** — reversed 2026-08-26. They are not Flow's skills. With `.claude/flow/skills` gone, each one is either copied into `<project>/.claude/skills/<name>/` and committed with Delapse, or vendored into Flow's tree under a group when a second project wants it. `design-skills.md`
-- [ ] **Harvest Delapse, `lumacraft_v2` and `framework-build` into skills** before that material is lost
+- [ ] **Migrate Delapse** — **parked** until the workflow is finished. The real test, and where its conventions route into the project `CLAUDE.md` and `docs/context/`. `design-project-docs.md` carries the routing test and the 2026-07-29 survey of its docs
+- [ ] **Keep Delapse's project-local skills, converted** — **parked** with the migration. Reversed 2026-08-26. They are not Flow's skills. With `.claude/flow/skills` gone, each one is either copied into `<project>/.claude/skills/<name>/` and committed with Delapse, or vendored into Flow's tree under a group when a second project wants it. `design-skills.md`
+- [ ] **Harvest Delapse, `lumacraft_v2` and `framework-build` into skills** before that material is lost — **parked** with the migration, and the material sits in repositories that are not going anywhere
 - [ ] **Tune `guard.js`'s deny and ask lists** against real use — they were written from the rules, never against an observed false positive
 - [ ] **An interview at install to fill `## The user`** — **parked**
 

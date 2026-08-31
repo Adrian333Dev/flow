@@ -131,7 +131,7 @@ describes it anywhere today.
 - `~/.claude/settings.json` — merged by hand, once, at install
 
 **Everything else updates with `git pull`, because every other path is a symlink.** So the whole of
-what the install skill has to solve for updates is: on a re-install, diff those two shipped files
+what the management skill has to solve for updates is: on a re-install, diff those two shipped files
 against the machine's, show what changed since last time, and let the user merge.
 
 ## `docs/dev/` written, 2026-08-31
@@ -154,3 +154,38 @@ the rule-versus-procedure line `design-public-docs.md` drew, applied for the fir
 you follow, and `style.md` § 10 tells a documentation page to state a definition rather than send the
 reader away for it. The section now names both other homes for the same material —
 `write-skills.md` for a project, `docs/dev/skills.md` for Flow — so an edit hits all 3.
+
+## The tree map left `CLAUDE.md`, 2026-09-01
+
+**The complaint was frequency, not length.** The user noticed that almost every turn ended in an edit
+to the repo `CLAUDE.md` and read that as status living in a file that must hold none. The history
+agrees: 31 commits have touched the file since 2026-07-18, and `## Layout` was in 24 of them — the
+most edited section in the file, and a census of what sits in each folder rather than a rule about
+anything.
+
+**`## Layout` and `` ## `lab/` `` became `docs/dev/layout.md`**, 42 of 199 lines gone. The page also
+answers where a new file goes, which the two sections implied and never stated. `lab/context/` lost
+the destination argument because it holds reasoning, and a map of the tree is reference.
+
+**5 rules were buried inside those bullets and came up into `## Repo rules`:** nothing under `lab/`
+is a Flow skill, no `lab/` path may reach a skill or `home/` or `project-template/`, every context
+file lives in `lab/context/`, every record under `lab/` loses to disk except `state.md`, and `repos/`
+is read with `cat` and never edited. A rule written inside a folder description is invisible to
+anyone scanning for rules, which is how all 5 ended up there.
+
+**`## Authoring a skill` was cut, reversing 2026-08-31.** The entry above says it stayed whole
+because its bullets are rules rather than steps. That held until the same material existed in 3
+places and the section itself instructed editing all 3 — which made it the second most edited
+section, at 17 commits. What stayed is the 6 decisions no page carries: `commands/` is closed,
+`code-review` is never built, a repeatedly invoked skill stays short, `file-findings` is the density
+target, plain words only, and no versions or plugin manifest. `docs/dev/skills.md` holds the how-to.
+
+**`## Trying a change` went from 4 lines to 3**, and the `CHANGELOG.md` suspension moved to
+`## Writing any file`, where a rule about a file nobody may write belongs.
+
+**What stays, however often it changes, is a rule.** `## Explaining` is the longest section at 46
+lines and the third most edited at 14 commits, and it did not move: its edits are the user sharpening
+a rule, not a file moving on disk, and there is no moment in a session where it fails to apply. The
+line the refactor draws is between a census and a rule, never between a stable file and a busy one.
+
+199 lines to 154.

@@ -4,7 +4,9 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 
 **None of Flow's own rules are loaded right now.** `home/CLAUDE.md` is a template that installs to `~/.claude/CLAUDE.md`, and that install has not happened. Until it does, this file is the whole rule set, and everything in `skills/` is a file on disk that no session loads. Never assume a rule applies because `home/CLAUDE.md` states it.
 
-**Read `lab/context/state.md` before touching skills installation, the scripts, or the docs tree.** It says what is built, where each piece stands, and which design record covers what. **This file carries no status** — it loads in every session, and status changes daily.
+**Read `lab/context/state.md` before touching skills installation, the scripts, or the docs tree.** It says what is built, where each piece stands, and which design record covers what.
+
+**`docs/dev/layout.md` maps the tree** — what sits in every folder, what installs and what does not, and where a new file goes. **This file carries neither status nor a map of the repo** — it loads in every session, and both change far more often than a rule does.
 
 ## Hard rules
 
@@ -103,85 +105,33 @@ Governs every answer — status reports and one-line questions, not just designs
 
 **It holds three scopes and says at the top which section belongs to which.** Sentences and word choice govern everything Flow writes. Section shapes, one home per fact and the compression rules govern only a file that enters an agent's context. §10 governs a manual page, where repetition is wanted and length is unbounded.
 
-One rule from it fires here constantly and appears nowhere else:
+Two rules from it fire here constantly:
 
 - **Never rule against a behavior nothing in Flow instructs.** A ban on something the workflow never sets up invents the problem it forbids.
+- **⛔ `CHANGELOG.md` — SUSPENDED (user, 2026-08-09). Never write, update or create one.** Not "fewer" — none, and every existing one was deleted that day. Flow is pre-release and its own history is churn, so a changelog of a design still being reversed weekly is noise nobody reads. **It returns at Flow's first release**, convention unchanged: behavior only — a rule added, removed or reversed, a mode added, a mechanism replaced. Never renames, path fixes or reference sweeps; git owns those. Date headers (`## 2026-08-03`), newest first, no version numbers. Never loaded into context — it exists so the reasoning behind current wording survives, which commit messages do not carry.
 
 ## Authoring a skill
 
-One folder per skill, filed under a group: `skills/phases/`, `tools/`, `standards/`, `stack/`, `commands/` or `drafts/`. There is exactly **one copy on the machine** — an edit is live in every project immediately, open sessions included. Flow's own skills are never copied into a project.
+One folder per skill, filed under a group: `skills/phases/`, `tools/`, `standards/`, `stack/`, `commands/` or `drafts/`. To add one, create `<group>/<name>/SKILL.md` with `name` and `description` frontmatter. Every skill outside `drafts/` installs on every machine, read off the tree, so there is no list to add a name to. **`drafts/` is the only group that changes behavior** — `flow install` skips it, so a skill ships by being moved out of it.
 
-To add one: create `<group>/<name>/SKILL.md` with `name` and `description` frontmatter. **Every skill outside `drafts/` installs on every machine**, read off the tree, so there is no list to add a name to. Model-invoked is the default; `disable-model-invocation: true` makes a skill reachable only when the user types `/<name>`, and takes it out of the list a session is handed — so `home/CLAUDE.md` → `## Workflow` names those, or nothing tells the model they exist. Write it only where never firing is true everywhere, because one copy of the skill serves every project; anything narrower is `skillOverrides` in a project's `.claude/settings.json`.
+**`docs/dev/skills.md` is the long form**: what each group is for, the frontmatter, what goes in the folders below `SKILL.md`, and when an install is needed. `skills/commands/file-findings/references/write-skills.md` says the same for whoever is authoring a skill inside a project. Edit both in the same pass whenever a rule there changes.
 
-Two other files carry the same material for other readers: `skills/commands/file-findings/references/write-skills.md` is written for whoever is authoring a skill in a project, and `docs/dev/skills.md` for whoever is adding one to Flow. Edit both in the same pass whenever a rule here changes.
+The decisions neither page carries:
 
-- **`file-findings` is the density to aim for.** Style itself lives in `references/style.md`, including how to write the `description`.
-- **A description says what the skill is and what it covers**, never when to invoke it. A trigger is written only where one is wanted, in 1 of 4 homes — `home/CLAUDE.md` → `## Workflow` holds the pipeline, the skills that fire on a situation, and the ones that fire anywhere. `write-skills.md` → `## Frontmatter` names all 4.
-- **A skill invoked over and over stays short, and a long skill takes no arguments.** A render that differs between invocations is appended whole; an identical one is skipped. `/run` at 11 lines re-appends for nothing, and `/handoff` at 153 must never grow an argument. Binds Flow's own skills; an external skill is not ours to hold to it.
-- **One skill, one folder, inside a group.** `phases/` is what you are doing, `tools/` is something you do inside a phase, `standards/` is how you work throughout, `stack/` is what you are touching, `commands/` is what the user mainly invokes, and `drafts/` is one still being written. **`drafts/` is the only group that changes behavior** — `flow install` skips it, so a skill ships by being moved out of it. **`commands/` wins wherever two fit** — `/cut-from-spec` is a phase and files there anyway, because the user is who reaches for it. The group files a skill and decides nothing else — moving one later is a `mv`, because nothing outside this tree reads a group. Never a vague `misc/`.
 - **`commands/` is closed.** It holds every skill the user mainly invokes, so `phases/` is `groundwork`, `execute`, `prototype` and `debug`. Set by the user and not reopenable.
-- **A group decides whether a session is shown the skill.** `phases/`, `commands/` and `tools/` are on, `stack/` is off and turned on per project, `standards/` is decided per skill. The off list ships in `home/settings.json` as `skillOverrides`, which is binary: `on` and `off`, nothing between them.
 - **`code-review` is never getting built.** Review runs in the same session, never a subagent, and the criteria live beside whichever skill produced the artifact — `skills/phases/execute/references/review-code.md` is that file for code.
-- **Length is not a reason to split.** Under ~300 lines is fine, up to ~500 when the material earns it. Split only when parts are genuinely **conditional** — read on some runs and not others (`groundwork/references/write-spec.md`). Splitting what every run needs just buys extra reads.
-- **A skill's name is short and says what it is for.** A `stack/` skill is named for what it touches — `react`, never `write-react`. A file inside a skill is named whatever fits it.
+- **A skill invoked over and over stays short, and a long skill takes no arguments.** A render that differs between invocations is appended whole; an identical one is skipped. `/run` at 11 lines re-appends for nothing, and `/handoff` at 153 must never grow an argument. Binds Flow's own skills; an external skill is not ours to hold to it.
+- **`file-findings` is the density to aim for.** Style lives in `references/style.md`, including how to write the `description`.
 - **Plain, common words — no invented or rare terms.** "Rung" for a step on a list is the case that triggered this. Binds what skills produce as hard as what they say, because the user reads the output.
-- **`SKILL.md` is the only file at a skill's root.** Everything else goes in a folder: `scripts/` for executables (`research/scripts/fetch-docs.sh`), `references/` for markdown read on some runs and not others (`visualize/references/draw-mockups.md`), or a purpose name where one fits better (`web-pages/knowledge/`). Set by the user 2026-08-19, and true of every skill since `file-findings/references/write-skills.md` moved 2026-08-24.
-- **Accumulated findings go in the skill body, not a changelog.** Dated entries in a `knowledge/` file (see `/web-pages`) are read when the skill runs; a changelog never is.
-- **⛔ `CHANGELOG.md` — SUSPENDED (user, 2026-08-09). Never write, update or create one.** Not "fewer" — none, and every existing one was deleted that day. Flow is pre-release and its own history is churn, so a changelog of a design still being reversed weekly is noise nobody reads. **It returns at Flow's first release**, convention unchanged: behavior only — a rule added, removed or reversed, a mode added, a mechanism replaced. Never renames, path fixes or reference sweeps; git owns those. Date headers (`## 2026-08-03`), newest first, no version numbers. Never loaded into context — it exists so the reasoning behind current wording survives, which commit messages do not carry.
-- **No versions and no plugin manifest.** One symlinked copy per machine means there is no distribution lag to track. `flow install` is the install CLI and it only ever builds symlinks — nothing is packaged, published or versioned.
+- **No versions and no plugin manifest.** One symlinked copy per machine means there is no distribution lag to track. `flow install` only ever builds symlinks — nothing is packaged, published or versioned.
 
 ## Trying a change
 
-**`bash lab/scripts/try.sh` builds a throwaway Claude Code config under `tmp/try/`, then starts a real session against it.** A change is usually five skills and a rule in `home/CLAUDE.md` together, and this is the only way to test the whole state at once. **Run it with `--print` from a session** — the bare form calls `exec claude` and never returns.
+**`bash lab/scripts/try.sh` builds a throwaway Claude Code config under `tmp/try/`, then starts a real session against it.** A change is usually five skills and a rule in `home/CLAUDE.md` together, and this runs the whole state at once. **Run it with `--print` from a session** — the bare form calls `exec claude` and never returns.
 
 **This is not an install, and the never-install rule holds through it.** Everything is built under `tmp/`, and `~/.claude` and `~/.flow` are neither read nor written.
 
-**`npm test` inside `scripts/` runs Flow's suite, and `lab/util/` has its own**, run the same way from inside that folder. Both write only into `tmp/`.
-
-`docs/dev/scratch-session.md` and `docs/dev/tests.md` carry the procedure: every flag, what the scratch session builds, and the environment variables the tests redirect.
-
-## Layout
-
-- **`.claude/settings.json`** — this repo's own settings, committed. Holds `claudeMdExcludes`, which keeps every `CLAUDE.md` under `repos/`, `home/` and `project-template/` from loading when a file beside one gets read
-- **`backlog.md`** — every open item in Flow, one line each, checkboxes. The only place an open item lives; `lab/context/` holds the reasoning behind them
-- **`home/CLAUDE.md`** — rules that apply in every directory, project or not. Copied to `~/.claude/CLAUDE.md`, then personalized
-- **`home/settings.json`** — permissions, the `PreToolUse` hook, feature flags, and `skillOverrides`, which ships the machine's off list. Every key explained in `home/settings.md`. Merged into `~/.claude/settings.json`
-- **`scripts/`** — `guard.js`, `snapshot.js`, `flow/` (`flow.js` is the entry; `lib/` holds the argument layer and the model, `commands/` one file per command group, including `open.js` behind `/start`). Also the Node package root: `package.json` and `tests/`. Symlinked as `~/.flow/scripts`; `flow.js` gets two more symlinks in `~/.local/bin`, named `flow` and `fw`, which is what makes it a command. `guard.js` and `snapshot.js` are hooks, named by path in `settings.json` and never typed
-- **`references/`** — reference files Flow ships but rarely loads: `style.md` (the house style, in three scopes), `workflow.md` (how the pieces fit), `study-cases.md` (how to record a failure), `cli-design.md` (the rules `flow`'s command surface follows), `work-sync.md` (how to move uncommitted work between two machines). Symlinked as `~/.flow/references`
-- **`skills/`** — every skill, one folder each, filed under `phases/`, `tools/`, `standards/`, `stack/`, `commands/` or `drafts/`. The group is a filing decision everywhere but `drafts/`, which `flow install` skips; nothing outside this tree reads a group name: a link in `~/.claude/skills/` or a project's `.claude/skills/` is flat and named for the skill
-- **`agents/`** — subagent definitions, one `.md` file each: a system prompt plus a tool allowlist plus a model. Symlinked into `~/.claude/agents/`. One of them: `haiku-worker`, named for its model so the folder reads at a glance
-- **`docs/`** — Flow's published documentation, two audiences and a folder each. `dev/` is for whoever changes Flow: the two checkouts, the scratch session, the tests, adding a skill. `manual/` is for whoever uses Flow: every concept, every command, and the reasoning behind each decision. Both authored here, never moved in from `lab/`; `lab/context/design-public-docs.md` holds the design and `docs/dev/` is written to `references/style.md` §10. Indexed by `README.md`. The rest of `docs/` appears when Flow is installed here — `spec/`, `context/`, `research/`, `intake/`
-- **`project-template/`** — `CLAUDE.md` (`## Project` + `## Rules`), `.gitignore`, `.flow-include`, and `.flow/overlays/` holding the `.info` that explains it. Nothing else. One template, copied in as-is; a directory that is not a project deletes `## Project`, which is the section that makes it one. `.flow-include` ships with no entries, only the comment saying what it is for: it names the gitignored files that travel with `flow work send`
-- **`lab/`** — the design record this repo was built from. Ships nowhere and never gets deleted; it shrinks to what is still live instead
-- **`repos/`** — clones of other people's repositories, gitignored. `bash lab/scripts/repos.sh` restores them and says what Flow took from each. Nothing here is the user's and nothing here is ever edited. Read with `cat`, never with `Read`
-- **`tmp/`** — gitignored scratch. `tmp/try/` is the throwaway session, holding both config roots and a project that survives between runs; `tmp/tests/` is where the tests write
-
-## `lab/`
-
-**Nothing under `lab/` is a Flow skill**, including folders that contain a `SKILL.md` — `skills/` is the only place a live skill exists. Never let a path inside `lab/` leak into a skill, `home/`, or `project-template/`.
-
-**Every context file lives in `lab/context/`** — one folder, flat, no loose markdown at the top of `lab/`. It holds what is still live; `design-restructure.md` → `## The second cut` says what was cut and why.
-
-**The skills on disk are current.** Every record under `lab/` is stale wherever the two disagree, and git holds the change history that nothing here restates. **`state.md` is the one exception** — it is maintained as the work moves, so where it disagrees with disk, the file is the bug.
-
-- **`state.md`** — what is built, where each piece stands, and which design record covers what. The only status file, and the reason `CLAUDE.md` carries none
-- **`remaining.md`** — decisions locked in the 2026-08-08 and 2026-08-09 conversations, and the only record of the arguments behind them
-- **`refactor-agenda.md`** — the cleanup work now in progress
-- **`session-new-plugin.md`** — historical log, newest at the bottom. Where a decision's origin is found
-- **`threads.md`** — the open discussion threads
-- **`shit-explanations.md`** — the message the user rejected most recently, kept verbatim because the wording is the evidence. **An entry is deleted once its faults are rules**, so the file holds one at a time and git holds the rest
-- **`design-*.md`** — the reasoning behind each locked decision, one file per decision. `state.md` says which one covers what
-
-Everything beside `context/` is a folder and stays one:
-
-- **`util/`** — the `util` CLI, worked on here and a **submodule** of its own: [`Adrian333Dev/util`](https://github.com/Adrian333Dev/util). Edited from this repo like any other file, committed from inside the folder, and the new pointer committed here afterwards. Both commands are the user's
-- **`toolbox/`** — external tools filed by job: MCP servers, plugins, skills, libraries, apps. A **submodule** of its own: [`Adrian333Dev/toolbox`](https://github.com/Adrian333Dev/toolbox). It left the workflow and installs nowhere, and the rewrite that earns it a way back happens here, on `lab/util/`'s terms
-- **`study-cases/`** — `premature-implementation/`: a `CLAUDE.md` rewritten without approval, and unproposed changes applied on a partial approval. Every other case documented a failure that got fixed; this one documents a failure that recurs
-- **`research/`** — the evidence behind the skills, and cached upstream documentation
-- **`framework-build/`** — the previous generation, kept until the backlog harvests it into skills
-- **`excalidraw/`** — third-party diagram skills awaiting a verdict, and the input for a skill built later
-- **`scripts/`** — scripts that serve this repo's development and ship nowhere. `repos.sh` clones the reference repos and carries the list of them in its own header; `try.sh` builds the scratch session
-- **`proxy.mjs`** — a dev-only context auditor, not a shipped script. The last loose file at `lab/`'s root
+**`npm test` inside `scripts/` runs Flow's suite, and `lab/util/` has its own**, run the same way from inside that folder. `docs/dev/scratch-session.md` and `docs/dev/tests.md` carry both procedures.
 
 ## Repo rules
 
@@ -192,7 +142,12 @@ Everything beside `context/` is a folder and stays one:
 - **One source, two ways to reach it.** Every shipped script lives once, in `scripts/`; `lab/scripts/` holds the ones that serve this repo alone and install nowhere. `~/.flow/scripts` is a symlink to that folder, for files named by path (`guard.js` and `snapshot.js` in `settings.json`). `~/.local/bin/<name>` are per-file symlinks, one per name typed: `flow` and `fw`, both to `flow.js`. Every other name on that path is `util`'s, and `util install` makes them. No file is ever copied anywhere.
 - **PATH commands are written bare** — `flow next`, `util fs tree docs`, `util fs merge src/`, never with a path or an interpreter. Everything else is written as `~/.flow/scripts/<file.ext>`.
 - **Two languages, by job.** Bash where the script wraps another command (`repos.sh` over `git clone`, `lab/scripts/try.sh` over `flow install`, `util`'s `git/save.sh` over `git`); Node where there is real logic (`flow/`, `guard.js`, `util.js`, `util`'s `fs/` commands). Linking became Node the day it started reading a list, skipping names whose folder is gone and refusing two skills that share one — `ln` in a loop was the whole of `link.sh`, and it is not the whole of `flow install`.
-- **`lab/util/` and `lab/toolbox/` are submodules, and their commits are separate.** Editing a file in one is ordinary work. Committing is two commands in two places — inside the submodule for the change, then here for the pointer — and both are the user's. Nothing under `repos/` is ever edited at all; those are other people's clones, read-only.
+- **Name a file or folder for what it holds** — clear, short and in plain words. No abbreviation a reader has to expand, no label that means something only to whoever coined it.
+- **Nothing under `lab/` is a Flow skill**, including a folder that contains a `SKILL.md` — `skills/` is the only place a live skill exists. Never let a path inside `lab/` leak into a skill, `home/`, or `project-template/`.
+- **Every record under `lab/` is history, and disk wins wherever the two disagree.** Git holds the change history that nothing there restates. **`lab/context/state.md` is the one exception** — it is maintained as the work moves, so where it disagrees with disk, the file is the bug.
+- **Every context file lives in `lab/context/`**, flat, with no loose markdown at the top of `lab/`. It holds what is still live; `design-restructure.md` → `## The second cut` says what was cut and why.
+- **`repos/` is read with `cat`, never with `Read`.** Those are other people's clones: nothing there is the user's, and nothing there is ever edited.
+- **`lab/util/` and `lab/toolbox/` are submodules, and their commits are separate.** Editing a file in one is ordinary work. Committing is two commands in two places — inside the submodule for the change, then here for the pointer — and both are the user's.
 - **Every file in `home/` exists twice.** The copy here is the **template** — placeholders plus rules, public. The copy at `~/.claude/` is **personalized** and belongs to the machine. They drift apart on purpose. Never write personal profile content into this repo, and never expect an edit to `~/.claude/CLAUDE.md` to flow back — carry it across by hand when it is a rule worth shipping.
 - **A placeholder comment is deleted the first time its section is filled in.** So it holds a shape and an example, never a rule — a rule written inside one disappears exactly when it starts to matter. Anything load-bearing belongs in a section that survives: `## Capture` for what gets written down, `## Explaining` for how.
 - **No counts, no dates and no build status in a `CLAUDE.md`.** Both copies load in every session and both are cached, so each edit costs a cache miss — and a count changes far more often than a rule does. A count is status wearing a rule's clothes: *13 clones of other people's repositories* says nothing *clones of other people's repositories* does not, and guarantees a future edit. Status goes in `lab/context/state.md`, open work goes in `backlog.md`, and a date is written only where the date is the point.

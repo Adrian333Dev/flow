@@ -1,7 +1,7 @@
 # Flow's public documentation — `docs/manual/`
 
 Designed 2026-08-29, unwritten and staying unwritten. Two things have to land first: the workflow
-finished, and the install skill built. **Read this when writing starts, or when `references/style.md`
+finished, and the management skill built. **Read this when writing starts, or when `references/style.md`
 gets restructured** — `## Writing style` below binds every file Flow writes, not only a manual page.
 
 Not to be confused with `design-project-docs.md`, which is a *project's* `docs/context/` tree.
@@ -154,11 +154,15 @@ All 3 competitor repos — superpowers, agent-skills, mattpocock's skills — pu
 stranger opens `docs/` first and lands in Flow's internal specs. Under `docs/manual/` the same instinct
 puts them one click from the manual.
 
-**Flow never creates a manual folder in anyone else's project.** The install skill creates `docs/spec/`,
+**Flow never creates a manual folder in anyone else's project.** The management skill creates `docs/spec/`,
 `docs/context/`, `docs/research/` and `docs/intake/`, and nothing else under `docs/`.
 
-**Two jobs went to the install skill**, both recorded in `backlog.md`: read `docs/` before writing into
-it, and warn when a site generator serves it.
+**One job went to the management skill**, recorded in `backlog.md`: read `docs/` before writing into it.
+
+**A site-generator warning was rejected, 2026-09-01.** It was proposed here and never asked for. Flow's
+own documentation is served from this repository by GitHub Pages, which is all it needs, and no project
+Flow touches is planning a generator. A landing page for the workflow would reopen the question; nothing
+short of one does.
 
 ## `docs/dev/` — the second audience, added 2026-08-30
 

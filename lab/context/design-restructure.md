@@ -215,7 +215,7 @@ What it builds:
 - **It runs the real thing** — both skill lists, the project `CLAUDE.md`, the `flow` CLI against a real
   repo, the hooks
 
-It never tests whether a real install works on a clean machine. That stays with the install skill,
+It never tests whether a real install works on a clean machine. That stays with the management skill,
 which stays last.
 
 The same scratch-project builder feeds `node --test`, which covers `flow`, `ptree`, `fmerge` and

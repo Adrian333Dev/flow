@@ -30,9 +30,9 @@ lab/scripts/try.sh` builds them under `tmp/` instead. The split shipped 2026-08-
 `--flow-home` flag the design had missed — one flag redirected the whole install beforehand, and
 afterwards it covered half. `CLAUDE.md` → `## Repo rules` carries the rule.
 
-**The off list names `web-pages` today**, and nothing else. Which groups are on is a rule, in
-`CLAUDE.md` → `## Authoring a skill`. Off globally and on in one project is verified against Claude
-Code 2.1.251 and covered by a test.
+**The off list names `web-pages` today**, and nothing else. Which groups are on moved out of
+`CLAUDE.md` on 2026-09-01 and is now in `docs/dev/skills.md` → `## The groups`. Off globally and on
+in one project is verified against Claude Code 2.1.251 and covered by a test.
 
 **No list names a skill anywhere, as of 2026-08-30.** `home/skills` and `.claude/flow/skills` are
 both deleted, along with `flow skills add` and `flow skills sync`. `flow install` reads the tree
@@ -47,24 +47,24 @@ until 2026-08-31, because `git init` ran without `-b main`. **Nothing has run ou
 scratch registry.** `util install` writes the `util` and `u` links into `~/.local/bin`, and it has
 never been run against the real one.
 
-**`docs/dev/` is written and `docs/manual/` is not, as of 2026-08-31.** 5 pages under `docs/dev/`:
-an index, the two checkouts, the scratch session, the tests, and adding a skill. Written to
-`references/style.md` § 10, and deliberately limited to what is locked — the mechanics of changing
-Flow, `flow install`, `util`, the groups. Nothing describes the skill set, which is still moving.
-The root `README.md` indexes both folders. `docs/manual/` waits on the workflow being finished and
-the install skill existing.
+**`docs/dev/` is written and `docs/manual/` is not, as of 2026-09-01.** 6 pages under `docs/dev/`:
+an index, the repository layout, the two checkouts, the scratch session, the tests, and adding a
+skill. Written to `references/style.md` § 10, and deliberately limited to what is locked — the
+mechanics of changing Flow, `flow install`, `util`, the groups, the tree. Nothing describes the skill
+set, which is still moving. The root `README.md` indexes both folders. `docs/manual/` waits on the
+workflow being finished and the management skill existing.
 
-**`CLAUDE.md` → `## Trying a change` shrank to 4 lines when those pages landed.** The procedure moved
-to `docs/dev/scratch-session.md` and `docs/dev/tests.md`; what stayed is the rule that `try.sh` is
-not an install, and the `--print` form. `## Authoring a skill` stayed whole, and now names 2 other
-files carrying the same material for other readers.
+**The repo `CLAUDE.md` is 154 lines, refactored 2026-09-01.** `## Layout` and `` ## `lab/` `` are
+gone to `docs/dev/layout.md`, taking 42 lines with them; the 5 rules buried in those bullets came up
+into `## Repo rules`. `## Authoring a skill` keeps the 6 decisions no page carries and hands the
+how-to to `docs/dev/skills.md`. `## Trying a change` is 3 lines. `CHANGELOG.md`'s suspension sits in
+`## Writing any file` now. **7 sections remain, and every one is a rule** — the file carries neither
+status nor a map. `design-dev-loop.md` → `## The tree map left CLAUDE.md` has the measurements.
 
-**`lab/toolbox/` is decided and not yet added, as of 2026-08-31.** The user approved bringing the
-toolbox back as a submodule beside `lab/util/`. Every record says it is there — `CLAUDE.md` in 4
-places, `backlog.md`, this file — and the folder appears only when the user runs
-`git submodule add https://github.com/Adrian333Dev/toolbox.git lab/toolbox`. Until that runs, those
-records are ahead of disk. `repos/toolbox` is the old plain clone and it is still on disk, now
-redundant.
+**`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01.** It holds external tools filed
+by job — MCP servers, plugins, skills, libraries, apps. Nothing loads it, nothing installs from it,
+and the rewrite that earns it a way back has not started. `repos/toolbox` is the old plain clone,
+still on disk and redundant now.
 
 **Flow depends on `util`, and 3 scripts left `scripts/` to make that true.** `gsave.sh`, `ptree.js`
 and `fmerge.js` moved on 2026-08-30, becoming `git save`, `fs tree` and `fs merge`. `flow install`'s

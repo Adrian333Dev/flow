@@ -10,7 +10,7 @@ A Claude Code workflow for a solo developer: rules that load in every session, a
 - `scripts/` — the command-line tools, `flow` first among them
 - `skills/` — every skill, filed by group
 - `project-template/` — what a new project starts with
-- `docs/dev/` — how to change Flow: the two checkouts, the scratch session, the tests, adding a skill
+- `docs/dev/` — how to change Flow: the repository layout, the two checkouts, the scratch session, the tests, adding a skill
 
 ## Documentation
 

@@ -17,10 +17,11 @@ Move at triage speed — building a skill is the one slow step, and it fires rar
 1. Read the inputs below, whole.
 2. Sort every item by destination in one pass.
 3. Shape what needs it. A fragment has to read like the thing it is about to become.
-4. Apply per destination, a few grouped edits.
-5. Clear filed items from the inbox; git remembers them. **Never empty an `issues.md`** — it is the record of what happened, like a hunt's report.
-6. Mark every ticket you swept — `flow file t047 t048 t049`, the ones that taught nothing included. Nothing else drains the queue.
-7. Report what you filed and what you flagged.
+4. **Show the plan and stop.** One heading per destination file, every item listed under the file it goes into.
+5. Take the corrections, then write — a few grouped edits per destination.
+6. Clear filed items from the inbox; git remembers them. **Never empty an `issues.md`** — it is the record of what happened, like a hunt's report.
+7. Mark every ticket you swept — `flow file t047 t048 t049`, the ones that taught nothing included. Nothing else drains the queue.
+8. Report what you filed and what you flagged.
 
 ## Inputs
 
@@ -31,7 +32,7 @@ Move at triage speed — building a skill is the one slow step, and it fires rar
 ## Routing
 
 - **Reusable — a tip, pattern, gotcha or method** → the skill that already covers it, by **altitude** below.
-- **Reusable, and no skill covers it** → flag it in `.flow/inbox.md` as `needs skill: <subject> — <note>`. Several flags on one subject earn a skill; one flag is not evidence.
+- **Reusable, and no skill covers it** → flag it in `.flow/inbox.md` as `needs skill: <group>/<subject> — <note>`. The group is the first thing whoever builds it decides, and `references/write-skills.md` lists them. Several flags on one subject earn a skill; one flag is not evidence.
 - **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`: a ticket, a groundwork map, `docs/context/`, project rules, preferences, `~/.flow/notes.md`.
 
 **Defer to what exists.** No `docs/spec/` → a locked decision goes to the groundwork that owns the subject, whose `map.md` is the decision log. Never invent a parallel doc bucket.

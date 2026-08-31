@@ -4,7 +4,7 @@ Decided 2026-07-29, surveying 2 real projects. `docs/context/` shipped and is li
 and 7 skills route into it. The 4 rules governing what may go in one never shipped anywhere, and they are
 the reason this file survives.
 
-**Read it when the install skill gets designed, or when a real project gets migrated.** Both are unbuilt.
+**Read it when the management skill gets designed, or when a real project gets migrated.** Both are unbuilt.
 The routing test below is the hard part of both, and the user said so: *"some of the content is quite
 tricky… you're really not sure, is it going to go to the project context files or to a skill; there is
 stuff that's in between as well."*

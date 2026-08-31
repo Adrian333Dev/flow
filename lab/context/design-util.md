@@ -161,7 +161,7 @@ Three commands leave `flow install`'s link table, and Flow gains a prerequisite 
   becomes a call to `util fs merge`.
 - **`flow install`** drops `ptree`, `fmerge` and `gsave` from `BIN`. `util install` owns those links,
   plus `util` and `u`.
-- **Flow's install steps name `util` first**, and the install skill checks for it.
+- **Flow's install steps name `util` first**, and the management skill checks for it.
 
 **The coupling is only acceptable while `util` is public.** If that repository ever goes private,
 `ptree` and `fmerge` have to come back into Flow, because Flow's always-loaded rules depend on them.
@@ -308,7 +308,7 @@ the drawing under `## util ls` was corrected to match.
 `git init` ran without `-b main`, so the repository and its GitHub default both started on `master`,
 while every other repository the user has is `main`. The user renamed it on 2026-08-31 — local
 branch, remote branch, GitHub default, old branch deleted. The lasting fix is that nothing in Flow
-ever writes a bare `git init` again; the install skill and the manual both name `-b main`.
+ever writes a bare `git init` again; the management skill and the manual both name `-b main`.
 
 ## `util install`, 2026-08-31 — the last piece
 

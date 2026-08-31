@@ -131,8 +131,15 @@ Two shapes refuse rather than produce a broken label, both confirmed: a reposito
 where a copy has nothing to hang off, and a detached HEAD, where there is no branch name to file it
 under.
 
-## `wip` is banned as a word
+## Names say what the thing holds — corrected 2026-09-01
 
-Set by the user this session, on seeing `refs/flow-wip/`: it is an abbreviation that means nothing
-unless you already know the phrase behind it. Covers `gsave.sh`, which generates commit messages
-starting `wip:`, and the `lab/` folder already open at backlog line 112.
+Raised on a folder called `refs/flow-wip/`, and on `lab/util/commands/git/save.sh`, which starts every
+generated commit message with `wip:` — short for *work in progress*. The first write-up turned that into
+a ban on the abbreviation itself.
+
+**The user rejected that shape.** Nothing gets banned name by name, because the list of unclear names
+runs to thousands and no file could hold it.
+
+**The rule that replaced it:** a file or folder is named for what it holds, clearly and briefly, in words
+a reader who has never seen it can follow. It sits in `home/CLAUDE.md` → `## Hard rules`, directly above
+the rule that a name failing this test earns a `description:` line.
