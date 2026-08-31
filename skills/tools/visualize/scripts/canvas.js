@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-// description: Character grid for drawing an ASCII diagram by coordinate. Asserts on every write.
+// description: character grid for drawing an ASCII diagram by coordinate
+//
+// Every write is asserted, so a coordinate outside the grid throws where the
+// mistake is rather than drawing somewhere unexpected.
 //
 // Usage, from a generator script in tmp/:
 //   const { Canvas, write } = require("../scripts/canvas.js");

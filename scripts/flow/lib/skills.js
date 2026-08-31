@@ -1,26 +1,29 @@
 'use strict';
 /**
- * The skill catalog, and the 2 lists that decide where each one installs.
+ * The skill catalog, what installs, and what a session is shown of each one.
  *
  * A skill is a folder holding `SKILL.md`, filed 1 level deep under a group —
- * `skills/phases/groundwork/`. The group files it and decides nothing else, so
- * nothing outside this file reads one: a list names a skill, and a link is
- * named for the skill.
+ * `skills/phases/groundwork/`. The group files it and decides one thing:
+ * `drafts/` does not install, and every other group does.
+ *
+ * There is no list of skill names anywhere. A list is a hand-maintained copy of
+ * what the tree already says, and it can only ever be wrong; a group folder is
+ * visible on disk, cannot drift, and adding a skill to it is a `mkdir`.
+ *
+ * Installing and being shown are separate questions. Every skill outside
+ * `drafts/` installs, and `skillOverrides` decides what a session pays for it.
+ * A skill set to `off` costs nothing in context, so there is no case for
+ * leaving one uninstalled.
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { FlowError } = require('./error');
-const { cloneRoot, skillsRoot } = require('./clone');
+const { skillsRoot } = require('./clone');
 
-/** `home/skills` — what links into `~/.claude/skills/`, committed with Flow. */
-const globalList = () => path.join(cloneRoot(), 'home', 'skills');
-
-/** `.claude/flow/skills` — what links into this project, committed with it. */
-const projectList = (root) => path.join(root, '.claude', 'flow', 'skills');
-
-/** Where a project's links go. */
-const projectLinks = (root) => path.join(root, '.claude', 'skills');
+/** The one group `flow install` skips. A skill starts here and graduates by `mv`. */
+const DRAFTS = 'drafts';
 
 const subdirs = (dir) => {
   try {
@@ -32,38 +35,6 @@ const subdirs = (dir) => {
     return [];
   }
 };
-
-/**
- * One name per line, `#` for a comment, matching `.flow-include`.
- *
- * A list carries names and never paths, because the machine reading it keeps
- * its clone somewhere else. A missing list is an empty one — a project that
- * uses no Flow skill has nothing to write down.
- */
-function readList(file) {
-  let text;
-  try {
-    text = fs.readFileSync(file, 'utf8');
-  } catch (e) {
-    if (e.code === 'ENOENT') return [];
-    throw new FlowError(`${file} could not be read — ${e.message}`);
-  }
-  return text.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
-}
-
-/** Append a name, leaving whatever comment header the file already carries. */
-function addToList(file, name) {
-  const existing = readList(file);
-  if (existing.includes(name)) return false;
-  let text = '';
-  try {
-    text = fs.readFileSync(file, 'utf8');
-  } catch { /* a list that does not exist yet starts here */ }
-  if (text && !text.endsWith('\n')) text += '\n';
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, text + name + '\n');
-  return true;
-}
 
 /**
  * Every skill in the clone, keyed by name.
@@ -112,6 +83,45 @@ function find(name) {
   );
 }
 
-module.exports = {
-  globalList, projectList, projectLinks, readList, addToList, catalog, find, subdirs,
-};
+/** Everything `flow install` links. Pass drafts to include the group it skips. */
+function installable({ drafts = false } = {}) {
+  return [...catalog().values()].filter((s) => drafts || s.group !== DRAFTS);
+}
+
+/** Where Claude Code keeps this machine's config. The scratch session moves it. */
+const configDir = () => process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+
+function readOverrides(file) {
+  let text;
+  try {
+    text = fs.readFileSync(file, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') return {};
+    throw new FlowError(`${file} could not be read — ${e.message}`);
+  }
+  try {
+    return JSON.parse(text).skillOverrides || {};
+  } catch (e) {
+    throw new FlowError(`${file} is not valid JSON — ${e.message}`);
+  }
+}
+
+/**
+ * What each skill is set to here, and which file set it.
+ *
+ * A name nobody mentions is `on`: Claude Code shows a skill it was told nothing
+ * about. The project's file beats the machine's key by key rather than
+ * replacing the object, so a project `on` restores a skill the machine turned
+ * off — verified against Claude Code 2.1.251 on 2026-08-29.
+ */
+function states(root) {
+  const machine = readOverrides(path.join(configDir(), 'settings.json'));
+  const project = root ? readOverrides(path.join(root, '.claude', 'settings.json')) : {};
+  return (name) => {
+    if (name in project) return { state: project[name], setBy: 'project' };
+    if (name in machine) return { state: machine[name], setBy: 'machine' };
+    return { state: 'on', setBy: 'default' };
+  };
+}
+
+module.exports = { DRAFTS, catalog, find, installable, states, subdirs };

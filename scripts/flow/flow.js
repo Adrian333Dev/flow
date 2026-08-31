@@ -32,7 +32,7 @@ process.stdout.on('error', (e) => {
   throw e;
 });
 
-const TITLE = 'flow — tickets, computed from docs/tickets/';
+const TITLE = 'flow — tickets, computed from .flow/tickets/';
 
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
@@ -56,10 +56,10 @@ const NOTES = `shape   flow <command> [id] [--flags]. A word naming no command i
 ids     t047-parser-split. The number is the identity and the label is
         decoration, so t047, 47, parser and the whole thing all resolve. A
         ticket is never renamed, so a label that goes stale breaks nothing
-layout  docs/tickets/<id>-<label>/ — ticket.md and groundwork/ from birth,
+layout  .flow/tickets/<id>-<label>/ — ticket.md and groundwork/ from birth,
         plan.md and reports/ written by the work. One report per thing
         answered, named after what it answers, whether a hunt found it or a
-        prototype did. Done and dropped tickets move to docs/tickets/archive/
+        prototype did. Done and dropped tickets move to .flow/tickets/archive/
         and move back if reopened
 steps   flow <id> counts the checkboxes in plan.md each time it prints, so the
         count cannot drift from the file. The lists never count: out there
@@ -87,9 +87,9 @@ pri     high or low on disk and nothing else: normal is the absent field, so an
         inherited one — so marking one parent high lifts a whole feature, and a
         low chore inside it stays low
 root    the enclosing git repo; override with FLOW_PROJECT=/path
-cases   ~/.claude/flow/study-cases/<issue>/<date>-<slug>.md — global, filed by
-        issue and never by project, because the payoff is seeing one failure
-        three times. Override with FLOW_HOME
+cases   ~/.flow/study-cases/<issue>/<date>-<slug>.md — global, filed by issue
+        and never by project, because the payoff is seeing one failure three
+        times. Override with FLOW_HOME
 work    uncommitted work, stored as a commit under refs/unfinished/<machine>/
         <branch> and pushed. Not a branch: nothing switches to it and nothing
         moves it. Send from one machine, get on the other. Name each machine
@@ -97,19 +97,17 @@ work    uncommitted work, stored as a commit under refs/unfinished/<machine>/
         until it is set, because two machines sharing one name overwrite each
         other silently. Gitignored files travel only when named in
         .flow-include at the project root. Full instructions in
-        ~/.claude/flow/references/work-sync.md
-skills  one real copy of each lives in the clone, filed under a group folder
-        that decides nothing else. Installing one means creating a symlink
-        named for it: home/skills names what links into ~/.claude/skills, and
-        .claude/flow/skills names what links into this project. A symlink
-        cannot be committed — git stores this machine's path and the next
-        machine keeps its clone elsewhere — so the lists carry names and
-        flow skills sync turns a list back into links
+        ~/.flow/references/work-sync.md
+skills  one real copy of each lives in the clone, filed under a group folder.
+        Every group but drafts installs on every machine, as one symlink named
+        for the skill, so there is no list to keep in step. What a session is
+        shown of each is skillOverrides in settings.json; flow skills ls
+        prints that state and says which file set it
 overlay a project adds to a skill without editing it, because one copy of that
         skill is shared by every project on the machine. Write
-        .claude/flow/overlays/<name>.md and every session in that project reads
-        it as part of the skill. The line runs at the bottom of the skill, so
-        a project with no overlay file prints nothing
+        .flow/overlays/<name>.md and every session in that project reads it as
+        part of the skill. The line runs at the bottom of the skill, so a
+        project with no overlay file prints nothing
 default cases, skills and overlays each read a bare word as an argument to
         their most used action: flow overlays groundwork is flow overlays get
         groundwork. work has none, because its get writes over the folder you

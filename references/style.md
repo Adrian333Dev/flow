@@ -1,6 +1,14 @@
-# Writing a context file
+# Style
 
-Applies to every markdown an agent reads — skills, `CLAUDE.md`, workflow docs — and to prose written for the user. One style, no exceptions.
+Three scopes, and every section below belongs to one.
+
+**Everything Flow writes** — a skill, a `CLAUDE.md`, a workflow doc, a message to the user, a documentation page a stranger reads that no session ever loads. §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
+
+**Only a file that enters an agent's context.** §1's Step / Reference mark, §2 section shapes, §3 one home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatter, §9 transformations.
+
+**A documentation page**, on top of the first scope: §10.
+
+§3 is the one rule that reverses between them. A second copy of a fact drifts and costs a loaded file tokens on every run. It costs a page reached from a search nothing, and saves the reader a hop.
 
 ## 1. Plan the shape first
 
@@ -15,7 +23,7 @@ Plan the whole file every time you touch it. A pointer to one line is not a scop
 
 ## 2. Section shapes
 
-- **Where things live** — paths, files, what each holds → a labeled list: the path as the label, one line of what is in it. Never write prose about placement. `## Layout` in the Flow repo's own `CLAUDE.md` is the model.
+- **Where things live** — paths, files, what each holds → a labeled list: the path as the label, one line of what is in it. Never write prose about placement. `## Inside each place` in `references/workflow.md` is the model.
 - **A procedure** → numbered steps, each ending on a check the agent can evaluate. "Every behavior carries a mark" is a check; "understanding reached" is not.
 - **Rules at one altitude** → a flat bulleted list under one heading.
 
@@ -85,16 +93,19 @@ Three tests. Run them on every sentence that carries a rule, and on every senten
 
 ## 6. Words
 
-Cut what lengthens a sentence without clarifying it. Readability first; the token saving is small.
+Cut what lengthens a sentence without clarifying it. Readability first; the token saving is small. Last pass, after the structure is right.
 
-- Drop articles and filler verbs where the sentence still reads: "Grep it, read the matching slices", not "You should use grep on it and then read only the slices that match".
+### Anywhere
+
 - Digits, not words: `5`, not `five`.
 - Name a skill with its slash: `/groundwork`, never `groundwork`. The slash is what the user types, and it tells the skill from the ordinary word.
-- Grammar bends where meaning survives. A fragment beats a padded sentence.
-- Delete a whole sentence when it changes no behavior. Trimming it keeps the noise, and an instruction the model already follows by default says nothing.
 - Symbols only where genuinely clearer than the word — usually they are not. They also save nothing: `→` and `·` are each their own token, as are invented abbreviations like `cfg`.
 
-Last pass, after the structure is right.
+### Only in a loaded file
+
+- Drop articles and filler verbs where the sentence still reads: "Grep it, read the matching slices", not "You should use grep on it and then read only the slices that match".
+- Grammar bends where meaning survives. A fragment beats a padded sentence.
+- Delete a whole sentence when it changes no behavior. Trimming it keeps the noise, and an instruction the model already follows by default says nothing.
 
 ## 7. Never cut these
 
@@ -106,6 +117,8 @@ Last pass, after the structure is right.
 ## 8. Frontmatter descriptions
 
 The description is in context from the moment a session starts, whether the skill is ever invoked or not.
+
+**This is not the `description:` marker.** That marker is an index entry a few words long, cut at the first full stop by `util ls`. Claude Code loads a skill's frontmatter description whole and fires the skill from it alone, so its length is set by the rules below and by nothing else.
 
 - **What it is and what it covers. Never the steps.** A description that summarizes the workflow gets followed instead of the file — an agent given "code review between tasks" did one review where the skill specified two.
 - **Never when to invoke it.** A trigger written here is loaded by every session that never fires it. Write one only where it is wanted; `write-skills.md` names the 4 homes.
@@ -169,3 +182,13 @@ True, and useless to a reader already reading it.
 ### Rejected: structure absorbs repetition
 
 A table header carrying what each row would repeat. Dropped: a list is preferred to a table, so the header saves nothing worth the columns.
+
+## 10. A documentation page
+
+A page in a published documentation set. Nobody loads it into a session: a reader arrives from a search or an index, reads it once, and closes it. Every rule in the first scope holds. Five things change.
+
+- **Never send the reader away for a definition.** State it in one sentence, then link for the full account. §3 routes a fact to one home and a pointer everywhere else, which costs a loaded file nothing and costs this reader the page.
+- **No length limit.** §6 → `### Only in a loaded file` and §9 do not apply. Cut a sentence for carrying no information, never for costing space.
+- **Open with a contents block**, one line per heading, in order.
+- **Plan what the reader knows on arrival, what they know on leaving, and the path between.** The arrival state decides the first section. Skip it and the page opens in the middle.
+- **A link names the page it points at.** Never a position — no *the next page*, no *as shown above*, no numbered filenames. Order lives in the index alone, so inserting a page breaks nothing.

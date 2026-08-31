@@ -10,18 +10,18 @@ Never information loss, never shortening that costs clarity. Three moves:
 - **Cut dead words** — articles and filler the sentence reads fine without.
 - **Shorter forms** — digits, common short words, grammar bent where meaning survives.
 
-A rule, a reason and one example are never cut. `writing.md` §7 governs, and Anthropic's own guidance backs it: minimal does not mean short.
+A rule, a reason and one example are never cut. `style.md` §7 governs, and Anthropic's own guidance backs it: minimal does not mean short.
 
 ## The rules
 
-Rules 1–4 are already in `writing.md` and were never applied to a file. 5–6 are new.
+Rules 1–4 are already in `style.md` and were never applied to a file. 5–6 are new.
 
 1. **Digits for every count from 2 up.** "four phases" → "4 phases". 136 spelled numerals from two to ten across the skills, 33 in `brainstorm` alone.
 2. **Drop articles and dead words wherever the sentence still reads.** "A markdown checklist" → "Markdown checklist".
 3. **Shorter common word over the longer one.** "will not resolve" → "won't resolve".
 4. **Grammar bends for compression.** Clauses go, not only words: "The ones skipped most often, and the ones that cost most when skipped" → "Skipped most often, cost most when skipped".
 5. **Read-only regions.** Commands, paths, inline code and fenced blocks are copied exactly, never tightened. `flow ticket new "<question>" --type prototype --parent <id>` breaks silently otherwise.
-6. **Never restate what is already loaded.** Two tests that make `writing.md` §3 fire:
+6. **Never restate what is already loaded.** Two tests that make `style.md` §3 fire:
    - **The opener carries what the description could not.** `prototype`'s "then deleted" stays — the description never says the code gets deleted. `brainstorm`'s "Turn an open subject into written, settled decisions" goes, because its description already says it. 6 of 10 skills restate their description in the first body line.
    - **A section overlapping `home/CLAUDE.md` names only what is extra.** `brainstorm` Phase 3 repeats 4 rules from `## Judgment` near-verbatim.
 7. **A skill is written `/name`.** `/write-tickets`, never `write-tickets`. Two things that look like skills and are not: a ticket type stays bare (`--type prototype`, `--type research`), and a sub-file is a file (`write-spec.md`).
@@ -39,9 +39,9 @@ Rules 1–4 are already in `writing.md` and were never applied to a file. 5–6 
 - `debug/`, `handoff/`, `prototype/`, `research/`, `visualize/`, `write-tickets/` — `SKILL.md` only
 - `debug-web-pages/` — **excluded**, full rewrite pending
 
-Then `references/writing.md` takes rules 5–8, plus the enforcement note on rule 1.
+Then `references/style.md` takes rules 5–8, plus the enforcement note on rule 1.
 
-**Compression is only part of it.** Every skill after `brainstorm` gets the whole `writing.md` pass — section shapes, the sentence tests, one home per fact. `brainstorm` had already had that pass, which is most of why compression alone returned so little there.
+**Compression is only part of it.** Every skill after `brainstorm` gets the whole `style.md` pass — section shapes, the sentence tests, one home per fact. `brainstorm` had already had that pass, which is most of why compression alone returned so little there.
 
 ## Settled — do not re-raise
 
@@ -58,7 +58,7 @@ Both files together: 4662 → 4474 words, −4.0%.
 
 - **6 structural cuts gave 137 words. About 150 line-level edits gave 60**, over 380 lines.
 - Phase 3 alone: 236 → 173. The rest is the opener, the description, and 3 cuts in `write-spec.md`.
-- **The 12–15% estimate was wrong.** It came from measuring the 2 slackest sections and applying that rate to every line. Line level returns about 1% on a file that already had the `writing.md` pass.
+- **The 12–15% estimate was wrong.** It came from measuring the 2 slackest sections and applying that rate to every line. Line level returns about 1% on a file that already had the `style.md` pass.
 - Expect ~4% where a skill duplicates nothing, and more only where a section overlaps the global CLAUDE.md or the skill's own description.
 
 Originals: `tmp/compress/SKILL.before.md`, `tmp/compress/write-spec.before.md`.
@@ -71,7 +71,7 @@ Read once, in full. Do not read again.
 - `repos/superpowers/skills/writing-skills` — skills as TDD, and the negation split above.
 - `repos/mattpocock-skills/skills/productivity/writing-for-agents` — context pointers, context load against cognitive load, pruning.
 - `repos/agent-toolkit/skills/skill-judge` — the rubric. Dimensions work as questions; the scoring is rejected.
-- `repos/agent-toolkit/skills/writing-clearly-and-concisely` — Strunk. `writing.md` §5 already exceeds it.
+- `repos/agent-toolkit/skills/writing-clearly-and-concisely` — Strunk. `style.md` §5 already exceeds it.
 - `repos/caveman/skills/caveman-compress` — thin. Only read-only regions ported.
 - `repos/agent-skills` — addyosmani, workflow skills, the same category as Flow. Unmined.
 - Anthropic, *Effective context engineering for AI agents* — attention budget, context rot, "minimal does not necessarily mean short".
@@ -93,7 +93,7 @@ Two arguments that do survive:
 
 ### The two shapes
 
-- **Process skill** — `execute`, `groundwork`, `debug`. A loop with branches, read in order, and every run needs all of it because no run knows which branch fires. Naturally one file. Splitting buys extra reads, which `writing.md` §3 already rules against.
+- **Process skill** — `execute`, `groundwork`, `debug`. A loop with branches, read in order, and every run needs all of it because no run knows which branch fires. Naturally one file. Splitting buys extra reads, which `style.md` §3 already rules against.
 - **Domain skill** — how an ORM does migrations, how a framework's boundaries behave. A lookup table, where a run needs **one entry, not the file**. Naturally split: a thin `SKILL.md` index over `refs/`, fetched by name. `debug-web-pages` is already this — 504 tokens over 5k of `knowledge/`.
 
 ### Loading facts behind this

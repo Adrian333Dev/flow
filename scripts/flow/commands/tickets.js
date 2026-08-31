@@ -295,7 +295,7 @@ actions.new = {
       }
       const live = store.ticketsDir(root);
       if (fromGroundwork === live || fromGroundwork.startsWith(live + path.sep)) {
-        throw new FlowError(`${given} is inside docs/tickets/, so it already belongs to a ticket.`);
+        throw new FlowError(`${given} is inside .flow/tickets/, so it already belongs to a ticket.`);
       }
     }
 

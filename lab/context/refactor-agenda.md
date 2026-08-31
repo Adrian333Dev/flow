@@ -242,9 +242,9 @@ that lands. The depth material — reformulation, forced distant analogue, three
 **Naming collision, unresolved:** Flow's `grill` attacks a finished design by running cases. Matt's
 `grill-me` is the interview. Same word, opposite activities. Typing "grill me" here gets the case-walker.
 
-## 10. Every skill gets the whole `writing.md` pass — in progress
+## 10. Every skill gets the whole `style.md` pass — in progress
 
-One skill at a time, each read end to end against `references/writing.md`: plan the sections before typing,
+One skill at a time, each read end to end against `references/style.md`: plan the sections before typing,
 then test every sentence.
 
 **It is a compression pass — reversed by the user 2026-08-20**, after the first `execute` attempt did
@@ -272,7 +272,7 @@ the pickup fork itself came out of Phase 1 the same day, leaving 186 lines. See 
 
 - **A `## Hard rules` section is a home, not a recap.** `execute`'s 13 bullets were a table of contents for
   its own body: 10 restated a bold rule sitting in the phase where it fires, 1 restated `home/CLAUDE.md`,
-  and 2 existed nowhere else — which is the drift `writing.md` §3 predicts. The whole section went, after
+  and 2 existed nowhere else — which is the drift `style.md` §3 predicts. The whole section went, after
   folding those 2 back in. The other 7 sections were read the same way and stay: theirs carry rules their
   bodies never state.
 - **`/name` names a skill. Bare backticks name a ticket type, a file or a command.** Found on the line that
@@ -331,7 +331,7 @@ branch on status. So the fix is a nested list under those two, never a flat list
 **They also object to the word `route`** — nothing is routed anywhere, since the same session loads the skill
 and carries straight on.
 
-**Counter-argument, for the discussion.** `route` is Flow's own term, defined in `writing.md`: *"Naming which
+**Counter-argument, for the discussion.** `route` is Flow's own term, defined in `style.md`: *"Naming which
 skill owns a job is routing and belongs."* `groundwork` Phase 4 is titled *route what was decided* and
 `file-findings` has a `## Routing` section, so renaming it in `/start` alone gives Flow two words for one idea.
 The ambiguity the user hit is real and it comes from somewhere else: `/start` never says the skill loads here,

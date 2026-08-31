@@ -31,7 +31,7 @@ Same 4 phases at any size. 3 words or 10 paragraphs — long input means more to
 ### 1. Pick the folder
 
 - Belongs to a ticket → that ticket's `groundwork/`, created with the ticket.
-- Inside a project, belongs to nothing yet → `docs/groundwork/<slug>/`.
+- Inside a project, belongs to nothing yet → `.flow/groundwork/<slug>/`.
 
 Never pick from a guess at the outcome. You can't know yet whether this becomes 6 tickets or 1.
 

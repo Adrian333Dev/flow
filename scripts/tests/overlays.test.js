@@ -19,7 +19,7 @@ test('an overlay prints whole, and its absence prints nothing', () => {
   assert.strictEqual(missing.code, 0, missing.stderr);
   assert.strictEqual(missing.stdout, '', 'no overlay file means no output');
 
-  write(dir, '.claude/flow/overlays/groundwork.md', '## Overrides\n\nSkip phase 3 here.');
+  write(dir, '.flow/overlays/groundwork.md', '## Overrides\n\nSkip phase 3 here.');
 
   const found = flow(dir, ['overlays', 'get', 'groundwork']);
   assert.strictEqual(found.code, 0, found.stderr);

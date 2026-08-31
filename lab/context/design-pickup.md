@@ -74,7 +74,7 @@ Verified by running the whole loop against a scratch tree — every type's entry
 
   The first attempt was rejected for over-explanation: *"there is zero compression... I fully disapprove this shit."* The standard held to: **instruct, do not justify.**
 
-  **The 100-line target was not met, and is not reachable without cutting rules.** It was set against 186 lines, before this session deliberately added `### When the built thing is wrong` — the U-turn, ~15 lines. `writing.md` §7 bans cutting rule count as a strategy, and every remaining section is dense with rules: `Dispatching a step` is 6 numbered rules plus 3 status outcomes, `The ticket folder` is 5 owners.
+  **The 100-line target was not met, and is not reachable without cutting rules.** It was set against 186 lines, before this session deliberately added `### When the built thing is wrong` — the U-turn, ~15 lines. `style.md` §7 bans cutting rule count as a strategy, and every remaining section is dense with rules: `Dispatching a step` is 6 numbered rules plus 3 status outcomes, `The ticket folder` is 5 owners.
 
   What actually returned words, in order: **deleting duplication, not trimming sentences.** The 4-item loop list restated the 4 phase headings; the `## Scripts`-style status diagram restated command syntax the global `CLAUDE.md` already loads; `### Handing a job to a separate session` folded into `### Whether to delegate` as one bullet; the "Invoked on a `feature` or `chore`" opener restated the skill's own description verbatim. Line-level trimming returned about 1%, matching what `compression.md` measured on `brainstorm`.
 

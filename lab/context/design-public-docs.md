@@ -1,12 +1,12 @@
-# Flow's public documentation — `docs/`
+# Flow's public documentation — `docs/manual/`
 
 Designed 2026-08-29, unwritten and staying unwritten. Two things have to land first: the workflow
-finished, and the install skill built. **Read this when writing starts, or when `references/writing.md`
-gets restructured** — `## Writing style` below is the half that binds a file outside `docs/`.
+finished, and the install skill built. **Read this when writing starts, or when `references/style.md`
+gets restructured** — `## Writing style` below binds every file Flow writes, not only a manual page.
 
 Not to be confused with `design-project-docs.md`, which is a *project's* `docs/context/` tree.
 
-## What `docs/` is
+## What `docs/manual/` is
 
 **Official documentation for a stranger, A to Z.** Flow is going public against superpowers,
 agent-skills and mattpocock's skills, so the reader cloned it and knows nothing about Flow.
@@ -75,108 +75,164 @@ written test rather than by resemblance.**
 - **`docs/README.md` is the index and the tracker.** Every planned page is listed in reading order,
   written or not. A written page is a link, an unwritten one is plain text
 
-## Writing style — two scopes, not one
+## Writing style — three scopes in one file, landed 2026-08-30
 
-`references/writing.md` opens by claiming one style with no exceptions, covering every markdown an
-agent reads and every message written to the user. A docs page is neither. A stranger lands on it from
-a search, reads it once, and it never enters a session's context.
+`references/writing.md` became `references/style.md`. It claimed one style with no exceptions and held
+more than one: a manual page is read once by a stranger arriving from a search and never enters a
+session, so rules written for a file that costs tokens on every run do not reach it.
 
-The file holds two scopes, and today it never says which rule is which.
+The file now names three scopes at the top and assigns every section.
 
-**Everything Flow writes, docs included:**
+**Everything Flow writes** — a skill, a `CLAUDE.md`, a workflow doc, a message to the user, a manual
+page: §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
 
-- §1 — name the sections and their order before writing a sentence; plan the whole file every time you
-  touch it
-- §2 — standard markdown, default to a list
-- §5 — every sentence rule: front-load the polarity, end on the point, one idea per sentence, condition
-  left and action right
-- §6 in part — digits over words, a skill written `/name`, symbols only where genuinely clearer
-- §7 — never cut a rule, the reason, the last example, or information
+**Only a file that enters an agent's context**: §1's Step / Reference mark, §2 section shapes, §3 one
+home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatter, §9 transformations.
 
-**Only a file that enters an agent's context:**
+**A manual page**, on top of the first scope: §10.
 
-- §1 in part — marking each piece Step or Reference
-- §2 — the section shapes, and putting the highest-stakes rules first or last
-- §3 — one home per fact
-- §4 — branching a step
-- §6 in the rest — dropping articles and filler verbs, bending grammar, and deleting a sentence that
-  changes no behavior
-- §8 — frontmatter descriptions
-- §9 — the compression transformations
+**§6 held both and split in place.** `### Anywhere` keeps digits over words, a skill written `/name`,
+and symbols only where genuinely clearer. `### Only in a loaded file` keeps dropping articles, bending
+grammar, and deleting a sentence that changes no behavior — a rule that judges a model rather than a
+reader, and a manual sentence that changes no behavior may still teach. The section's own opening line
+is why the other half reaches a manual page: *readability first; the token saving is small*.
 
-**§6 is one list holding both scopes, and it gets split when the file is edited.** Its own opening line
-— *readability first; the token saving is small* — is why half of it reaches docs. A docs sentence
-carries no filler either. The other half is compression: telegraphic phrasing, bent grammar, and
-*delete a sentence that changes no behavior*, which judges a model rather than a reader. A docs
-sentence that changes no behavior may still teach.
+**§3 is the one rule that reverses.** A second copy of a fact drifts and costs a loaded file tokens on
+every run. It costs a page reached from a search nothing, so §10 tells a manual page to restate the
+definition it rests on in one sentence, then link.
 
-**Compression belongs to the loaded scope and already has its own record.** `compression.md` locked the
-pass 2026-08-18 and is scoped to skills throughout.
+**§1–§9 kept their numbers**, so every citation in `compression.md`, `backlog.md` and this file still
+resolves. §10 is new and sits after §9.
+
+**Compression belongs to the loaded scope and has its own record.** `compression.md` locked that pass
+2026-08-18 and is scoped to skills throughout.
 
 **Inside the loaded scope, pressure varies and the rules do not.** A skill `description` sits in context
 from the moment a session starts, invoked or not, so it compresses hardest. A `SKILL.md` loads when the
 skill fires. A `references/` file loads on demand and compresses least.
 
-**§3 is the one rule that reverses.** *Every fact in exactly one place* is right for a loaded file,
-where a second copy drifts and costs tokens on every run. It is wrong for a page someone reaches from a
-search: that page restates the definition it depends on in one sentence, then links.
+### No separate docs style file
 
-## `docs/writing-docs.md`
+`docs/writing-docs.md` was planned and dropped. Style rules split across two files drift, and the drift
+is invisible because nobody reads both. The deltas are 5 bullets, and 5 bullets do not earn a file that
+has to stay consistent with 190 lines elsewhere. They are §10.
 
-Carries only what differs for a docs page — repetition allowed, length unbounded, a contents block on
-each page, reading order in the index, and a page planning what the reader knows on arrival and on
-leaving. Everything else points at `writing.md`.
+What stayed out of `style.md`: the six sections, the group indexes and their admission tests. That is
+architecture rather than style, and it lives in this file until the manual is built.
 
-**A docs page, not a skill.** Writing Flow's documentation happens in this repo and nowhere else, and a
-skill installs on every machine to fire in projects with no `docs/`. `writing.md` §3's own test settles
-it: name a moment the rule fires and no skill is loaded — there is none, because whoever writes a docs
-page is working on Flow and reads the repo's files. It files under **Work on Flow**.
+### What names `style.md`
 
-**It gets written before the first docs page**, and it is the only docs file written before the
-workflow is finished.
-
-## The edit `writing.md` needs
-
-One paragraph replacing the scope line, naming the two scopes and assigning each section, plus splitting
-§6 into 2 sub-lists. **Held**, because a second session is restructuring that file. It lands after that
-session's split, against whatever numbering survives.
-
-## For the session restructuring `writing.md`
-
-**The seam.** Split on the two scopes above, never on anything else. Any other cut leaves the docs plan
-pointing at half a file.
-
-**Three moves that break the docs plan:**
-
-1. **Moving the sentence rules into a skill body.** A skill loads when invoked, and the sentence rules
-   have to stay reachable to anyone writing anything, so their single home stays a file under
-   `references/`. A skill may use them; it must not own them
-2. **Narrowing the scope line to "files an agent reads",** handing prose-to-the-user to the explain
-   skill. Documentation is neither of those, and it falls out of scope entirely
-3. **Renumbering the sections silently.** Renumber freely, just say so — the citations below break
-
-**`## Explaining` is a mirror pair.** It exists in `home/CLAUDE.md` and again in the repo's own
-`CLAUDE.md`. `home/` is the source. The repo copy deviates on exactly 2 bullets on purpose — *Name
-unfamiliar tech* and *UI is drawn* — because the repo file carries no `## The user`. Both survive any
-rewrite.
-
-**`## Explaining` cannot become invocation-only.** It governs every answer, including a one-line
-question, so it fires constantly with no skill loaded. `writing.md` §3's test puts it in an always-loaded
-file. An explain skill's natural share is the deep procedure — walking a design, structuring a long
-report — never the per-sentence rules.
-
-**What breaks on a rename, a split or a renumber:**
-
-- **Routing pointers** — the writing-pass rule in `home/CLAUDE.md` → `## Hard rules` (`## References` was deleted 2026-08-29, so the second pointer there is gone),
-  `skills/commands/file-findings/references/write-skills.md:3`,
-  `skills/phases/execute/SKILL.md:154`, and 2 in the repo's own `CLAUDE.md` (the hard rule, and
-  `## Writing any file`)
-- **Citations by section number** — `compression.md` cites §3 and §7; `backlog.md` cites §5, §6, §8 and
-  §9; this file cites §1 through §9
-- **Leave alone:** the 2 hits in `skills/tools/visualize/references/draw-mockups.md` are ASCII inside a
+- **Routing pointers** — the writing-pass rule in `home/CLAUDE.md` → `## Hard rules`,
+  `skills/commands/file-findings/references/write-skills.md:3`, `skills/phases/execute/SKILL.md:154`,
+  and 2 in the repo's own `CLAUDE.md` (the hard rule, and `## Writing any file`)
+- **Citations by section number** — `compression.md` cites §3 and §7, `backlog.md` cites §5, §6, §8 and
+  §9, and this file cites §1 through §10
+- **Never swept** — the 2 hits in `skills/tools/visualize/references/draw-mockups.md` are ASCII inside a
   mockup, not pointers
 
-**What comes back:** the new filenames if it splits, and the new numbering if it renumbers. Nothing else.
+## The docs collision — `docs/` was wanted by two things
+
+Flow writes 8 things into a project's `docs/`, and a project installing Flow very often has a `docs/`
+folder already. Both halves settled 2026-08-30.
+
+**Flow's working store moved to `.flow/`** — `tickets/`, `groundwork/`, `inbox.md` and `handoff.md`. A
+ticket queue is not documentation, which is the line `references/workflow.md` already draws for
+`protos/`: *a prototype is runnable code, and `docs/` stops being documentation once code lives in it*.
+
+**The project's documents stayed in `docs/`** — `spec/`, `context/`, `research/` and `intake/`. Someone
+who inherits the repo and never heard of Flow has to find these, and `intake/` holds their own prior
+material. Burying them under a folder named after the tool makes them unfindable by the person who owns
+them: six months on, nobody opens `docs/flow/` to learn why checkout was rebuilt.
+
+**`docs/flow/` was rejected even for the store alone.** Docusaurus, MkDocs and GitHub Pages all serve
+`docs/` by default and publish every markdown file under it. A project publishing from `docs/` and
+storing tickets in `docs/flow/` puts its whole ticket queue on the internet, and nothing warns it. A
+hidden root folder sits outside every one of those defaults.
+
+**Flow's own manual is `docs/manual/`.** A root-level `manual/` was argued first and loses the stranger.
+All 3 competitor repos — superpowers, agent-skills, mattpocock's skills — publish from `docs/`, so a
+stranger opens `docs/` first and lands in Flow's internal specs. Under `docs/manual/` the same instinct
+puts them one click from the manual.
+
+**Flow never creates a manual folder in anyone else's project.** The install skill creates `docs/spec/`,
+`docs/context/`, `docs/research/` and `docs/intake/`, and nothing else under `docs/`.
+
+**Two jobs went to the install skill**, both recorded in `backlog.md`: read `docs/` before writing into
+it, and warn when a site generator serves it.
+
+## `docs/dev/` — the second audience, added 2026-08-30
+
+**Developer documentation had no home.** Three places existed and none fits: `docs/manual/` is for
+someone using Flow, `lab/` holds *why* a decision was made rather than *how* to carry a procedure out,
+and the repo `CLAUDE.md` loads into every session, so a procedure written there costs tokens in every
+turn that never runs it.
+
+```
+docs/
+├─ manual/     using Flow — every concept, every command, the reasoning
+└─ dev/        developing Flow — the dev checkout, the scratch session, the tests
+```
+
+**Both are published and `README.md` indexes both.** The split is audience, and it is the same split
+that put the manual under `docs/manual/` rather than at `docs/`'s root.
+
+**The line against the repo `CLAUDE.md` is rule versus procedure.** `CLAUDE.md` keeps the short rules
+that must be in context. `docs/dev/` holds the long how-to. It is the same line `style.md` draws
+between a file that enters an agent's context and one read on demand.
+
+`lab/context/design-dev-loop.md` holds what the first pages have to describe.
+
+## `~/.flow/` — one rule for both levels, decided 2026-08-30
+
+**`.claude/` holds what Claude Code reads. `.flow/` holds what Flow owns.** One rule, applied on the
+machine and inside a project, and it is the only rule that says without opening anything whether
+deleting a folder breaks Claude Code or loses your work.
+
+Four things under `~/.claude/` are read by Claude Code and stay: `CLAUDE.md`, `settings.json`,
+`skills/<name>`, `agents/<name>.md`. Three are not, and move:
+
+- `~/.claude/flow/references` → `~/.flow/references`
+- `~/.claude/flow/notes.md` and `study-cases/` → `~/.flow/`
+- `~/.claude/scripts` → `~/.flow/scripts`, with `home/settings.json`'s hook paths following
+
+**The project side had the same problem twice as badly.** A Flow project carried `.claude/flow/skills`
+and `.claude/flow/overlays/` alongside `.flow/tickets/`, `.flow/groundwork/`, `.flow/inbox.md` and
+`.flow/handoff.md` — two Flow folders, one nested inside Claude Code's, and nothing read
+`.claude/flow/` except Flow. `.claude/flow/overlays/` moves to `.flow/overlays/`;
+`.claude/flow/skills` is deleted outright, along with the mechanism behind it
+(`design-skills.md` → `## Installing and showing`).
+
+**Cost:** about 15 path strings in live files, plus `try.sh`'s hook rewrite and `install.js`'s link
+targets. The three hits in `references/style.md` are quoted before/after examples and must not be
+swept.
+
+**One leak to close while in there.** `lib/cases.js` resolves `FLOW_HOME || ~/.claude/flow` from
+`os.homedir()`, and `try.sh` never sets `FLOW_HOME`. A scratch session running `flow cases new` writes
+into the real study cases today.
+
+### Built 2026-08-30, and the design was missing a flag
+
+**`flow install` resolved one root and hung all four link groups off it**, so `--home` redirected the
+whole install in one move. That single flag is what made `try.sh` safe. Splitting the destination left
+`--home` covering only what Claude Code reads, so `scripts/` and `references/` would have installed
+into the real `~/.flow` from a scratch run — silently, the symlinks then pointing at whichever
+checkout ran the script.
+
+**`flow install --flow-home <path>` closes it**, defaulting to `~/.flow`, and `lab/scripts/try.sh`
+passes both. The scoping test was rewritten with it: it asserted that nothing landed beside `--home`,
+which would have kept passing while every script escaped.
+
+**One flag without the other is refused, added the same day.** Two flags where there was one turned a
+safe default into something a caller has to remember, and forgetting writes to the real machine
+silently. Refusing costs nothing: a real install passes neither flag, the scratch session passes both,
+and one alone is only ever the mistake.
+
+**The `lib/cases.js` leak closed in the same pass.** It now defaults to `~/.flow`, and `try.sh`
+exports `FLOW_HOME` into the session it starts, so a scratch `flow cases new` writes into `tmp/`.
+
+**Verified:** both roots build under `tmp/try/`, the scratch `settings.json` carries rewritten hook
+paths, `flow overlays groundwork` reads `.flow/overlays/`, `flow cases new` honours `FLOW_HOME`, and
+`~/.flow` does not exist on this machine afterwards. 17 tests pass.
 
 ## What the research changed
 
@@ -212,7 +268,13 @@ has one author).
 - **Grouping decisions by component** — `skills.md`, `subagents.md`. Closed
 - **Naming a project's disabled skills in `home/CLAUDE.md`** — that file loads everywhere. Discovery is
   `flow skills ls` or the project's settings
-- **Off-by-default for skills.** Proposed twice, rejected twice
+- **Off-by-default for skills — overturned 2026-08-30.** Proposed twice and rejected twice, then
+  reversed by the user: `stack/` skills ship off and a project turns one on. Kept here because the
+  2 rejections are still findable and the reversal is what holds. `design-skills.md` →
+  `## Installing and showing`
+- **Replacing `references/style.md` §9's toolbox example.** It quotes a bullet deleted from
+  `home/CLAUDE.md` on 2026-08-25 as the before/after for *state the test, delete the illustrations*.
+  An example routes nobody anywhere, and hunting for another real pair buys nothing
 - **`commands/` is closed.** It holds every skill the user mainly invokes and wins wherever 2 groups
   fit. `/cut-from-spec` lives there
 

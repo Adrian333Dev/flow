@@ -12,7 +12,7 @@ Six stages, in this order. Stage 3 depends on stage 1.
 2. **The skills tree.** New group `skills/commands/` holding `start`, `run`, `file-findings`, `handoff`. `commands/start.md` and `commands/run.md` become `SKILL.md` files. `skills/stack/debug-web-pages/` becomes `skills/stack/web-pages/`. The emptied top-level `commands/` goes.
 3. **Frontmatter, all 12 skills.** The descriptions below, and the overlay line shortened to `` !`flow overlays <name>` ``.
 4. **`home/CLAUDE.md`.** `## Which skill` becomes `## Workflow`.
-5. **The rule files.** `write-skills.md`, `writing.md`, `cli-design.md`, `CLAUDE.md`, `backlog.md`.
+5. **The rule files.** `write-skills.md`, `style.md`, `cli-design.md`, `CLAUDE.md`, `backlog.md`.
 6. **Tests.** Default action, exact-match-only, the new tree.
 
 ## What Claude Code actually does
@@ -45,8 +45,8 @@ Verified 2026-08-29 against `https://code.claude.com/docs/en/skills` and the `cl
 **The triggers were never removed in the 2026-08-28 pass.** They were renamed to `Covers …` and kept, and a second copy went into `home/CLAUDE.md` → `## Which skill`. Both load at session start, so the cost that pass existed to remove was being paid twice. 2,200 characters of descriptions plus 1,495 of routing.
 
 - **A subject list stays only where nothing else says what the skill reaches.** `/visualize` keeps its media — ASCII, mockups, HTML — and loses its subjects. `/web-pages` keeps a compressed subject, because a `stack/` skill has no routing entry to inherit one.
-- **`/execute` was describing its steps**, which `writing.md` §8 bans outright, and the cited failure is an agent following the description instead of the file.
-- **Write `/name` with the slash** when a skill or command is named in prose. Every skill body already does it 44 times; the 2026-08-28 descriptions dropped it. The rule is unwritten, which is why it eroded, and it goes into `writing.md` §6. None of the new descriptions names another skill, so nothing there needs restoring.
+- **`/execute` was describing its steps**, which `style.md` §8 bans outright, and the cited failure is an agent following the description instead of the file.
+- **Write `/name` with the slash** when a skill or command is named in prose. Every skill body already does it 44 times; the 2026-08-28 descriptions dropped it. The rule is unwritten, which is why it eroded, and it goes into `style.md` §6. None of the new descriptions names another skill, so nothing there needs restoring.
 
 ### The CLI
 
@@ -68,7 +68,7 @@ Verified 2026-08-29 against `https://code.claude.com/docs/en/skills` and the `cl
 - **`/prototype`** — Throwaway code answering one question, and a report of what it found. Naive on purpose — no tests, no error handling, no abstractions, never promoted.
 - **`/web-pages`** — Investigates a live web page you do not control — structure, behavior, runtime state — then experiments on it. For extension, scraper and userscript work.
 - **`/research`** — Reads what a tool actually does — its docs, its source, its releases — never training memory. Searches first for an existing skill, plugin or MCP server, and records what came back.
-- **`/cut-from-spec`** and **`/file-findings`** keep the lines they have. Both are typed-only, and `writing.md` §8 gives those one short line.
+- **`/cut-from-spec`** and **`/file-findings`** keep the lines they have. Both are typed-only, and `style.md` §8 gives those one short line.
 - **`/start`** — Opens a session — the board, one ticket, or a loose file.
 - **`/run`** — Runs a shell command and reads its output.
 

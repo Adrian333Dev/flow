@@ -21,6 +21,7 @@ produces one.
 | **execute-cost** | the build loop reads expensive — the plan passes, mid-build debugging, the review passes | **built 2026-08-20** — all six parts; `execute` and `debug` rewritten, `agents/debug.md` deleted |
 | **command-surface** | `flow`'s arguments, several ids at once, and one command that runs any shell | **built 2026-08-23** — full write-up in `design-cli-rework.md` |
 | **resume** | `/handoff` → `/clear` → carry on, with the third step automatic — full write-up in `design-resume.md` | raised 2026-08-22, mechanics confirmed, shape open |
+| **git-writes** | the agent never runs a git command that writes; make that a switch instead of a rule | raised 2026-08-30, to discuss |
 
 `backlog.md` holds every open item. This file holds the threads above, which are bigger and some of
 which may reshape the workflow. When a thread closes, its outcome moves into `backlog.md` and the entry
@@ -673,3 +674,61 @@ whatever is passed, and its result arrives as a completion notification in a lat
 That matters past the wrong argument: the one-worker-at-a-time rule exists because the snapshot hook records
 the whole working tree either side of a dispatch and cannot tell two writers apart. A protocol that assumed a
 blocking call has to be rewritten against a mechanism that never blocks.
+
+
+---
+
+## git-writes — turn the ban into a switch
+
+**Today the agent may not run any git command that writes.** No `add`, `commit`, `push`, `checkout`,
+`reset`, `rebase`, `merge` or `stash`. It prints the command and the user runs it. The user wants that to
+become something they turn on and off, because some sessions want the agent driving git — the `util` repo
+needs `git init`, a first commit and `git submodule add`, and every one of those bounces off the ban.
+
+**Three places enforce it, and they do not know about each other.**
+
+- **`home/CLAUDE.md` → `## Hard rules`** — *Never run or propose a git command that writes. Reads are
+  fine; the user drives git.* One line, loaded in every session, no condition on it.
+- **`home/settings.json` → `permissions.deny`** — 20 entries of the form `Bash(git commit:*)`. Claude Code
+  refuses the call before the model's turn ends.
+- **`scripts/guard.js`** — a `PreToolUse` hook on Bash. It holds a `GIT_READS` allowlist of 26 read
+  subcommands and denies every git call outside it, plus `GIT_INSTRUCTED`, a 1-entry set holding `clone`
+  because `/research` tells the agent to clone a source repo.
+
+### The finding that decides the shape
+
+**`permissions.deny` is static, and no switch can reach it.** It is a JSON array Claude Code reads at
+session start. There is no conditional form, nothing evaluates at call time, and editing the file mid-session
+to flip a toggle is a worse mechanism than the ban. So a toggle means **removing the git entries from
+`deny` entirely** and leaving `guard.js` as the only thing deciding a git call. `guard.js` is code, it runs
+per call, and it can read a state file.
+
+**That trade has a cost, and `guard.js`'s own header names it.** The hook returns `deny` and `ask` and never
+`allow`, deliberately, *"so the permissions.deny list stays the final authority and a bug here cannot widen
+anything"*. Move the authority into `guard.js` and that property is gone: a bug in the hook now widens what
+git can do rather than narrowing it. Anything built here has to be tested against that, not reasoned about.
+
+### Open, and none of it decided
+
+- **Where the switch lives.** An environment variable dies with the shell. A file under `~/.flow/` persists
+  across sessions and is invisible unless something prints it. A per-project `.flow/` file scopes it to one
+  repo, which is probably what "on for the util repo, off everywhere else" actually means.
+- **What it turns on.** Every write, or a tier — `add` and `commit` at one level, `push`, `reset --hard`
+  and `rebase` needing a second. `push --force` and `clean` are the two that destroy work nobody can get
+  back.
+- **How the session knows.** A rule the model cannot see the state of produces an agent that either never
+  tries or tries constantly. The switch has to surface somewhere the session reads.
+- **What happens to the `home/CLAUDE.md` line.** Deleted outright, or rewritten to name the switch and say
+  what the default is.
+
+### What waits on this
+
+- **Git worktrees**, in `backlog.md` → `## Subagents and dispatch`. A worktree is created by `git worktree
+  add`, which is a write, so the feature cannot exist under the ban.
+- **Creating the `util` repository.** `git init`, the first commit and `git submodule add` are all writes.
+  Deferred by the user 2026-08-30: they will run those 3 commands by hand, and `util` does not wait for this
+  thread.
+
+**The repo's own `CLAUDE.md` carries a separate, stricter ban covering work on Flow itself.** This thread is
+about the shipped rule in `home/CLAUDE.md`. Whether the repo rule moves with it is its own question, and the
+user has not raised it.

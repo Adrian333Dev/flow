@@ -49,7 +49,120 @@ Nothing outside Flow's own tree reads a group. Changing one later is a `mv`.
 
 ## Installing and showing
 
-**Superseded 2026-08-29. The three tiers below are history; what follows here is live.**
+**Reversed again 2026-08-30. Read this section first; everything below it is the 2026-08-29 state.**
+
+### Most `stack/` skills are off by default (user, 2026-08-30)
+
+**The argument that set "all on" was one author who wants every skill everywhere.** That is true of
+`phases/`, `commands/` and `tools/`, and false of `stack/` by definition. A `stack/` skill is named
+for what you are touching, so a React skill's description sits in every Python project's context
+permanently. The cost was invisible only because `stack/` holds one skill today and `standards/` holds
+none. At ten stack skills it is ten descriptions in every session, forever.
+
+**The default belongs to the group, because the group already knows the answer:**
+
+- `phases/`, `commands/`, `tools/` → **on**
+- `stack/` → **off**, turned on per project
+- `standards/` → per skill. "How you work throughout" covers both universal and narrow ones, and
+  nothing about the group decides which
+
+**It is written in `home/settings.json`**, which ships a `skillOverrides` block naming the off ones.
+That file already owns the key. The alternative — a default in each skill's frontmatter, generated
+into settings by `flow install` — needs a frontmatter key Claude Code ignores, and `install.js`
+deliberately does not write `settings.json` at all.
+
+**Off globally, on in one project, already works and needs nothing built.** Verified 2026-08-29
+against Claude Code 2.1.251: a project setting `on` restored a skill the machine had set to `off`. The
+objects merge key by key rather than replacing, and the change lands on the next session.
+
+**`skillOverrides` now has two values in use, `on` and `off`.** `name-only` was already never used.
+`user-invocable-only` was proposed for `stack/` on 2026-08-30 and rejected by the user: a stack skill
+exists to fire during a phase, so a state the model cannot see makes it unfirable, which is the whole
+point of having it. Either the agent can reach it or it cannot. `home/settings.md` documents four
+values as if all four were live and becomes two, with a line saying why the other two are not. The
+never-fire-anywhere case stays in `disable-model-invocation`, in the skill's own frontmatter.
+
+**`flow skills ls` becomes load-bearing.** It prints `global` on every row today and carries no
+information. The moment most `stack/` skills are off, a session cannot see them — that is the point —
+and something has to answer *what exists that I am not being shown*. Nothing announces a hidden skill
+and nothing should. So `flow skills ls` is the only discovery path, and its column becomes each
+skill's state, read from the machine's settings and the project's, with the group beside it.
+
+### `home/skills` is deleted (user, 2026-08-30)
+
+**It is a hand-maintained copy of something `flow install` can compute.** Its own header says the list
+has no exceptions and every Flow skill is on it: 12 skills on disk, 12 names in the file, identical. A
+hand-maintained copy that can only ever be wrong.
+
+**The drafts group removes the last case for it.** The one reason to name skills individually is
+*some skills do not ship*, and a group folder answers that better — visible on disk, cannot drift, and
+adding a skill to it is a `mkdir` rather than an edit in two places.
+
+`flow install` links every skill in the catalog whose group is not `drafts/`. Two commands change and
+both improve: `flow skills add` refuses a name found in the catalog rather than in a list, and
+`install.js`'s "named in `home/skills` and no skill has that name" warning disappears, because the case
+cannot occur.
+
+**Installing and being shown stay separate questions.** Every skill still installs; `skillOverrides`
+decides what a session pays for it. A `stack/` skill set to `off` costs nothing in context, so there is
+no case for not installing one.
+
+### `.claude/flow/skills` is deleted, and so is the mechanism behind it (user, 2026-08-30)
+
+**What it was:** a file of skill names in a project. The skill folders lived in the Flow clone, and the
+list existed because the symlink could not be committed — it points at wherever that machine's clone
+sits.
+
+**An external skill used by one project does not need to be in the Flow clone at all.** Copy the folder
+into `<project>/.claude/skills/<name>/` and commit it. Real files. No list, no dependency on a clone,
+and the project works on a machine that never installed Flow.
+
+**This already worked.** `project-template/.gitignore` carries `.claude/skills/*` then
+`!.claude/skills/*/`, which ignores symlinks and tracks real folders — verified in a real repo
+2026-08-28. Copying an external skill in has been supported the whole time; the list was solving a
+problem the gitignore had already solved differently.
+
+**Claude Code already owns per-project external things** — MCP servers in `.mcp.json`, plugins in
+settings. Flow inventing a third list, for skills only, was the odd one out, and its name read as if it
+held something of Flow's.
+
+**Two cases, neither needing a list:**
+
+- **One project wants it** → copy the folder into that project, commit it
+- **Several projects want it** → it is a skill used everywhere, which is what installing globally
+  means. Vendor it into Flow's tree under a group
+
+**What goes:** the `.claude/flow/skills` file from `project-template/`, the `flow skills add` and
+`flow skills sync` commands, `projectList` and `projectLinks` in `lib/skills.js`, and one test in
+`skills.test.js`. `flow skills ls` survives with the new job above.
+
+### Built 2026-08-30, all three blocks in one pass
+
+**`skillOverrides` reading turned out to be the interesting part.** `flow skills ls` now resolves each
+skill's state itself, merging the machine's `settings.json` under the project's key by key — the same
+merge Claude Code does. The machine's config follows `CLAUDE_CODE_CONFIG_DIR`'s successor
+`CLAUDE_CONFIG_DIR`, so the scratch session reads the scratch settings rather than the real ones. The
+table prints `SKILL | GROUP | STATE | SET BY`, and `SET BY` is what answers *who turned this off*.
+
+**`home/settings.json` names `web-pages` and nothing else**, because it is the only `stack/` skill on
+disk. The mechanism is built for a full catalog; the list is short because the tree is.
+
+**`flow skills` lost half its actions.** `add` and `sync` both existed to maintain the two deleted
+lists, so both went with them. `ls` and `get` remain, and `get` is still the default action.
+
+**`lib/skills.js` lost `globalList`, `projectList`, `projectLinks`, `readList` and `addToList`** — the
+last two had no other caller once the lists were gone, since `work.js` reads `.flow-include` itself. It
+gained `DRAFTS`, `installable({ drafts })` and `states(root)`.
+
+**Two tests went and one arrived.** The `add` refusal and the `sync` warning tested commands that no
+longer exist. The new one creates a real skill folder under `skills/drafts/` inside a `try`/`finally`,
+because the group folder *is* the mechanism and faking it anywhere else would test nothing.
+
+---
+
+### The 2026-08-29 state, kept for its arguments
+
+**Everything from here to the end of this section is history.** The three tiers below were superseded on 2026-08-29, and the all-on rule that replaced them was superseded on 2026-08-30 by the three blocks above.
 
 The tiers answered one question with one lever. *Not installed* was meant to keep a rarely-wanted skill out of context, and it also made the skill untypeable — which is the wrong trade on a machine with one user, who wants every skill reachable and pays for a description he never uses.
 

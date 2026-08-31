@@ -12,7 +12,7 @@ reasoning behind it; read this instead of re-deriving any of it._
 - **One file.** Splitting `visualize` into sub-files was rejected in the `explain` rework, whose record
   was deleted 2026-08-28 and lives in git. The pattern vocabulary and worked example are needed on every
   run, so moving them out only buys extra reads. A gallery of finished conversions is different — read on
-  some runs, not others — so it passes the conditional test in `writing.md` §4 and reverses nothing.
+  some runs, not others — so it passes the conditional test in `style.md` §4 and reverses nothing.
 - **Generators are allowed.** Prefer direct typed output; reach for a script when the artifact is complex
   or when the typed attempt came out wrong. The user softened an earlier proposal of a hard line size.
 - **Budgeting extra columns is dead.** See `## Glyphs`.
@@ -22,7 +22,7 @@ reasoning behind it; read this instead of re-deriving any of it._
   rulings in turn: alternating `─`/`│` walls, then corner stubs with no wall at all. See `## Drawing rules`.
 - **`## Structure` stays in `SKILL.md`.** Ruled twice by the user — first against moving it to a reference
   file, then on 2026-08-19 against moving it to `home/CLAUDE.md` → `## Explaining`. The agent's argument
-  for the move (the rule fires when no skill is loaded, so `writing.md` §3 sends it to the always-loaded
+  for the move (the rule fires when no skill is loaded, so `style.md` §3 sends it to the always-loaded
   file) was heard and rejected. **Do not raise it a third time.**
 - **`skills/visualize/future-ideas/` belongs to the user.** They saved those two SVGs there by hand, for
   their own future reference. Never propose deleting, moving or reorganising it, and never count it against
@@ -277,7 +277,7 @@ nothing else. The cut is **how often a form fires**, and the common run now read
 
 ### Third pass — the writing pass, 2026-08-19
 
-Ordered by `references/writing.md` rule 1: steps first, whole sequence visible, reference after.
+Ordered by `references/style.md` rule 1: steps first, whole sequence visible, reference after.
 
 - **`## How to draw it` moved up**, from below the mechanics to directly under `## Choosing the medium`.
   Choosing the medium and choosing the method are both decisions taken before a character is typed; the

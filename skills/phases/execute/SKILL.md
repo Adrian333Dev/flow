@@ -151,7 +151,7 @@ Every step `[x]` → run the full suite Pass 1 named → review it → `flow rev
 Then 2 passes over the same diff, read once. Asked together, one hides the other — code that follows every convention can still build the wrong thing.
 
 - **Against the plan** — every step delivered, and nothing delivered that no step asked for.
-- **Against the code** — read `references/review-code.md`. A ticket that produced a document reads `writing.md` instead, and one that produced a decision skips both.
+- **Against the code** — read `references/review-code.md`. A ticket that produced a document reads `style.md` instead, and one that produced a decision skips both.
 
 **Move anything durable in `## State` to `issues.md`, then delete the section from `ticket.md`.** Git keeps the old state.
 

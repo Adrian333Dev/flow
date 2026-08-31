@@ -12,12 +12,12 @@ Settings load at startup. **Restart Claude Code after any change.**
 
 ```json
 "hooks": { "PreToolUse": [ { "matcher": "Bash", "hooks": [
-  { "type": "command", "command": "node \"$HOME/.claude/scripts/guard.js\"" } ] } ] }
+  { "type": "command", "command": "node \"$HOME/.flow/scripts/guard.js\"" } ] } ] }
 ```
 
 Runs `scripts/guard.js` before every Bash call. The script reads the pending command on stdin and returns `deny`, `ask`, or nothing.
 
-Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed under nvm has to be on it — but `flow` and `fmerge` are Node too, so that is already a hard requirement of the toolchain and this adds nothing new. What it removes is a third language in a five-file folder.
+Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed under nvm has to be on it — but `flow` and `util` are Node too, so that is already a hard requirement of the toolchain and this adds nothing new. What it removes is a third language in a five-file folder.
 
 **The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves only the deny list, which can name git commands but not the open set of everything else.
 
@@ -25,9 +25,9 @@ Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed un
 
 ```json
 "PreToolUse":  [ { "matcher": "Agent", "hooks": [ { "type": "command",
-  "command": "node \"$HOME/.claude/scripts/snapshot.js\" --before" } ] } ],
+  "command": "node \"$HOME/.flow/scripts/snapshot.js\" --before" } ] } ],
 "PostToolUse": [ { "matcher": "Agent", "hooks": [ { "type": "command",
-  "command": "node \"$HOME/.claude/scripts/snapshot.js\" --after" } ] } ]
+  "command": "node \"$HOME/.flow/scripts/snapshot.js\" --after" } ] } ]
 ```
 
 **⚠️ Never run, on this machine or any other.** Written 2026-08-14 against the hooks reference, installed nowhere. One live dispatch confirms it or does not.
@@ -71,7 +71,7 @@ Rules evaluate **deny → ask → allow**, first match wins. A broad deny beats 
 
 A tool name written **without parentheses matches every use of that tool**.
 
-Why blanket rather than a curated list: approving a command through the permission dialog saves the *exact string* that ran, so `ptree --depth 3` and `ptree --depth 4` become two rules. A hand-kept list of command patterns never converges and goes stale the moment a path moves. The deny list plus the guard define the boundary instead.
+Why blanket rather than a curated list: approving a command through the permission dialog saves the *exact string* that ran, so `util fs tree --depth 3` and `util fs tree --depth 4` become two rules. A hand-kept list of command patterns never converges and goes stale the moment a path moves. The deny list plus the guard define the boundary instead.
 
 Not on the list, so still prompts: reads outside the working directory, and writes into protected paths — `.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends, which allow rules cannot pre-approve by design.
 
@@ -120,22 +120,32 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 ## `skillOverrides`
 
-**Every Flow skill installs on every machine, and every one is on by default.** A description sits in context from the moment a session starts, so a session pays for all of them. That is the trade: one author, who wants every skill reachable everywhere and would rather pay than hunt for one that was quietly switched off.
+**What a session is shown of each skill.** A description sits in context from the moment a session starts, whether the skill is ever invoked or not, so every installed skill costs something in every session. This key is where that cost is decided, per skill, per machine and per project.
 
-**This file carries no entries, and that is the point.** The key belongs to a project. A project that does not want a skill names it in its own `.claude/settings.json`, so that file reads as the list of what this project turned off.
+Installing and being shown are separate questions. Every skill outside `drafts/` installs on every machine, and a skill set to `off` costs nothing — so nothing is gained by leaving one uninstalled.
 
-Four values, keyed by skill name:
+### The default belongs to the group
 
-- **`on`** — the name and the description. The default, and what a skill gets when it is named nowhere
-- **`name-only`** — the name, with no description. Still invocable by the model
-- **`user-invocable-only`** — the model is shown nothing, and `/name` still works
+- **`phases/`, `commands/`, `tools/` → on.** Reached in ordinary work, in any project
+- **`stack/` → off**, turned on by the projects that touch that stack. Ten stack skills would otherwise be ten descriptions in every session, forever, and the one project doing browser work is the only one that needs the browser skill
+- **`standards/` → per skill.** "How you work throughout" covers both universal and narrow ones, and nothing about the group decides which
+
+Reversed 2026-08-30. Every skill was on by default until then, on the argument that one author wants everything reachable everywhere — which stays true, and is why `off` never stops a skill from installing.
+
+### Two values, keyed by skill name
+
+- **`on`** — the name and the description. What a skill gets when it is named nowhere
 - **`off`** — the model is shown nothing, and `/name` refuses with *disabled via skillOverrides*
 
-**A project turns a skill off with `off`.** Take `user-invocable-only` instead where you still want to type it. **Never `name-only`** — it removes the description and leaves the skill invocable, so the model keeps the power to fire it and loses the only thing it could judge with. All four verified 2026-08-29.
+**Claude Code accepts two more and Flow uses neither.** `name-only` shows the name and hides the description, so the model keeps the power to fire a skill and loses the only thing it could judge with. `user-invocable-only` hides it from the model and leaves `/name` working, which was proposed for `stack/` on 2026-08-30 and rejected: a stack skill exists to fire during a phase, so a state the model cannot see makes it unfirable. All four verified 2026-08-29.
 
-**Nothing announces a skill a project turned off, and nothing should.** `flow skills ls` lists every skill on the machine, and the project's settings say which are off, so an agent that needs the full picture reads one of the two. Naming a skill in `~/.claude/CLAUDE.md` was rejected 2026-08-29: that file loads in every session, so the announcement would land in every project including the ones that turned the skill off.
+### This file ships the off list, and a project overrides it
 
-**A project's settings override this file, key by key.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill this file had set to `off`, a project setting `off` hid one this file never named, and an entry only this file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
+`home/settings.json` names what is off on the machine. A project turns one back on in its own `.claude/settings.json`.
+
+**The two files merge key by key rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill this file had set to `off`, a project setting `off` hid one this file never named, and an entry only this file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
+
+**Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off — the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill on the machine with its state and which file set it.
 
 **This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/start`, `/run`, `/cut-from-spec` and `/file-findings` carry it because *never* is true of them. Everything else is decided here.
 

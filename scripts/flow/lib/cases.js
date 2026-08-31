@@ -2,7 +2,7 @@
 /**
  * Study cases on disk. The one part of flow that is not per project.
  *
- *   ~/.claude/flow/study-cases/<issue>/<date>-<slug>.md
+ *   ~/.flow/study-cases/<issue>/<date>-<slug>.md
  *
  * Filed by issue, never by project: the payoff is seeing one failure three
  * times, and a project folder scatters exactly that. The project is a field.
@@ -25,7 +25,7 @@ const CASE_STATUSES = ['open', 'fixed'];
 
 // FLOW_HOME mirrors FLOW_PROJECT: the default is the installed location, and an
 // override exists so the tool can be exercised without writing to it.
-const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.claude', 'flow');
+const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.flow');
 const casesDir = () => path.join(flowHome(), 'study-cases');
 
 const NAME_RE = /^(\d{4}-\d{2}-\d{2})-(.+)$/;

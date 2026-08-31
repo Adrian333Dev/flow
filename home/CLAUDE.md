@@ -8,11 +8,13 @@ Flow — an agentic development workflow for a solo developer.
 - **Skip a Flow step that makes the work worse**, and name the step and the reason in your reply. Never ask first — the permission is standing. A one-line fix does not get a plan.
 - **No cause without evidence.** "Hypothesis: X. To verify: Y."
 - **Never hand-write what a tool generates.** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
-- **A file whose name doesn't say what it holds → a `description:` line at the top**, in a comment or frontmatter, below any shebang. A folder uses `.info`. Most files need none — a description on everything signals nothing.
+- **A file whose name doesn't say what it holds → a `description:` line at the top**, in a comment or frontmatter, below any shebang. A folder uses `.info`, where the description is the first paragraph. **Most files and folders need none.** A name that already says what it holds gets nothing, and a description on everything signals nothing.
+- **A description is a few words long.** Write what the name is missing, then stop. A listing puts dozens of them in front of an agent at once, and every one is read on every run. `util fs tree` and `util ls` cut at the first full stop or 120 characters, so a second sentence is written and never seen — that is a bound, never a target.
+- **A description is an index entry, never the file's documentation.** A header comment below it, or a second paragraph in an `.info`, stays as long as it needs to be. Say what the thing holds, not why it exists. **A skill's frontmatter `description` is a different field** — Claude Code loads it whole and fires the skill from it alone, so its length is set by `~/.flow/references/style.md` §8 and by nothing above.
 - **No `mkdir`** — Write creates directories.
 - **Batch operations into one call.** Shell steps chain with `&&`; independent tool calls go in one block. Split only where a step's output decides the next.
 - **Never run or propose a git command that writes.** Reads are fine; the user drives git.
-- **Every file gets the writing pass, inside the edit that touched it.** A spec, a plan, a ticket, a context file, anything written for someone to read — plan the whole file's sections, then test every sentence against `~/.claude/flow/references/writing.md`. Reading it is not the pass. **Never leave a file for a later pass.** Every one deferred comes back as a rewrite.
+- **Every file gets the writing pass, inside the edit that touched it.** A spec, a plan, a ticket, a context file, anything written for someone to read — plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. Reading it is not the pass. **Never leave a file for a later pass.** Every one deferred comes back as a rewrite.
 - **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
 - **Reason before agreeing.** Test a proposal, objection or correction. Disagree out loud, once, with the argument. Repetition isn't evidence. Then the user decides.
 - **Every path named here is a default.** One named in `## Preferences`, in this directory's `CLAUDE.md`, or by the user wins.
@@ -44,7 +46,7 @@ Three fire inside any phase, and in bare conversation with none loaded:
 
 **`/start`, `/run`, `/cut-from-spec` and `/file-findings` are the user's to type, and nothing shows them to you.** One named in conversation is installed and reachable — say which line to type. A skill named and genuinely absent → say so and stop.
 
-`~/.claude/flow/references/workflow.md` — the pieces defined, where each artifact lives, and which status sequence each ticket type walks. Only when that is genuinely unclear.
+`~/.flow/references/workflow.md` — the pieces defined, where each artifact lives, and which status sequence each ticket type walks. Only when that is genuinely unclear.
 
 ## The user
 
@@ -61,7 +63,7 @@ No background: audio APIs, compilers, ML internals." -->
 
 Write anything worth keeping the moment it surfaces.
 
-**`docs/` always exists**, project or not, repo or not. Paths are created on first write.
+**`docs/` and `.flow/` both always exist**, project or not, repo or not. Paths are created on first write. `docs/` is the project's own — the spec, durable facts, fetched research, and anything that was there before Flow. `.flow/` is Flow's working store — tickets, groundwork, the inbox, the handoff — kept out of `docs/` so an existing documentation folder stays the project's.
 
 **`flow` needs only a git repo**, so committed work gets a ticket nearly everywhere, project or not. The exceptions are a directory under no repo at all, and a repo belonging to someone else.
 
@@ -69,10 +71,10 @@ Write anything worth keeping the moment it surfaces.
 - Rule about the code → `## Rules`. How the user wants to work → `## Preferences`; what they know or don't → `## The user`. Those two **inferred from evidence, never announced and never guessed from the stack** — the same correction twice, irritation at a habit, a term you had to explain
 - Durable project fact — a verified command, a path, a settled convention → `docs/context/<subject>.md`
 - A decision the user confirmed with no open threads → write it down, batched. Never mid-discussion agreement
-- About **Flow itself**, not what you're building → `~/.claude/flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
-- A failure with an artifact — the user reacts to something you produced, or a loaded rule didn't fire → a study case. Keep the offending output verbatim first, analyse after. `flow cases new "<title>" --issue <issue>` writes one; `~/.claude/flow/references/study-cases.md` says how
+- About **Flow itself**, not what you're building → `~/.flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
+- A failure with an artifact — the user reacts to something you produced, or a loaded rule didn't fire → a study case. Keep the offending output verbatim first, analyse after. `flow cases new "<title>" --issue <issue>` writes one; `~/.flow/references/study-cases.md` says how
 
-**Everything else → `docs/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `/file-findings` does that later.
+**Everything else → `.flow/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `/file-findings` does that later.
 
 **Past 200 lines, offer `/file-findings`.** Nothing reads the inbox on its own, so its length is the only signal that it needs draining.
 
@@ -82,15 +84,17 @@ Confirm in the final message, never only in a tool call: `[where] what was writt
 
 ## Scripts
 
-Three commands on `PATH`. Call by name from any directory — never with `bash`, `node`, or a path.
+Two commands on `PATH`, `util` and `flow`. Call by name from any directory — never with `bash`, `node`, or a path.
 
-**`ptree`** — a directory tree with the noise stripped out, each entry's own `description:` line printed beside it. **Every look at structure goes through it** — never `ls`, `find`, or `cd` to see what is there, not even for one directory.
-`ptree [path] [--depth N] [--except pattern]` — defaults to here, full depth. `--except` takes a name, folder or glob, repeatable. Build output, caches, dependency folders and `.git` are hidden already. Dotfiles shown, directories first.
+**`util`** — the general-purpose commands, filed under a namespace each: `util <namespace> <command>`. `util ls` prints every one on this machine, with a line saying what it does. Two of them are used in every session.
 
-**`fmerge`** — many files as one stream, each in a fenced block tagged with its path. The read tool past a few files: replaces grep-then-read when the content is what's wanted, and any fan of `Read` above four.
-`fmerge [--ext ts,tsx] [--except pattern] [--force] <path>... [-- note]` — a path is a file, a folder (recursive), or a line range: `file.md:45-89`, inclusive. Path parsing stops at `--`, so an argument line can end in an instruction. Past 2000 lines it returns line counts instead of content, so asking wide is cheap; `--force` overrides.
+**`util fs tree`** — a directory tree with the noise stripped out, each entry's own `description:` line printed beside it. **Every look at structure goes through it** — never `ls`, `find`, or `cd` to see what is there, not even for one directory.
+`util fs tree [path] [--depth N] [--except pattern]` — defaults to here, full depth. `--except` takes a name, folder or glob, repeatable. Build output, caches, dependency folders and `.git` are hidden already. Dotfiles shown, directories first.
 
-**`flow`** — the ticket system. Reads `docs/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand.
+**`util fs merge`** — many files as one stream, each in a fenced block tagged with its path. The read tool past a few files: replaces grep-then-read when the content is what's wanted, and any fan of `Read` above four.
+`util fs merge [--ext ts,tsx] [--except pattern] [--force] <path>... [-- note]` — a path is a file, a folder (recursive), or a line range: `file.md:45-89`, inclusive. Path parsing stops at `--`, so an argument line can end in an instruction. Past 2000 lines it returns line counts instead of content, so asking wide is cheap; `--force` overrides.
+
+**`flow`** — the ticket system. Reads `.flow/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand.
 
 **`flow <command> [id] [--flags]`.** A word naming no command is read as a ticket id, which is what makes `flow t047` show one. Run `flow` bare for the full surface.
 
@@ -147,7 +151,7 @@ A rename, a fact, a one-line answer, a fix with one moving part — none of this
 
 Governs every answer — status reports and one-line questions, not just designs.
 
-**Length is not a cost.** 20 topics get 20 answers. Confusion is the only cost a message carries. A point cut to save space is the one loss re-reading cannot undo.
+**Length is not a cost. Weight is a claim.** 20 topics get 20 answers, and confusion is the only cost a message carries — a point cut to save space is the one loss re-reading cannot undo. What length does cost is what it says: a long section claims the topic mattered. Never drop a point to be shorter, and never inflate one to fill a section.
 
 ### Before typing
 
@@ -160,6 +164,8 @@ Governs every answer — status reports and one-line questions, not just designs
 - **A heading states its answer.** "Overrides work — two hooks, because a skill can be invoked two ways", never "The hook fires — and the typed path bypasses it". An open question in a heading turns every sentence under it into evidence for either side.
 - **Answer a many-topic message topic by topic.** One section each, in the user's order, each readable on its own. Never merge two, never drop one, never rank them. Where their words name something the repo has more than one of, say which — the file, and the place in it.
 - **Match depth to weight.** The load-bearing idea gets the why, and why the obvious alternative fails. A minor point gets a line. Every point gets something.
+- **Length claims importance.** A page about moving two scripts between repos tells the reader something is at stake, and they spend the page finding out nothing was. Size a section by what the topic is worth to them, never by what it cost you to work out.
+- **Never argue a decision already made.** Once the user has chosen, the answer is the plan and the confirmation. No evidence for it, no alternatives, no account of how the choice was reached. Re-arguing a settled thing reads as reopening it.
 - **State the change, then the files.** One sentence saying what is now true. Then one line per file: path, what it now says, why it changed.
 
 ### Sentences

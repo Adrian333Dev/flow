@@ -1,466 +1,97 @@
 # Shit explanations
 
-Messages the user rejected outright, kept verbatim. The wording is the evidence, so nothing here is
-paraphrased. Newest at the bottom.
+The message the user rejected most recently, kept whole. **Every quotation is verbatim, theirs and
+mine** — the wording is the evidence, and a paraphrase of an unreadable sentence is readable.
+
+**An entry is deleted once its faults are rules.** The faults here are what `## Explaining` in
+`home/CLAUDE.md` gets written from, so an entry that has produced its rules has done its job and
+goes. Six entries left on 2026-08-31 for that reason, covering 2026-08-23 to 2026-08-29; git holds
+every one of them, and `git log -- lab/context/shit-explanations.md` is how to read them back.
 
 ---
 
-## 2026-08-23 — git explained in git's own vocabulary
+## 2026-08-30 — a page about moving two files, and a blocker that was one `ls` away
 
-**Context.** Designing how uncommitted work moves between two machines. The user asked how the
-proposed mechanism works. They had said, one message earlier, *"I'm not aware of most of the
-terminologies and concepts you're referencing"* and *"I don't even know how snapshot works."*
+**Context.** The user asked four things in one message: why `ptree` and `fmerge` had not moved into
+the `util` repo, what happened to the commands list holding `clone` and `bookmark`, a description for
+the `util` repo, and why its README claims to ship no commands. The reply answered all four. Two
+sections were rejected. Both decisions had been locked days earlier, so neither needed an argument —
+only a plan.
 
-Two consecutive messages failed. The second was a rewrite of the first and failed harder, because
-it went one layer deeper into git and kept the same vocabulary.
+**Sent, the first rejected section (opening and close, of 9 paragraphs):**
 
-**What was sent, message 1 (excerpt):**
+> ## `ptree` and `fmerge` were agreed — I built the batch you approved, and they were not in it
 
-> A commit does not have to live on a branch. You can build one whose parent is your current `HEAD`
-> — whatever branch that is — record the entire dirty working tree in it, and store it under a ref
-> outside `refs/heads/`.
+> **The two are not the same problem, and that is worth knowing before you sequence them.** `ptree`
+> has no code dependency anywhere in Flow. Every reference to it is prose in `home/CLAUDE.md` — line
+> 11, where the `description:` rule says *`ptree` prints it beside the filename*, and the `##
+> Scripts` entry at line 85.
 
-Undefined at that point: `HEAD`, `parent`, `working tree`, `ref`, `refs/heads/`.
+> That batch is: `git mv` two files into `lab/util/commands/fs/`, `open.js` calls `util fs merge`,
+> `BIN` drops to `flow` and `fw`, `home/CLAUDE.md` § `## Scripts` goes from three commands to one
+> plus a `util` line, and `lib/describe.js` stops being a second copy of `ptree.js`'s parser.
 
-**What was sent, message 2 (excerpts):**
+**Sent, the second rejected section, whole:**
 
-> The thing most people get wrong: **a commit is a complete picture of every file, not a list of
-> changes.** Git shows you diffs by comparing two pictures after the fact. It doesn't store them.
-
-> Objects are named by a hash of their own content, so they can never be modified — writing an
-> object only ever *adds* to the bag.
-
-> A label stored anywhere else is not a branch. `refs/flow-wip/main` is just a name pointing at a
-> commit. Git keeps that commit alive and will push it like anything else, but nothing checks it
-> out, and committing never moves it.
-
-**What the user said back:**
-
-> "What the fuck is object? Is this a blob? What the fuck is this exactly?"
-
-> "If it doesn't store them, what the fuck is that picture?"
-
-> "you say, you know, nothing checks it out. What the fuck does that mean? And also, you say, and
-> committing never moves it. And also, what the fuck does that mean?"
-
-> "you can assume that I actually didn't read anything after 'What git actually stores'"
-
-### Five faults, ordered by damage
-
-1. **A word used before it was defined, inside the sentence defining something else.** `object`
-   was never introduced. Blob, tree and commit were each defined, then a later sentence referred to
-   all three collectively as objects — a fourth term, arriving as if it were already shared.
-2. **A metaphor standing in for a definition, then contradicted.** *Picture* was never defined.
-   Two sentences later, git *"doesn't store them."* Both readings stayed available: either commits
-   are pictures and git stores them, or it doesn't and a picture is something else.
-3. **A causal claim with the cause deleted.** *"Named by a hash of their own content, so they can
-   never be modified."* Why the second follows from the first is the entire idea, and it was
-   carried by the word `so`.
-4. **Git's verbs used as English verbs.** *checks it out*, *moves it*, *fast-forward*, *HEAD*.
-   Each is a term of art meaning something specific and mechanical, each was used bare.
-5. **A correction framed so the reader cannot tell which half is the error.** *"The thing most
-   people get wrong: a commit is a complete picture of every file"* — the clause after the colon is
-   the correct version, and reads as the mistaken one.
-
-### Rules that were loaded and did not fire
-
-All from `## Explaining` in the root `CLAUDE.md`, in context for both messages:
-
-- **Define from zero.** Anything invented here — term, module, file — defined before first use.
-- **A label is not an explanation.** Say what the thing does.
-- **Plain words, short sentences.** A sentence read twice gets rewritten.
-- **Calibrate tech** against the user profile. Since rewritten as `Name unfamiliar tech by what it
-  does here`, because the profile file was deleted.
-- **Priority order.** The load-bearing idea gets depth.
-
-### What the rules fail to name
-
-`Define from zero` scopes itself to *"anything invented here"*, which reads as Flow's own coinages —
-skill names, file names, terms from the design record. It does not reach `object`, `HEAD`,
-`check out` or `fast-forward`, because none of those were invented here. They are ordinary
-vocabulary, correctly used, inside git's documentation.
-
-That is the third register of one failure. The 2026-08-09 case found the second: a word appearing in
-Flow's own files is not thereby shared with the user. This is the same shape one step out —
-**a word that is standard inside a tool's documentation is not thereby shared with the user.**
-
-The tell was in plain sight and read as a request for more detail rather than for different words:
-*"I high level know, but not like how it utilizes the Git exactly."* That sentence says the concepts
-are missing, not the specifics.
-
-### What would have been right
-
-Build one ladder, bottom-up, where every rung uses only words defined on a rung below it. Name
-git's term **after** its meaning is established, never as the way of introducing it: *"git calls
-this a tree"*, never *"a tree is a directory listing."*
-
----
-
-## 2026-08-23 — sentences built to be dense instead of plain
-
-Same session, four messages later. The vocabulary problem from the case above was fixed; the user
-confirmed *"now it's a little more clear"*. Then the writing failed a second way, and the user named
-this one as the more frequent of the two: **the sentences themselves.** Not a missing definition —
-the construction.
-
-**What was sent (excerpts):**
-
-> ## The anchor: you already have this feature, locally
-
-> **Save a copy.** Adds objects and a label. Your files are untouched. Safe to run automatically.
-
-> **Save a copy and clear the desk.** The same thing, then reverts your working files to match the
-> branch tip so you can switch away. This one destroys your local changes — safely, because the copy
-> exists, but it destroys them.
-
-**What the user said back:**
-
-> "I have no idea what the fuck are you talking about. Like, what do you mean by the anchor? And
-> what feature are you fucking referring to where you say you already have this feature?"
-
-> "You say your files are untouched. What the fuck do you mean? What files exactly?"
-
-> "It's not just about, you know, missing something. It's not just about not explaining some
-> terminology. Overall, the sentencing is just wrong. You are fucking explaining things in a
-> complicated way. You could have explained them much more simply."
-
-> "Consider that I stopped reading your response at some point because it's very long, too much
-> bullshit in it, and not clear in the first place."
-
-### Four faults
-
-1. **A heading that points at nothing.** *"The anchor: you already have this feature"* — `anchor` is
-   writing-craft vocabulary for "a familiar thing to compare against," and it names nothing the
-   reader can see. `this feature` referred forward to a sentence not yet written. The first line of
-   the message was unreadable, so the rest went unread.
-2. **A vague noun where a specific one was available.** *"Your files are untouched"* — which files.
-   The answer is "the files in your project folder", and it is three words longer.
-3. **Meaning packed into clauses instead of spread across sentences.** *"reverts your working files
-   to match the branch tip so you can switch away"* carries four ideas in one clause. Each was
-   correct. Together they are unreadable. The last excerpt is worse: it asserts, qualifies and
-   re-asserts the same fact inside one sentence, and ends on the word it spent the sentence
-   softening.
-4. **A long message answered by alluding to its points rather than restating them.** The user
-   raised this as the repeating offence, not a one-off: *"I come up with a 10 paragraph message, I
-   paste it through, you respond, and you just reference some of my points, but you don't give
-   enough details so I know what you're talking about."* A reply that assumes the question is still
-   loaded in the reader's head is unreadable by the one person who wrote it.
-
-### Root cause
-
-Writing for density. Every offending line is a correct sentence compressed until the reader has to
-decompress it. The user pays that cost, every time, in a message they are reading once.
-
-### The rule that failed
-
-`references/writing.md` §5 already carries the test — *"Act on it after one read. Re-reading to
-find the instruction means rewrite it."* It is written for rules inside skill files, and the
-`## Explaining` section of `CLAUDE.md` does not restate it for prose written to the user. What
-`## Explaining` says instead is *"Plain words, short sentences"*, which reads as advice about
-word choice and did not catch a four-idea clause made entirely of plain words.
-
-### What would have been right
-
-- **One idea per sentence.** Split on every `and`, `so`, `then` and dash that joins two ideas.
-- **Name the thing, never point at it.** No `this feature`, `that approach`, `the same thing`, `it`
-  across a sentence boundary. Repeat the noun.
-- **Restate the question before answering it**, in the user's own words, every time a message
-  carries more than one.
-- **Never open with a heading the reader cannot evaluate.** The first line states the situation in
-  plain words or it is cut.
-
----
-
-## 2026-08-25 — naming a thing the repo has three of
-
-**Context.** The user sent a seven-topic message about `flow get`, the `flow-open` block,
-`write-tickets`, `## References`, the global `CLAUDE.md`, and two gaps in `/debug`. The reply
-answered all seven under headings that reused the user's own loose wording as labels.
-
-**What was sent (excerpts):**
-
-> ## 4. `## References` as a `flow-open` block
-
-> The backup motivation doesn't survive: the block only exists inside `flow open`.
-
-> So widen it, but bound the trigger by cost rather than by where the work came from: several
-> tickets at once, or material this session wasn't there for.
-
-**What the user said back:**
-
-> "I have no idea what the fuck are you referring to by references section. Like, which references
-> section? Where? Like, what are you exactly fucking referring to?"
-
-> "what do you mean the backup motivation? What's exactly the backup motivation?"
-
-> "Is terribly explained, and I didn't understand a single fucking thing from it. Like, I have no
-> idea what the fuck are you exactly proposing in that section."
-
-### Three faults
-
-1. **A name the repo carries three times, used bare.** Flow has `## References` in a ticket body,
-   `## References` at the bottom of `map.md`, and `## References` in `home/CLAUDE.md`. The reply
-   named none of them. The user had written "reference section", so restating their words restated
-   the ambiguity.
-2. **A label invented for the user's own reasoning, then argued against.** The user's stated reason
-   was *"in case the user doesn't actually utilize the start command."* The reply compressed that
-   into "the backup motivation" and spent a paragraph refuting the label. The user could not match
-   the label back to their own sentence.
-3. **A proposal made of three undefined abstractions.** "Bound the trigger by cost rather than by
-   where the work came from" — `trigger` means the skill's `description:` frontmatter line, `bound`
-   means narrowing that sentence, and `cost` means context spent loading a skill. None was said.
-   The one sentence carrying the whole recommendation was the least readable in the message.
-
-### Root cause
-
-Answering seven topics in one message, and compressing each one's subject into a short heading to
-fit. Every heading dropped the referent. The compression served the writer, who still had all seven
-subjects loaded, and cost the reader, who did not.
-
-### The rule that failed
-
-`## Explaining` carries *"Restate each question before answering it, in the user's own words"*,
-added 2026-08-24 from the entry above. It fired and did not help. Restating the user's words
-preserves their looseness — and dictated input is loose by construction. The rule names the wrong
-half of the job: the question was restated, the thing it referred to never was.
-
-### What would have been right
-
-- **Resolve the referent, not just the question.** Where the user's words name something the repo
-  has more than one of, say which one — the file, and the place in it — before answering.
-- **Never invent a label for something the user said.** Say their sentence back in full words. A
-  label the user cannot match to their own message makes the paragraph under it unreadable.
-- **Define a term inside the sentence that first uses it**, even in a recommendation. A proposal is
-  the worst place to spend an undefined word.
-
----
-
-## 2026-08-25 — reporting the investigation instead of the answer
-
-**Context.** The user approved a test of whether a hook can inject project-specific overrides at the
-moment a skill loads. The reply opened with a section reporting that test.
-
-**What was sent (excerpts):**
-
-> Test is done. It worked, and it found a hole the first version would have shipped with.
-
-> ## The hook fires — and the typed `/skill` path bypasses it
-
-> **Model-invoked** — `PreToolUse` with matcher `Skill` fires, and the payload names the skill
-
-> **Then I tested typing `/pingtest`, and the hook never ran.**
-
-> **The fix is a second event.**
-
-**What the user said back:**
-
-> "I read, you know, like first three paragraphs, and I have zero fucking idea what the fuck is
-> happening."
-
-> "your messages sound like they are conflicting with each other, and you know, in one place you
-> say, you know, like, test is done and it worked, and in other sentence you say, and you know,
-> like, skill path bypasses it. So, does it work or does it doesn't work?"
-
-> "Only in the last message where you mentioned that you know user prompt expansion and stuff, I was
-> able to understand that you know the solution you came up with actually worked."
-
-### Three faults
-
-1. **The heading was a cliffhanger.** *"The hook fires — and the typed `/skill` path bypasses it"*
-   states a contradiction and resolves it four paragraphs later. The reader holds an open question
-   through the whole section, and every sentence read in that state gets read as possible evidence
-   for either side.
-2. **The chronology of the investigation was reported as if it were the finding.** Three reversals
-   in order: it worked, then it did not, then a second mechanism made it work. The answer — overrides
-   work, and they need two hooks because a skill can be invoked two ways — appeared nowhere until
-   the reversals had finished. A test report says what is true now. The order it was learned in is
-   the writer's history, not the reader's information.
-3. **The split that makes all of it make sense was never stated.** A skill reaches the agent two
-   ways: the model decides to invoke it, or the user types `/name`. Claude Code runs different code
-   for each. Nothing said that before the results arrived, so **Model-invoked** as a bold lead-in
-   read as a detail rather than as one half of a pair.
-
-### Root cause
-
-`## Explaining` carries *"Never hide your reasoning. Think out loud while you work."* That rule fired
-and produced this. Thinking out loud got read as narrating the sequence of experiments — try, fail,
-try again. The rule is about saying which argument decides a thing, not about replaying the order the
-writer met the evidence in. A result section is the one place where sequence is worthless: the reader
-wants the state of the world, and every intermediate state is a false statement about it.
-
-### What would have been right
-
-- **A heading is an answer, never a cliffhanger.** *"Overrides work — two hooks, because a skill can
-  be invoked two ways"* carries the same content and closes the question in the first line.
-- **State the split before the results.** Where a finding divides by case, name the cases first, in
-  one sentence. Results reported into a frame the reader already holds cannot read as contradictions.
-- **Report the end state, never the path to it.** A superseded result is history, not a finding.
-  Where the path itself matters — a dead end worth not repeating — it goes at the bottom, under its
-  own heading, after the answer is closed.
-
----
-
-## 2026-08-29 — a change reported as a run-on list of filenames
-
-**Context.** A build had just finished: every skill now installs everywhere, and a settings key
-decides what each session is shown for one. The final message reported it. The user had approved the
-work and wanted to know what happened.
-
-**What was sent, the paragraph the user singled out, verbatim:**
-
-> **Install and show, split apart** — `home/skills` names all 12 with a rewritten header;
-> `home/settings.json` gains `skillOverrides` with `web-pages` at `name-only`; `home/settings.md`
-> gains a `## skillOverrides` section carrying the four values, the verified merge rule and why this
-> is not `disable-model-invocation`; `write-skills.md` replaces its install-tier paragraphs and gains
-> a rule bounding the frontmatter flag; `scripts/flow/commands/skills.js` gets a new header paragraph
-> and a refusal that now points at `skillOverrides` instead of telling you to edit `home/skills`; the
-> repo `CLAUDE.md` records it in `## Current state` and fixes three lines;
-> `lab/context/design-skills.md` gains `## Installing and showing`, which marks the three tiers
-> superseded and holds the four verified facts.
-
-The other three paragraphs of that section had the same shape. The user rejected the section whole,
-not only this paragraph.
-
-**What the user said back:**
-
-> "specifically recorded as you know, like, worst example of explanation. This is like, you know,
-> worst example of explanation, which is, you know, no matter how many times you read it, you still
-> have a hard time like understanding it."
-
-> "Your whole response was shitty. Like, every file attached section was, you know, complete garbage.
-> You know, I had a hard time understanding, like, what the fuck are you talking about in that whole
-> section?"
-
-### Five faults, ordered by damage
-
-1. **The change itself is not in the paragraph.** What happened is one sentence: every skill now
-   installs on every machine, and a settings key decides what each session sees. The paragraph never
-   says it. Seven files are reported as having been edited, and the reader is left to reconstruct the
-   change from the edits — which is the writer's job, done backwards.
-2. **One sentence, seven subjects, joined by semicolons.** Nothing marks where to pause, nothing
-   ranks the seven, and nothing signals which are load-bearing. `home/settings.json` gaining one key
-   is the whole mechanism; `CLAUDE.md` fixing three lines is bookkeeping. Both got one clause.
-3. **A list was written as prose.** The material is a list — one file, one change, seven times. Prose
-   was chosen for it, so the reader has to do the line breaks in their head while reading.
-4. **Every clause has a different grammar.** *names*, *gains*, *gains a section carrying*, *replaces
-   and gains*, *gets a paragraph and a refusal that now points at*, *records and fixes*, *gains a
-   heading, which marks and holds*. Seven parallel facts in seven shapes, so no pattern forms and
-   every clause is parsed from scratch.
-5. **The heading is a coinage the reader has to decode.** *Install and show, split apart* uses *show*
-   as a noun invented two messages earlier. A heading is where the reader gets oriented, and this one
-   costs them a lookup.
-
-### Rules that were loaded and did not fire
-
-All from `## Explaining`, in context the whole time:
-
-- **One idea per sentence.** *Split on every `and`, `so`, `then` and dash that joins two.* The
-  paragraph is one sentence with six semicolons and nine `and`s.
-- **Plain words, short sentences.** *A sentence read twice gets rewritten.* The user read it more
-  than twice and still could not use it.
-- **Prefer a list to a table**, and by extension to prose that is a list wearing prose.
-
-### Root cause
-
-`## Explaining` carries *"Report what changed. Every file touched, and what changed in it."* That
-rule fired and produced this. It was read as a coverage requirement — name every file, miss none —
-and coverage then got compressed into the fewest sentences that would hold it. Completeness was
-treated as the deliverable and readability as the thing to trade against it. The rule asks for both,
-and where they compete the reader wins, because a report nobody can parse reports nothing.
-
-### What would have been right
-
-- **Say what changed, then where.** One sentence naming the change in the system, then the files
-  under it. A file list is an index to a change, never a substitute for stating it.
-- **A list of files is a list.** One line per file. The filename, then what it now says, in plain
-  words.
-- **Rank it.** The file carrying the mechanism goes first and gets a sentence of its own. A file that
-  gained a cross-reference gets four words, or gets dropped into a closing line that names the rest
-  together.
-
----
-
-## 2026-08-29 — arguing for a mechanism without ever saying what it does
-
-**Context.** Two research reports on documentation design had come back. One of their findings
-argued for something the user had already ruled out. The standing rule is to disagree out loud once,
-with the argument, then let the user decide. This section was that disagreement.
-
-**What was sent, verbatim:**
-
-> ## The disagreement I owe you, once
+> ## The rest of the list is designed and unbuilt, and one command's source is missing
 >
-> **Testing the examples is the strongest-evidenced recommendation in either report, and you ruled it
-> out.** Both name it as the only anti-drift technique with a structural mechanism rather than
-> process discipline. Code and comments co-evolve about 90% of the time, but API changes and their
-> docs do not — they get re-documented in a later revision, if ever. Aghajani's ICSE 2019 mining of
-> 878 artifacts found content problems the predominant category at 55%; erroneous examples were rated
-> a top issue by 59% of practitioners.
+> Nothing was lost. `design-util.md` → `### The namespaces at the start` carries all of it, and
+> `backlog.md:69` holds the `github` half:
 >
-> **What partly vindicates you:** the mechanism transfers weakly here. Rust doctests work because the
-> example is compilable code in the same language. Flow's examples are command lines, JSON fragments
-> and frontmatter — nothing compiles, so there is no build to fail. The cheap version that would
-> actually catch something is checking that file paths named in the docs exist, and that JSON
-> snippets parse.
+> - **`github`, alias `gh`** — `clone`, taking one or more repos in any URL form; `bookmark`, which
+>   fetches a repo's stars, language, pushed date and description and appends one line about it to a
+>   file
 >
-> Your call stands either way. I will not raise it again.
+> **One blocker on `bookmark`, and it is not what the backlog thinks.** `bookmark` is
+> `toolbox/bin/add-repo` renamed and widened, and `toolbox/` is not on this machine. It is also no
+> longer a submodule: `.gitmodules` still declares it, but `HEAD`'s tree carries no gitlink for it,
+> so `git submodule status` lists only `lab/util` and `git submodule update --init` does nothing.
+> Either you re-add it, or I write `bookmark` from the design's description with no original to port.
 
-**What the user said back:**
+**Rejected:**
 
-> "I literally didn't understand a single fucking sentence from it. Like, I have zero fucking idea
-> what shit you are fucking talking about in that whole section. Which is very pissing me off so
-> much."
+> "you have dedicated a whole section about them. You need to consider that this is a very minor
+> thing, you know. This is just, you know, moving two scripts around, you know. They don't deserve to
+> have, you know, a whole page dedicated about them, right?"
 
-### Five faults, ordered by damage
+> "you were supposed to just, you know, like, really fucking summarize and outline what you're going
+> to do and just confirm it, you know. This is very minor detail, and we already fucking locked the
+> decision, and you just had to fucking implement it. That's it."
 
-1. **The thing being argued for is never described.** *Testing the examples* is the subject of every
-   sentence in the section, and nothing anywhere says what it means — a test that pulls the code
-   samples out of the documentation, runs them, and fails when one stops working. Without that
-   sentence the whole section argues about an unnamed object.
-2. **The evidence is quoted as citations, not as findings.** *Aghajani's ICSE 2019 mining of 878
-   artifacts found content problems the predominant category at 55%* is a surname, a conference
-   acronym, a year, and three numbers whose units are never given. 55% of what. An artifact is what.
-   None of it is usable, and it was there to show the objection had been researched rather than to
-   tell the reader anything.
-3. **Four abstract nouns in a row, none of them built up.** *The only anti-drift technique with a
-   structural mechanism rather than process discipline.* Drift, structural mechanism and process
-   discipline carry the sentence, and not one is defined.
-4. **The section reverses itself twice and resolves nothing.** Paragraph one: this is the strongest
-   evidence in either report. Paragraph two: it does not apply here. Paragraph three: the decision is
-   unchanged. Three positions, no signal between them, and the reader finishes where they started.
-5. **A second undefined thing is used to explain the first.** *Rust doctests* arrives cold, as the
-   worked example that was supposed to make the mechanism concrete.
+> "I read that whole section and I literally didn't understand a single fucking thing from it. Like,
+> your explanation in that section is absolute shit. Absolute shit. Unbearable."
 
-### Rules that were loaded and did not fire
+> "why are you stopping and saying it's a one blocker or anything? You can fucking implement it right
+> now, you piece of shit. And in case you actually need that repo for some stupid fucking reason, you
+> can already find it at repos/toolbox!!!"
 
-All from `## Explaining`, in context the whole time:
+**Faults.**
 
-- **Define from zero.** *Every term defined before first use.* Doctest, drift, artifact and
-  co-evolve all appear cold.
-- **A label is not an explanation.** *Say what the thing does.* `Aghajani ICSE 2019` is a label
-  standing exactly where a finding belongs.
-- **A pointer is not an explanation, and neither is a quote.** *Assume unread.* Both reports were
-  written by an outside tool and quoted as if the user held them in mind.
-- **Name the thing, never point at it.** *The mechanism*, *it*, *the technique* and *this* all reach
-  back at an object that was never named once.
+1. **Nine paragraphs arguing a decision that was already made.** The move was locked, written into
+   `design-util.md` and sitting in the backlog. The only thing owed was the plan and a confirmation.
+   Length is a claim about weight, so a page said *this is contested*, and the user spent the page
+   finding out it was not.
+2. **A blocker reported without looking for the file.** `toolbox/bin/add-repo` was on the machine the
+   whole time, at `repos/toolbox/bin/add-repo`, findable with one `ls`. Instead the absence was
+   handed back as a decision for the user to make. A lookup the reply could do is never a question.
+3. **Pointers standing where the answer belongs.** *"`design-util.md` → `### The namespaces at the
+   start` carries all of it, and `backlog.md:69` holds the `github` half"* — two file references
+   instead of the two sentences saying what `clone` and `bookmark` do.
+4. **Five git terms, undefined, in an answer about two shell scripts.** *gitlink*, *`HEAD`'s tree*,
+   *`.gitmodules`*, *`git submodule status`*, *`git submodule update --init`*. The user opened the
+   section to find out what happened to a list of commands.
+5. **Neither command is ever described in the user's terms.** What `bookmark` does is write one
+   markdown line about a repo into a file, so a list of interesting repos builds up. That sentence
+   appears nowhere; the bullet carries the alias, the sibling command and a parenthetical instead.
 
-### Root cause
+**Rule that failed.** Two, both loaded. *Match depth to weight* — *a minor point gets a line* — did
+not fire, because it names the symptom without saying what length costs. *A label, a pointer and a
+quote are not explanations* did not fire on a file path used as an answer.
 
-The section was written as a record, not as an explanation. Its purpose was to put a disagreement on
-file — argued once, sourced, then dropped — and the statistics were there to prove the objection was
-researched instead of asserted. **Proof that a claim is well-founded is not the same as saying what
-the claim is.** Defensibility got optimised and the reader was handed citations where the argument
-should have been.
+**Root cause.** Reporting the state of the record instead of doing the work. The user asked what
+happened to the commands; the reply said where they are written down and what was blocking them.
 
-Same family as the entry above it: a requirement other than the reader's understanding was treated
-as the deliverable.
-
-### What would have been right
-
-- **Name the mechanism in one plain sentence before arguing about it.** A check that runs the
-  examples in the docs and fails when one breaks.
-- **Say what it would do here, then why it does not fit.** Stop there.
-- **Make a number into a sentence a reader can use, or cut it.** *One study of 878 real complaints
-  found most were about wrong or missing content rather than about writing.* A statistic nobody can
-  interpret is decoration.
-- **A section that changes nothing is three sentences or it is absent.**
+**Right instead.** A settled decision gets the plan and the confirmation, never the case for it. Look
+before reporting something missing. Say what each command does in one plain sentence, then build it.
+Two rules were written from this entry: **Length claims importance** and **Never argue a decision
+already made**, both in `## Explaining` → `### The message`.

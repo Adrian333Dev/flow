@@ -24,15 +24,15 @@ Move at triage speed — building a skill is the one slow step, and it fires rar
 
 ## Inputs
 
-- **`docs/inbox.md`** — always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
+- **`.flow/inbox.md`** — always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
 - **Closed tickets nobody has filed yet** — `flow ls --unfiled` gives the ids, usually several. In each folder read `issues.md` for what the build learned, and everything in `reports/` for what was answered.
 - **The groundwork this session closed** — sweep its `map.md`: promote reusable lessons into skills, move strays out to where they belong. Never open a map this session did not work.
 
 ## Routing
 
 - **Reusable — a tip, pattern, gotcha or method** → the skill that already covers it, by **altitude** below.
-- **Reusable, and no skill covers it** → flag it in `docs/inbox.md` as `needs skill: <subject> — <note>`. Several flags on one subject earn a skill; one flag is not evidence.
-- **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`: a ticket, a groundwork map, `docs/context/`, project rules, preferences, `~/.claude/flow/notes.md`.
+- **Reusable, and no skill covers it** → flag it in `.flow/inbox.md` as `needs skill: <subject> — <note>`. Several flags on one subject earn a skill; one flag is not evidence.
+- **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`: a ticket, a groundwork map, `docs/context/`, project rules, preferences, `~/.flow/notes.md`.
 
 **Defer to what exists.** No `docs/spec/` → a locked decision goes to the groundwork that owns the subject, whose `map.md` is the decision log. Never invent a parallel doc bucket.
 

@@ -1,6 +1,6 @@
 # Writing a skill
 
-Read this before creating or restructuring a skill. Style lives in `~/.claude/flow/references/writing.md`, including how to write the `description`.
+Read this before creating or restructuring a skill. Style lives in `~/.flow/references/style.md`, including how to write the `description`.
 
 ## Before writing one
 
@@ -16,17 +16,20 @@ Read this before creating or restructuring a skill. Style lives in `~/.claude/fl
 - **`standards/`** — how you work, held for the whole run. It produces nothing on its own and never finishes
 - **`stack/`** — what you are touching
 - **`commands/`** — what the user mainly invokes. Filed by who reaches for a skill rather than by its subject, and it wins wherever two fit: `/cut-from-spec` is a phase and files here
+- **`drafts/`** — a skill being written. `flow install` skips this group, so start every new skill here and graduate it with `mv`
 
-**Every Flow skill installs on every machine.** `home/skills` names them all, so a skill is typeable from the moment it exists. A project's `.claude/flow/skills` is for a skill that is not Flow's — one vendored in from elsewhere, or one belonging to that project alone. `flow skills add <name>` writes that list, and `flow skills sync` rebuilds its links on a fresh clone.
+**Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. There is no list of names to keep in step with the tree. A skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it.
 
-**Every skill is on by default, and a project turns off what it does not want.** `skillOverrides` in a project's `.claude/settings.json` is where that happens, keyed by skill name:
+**What a session is shown is decided by group, in `skillOverrides`.** `phases/`, `commands/` and `tools/` are on; `stack/` is off and a project turns on the one it needs; `standards/` is decided per skill. The machine's list ships in `home/settings.json`, and a project overrides it key by key in its own `.claude/settings.json`.
+
+Two values, keyed by skill name:
 
 - **`on`** — the name and the description. What a skill gets when nothing names it
-- **`name-only`** — the name alone. Still invocable by the model
-- **`user-invocable-only`** — the model is shown nothing, `/name` still works
 - **`off`** — the model is shown nothing and `/name` refuses
 
-**Turn a skill off with `off`.** Take `user-invocable-only` where you still want to type it. **Never `name-only`** — it removes the description and leaves the skill invocable, so the model keeps the power to fire it and loses what it would judge with.
+**Claude Code accepts `name-only` and `user-invocable-only` too, and Flow uses neither.** `name-only` hides the description and leaves the skill invocable, so the model keeps the power to fire it and loses what it would judge with. `user-invocable-only` hides it from the model entirely, which makes a skill that exists to fire during a phase unfirable.
+
+**`flow skills ls` is how you find a skill you are not being shown.** It prints every skill with its state and which file set it. Nothing announces a skill that is off, because the announcement would load in every project including the ones that turned it off.
 
 **The machine's `settings.json` names no skill.** A project's settings override it key by key, so the project file reads as the list of what this project turned off, and nothing has to be re-enabled anywhere.
 

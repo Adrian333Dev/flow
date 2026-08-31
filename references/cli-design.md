@@ -12,7 +12,7 @@ flow <command> [id]... [--flags]
 - **A word naming no command is a ticket id.** `flow t047` shows one; `flow get t047` is the same thing spelled out.
 - **Positionals name what the command acts on** — one id, several ids, or the title for `new`, where no ticket exists yet to point at.
 - **A second positional names a mode, never a second target.** `flow open t047 build` reads as *open it at building*. Reversed 2026-08-24, having said one target only: a status typed there is the user saying which one, and a flag would spell the same thing longer.
-- **A path positional is allowed only where the command must run outside a repo.** `flow open docs/handoff.md` is the one, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
+- **A path positional is allowed only where the command must run outside a repo.** `flow open .flow/handoff.md` is the one, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
 - **Everything else is a flag.**
 
 ## One default noun
@@ -92,7 +92,7 @@ One row per status, in lifecycle order, which is the order the verbs print in he
 - **`live`** — still in play, so anything depending on it stays blocked
 - **`inFlight`** — someone is working on it
 - **`satisfies`** — a dependency on this ticket counts as met
-- **`terminal`** — history, so the folder moves to `docs/tickets/archive/`
+- **`terminal`** — history, so the folder moves to `.flow/tickets/archive/`
 - **`reason`** — the move refuses without `--reason`
 
 Adding a status means adding a row and nothing else. The one thing a row cannot carry is a refusal. `done` refuses on a parent with open children; `dropped` refuses while live dependents exist. Those guards are code, attached to a status by name.

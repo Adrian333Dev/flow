@@ -19,7 +19,7 @@ test('a ticket is created, moved and archived', () => {
   const made = flow(dir, ['new', 'Split the parser', '--type', 'chore']);
   assert.strictEqual(made.code, 0, made.stderr);
 
-  const folders = fs.readdirSync(path.join(dir, 'docs', 'tickets'));
+  const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets'));
   assert.strictEqual(folders.length, 1);
   const id = folders[0].split('-')[0];
   assert.match(id, /^t\d+$/);
@@ -34,8 +34,8 @@ test('a ticket is created, moved and archived', () => {
 
   assert.strictEqual(flow(dir, ['done', id]).code, 0);
   assert.ok(
-    fs.existsSync(path.join(dir, 'docs', 'tickets', 'archive')),
-    'a closed ticket moves to docs/tickets/archive/'
+    fs.existsSync(path.join(dir, '.flow', 'tickets', 'archive')),
+    'a closed ticket moves to .flow/tickets/archive/'
   );
 });
 

@@ -19,7 +19,7 @@
  * directory. Only put rules here that hold everywhere. A rule that belongs to
  * one repo goes in that repo's .claude/settings.json, never here.
  *
- * Node, not Python: `flow` and `fmerge` already make node a hard dependency of
+ * Node, not Python: `flow` and `util` already make node a hard dependency of
  * the toolchain, so this adds nothing new and drops a third language.
  */
 

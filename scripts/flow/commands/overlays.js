@@ -3,7 +3,7 @@
  * Project overlays — what one project adds to a skill it cannot edit.
  *
  * A skill exists once per machine and every project shares that copy, so a
- * project extends one by writing `.claude/flow/overlays/<name>.md`. A skill
+ * project extends one by writing `.flow/overlays/<name>.md`. A skill
  * that can be extended ends with a shell line calling this command, and
  * whatever it prints lands in the body Claude Code loads.
  *
@@ -12,7 +12,7 @@
  *
  * `get` is the only action, and the default, so `flow overlays groundwork` is
  * the whole of it. An overlay is written in an editor, and listing them is
- * `ptree .claude/flow/overlays`.
+ * `util fs tree .flow/overlays`.
  */
 
 const fs = require('fs');
@@ -51,7 +51,7 @@ actions.get = {
       return 0;
     }
 
-    const file = path.join(root, '.claude', 'flow', 'overlays', `${name}.md`);
+    const file = path.join(root, '.flow', 'overlays', `${name}.md`);
     let body;
     try {
       body = fs.readFileSync(file, 'utf8');

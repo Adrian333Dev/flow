@@ -3,7 +3,7 @@
  * The ticket model on disk. One entity — a ticket absorbs what used to be a
  * separate "topic", so a ticket that decomposes just has children.
  *
- *   docs/tickets/t047-daemon-detection/ticket.md    folder from birth, constant inner name
+ *   .flow/tickets/t047-daemon-detection/ticket.md    folder from birth, constant inner name
  *
  * Frontmatter is owned by these commands; the body is written by hand. That is
  * why templates hold body only — the frontmatter is generated, never templated.
@@ -62,7 +62,7 @@ const REASON_STATUSES = [...statuses.NEEDS_REASON];
 // ticket makes the second one. It is set even where the ticket taught nothing,
 // because recording that it was looked at is what drains the queue.
 
-// Terminal tickets move to docs/tickets/archive/ so the live pool stays
+// Terminal tickets move to .flow/tickets/archive/ so the live pool stays
 // readable in a file tree. Two buckets, never one per status — a folder per
 // status would make location duplicate `status`, which is the thing that
 // killed promote-on-building. `parked` is revivable, so it stays in the pool.
@@ -77,8 +77,8 @@ const SLUG_MAX = 48;
 // stays the identity, so a label that goes stale breaks nothing.
 const LABEL_WORDS = 3;
 
-const ticketsDir = (root) => path.join(root, 'docs', 'tickets');
-const archiveDir = (root) => path.join(root, 'docs', 'tickets', ARCHIVE);
+const ticketsDir = (root) => path.join(root, '.flow', 'tickets');
+const archiveDir = (root) => path.join(root, '.flow', 'tickets', ARCHIVE);
 
 /**
  * t47 / 47 / T047 all normalize to t047. Returns null for anything else.

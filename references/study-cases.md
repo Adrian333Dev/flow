@@ -4,7 +4,7 @@ One failure, recorded, so the rule that prevents it gets written from evidence i
 
 ## Note or case
 
-`~/.claude/flow/notes.md` when there is nothing to preserve — friction hit twice, a gap, a rule that fought the work. One line.
+`~/.flow/notes.md` when there is nothing to preserve — friction hit twice, a gap, a rule that fought the work. One line.
 
 A study case when **an artifact exists that will be gone tomorrow**: output the user reacted to, a file that came out wrong, a rule that was loaded and did not fire. The conversation holding it gets compacted; this file is the only copy.
 
@@ -19,7 +19,7 @@ A study case when **an artifact exists that will be gone tomorrow**: output the 
 
 `--rule` names the rule that was loaded and did not fire. Omit it when none was.
 
-Cases are files, at `~/.claude/flow/study-cases/<issue>/<date>-<slug>.md`. A folder only when one carries attachments — a long pasted output, two versions of one file.
+Cases are files, at `~/.flow/study-cases/<issue>/<date>-<slug>.md`. A folder only when one carries attachments — a long pasted output, two versions of one file.
 
 ## Two stages
 
