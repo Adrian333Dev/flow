@@ -173,7 +173,7 @@ Three commands leave `flow install`'s link table, and Flow gains a prerequisite 
 installs on a machine that never wanted Flow. Flow depends on `util`, never the reverse, and a folder
 inside Flow could not satisfy that.
 
-The rewritten toolbox joins it under `lab/` on the same terms, once it is rewritten.
+The toolbox joins it under `lab/` on the same terms, and the rewrite happens there rather than before.
 
 **Every submodule rule this repo already carries applies**: changes are committed and pushed from
 inside the folder, then the new pointer is committed here.

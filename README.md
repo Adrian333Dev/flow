@@ -10,5 +10,11 @@ A Claude Code workflow for a solo developer: rules that load in every session, a
 - `scripts/` — the command-line tools, `flow` first among them
 - `skills/` — every skill, filed by group
 - `project-template/` — what a new project starts with
+- `docs/dev/` — how to change Flow: the two checkouts, the scratch session, the tests, adding a skill
 
-**Installing is undocumented.** The manual belongs in `docs/manual/`, which is designed and unwritten.
+## Documentation
+
+Two audiences, and a folder each.
+
+- **[Developing Flow](docs/dev/README.md)** — for whoever is changing Flow itself. Written, and it covers the parts that are settled.
+- **The manual** — for whoever is using Flow. It belongs in `docs/manual/`, which is designed and unwritten, so installing is undocumented until it exists.

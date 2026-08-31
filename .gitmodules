@@ -1,3 +1,6 @@
 [submodule "lab/util"]
 	path = lab/util
 	url = https://github.com/Adrian333Dev/util
+[submodule "lab/toolbox"]
+	path = lab/toolbox
+	url = https://github.com/Adrian333Dev/toolbox.git

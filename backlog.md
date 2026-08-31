@@ -11,9 +11,8 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 
 ## Next
 
-1. **`docs/dev/`** — the dev checkout is its first page
-2. **End-to-end testing** — widen the two suites past the 15 and 29 tests they hold now
-3. **The install skill, then Delapse** — last, and only once everything above is still
+1. **End-to-end testing** — widen the two suites past the 15 and 29 tests they hold now
+2. **The install skill, then Delapse** — last, and only once everything above is still
 
 ## The skill system
 
@@ -64,7 +63,7 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 Locked 2026-08-30 and built the same day, all 3 namespaces; `util install` followed on 2026-08-31. A second command-line tool, separate from `flow`, holding every general-purpose script. Its own repository, a submodule of this one at `lab/util/`. Every argument is in `design-util.md`, and `## Built 2026-08-30` there says what shipped and the decisions the design did not carry.
 
 - [ ] **`git init` never runs without `-b main`** anywhere in Flow — the install skill, the manual, any script that creates a repository. The `util` rename is what this is protecting against repeating
-- [ ] **Rewrite the toolbox and bring it under `lab/` as a submodule** — same terms as `lab/util/`. The clone to work from is `repos/toolbox`
+- [ ] **Rewrite the toolbox** — external tools filed by job, and nothing loads it today. It comes under `lab/` as a submodule first, on `lab/util/`'s terms, and the rewrite happens there. `repos/toolbox` is the old plain clone, redundant once the submodule is added
 
 ## Subagents and dispatch
 
@@ -112,7 +111,6 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 
 ## Docs for whoever reads Flow
 
-- [ ] **`docs/dev/`** — documentation for whoever develops Flow, beside `docs/manual/` for whoever uses it. The dev checkout is its first page and nothing describes it anywhere. `design-public-docs.md` → `## docs/dev/`
 - [ ] **`docs/manual/` is designed and unwritten** — official documentation for a stranger, A to Z, 6 sections grouped by why you are reading, indexed by `README.md`. The first thing someone reads after cloning. Nothing gets written until the workflow is finished and the install skill exists. `design-public-docs.md` carries the whole design, `lab/research/doc-design/` the evidence
 
 ## Install and migration

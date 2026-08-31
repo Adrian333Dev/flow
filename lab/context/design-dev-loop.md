@@ -133,3 +133,24 @@ describes it anywhere today.
 **Everything else updates with `git pull`, because every other path is a symlink.** So the whole of
 what the install skill has to solve for updates is: on a re-install, diff those two shipped files
 against the machine's, show what changed since last time, and let the user merge.
+
+## `docs/dev/` written, 2026-08-31
+
+5 pages: `README.md`, `checkout.md`, `scratch-session.md`, `tests.md`, `skills.md`. `## docs/dev/`
+above says the dev checkout is the first page it needs and that nothing describes it anywhere; both
+sentences are answered now.
+
+**Scope was cut to what is locked** (user, 2026-08-31). The workflow is still moving and the user
+said so while approving the pages, so the set covers the mechanics of changing Flow — the two
+checkouts, `try.sh`, the tests, the groups, `flow install`, `util` — and describes no skill and no
+phase. Nothing in the 5 pages goes stale when a skill is rewritten.
+
+**The pages took the procedure out of `CLAUDE.md`, rather than restating it.** `## Trying a change`
+was 8 bullets of `try.sh` and `npm test` detail loaded into every session; it is 4 lines now, holding
+the rule that `try.sh` is not an install and the `--print` form, and pointing at the 2 pages. This is
+the rule-versus-procedure line `design-public-docs.md` drew, applied for the first time.
+
+**`## Authoring a skill` stayed whole.** Those are rules deciding what you write rather than steps
+you follow, and `style.md` § 10 tells a documentation page to state a definition rather than send the
+reader away for it. The section now names both other homes for the same material —
+`write-skills.md` for a project, `docs/dev/skills.md` for Flow — so an edit hits all 3.

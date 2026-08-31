@@ -16,7 +16,8 @@ owed.
 ## What works today
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
-`flow overlays` and the test harness. Flow's suite passes 15 tests; `util`'s own suite passes 29.
+`flow overlays`, `util` in full, and the test harness. Flow's suite passes 15 tests; `util`'s own
+suite passes 29.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -46,6 +47,25 @@ until 2026-08-31, because `git init` ran without `-b main`. **Nothing has run ou
 scratch registry.** `util install` writes the `util` and `u` links into `~/.local/bin`, and it has
 never been run against the real one.
 
+**`docs/dev/` is written and `docs/manual/` is not, as of 2026-08-31.** 5 pages under `docs/dev/`:
+an index, the two checkouts, the scratch session, the tests, and adding a skill. Written to
+`references/style.md` § 10, and deliberately limited to what is locked — the mechanics of changing
+Flow, `flow install`, `util`, the groups. Nothing describes the skill set, which is still moving.
+The root `README.md` indexes both folders. `docs/manual/` waits on the workflow being finished and
+the install skill existing.
+
+**`CLAUDE.md` → `## Trying a change` shrank to 4 lines when those pages landed.** The procedure moved
+to `docs/dev/scratch-session.md` and `docs/dev/tests.md`; what stayed is the rule that `try.sh` is
+not an install, and the `--print` form. `## Authoring a skill` stayed whole, and now names 2 other
+files carrying the same material for other readers.
+
+**`lab/toolbox/` is decided and not yet added, as of 2026-08-31.** The user approved bringing the
+toolbox back as a submodule beside `lab/util/`. Every record says it is there — `CLAUDE.md` in 4
+places, `backlog.md`, this file — and the folder appears only when the user runs
+`git submodule add https://github.com/Adrian333Dev/toolbox.git lab/toolbox`. Until that runs, those
+records are ahead of disk. `repos/toolbox` is the old plain clone and it is still on disk, now
+redundant.
+
 **Flow depends on `util`, and 3 scripts left `scripts/` to make that true.** `gsave.sh`, `ptree.js`
 and `fmerge.js` moved on 2026-08-30, becoming `git save`, `fs tree` and `fs merge`. `flow install`'s
 `BIN` is down to `flow` and `fw`, and `util install` owns the other links. **The prerequisite is
@@ -67,4 +87,4 @@ All under `lab/context/`, and every one is history rather than status.
 - `design-util.md` — the utility CLI: why it is not `flow`, the namespaces, the source registry, and
   what it costs Flow. Built in full
 - `design-dev-loop.md` — two checkouts, the scratch session, the `drafts/` group, and the real
-  migration problem. Unbuilt
+  migration problem. Built, except the two checkouts, which are a procedure rather than code
