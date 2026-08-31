@@ -11,10 +11,9 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 
 ## Next
 
-1. **`util install`** — the last thing between `util` and a machine that can type it
-2. **`docs/dev/`** — the dev checkout is its first page
-3. **End-to-end testing** — widen the two suites past the 15 and 25 tests they hold now
-4. **The install skill, then Delapse** — last, and only once everything above is still
+1. **`docs/dev/`** — the dev checkout is its first page
+2. **End-to-end testing** — widen the two suites past the 15 and 29 tests they hold now
+3. **The install skill, then Delapse** — last, and only once everything above is still
 
 ## The skill system
 
@@ -62,9 +61,8 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 
 ## `util`, the utility CLI
 
-Locked 2026-08-30 and built the same day, all 3 namespaces. A second command-line tool, separate from `flow`, holding every general-purpose script. Its own repository, a submodule of this one at `lab/util/`. Every argument is in `design-util.md`, and `## Built 2026-08-30` there says what shipped and the decisions the design did not carry.
+Locked 2026-08-30 and built the same day, all 3 namespaces; `util install` followed on 2026-08-31. A second command-line tool, separate from `flow`, holding every general-purpose script. Its own repository, a submodule of this one at `lab/util/`. Every argument is in `design-util.md`, and `## Built 2026-08-30` there says what shipped and the decisions the design did not carry.
 
-- [ ] **`util install`** — the `util` and `u` links in `~/.local/bin`, and this repository's `commands/` registered as the first source. The README carries the 3 commands by hand until it exists
 - [ ] **`git init` never runs without `-b main`** anywhere in Flow — the install skill, the manual, any script that creates a repository. The `util` rename is what this is protecting against repeating
 - [ ] **Rewrite the toolbox and bring it under `lab/` as a submodule** — same terms as `lab/util/`. The clone to work from is `repos/toolbox`
 
@@ -125,7 +123,7 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 - [ ] **The install skill reads `docs/` before writing into it** — a project that already has `docs/spec/` or `docs/research/` needs those merged, never overwritten. The working store moving to `.flow/` on 2026-08-30 removed most of the collision and not this part. `design-public-docs.md` → `## The docs collision`
 - [ ] **The install skill warns when a site generator serves `docs/`** — `docusaurus.config.js`, `mkdocs.yml` or a GitHub Pages setting means every markdown file under `docs/` is published, so Flow's `spec/` and `research/` would go live without anyone deciding to. `design-public-docs.md` → `## The docs collision`
 - [ ] **`docs/intake/` has no always-loaded mention** — it holds a project's pre-Flow material, and the `## References` section that named it was deleted from `home/CLAUDE.md` on 2026-08-29. `references/workflow.md` is the only file naming it now, and that loads only when the workflow is unclear. Its real owner is the install skill
-- [ ] **Every typed command runs a dead clone** — `flow`, `ptree`, `fmerge` and `gsave` resolve through `~/.local/bin` into the workbench repo deleted on 2026-08-07, so `flow work` is unreachable by name and `flow` runs old code. `flow install` repoints `flow` and `fw`; the other 3 names are `util`'s now, and `util install` is what clears them. Waits until the skill set is final. `refactor-agenda.md` §8
+- [ ] **Every typed command runs a dead clone** — `flow`, `ptree`, `fmerge` and `gsave` resolve through `~/.local/bin` into the workbench repo deleted on 2026-08-07, so `flow work` is unreachable by name and `flow` runs old code. `flow install` repoints `flow` and `fw`, and `util install` adds `util` and `u`. The 3 old names belong to nobody now and get deleted by hand. Waits until the skill set is final. `refactor-agenda.md` §8
 - [ ] **Test built-in `/init` with `CLAUDE_CODE_NEW_INIT=1`** against a real repo first — it already does the codebase survey, the gap questions and a reviewable proposal
 - [ ] **Migrate Delapse** — the real test, and where its conventions route into the project `CLAUDE.md` and `docs/context/`. `design-project-docs.md` carries the routing test and the 2026-07-29 survey of its docs
 - [ ] **Keep Delapse's project-local skills, converted** — reversed 2026-08-26. They are not Flow's skills. With `.claude/flow/skills` gone, each one is either copied into `<project>/.claude/skills/<name>/` and committed with Delapse, or vendored into Flow's tree under a group when a second project wants it. `design-skills.md`

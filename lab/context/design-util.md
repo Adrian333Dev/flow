@@ -309,3 +309,32 @@ the drawing under `## util ls` was corrected to match.
 while every other repository the user has is `main`. The user renamed it on 2026-08-31 — local
 branch, remote branch, GitHub default, old branch deleted. The lasting fix is that nothing in Flow
 ever writes a bare `git init` again; the install skill and the manual both name `-b main`.
+
+## `util install`, 2026-08-31 — the last piece
+
+`util` goes on a machine now. `builtin/install.js` links `util` and `u` in `~/.local/bin`, both
+pointing at `util.js`, and registers this repository's `commands/` through `sources.add()`, on the
+same terms as any other source. 29 tests pass, and nothing named in `## Where to start` is unbuilt.
+
+**Run by path once, then by name.** `node <clone>/util.js install` is the first run, because `util`
+is not a command until that run has made it one. That is `flow install`'s shape, for `flow install`'s
+reason.
+
+**The clone is `path.resolve(__dirname, '..')`, and `flow`'s `cloneRoot()` did not transfer.** Flow
+walks up looking for a marker; `util`'s entry point sits at the root of its clone, and Node resolves
+`__dirname` through the symlink to the real file. A re-run typed as `util` therefore finds the clone
+the link points into, which is what makes moving the clone and re-running the fix for a dead link.
+
+**A second redirect, because a test cannot forget an environment variable.** The registry already
+moves with `UTIL_HOME`. `~/.local/bin` had nothing, so a test omitting a flag would have put real
+symlinks on the machine running the suite — the accident `flow install` refuses a lone `--home` to
+prevent, in a shape no flag pair can catch. `--bin <path>` is the flag a person types, `UTIL_BIN` is
+the fallback ahead of the default, and the test helper sets it beside `UTIL_HOME` once for every test.
+
+**Every name is checked before any name is written.** A real file holding `u` would otherwise leave
+`util` linked and the registry written by a run that failed. `fs link` refuses a multi-source run
+before the first link lands, for the same reason.
+
+**The one flag is read by hand.** `lib/args.js` covers a builtin taking nothing and a builtin taking
+one path, and a general parser for a single name is noise. `## Decided against` rules out declared
+flags for *dispatched* commands, which a builtin is not.

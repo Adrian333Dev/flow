@@ -16,7 +16,7 @@ owed.
 ## What works today
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
-`flow overlays` and the test harness. Flow's suite passes 15 tests; `util`'s own suite passes 25.
+`flow overlays` and the test harness. Flow's suite passes 15 tests; `util`'s own suite passes 29.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -37,15 +37,18 @@ Code 2.1.251 and covered by a test.
 both deleted, along with `flow skills add` and `flow skills sync`. `flow install` reads the tree
 instead, and the scratch session passes `--drafts` so a half-written skill is reachable there.
 
-**`util` is a second CLI and a submodule of this repo at `lab/util/`,** built 2026-08-30. Working
-today: the dispatcher, the `~/.util/sources` registry, `util source add/ls/drop`, namespace
-resolution, `util ls`, and 3 namespaces — `git save`, `fs tree|merge|link`, `github clone|bookmark`.
-The repository is [`Adrian333Dev/util`](https://github.com/Adrian333Dev/util). Its default branch was
-`master` until 2026-08-31, because `git init` ran without `-b main`.
+**`util` is a second CLI and a submodule of this repo at `lab/util/`,** built 2026-08-30 and
+finished 2026-08-31. Working today: the dispatcher, the `~/.util/sources` registry, `util source
+add/ls/drop`, namespace resolution, `util ls`, `util install`, and 3 namespaces — `git save`,
+`fs tree|merge|link`, `github clone|bookmark`. Nothing in `design-util.md` is unbuilt. The repository
+is [`Adrian333Dev/util`](https://github.com/Adrian333Dev/util), and its default branch was `master`
+until 2026-08-31, because `git init` ran without `-b main`. **Nothing has run outside a test and a
+scratch registry.** `util install` writes the `util` and `u` links into `~/.local/bin`, and it has
+never been run against the real one.
 
 **Flow depends on `util`, and 3 scripts left `scripts/` to make that true.** `gsave.sh`, `ptree.js`
 and `fmerge.js` moved on 2026-08-30, becoming `git save`, `fs tree` and `fs merge`. `flow install`'s
-`BIN` is down to `flow` and `fw`, and `util install` will own the other links. **The prerequisite is
+`BIN` is down to `flow` and `fw`, and `util install` owns the other links. **The prerequisite is
 real but soft:** `open.js` runs `util fs merge` off `PATH`, and a machine without `util` still opens
 the ticket and prints `util is not on PATH` where the files would have been. The coupling is
 acceptable only while `util` is public.
@@ -62,6 +65,6 @@ All under `lab/context/`, and every one is history rather than status.
 - `design-public-docs.md` — the manual, the scopes in `style.md`, why the working store is `.flow/`,
   and the `~/.flow/` and `docs/dev/` decisions
 - `design-util.md` — the utility CLI: why it is not `flow`, the namespaces, the source registry, and
-  what it costs Flow. Built as far as `github bookmark`; `util install` is the remainder
+  what it costs Flow. Built in full
 - `design-dev-loop.md` — two checkouts, the scratch session, the `drafts/` group, and the real
   migration problem. Unbuilt
