@@ -44,6 +44,7 @@ Every stored thing gets these 5:
 - **Extra commands are allowed, and one test decides.** `edit` sets one field, on one ticket, to a value you typed. An extra command earns its place by breaking one of those three: `drop` re-points every ticket that depended on this one, `file` stamps several tickets at once, `dep` edits a list and so takes `--on` and `--off` rather than a value. `tree` writes nothing at all.
 - **A missing action is deliberate, and the file says why.** Cases have no `drop`, because a recorded failure is never removed — keeping it is the point of writing it down.
 - **A group names its most typed action the default, and that word can be left out.** `flow overlays groundwork` is `flow overlays get groundwork`. It is the rule the flat namespace already runs one level up, where a word naming no command is read as a ticket id.
+- **A bare group name prints help, unless its default action takes no argument.** Then the bare form runs that action: `flow git` answers, `flow cases` helps. Nothing new declares which. An action with no `args` cannot be missing one, so the bare form is always a complete call.
 - **`work` names no default**, because its `get` replays a stored copy over the folder you are standing in. A mistyped action falling through to a write of your working tree is the one worth refusing.
 
 ## Status verbs

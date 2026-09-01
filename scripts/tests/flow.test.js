@@ -73,3 +73,36 @@ test('--help prints the surface without needing a project', () => {
   assert.match(result.stdout, /flow new/);
   assert.match(result.stdout, /flow next/);
 });
+
+test('flow git writes a mode, scopes it, and clears every scope at once', () => {
+  const dir = project('flow-git');
+  const home = path.join(dir, 'flow-home');
+  const settings = path.join(home, 'settings.json');
+  const run = (args, session) => {
+    const env = { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: home };
+    if (session) env.CLAUDE_CODE_SESSION_ID = session;
+    else delete env.CLAUDE_CODE_SESSION_ID;
+    return require('./helpers/scratch').run('flow/flow.js', args, { cwd: dir, env });
+  };
+
+  assert.match(run(['git']).stdout, /git writes: off/);
+
+  const on = run(['git', 'allow'], 'S1');
+  assert.strictEqual(on.code, 0, on.stderr);
+  assert.match(on.stdout, /allow in this session/);
+  assert.strictEqual(JSON.parse(fs.readFileSync(settings, 'utf8')).git.session, 'S1');
+
+  assert.match(run(['git'], 'S1').stdout, /allow in this session/);
+  assert.match(run(['git'], 'S2').stdout, /git writes: off/, 'another session sees off');
+
+  // Outside a session the entry lands on the project instead.
+  assert.match(run(['git', 'ask']).stdout, /ask in this project/);
+  assert.ok(fs.existsSync(path.join(dir, '.flow', 'settings.json')));
+
+  assert.match(run(['git', 'off']).stdout, /git writes: off$/m);
+  assert.match(run(['git'], 'S1').stdout, /git writes: off/, 'off clears the session entry too');
+
+  const bad = run(['git', 'allow', '--for', 'banana']);
+  assert.strictEqual(bad.code, 1);
+  assert.match(bad.stderr, /--for takes 30m, 2h or never/);
+});

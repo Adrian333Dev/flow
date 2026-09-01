@@ -23,7 +23,7 @@ One clone holds every file. Installing points names at that clone, so editing a 
 Two directories hold the result, and the split tells you without opening either one whether deleting it breaks Claude Code or loses your work:
 
 - **`~/.claude/`** holds what Claude Code reads: `CLAUDE.md`, `settings.json`, `skills/` and `agents/`
-- **`~/.flow/`** holds what only Flow reads: `scripts/`, `references/`, `notes.md` and `study-cases/`
+- **`~/.flow/`** holds what only Flow reads: `scripts/`, `references/`, `settings.json`, `notes.md` and `study-cases/`
 
 A project has the same pair for the same reason. `.claude/` carries its settings and any external skill; `.flow/` carries its tickets, groundwork, inbox and handoff.
 

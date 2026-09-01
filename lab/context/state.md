@@ -28,7 +28,9 @@ behind it are `design-util.md` and `design-dev-loop.md`.
 here and that is the normal state, so `~/.claude/` and `~/.flow/` are both absent; `bash
 lab/scripts/try.sh` builds them under `tmp/` instead. The split shipped 2026-08-30 with the
 `--flow-home` flag the design had missed — one flag redirected the whole install beforehand, and
-afterwards it covered half. `CLAUDE.md` → `## Repo rules` carries the rule.
+afterwards it covered half. `CLAUDE.md` → `## Repo rules` carries the rule. **From 2026-09-02 the
+scratch configuration is seeded from `~/.claude/`** — the credentials, the account and the theme — so
+a rebuilt session starts signed in instead of running first-install onboarding every time.
 
 **The off list names `web-pages` today**, and nothing else. Which groups are on moved out of
 `CLAUDE.md` on 2026-09-01 and is now in `docs/dev/skills.md` → `## The groups`. Off globally and on
@@ -60,6 +62,22 @@ into `## Repo rules`. `## Authoring a skill` keeps the 6 decisions no page carri
 how-to to `docs/dev/skills.md`. `## Trying a change` is 3 lines. `CHANGELOG.md`'s suspension sits in
 `## Writing any file` now. **7 sections remain, and every one is a rule** — the file carries neither
 status nor a map. `design-dev-loop.md` → `## The tree map left CLAUDE.md` has the measurements.
+
+**Git writes are a switch, built 2026-09-01.** `flow git allow|ask|off` writes a `git` entry into
+`~/.flow/settings.json`, and `guard.js` re-reads it before every shell command, so a change lands on
+the next call with nothing to restart. Off is the default. Scope is the session unless `--project` or
+`--global` widens it, an hour unless `--for` says otherwise, and the guard deletes an entry the first
+time it looks at an expired one. All 19 git entries left `permissions.deny`, which makes `guard.js`
+the only thing between the agent and git — so a throw there denies a git command rather than falling
+through. Destructive commands ask however the mode is set, `worktree` joined `clone` as instructed,
+and the agent running `flow git allow` is denied. `threads.md` → `git-writes` carries the arguments.
+
+**`/run` was deleted 2026-09-01, replaced by Claude Code's shell mode.** Typing `! <command>` in the
+input box shows the command beside its output and never reaches the model, which is what `/run` was
+built to approximate. `home/settings.json` sets `respondToBashCommands: false`, so the output lands
+in context and the next message decides what to do with it. **The guard does not fire on a shell-mode
+command, verified 2026-09-02**, so `! flow git allow` is how the switch gets thrown and the input box
+carries `CLAUDE_CODE_SESSION_ID` like the Bash tool does.
 
 **`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01.** It holds external tools filed
 by job — MCP servers, plugins, skills, libraries, apps. Nothing loads it, nothing installs from it,

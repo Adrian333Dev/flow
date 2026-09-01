@@ -110,7 +110,18 @@ function dispatch(argv, { commands, groups, fallback, sections, title, notes }) 
 
   const group = groups[name];
   const [typed, ...args] = rest;
-  if (!typed || HELP_WORDS.includes(typed)) { out(groupHelp(name, group)); return 0; }
+
+  // A group with nothing after it prints its help, unless its default action
+  // takes no argument — then the bare form is that action. `flow cases` has
+  // nothing to show without a name and helps instead; `flow git` answers.
+  if (!typed || HELP_WORDS.includes(typed)) {
+    const fallbackAction = group.default && group.actions[group.default];
+    if (!typed && fallbackAction && !fallbackAction.args) {
+      return runAction(fallbackAction, [], `flow ${name} ${group.default}`);
+    }
+    out(groupHelp(name, group));
+    return 0;
+  }
 
   const actions = Object.keys(group.actions);
   if (group.default && !actions.includes(typed)) {

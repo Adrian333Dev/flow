@@ -21,6 +21,7 @@ const cases = require('./commands/cases');
 const work = require('./commands/work');
 const overlays = require('./commands/overlays');
 const skills = require('./commands/skills');
+const git = require('./commands/git');
 const install = require('./commands/install');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
@@ -111,12 +112,20 @@ overlay a project adds to a skill without editing it, because one copy of that
 default cases, skills and overlays each read a bare word as an argument to
         their most used action: flow overlays groundwork is flow overlays get
         groundwork. work has none, because its get writes over the folder you
-        are standing in`;
+        are standing in
+git     off everywhere by default: the agent names a git command that writes
+        and you run it. flow git allow lifts that for an hour, flow git ask
+        confirms each one instead. guard.js reads the entry before every shell
+        command, so it lands on the next one with nothing to restart. The scope
+        is this session unless --project or --global widens it, and the entry
+        is deleted the first time anything looks at it after --for runs out.
+        Destructive commands ask however this is set, and turning it on is
+        yours to type: the agent is refused, so use ! flow git allow`;
 
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, work, skills, overlays },
+    groups: { cases, work, skills, overlays, git },
     fallback: tickets.fallback,
     sections: SECTIONS,
     title: TITLE,

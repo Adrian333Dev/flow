@@ -714,26 +714,66 @@ per call, and it can read a state file.
 anything"*. Move the authority into `guard.js` and that property is gone: a bug in the hook now widens what
 git can do rather than narrowing it. Anything built here has to be tested against that, not reasoned about.
 
-### Open, and none of it decided
+### Decided and built 2026-09-01
 
-- **Where the switch lives.** An environment variable dies with the shell. A file under `~/.flow/` persists
-  across sessions and is invisible unless something prints it. A per-project `.flow/` file scopes it to one
-  repo, which is probably what "on for the util repo, off everywhere else" actually means.
-- **What it turns on.** Every write, or a tier — `add` and `commit` at one level, `push`, `reset --hard`
-  and `rebase` needing a second. `push --force` and `clean` are the two that destroy work nobody can get
-  back.
-- **How the session knows.** A rule the model cannot see the state of produces an agent that either never
-  tries or tries constantly. The switch has to surface somewhere the session reads.
-- **What happens to the `home/CLAUDE.md` line.** Deleted outright, or rewritten to name the switch and say
-  what the default is.
+**The switch is `flow git`, and its state is `~/.flow/settings.json`.** A flat `git` key holding `mode`,
+`until` and an optional `session`. Flat because a `toggles` wrapper guesses that the next setting is also a
+toggle, and `config` inside a file called settings names nothing. The `until` field is what marks an entry
+the guard may delete, so the wrapper bought nothing it was proposed for.
 
-### What waits on this
+**`guard.js` re-reads it before every shell command**, which is the whole reason the switch works
+mid-session. A variable set at launch was designed first and rejected for exactly that: the user turns it on
+in the middle of a session, almost every time.
 
-- **Git worktrees**, in `backlog.md` → `## Subagents and dispatch`. A worktree is created by `git worktree
-  add`, which is a write, so the feature cannot exist under the ban.
-- **Creating the `util` repository.** `git init`, the first commit and `git submodule add` are all writes.
-  Deferred by the user 2026-08-30: they will run those 3 commands by hand, and `util` does not wait for this
-  thread.
+**Three scopes, session first.** `flow git allow` covers the session it was typed in, `--project` a
+repository, `--global` a machine, and the narrowest wins. `CLAUDE_CODE_SESSION_ID` holds the session's id and
+`session_id` is a common field on every hook payload, so the command knows which session it is in and the
+guard knows which one is asking, with nothing passed between them. Verified 2026-09-02: the variable carries
+the same id the transcript file is named after, and the input box exports it as well as the Bash tool does.
+
+**An hour by default, and the guard prunes what expired.** Nothing tells Flow that a session ended, so an
+entry with no clock is one you have to remember to turn off — the exact failure the switch was meant to
+avoid. The guard is the only thing that wakes up, so cleanup happens the first time anything looks.
+`--for never` exists for the rare standing case.
+
+**Three things hold whatever the mode says.** Reads always run, by allowlist. Destructive commands always
+ask — force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, tag and ref deletes,
+`reflog delete`, `gc --prune`, `worktree remove --force` — so nothing is walled off and nothing runs
+silently. And `flow git allow` from the agent is denied, because a switch the agent can throw is decorative.
+
+**`worktree` left the switch's scope entirely**, joining `clone` in the instructed set. It writes no history
+and touches nothing in the checkout you are standing in. So worktrees no longer wait on this thread; what
+they wait on is the `EnterWorktree` and `Agent(isolation:worktree)` denies, which are a separate question.
+
+**The fail-safe trade was accepted.** `permissions.deny` lost all 19 git entries, because deny is additive
+and no file, flag or project setting can lift a user-level entry — a rule there would sit permanently in
+front of any switch. `guard.js` is now the only thing between the agent and git, so an unexpected throw
+denies a git command instead of falling through. Everything else stays silent on a throw: failing closed
+across all of Bash would stop a session dead over one bad regex.
+
+### The guard is for what the agent runs, never for the user
+
+**Settled 2026-09-01, after coming back three times.** `guard.js` is a `PreToolUse` hook, so it only ever
+sees a tool call. A command the user types in their own terminal never reaches it. A command typed in the
+input box behind `!` — shell mode — "doesn't require Claude to interpret or approve", so it does not reach
+a tool call either. Neither is the guard's business, whatever the command is.
+
+**`/run` was deleted the same day, because it was the one exception.** Its `` !`…` `` body ran through the
+Bash tool, which the skills documentation states outright, and no field in the hook payload distinguishes an
+injected command from one the agent composed. So the guard could not exempt it, and a denied injected
+command aborts the whole invocation rather than reporting anything. Shell mode replaces it and is better on
+every axis — it shows the command beside its output, cannot abort, and never reaches the model.
+
+**The guard does not fire on a shell-mode command. Verified 2026-09-02.** The user typed
+`! node ~/code/flow/scripts/flow/flow.js git allow` in a scratch session with the hook installed, and the
+state line printed where the self-unlock refusal would have gone. So `! flow git allow` is how the switch
+gets thrown, and no second terminal is needed.
+
+**The switch shipped reading a variable name that does not exist.** `git.js` asked for `CLAUDE_SESSION_ID`;
+Claude Code sets `CLAUDE_CODE_SESSION_ID`. Every unlock fell back to project scope without saying so, and
+the suite passed because the test set the wrong name itself — an environment a test supplies proves the code
+reads what the test writes, never that anything else writes it. `design-skills.md` had carried the right
+name since August. Fixed 2026-09-02.
 
 **The repo's own `CLAUDE.md` carries a separate, stricter ban covering work on Flow itself.** This thread is
 about the shipped rule in `home/CLAUDE.md`. Whether the repo rule moves with it is its own question, and the

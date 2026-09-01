@@ -35,9 +35,17 @@ The scratch session therefore tests the arrangement an install produces, rather 
 
 ## Why it is not an install
 
-Everything lands under `tmp/`. `~/.claude` and `~/.flow` are neither read nor written, and no name goes on your `PATH` — that is what `--no-bin` is for.
+Everything lands under `tmp/`. Nothing outside it is ever written, and no name goes on your `PATH` — that is what `--no-bin` is for. `~/.flow` is neither read nor written.
 
-The one path reached outside the repository is `~/.claude/.credentials.json`, symlinked into the scratch configuration so the session can authenticate. Without it the session starts and asks you to log in, which the script warns about.
+Three files under `~/.claude/` are read. Each one answers a question the session would otherwise ask you:
+
+- `.credentials.json` — symlinked in, so the session authenticates as you
+- `.claude.json` — the account, the onboarding flag and the terminal key binding
+- `settings.json` — the colour theme, and nothing else
+
+The configuration is rebuilt on every run, so without them you answer all three every time.
+
+**Named keys are copied, never the whole file.** Your `~/.claude.json` also carries every project you have opened, every connected MCP server and every skill's usage count. A session pretending to be a fresh machine should see none of it, so `try.sh` names the keys it takes and ignores the rest.
 
 ## Editing during a run
 

@@ -11,10 +11,10 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 
 ## Next
 
-1. **`/file-findings` rewrite** — it never learned the groups exist
-2. **The git-mutation toggle** — it unblocks worktrees, and worktrees unblock parallel dispatch
-3. **Splitting `home/CLAUDE.md`** — before the hard rules grow again
-4. **End-to-end testing** — widen the two suites past the 15 and 29 tests they hold now
+1. **Splitting `home/CLAUDE.md`** — before the hard rules grow again
+2. **Git worktrees** — the git toggle cleared the way, and worktrees unblock parallel dispatch
+3. **End-to-end testing** — widen the two suites past the tests they hold now
+4. **A manual page on what Claude Code already does** — features that would have replaced things Flow built
 5. **The management skill** — last, and only once everything above is still
 
 ## The skill system
@@ -52,7 +52,6 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 
 ## Rules and always-loaded files
 
-- [ ] **Git mutations become a toggle, and the blanket ban leaves `home/CLAUDE.md`** — decided 2026-08-30, undesigned. 3 places enforce it and `permissions.deny` is the blocker, because nothing can switch it at call time. Supersedes the parked *move the git rule into `## Preferences`* item; git worktrees waits on it. **talk first**. `threads.md` → `git-writes`
 - [ ] **Split `home/CLAUDE.md` before the hard rules grow again** — the always-loaded file only grows, and many more hard rules are coming. Two destinations: reference files it points at, and skills that fire on a situation. The example the user named is a skill firing whenever the agent plans a change, edits a file or runs a plan, carrying every rule about changing files. What it decides is which rules must be in context from turn 1 and which can arrive when they apply. **talk first**
 - [ ] **Re-ask the 7 rejected questions in a scratch session**, against the rebuilt `## Explaining`. The rewrite is unmeasured until then, and 6 earlier rounds of rule-writing were never tested either. Only the newest is in `shit-explanations.md`; the other 6 are in git — `git log -p -- lab/context/shit-explanations.md`
 - [ ] **`## Explaining` in `home/CLAUDE.md` has no *UI is drawn, never described* bullet**, which the repo `CLAUDE.md` carries. A layout question in plain conversation loads no skill, so the rule has a moment with no owner. **talk first**
@@ -70,12 +69,34 @@ Locked 2026-08-30 and built the same day, all 3 namespaces; `util install` follo
 
 ## Subagents and dispatch
 
-- [ ] **Git worktrees** — a custom solution for git. Waits on the git toggle in `## Rules and always-loaded files`, which decides what a subagent may run. **talk first**
+- [ ] **Git worktrees** — a custom solution for git. The git toggle no longer blocks it: `worktree` is instructed, so `guard.js` passes `worktree add` whatever the mode says. What is left is the `EnterWorktree` and `Agent(isolation:worktree)` denies in `home/settings.json`, both holds rather than verdicts, and who merges the work back. **talk first**. `threads.md` → `subagent-mechanics`
 - [ ] **Parallel subagent calls** — blocked on git worktrees, and on `snapshot.js`, which records the whole tree either side of a dispatch and cannot tell two writers apart. **talk first**. `threads.md` → `execute-cost`
-- [ ] **Tracking every session, subagent and tool call** — hooks carry `session_id`, `agent_id` and the file path natively, and are the only layer that can also block a call. Not designed. **talk first**. `lab/research/claude-audit.md`
 - [ ] **Output contract, tool allowlist and model, per agent** — nothing fixes what a dispatched agent returns. **talk first**. `threads.md` → `extension-points`
 - [ ] **Does `haiku-worker` survive at all?** — contested. **talk first**. `threads.md` → `extension-points`
 - [ ] **What a parent can do to a subagent it dispatched** — revisit when one actually runs. **parked**. `threads.md` → `subagent-mechanics`
+
+## The audit
+
+Decided 2026-09-01, undesigned. A full record of what Claude Code did — every session, subagent, prompt and tool call — read on demand. **It is a log, never a fixed report:** what counts as an issue is not known ahead of time, so the question gets composed at query time. **Claude Code already writes the record**, verified 2026-09-01 against `claude-directory.md` and this machine's own transcripts, so what is missing is retention, an index, grouping and a reader — never a recorder. `lab/research/claude-audit.md` is research from before that conversation could see this repo, and both its hook pipeline and its `~/.claude-audit/` sketch are superseded.
+
+- [ ] **Build the audit over `~/.claude/projects/`** — the transcript, the `subagents/` folder and the `tool-results/` spill are already on disk. Index them, group them, and read them back. **talk first**. `lab/research/claude-audit.md`
+- [ ] **4 grouping levels, and only run needs building** — turn (`promptId`) and session (`sessionId`) are native, and segment is derivable because compaction writes `isCompactSummary` into the transcript. A session survives 58 compactions under one id, so session alone groups nothing
+- [ ] **The query surface** — named queries for what gets asked often, and a raw one for everything nobody predicted. The reduction happens in the query, because reading the log into context is the waste it exists to find. **talk first**
+- [ ] **A reader that renders an archived session** — `/export` covers the live one only, and reading the conversation is half of why the audit exists
+- [ ] **Pruning the archive** — `cleanupPeriodDays` is 365 as of 2026-09-01, in `home/settings.json` and on this machine, so nothing bounds `~/.claude/projects/` for a year. Prune by run rather than by age, and never sweep what a study case pins
+- [ ] **Reuse or replace `/insights`** — it already caches a deterministic per-session extract at `~/.claude/usage-data/session-meta/` and an LLM facet extract at `facets/`, both keyed by session id. Read before building an index. `lab/research/claude-audit.md`
+- [ ] **Recording the sessions a ticket was worked in** — a `SessionStart` hook has `session_id` and `cwd`, and `statuses.js` says which ticket is in flight. It also fires on `compact`, so a naive hook counts one session 4 times
+- [ ] **`~/.flow/notes.md` and study cases cite the audit** — both become readers of it. A case still extracts and commits what it cites, because the archive is machine-local and swept. `references/study-cases.md` justifies writing one immediately because the conversation is the only copy, and retention weakens that premise. **talk first**
+- [ ] **Rename `~/.flow/notes.md` to `workflow-notes.md`** — it holds workflow faults, and the name says notes. 4 live files name it: `home/CLAUDE.md`, this repo's `CLAUDE.md`, `references/study-cases.md`, and 2 lines here
+
+## The Claude Code reference
+
+What Claude Code actually does, written down and kept current, so no session re-derives it. Started 2026-09-01 after a design ran on guesses that `claude-directory.md` and `sessions.md` had already answered. **It grows without limit** — every verified mechanic goes in, and the hard rule in `CLAUDE.md` sends every question here and to the docs before any experiment.
+
+- [ ] **Write the first page** — session lifecycle is the subject already verified: what starts and ends a session, what compaction, `/clear`, `--resume` and `/branch` each do to the id, and where transcripts and subagent transcripts land on disk
+- [ ] **Decide where the pages live** — `lab/research/claude-code/` sits beside the cloned docs it distills, and it collides with the rule that every record under `lab/` is history. It is maintained, like `lab/context/state.md`
+- [ ] **The subjects still unwritten** — load order at startup, when `CLAUDE.md` is re-read and what invalidates the cache, how skills load and unload, every hook and what it can intervene in, how files are read and spilled, what survives compaction. **talk first**
+- [ ] **Every page cites the doc it came from** — a mechanic verified by experiment says so, and says which version it was measured on
 
 ## Drawing
 
@@ -112,6 +133,7 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 
 ## Docs for whoever reads Flow
 
+- [ ] **A manual page on what Claude Code already does** — `/run` spent months doing a worse version of shell mode, a built-in feature nobody knew was there, and was deleted the day it surfaced. The page lists the built-ins worth knowing and the Flow-shaped mistake each one prevents: shell mode against building a command skill, `permissions.deny` being additive against any switch layered over it, the documented hook payload against guessing what a hook receives. It grows every time a feature turns out to have been there all along. **talk first** on where it sits — its own page, or a section of one that exists
 - [ ] **`docs/manual/` is designed and unwritten** — official documentation for a stranger, A to Z, 6 sections grouped by why you are reading, indexed by `README.md`. The first thing someone reads after cloning. Nothing gets written until the workflow is finished and the install skill exists. `design-public-docs.md` carries the whole design, `lab/research/doc-design/` the evidence
 
 ## Install and migration

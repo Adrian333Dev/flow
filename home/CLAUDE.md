@@ -14,7 +14,7 @@ Flow — an agentic development workflow for a solo developer.
 - **A description is an index entry, never the file's documentation.** A header comment below it, or a second paragraph in an `.info`, stays as long as it needs to be. Say what the thing holds, not why it exists. **A skill's frontmatter `description` is a different field** — Claude Code loads it whole and fires the skill from it alone, so its length is set by `~/.flow/references/style.md` §8 and by nothing above.
 - **No `mkdir`** — Write creates directories.
 - **Batch operations into one call.** Shell steps chain with `&&`; independent tool calls go in one block. Split only where a step's output decides the next.
-- **Never run or propose a git command that writes.** Reads are fine; the user drives git.
+- **Git writes are off. Name the command, the user runs it.** Reads run freely. A write is refused before it runs, and the refusal says why. **Never try to turn writes on, and never ask the user to** — `flow git allow` is refused from here by design. Even with writes on, a destructive command stops for a yes.
 - **Every file gets the writing pass, inside the edit that touched it.** A spec, a plan, a ticket, a context file, anything written for someone to read — plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. Reading it is not the pass. **Never leave a file for a later pass.** Every one deferred comes back as a rewrite.
 - **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
 - **Reason before agreeing.** Test a proposal, objection or correction. Disagree out loud, once, with the argument. Repetition isn't evidence. Then the user decides.
@@ -45,7 +45,7 @@ Three fire inside any phase, and in bare conversation with none loaded:
 
 **Always invoke the one that fires, and never improvise its job.** An obvious small task takes none of them, and reading what exists to learn how it works is never `/groundwork`.
 
-**`/start`, `/run`, `/cut-from-spec` and `/file-findings` are the user's to type, and nothing shows them to you.** One named in conversation is installed and reachable — say which line to type. A skill named and genuinely absent → say so and stop.
+**`/start`, `/cut-from-spec` and `/file-findings` are the user's to type, and nothing shows them to you.** One named in conversation is installed and reachable — say which line to type. A skill named and genuinely absent → say so and stop.
 
 `~/.flow/references/workflow.md` — the pieces defined, where each artifact lives, and which status sequence each ticket type walks. Only when that is genuinely unclear.
 

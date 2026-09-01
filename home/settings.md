@@ -19,7 +19,7 @@ Runs `scripts/guard.js` before every Bash call. The script reads the pending com
 
 Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed under nvm has to be on it — but `flow` and `util` are Node too, so that is already a hard requirement of the toolchain and this adds nothing new. What it removes is a third language in a five-file folder.
 
-**The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves only the deny list, which can name git commands but not the open set of everything else.
+**The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves nothing deciding a shell command — the deny list holds no `Bash` entries at all, because a static list cannot name the open set of what a shell command can be.
 
 ### The snapshot pair
 
@@ -41,7 +41,7 @@ Records the working tree before a subagent runs and again after, then hands the 
 Two consequences worth knowing:
 
 - **The diff covers the window, not the worker.** Everything that changed between the two events lands in it, whoever changed it, so one subagent at a time and a parent that touches nothing meanwhile. `/execute` carries that as an instruction; this is where it comes from.
-- **`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state, and `guard.js` exempts exactly that form. The `Bash(git add:*)` deny rule below is a separate gate that has never been tested against it — under these hooks it does not matter, because a hook runs its own command rather than calling the Bash tool.
+- **`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state. It runs as a hook rather than through the Bash tool, so `guard.js` never sees it and the git mode never applies to it.
 
 ### Why worktree isolation is off
 
@@ -92,15 +92,32 @@ These are **bare tool names**, which removes each tool from the model's context 
 | `NotebookEdit` | Jupyter notebooks. Not in any workflow here. |
 | `DesignSync` | Design-tool sync. Unused — and absent from the published tool reference, so it was found by logging a real request rather than by reading the docs. |
 
-### `deny` — git mutations
+### `deny` — no git entries, and why
 
-Every command that changes repository state: `add`, `commit`, `push`, `pull`, `reset`, `rebase`, `merge`, `checkout`, `switch`, `restore`, `rm`, `mv`, `stash`, `clean`, `cherry-pick`, `revert`, `branch -*`, `worktree add`, `worktree remove`.
+**No `Bash(git …)` rule appears in this file, and adding one would break the switch.** `guard.js` decides every git command instead.
 
-Read-only git — `status`, `log`, `diff`, `show` — is untouched and runs freely.
+A deny rule is read once at session start, and it only ever adds. Nothing in a project, a flag or a settings file can lift a user-level entry, so a rule written here is permanent and no switch can reach past it. `guard.js` runs before every shell command and re-reads its state each time, which is what lets the mode change mid-session.
 
-The agent names the exact command; you run it. This is a **Flow default, not a personal preference**: git history is the one thing an agent cannot un-break, and a rewritten branch or a stray `reset --hard` costs work that exists nowhere else.
+`flow git` writes that state, into `~/.flow/settings.json`:
 
-`guard.js` blocks the same set independently, so a missing or overridden settings file still leaves git covered.
+```
+flow git                    what the mode is, and when it runs out
+flow git allow [--for 2h]   the agent may write with git
+flow git ask                the same, confirming every one
+flow git off                back to reads only
+```
+
+The scope is the session you type it in, unless `--project` or `--global` widens it. It lasts an hour unless `--for` says otherwise. Past that, the guard deletes the entry the first time it looks — so a switch left on turns itself off.
+
+`--project` writes `.flow/settings.json` inside the repository, and the project template ignores that path. An unlock is this machine's state with a clock on it: committed, it would be one commit saying git writes are on and another an hour later saying they are off.
+
+Three things hold whatever the mode says:
+
+- **Reads always run.** `status`, `log`, `diff`, `show` and 22 more, by allowlist. Anything outside it is a write
+- **Destructive commands always ask.** A force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, a tag or ref delete, `reflog delete`, `gc --prune`, `worktree remove --force`. They ask rather than deny, so you can still say yes — they just never run silently
+- **The agent cannot turn it on.** `flow git allow` is refused when the agent runs it. Type it yourself as `! flow git allow`, which reaches no tool call and so reaches no guard
+
+`guard.js` is the only thing between the agent and git now, so an error it cannot recover from denies a git command rather than falling through.
 
 ### Modes
 
@@ -147,7 +164,23 @@ Reversed 2026-08-30. Every skill was on by default until then, on the argument t
 
 **Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off — the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill on the machine with its state and which file set it.
 
-**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/start`, `/run`, `/cut-from-spec` and `/file-findings` carry it because *never* is true of them. Everything else is decided here.
+**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/start`, `/cut-from-spec` and `/file-findings` carry it because *never* is true of them. Everything else is decided here.
+
+---
+
+## `cleanupPeriodDays`
+
+```json
+"cleanupPeriodDays": 365
+```
+
+Claude Code deletes session data older than this at startup, and the default is 30 days. What it takes is the whole record of how a session ran: `~/.claude/projects/<project>/<session>.jsonl`, the `subagents/` transcripts beneath it, the `tool-results/` spill, plus `file-history/`, `plans/`, `debug/` and `paste-cache/`.
+
+**Flow raises it because the transcript is evidence.** A study case exists to preserve an artifact that would be gone tomorrow, and the transcript is where that artifact actually lives. At 30 days, a rule written last month can no longer be traced back to the session that caused it.
+
+365 rather than a decade, because the sweep is the only thing bounding this folder. A month of real work runs to roughly 300 MB, so a year costs a few gigabytes and ten years costs tens. Raise it once something prunes deliberately.
+
+The minimum is 1, and `0` fails validation. A settings file that cannot be parsed pauses the sweep entirely, and `/status` carries the warning until it is fixed.
 
 ---
 
@@ -161,6 +194,7 @@ Reversed 2026-08-30. Every skill was on by default until then, on the argument t
 | `disableClaudeAiConnectors` | `true` | No claude.ai connectors. |
 | `disableArtifact` | `true` | No artifact tool. `/visualize` renders inline. |
 | `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo — `CLAUDE.md`, `docs/`, or a skill. |
+| `respondToBashCommands` | `false` | A command you type behind `!` in the input box puts its output in context and stops there, instead of spending a turn reacting to it. `! flow git allow` and `! ls` should cost nothing. When you want a reaction, the next message asks for one — and it carries your instructions, which an automatic reply cannot. |
 
 ---
 

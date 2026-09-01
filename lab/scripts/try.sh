@@ -4,9 +4,11 @@
 #
 # A development script. It ships nowhere, and `flow install` never links it.
 #
-# Everything is built under tmp/, which is gitignored. The one path reached
-# outside the repo is the credential file, symlinked so the scratch session can
-# authenticate; ~/.claude and ~/.flow are never read and never written.
+# Everything is built under tmp/, which is gitignored. Three files outside it
+# are read and none is written: the credentials, ~/.claude.json and
+# ~/.claude/settings.json. Between them they carry the login and every answer
+# onboarding asks for, so a scratch session starts signed in. ~/.flow is neither
+# read nor written.
 #
 # Skills and agents are symlinked rather than copied, so editing one in the
 # repo is live inside the running session — write, save, invoke. That is the
@@ -70,6 +72,57 @@ if [ -e "$creds" ]; then
 else
   echo "warning: no credentials at $creds — the scratch session will ask you to log in"
 fi
+
+# The credentials alone leave the session at the first-run screens: a theme, the
+# terminal key binding, then a login. Each of those answers is stored, and none
+# of them is stored in the credential file. The account and the onboarding flag
+# live in ~/.claude.json, and the theme in ~/.claude/settings.json. This config
+# is rebuilt every run, so without copying them the whole sequence runs again
+# every time.
+#
+# Named keys, never the whole file. The real ~/.claude.json also carries every
+# project opened on this machine, every MCP server ever connected and every
+# skill's usage count — none of which a session pretending to be a fresh install
+# should see.
+node - "$HOME/.claude.json" "$HOME/.claude/settings.json" "$home" <<'NODE'
+const fs = require('fs');
+const [state, settings, home] = process.argv.slice(2);
+
+const read = (file) => {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return {};
+  }
+};
+
+const KEYS = [
+  'hasCompletedOnboarding',
+  'lastOnboardingVersion',
+  'shiftEnterKeyBindingInstalled',
+  'oauthAccount',
+  'userID',
+  'installMethod',
+  'firstStartTime',
+  'numStartups',
+];
+
+const real = read(state);
+const seed = {};
+for (const key of KEYS) if (key in real) seed[key] = real[key];
+fs.writeFileSync(`${home}/.claude.json`, `${JSON.stringify(seed, null, 2)}\n`);
+
+// The theme travels on its own, because it is answered during onboarding and
+// then written to settings.json. It stays out of home/settings.json: that
+// template is public, and a colour choice belongs to the machine.
+const { theme } = read(settings);
+if (theme) {
+  const file = `${home}/settings.json`;
+  const scratch = read(file);
+  scratch.theme = theme;
+  fs.writeFileSync(file, `${JSON.stringify(scratch, null, 2)}\n`);
+}
+NODE
 
 # ---- the scratch project ----------------------------------------------------
 

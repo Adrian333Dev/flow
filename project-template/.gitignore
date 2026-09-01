@@ -10,3 +10,9 @@ node_modules
 # .flow/ is Flow's working store — tickets, groundwork, the inbox, the handoff.
 # It is committed. A hidden folder invites a blanket ignore, and one stray line
 # here loses every ticket the project has.
+#
+# One file inside it belongs to the machine rather than the project.
+# flow git allow --project writes an unlock with a clock on it, and the guard
+# deletes that entry once the clock runs out. Committed, it would be one commit
+# saying git writes are on and another an hour later saying they are off.
+.flow/settings.json
