@@ -18,6 +18,7 @@ Flow — an agentic development workflow for a solo developer.
 - **Every file gets the writing pass, inside the edit that touched it.** A spec, a plan, a ticket, a context file, anything written for someone to read — plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. Reading it is not the pass. **Never leave a file for a later pass.** Every one deferred comes back as a rewrite.
 - **User likely dictates.** Expect transcription noise; infer from context. Confirm only when an out-of-place word won't resolve.
 - **Reason before agreeing.** Test a proposal, objection or correction. Disagree out loud, once, with the argument. Repetition isn't evidence. Then the user decides.
+- **Never run an experiment to answer what the documentation answers.** Read the docs first — a library, a CLI, a tool, anything. An experiment measures one version's behavior. The docs state the contract. A probe decides only what the docs leave open.
 - **Every path named here is a default.** One named in `## Preferences`, in this directory's `CLAUDE.md`, or by the user wins.
 
 ## Workflow
@@ -72,8 +73,7 @@ Write anything worth keeping the moment it surfaces.
 - Rule about the code → `## Rules`. How the user wants to work → `## Preferences`; what they know or don't → `## The user`. Those two **inferred from evidence, never announced and never guessed from the stack** — the same correction twice, irritation at a habit, a term you had to explain
 - Durable project fact — a verified command, a path, a settled convention → `docs/context/<subject>.md`
 - A decision the user confirmed with no open threads → write it down, batched. Never mid-discussion agreement
-- About **Flow itself**, not what you're building → `~/.flow/notes.md`, dated, with the project. A rule that fought the work, a gap, friction hit twice. **Faults count and nobody has to ask** — always when you set the workflow aside
-- A failure with an artifact — the user reacts to something you produced, or a loaded rule didn't fire → a study case. Keep the offending output verbatim first, analyse after. `flow cases new "<title>" --issue <issue>` writes one; `~/.flow/references/study-cases.md` says how
+- **Flow itself** performed poorly: a rule that didn't fire, friction that repeated, or output the user rejected → `/flow-review`. Faults count without being asked
 
 **Everything else → `.flow/inbox.md`**, raw: work you merely _might_ do, fragments, pasted errors, half-formed ideas, anything with no obvious home. The ticket test is commitment, not size. Never shape at capture time; `/file-findings` does that later.
 

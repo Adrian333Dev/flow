@@ -16,8 +16,8 @@ owed.
 ## What works today
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
-`flow overlays`, `util` in full, and the test harness. Flow's suite passes 15 tests; `util`'s own
-suite passes 29.
+`flow overlays`, `flow audit`, `util` in full, and the test harness. Flow's suite passes 27 tests;
+`util`'s own suite passes 29.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -63,6 +63,18 @@ how-to to `docs/dev/skills.md`. `## Trying a change` is 3 lines. `CHANGELOG.md`'
 `## Writing any file` now. **7 sections remain, and every one is a rule** — the file carries neither
 status nor a map. `design-dev-loop.md` → `## The tree map left CLAUDE.md` has the measurements.
 
+**`flow audit` is built, 2026-09-02.** It reads the transcripts Claude Code writes at
+`~/.claude/projects/`, derives a SQLite index, and answers queries against it. Nothing is recorded
+and nothing is intercepted, so the whole thing works on sessions that ran before it existed. **The
+index is derived and rebuildable** — `flow audit index --rebuild` throws the file away and writes it
+again, which is also what a schema change does. 3 modules under `scripts/flow/lib/audit/`: `store.js`
+holds the schema, `scan.js` walks the transcripts, `files.js` decides which file a tool call touched.
+`query.js` and `read.js` sit on top, and `/audit` is the skill. Measured on this machine: 51
+transcripts, 241 MB, walked in 3 seconds into a 44 MB index of 79,676 events, 3,189 turns, 276
+segments and 12,278 tool calls. **Reading resumes from a byte offset**, so a second run over an
+unchanged file opens nothing. `design-audit.md` carries the design and what the build changed about
+it; `backlog.md` → `## The audit` carries the 7 items left.
+
 **Git writes are a switch, built 2026-09-01.** `flow git allow|ask|off` writes a `git` entry into
 `~/.flow/settings.json`, and `guard.js` re-reads it before every shell command, so a change lands on
 the next call with nothing to restart. Off is the default. Scope is the session unless `--project` or
@@ -106,3 +118,5 @@ All under `lab/context/`, and every one is history rather than status.
   what it costs Flow. Built in full
 - `design-dev-loop.md` — two checkouts, the scratch session, the `drafts/` group, and the real
   migration problem. Built, except the two checkouts, which are a procedure rather than code
+- `design-audit.md` — the audit: what a transcript line carries, why a segment is the grouping unit,
+  the schema, the 3 tools the skill offers, and where the data lives. Built

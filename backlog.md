@@ -22,6 +22,7 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and rebuilt the same day. Flow keeps Claude Code's skills and adds 3 things: a group folder, which files a skill and decides only whether `drafts/` skips it; one shell line per skill for overlays; and a rule that a skill invoked over and over stays short. What a session is shown is per group — `phases/`, `commands/` and `tools/` on, `stack/` off, `standards/` decided per skill. Every argument is in `design-skills.md`.
 
 - [ ] **`project-template/` ships no `.claude/settings.json`** — with `stack/` off by default, turning one on is the first thing a project needs, and there is no file to write it in. Decide whether the template carries an empty `skillOverrides` or the docs just say where to write one
+- [ ] **Remove the `commands/` group and split its skills into semantic groups** — each skill moves to the group that fits what it does. **talk first**
 - [ ] **`flow install` no longer prunes `~/.claude/commands/`** — a machine carrying an older Flow would keep dead links there beside the new skills. No machine has installed Flow, so nothing is broken; it belongs to the management skill
 - [ ] **External skills** — 1 project copies the folder into `.claude/skills/` and commits it. Several projects means vendoring it into Flow's tree with its origin recorded, then linking it like any Flow skill
 - [ ] **Plugins are a fourth install state Flow does not control** — off by default. `extraKnownMarketplaces` in the committed settings, `enabledPlugins` in `.claude/settings.local.json`, and a flip takes effect next session. `skillOverrides` is not an off switch: it leaves the commands and the hooks running
@@ -34,7 +35,7 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 
 - [ ] **Rebuild `/web-pages` on `browser-harness`** — 1,059 lines to roughly 150: 54 in `SKILL.md`, 514 in `knowledge/`, 491 in 2 scripts. The capture transport dies, the investigation method stays. Waits for the move to Linux. It is also the 1 skill excluded from the writing pass until then. `design-browser-tooling.md`
 - [ ] **`/file-findings` needs a rewrite** — it never learned the groups exist, so its `needs skill:` flag reaches the author without the one decision they make next; and it applies its method at step 4 but reports at step 7, where the wanted order is sort, shape, show the grouped plan, take feedback, then write. **talk first**. `design-commands-as-skills.md`
-- [ ] **Introducing development skills** — skills that help build and improve Flow itself, not skills about writing code. **talk first**
+- [ ] **Introducing development skills** — skills that help build and improve Flow itself, not skills about writing code. `dev/` is the group, `/flow-review` is the first skill
 - [ ] **`/grill`** — decided and undesigned: a skill you fire at a finished artifact, `disable-model-invocation: true`, never model-invoked. **talk first**
 - [ ] **Cold-reader `/grill`** — hand the stripped mechanism to subagents that never saw the conversation, so neither can defend it. **talk first**. `remaining.md`
 - [ ] **A knowledge base per skill** — `docs/context/` has no shape for one and no self-improvement loop. `browser-harness` is the model: knowledge lives at `domain-skills/<host>/` and the navigation call surfaces it, so the agent never decides to look. Worth most once domain skills exist. **talk first**
@@ -59,6 +60,8 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 - [ ] **Dependency discipline** — a check before any dependency is added, and how a bulk version bump gets reviewed. **talk first**
 - [ ] **File size as its own review signal** — a small diff that pushes an already-large file past a healthy boundary. **talk first**
 - [ ] **The negation split** — a prohibition where the agent breaks a rule under pressure, a positive recipe where the output comes out the wrong shape. **talk first**. `compression.md`
+- [ ] **A `UserPromptSubmit` hook reinforcing `## Explaining` rules**: appends a short reminder to every user message. **talk first**
+- [ ] **Rewrite `home/CLAUDE.md` against `style.md`**: written with Opus 5, unintelligible lines throughout. Full pass, not patches
 
 ## `util`, the utility CLI
 
@@ -77,26 +80,25 @@ Locked 2026-08-30 and built the same day, all 3 namespaces; `util install` follo
 
 ## The audit
 
-Decided 2026-09-01, undesigned. A full record of what Claude Code did — every session, subagent, prompt and tool call — read on demand. **It is a log, never a fixed report:** what counts as an issue is not known ahead of time, so the question gets composed at query time. **Claude Code already writes the record**, verified 2026-09-01 against `claude-directory.md` and this machine's own transcripts, so what is missing is retention, an index, grouping and a reader — never a recorder. `lab/research/claude-audit.md` is research from before that conversation could see this repo, and both its hook pipeline and its `~/.claude-audit/` sketch are superseded.
+Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` indexes them into a SQLite file, answers queries against it, and opens a bounded turn range of the original conversation when the counts are not enough. Nothing is recorded and nothing is intercepted. `design-audit.md` carries the design.
 
-- [ ] **Build the audit over `~/.claude/projects/`** — the transcript, the `subagents/` folder and the `tool-results/` spill are already on disk. Index them, group them, and read them back. **talk first**. `lab/research/claude-audit.md`
-- [ ] **4 grouping levels, and only run needs building** — turn (`promptId`) and session (`sessionId`) are native, and segment is derivable because compaction writes `isCompactSummary` into the transcript. A session survives 58 compactions under one id, so session alone groups nothing
-- [ ] **The query surface** — named queries for what gets asked often, and a raw one for everything nobody predicted. The reduction happens in the query, because reading the log into context is the waste it exists to find. **talk first**
-- [ ] **A reader that renders an archived session** — `/export` covers the live one only, and reading the conversation is half of why the audit exists
-- [ ] **Pruning the archive** — `cleanupPeriodDays` is 365 as of 2026-09-01, in `home/settings.json` and on this machine, so nothing bounds `~/.claude/projects/` for a year. Prune by run rather than by age, and never sweep what a study case pins
-- [ ] **Reuse or replace `/insights`** — it already caches a deterministic per-session extract at `~/.claude/usage-data/session-meta/` and an LLM facet extract at `facets/`, both keyed by session id. Read before building an index. `lab/research/claude-audit.md`
-- [ ] **Recording the sessions a ticket was worked in** — a `SessionStart` hook has `session_id` and `cwd`, and `statuses.js` says which ticket is in flight. It also fires on `compact`, so a naive hook counts one session 4 times
-- [ ] **`~/.flow/notes.md` and study cases cite the audit** — both become readers of it. A case still extracts and commits what it cites, because the archive is machine-local and swept. `references/study-cases.md` justifies writing one immediately because the conversation is the only copy, and retention weakens that premise. **talk first**
-- [ ] **Rename `~/.flow/notes.md` to `workflow-notes.md`** — it holds workflow faults, and the name says notes. 4 live files name it: `home/CLAUDE.md`, this repo's `CLAUDE.md`, `references/study-cases.md`, and 2 lines here
+- [ ] **A run is not wired to anything** — `run` and `run_session` are built and empty, every query treats them as optional, and nothing writes a row. A `SessionStart` hook has `session_id` and `cwd`, and `statuses.js` says which ticket is in flight. It also fires on `compact`, so a naive hook counts one session 4 times. **talk first**
+- [ ] **Nothing scores a session against Flow's own rules** — no skill exists yet to do this. `/insights` scores friction as 5 fixed categories and caches the result per session; ours would be edited-before-approval, writing pass skipped, stopped at a checkpoint, `ls` where `util fs tree` is mandated. Deterministic where the index can decide it, and a model call only for what it cannot
+- [ ] **The daily sweep is a second mode** — analysing every session since yesterday is batch, and batch wants parallel dispatch, which is blocked on git worktrees. The deterministic half runs at zero token cost over every new session and escalates only what it flags
+- [ ] **`flow audit prune`** — `cleanupPeriodDays` is 365, so nothing bounds `~/.claude/projects/` for a year, and the index is 44 MB against 241 MB of transcripts as of 2026-09-02. Prune by run rather than by age, delete only what the index has fully read, and never sweep what a study case pins
+- [ ] **A subagent's transcript is indexed and unreachable** — each one becomes its own session row carrying `agent_of`, and no query joins on it. A subagent's tool calls do not appear in its parent's totals
+- [ ] **`~/.flow/workflow-notes.md` and study cases cite the audit** — both become readers of it. A case still extracts and commits what it cites, because the index is machine-local and the transcripts are swept. `references/study-cases.md` justifies writing one immediately because the conversation is the only copy, and retention weakens that premise. **talk first**
+- [ ] **A file read inside a script is invisible** — `node build.js` opens a hundred files and the transcript records one command. Nothing recovers those, so every file count is a floor. Worth stating wherever a count is printed, and worth revisiting if a hook can see further
 
 ## The Claude Code reference
 
-What Claude Code actually does, written down and kept current, so no session re-derives it. Started 2026-09-01 after a design ran on guesses that `claude-directory.md` and `sessions.md` had already answered. **It grows without limit** — every verified mechanic goes in, and the hard rule in `CLAUDE.md` sends every question here and to the docs before any experiment.
+What Claude Code actually does, written down and kept current, so no session re-derives it. Started 2026-09-01 after a design ran on guesses that `claude-directory.md` and `sessions.md` had already answered. **It grows without limit** — every verified mechanic goes in, and the hard rule in `CLAUDE.md` sends every question here and to the docs before any experiment. The pages live in `docs/dev/`, decided 2026-09-02; `design-audit.md` carries the argument.
 
-- [ ] **Write the first page** — session lifecycle is the subject already verified: what starts and ends a session, what compaction, `/clear`, `--resume` and `/branch` each do to the id, and where transcripts and subagent transcripts land on disk
-- [ ] **Decide where the pages live** — `lab/research/claude-code/` sits beside the cloned docs it distills, and it collides with the rule that every record under `lab/` is history. It is maintained, like `lab/context/state.md`
+- [ ] **Write the first page** — `docs/dev/claude-code.md`. Session lifecycle is the subject already verified: what starts and ends a session, what compaction, `/clear`, `--resume` and `/branch` each do to the id, and where transcripts and subagent transcripts land on disk
 - [ ] **The subjects still unwritten** — load order at startup, when `CLAUDE.md` is re-read and what invalidates the cache, how skills load and unload, every hook and what it can intervene in, how files are read and spilled, what survives compaction. **talk first**
-- [ ] **Every page cites the doc it came from** — a mechanic verified by experiment says so, and says which version it was measured on
+- [ ] **Every page cites a published URL, never the clone** — `lab/research/claude-code-docs/` is Anthropic's documentation cloned for reading and it gets deleted. A mechanic verified by experiment says so instead, and says which version it was measured on
+- [ ] **Deleting the clone breaks the pointers into it** — the `CLAUDE.md` hard rule on reading the docs names `lab/research/claude-code-docs/` and its `llms.md` index, and 2 lines in this file cite pages inside it. All of them go stale that day. Sweep them to URLs before the delete, not after
+- [ ] **The `docs/dev/` pages need a full rewrite**: structure, wording, and the table of contents format across every page
 
 ## Drawing
 
@@ -111,7 +113,7 @@ What Claude Code actually does, written down and kept current, so no session re-
 - [ ] **Nothing loads on a bare `/start` with no ticket and no path** — a `handoff.md` sits beside whichever thing is being worked, so there can be several and no id points at one. Left out of the 2026-08-24 build
 - [ ] **A dropped file path costs a whole extra turn** — dragging a file from the editor into the terminal pastes its absolute path in quotes, and that is the only easy way to name a file `@` cannot find or that git ignores. The agent then spends one turn seeing the path and a second reading the file. Wanted: the content arrives with the prompt. `UserPromptSubmit` is the shape — it fires before the model processes the prompt and its stdout is added as context, so a hook could read every quoted absolute path and print the file. Undesigned. **talk first**. `lab/research/claude-code-docs/hooks.md`
 - [ ] **Context engineering** — keep what loads as small as possible, and stop cache invalidation when a skill loads mid-session. **talk first**
-- [ ] **Splitting `~/.flow/notes.md`** — by kind, never by project. **parked**
+- [ ] **Splitting `~/.flow/workflow-notes.md`** — by kind, never by project. **parked**
 - [ ] **A `PreCompact` hook** — a block-once state file, so auto-compaction gives way to `/handoff`. The least important thing on this list, and the context-pulse hook beside it was deferred indefinitely 2026-08-08: at a 1M window you fire `/handoff` yourself. **parked**
 
 ## Testing
@@ -151,8 +153,15 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 - [ ] **Tune `guard.js`'s deny and ask lists** against real use — they were written from the rules, never against an observed false positive
 - [ ] **An interview at install to fill `## The user`** — **parked**
 
+## Other people, other models
+
+- [ ] **Name what in Flow is Claude Code and what is portable** — **talk first**, and the first step of everything below. Skills, hooks, `~/.claude/`, `settings.json`, subagents and the audit are one vendor's shapes. The rules, the ticket model, the phases and `util` are not. Nothing records the split
+- [ ] **Run Flow on models other than Claude** — **talk first**. GPT, Qwen and GLM are the targets. Claude Code speaks only the Anthropic Messages API, and gateway model discovery keeps an id only when it contains `claude` or `anthropic`. Whether a translating proxy defeats that filter is open, and the research decides it. `lab/research/claude-code-docs/llms.md` indexes the gateway protocol page
+- [ ] **Survey the harnesses that could host Flow besides Claude Code** — **talk first**. Codex, `deepseek-harness`, and whatever else the search turns up. Each one splits Flow differently, so the survey sizes the portability work
+- [ ] **Build Flow for a stranger** — **talk first**. `home/CLAUDE.md` carries a personal profile, the install has never run on a second machine, and no page explains Flow to somebody who has never seen it. A setup script is fine, and a one-command npm install is not required
+
 ## Research still to read
 
 - [ ] **Read `agent-toolkit/skills/game-changing-features` and `adhd` for `/groundwork`'s idea generation** — **after the V1 release**. Both produce ideas rather than shape one, which is the half `/groundwork` does least: `game-changing-features` forces the *what would make this 10x more valuable* question, and `adhd` is a divergent-ideation engine. `adhd` was already read once, on 2026-08-29, for its writing rules only — this is a different question and the earlier verdict does not carry. `bash lab/scripts/repos.sh` restores both
 - [ ] **Read `claude-task-master` for initialization, the ticket system and the workflow shape** — **after the V1 release**. An AI task-management system that drops into Cursor, Windsurf, Roo and others, 28k stars, JavaScript, last pushed 2026-04-28. It is the closest thing to a direct competitor Flow has: it solves the same ticket problem for many editors where Flow solves it for one, so its onboarding and its task model are the 2 things to read. github.com/eyaltoledano/claude-task-master
-- [ ] **Read `deepseek-harness` for ideas** — a plugin-based agent harness where everything is a plugin, cloned at `repos/deepseek-harness/`. Carries a second question: whether Flow ever runs outside Claude Code. Ranked last here — github.com/deepseek-ai/deepseek-harness
+- [ ] **Read `deepseek-harness` for ideas** — a plugin-based agent harness where everything is a plugin, cloned at `repos/deepseek-harness/`. Ranked last here. `## Other people, other models` now carries the portability question it raised — github.com/deepseek-ai/deepseek-harness

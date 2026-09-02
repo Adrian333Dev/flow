@@ -4,7 +4,7 @@ One failure, recorded, so the rule that prevents it gets written from evidence i
 
 ## Note or case
 
-`~/.flow/notes.md` when there is nothing to preserve — friction hit twice, a gap, a rule that fought the work. One line.
+`~/.flow/workflow-notes.md` when there is nothing to preserve — friction hit twice, a gap, a rule that fought the work. One line.
 
 A study case when **an artifact exists that will be gone tomorrow**: output the user reacted to, a file that came out wrong, a rule that was loaded and did not fire. The conversation holding it gets compacted; this file is the only copy.
 

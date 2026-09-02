@@ -33,7 +33,7 @@ Move at triage speed — building a skill is the one slow step, and it fires rar
 
 - **Reusable — a tip, pattern, gotcha or method** → the skill that already covers it, by **altitude** below.
 - **Reusable, and no skill covers it** → flag it in `.flow/inbox.md` as `needs skill: <group>/<subject> — <note>`. The group is the first thing whoever builds it decides, and `references/write-skills.md` lists them. Several flags on one subject earn a skill; one flag is not evidence.
-- **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`: a ticket, a groundwork map, `docs/context/`, project rules, preferences, `~/.flow/notes.md`.
+- **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`: a ticket, a groundwork map, `docs/context/`, project rules, preferences, `~/.flow/workflow-notes.md`.
 
 **Defer to what exists.** No `docs/spec/` → a locked decision goes to the groundwork that owns the subject, whose `map.md` is the decision log. Never invent a parallel doc bucket.
 

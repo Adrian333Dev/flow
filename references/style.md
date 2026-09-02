@@ -2,7 +2,7 @@
 
 Three scopes, and every section below belongs to one.
 
-**Everything Flow writes** — a skill, a `CLAUDE.md`, a workflow doc, a message to the user, a documentation page a stranger reads that no session ever loads. §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
+**Everything Flow writes**: a skill, a `CLAUDE.md`, a workflow doc, a message to the user, a documentation page a stranger reads that no session ever loads. §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
 
 **Only a file that enters an agent's context.** §1's Step / Reference mark, §2 section shapes, §3 one home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatter, §9 transformations.
 
@@ -14,8 +14,8 @@ Three scopes, and every section below belongs to one.
 
 Name the sections and their order before writing a sentence. Mark each piece as one of two kinds:
 
-- **Step** — an ordered action the agent performs.
-- **Reference** — a definition, rule or path consulted on demand.
+- **Step**: an ordered action the agent performs.
+- **Reference**: a definition, rule or path consulted on demand.
 
 Steps first, in order, with the whole sequence visible before any detail. Reference after, or in a sub-file. Never discover the structure while typing.
 
@@ -23,7 +23,7 @@ Plan the whole file every time you touch it. A pointer to one line is not a scop
 
 ## 2. Section shapes
 
-- **Where things live** — paths, files, what each holds → a labeled list: the path as the label, one line of what is in it. Never write prose about placement. `## Inside each place` in `references/workflow.md` is the model.
+- **Where things live**: paths, files, what each holds → a labeled list: the path as the label, one line of what is in it. Never write prose about placement. `## Inside each place` in `references/workflow.md` is the model.
 - **A procedure** → numbered steps, each ending on a check the agent can evaluate. "Every behavior carries a mark" is a check; "understanding reached" is not.
 - **Rules at one altitude** → a flat bulleted list under one heading.
 
@@ -39,7 +39,7 @@ Put the highest-stakes rules first or last. Material in the middle of a long fil
 - Every fact in exactly one place, a pointer everywhere else. Two copies drift and the reader cannot tell which is current.
 - Never restate what is already loaded: the global `CLAUDE.md`, the project `CLAUDE.md`, or any skill's own description.
 - Never rule against a behavior nothing here instructs. A ban on something the workflow never sets up invents the problem it forbids.
-- Never forbid reaching for another skill. Naming which skill owns a *job* is routing and belongs; writing that a kind of work — reading, drawing, hunting a bug — is another skill's reads as a ban, and strands whoever needs it mid-task. Any skill may invoke any other.
+- Never forbid reaching for another skill. Naming which skill owns a *job* is routing and belongs; writing that a kind of work (reading, drawing, hunting a bug) is another skill's reads as a ban, and strands whoever needs it mid-task. Any skill may invoke any other.
 
 **The test for an always-loaded file:** name a moment the rule fires and no skill is loaded. Cannot → it belongs in the skill.
 
@@ -49,7 +49,7 @@ A step whose content changes with the situation. Three kinds, each with its own 
 
 **Write the base first.** Put what is true in every case above the first case. Never repeat it inside one.
 
-**Never branch for examples alone.** A case that only swaps the nouns is not a case — write the instruction in domain-free words, then give examples from more than one domain. Branching for examples doubles the file and adds no instruction.
+**Never branch for examples alone.** A case that only swaps the nouns is not a case. Write the instruction in domain-free words, then give examples from more than one domain. Branching for examples doubles the file and adds no instruction.
 
 - **Pick one target, then the step ends** → a `→` list, one line per case, every case covered. `## Capture` in `home/CLAUDE.md` is the model.
 - **Extra material some runs need** → `### When <situation>` below the base. These add to the base and to each other, so one run hits none and the next hits four. Name the situation that fires each.
@@ -63,7 +63,7 @@ A step whose content changes with the situation. Three kinds, each with its own 
 
 Three tests. Run them on every sentence that carries a rule, and on every sentence written to the user.
 
-1. **Cover everything past word 2.** Is the direction already right? "Never expose the bookkeeping" — yes, at word 1. "Keep the bookkeeping out of the conversation" — no. Word 2 says preserve it; word 5 reverses that.
+1. **Cover everything past word 2.** Is the direction already right? "Never expose the bookkeeping": yes, at word 1. "Keep the bookkeeping out of the conversation": no. Word 2 says preserve it; word 5 reverses that.
 2. **Read the last two words alone.** Do they carry the point? Readers stress whatever ends a sentence. "…the bookkeeping" lands it. "…the conversation" spends the loudest position in the sentence on its most generic word.
 3. **Act on it after one read.** Re-reading to find the instruction means rewrite it.
 
@@ -73,7 +73,7 @@ Three tests. Run them on every sentence that carries a rule, and on every senten
 - **Never make the reader restart.** A sentence meaning one thing at word 3 and the opposite at word 6 has failed, however short it is.
 - **End on the point.** The last word gets stressed and remembered. Put the specific word there. Endings like "the conversation", "the file", "the process" waste it.
 - **Never end on the rejected half.** "Attack it by running it, not by rating it" stresses *rating*. Split it: "Attack it by running it. Rating it finds nothing."
-- **Condition left, action right, where a real condition exists.** "To delete the document, click Delete", never "Click Delete if you want to delete the document." The reader decides whether the rule applies before reading how to obey it — the shape behind Flow's `X → Y` bullets. A rule that always applies has no condition, so the verb goes first.
+- **Condition left, action right, where a real condition exists.** "To delete the document, click Delete", never "Click Delete if you want to delete the document." The reader decides whether the rule applies before reading how to obey it: the pattern behind Flow's `X → Y` bullets. A rule that always applies has no condition, so the verb goes first.
 
 ### The verb and the object
 
@@ -99,7 +99,8 @@ Cut what lengthens a sentence without clarifying it. Readability first; the toke
 
 - Digits, not words: `5`, not `five`.
 - Name a skill with its slash: `/groundwork`, never `groundwork`. The slash is what the user types, and it tells the skill from the ordinary word.
-- Symbols only where genuinely clearer than the word — usually they are not. They also save nothing: `→` and `·` are each their own token, as are invented abbreviations like `cfg`.
+- Symbols only where genuinely clearer than the word. Usually they are not. They also save nothing: `→` and `·` are each their own token, as are invented abbreviations like `cfg`.
+- Never use em dashes. Use a period, a comma, a colon, or parentheses.
 
 ### Only in a loaded file
 
@@ -120,9 +121,9 @@ The description is in context from the moment a session starts, whether the skil
 
 **This is not the `description:` marker.** That marker is an index entry a few words long, cut at the first full stop by `util ls`. Claude Code loads a skill's frontmatter description whole and fires the skill from it alone, so its length is set by the rules below and by nothing else.
 
-- **What it is and what it covers. Never the steps.** A description that summarizes the workflow gets followed instead of the file — an agent given "code review between tasks" did one review where the skill specified two.
+- **What it is and what it covers. Never the steps.** A description that summarizes the workflow gets followed instead of the file. An agent given "code review between tasks" did one review where the skill specified two.
 - **Never when to invoke it.** A trigger written here is loaded by every session that never fires it. Write one only where it is wanted; `write-skills.md` names the 4 homes.
-- **Under-explaining is the failure to avoid.** Cover the subject in enough detail that a reader can tell what the skill reaches — `/visualize` names its media, because nothing else says what it draws. No word count overrides that.
+- **Under-explaining is the failure to avoid.** Cover the subject in enough detail that a reader can tell what the skill reaches. `/visualize` names its media, because nothing else says what it draws. No word count overrides that.
 - **Typed-only (`disable-model-invocation: true`) → one short line.** The user already decided.
 
 ## 9. Transformations
@@ -138,7 +139,7 @@ Biggest single win. Four examples means the test was never written.
 
 ### Delete the elaboration
 
-Restatement and hedging around a rule already stated. The reason itself stays — see section 7.
+Restatement and hedging around a rule already stated. The reason itself stays. See section 7.
 
 - **39w:** "**Read minimal context.** Access to the codebase is not a mandate to read it — target by path and line range, prefer one filtered query over many reads, stop when the answer is in hand."
 - **20w:** "**Read minimal context.** Path and line range, one filtered query over many reads, stop when answered."
@@ -160,13 +161,13 @@ A design debate fossilised into an instruction, arguing against an option the re
 
 A rule that fires at one moment goes in the file that loads at that moment, and drops the clause saying when it applies.
 
-- **51 lines:** a whole `## Workflow` section — the chain, the pickup diagram, the departure clause.
+- **51 lines:** a whole `## Workflow` section: the chain, the pickup diagram, the departure clause.
 - **1 line:** "`~/.claude/flow/references/workflow.md` — how Flow's pieces fit together. Only when that is genuinely unclear". The content moved there intact; the condition became the location.
 - Same mechanism behind a skill's trigger living in its own `description:`.
 
 ### Move what a skill owns into the skill
 
-A `## Rendering` section, near word-for-word what the drawing skill already said. Deleted, not trimmed — a second copy of a rule is worse than none, because the two drift.
+A `## Rendering` section, near word-for-word what the drawing skill already said. Deleted, not trimmed. A second copy of a rule is worse than none, because the two drift.
 
 ### Merge sections at one altitude
 
@@ -191,4 +192,4 @@ A page in a published documentation set. Nobody loads it into a session: a reade
 - **No length limit.** §6 → `### Only in a loaded file` and §9 do not apply. Cut a sentence for carrying no information, never for costing space.
 - **Open with a contents block**, one line per heading, in order.
 - **Plan what the reader knows on arrival, what they know on leaving, and the path between.** The arrival state decides the first section. Skip it and the page opens in the middle.
-- **A link names the page it points at.** Never a position — no *the next page*, no *as shown above*, no numbered filenames. Order lives in the index alone, so inserting a page breaks nothing.
+- **A link names the page it points at.** Never a position. No *the next page*, no *as shown above*, no numbered filenames. Order lives in the index alone, so inserting a page breaks nothing.

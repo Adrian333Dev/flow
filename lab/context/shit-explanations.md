@@ -1,7 +1,7 @@
 # Shit explanations
 
 The message the user rejected most recently, kept whole. **Every quotation is verbatim, theirs and
-mine** — the wording is the evidence, and a paraphrase of an unreadable sentence is readable.
+mine**. The wording is the evidence, and a paraphrase of an unreadable sentence is readable.
 
 **An entry is deleted once its faults are rules.** The faults here are what `## Explaining` in
 `home/CLAUDE.md` gets written from, so an entry that has produced its rules has done its job and
@@ -10,7 +10,7 @@ every one of them, and `git log -- lab/context/shit-explanations.md` is how to r
 
 ---
 
-## 2026-08-30 — a page about moving two files, and a blocker that was one `ls` away
+## 2026-08-30: a page about moving two files, and a blocker that was one `ls` away
 
 **Context.** The user asked four things in one message: why `ptree` and `fmerge` had not moved into
 the `util` repo, what happened to the commands list holding `clone` and `bookmark`, a description for
@@ -75,7 +75,7 @@ only a plan.
    whole time, at `repos/toolbox/bin/add-repo`, findable with one `ls`. Instead the absence was
    handed back as a decision for the user to make. A lookup the reply could do is never a question.
 3. **Pointers standing where the answer belongs.** *"`design-util.md` → `### The namespaces at the
-   start` carries all of it, and `backlog.md:69` holds the `github` half"* — two file references
+   start` carries all of it, and `backlog.md:69` holds the `github` half"*. Two file references
    instead of the two sentences saying what `clone` and `bookmark` do.
 4. **Five git terms, undefined, in an answer about two shell scripts.** *gitlink*, *`HEAD`'s tree*,
    *`.gitmodules`*, *`git submodule status`*, *`git submodule update --init`*. The user opened the
@@ -95,3 +95,56 @@ happened to the commands; the reply said where they are written down and what wa
 before reporting something missing. Say what each command does in one plain sentence, then build it.
 Two rules were written from this entry: **Length claims importance** and **Never argue a decision
 already made**, both in `## Explaining` → `### The message`.
+
+---
+
+## 2026-09-02: a shell parser described in its own jargon
+
+**Context.** The user asked what five things had changed during the audit build. One item was about
+shell command parsing. The paragraph explained what the parser does using terms the reader has never
+encountered.
+
+**Sent, whole:**
+
+> A shell command is prose as often as it is a command. The first pass recorded the, a and and as
+> files read 46 times, out of heredoc bodies — a line reading `tail the log` parses as a `tail`. It
+> also recorded `2>/dev/null` as a file, and `/^##` 63 times from a sed pattern. Heredoc bodies are
+> stripped before parsing now, redirections are dropped, a path needs a slash or an extension, and
+> sed's own grammar decides which argument is the script.
+
+**Rejected:**
+
+> "it's one of the shittiest explanations I ever had seen, I literally didn't understand a single
+> fucking thing from that line"
+
+> "we still have similar issues literally in your whole response"
+
+**Faults.**
+
+1. **No term is defined before use.** "Heredoc bodies", "redirections", "sed pattern", "parsing" are
+   jargon from shell programming. The reader has never encountered any of them.
+2. **The example explains nothing without the term it illustrates.** "A line reading `tail the log`
+   parses as a `tail`" requires knowing what a heredoc body is to understand why English words ended
+   up being parsed as commands.
+3. **`2>/dev/null` is written as if the reader knows what it means.** It is a shell idiom for "throw
+   the error messages away", and the parser mistook it for a filename. Neither fact appears.
+4. **"sed's own grammar decides which argument is the script" assumes three things.** That the reader
+   knows sed, knows it has a grammar, and knows what "the script" refers to in that grammar.
+5. **Four separate fixes joined by commas in one sentence.** Each fix addresses a different problem,
+   and no problem is ever stated. The reader has no way to match a fix to the defect it corrects.
+
+**Rule that failed.** Three, all loaded. "Define from zero" (§5 in `## Explaining`, §6 in
+`style.md`). "One idea per sentence" (§5 in `style.md`). "Name the subject first" (`## Explaining`).
+
+**Root cause.** The paragraph describes what the parser does instead of what went wrong. Every fix is
+stated without its corresponding problem, and every term is used without its definition, so the
+reader cannot reconstruct either the problem or the solution.
+
+**Right instead.** Define each term in one plain sentence before using it. State each problem, then
+its fix. One sentence per idea. The rewritten version from the same conversation did this correctly
+for the same material: it defined a heredoc as "a block of plain English inside a command", explained
+why `tail the log` was misread, said `2>/dev/null` means "throw error messages away", and described
+`sed -n '/^## Heading/p' file.md` by saying which word is the pattern and which is the file.
+
+**Rules already cover every fault.** This entry produces no new rule. It stays as a test case for
+the existing three.

@@ -38,7 +38,7 @@ They are set whether the test needs them or not. Unset, a test that dispatches f
 
 ## What they cover
 
-Flow's suite covers the install arrangement, skill discovery and the group overrides, the `PreToolUse` guard, and the project overlays.
+Flow's suite covers the install arrangement, skill discovery and the group overrides, the `PreToolUse` guard, the project overlays, and the audit reader — including indexing one transcript whole against indexing it in 2 halves, which is the only way an appended tail counted twice would show.
 
 `util`'s suite covers the source registry, namespace resolution and the short form, a name claimed by two sources, the description reader, the shipped commands, and `util install`.
 

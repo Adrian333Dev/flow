@@ -33,6 +33,8 @@ The scratch session therefore tests the arrangement an install produces, rather 
 
 `FLOW_HOME` is exported into the session, so `flow cases new` writes a study case into `tmp/try/flow/` rather than into your real ones.
 
+`CLAUDE_CONFIG_DIR` is exported too, and `flow audit` reads transcripts from underneath it. A scratch session therefore sees only the scratch sessions before it, never your real history, and indexes them into `tmp/try/flow/audit/`.
+
 ## Why it is not an install
 
 Everything lands under `tmp/`. Nothing outside it is ever written, and no name goes on your `PATH` — that is what `--no-bin` is for. `~/.flow` is neither read nor written.

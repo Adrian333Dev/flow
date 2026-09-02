@@ -29,13 +29,14 @@ A group is a filing decision. Nothing outside `skills/` reads a group name — a
 - **`standards/`** — how you work throughout
 - **`stack/`** — what you are touching
 - **`commands/`** — what you mainly type yourself
+- **`dev/`**: building and improving Flow itself
 - **`drafts/`** — one still being written
 
 **`drafts/` is the only group that changes behavior.** `flow install` skips it, so a skill ships by being moved out of it. Until then it is reachable through [the scratch session](scratch-session.md), which passes `--drafts` on every run.
 
 **`commands/` wins wherever two groups fit**, because who reaches for the skill matters more than what it does.
 
-**A group also decides whether a session is shown the skill.** `phases/`, `commands/` and `tools/` are on. `stack/` is off, and turned on per project. `standards/` is decided per skill. The off list ships in `home/settings.json` as `skillOverrides`, whose values are `on` and `off` with nothing between them.
+**A group also decides whether a session is shown the skill.** `phases/`, `commands/`, `tools/` and `dev/` are on. `stack/` is off, and turned on per project. `standards/` is decided per skill. The off list ships in `home/settings.json` as `skillOverrides`, whose values are `on` and `off` with nothing between them.
 
 ## Frontmatter
 
