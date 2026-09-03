@@ -13,6 +13,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const { FlowError } = require('../lib/error');
 const { out } = require('../lib/cli');
 const { projectRoot } = require('../lib/root');
@@ -236,14 +237,106 @@ actions.tree = {
 
 // ---------------------------------------------------------------- one ticket
 
+const MERGE = ['fs', 'merge', '--force'];
+const RULE = '-'.repeat(60);
+const NEXT_LIMIT = 10;
+
+const looksLikePath = (word) =>
+  word.includes('/') || word.includes('\\') || word.endsWith('.md') || fs.existsSync(word);
+
+const splitRange = (spec) => {
+  const m = spec.match(/^(.*?)(:\d+-\d+)?$/);
+  return { file: m[1], range: m[2] || '' };
+};
+
+function resolveSpec(spec, bases) {
+  const { file, range } = splitRange(spec);
+  for (const base of bases) {
+    const abs = path.resolve(base, file);
+    if (fs.existsSync(abs)) return abs + range;
+  }
+  return null;
+}
+
+function loadRefs(specs, bases, cwd) {
+  if (!specs.length) return;
+
+  const found = [];
+  const missing = [];
+  for (const spec of specs) {
+    const abs = resolveSpec(spec, bases);
+    if (abs) found.push(abs);
+    else missing.push(spec);
+  }
+
+  let merged = '';
+  let failed = '';
+  if (found.length) {
+    try {
+      merged = execFileSync('util', [...MERGE, ...found], {
+        cwd,
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024,
+      });
+    } catch (e) {
+      const why = e.code === 'ENOENT'
+        ? 'util is not on PATH — install it, then run flow get --files again'
+        : String(e.stderr || e.message).trim();
+      failed = `unread: util fs merge failed — ${why}`;
+    }
+  }
+
+  const count = `${found.length} file${found.length === 1 ? '' : 's'}`;
+  const size = merged ? `, ${merged.split('\n').length} lines` : '';
+  out(`\n${RULE}\nflow-open: ${count}${size}`);
+  if (missing.length) out(`missing: ${missing.join(', ')}`);
+  if (failed) out(failed);
+  if (merged) out(`\n${merged.trimEnd()}`);
+}
+
+function nextLimit(flags) {
+  if (flags.all) return Infinity;
+  if (flags.limit === undefined) return NEXT_LIMIT;
+  const n = Number(flags.limit);
+  if (!Number.isInteger(n) || n < 1) {
+    throw new FlowError(`--limit takes a whole number of tickets (got "${flags.limit}")`);
+  }
+  return n;
+}
+
 actions.get = {
   section: 'tickets',
-  args: '<id>',
-  summary: 'the same, spelled out',
-  run({ positional, usage, unnamed }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
+  args: '[<id>|<path>]',
+  summary: 'one ticket, or the board with nothing named',
+  flags: {
+    files: { bool: true },
+    limit: { arg: '<n>' },
+    all: { bool: true },
+  },
+  run({ positional, flags, unnamed }) {
+    const [first] = positional;
+
+    if (!first) {
+      out(render.status(store.readTickets(projectRoot()), nextLimit(flags)));
+      return 0;
+    }
+
+    if (looksLikePath(first)) {
+      if (!fs.existsSync(first)) throw new FlowError(`no file at "${first}".`);
+      const abs = path.resolve(first);
+      const content = fs.readFileSync(abs, 'utf8');
+      out(content.trimEnd());
+      loadRefs(store.openBlock(content), [path.dirname(abs), process.cwd()], path.dirname(abs));
+      return 0;
+    }
+
     const { root, tickets } = load();
-    out(render.show(find(tickets, positional[0], unnamed), tickets, root));
+    const t = find(tickets, first, unnamed);
+
+    out(render.show(t, tickets, root));
+    if (flags.files) {
+      loadRefs(store.openBlock(t.body), [t.dir, root], root);
+    }
     return 0;
   },
 };
@@ -605,6 +698,4 @@ for (const s of statuses.VERBS) {
   };
 }
 
-// `transition` is shared with `open.js`, so a verb typed at `flow open t047 build`
-// hits the same guards as `flow build t047`. Two doors, one lock.
 module.exports = { actions, fallback: actions.get, transition };

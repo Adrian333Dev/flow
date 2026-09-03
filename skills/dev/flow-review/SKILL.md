@@ -22,7 +22,7 @@ The artifact is perishable. Write it now, analyse later.
 Friction hit twice, a rule fought the work, or a pattern looks wrong without a concrete failure.
 
 1. Name the suspicion in one sentence.
-2. Investigate. The conversation is evidence when the session holds it. `flow audit read` opens a bounded turn range from any past session. `flow audit sessions` lists what is available.
+2. Investigate. The conversation is evidence when the session holds it. `flow audit read` opens a bounded turn range from any past session. `flow audit sessions` lists what is available. When the audit commands are insufficient, read the raw transcripts at `~/.claude/projects/` directly.
 3. Compare what happened against the loaded rules. A rule present and silent is a defective rule.
 4. Record the finding in `~/.flow/workflow-notes.md`, dated, with the project.
 

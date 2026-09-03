@@ -233,7 +233,7 @@ function status(tickets, limit) {
 }
 
 /**
- * The session opener, printed by `flow status`. Four questions in order:
+ * The session opener, printed by `flow get` with no argument. Four questions
  * what did I finish last, what is still open, what continues it, what could
  * start. Read-only on purpose — this is the view for not knowing what is next,
  * and picking is a separate act.

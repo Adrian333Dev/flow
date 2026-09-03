@@ -71,14 +71,6 @@ test('a skill in drafts/ neither installs nor reports as installed', () => {
   }
 });
 
-test('an unknown skill name fails and says where to look', () => {
-  const dir = project('skills-unknown');
-  const result = flow(dir, ['skills', 'get', 'nonesuch']);
-  assert.notStrictEqual(result.code, 0);
-  assert.match(result.stderr, /no skill named "nonesuch"/);
-  assert.match(result.stderr, /flow skills ls/);
-});
-
 test('install builds a whole config, is idempotent, and prunes a dead link', () => {
   const dir = project('install-home');
   const home = path.join(dir, 'home');

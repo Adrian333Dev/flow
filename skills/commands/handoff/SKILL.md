@@ -29,7 +29,7 @@ Decide this first. Everything else follows from it.
 Nothing here runs by default. Pick what the next session will trip over.
 
 - **Mid-build** → name the files this session changed, and what changed in each. Nothing hurts more than a fresh session editing on top of changes it never saw. `git status --short` gets you that in a repo committed regularly; on a tree nobody has committed for weeks it returns everything and separates nothing.
-- **Inside a ticket system** → `flow status`, for what is in flight.
+- **Inside a ticket system** → `flow get`, for what is in flight.
 - **Handing a job over** → whatever waits for the receiving session: a server already listening, a half-finished install, a folder that is read-only.
 - **Groundwork, or a prototype question** → nothing. A question about how a library behaves gains nothing from the working tree.
 
@@ -39,7 +39,7 @@ Nothing here runs by default. Pick what the next session will trip over.
 
 ### The `flow-open` block
 
-`/start` runs `flow open`, which finds this block and loads every file it names **before the session's first turn**. A path here is not a reading list. It is content, already in context when the reader wakes up.
+`/start` runs `flow get --files`, which finds this block and loads every file it names **before the session's first turn**. A path here is not a reading list. It is content, already in context when the reader wakes up.
 
 Write it fenced, inside `## State` on a ticket and near the top of a `handoff.md`:
 
@@ -131,7 +131,7 @@ Everything else has an owner: `flow` the frontmatter, `/execute` `plan.md`, `/de
 
 ## Booting from one
 
-**Whatever the block named is already loaded.** `flow open` read it before this session's first turn, so it is on screen above. Start on the first action; open something else only when the work reaches it.
+**Whatever the block named is already loaded.** `flow get --files` read it before this session's first turn, so it is on screen above. Start on the first action; open something else only when the work reaches it.
 
 **Anything listed in prose rather than in the block, read in one parallel batch.** The decisions in the document are settled.
 

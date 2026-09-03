@@ -40,7 +40,7 @@ They are set whether the test needs them or not. Left unset, a test that dispatc
 
 ## What they cover
 
-Flow's suite covers the install arrangement, skill discovery and the group overrides, the `PreToolUse` guard, the project overlays, and the audit reader: including indexing one transcript whole against indexing it in two halves, which is the only way an appended tail counted twice would show.
+Flow's suite covers ticket operations (create with every flag, edit, deps, parking, transition guards, drop with repair, filing), the board commands (filtered listing, next ranking, tree nesting, check integrity, priority inheritance), study cases (lifecycle, near-match detection, issues listing), the install arrangement, skill discovery and the group overrides, the `PreToolUse` guard, the project overlays, and the audit reader: including indexing one transcript whole against indexing it in two halves, which is the only way an appended tail counted twice would show.
 
 `util`'s suite covers the source registry, namespace resolution and the short form, a name claimed by two sources, the description reader, the shipped commands, and `util install`.
 

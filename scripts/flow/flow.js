@@ -9,12 +9,11 @@
  *
  * Frontmatter is owned by these commands; everything else in a ticket is
  * written by hand. The project root is found from the current directory, so
- * only `open` takes a path — loose work has no ticket id to name.
+ * only `get` takes a path — loose work has no ticket id to name.
  */
 
 const { FlowError } = require('./lib/error');
 const cli = require('./lib/cli');
-const open = require('./commands/open');
 const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
@@ -44,7 +43,7 @@ const TITLE = 'flow — tickets, computed from .flow/tickets/';
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...open, ...board, ...tickets.actions, ...install };
+const commands = { ...board, ...tickets.actions, ...install };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
@@ -69,14 +68,13 @@ steps   flow <id> counts the checkboxes in plan.md each time it prints, so the
         review, or finished
 pickup  flow <id> prints the command a todo or parked ticket is waiting for
         and never runs it, so the skill picking the ticket up moves it after
-        reading. flow open t047 build is the other door: you name the status
-        yourself, so nothing is computed and nothing is guessed
-resume  flow open reads the ticket, then every file named in its fenced
-        flow-open block. handoff writes that block, and decides what goes in
-        it — an empty one is a real answer for a ticket that carries its own
-        context. Paths resolve beside the ticket first, then from the repo
-        root, and a line range passes through: src/parser.js:40-120. Nothing
-        is truncated, so a huge block costs what it costs
+        reading. The status verbs are the only way to move a ticket
+resume  flow get --files reads the ticket, then every file named in its
+        fenced flow-open block. handoff writes that block, and decides what
+        goes in it — an empty one is a real answer for a ticket that carries
+        its own context. Paths resolve beside the ticket first, then from the
+        repo root, and a line range passes through: src/parser.js:40-120.
+        Nothing is truncated, so a huge block costs what it costs
 park    parking stores the status it left, and reviving is the verb for that
         status. A feature parked at building comes back at building
 parent  a ticket split out of another carries parent: t047. Disk stays flat;
@@ -110,10 +108,10 @@ overlay a project adds to a skill without editing it, because one copy of that
         .flow/overlays/<name>.md and every session in that project reads it as
         part of the skill. The line runs at the bottom of the skill, so a
         project with no overlay file prints nothing
-default cases, skills and overlays each read a bare word as an argument to
-        their most used action: flow overlays groundwork is flow overlays get
-        groundwork. work has none, because its get writes over the folder you
-        are standing in
+default cases and overlays each read a bare word as an argument to their
+        most used action: flow overlays groundwork is flow overlays get
+        groundwork. skills defaults to ls. work has none, because its get
+        writes over the folder you are standing in
 audit   what Claude Code did, read back afterwards. It reads the transcripts
         Claude Code already writes at ~/.claude/projects/ and derives an index
         at ~/.flow/audit/audit.db; nothing is recorded and nothing is

@@ -11,8 +11,8 @@ flow <command> [id]... [--flags]
 - **The command always sits at position 1**, in every command, without exception. A target is often absent — `ls`, `next` and `new` take none — so putting the target first would move the command between positions 1 and 2.
 - **A word naming no command is a ticket id.** `flow t047` shows one; `flow get t047` is the same thing spelled out.
 - **Positionals name what the command acts on** — one id, several ids, or the title for `new`, where no ticket exists yet to point at.
-- **A second positional names a mode, never a second target.** `flow open t047 build` reads as *open it at building*. Reversed 2026-08-24, having said one target only: a status typed there is the user saying which one, and a flag would spell the same thing longer.
-- **A path positional is allowed only where the command must run outside a repo.** `flow open .flow/handoff.md` is the one, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
+- **A positional names one target, never two things.** `get` takes one id or one path. The status verbs each take one id. Cut 2026-09-04, having carried `flow get t047 build` since 2026-08-24: the combined form added a second path into `transition` and saved nothing the agent needs — `flow build t047` then `flow get t047` is two commands and no ambiguity.
+- **A path positional is allowed only on `get`.** `flow get .flow/handoff.md` reads a file and loads any `flow-open` block it contains, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
 - **Everything else is a flag.**
 
 ## One default noun
@@ -21,15 +21,14 @@ Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build t
 
 **Exactly one stored thing goes unnamed, and it is the most typed.** Tickets are written 9 times for every case across the skills, so the common form gets the short spelling and the rare one gets the explicit prefix. A second unnamed noun would collide the moment both wanted `ls`.
 
-## The five kinds of command
+## The four kinds of command
 
-- **The board** — `open` bare, `next`, `status`, `check`, `ls`, `tree`. Each answers a question about the work as a whole.
+- **The board** — `get` bare, `next`, `check`, `ls`, `tree`. Each answers a question about the work as a whole. `get` with `--files` is the session opener: `/start` runs it, so the branching lives in tested code instead of shell inside a markdown file.
 - **One ticket** — `<id>`, `new`, `edit`, `dep`, `file`, `drop`, and the status verbs. Each names a ticket and acts on it.
 - **A group** — `cases`, `work`, `skills`, `overlays`. A different stored thing, carrying its own actions behind its own name.
-- **The session opener** — `open`, and only `open`. It spans the other kinds on purpose: the board with no argument, a ticket with one, a move and a ticket with two. `/start` runs it, so the branching lives in tested code instead of shell inside a markdown file.
 - **Setup** — `install`, and only `install`. It writes outside the project, into `~/.claude` and `~/.local/bin`, which no other command does. It is also the one run before `flow` is a command at all: on a machine that has just cloned Flow, it is typed by path, and it makes the link that lets everything else be typed by name.
 
-All 5 share one flat namespace, so a name is available exactly once. Help prints them in sections, which is the only place the distinction shows.
+All 4 share one flat namespace, so a name is available exactly once. Help prints them in sections, which is the only place the distinction shows.
 
 ## The actions
 

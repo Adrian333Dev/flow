@@ -13,6 +13,7 @@ Flow is a Claude Code workflow for a solo developer: rules that load in every se
 ## The pages
 
 - [The repository layout](layout.md): what is in every folder, and where a new file goes
+- [The `flow` CLI](cli.md): every command, every flag, every behavior
 - [The two checkouts](checkout.md): how to edit Flow safely when real projects depend on it
 - [The scratch session](scratch-session.md): running a change without installing it
 - [The tests](tests.md): two suites, no dependencies
@@ -51,7 +52,7 @@ Skills are linked one at a time, never as a folder, and agents the same way. Bot
 
 `util` is a separate command-line tool that dispatches general-purpose commands: `util fs tree` prints a directory structure, `util git save` commits and pushes, `util github clone` clones a repository. It is its own repository, included here as a submodule at `lab/util/`, and it installs on a machine that never wanted Flow.
 
-Flow's rules name `util fs tree` for looking at directory structure, and `flow open` runs `util fs merge` to assemble context files. A machine without `util` still works: `flow open` prints "util is not on PATH" where the files would have been, and carries on. Install `util` first anyway.
+Flow's rules name `util fs tree` for looking at directory structure, and `flow get --files` runs `util fs merge` to assemble context files. A machine without `util` still works: `flow get --files` prints "util is not on PATH" where the files would have been, and carries on. Install `util` first anyway.
 
 ```bash
 node <util-clone>/util.js install

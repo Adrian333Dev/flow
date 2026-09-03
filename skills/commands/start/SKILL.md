@@ -1,11 +1,11 @@
 ---
 name: start
 description: Opens a session — the board, one ticket, or a loose file.
-argument-hint: '[ticket-id [status]] | [path]'
+argument-hint: '[ticket-id] | [path]'
 disable-model-invocation: true
 ---
 
-!`flow open $ARGUMENTS 2>&1 || true`
+!`flow get $ARGUMENTS --files 2>&1 || true`
 
 **A refusal, or nothing** → say why and stop. The id matched no ticket, the path matched no file, or a status move hit a guard.
 

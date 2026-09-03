@@ -64,7 +64,7 @@ Review runs two passes over the same diff: against the plan (every step delivere
 Key commands:
 
 ```
-flow open [id]          open the board, or a ticket with its context pre-loaded
+flow get [id]           the board, or a ticket with its context (--files)
 flow next               rank what is workable
 flow new "title"        create a ticket (--type, --deps, --parent, --body -)
 flow check              catch cycles, dangling ids, dropped blockers

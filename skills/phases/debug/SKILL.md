@@ -94,7 +94,7 @@ Three things end the hunt here: **the fix needs a decision nobody gave**, **the 
 **The body carries three things and never the conversation:**
 
 - **What failed**, in one line — the step, the command, or what the user did
-- **The report**, by its path from the repo root. It sits in *this* ticket's folder, and `flow open` resolves a path against the new ticket first, so a bare `reports/<failure>.md` points at an empty folder
+- **The report**, by its path from the repo root. It sits in *this* ticket's folder, and `flow get --files` resolves a path against the new ticket first, so a bare `reports/<failure>.md` points at an empty folder
 - **What would settle it** — the decision needed, or the evidence still missing
 
 ```bash

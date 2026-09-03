@@ -16,15 +16,12 @@
  * clone, and removing one from a project is `skillOverrides`.
  */
 
-const fs = require('fs');
-const path = require('path');
-const { FlowError } = require('../lib/error');
 const { out } = require('../lib/cli');
 const { projectRoot } = require('../lib/root');
 const render = require('../lib/render');
 const skills = require('../lib/skills');
 
-/** The project, or null where there is none — both actions work anywhere. */
+/** The project, or null where there is none — `ls` works anywhere. */
 function maybeRoot() {
   try {
     return projectRoot();
@@ -53,20 +50,8 @@ actions.ls = {
   },
 };
 
-actions.get = {
-  args: '<name>',
-  summary: 'print one skill, whatever its state',
-  run({ positional, usage }) {
-    const [name, ...extra] = positional;
-    if (!name) throw new FlowError(`usage: ${usage} <name>`);
-    if (extra.length) throw new FlowError(`${usage} takes one skill name.`);
-    out(fs.readFileSync(path.join(skills.find(name).dir, 'SKILL.md'), 'utf8'));
-    return 0;
-  },
-};
-
 module.exports = {
   summary: 'what exists in the clone, and what this project is shown',
-  default: 'get',
+  default: 'ls',
   actions,
 };

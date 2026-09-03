@@ -1,6 +1,6 @@
 'use strict';
 /**
- * The 3 commands that answer a question about the work as a whole rather than
+ * The 2 commands that answer a question about the work as a whole rather than
  * about one ticket. Everything ticket-shaped lives in commands/tickets.js; the
  * two files land in one flat namespace, and `section` decides where help
  * prints each command.
@@ -73,21 +73,6 @@ board.next = {
     out(`nothing ready. ${blocked.length} todo ticket${blocked.length === 1 ? '' : 's'} blocked:\n`);
     out(render.blockedLines(blocked.slice(0, 8)));
     if (blocked.length > 8) out(`\n  … and ${blocked.length - 8} more (flow ls --status todo)`);
-    return 0;
-  },
-};
-
-/**
- * The session opener, for when you do not know what is next: what you closed
- * last, what is still open, what continues it, what could start, and the counts
- * across every status. Read-only on purpose — picking is a separate act.
- */
-board.status = {
-  section: 'board',
-  summary: 'where the work stands',
-  flags: { limit: { arg: '<n>' }, all: { bool: true } },
-  run({ flags }) {
-    out(render.status(load(), nextLimit(flags)));
     return 0;
   },
 };

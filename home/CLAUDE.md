@@ -99,10 +99,9 @@ Two commands on `PATH`, `util` and `flow`. Call by name from any directory — n
 
 **`flow <command> [id] [--flags]`.** A word naming no command is read as a ticket id, which is what makes `flow t047` show one. Run `flow` bare for the full surface.
 
-- `flow open` — opens a session: the board, or a ticket with everything it needs. `/start` runs it
-- `flow open <id> [<status>]` — the ticket, then every file its `flow-open` block names, loaded before the first turn. Name a status and it moves the ticket first
-- `flow open <path>` — the same for loose work: a `handoff.md` and whatever its block names. The one shape needing no repo
-- `flow status` — where the work stands. Writes nothing
+- `flow get` — the board: where the work stands. Writes nothing
+- `flow get <id> [<status>] [--files]` — one ticket in full. `--files` loads every file its `flow-open` block names. Name a status and it moves the ticket first. `/start` runs it with `--files`
+- `flow get <path>` — the same for loose work: a `handoff.md` and whatever its block names. The one shape needing no repo
 - `flow next` — what is workable, ranked
 - `flow check` — cycles, dangling ids, dropped blockers, orphaned parents
 - `flow <id>` — one ticket in full, and the command it is waiting for
@@ -127,7 +126,7 @@ The rules:
 - **Create and fill in one command** — `--body -` takes the body on stdin. Never create then edit
 - **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked
 - **Refuses what would break the graph, and says why** — picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents. Read the refusal; `--force` is deliberate override, not an escape from a mistake
-- **Nothing moves a ticket but a status command.** `flow <id>` prints the one a `todo` or `parked` ticket is waiting for, and printing is all it does. `flow open <id> <status>` is the other door, and the user types that one
+- **Nothing moves a ticket but a status command.** `flow <id>` prints the one a `todo` or `parked` ticket is waiting for, and printing is all it does. The status verbs (`flow build`, `flow review`, `flow done`, …) are the only way to move a ticket
 - **`/handoff` writes the `flow-open` block, and decides what goes in it** — one path per line, `#` for a note, `:40-120` for a range. Never a minimum: a ticket carrying its own context writes no block
 
 ## Judgment

@@ -16,7 +16,7 @@ owed.
 ## What works today
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
-`flow overlays`, `flow audit`, `util` in full, and the test harness. Flow's suite passes 27 tests;
+`flow overlays`, `flow audit`, `util` in full, and the test harness. Flow's suite passes 57 tests;
 `util`'s own suite passes 29.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records

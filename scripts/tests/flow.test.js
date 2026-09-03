@@ -60,10 +60,10 @@ test('a name is typed in full, and a group reads a stray word as an argument', (
   assert.notStrictEqual(stray.code, 0);
   assert.match(stray.stderr, /unknown work action "g"/);
 
-  // The other groups hand a stray word to get.
-  const skill = flow(dir, ['skills', 'groundwork']);
+  // skills defaults to ls; a stray word is an unknown action.
+  const skill = flow(dir, ['skills']);
   assert.strictEqual(skill.code, 0, skill.stderr);
-  assert.match(skill.stdout, /^name: groundwork$/m);
+  assert.match(skill.stdout, /groundwork/);
 });
 
 test('--help prints the surface without needing a project', () => {
