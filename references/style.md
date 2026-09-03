@@ -190,6 +190,6 @@ A page in a published documentation set. Nobody loads it into a session: a reade
 
 - **Never send the reader away for a definition.** State it in one sentence, then link for the full account. §3 routes a fact to one home and a pointer everywhere else, which costs a loaded file nothing and costs this reader the page.
 - **No length limit.** §6 → `### Only in a loaded file` and §9 do not apply. Cut a sentence for carrying no information, never for costing space.
-- **Open with a contents block**, one line per heading, in order.
+- **Open with a table of contents** under a `## Table of contents` heading, one line per heading, in order.
 - **Plan what the reader knows on arrival, what they know on leaving, and the path between.** The arrival state decides the first section. Skip it and the page opens in the middle.
 - **A link names the page it points at.** Never a position. No *the next page*, no *as shown above*, no numbered filenames. Order lives in the index alone, so inserting a page breaks nothing.
