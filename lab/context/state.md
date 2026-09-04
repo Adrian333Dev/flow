@@ -91,6 +91,14 @@ in context and the next message decides what to do with it. **The guard does not
 command, verified 2026-09-02**, so `! flow git allow` is how the switch gets thrown and the input box
 carries `CLAUDE_CODE_SESSION_ID` like the Bash tool does.
 
+**Knowledge system capture and promotion are wired, 2026-09-04.** `home/CLAUDE.md` → `## Capture`
+routes reusable knowledge to `.flow/findings/<subject>.md` with a duplicate filter against loaded
+skills. `/file-findings` reads findings as a fourth input, routes to `rules/` alongside skills, and
+deletes a findings file once drained. `rules/` exists at the repo top level, initially empty, and
+`flow install` symlinks its files per-item to `~/.claude/rules/` in the same pass as skills and
+agents. The enforcement bridge (compliance scorecard, warning/blocking hooks) is designed and unbuilt.
+`design-knowledge-base.md` carries every locked decision.
+
 **`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01.** It holds external tools filed
 by job — MCP servers, plugins, skills, libraries, apps. Nothing loads it, nothing installs from it,
 and the rewrite that earns it a way back has not started. `repos/toolbox` is the old plain clone,
@@ -120,3 +128,6 @@ All under `lab/context/`, and every one is history rather than status.
   migration problem. Built, except the two checkouts, which are a procedure rather than code
 - `design-audit.md` — the audit: what a transcript line carries, why a segment is the grouping unit,
   the schema, the 3 tools the skill offers, and where the data lives. Built
+- `design-knowledge-base.md` — the knowledge system: capture to `.flow/findings/`, promotion through
+  `/file-findings`, the loading ladder, aging, and the enforcement bridge. Capture and promotion wired
+  2026-09-04; enforcement bridge designed but unbuilt

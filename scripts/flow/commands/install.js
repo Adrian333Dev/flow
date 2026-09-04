@@ -17,7 +17,7 @@
  * so this prints the file to merge and leaves it alone.
  *
  * Two roots, and a flag each. `--home` is what Claude Code reads: CLAUDE.md,
- * settings.json, skills/ and agents/. `--flow-home` is what only Flow reads:
+ * settings.json, skills/, agents/ and rules/. `--flow-home` is what only Flow reads:
  * scripts/ and references/, which the hooks and the skills name by path.
  * Both matter to the scratch session in lab/scripts/try.sh, which redirects
  * the whole install into tmp/ and would otherwise write half of it into the
@@ -80,8 +80,8 @@ actions.install = {
     const flowHome = path.resolve(flags['flow-home'] || path.join(os.homedir(), '.flow'));
     const done = [];
 
-    // Per item, never per folder: both hold entries Flow does not own.
-    for (const dir of ['skills', 'agents']) {
+    // Per item, never per folder: all three hold entries Flow does not own.
+    for (const dir of ['skills', 'agents', 'rules']) {
       fs.mkdirSync(path.join(home, dir), { recursive: true });
       for (const gone of pruneDead(path.join(home, dir), clone)) {
         done.push(`unlinked (gone): ${dir}/${gone}`);
@@ -96,6 +96,11 @@ actions.install = {
     for (const file of markdownFiles(path.join(clone, 'agents'))) {
       link(path.join(clone, 'agents', file), path.join(home, 'agents', file));
       done.push(`linked: agents/${file}`);
+    }
+
+    for (const file of markdownFiles(path.join(clone, 'rules'))) {
+      link(path.join(clone, 'rules', file), path.join(home, 'rules', file));
+      done.push(`linked: rules/${file}`);
     }
 
     // Named by path rather than typed: settings.json points hooks at

@@ -72,6 +72,7 @@ Write anything worth keeping the moment it surfaces.
 - Work **committed to** → `flow new "…"`. A feature mentioned for later counts
 - Rule about the code → `## Rules`. How the user wants to work → `## Preferences`; what they know or don't → `## The user`. Those two **inferred from evidence, never announced and never guessed from the stack** — the same correction twice, irritation at a habit, a term you had to explain
 - Durable project fact — a verified command, a path, a settled convention → `docs/context/<subject>.md`
+- Reusable knowledge — a tool behavior, a library quirk, a pattern that works → `.flow/findings/<subject>.md`. Skip what the loaded skill already says; contradictions and extensions are new
 - A decision the user confirmed with no open threads → write it down, batched. Never mid-discussion agreement
 - **Flow itself** performed poorly: a rule that didn't fire, friction that repeated, or output the user rejected → `/flow-review`. Faults count without being asked
 

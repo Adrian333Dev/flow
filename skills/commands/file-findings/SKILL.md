@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # File findings
 
-Capture wrote every finding down and decided nothing about where it belongs. This pass decides, then writes each one into its destination. Filing is the only pass that writes into a skill, and it builds one where nothing fits.
+Capture wrote every finding down and decided nothing about where it belongs. This pass decides, then writes each one into its destination. Filing is the only pass that writes into a skill or a rule, and it builds one where nothing fits.
 
 ## Method
 
@@ -19,21 +19,29 @@ Move at triage speed — building a skill is the one slow step, and it fires rar
 3. Shape what needs it. A fragment has to read like the thing it is about to become.
 4. **Show the plan and stop.** One heading per destination file, every item listed under the file it goes into.
 5. Take the corrections, then write — a few grouped edits per destination.
-6. Clear filed items from the inbox; git remembers them. **Never empty an `issues.md`** — it is the record of what happened, like a hunt's report.
+6. Clear filed items from inbox and findings; delete a findings file left empty. **Never empty an `issues.md`** — it is the record of what happened, like a hunt's report.
 7. Mark every ticket you swept — `flow file t047 t048 t049`, the ones that taught nothing included. Nothing else drains the queue.
 8. Report what you filed and what you flagged.
 
 ## Inputs
 
 - **`.flow/inbox.md`** — always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
+- **`.flow/findings/*.md`** — reusable knowledge captured during work, organized by subject. Already triaged: each file names what it covers.
 - **Closed tickets nobody has filed yet** — `flow ls --unfiled` gives the ids, usually several. In each folder read `issues.md` for what the build learned, and everything in `reports/` for what was answered.
 - **The groundwork this session closed** — sweep its `map.md`: promote reusable lessons into skills, move strays out to where they belong. Never open a map this session did not work.
 
 ## Routing
 
-- **Reusable — a tip, pattern, gotcha or method** → the skill that already covers it, by **altitude** below.
-- **Reusable, and no skill covers it** → flag it in `.flow/inbox.md` as `needs skill: <group>/<subject> — <note>`. The group is the first thing whoever builds it decides, and `references/write-skills.md` lists them. Several flags on one subject earn a skill; one flag is not evidence.
-- **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`: a ticket, a groundwork map, `docs/context/`, project rules, preferences, `~/.flow/workflow-notes.md`.
+**Findings are pre-triaged.** Each file names its subject and holds reusable knowledge — route straight to the destination. Inbox items need the altitude call first.
+
+- **Knowledge tied to a tool, library or framework** → the skill that covers it, by **altitude** below
+- **Universal rule or convention** → `rules/<topic>.md`
+- **Rule scoped to a stack or file type** → `rules/<topic>.md` with `paths:` frontmatter
+- **Rule for this project only** → `.claude/rules/<topic>.md`
+- **Project-specific fact** → `docs/context/<subject>.md`
+- **Reusable, no matching skill** → flag in `.flow/inbox.md` as `needs skill: <group>/<subject> — <note>`. Several flags on one subject earn a skill; one flag is not evidence
+- **Work item** → ticket or stays in inbox
+- **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`
 
 **Defer to what exists.** No `docs/spec/` → a locked decision goes to the groundwork that owns the subject, whose `map.md` is the decision log. Never invent a parallel doc bucket.
 
