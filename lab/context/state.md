@@ -32,6 +32,14 @@ afterwards it covered half. `CLAUDE.md` → `## Repo rules` carries the rule. **
 scratch configuration is seeded from `~/.claude/`** — the credentials, the account and the theme — so
 a rebuilt session starts signed in instead of running first-install onboarding every time.
 
+**`home/CLAUDE.md` opens with `## The turn`, added 2026-09-05.** 5 numbered steps covering one user
+message from arrival to reply: telling an instruction from thinking, disagreeing before building,
+scope, naming each action, and answering once at the end. It replaced 4 rules, 2 from `## Hard rules`
+and 2 from `## Explaining`. The file is 201 lines, 1 over the documented target, and draining
+`## Scripts` is what brings it back. The repo's own `CLAUDE.md` still carries 7 approval rules saying
+the same thing, uncollapsed on purpose because each holds a dated ruling.
+`design-knowledge-base.md` → `## Locked decisions: conduct rules` carries the arguments.
+
 **The off list names `web-pages` today**, and nothing else. Which groups are on moved out of
 `CLAUDE.md` on 2026-09-01 and is now in `docs/dev/skills.md` → `## The groups`. Off globally and on
 in one project is verified against Claude Code 2.1.251 and covered by a test.

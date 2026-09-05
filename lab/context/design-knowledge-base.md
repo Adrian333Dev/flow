@@ -261,12 +261,24 @@ Lives at the top level of the Flow repo, alongside `skills/`, `scripts/`, `refer
 
 ### `.claude/rules/` is a standard Claude Code feature
 
-- Project rules: `.claude/rules/<topic>.md` — loaded for this project
-- User rules: `~/.claude/rules/<topic>.md` — loaded for every project
-- Rules without `paths:` frontmatter load at session start
-- Rules with `paths:` frontmatter load only when the agent reads a matching file
-- Symlinks explicitly supported
+Verified against `code.claude.com/docs/en/memory.md` on 2026-09-05. The page is not cloned under
+`lab/research/claude-code-docs/`, so re-fetch it rather than trusting this summary for anything load-bearing.
+
+- Project rules: `.claude/rules/<topic>.md`, loaded for this project
+- User rules: `~/.claude/rules/<topic>.md`, loaded for every project
+- Rules without `paths:` frontmatter load at launch, **with the same priority as `.claude/CLAUDE.md`**
+- User rules load before project rules, so project rules win
+- Discovered recursively, so `rules/frontend/style.md` works
+- Symlinks explicitly supported, and circular ones are detected
 - Plain markdown with optional YAML frontmatter
+
+**`paths:` triggers on a read, never on a write.** The documentation is exact: *"Path-scoped rules trigger when Claude reads files matching the pattern, not on every tool use."* An edit is safe, because an edit follows a read. **Creating a new file is not**: write `src/foo.ts` in a session that read no `.ts` file and the TypeScript rule was never in context. This is the hole the enforcement bridge fills. The `PreToolUse` hook fires on `Write` whatever loaded, `InstructionsLoaded` says whether the rule file was in context, and the warning injects the rule text when it was not.
+
+**An unconditional rule file saves no context.** It loads at launch exactly like the text it replaced. Splitting `home/CLAUDE.md` into rule files with no `paths:` is filing, not reduction.
+
+**Flow's symlinked rules are skipped in Cowork desktop sessions.** Those sessions skip a symlinked `~/.claude/rules/` directory or rule file resolving outside the working directory, and `flow install` links every rule file into the Flow clone. Terminal and IDE sessions are unaffected. `CLAUDE.md` is copied rather than linked, so that half is safe.
+
+**Two more facts from the same page.** Block-level HTML comments are stripped before a `CLAUDE.md` enters context, so the placeholder comments cost nothing. The documented size target is under 200 lines per file, and `home/CLAUDE.md` is 191.
 
 ### Skill loading at scale
 
@@ -286,6 +298,179 @@ File-findings is the promotion mechanism. No background compilation (like claude
 ### Cost
 
 The entire knowledge system and enforcement bridge runs within normal session usage. No background agents, no separate API calls. Affordable on a $20/month plan.
+
+## Locked decisions: conduct rules
+
+Locked 2026-09-05. The thread opened out of `### Rules no function can catch` above, and it is now
+the larger half of the rules work.
+
+### Two kinds of rule, and the design so far only covered one
+
+**Output rules** say what a file must contain: comment density, naming, no em dashes. They attach to
+a file, a path often selects them, and a function can usually check them. Everything above in this
+record was built for output rules.
+
+**Conduct rules** say how the agent behaves in the conversation: when it edits, when it asks, when it
+speaks, how much it explains. They attach to no file. No path selects them and no function checks
+them. Every entry in `shit-explanations.md` and both study cases under `lab/study-cases/` are conduct
+failures, so conduct is where the observed damage is.
+
+### A rule written only as a prohibition amplifies whatever the model already does
+
+The approval rules in `home/CLAUDE.md` all say what approval is **not**. They were written from the
+two 2026-08-10 study cases, both Opus 5, both the same fault of acting on a discussion. They worked.
+
+The set has no positive side. The only thing it says about acting is three quoted phrases. An agent
+reading it under any uncertainty resolves toward not acting, because that is the only direction the
+text points. On a model that leans eager the brake corrects it. On a model that leans cautious the
+brake compounds, which is the Sonnet 4.6 behavior the user reported.
+
+**So every conduct rule states its default action, not only its forbidden one.** That is what makes a
+rule behave the same across models, and it is the test to apply to each one.
+
+### One rule set for every model
+
+No model detection and no per-model instructions. Nothing in Flow identifies which model is running,
+and no mechanism exists to branch on it. Every rule has to work on any model, which is the reason the
+positive side above is required rather than nice.
+
+### Disagree first, build on the repeat
+
+The agent that thinks a clear instruction is wrong says so and stops. It builds when the user says it
+again. Pushing back once and building anyway was rejected.
+
+### Rules live with their subject, never in a parallel tree
+
+Set by the user, overturning `### The CLAUDE.md split` above for the stack case. Splitting TypeScript
+guidance between `skills/stack/typescript/references/` and `rules/typescript.md` scatters one subject
+across two trees, and whoever edits it then has to remember the other file exists.
+
+**The enforcement bridge is what makes grouping free.** A check names its rule by path, and the hook
+reads that rule's text out of whatever file holds it, so the text does not have to sit in
+`~/.claude/rules/` to reach the agent at the moment of an edit. The rule file inside the skill folder
+works exactly as well.
+
+What is lost is `paths:` auto-loading, and the section on `.claude/rules/`
+above already establishes that `paths:` fires on a **read**. For an output rule that is a cost rather
+than a benefit: the rule loads every time the agent reads a matching file for any reason, including
+reading someone else's clone. The bridge loads it only on a write. **Grouping is strictly better
+here.**
+
+Open, and to settle during the split rather than now: what is left for a top-level `rules/` folder
+once every rule sits with its subject. A project's own `.claude/rules/` keeps its use, because a
+project rule has no skill to live in.
+
+### `## Scripts` drains out of `home/CLAUDE.md`
+
+46 lines, the largest section in the file, and almost all of it is a command reference rather than a
+rule. A skill is loaded before nearly every `flow` command gets typed, so the definitions belong in
+the skill that runs them.
+
+What stays is what has to be there with nothing loaded: `util fs tree` and `util fs merge` with the
+rule that no structure lookup uses `ls` or `find`, `flow new` for `## Capture`, the fact that both
+commands are called bare from any directory, and the line saying `flow` run bare prints the full
+surface. That last line is the safety net that makes the drain safe.
+
+The rest moves to the skill that uses it: the status verbs to `/execute`, `flow get --files` to
+`/start`, the `flow new` flags to `/cut-from-spec`, `flow ls --unfiled` and `flow file` to
+`/file-findings`. The remainder goes to `~/.flow/references/workflow.md`, which `## Workflow` already
+names as the fallback.
+
+### Answer once, at the end
+
+Two kinds of text in a turn, each with one place. Short lines naming the action go between tool
+calls. The answer goes last, and carries everything.
+
+The existing rule failed because it only said what the final message must contain. An agent can write
+a full answer up front and still repeat it at the end, breaking nothing. The prohibition on the
+up-front answer was never written.
+
+**Narration is one short line per action, and no more.** "Adding the rule to `rules/comments.md`",
+not the reasoning and not the result. The current wording, *think out loud while you work*, asks for
+more than the user wants.
+
+### "Go means finish everything" comes back, paired with the wrap-up hook
+
+Cut from `home/CLAUDE.md` on 2026-08-31 because a run with no brake is worse than a run that stops
+early. The brake now exists in design: a hook watching the token count tells the agent to stop at the
+next checkpoint. With that hook, finishing everything is safe to instruct.
+
+The two get designed together and neither ships alone. `backlog.md` → `## Context and session
+boundaries` carries the hook.
+
+### The reminder hook has no token problem
+
+A session runs about 20 turns before `/handoff` and a clear, and the working ceiling is 150k tokens.
+A 40-line reminder injected every turn costs under 1,000 tokens across the whole session. Earlier
+reasoning in this record treated the cost as unbounded and it is not. What decides the shape is what
+the agent still reads on turn 15.
+
+### The three reported behaviors become study cases
+
+Agreed 2026-09-05. Every rule Flow has written came from a recorded artifact, and these three exist
+only in the user's recollection: repeating a clear instruction back, re-raising settled points as
+open, and splitting one answer across several edits. `shit-explanations.md` holds nothing on any of
+them, and both files under `lab/study-cases/` are 2026-08-10 Opus 5 cases about the opposite failure.
+
+### `## The turn`, built 2026-09-05
+
+Approved after 3 rejections, all recorded in `shit-explanations.md`: the first for pointing at its
+own headings instead of stating anything, the second for over-explaining, the third for covering half
+a turn while the narration rules stayed loose in `## Explaining`.
+
+**It sits first in `home/CLAUDE.md`**, above `## Hard rules`, because `style.md` §2 puts the
+highest-stakes material first or last and this is the frame every other section runs inside.
+
+```
+## The turn
+
+One user message, your work, one reply. In that order, every time.
+
+**1. Instruction, or thinking?** An instruction names the change, or approves a plan.
+Thinking is everything else: a hedge ("maybe", "not sure"), a question, feedback, a reaction.
+A long list of feedback is a long list of topics, not tasks. Thinking gets a reply: test it,
+disagree where you disagree, recommend. An instruction gets work, never a summary of itself.
+
+**2. Disagree before building, never after.** Say it once, then stop.
+
+**3. Build everything agreed, nothing more.** Agreed: proposed by you, never argued with,
+however far back. Not agreed: anything you never spelled out. Deciding something new means
+stop and ask. One instruction runs to the last file, never stopping halfway to report.
+
+**4. Name each action as you take it.** One line: "adding the rule to `rules/comments.md`".
+
+**5. Every action first, then one answer.** The last message is the only one the user reads:
+it carries the whole answer and a report of every change made. Never a scratch file or
+working doc in its place.
+```
+
+**Deleted in the same edit.** Two from `## Hard rules`: `No edits without approval` and `Reason
+before agreeing`. Two from `## Explaining` → `### Always`: `Assume only the final message is read`
+and `Think out loud while you work`.
+
+**Three clauses survive by placement rather than by text.** *Silence settles the point, never the
+edit* holds because step 1 decides whether any work starts and step 3 only decides scope.
+*Repetition is not evidence* was dropped on the user's argument: an agent that pushes back can be
+told a second time, so the clause spelled out what the next turn already handles. *Never restate the
+instruction back* sits in step 1, at the moment the decision gets made, rather than in the answer
+rules where it is merely derivable.
+
+**Cut on the user's call during review.** *The action, never the reasoning or the result* left step
+4, and the repetition clause left step 2. Both restated what the surrounding rule already carried.
+
+**Step 3 carries a known risk.** *One instruction runs to the last file* is the rule cut from
+`home/CLAUDE.md` on 2026-08-31, cut because a run with no brake is worse than a run that stops early.
+It is back before the wrap-up hook exists, so runaway sessions are possible until the hook lands.
+`backlog.md` → `## Context and session boundaries` carries the hook.
+
+**`home/CLAUDE.md` is now 201 lines**, one over the documented target. Draining `## Scripts` is what
+brings it back down, and that is designed above and unbuilt.
+
+**The repo `CLAUDE.md` still holds 7 rules saying what these 4 said**: `Never edit a file until the
+user approves`, `Silence on a decision is a yes`, `Feedback is not approval`, `Hedging is a no`,
+`Being told to build something is not approval`, `Approval covers what was proposed`, `Flagging a
+deviation afterwards is not asking`. Each carries a dated user ruling worth keeping, so collapsing
+them is a separate edit and was not part of this one.
 
 ## Research inventory
 

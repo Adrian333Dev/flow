@@ -204,3 +204,137 @@ carries the rule; `home/CLAUDE.md` does not).
 **Root cause.** Describing pieces of a mechanism without ever showing the mechanism. The reader
 cannot assemble the pieces because the shape they fit into was never drawn.
 
+
+---
+
+## 2026-09-05: a rule section built out of two questions, neither of them answered
+
+**Context.** The user asked for a new `CLAUDE.md` section fixing three agent behaviors: repeating a
+clear instruction back instead of doing it, re-raising settled points as open, and splitting one
+answer across several edits. The reply proposed a section named `## Acting`. It was rejected whole.
+
+**Sent, the proposed section in full:**
+
+> ## Acting
+>
+> Two questions, in order, every turn.
+>
+> **Is this an instruction to act?** A change named with its target is one, and it gets done rather
+> than repeated back. "Go ahead" is one. A hedge, a question, a reaction, or a list of feedback is
+> not, however much the user agrees with themselves.
+>
+> **What is in scope?** Everything the conversation named and the user did not argue with, back to
+> the last thing they did. Nothing you would be writing for the first time here.
+
+**Rejected:**
+
+> "if you look at the acting section, it's not in plain language, it's been structured in a complex
+> way. Just make sure it's very plain, very clear. Like for example you say "A change named with its
+> target is one", That's very confusing and very unintelligible sentence. That sentence doesn't make
+> any fucking sense. You had to come up with a much clearer sentence there."
+
+> "what's the scope question in the acting section? That doesn't make any sense. Like, what the fuck
+> is the purpose of it? You don't really clarify what that question is fucking for, right? That's,
+> you know, complete nonsense section. The whole acting section is complete nonsense and
+> unintelligible."
+
+**Faults.**
+
+1. **"A change named with its target is one."** The word "one" reaches back across a sentence
+   boundary to "an instruction to act" in the heading above it. The reader has to hold the heading,
+   carry it into the next sentence, and substitute it in. `Name the thing, never point at it` covers
+   exactly this, and the sentence breaks it in five words.
+2. **Both headings ask instead of answering.** `A heading states its answer` is a loaded rule. Under
+   a heading that asks, every sentence reads as evidence for one side or the other, and the reader
+   never learns what the section wants them to do.
+3. **The second heading never says what the question is for.** The section asks "what is in scope?"
+   and never states that scope means how much of the agreed work to build in this turn. The user
+   named this fault directly, and it is the whole reason the section reads as noise.
+4. **"However much the user agrees with themselves" carries no meaning.** It was compressed out of
+   the idea that a long approving message is still discussion. Nothing of that idea survives the
+   compression.
+5. **"Nothing you would be writing for the first time here" hides its own subject.** The rule is
+   about not inventing material the user never saw. The sentence never says invent, never says
+   propose, and leaves "here" undefined.
+
+**Rule that failed.** Four, all loaded. `Name the thing, never point at it`, `A heading states its
+answer`, `One idea per sentence`, and `Plain words, short sentences`. All four sit in `## Explaining`
+in the repo `CLAUDE.md` and in `references/style.md` §5.
+
+**Root cause.** The section was written in the compressed register of the bullets already in
+`home/CLAUDE.md`, matching the surrounding file instead of `style.md`. Those bullets are the text the
+user has now ruled unreadable, so matching them reproduces the defect on purpose.
+
+**Right instead.** Say what the thing is before arguing about it. One heading per statement, each
+heading a claim rather than a question. Name the subject of every sentence inside that sentence. The
+rewrite in the same conversation ran four short statements, each a plain imperative, with the purpose
+of the last one stated in its first clause.
+
+### Second rejection, same section, same session
+
+The rewrite fixed the sentences and failed on length. Sent, in part:
+
+> **Work out first whether the user is telling you to do something or thinking about it.**
+>
+> An instruction says what to change and where. "Update the title in README.md" is an instruction.
+> So is "go ahead" after a plan.
+>
+> Everything else is thinking: a hedge, a question, feedback, a reaction. "Maybe we should", "I'm
+> not sure" and "what do you think" all mean the user has not decided yet.
+
+**Rejected:**
+
+> "you need to fucking, you know, explain the whole responsibility of acting section. Like, what is
+> it about? What it really brings to the table?"
+
+> "right now it seems to be like, you know, like too detailed. Like, you know, it includes too much
+> unnecessary context. It doesn't immediately go to the point. It will need to be like significantly
+> compressed. We need to consider that we have a lot of compression rules in the, you know, style
+> file."
+
+> "we'll just need to you know like explain the rule of you know it's you know like outline the whole
+> you know flow to the agent right so it knows how to you know follow it we shouldn't come up with
+> too much explanation shit explanation like that."
+
+> "Same goes for the next block where you mentioned narration is in one line per action. It's also
+> like you didn't follow any of the writing styles at all. Like you're explaining things in very long
+> sentences."
+
+**Faults.**
+
+1. **No sentence saying what the section is for.** It opens on the first step. Nothing anywhere says
+   the section decides when work starts and how much gets built, which is the one thing a reader
+   needs before the rules mean anything.
+2. **Two illustrations standing where one test belongs.** `style.md` §9 names this as the biggest
+   single win available: *four examples means the test was never written*. "Update the title in
+   README.md" and "go ahead" both illustrate a test the section never states.
+3. **One rule written twice.** "Never repeat the instruction back first. Never ask the user to
+   confirm what they just said." Two sentences, one instruction.
+4. **Elaboration around rules already stated.** "However many messages back it was", "even though the
+   user said nothing against it", "whatever their silence looked like". §9 `Delete the elaboration`.
+5. **Written in the wrong register.** `home/CLAUDE.md` is a loaded file, and §6 → `### Only in a
+   loaded file` drops articles and filler verbs and lets a fragment stand. Both blocks were written
+   as full explanatory prose instead.
+
+**Rule that failed.** `style.md` §6 → `### Only in a loaded file`, §9 `State the test, delete the
+illustrations`, §9 `Delete the elaboration`, and `Name the subject first` in `## Explaining`.
+
+**Root cause.** The section was written as an explanation aimed at the user, then pasted into a file
+aimed at an agent. `style.md` separates those two registers in its opening lines and the draft used
+one for the other throughout.
+
+### Third rejection: the section was too narrow, not badly written
+
+> "I previously assumed that we would basically remove all that no edit without approval rule and
+> also other related rules about our latest discussion, we would remove all of them and we just
+> introduce one section where we include everything for the agent right but it seems instead of that
+> you just came up with acting section which is kind of confusing section I still fully don't
+> understand what it really does here"
+
+**The fault.** `## Acting` covered when to start work and how much to build, and the narration rules
+stayed where they were as 2 loose bullets in `## Explaining`. One turn was described in 2 places. The
+user had asked for a single section on the model of `## Capture`, holding the whole flow.
+
+**Why the section read as confusing.** A section covering half a turn has no natural boundary, so
+nothing in it says where it stops. `## The turn` is readable because the unit is: one message in, one
+reply out.
