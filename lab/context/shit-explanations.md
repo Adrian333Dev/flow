@@ -148,3 +148,59 @@ why `tail the log` was misread, said `2>/dev/null` means "throw error messages a
 
 **Rules already cover every fault.** This entry produces no new rule. It stays as a test case for
 the existing three.
+
+---
+
+## 2026-09-05: the enforcement bridge explained in its own jargon, without the whole picture
+
+**Context.** The user asked what the scorecard is, how the enforcement bridge works, and what
+the scorecard file actually holds. The reply used undefined terms, skipped the whole picture,
+and never showed what the data looks like.
+
+**Sent, the first rejected paragraph:**
+
+> The scorecard is a tally sheet that runs in the background. Every time the agent edits or
+> writes a file, a script checks the written content against a list of mechanical patterns —
+> banned patterns, naming conventions, things a regex can catch. It counts three things per rule:
+> how many edits the rule applied to, how many followed it, how many violated it. At session end,
+> a second script prints those counts.
+
+**Rejected:**
+
+> "I fucking asked you what scorecard means and you said it's a tally sheet. Like, what the fuck
+> is tally sheet? I fucking explained this shit to you that you shouldn't explain, assume that I
+> know those terminologies. I have zero idea what the fuck is a tally sheet means."
+
+> "you're not fucking explaining me the whole fucking picture. There are all missing pieces here
+> in your fucking explanation."
+
+> "it seems like you're suggesting that somehow we extract the rules or something from the rule
+> files. And then building hooks based on them. And I don't know how the check and shit works."
+
+> "I still have zero fucking idea what the fuck that scorecard holds."
+
+**Faults.**
+
+1. **"Tally sheet" — a label used as a definition, and an unfamiliar one.** The user asked what
+   a scorecard is. The answer was a synonym the user does not know either. "Define from zero"
+   failed on the very first word of the explanation.
+2. **The whole machine is never shown.** The explanation describes pieces — a script, a pattern
+   check, a count — without ever saying what connects them or how the whole thing moves from
+   start to finish. "Open with the whole, then its parts" did not fire.
+3. **Never said what the scorecard file actually contains.** The user asked what data lives in
+   it, and the reply said "counts" without showing what a count looks like. No example, no
+   structure.
+4. **The relationship between rule files and the scorecard's patterns was never explained.** The
+   user thought the scorecard imports rules from `rules/` files. The reply never stated that the
+   scorecard's patterns are hand-written JavaScript regex checks, separate from the prose rules
+   the agent reads.
+5. **No visualization.** The enforcement bridge is a flow from rules through checking to
+   enforcement — structure that belongs in a diagram. The reply used prose for all of it.
+
+**Rule that failed.** Four, all loaded. "Define from zero" (§5). "Open with the whole, then its
+parts" (§5). "Name the subject first" (§5). "UI is drawn, never described" (repo CLAUDE.md
+carries the rule; `home/CLAUDE.md` does not).
+
+**Root cause.** Describing pieces of a mechanism without ever showing the mechanism. The reader
+cannot assemble the pieces because the shape they fit into was never drawn.
+

@@ -40,6 +40,14 @@ in one project is verified against Claude Code 2.1.251 and covered by a test.
 both deleted, along with `flow skills add` and `flow skills sync`. `flow install` reads the tree
 instead, and the scratch session passes `--drafts` so a half-written skill is reachable there.
 
+**`commands/` is dissolved, 2026-09-05.** The 4 skills it held moved to the group that fits what they
+do: `start` and `handoff` to a new `session/`, `file-findings` to a new `knowledge/`,
+`cut-from-spec` to `tools/`. The groups are `phases/`, `session/`, `knowledge/`, `tools/`, `stack/`,
+`dev/` and `drafts/`. `standards/` is dissolved by the same decision and gone from every doc, but its
+folder is still on disk holding the `.info` file that kept it in git, waiting on the user to confirm
+the delete. Nothing outside `skills/` reads a group name, so no code changed and no install is owed;
+one path in `scripts/tests/skills.test.js` moved.
+
 **`util` is a second CLI and a submodule of this repo at `lab/util/`,** built 2026-08-30 and
 finished 2026-08-31. Working today: the dispatcher, the `~/.util/sources` registry, `util source
 add/ls/drop`, namespace resolution, `util ls`, `util install`, and 3 namespaces — `git save`,
@@ -96,8 +104,25 @@ routes reusable knowledge to `.flow/findings/<subject>.md` with a duplicate filt
 skills. `/file-findings` reads findings as a fourth input, routes to `rules/` alongside skills, and
 deletes a findings file once drained. `rules/` exists at the repo top level, initially empty, and
 `flow install` symlinks its files per-item to `~/.claude/rules/` in the same pass as skills and
-agents. The enforcement bridge (compliance scorecard, warning/blocking hooks) is designed and unbuilt.
-`design-knowledge-base.md` carries every locked decision.
+agents. `design-knowledge-base.md` carries every locked decision.
+
+**The enforcement bridge is designed in full, and only its skill is built, 2026-09-05.** One
+`PreToolUse` hook on `Edit|Write` will run one script that records, warns and blocks, with each
+check's own `tier` field deciding which. Checks are self-describing files at
+`scripts/rule-checks/<id>.js`, so the folder is the registry. Every rule gets an ID written inline in
+its bold label slot, and a check names the rule ID it enforces. An `InstructionsLoaded` hook tracks
+which rule files are in context, so a warning carries the rule's text when the file is not loaded.
+`flow scorecard` aggregates across sessions and prints stale checks, worst offenders, promotion
+candidates and dead rules. The semantic-rule gap is closed: a check is any JavaScript function, and
+rules no function can catch get a `UserPromptSubmit` reminder, which is the one piece still
+undesigned.
+
+**`/file-findings` owns the whole of it.** The user merged the separate `rule-checks` skill into it
+on 2026-09-05, because a rule and its check are written in the same pass. The skill now reads `flow
+scorecard` as a fifth input, writes a check for every rule it touches, and carries an 89-line
+`references/write-checks.md` beside `write-skills.md`. **Nothing it describes exists yet**: no hook,
+no `scripts/rule-checks/`, no `flow scorecard`. `design-knowledge-base.md` → `## Locked decisions —
+the enforcement bridge` carries the design, and `## Build plan` carries the 6 steps left.
 
 **`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01.** It holds external tools filed
 by job — MCP servers, plugins, skills, libraries, apps. Nothing loads it, nothing installs from it,

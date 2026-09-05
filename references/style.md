@@ -100,7 +100,7 @@ Cut what lengthens a sentence without clarifying it. Readability first; the toke
 - Digits, not words: `5`, not `five`.
 - Name a skill with its slash: `/groundwork`, never `groundwork`. The slash is what the user types, and it tells the skill from the ordinary word.
 - Symbols only where genuinely clearer than the word. Usually they are not. They also save nothing: `→` and `·` are each their own token, as are invented abbreviations like `cfg`.
-- Never use em dashes. Use a period, a comma, a colon, or parentheses.
+- Never use em dashes. Use a period, a comma, a colon, or parentheses. **No file in the repo obeys this yet.** Strip the em dashes out of any section you rewrite, inside that same edit. A one-line fix in a long file does not trigger a pass over the rest of it. The sweep across everything else happens before release.
 
 ### Only in a loaded file
 

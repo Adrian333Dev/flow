@@ -116,13 +116,13 @@ Two rules from it fire here constantly:
 
 ## Authoring a skill
 
-One folder per skill, filed under a group: `skills/phases/`, `tools/`, `standards/`, `stack/`, `commands/`, `dev/` or `drafts/`. To add one, create `<group>/<name>/SKILL.md` with `name` and `description` frontmatter. Every skill outside `drafts/` installs on every machine, read off the tree, so there is no list to add a name to. **`drafts/` is the only group that changes behavior** — `flow install` skips it, so a skill ships by being moved out of it.
+One folder per skill, filed under a group: `skills/phases/`, `session/`, `knowledge/`, `tools/`, `stack/`, `dev/` or `drafts/`. To add one, create `<group>/<name>/SKILL.md` with `name` and `description` frontmatter. Every skill outside `drafts/` installs on every machine, read off the tree, so there is no list to add a name to. **`drafts/` is the only group that changes behavior**, because `flow install` skips it, so a skill ships by being moved out of it.
 
-**`docs/dev/skills.md` is the long form**: what each group is for, the frontmatter, what goes in the folders below `SKILL.md`, and when an install is needed. `skills/commands/file-findings/references/write-skills.md` says the same for whoever is authoring a skill inside a project. Edit both in the same pass whenever a rule there changes.
+**`docs/dev/skills.md` is the long form**: what each group is for, the frontmatter, what goes in the folders below `SKILL.md`, and when an install is needed. `skills/knowledge/file-findings/references/write-skills.md` says the same for whoever is authoring a skill inside a project. Edit both in the same pass whenever a rule there changes.
 
 The decisions neither page carries:
 
-- **`commands/` is closed.** It holds every skill the user mainly invokes, so `phases/` is `groundwork`, `execute`, `prototype` and `debug`. Set by the user and not reopenable.
+- **`phases/` is closed at 4: `groundwork`, `execute`, `prototype` and `debug`.** Set by the user and not reopenable.
 - **`code-review` is never getting built.** Review runs in the same session, never a subagent, and the criteria live beside whichever skill produced the artifact — `skills/phases/execute/references/review-code.md` is that file for code.
 - **A skill invoked over and over stays short, and a long skill takes no arguments.** A render that differs between invocations is appended whole; an identical one is skipped. A short skill re-appending costs nothing; `/handoff` at 153 lines must never grow an argument. Binds Flow's own skills; an external skill is not ours to hold to it.
 - **`file-findings` is the density to aim for.** Style lives in `references/style.md`, including how to write the `description`.

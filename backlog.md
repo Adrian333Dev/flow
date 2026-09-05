@@ -19,22 +19,21 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 
 ## The skill system
 
-Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and rebuilt the same day. Flow keeps Claude Code's skills and adds 3 things: a group folder, which files a skill and decides only whether `drafts/` skips it; one shell line per skill for overlays; and a rule that a skill invoked over and over stays short. What a session is shown is per group — `phases/`, `commands/` and `tools/` on, `stack/` off, `standards/` decided per skill. Every argument is in `design-skills.md`.
+Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and rebuilt the same day. Flow keeps Claude Code's skills and adds 3 things: a group folder, which files a skill and decides only whether `drafts/` skips it; one shell line per skill for overlays; and a rule that a skill invoked over and over stays short. What a session is shown is per group: `phases/`, `session/`, `knowledge/`, `tools/` and `dev/` on, `stack/` off. Every argument is in `design-skills.md`.
 
 - [ ] **`project-template/` ships no `.claude/settings.json`** — with `stack/` off by default, turning one on is the first thing a project needs, and there is no file to write it in. Decide whether the template carries an empty `skillOverrides` or the docs just say where to write one
-- [ ] **Remove the `commands/` group and split its skills into semantic groups** — each skill moves to the group that fits what it does. **talk first**
 - [ ] **`flow install` no longer prunes `~/.claude/commands/`** — a machine carrying an older Flow would keep dead links there beside the new skills. No machine has installed Flow, so nothing is broken; it belongs to the management skill
 - [ ] **External skills** — 1 project copies the folder into `.claude/skills/` and commits it. Several projects means vendoring it into Flow's tree with its origin recorded, then linking it like any Flow skill
 - [ ] **Plugins are a fourth install state Flow does not control** — off by default. `extraKnownMarketplaces` in the committed settings, `enabledPlugins` in `.claude/settings.local.json`, and a flip takes effect next session. `skillOverrides` is not an off switch: it leaves the commands and the hooks running
 - [ ] **Test whether a plugin skill beats a Flow skill of the same name** — 1 run, when a plugin goes in
 - [ ] **How a design plugin gets used** — what fires it, whether design work is its own phase, what happens when 2 of them disagree, the boundary with `/visualize`, what comes back into Flow afterwards. **Decided after the first real run in a project**, never before. Not essential; Flow works without one. **talk first**
-- [ ] **`paths` in skill frontmatter** — loads a skill when the model touches a matching file. Rejected for `standards/` 2026-08-26: a standard loads early, from its description. Still open for `stack/`, where it costs nothing until it matches. **parked** until 1 project installs 5 or more `stack/` skills
+- [ ] **`paths` in skill frontmatter** — loads a skill when the model touches a matching file. Rejected 2026-08-26 for the `standards/` group, since dissolved: a standard loads early, from its description. Still open for `stack/`, where it costs nothing until it matches. **parked** until 1 project installs 5 or more `stack/` skills
 - [ ] **`flow install --pin <name>`** — replaces one skill's symlink with a real copy, so clone edits stop reaching it. Designed and deferred 2026-08-30: a pin you must remember to remove freezes a skill silently. **parked** until the copy-into-drafts route annoys. `design-dev-loop.md`
 
 ## Individual skills
 
 - [ ] **Rebuild `/web-pages` on `browser-harness`** — 1,059 lines to roughly 150: 54 in `SKILL.md`, 514 in `knowledge/`, 491 in 2 scripts. The capture transport dies, the investigation method stays. Waits for the move to Linux. It is also the 1 skill excluded from the writing pass until then. `design-browser-tooling.md`
-- [ ] **`/file-findings` needs a rewrite** — it never learned the groups exist, so its `needs skill:` flag reaches the author without the one decision they make next; and it applies its method at step 4 but reports at step 7, where the wanted order is sort, shape, show the grouped plan, take feedback, then write. **talk first**. `design-commands-as-skills.md`
+- [ ] **`/file-findings` never names the groups.** `## Altitude: which skill` routes by scope alone, so the author writing a `needs skill: <group>/<subject>` flag has no group vocabulary in front of them. `references/write-skills.md` lists all 7, and it is only read when a skill is being built. The step-order half of this item was fixed before 2026-09-05 and is gone. **talk first**. `design-commands-as-skills.md`
 - [ ] **Introducing development skills** — skills that help build and improve Flow itself, not skills about writing code. `dev/` is the group, `/flow-review` is the first skill
 - [ ] **`/grill`** — decided and undesigned: a skill you fire at a finished artifact, `disable-model-invocation: true`, never model-invoked. **talk first**
 - [ ] **Cold-reader `/grill`** — hand the stripped mechanism to subagents that never saw the conversation, so neither can defend it. **talk first**. `remaining.md`
@@ -53,14 +52,14 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 
 ## Rules and always-loaded files
 
-- [ ] **Split `home/CLAUDE.md` before the hard rules grow again** — the always-loaded file only grows, and many more hard rules are coming. Two destinations: reference files it points at, and skills that fire on a situation. The example the user named is a skill firing whenever the agent plans a change, edits a file or runs a plan, carrying every rule about changing files. What it decides is which rules must be in context from turn 1 and which can arrive when they apply. **talk first**
+- [ ] **Split `home/CLAUDE.md` before the hard rules grow again** — the always-loaded file only grows, and many more hard rules are coming. Two destinations: reference files it points at, and skills that fire on a situation. The example the user named is a skill firing whenever the agent plans a change, edits a file or runs a plan, carrying every rule about changing files. What it decides is which rules must be in context from turn 1 and which can arrive when they apply. **It also carries the rule-ID pass**, in the same edit: every rule gets an ID in its bold label slot, across this file, the repo `CLAUDE.md` and every `rules/` file the split creates. **talk first**
 - [ ] **Re-ask the 7 rejected questions in a scratch session**, against the rebuilt `## Explaining`. The rewrite is unmeasured until then, and 6 earlier rounds of rule-writing were never tested either. Only the newest is in `shit-explanations.md`; the other 6 are in git — `git log -p -- lab/context/shit-explanations.md`
 - [ ] **`## Explaining` in `home/CLAUDE.md` has no *UI is drawn, never described* bullet**, which the repo `CLAUDE.md` carries. A layout question in plain conversation loads no skill, so the rule has a moment with no owner. **talk first**
 - [ ] **Where the review paragraph lives** once a review step exists — the premise moved. `/groundwork` Phase 3 is now *attack it before it stands*, delegating to `## Judgment`, so re-read it before deciding whether the question survives. **talk first**. `remaining.md`
 - [ ] **Dependency discipline** — a check before any dependency is added, and how a bulk version bump gets reviewed. **talk first**
 - [ ] **File size as its own review signal** — a small diff that pushes an already-large file past a healthy boundary. **talk first**
 - [ ] **The negation split** — a prohibition where the agent breaks a rule under pressure, a positive recipe where the output comes out the wrong shape. **talk first**. `compression.md`
-- [ ] **A `UserPromptSubmit` hook reinforcing `## Explaining` rules**: appends a short reminder to every user message. **talk first**
+- [ ] **A `UserPromptSubmit` hook reinforcing `## Explaining` rules**: appends a short reminder to every user message. Adopted 2026-09-05 as the answer for rules no check can catch, and still undesigned: what it says, its length, whether it changes between turns, and its token budget. It costs tokens every turn forever, so the budget decides the shape. **talk first**
 - [ ] **Rewrite `home/CLAUDE.md` against `style.md`**: written with Opus 5, unintelligible lines throughout. Full pass, not patches
 
 ## `util`, the utility CLI
@@ -83,7 +82,7 @@ Locked 2026-08-30 and built the same day, all 3 namespaces; `util install` follo
 Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` indexes them into a SQLite file, answers queries against it, and opens a bounded turn range of the original conversation when the counts are not enough. Nothing is recorded and nothing is intercepted. `design-audit.md` carries the design.
 
 - [ ] **A run is not wired to anything** — `run` and `run_session` are built and empty, every query treats them as optional, and nothing writes a row. A `SessionStart` hook has `session_id` and `cwd`, and `statuses.js` says which ticket is in flight. It also fires on `compact`, so a naive hook counts one session 4 times. **talk first**
-- [ ] **Nothing scores a session against Flow's own rules** — no skill exists yet to do this. `/insights` scores friction as 5 fixed categories and caches the result per session; ours would be edited-before-approval, writing pass skipped, stopped at a checkpoint, `ls` where `util fs tree` is mandated. Deterministic where the index can decide it, and a model call only for what it cannot
+- [ ] **Nothing scores a session against Flow's own rules** — the enforcement bridge is the answer and it is designed, so this line now tracks only what the scorecard cannot reach. Deterministic where a check can decide it, and a model call only for what it cannot. `design-knowledge-base.md` → `## Locked decisions — the enforcement bridge`
 - [ ] **The daily sweep is a second mode** — analysing every session since yesterday is batch, and batch wants parallel dispatch, which is blocked on git worktrees. The deterministic half runs at zero token cost over every new session and escalates only what it flags
 - [ ] **`flow audit prune`** — `cleanupPeriodDays` is 365, so nothing bounds `~/.claude/projects/` for a year, and the index is 44 MB against 241 MB of transcripts as of 2026-09-02. Prune by run rather than by age, delete only what the index has fully read, and never sweep what a study case pins
 - [ ] **A subagent's transcript is indexed and unreachable** — each one becomes its own session row carrying `agent_of`, and no query joins on it. A subagent's tool calls do not appear in its parent's totals
@@ -126,6 +125,7 @@ What Claude Code actually does, written down and kept current, so no session re-
 
 Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and the verified facts.
 
+- [ ] **Strip every em dash from the repo.** `references/style.md` bans them under `### Anywhere` and no file obeys, including `home/CLAUDE.md`, the repo `CLAUDE.md`, this file and every design record. Ruled by the user 2026-09-05: strip them out of any file you edit, inside that edit, and sweep whatever is left before release.
 - [ ] **Set up the dev checkout** — `git worktree add ../flow-dev <branch>`, so a multi-file rework is testable without reaching any real project. Works today with no code change: `lib/clone.js` derives the clone from `__dirname`, so a `try.sh` in the dev checkout installs the dev checkout. `design-dev-loop.md`
 
 ## The design record
@@ -156,6 +156,7 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 ## Other people, other models
 
 - [ ] **Name what in Flow is Claude Code and what is portable** — **talk first**, and the first step of everything below. Skills, hooks, `~/.claude/`, `settings.json`, subagents and the audit are one vendor's shapes. The rules, the ticket model, the phases and `util` are not. Nothing records the split
+- [ ] **Behavior varies by model — rules affect each model differently** — Sonnet 4.6 consistently puts the report before edits; Opus 5 never does that but fails at plain-language explanation even when pointed at `## Explaining` and `/visualize`. Each rule changes each model's behavior differently, so a rule that fixes one model may do nothing on another. The workflow needs to account for this — whether by model-specific tuning, by testing rules against each model, or by accepting that some rules only bind some models. **talk first**
 - [ ] **Run Flow on models other than Claude** — **talk first**. GPT, Qwen and GLM are the targets. Claude Code speaks only the Anthropic Messages API, and gateway model discovery keeps an id only when it contains `claude` or `anthropic`. Whether a translating proxy defeats that filter is open, and the research decides it. `lab/research/claude-code-docs/llms.md` indexes the gateway protocol page
 - [ ] **Survey the harnesses that could host Flow besides Claude Code** — **talk first**. Codex, `deepseek-harness`, and whatever else the search turns up. Each one splits Flow differently, so the survey sizes the portability work
 - [ ] **Build Flow for a stranger** — **talk first**. `home/CLAUDE.md` carries a personal profile, the install has never run on a second machine, and no page explains Flow to somebody who has never seen it. A setup script is fine, and a one-command npm install is not required

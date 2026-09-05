@@ -1,6 +1,6 @@
 ---
 name: start
-description: Opens a session — the board, one ticket, or a loose file.
+description: 'Opens a session: the board, one ticket, or a loose file.'
 argument-hint: '[ticket-id] | [path]'
 disable-model-invocation: true
 ---

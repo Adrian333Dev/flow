@@ -40,7 +40,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, `workflow.md` describes how the pieces fit, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, and `work-sync.md` covers moving uncommitted work between machines. Symlinked as `~/.flow/references`.
 
-**`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `standards/`, `stack/`, `commands/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. A symlink in `~/.claude/skills/` is flat and named for the skill, so nothing outside this tree ever reads a group name.
+**`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `session/`, `knowledge/`, `tools/`, `stack/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. A symlink in `~/.claude/skills/` is flat and named for the skill, so nothing outside this tree ever reads a group name.
 
 **`agents/`** holds subagent definitions, one markdown file each: a system prompt, a tool allowlist, and a model. Symlinked into `~/.claude/agents/`.
 

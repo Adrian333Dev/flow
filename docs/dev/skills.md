@@ -27,18 +27,18 @@ There is one copy of every skill on the machine, so an edit is live in every pro
 A group is a filing decision. Nothing outside `skills/` reads a group name: a symlink in `~/.claude/skills/` is flat and named for the skill: so moving a skill to a different group later is a `mv`.
 
 - **`phases/`**: what you are doing: groundwork, execute, prototype, debug
-- **`tools/`**: something you reach for inside a phase: research, visualize
-- **`standards/`**: how you work throughout
+- **`session/`**: opening a session and closing one: start, handoff
+- **`knowledge/`**: the workflow learning from what happened: file-findings
+- **`tools/`**: something you reach for inside a phase: research, visualize, cut-from-spec
 - **`stack/`**: what you are touching: web-pages
-- **`commands/`**: what you mainly type yourself: start, handoff, file-findings, cut-from-spec
 - **`dev/`**: building and improving Flow itself: flow-review
 - **`drafts/`**: one still being written
 
 `drafts/` is the only group that changes behavior. `flow install` skips it, so a skill ships by being moved out of it. Until then the skill is reachable only through [the scratch session](scratch-session.md), which passes `--drafts` on every run.
 
-`commands/` wins wherever two groups fit, because who reaches for the skill matters more than what it does.
+`phases/` is closed at those 4. A skill that looks like a fifth phase belongs somewhere else: `/cut-from-spec` produces tickets and files under `tools/`.
 
-A group also decides whether a session is shown the skill. `phases/`, `commands/`, `tools/`, and `dev/` are on. `stack/` is off, and turned on per project. `standards/` is decided per skill. The off list ships in `home/settings.json` as `skillOverrides`, whose values are `on` and `off` with nothing between them.
+A group also decides whether a session is shown the skill. `phases/`, `session/`, `knowledge/`, `tools/` and `dev/` are on. `stack/` is off, and turned on per project. The off list ships in `home/settings.json` as `skillOverrides`, whose values are `on` and `off` with nothing between them.
 
 ## Frontmatter
 

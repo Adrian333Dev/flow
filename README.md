@@ -59,7 +59,7 @@ Review runs two passes over the same diff: against the plan (every step delivere
 
 `flow` is a full CLI that manages work across sessions. It tracks status, dependencies, parent/child hierarchy, and five ticket types (feature, issue, chore, topic, prototype). Each type walks a subsequence of the same status line (`todo → groundwork → planning → building → review → done`). The system refuses what would break the graph: picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents.
 
-[`/start`](skills/commands/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/groundwork`, a feature at `planning` goes to `/execute`, an issue goes to `/debug`, a prototype goes to `/prototype`.
+[`/start`](skills/session/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/groundwork`, a feature at `planning` goes to `/execute`, an issue goes to `/debug`, a prototype goes to `/prototype`.
 
 Key commands:
 
@@ -81,7 +81,7 @@ The handoff (`/handoff`) writes what the next session would get wrong without it
 
 Capture writes everything worth keeping as it surfaces: preferences, patterns, constraints, corrections, things that cost effort to learn. Everything with no obvious home goes to the inbox, raw and unshaped.
 
-[`/file-findings`](skills/commands/file-findings/SKILL.md) drains the inbox and routes each item to its destination by scope. A tool quirk goes to that tool's skill. A broad principle goes to a high-level rule. A user preference goes to the profile. Several findings on one subject that no skill covers are what earns a new skill.
+[`/file-findings`](skills/knowledge/file-findings/SKILL.md) drains the inbox and routes each item to its destination by scope. A tool quirk goes to that tool's skill. A broad principle goes to a high-level rule. A user preference goes to the profile. Several findings on one subject that no skill covers are what earns a new skill.
 
 The skills and rules are not static. They accumulate what the work teaches, and the next session loads those changes automatically.
 
@@ -91,7 +91,7 @@ Three skills fire inside any phase:
 
 - [`/research`](skills/tools/research/SKILL.md) covers any topic: a library API, a design pattern, a domain the user barely knows. It fetches docs through the llms.txt route (most tools publish one), caches them locally under `tmp/references/`, and reads from cache on future runs so the same docs are never fetched twice. Four levels matched to depth: a single doc-page fetch, full docs cached before a plan freezes an API, a source clone for deep customization, or a landscape survey delegated to external LLMs (including free ones) in their own sessions.
 - [`/visualize`](skills/tools/visualize/SKILL.md) picks the medium before drawing: prose, a list, ASCII, an ASCII frame for screen layout, or an HTML preview for color and typography. ASCII first, because it costs a fraction of what an HTML round costs and renders inline. The skill carries a pattern vocabulary (layered stacks, pipelines, flows with return paths, trees, side-by-sides), correctness mechanics (collision detection, equal row length, label fitting), and references for [screen mockups](skills/tools/visualize/references/draw-mockups.md), [large-scale diagrams](skills/tools/visualize/references/hooks-lifecycle.md) (113 columns, 97 rows), and a [full-page YouTube mockup](skills/tools/visualize/references/youtube-page.md) at real proportion.
-- [`/handoff`](skills/commands/handoff/SKILL.md) writes what the next session needs to carry on. It is what makes the ticket system work across sessions.
+- [`/handoff`](skills/session/handoff/SKILL.md) writes what the next session needs to carry on. It is what makes the ticket system work across sessions.
 
 Two more fire on a situation:
 
