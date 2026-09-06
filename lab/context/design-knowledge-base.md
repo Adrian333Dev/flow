@@ -312,8 +312,8 @@ record was built for output rules.
 
 **Conduct rules** say how the agent behaves in the conversation: when it edits, when it asks, when it
 speaks, how much it explains. They attach to no file. No path selects them and no function checks
-them. Every entry in `shit-explanations.md` and both study cases under `lab/study-cases/` are conduct
-failures, so conduct is where the observed damage is.
+them. Every entry in `shit-explanations.md` and every study case under `lab/study-cases/` is a conduct
+failure, so conduct is where the observed damage is.
 
 ### A rule written only as a prohibition amplifies whatever the model already does
 
@@ -421,12 +421,27 @@ A 40-line reminder injected every turn costs under 1,000 tokens across the whole
 reasoning in this record treated the cost as unbounded and it is not. What decides the shape is what
 the agent still reads on turn 15.
 
-### The three reported behaviors become study cases
+### The three reported behaviors are study cases, written 2026-09-06
 
-Agreed 2026-09-05. Every rule Flow has written came from a recorded artifact, and these three exist
-only in the user's recollection: repeating a clear instruction back, re-raising settled points as
-open, and splitting one answer across several edits. `shit-explanations.md` holds nothing on any of
-them, and both files under `lab/study-cases/` are 2026-08-10 Opus 5 cases about the opposite failure.
+Agreed 2026-09-05, written the next day into 3 new issue folders under `lab/study-cases/`:
+
+- `summary-instead-of-work/`: a clear instruction restated instead of run
+- `reopened-settled-points/`: proposals the user never argued with, listed again as open
+- `answered-before-acting/`: the answer written mid-turn, so only a stub reached the final message
+
+**The evidence is the user's account, and it is quoted rather than summarized.** No transcript of a
+failing Sonnet 4.6 session was kept, so the design session of 2026-09-05 is the only record. Pulling
+the words back out of that transcript is what made the cases writable: each one carries the user's
+own description of the failure, and each carries their own statement of the boundary, which is the
+half a summary loses.
+
+**All 3 are filed `status: fixed`, `fix: home/CLAUDE.md`.** Each maps to one step of `## The turn`,
+which was written from these reports: step 1 for the restatement, step 3 for the settled points, step
+5 for the split answer. Every one names the rule that was loaded and failed, and says what the rule
+fails to name.
+
+Before this, both files under `lab/study-cases/` were 2026-08-10 Opus 5 cases about the opposite
+failure, and `shit-explanations.md` held nothing on any of the three.
 
 ### `## The turn`, built 2026-09-05
 

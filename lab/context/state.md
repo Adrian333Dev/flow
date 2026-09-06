@@ -48,6 +48,13 @@ against `filed` → `/file-findings` step 8; id resolution → `references/workf
 `flow dep`, `flow tree`, `flow check` and the `flow ls` flags are in no loaded file now, by decision:
 the CLI's own help is their one home.
 
+**`lab/study-cases/` holds 5 cases in 4 issue folders, as of 2026-09-06.** 3 were added that day, one
+per behavior the user reported against Sonnet 4.6: `summary-instead-of-work`,
+`reopened-settled-points` and `answered-before-acting`. Each quotes the user from the 2026-09-05
+design transcript, because no failing session was kept. All 3 are `status: fixed` against
+`home/CLAUDE.md`, since `## The turn` was written from them. The 2 older cases sit in
+`premature-implementation`, both 2026-08-10 and both Opus 5.
+
 **The off list names `web-pages` today**, and nothing else. Which groups are on moved out of
 `CLAUDE.md` on 2026-09-01 and is now in `docs/dev/skills.md` → `## The groups`. Off globally and on
 in one project is verified against Claude Code 2.1.251 and covered by a test.
