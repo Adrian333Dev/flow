@@ -43,6 +43,8 @@ There are no modes. Any run, any size, routes what it decided — often to more 
 
 `.flow/tickets/` stays flat on disk — the hierarchy is `parent:` in frontmatter, and `flow` renders it on demand.
 
+**A ticket is named by its id, never a path.** `t047`, `47`, `parser` and `t047-parser-split` all resolve, because the number is the identity and the label is decoration.
+
 Pickup is where a ticket's shape gets decided, and it is the one real decision in the system. `/start` walks it: it routes on `type:` and `status:`, and nothing else happens there. **The ticket does not move at pickup** — the skill that takes it writes the status, after opening the phase's own artifact. `/groundwork` settles what the ticket is; `/execute` plans, builds and reviews it.
 
 ## Inside each place

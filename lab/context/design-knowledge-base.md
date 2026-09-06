@@ -360,21 +360,37 @@ Open, and to settle during the split rather than now: what is left for a top-lev
 once every rule sits with its subject. A project's own `.claude/rules/` keeps its use, because a
 project rule has no skill to live in.
 
-### `## Scripts` drains out of `home/CLAUDE.md`
+### `## Scripts` drained, 2026-09-06
 
-46 lines, the largest section in the file, and almost all of it is a command reference rather than a
-rule. A skill is loaded before nearly every `flow` command gets typed, so the definitions belong in
-the skill that runs them.
+45 lines to 9, and `home/CLAUDE.md` to 165. Almost all of the section was a command reference rather
+than a rule, and a skill is loaded before nearly every `flow` command gets typed.
 
-What stays is what has to be there with nothing loaded: `util fs tree` and `util fs merge` with the
-rule that no structure lookup uses `ls` or `find`, `flow new` for `## Capture`, the fact that both
-commands are called bare from any directory, and the line saying `flow` run bare prints the full
-surface. That last line is the safety net that makes the drain safe.
+What stayed is what has to be there with nothing loaded: the 2 `util` commands with their signatures,
+the rule that no structure lookup uses `ls`, `find` or `cd`, the rule that a read above 4 files goes
+through `util fs merge`, `flow` as the only writer of ticket frontmatter, and the line saying `util
+ls` and a bare `flow` print their full surface. That last line is the safety net that makes the drain
+safe.
 
-The rest moves to the skill that uses it: the status verbs to `/execute`, `flow get --files` to
-`/start`, the `flow new` flags to `/cut-from-spec`, `flow ls --unfiled` and `flow file` to
-`/file-findings`. The remainder goes to `~/.flow/references/workflow.md`, which `## Workflow` already
-names as the fallback.
+5 facts moved, each into a file that loads when the fact fires:
+
+- `--priority` is set only on request → `## Capture`, on the `flow new` bullet. Always loaded, because
+  `flow new` fires from `## Capture`, `/groundwork` and `/cut-from-spec` alike
+- `flow skills ls` → `## Workflow`, into the line that already said 3 skills are the user's to type
+  and nothing shows them. The line stated the gap and never named the command that closes it
+- create and fill in one command → `/groundwork` Phase 4. `/cut-from-spec` already carried it
+- `done` against `filed` → `/file-findings` step 8, beside the `flow file` call
+- id resolution → `references/workflow.md` → `## Tickets`
+
+**The plan named 2 destinations the build did not use.** `/cut-from-spec` was to take the `flow new`
+flags, and it already carries the only rule among them. `references/workflow.md` was to take the
+remainder, and its own opening line limits it to places and routes, never a command reference.
+
+**`flow edit`, `flow dep`, `flow tree`, `flow check` and every `flow ls` flag are in no loaded file
+now.** Decided, not overlooked: the CLI's own help is their one home, and a bare `flow` prints it.
+
+Everything else deleted already had a home: `flow next`, `flow get`, `flow drop`, `flow ls
+--unfiled`, the status verbs, `flow park`, the 5 `--type` values, work-already-open beats work-cut,
+and the `flow-open` block.
 
 ### Answer once, at the end
 
@@ -463,8 +479,8 @@ rules where it is merely derivable.
 It is back before the wrap-up hook exists, so runaway sessions are possible until the hook lands.
 `backlog.md` → `## Context and session boundaries` carries the hook.
 
-**`home/CLAUDE.md` is now 201 lines**, one over the documented target. Draining `## Scripts` is what
-brings it back down, and that is designed above and unbuilt.
+**`home/CLAUDE.md` was 201 lines** when `## The turn` landed, 1 over the documented target. Draining
+`## Scripts` on 2026-09-06 took it to 165.
 
 **The repo `CLAUDE.md` still holds 7 rules saying what these 4 said**: `Never edit a file until the
 user approves`, `Silence on a decision is a yes`, `Feedback is not approval`, `Hedging is a no`,

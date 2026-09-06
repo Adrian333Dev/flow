@@ -21,7 +21,7 @@ Move at triage speed. Building a skill is the one slow step, and it fires rarely
 5. Take the corrections, then write. A few grouped edits per destination.
 6. **Write or update a check for every rule you touched**, wherever a function can tell violations apart. `## Checks` below.
 7. Clear filed items from inbox and findings; delete a findings file left empty. **Never empty an `issues.md`.** It is the record of what happened, like a hunt's report.
-8. Mark every ticket you swept: `flow file t047 t048 t049`, the ones that taught nothing included. Nothing else drains the queue.
+8. Mark every ticket you swept: `flow file t047 t048 t049`, the ones that taught nothing included. `status: done` says the work finished; `filed` says the lessons came out of it. Nothing else drains the queue.
 9. Report what you filed and what you flagged.
 
 ## Inputs

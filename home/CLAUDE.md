@@ -58,7 +58,7 @@ Three fire inside any phase, and in bare conversation with none loaded:
 
 **Always invoke the one that fires, and never improvise its job.** An obvious small task takes none of them, and reading what exists to learn how it works is never `/groundwork`.
 
-**`/start`, `/cut-from-spec` and `/file-findings` are the user's to type, and nothing shows them to you.** One named in conversation is installed and reachable — say which line to type. A skill named and genuinely absent → say so and stop.
+**`/start`, `/cut-from-spec` and `/file-findings` are the user's to type, and nothing shows them to you.** `flow skills ls` prints every skill on this machine, the hidden ones included. One named in conversation is installed and reachable, so say which line to type. A skill named and genuinely absent → say so and stop.
 
 `~/.flow/references/workflow.md` — the pieces defined, where each artifact lives, and which status sequence each ticket type walks. Only when that is genuinely unclear.
 
@@ -81,7 +81,7 @@ Write anything worth keeping the moment it surfaces.
 
 **`flow` needs only a git repo**, so committed work gets a ticket nearly everywhere, project or not. The exceptions are a directory under no repo at all, and a repo belonging to someone else.
 
-- Work **committed to** → `flow new "…"`. A feature mentioned for later counts
+- Work **committed to** → `flow new "…"`. A feature mentioned for later counts. **Set `--priority` only when the user asks**; a field stamped every time stops meaning anything
 - Rule about the code → `## Rules`. How the user wants to work → `## Preferences`; what they know or don't → `## The user`. Those two **inferred from evidence, never announced and never guessed from the stack** — the same correction twice, irritation at a habit, a term you had to explain
 - Durable project fact — a verified command, a path, a settled convention → `docs/context/<subject>.md`
 - Reusable knowledge — a tool behavior, a library quirk, a pattern that works → `.flow/findings/<subject>.md`. Skip what the loaded skill already says; contradictions and extensions are new
@@ -98,49 +98,13 @@ Confirm in the final message, never only in a tool call: `[where] what was writt
 
 ## Scripts
 
-Two commands on `PATH`, `util` and `flow`. Call by name from any directory — never with `bash`, `node`, or a path.
+Two commands on `PATH`, `util` and `flow`. Call by name, never with `bash`, `node`, or a path. `util ls` and a bare `flow` print their full surface.
 
-**`util`** — the general-purpose commands, filed under a namespace each: `util <namespace> <command>`. `util ls` prints every one on this machine, with a line saying what it does. Two of them are used in every session.
+`util fs tree [path] [--depth N] [--except pattern]`. Defaults to here, full depth. **Every look at structure goes through it.** Never `ls`, `find` or `cd` to see what is there, not even for one directory.
 
-**`util fs tree`** — a directory tree with the noise stripped out, each entry's own `description:` line printed beside it. **Every look at structure goes through it** — never `ls`, `find`, or `cd` to see what is there, not even for one directory.
-`util fs tree [path] [--depth N] [--except pattern]` — defaults to here, full depth. `--except` takes a name, folder or glob, repeatable. Build output, caches, dependency folders and `.git` are hidden already. Dotfiles shown, directories first.
+`util fs merge [--ext ts,tsx] [--except pattern] [--force] <path>...`. A path is a file, a folder (recursive), or a range: `file.md:45-89`. **Every read above 4 files goes through it**, and every grep-then-read where the content is what's wanted. Past 2000 lines it returns line counts, so asking wide is cheap; `--force` overrides.
 
-**`util fs merge`** — many files as one stream, each in a fenced block tagged with its path. The read tool past a few files: replaces grep-then-read when the content is what's wanted, and any fan of `Read` above four.
-`util fs merge [--ext ts,tsx] [--except pattern] [--force] <path>... [-- note]` — a path is a file, a folder (recursive), or a line range: `file.md:45-89`, inclusive. Path parsing stops at `--`, so an argument line can end in an instruction. Past 2000 lines it returns line counts instead of content, so asking wide is cheap; `--force` overrides.
-
-**`flow`** — the ticket system. Reads `.flow/tickets/`, computes the dependency graph, and is the **only** writer of ticket frontmatter; bodies are written by hand.
-
-**`flow <command> [id] [--flags]`.** A word naming no command is read as a ticket id, which is what makes `flow t047` show one. Run `flow` bare for the full surface.
-
-- `flow get` — the board: where the work stands. Writes nothing
-- `flow get <id> [<status>] [--files]` — one ticket in full. `--files` loads every file its `flow-open` block names. Name a status and it moves the ticket first. `/start` runs it with `--files`
-- `flow get <path>` — the same for loose work: a `handoff.md` and whatever its block names. The one shape needing no repo
-- `flow next` — what is workable, ranked
-- `flow check` — cycles, dangling ids, dropped blockers, orphaned parents
-- `flow <id>` — one ticket in full, and the command it is waiting for
-- `flow new "<title>" [--type <type>] [--priority <level>] [--parent <id>] [--deps <id,id>] [--label <1-3 words>] [--body -] [--from-groundwork <path>]`
-- `flow edit <id> [--title|--label|--type|--priority|--parent <value>]` — every field but the status
-- `flow dep <id> [--on <id>] [--off <id>]` — add or remove a dependency after creation
-- `flow ls [--status <status>] [--type <type>] [--parent <id>] [--unfiled]`, `flow tree`
-- `flow drop <id> --reason "<why>" [--by <id>]` — `--by` re-points whatever depended on it
-- `flow file <id>…` — `status: done` says the work finished; `filed` says the lessons were taken out of it. `/file-findings` stamps it, and nothing else does
-- `flow skills ls` — every skill on this machine, including the ones you are not shown. Nothing else lists them
-
-**A status move is its own command, named after where it lands** — `flow groundwork|plan|build|review|done|todo <id>`, and `flow park <id> --reason "<why>"`. The line is `todo → groundwork → planning → building → review → done`; `parked` and `dropped` sit off it, and both need a reason.
-
-The values:
-
-- **`--type`** — `feature`, `issue`, `chore`, `topic`, `prototype`
-- **`--priority`** — `high`, `normal` or `low`. **Set one only when the user asks.** `normal` stores no line, so a ticket without one inherits the nearest ancestor's. Never stamp a priority at creation — a field set every time stops meaning anything
-
-The rules:
-
-- **Reference a ticket by id, never a path** — `t047`, `47`, `parser` and `t047-parser-split` all resolve, because the number is the identity and the label is decoration
-- **Create and fill in one command** — `--body -` takes the body on stdin. Never create then edit
-- **Work already open beats work cut out of it, and both beat anything new** — a ticket nobody has started is new work however it is marked
-- **Refuses what would break the graph, and says why** — picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents. Read the refusal; `--force` is deliberate override, not an escape from a mistake
-- **Nothing moves a ticket but a status command.** `flow <id>` prints the one a `todo` or `parked` ticket is waiting for, and printing is all it does. The status verbs (`flow build`, `flow review`, `flow done`, …) are the only way to move a ticket
-- **`/handoff` writes the `flow-open` block, and decides what goes in it** — one path per line, `#` for a note, `:40-120` for a range. Never a minimum: a ticket carrying its own context writes no block
+**`flow`** is the ticket system, and the **only** writer of ticket frontmatter. A word naming no command is read as a ticket id, so `flow t047` shows one. **Read a refusal before working around it**; `--force` is a deliberate override.
 
 ## Judgment
 

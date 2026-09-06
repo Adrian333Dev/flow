@@ -35,10 +35,18 @@ a rebuilt session starts signed in instead of running first-install onboarding e
 **`home/CLAUDE.md` opens with `## The turn`, added 2026-09-05.** 5 numbered steps covering one user
 message from arrival to reply: telling an instruction from thinking, disagreeing before building,
 scope, naming each action, and answering once at the end. It replaced 4 rules, 2 from `## Hard rules`
-and 2 from `## Explaining`. The file is 201 lines, 1 over the documented target, and draining
-`## Scripts` is what brings it back. The repo's own `CLAUDE.md` still carries 7 approval rules saying
-the same thing, uncollapsed on purpose because each holds a dated ruling.
+and 2 from `## Explaining`. The repo's own `CLAUDE.md` still carries 7 approval rules saying the same
+thing, uncollapsed on purpose because each holds a dated ruling.
 `design-knowledge-base.md` → `## Locked decisions: conduct rules` carries the arguments.
+
+**`## Scripts` is drained and `home/CLAUDE.md` is 165 lines, 2026-09-06.** The section went from 45
+lines to 9: the 2 `util` commands with their signatures, and 3 sentences on `flow`. Out went
+everything a bare `flow` prints, and every command the skill that runs it already names. 5 facts
+moved to keep a home that loads when they fire: `--priority` only on request → `## Capture`;
+`flow skills ls` → `## Workflow`; create and fill in one command → `/groundwork` Phase 4; `done`
+against `filed` → `/file-findings` step 8; id resolution → `references/workflow.md`. `flow edit`,
+`flow dep`, `flow tree`, `flow check` and the `flow ls` flags are in no loaded file now, by decision:
+the CLI's own help is their one home.
 
 **The off list names `web-pages` today**, and nothing else. Which groups are on moved out of
 `CLAUDE.md` on 2026-09-01 and is now in `docs/dev/skills.md` → `## The groups`. Off globally and on
