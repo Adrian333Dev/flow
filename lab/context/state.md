@@ -35,15 +35,33 @@ a rebuilt session starts signed in instead of running first-install onboarding e
 **`home/CLAUDE.md` opens with `## The turn`, added 2026-09-05.** 5 numbered steps covering one user
 message from arrival to reply: telling an instruction from thinking, disagreeing before building,
 scope, naming each action, and answering once at the end. It replaced 4 rules, 2 from `## Hard rules`
-and 2 from `## Explaining`. The repo's own `CLAUDE.md` still carries 7 approval rules saying the same
-thing, uncollapsed on purpose because each holds a dated ruling.
-`design-knowledge-base.md` → `## Locked decisions: conduct rules` carries the arguments.
+and 2 from `## Explaining`. `design-knowledge-base.md` → `## Locked decisions: conduct rules` carries
+the arguments.
 
-**`## Scripts` is drained and `home/CLAUDE.md` is 165 lines, 2026-09-06.** The section went from 45
+**The repo's own `CLAUDE.md` got a `## The turn` too, 2026-09-06.** 16 scattered bullets folded into
+the same 5 steps: 11 approval rules plus `Move forward, never sideways`, `User dictates by voice` and
+`Reason before agreeing` from `## Hard rules`, and `Assume only the final message is read`, `Think out
+loud while you work` and `Never narrate being wrong` from `## Explaining`. Every dated ruling survives
+inside the step that carries it. `## Hard rules` keeps 11 bullets, all conduct or repo mechanics, and
+`Deletes need their own explicit confirmation` stays there because it has its own 2 exceptions. The
+mirror rule is gone: the user ruled 2026-09-06 that the repo file no longer has to match the template,
+since its content is replaced wholesale once the workflow is finished. The 2 `Mirror of
+home/CLAUDE.md` preambles and the 3-bullet deviation note went with it.
+
+**`home/CLAUDE.md` is 162 lines with no `## Hard rules`, 2026-09-06.** The flat section dissolved into
+`## Reading` (3 bullets), `## Writing files` (6) and `## Tools` (3), and 4 bullets left it entirely:
+`Skip a Flow step` to `## Workflow`, `User likely dictates` to `## The turn` step 1, `No cause without
+evidence` to `## Judgment`, and `Every path named here is a default` to the top of the file. Grouping
+first is what makes the split threshold measurable, and only `## Writing files` crosses it. `## The
+turn` also absorbed `Never argue a decision already made` into step 2 and the capture confirmation
+into step 5. `## Workflow` lost `/cut-from-spec` and `/start` from the chain and the whole typed-only
+paragraph, so neither skill is named in the file now. Both `CLAUDE.md` files are at 0 em dashes.
+
+**`## Scripts` was drained 2026-09-06, taking `home/CLAUDE.md` to 165 lines before the regrouping below cut it to 162.** The section went from 45
 lines to 9: the 2 `util` commands with their signatures, and 3 sentences on `flow`. Out went
 everything a bare `flow` prints, and every command the skill that runs it already names. 5 facts
 moved to keep a home that loads when they fire: `--priority` only on request → `## Capture`;
-`flow skills ls` → `## Workflow`; create and fill in one command → `/groundwork` Phase 4; `done`
+`flow skills ls` → `## Workflow`, and on to `/research` when that paragraph was deleted 2026-09-06; create and fill in one command → `/groundwork` Phase 4; `done`
 against `filed` → `/file-findings` step 8; id resolution → `references/workflow.md`. `flow edit`,
 `flow dep`, `flow tree`, `flow check` and the `flow ls` flags are in no loaded file now, by decision:
 the CLI's own help is their one home.
@@ -54,6 +72,24 @@ per behavior the user reported against Sonnet 4.6: `summary-instead-of-work`,
 design transcript, because no failing session was kept. All 3 are `status: fixed` against
 `home/CLAUDE.md`, since `## The turn` was written from them. The 2 older cases sit in
 `premature-implementation`, both 2026-08-10 and both Opus 5.
+
+**`/file-findings` is model-invocable as of 2026-09-06**, and `/start` and `/cut-from-spec` are the
+only skills left carrying `disable-model-invocation`. The user accepted the trade: a hard switch
+enforced by Claude Code becomes a soft rule the model follows. `/execute` now offers `/file-findings`
+when a ticket closes and waits for a yes, which is where the suggestion belongs, since a ticket
+closing is a moment no always-loaded file can see. `## Capture` keeps the other trigger, the 200-line
+inbox, because inbox length has nothing to do with a ticket.
+
+**`flow skills ls` takes `--group` and `--hidden` as of 2026-09-06.** `--hidden` keeps only what the
+session is not being shown, which is the whole question when `/research` asks whether a skill for some
+tool already exists: anything `on` is already in context with its description. An unknown `--group`
+refuses with the list of real ones, because an empty table reads like a group with nothing in it.
+
+**`docs/dev/context-cost.md` says which shortenings buy tokens**, written 2026-09-06. The short
+answer: digits, symbols and abbreviations save nothing and abbreviations usually cost more; articles
+are about 6% of `home/CLAUDE.md`; deleting a rule beats rewording thirty. It marks every claim as
+measured on disk, documented by Anthropic, or derived from how byte-pair tokenizers work, because
+Claude's tokenizer is not published.
 
 **The off list names `web-pages` today**, and nothing else. Which groups are on moved out of
 `CLAUDE.md` on 2026-09-01 and is now in `docs/dev/skills.md` → `## The groups`. Off globally and on

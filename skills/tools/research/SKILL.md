@@ -15,8 +15,8 @@ description: Reads what an external tool actually does, from its own docs and so
 
 **Search for a skill, plugin or MCP server for this tool before reading a line of its documentation.** Most of what exists is external, and a skill written by the people who build the tool is worth more than the docs it was made from.
 
-1. **Search outward first** — the web, GitHub, the plugin marketplaces. Name the tool and the words `skill`, `plugin` and `mcp`.
-2. **Then Flow's own tree** — `flow skills ls` lists every skill in the clone, installed or not.
+1. **Search outward first:** the web, GitHub, the plugin marketplaces. Name the tool and the words `skill`, `plugin` and `mcp`.
+2. **Then Flow's own tree.** `flow skills ls --hidden` lists what this session is not being shown, which is the only part worth checking, and `--group stack` narrows it to the skills built around one tool.
 3. **Judge what comes back.** Prefer material carrying knowledge: a reference, a database, a set of conventions. Weigh anything carrying process, because a skill with its own build order competes with `/execute` and nothing arbitrates between them.
 4. **Write down what you found, including finding nothing**, wherever this question's findings go. The next session asking about this tool reads that instead of searching again.
 

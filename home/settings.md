@@ -161,9 +161,9 @@ Reversed 2026-08-30. Every skill was on by default until then, on the argument t
 
 **The two files merge key by key rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill this file had set to `off`, a project setting `off` hid one this file never named, and an entry only this file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
 
-**Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off — the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill on the machine with its state and which file set it.
+**Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill on the machine with its state and which file set it.
 
-**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/start`, `/cut-from-spec` and `/file-findings` carry it because *never* is true of them. Everything else is decided here.
+**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/start` and `/cut-from-spec` carry it because *never* is true of them. Everything else is decided here.
 
 ---
 

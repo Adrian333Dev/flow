@@ -18,6 +18,7 @@ Flow is a Claude Code workflow for a solo developer: rules that load in every se
 - [The scratch session](scratch-session.md): running a change without installing it
 - [The tests](tests.md): two suites, no dependencies
 - [Adding a skill](skills.md): one folder, one group, no list to update
+- [What costs context](context-cost.md): which shortenings buy tokens and which only look like they do
 
 ## Flow installs by symlink
 
@@ -25,7 +26,7 @@ One clone of this repository holds every file. Installing creates symlinks: name
 
 The install creates two directories, and the split between them tells you what each one is for:
 
-- **`~/.claude/`** holds what Claude Code reads: `CLAUDE.md` (the rules), `settings.json` (the hooks, permissions, and feature flags), `skills/` (one symlink per skill), and `agents/` (one symlink per agent definition)
+- **`~/.claude/`** holds what Claude Code reads: `CLAUDE.md` (the rules), `settings.json` (the hooks, permissions, and feature flags), `skills/` (one symlink per skill), `agents/` (one symlink per agent definition), and `rules/` (one symlink per rules file)
 - **`~/.flow/`** holds what only Flow reads: `scripts/` (the CLI and the hooks), `references/` (the house style and workflow docs), `settings.json` (the git-writes state), `workflow-notes.md`, and `study-cases/`
 
 A project has the same pair for the same reason. `.claude/` carries its settings and any external skill. `.flow/` carries its tickets, groundwork, inbox, and handoff.

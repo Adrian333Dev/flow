@@ -16,7 +16,7 @@ const { project, write, run, flow, REPO } = require('./helpers/scratch');
 const linkTarget = (p) => fs.readlinkSync(p);
 
 /** `flow` with both config roots pointed at scratch folders. */
-const skillsLs = (dir, configDir) => run('flow/flow.js', ['skills', 'ls'], {
+const skillsLs = (dir, configDir, args = []) => run('flow/flow.js', ['skills', 'ls', ...args], {
   cwd: dir,
   env: { ...process.env, FLOW_PROJECT: dir, CLAUDE_CONFIG_DIR: configDir },
 });
@@ -40,6 +40,35 @@ test('a skill lists with its state, and a project overrides the machine', () => 
   assert.match(projectOn.stdout, /web-pages\s+stack\s+on\s+project/);
   assert.match(projectOn.stdout, /groundwork\s+phases\s+on\s+default/,
     'a skill the project never names keeps the machine answer');
+});
+
+test('--group and --hidden narrow the list', () => {
+  const dir = project('skills-filters');
+  const configDir = path.join(dir, 'config');
+  write(dir, 'config/settings.json', JSON.stringify({ skillOverrides: { 'web-pages': 'off' } }));
+
+  const oneGroup = skillsLs(dir, configDir, ['--group', 'stack']);
+  assert.strictEqual(oneGroup.code, 0, oneGroup.stderr);
+  assert.match(oneGroup.stdout, /web-pages\s+stack/);
+  assert.ok(!/groundwork/.test(oneGroup.stdout), '--group drops every other group');
+
+  // A skill the session is already shown needs no listing; --hidden is the
+  // question "what else exists", which is the only one worth a command.
+  const hidden = skillsLs(dir, configDir, ['--hidden']);
+  assert.match(hidden.stdout, /web-pages\s+stack\s+off\s+machine/);
+  assert.ok(!/groundwork/.test(hidden.stdout), '--hidden drops what is on');
+
+  // Both together, and the empty result says so rather than printing a header.
+  const none = skillsLs(dir, configDir, ['--group', 'phases', '--hidden']);
+  assert.strictEqual(none.code, 0, none.stderr);
+  assert.match(none.stdout, /no skills match/);
+
+  // A group that does not exist refuses, naming the ones that do. A silent
+  // empty list here reads exactly like a group with nothing in it.
+  const bad = skillsLs(dir, configDir, ['--group', 'nope']);
+  assert.strictEqual(bad.code, 1);
+  assert.match(bad.stderr, /unknown group "nope"/);
+  assert.match(bad.stderr, /phases/);
 });
 
 // The one behaviour that needs a skill on disk: a group folder is the whole

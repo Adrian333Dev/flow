@@ -1,7 +1,6 @@
 ---
 name: file-findings
 description: Files what a session learned into the skills, rules and checks that will hold it next time.
-disable-model-invocation: true
 ---
 
 # File findings

@@ -34,7 +34,7 @@ Two values, keyed by skill name:
 
 **The machine's `settings.json` names no skill.** A project's settings override it key by key, so the project file reads as the list of what this project turned off, and nothing has to be re-enabled anywhere.
 
-**Nothing announces a skill a project turned off, and nothing should.** `flow skills ls` lists every skill on the machine, and the project's settings say which are off. **A typed-only skill is the opposite case.** It is a step the model has to route the user to, so `~/.claude/CLAUDE.md` names those three and nothing else.
+**Nothing announces a skill a project turned off, and nothing should.** `flow skills ls` lists every skill on the machine, and the project's settings say which are off. **A typed-only skill is the opposite case.** Nothing shows it to the model at all, so `flow skills ls --hidden` is what finds it, and only a skill the user always fires deliberately should carry the line.
 
 ## Shape
 
@@ -76,7 +76,7 @@ disable-model-invocation: true                  # typed-only skills
 
 **A skill invoked over and over stays short, and a long skill takes no arguments.** Claude Code skips a re-invocation whose rendered body is identical to the copy already in context, and appends the whole body again when it differs. An argument is 1 of the 2 ways to make it differ, the other being a shell line whose output changed. A 10-line skill re-appending costs nothing; a 150-line skill must never grow an argument however natural one looks.
 
-**`disable-model-invocation: true` takes the skill out of the list a session is handed.** Nothing shows it to the model, so a typed-only skill named nowhere else is one the model reports as missing when the user asks for it by name. `~/.claude/CLAUDE.md` names the typed-only ones for that reason.
+**`disable-model-invocation: true` takes the skill out of the list a session is handed.** Nothing shows it to the model, so a typed-only skill named nowhere else is one the model reports as missing when the user asks for it by name. `flow skills ls --hidden` is the only way back to it, so write the line only where the user typing it is the whole point.
 
 **Write it only where never firing is true everywhere.** There is one copy of a skill on the machine, so this line cannot differ between projects. Anything narrower is `skillOverrides` in a project's `.claude/settings.json`.
 

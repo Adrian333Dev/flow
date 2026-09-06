@@ -167,6 +167,8 @@ Check each note against the code. A note that would break something gets said so
 
 Then `flow done t047`, once the user says it is done.
 
+**Then offer `/file-findings`, and wait for a yes.** It is what turns this ticket into a skill, a rule or a check, and nothing else drains the inbox. Offering is the whole job here: never invoke it unasked.
+
 ### When the built thing is wrong
 
 They tested it and it is not what they wanted — not a list of corrections, a different answer. Nothing here is a fault and none of it earns a study case: the decisions were sound against what anyone knew before there was something to look at.

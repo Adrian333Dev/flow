@@ -259,6 +259,8 @@ Skill discovery. Every skill is a folder under `skills/<group>/` with a `SKILL.m
 
 Every skill, its group, its on/off state, and where the state came from (default, machine, or project). A skill nobody names in `skillOverrides` is on by default. This is the default action: `flow skills` runs `ls`.
 
+Two flags narrow it. `--group <group>` keeps one group, and naming a group that does not exist refuses with the list of ones that do. `--hidden` keeps only the skills this session is not being shown, meaning anything `off` or in `drafts/`, because a skill the session can already see is in context with its description and needs no listing.
+
 ## Overlays
 
 A project extends a global skill by writing `.flow/overlays/<name>.md`. That content is appended to the skill's body when the skill loads in that project.
