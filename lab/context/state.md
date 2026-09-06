@@ -16,7 +16,7 @@ owed.
 ## What works today
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
-`flow overlays`, `flow audit`, `util` in full, and the test harness. Flow's suite passes 57 tests;
+`flow overlays`, `flow audit`, `util` in full, and the test harness. Flow's suite passes 58 tests;
 `util`'s own suite passes 29.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
@@ -102,10 +102,10 @@ instead, and the scratch session passes `--drafts` so a half-written skill is re
 **`commands/` is dissolved, 2026-09-05.** The 4 skills it held moved to the group that fits what they
 do: `start` and `handoff` to a new `session/`, `file-findings` to a new `knowledge/`,
 `cut-from-spec` to `tools/`. The groups are `phases/`, `session/`, `knowledge/`, `tools/`, `stack/`,
-`dev/` and `drafts/`. `standards/` is dissolved by the same decision and gone from every doc, but its
-folder is still on disk holding the `.info` file that kept it in git, waiting on the user to confirm
-the delete. Nothing outside `skills/` reads a group name, so no code changed and no install is owed;
-one path in `scripts/tests/skills.test.js` moved.
+`dev/` and `drafts/`. `standards/` is dissolved by the same decision and gone from every doc. Its
+folder outlived the decision holding nothing but the `.info` file that kept an empty folder in git,
+and the user confirmed the delete 2026-09-06. Nothing outside `skills/` reads a group name, so no code
+changed and no install is owed. One path in `scripts/tests/skills.test.js` moved.
 
 **`util` is a second CLI and a submodule of this repo at `lab/util/`,** built 2026-08-30 and
 finished 2026-08-31. Working today: the dispatcher, the `~/.util/sources` registry, `util source
@@ -123,12 +123,13 @@ mechanics of changing Flow, `flow install`, `util`, the groups, the tree. Nothin
 set, which is still moving. The root `README.md` indexes both folders. `docs/manual/` waits on the
 workflow being finished and the management skill existing.
 
-**The repo `CLAUDE.md` is 154 lines, refactored 2026-09-01.** `## Layout` and `` ## `lab/` `` are
-gone to `docs/dev/layout.md`, taking 42 lines with them; the 5 rules buried in those bullets came up
-into `## Repo rules`. `## Authoring a skill` keeps the 6 decisions no page carries and hands the
-how-to to `docs/dev/skills.md`. `## Trying a change` is 3 lines. `CHANGELOG.md`'s suspension sits in
-`## Writing any file` now. **7 sections remain, and every one is a rule** — the file carries neither
-status nor a map. `design-dev-loop.md` → `## The tree map left CLAUDE.md` has the measurements.
+**The repo `CLAUDE.md` is 157 lines across 8 sections, and every one is a rule.** The file carries
+neither status nor a map. The refactor that got it there ran 2026-09-01: `## Layout` and
+`` ## `lab/` `` went to `docs/dev/layout.md`, taking 42 lines, and the 5 rules buried in those bullets
+came up into `## Repo rules`. `## Authoring a skill` keeps the 6 decisions no page carries and hands
+the how-to to `docs/dev/skills.md`. `## Trying a change` is 3 lines. `CHANGELOG.md`'s suspension sits
+in `## Writing any file`. The 8th section is `## The turn`, added 2026-09-06.
+`design-dev-loop.md` → `## The tree map left CLAUDE.md` has the measurements.
 
 **`flow audit` is built, 2026-09-02.** It reads the transcripts Claude Code writes at
 `~/.claude/projects/`, derives a SQLite index, and answers queries against it. Nothing is recorded

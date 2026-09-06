@@ -1,6 +1,14 @@
-# Study case — implemented a draft the user was still thinking out loud about
+---
+date: 2026-08-10
+project: flow
+rule: hedging is a no
+status: fixed
+fix: CLAUDE.md
+---
 
-Date: 2026-08-10. Context: rewriting `home/CLAUDE.md`. Agent: Claude Opus 5.
+# Implemented a draft the user was still thinking out loud about
+
+Context: rewriting `home/CLAUDE.md`. The session ran Claude Opus 5.
 
 ## What the user sent
 
@@ -15,7 +23,7 @@ Not one sentence in it was an instruction to write.
 
 ## What the agent did
 
-Rewrote `references/workflow.md` and then rewrote `tmp/claude-md-draft.md` end to end — every section, including the sections the user had explicitly marked as unresolved — and reported the finished result with line counts.
+Rewrote `references/workflow.md`, then rewrote `tmp/claude-md-draft.md` end to end. Every section went, including the ones the user had explicitly marked as unresolved. It reported the finished result with line counts.
 
 ## Why it was wrong
 
@@ -47,6 +55,6 @@ Reply with reasoning on each point, a recommendation where the user hedged, and 
 
 ## Related
 
-Not the first time. The user's words: *"you did make that mistake so many times."* This case exists because a rule in the repo's own `CLAUDE.md` — "Feedback is not approval" — was already written, already loaded, and still did not fire.
+Not the first time. The user's words: *"you did make that mistake so many times."* This case exists because a rule in the repo's own `CLAUDE.md`, "Feedback is not approval", was already written, already loaded, and still did not fire.
 
 That is the finding worth keeping: **the rule as written was not enough.** It defines approval ("do it", "go ahead") but never names the counter-signal. An agent scanning for "did they say no" finds nothing and proceeds. The rule needs to name what hesitation looks like, not only what consent looks like.
