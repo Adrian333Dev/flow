@@ -36,9 +36,10 @@ Move at triage speed. Building a skill is the one slow step, and it fires rarely
 **Findings are pre-triaged.** Each file names its subject and holds reusable knowledge, so route straight to the destination. Inbox items need the altitude call first.
 
 - **Knowledge tied to a tool, library or framework** → the skill that covers it, by **altitude** below
-- **Universal rule or convention** → `rules/<topic>.md`
-- **Rule scoped to a stack or file type** → `rules/<topic>.md` with `paths:` frontmatter
-- **Rule for this project only** → `.claude/rules/<topic>.md`
+- **Rule true everywhere, and always relevant** → the section of `~/.claude/CLAUDE.md` that owns the subject. A rule file with no `paths:` loads every session too, and buys nothing over the file already loaded
+- **Rule true everywhere, relevant to one stack or file type** → `rules/<topic>.md` with `paths:` frontmatter
+- **Rule for this project, always relevant** → `## Rules` in the project `CLAUDE.md`
+- **Rule for this project, relevant to one stack or file type** → `.claude/rules/<topic>.md` with `paths:` frontmatter
 - **Project-specific fact** → `docs/context/<subject>.md`
 - **Reusable, no matching skill** → flag in `.flow/inbox.md` as `needs skill: <group>/<subject> (<note>)`. Several flags on one subject earn a skill; one flag is not evidence
 - **Work item** → ticket or stays in inbox

@@ -11,7 +11,7 @@ Every open item in Flow, in one place. **An open item lives here and nowhere els
 
 ## Next
 
-1. **Splitting `home/CLAUDE.md`** — `## Writing files` is the one group large enough to leave
+1. **Mine the 2 projects, then write the first rule check** — rule ids exist now, so the loop has nothing else blocking it
 2. **Git worktrees** — the git toggle cleared the way, and worktrees unblock parallel dispatch
 3. **End-to-end testing** — widen the two suites past the tests they hold now
 4. **A manual page on what Claude Code already does** — features that would have replaced things Flow built
@@ -54,13 +54,16 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 
 ## Rules and always-loaded files
 
-- [ ] **Split `## Writing files` out of `home/CLAUDE.md`.** The flat `## Hard rules` section was dissolved 2026-09-06 into `## Reading`, `## Writing files` and `## Tools`, which is what makes the threshold measurable: only `## Writing files` is big enough to be worth a file of its own, at 6 chunky bullets. Everything else is 2 or 3 short lines and stays. **The destination decides what it costs.** A file in `rules/` with no `paths:` loads every session at `CLAUDE.md` priority, so it saves no context at all, only length in the core file and a cache miss per edit. `paths:` cannot fix that here: Claude Code triggers a path-scoped rule when it *reads* a matching file, and these rules fire when one is *created*. The two mechanisms that fire on the agent's own judgment are a skill and a `PreToolUse` hook on Write and Edit, and only the hook fires before the action. **It also carries the rule-ID pass**, in the same edit: every rule gets an ID in its bold label slot, across this file, the repo `CLAUDE.md` and every `rules/` file the split creates. **talk first**
+- [ ] **A rule id is written by hand and nothing checks the naming.** All 102 landed 2026-09-07 and the convention lives only in the files: the id states the rule, the body says what the id cannot, lowercase words joined by dashes. A rule added later gets its id from whoever writes it. Wanted, once a second batch exists: whether the same rule in `home/CLAUDE.md` and the repo `CLAUDE.md` must keep the same id, which is what makes `flow scorecard` count it once. **parked** until rules are added from mining rather than by rewriting
+- [ ] **Splitting `home/CLAUDE.md` is off, reversed by the user 2026-09-07.** Rules stay in the file they are in. A rule file in `rules/` with no `paths:` loads every session at `CLAUDE.md` priority, so the split moved text without saving context, and `paths:` cannot rescue it: Claude Code triggers a path-scoped rule when it *reads* a matching file, and these rules fire when one is *created*. The user's verdict was that the overhead beats the saving. **One consequence to watch.** `home/CLAUDE.md` is copied and personalized at install where `rules/` is symlinked, so a check against a rule in `CLAUDE.md` reads a file that can drift per machine. Checks still work; the staleness test only guarantees Flow's own tree. Reopen if a real case needs a path-scoped rule that no skill can carry
 - [ ] **Drain the 4 entries left in `shit-explanations.md` into `## Explaining`.** Each entry keeps one rejected answer verbatim, and the file's own rule deletes an entry once its faults are rules. The 4 left are 2026-08-30, 2026-09-02 and 2 from 2026-09-05. Six earlier ones were drained and deleted 2026-08-31; `git log -p -- lab/context/shit-explanations.md` reads them back
 - [ ] **`## Explaining` in `home/CLAUDE.md` has no *UI is drawn, never described* bullet**, which the repo `CLAUDE.md` carries. A layout question in plain conversation loads no skill, so the rule has a moment with no owner. **talk first**
 - [ ] **Where the review paragraph lives** once a review step exists — the premise moved. `/groundwork` Phase 3 is now *attack it before it stands*, delegating to `## Judgment`, so re-read it before deciding whether the question survives. **talk first**. `remaining.md`
 - [ ] **Dependency discipline** — a check before any dependency is added, and how a bulk version bump gets reviewed. **talk first**
 - [ ] **File size as its own review signal** — a small diff that pushes an already-large file past a healthy boundary. **talk first**
 - [ ] **The negation split** — a prohibition where the agent breaks a rule under pressure, a positive recipe where the output comes out the wrong shape. **talk first**. `compression.md`
+- [ ] **Project-level rule checks at `.flow/checks/<id>.js`**, with the scorecard loading both folders. Designed and deliberately skipped in the 2026-09-07 build: no project needs one, and a mechanism built ahead of its first case gets built wrong. The global half at `scripts/rule-checks/` is done. **parked**
+- [ ] **Symlinked rules do not load in Cowork desktop sessions.** Those sessions skip a symlinked `~/.claude/rules/` file resolving outside the working directory, and `flow install` links every one of them into the clone. Terminal and IDE sessions are unaffected, and `CLAUDE.md` is copied rather than linked, so that half is safe. No decision yet on whether Flow cares. `design-knowledge-base.md` → `### .claude/rules/ is a standard Claude Code feature`
 - [ ] **A `UserPromptSubmit` hook reinforcing the conduct rules**: appends a short reminder to every user message. Adopted 2026-09-05 as the answer for rules no check can catch. **Tokens are not the constraint.** A session runs about 20 turns before `/handoff` and a clear, so a 40-line reminder costs under 1,000 tokens across the whole session. What decides the shape is what the agent will actually re-read on turn 15, so keep it to a few lines and hold it fixed rather than rotating one rule per turn. Still undesigned: what it says, and whether it changes between turns. **talk first**
 
 ## `util`, the utility CLI
@@ -83,7 +86,9 @@ Locked 2026-08-30 and built the same day, all 3 namespaces; `util install` follo
 Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` indexes them into a SQLite file, answers queries against it, and opens a bounded turn range of the original conversation when the counts are not enough. Nothing is recorded and nothing is intercepted. `design-audit.md` carries the design.
 
 - [ ] **A run is not wired to anything** — `run` and `run_session` are built and empty, every query treats them as optional, and nothing writes a row. A `SessionStart` hook has `session_id` and `cwd`, and `statuses.js` says which ticket is in flight. It also fires on `compact`, so a naive hook counts one session 4 times. **talk first**
-- [ ] **Nothing scores a session against Flow's own rules** — the enforcement bridge is the answer and it is designed, so this line now tracks only what the scorecard cannot reach. Deterministic where a check can decide it, and a model call only for what it cannot. `design-knowledge-base.md` → `## Locked decisions — the enforcement bridge`
+- [ ] **Nothing scores a session against Flow's own rules** — the machinery landed 2026-09-07 and holds no checks, so nothing is scored yet in practice. What this line tracks from here is the half a check cannot reach: deterministic where a function can decide it, a model call only for what it cannot. `design-knowledge-base.md` → `## Locked decisions — the enforcement bridge`
+- [ ] **Write the first rule check**, `scripts/rule-checks/comment-density.js` against a `rules/comments.md` that mining produces. The hooks, the loader, the store and `flow scorecard` are all built and empty, so this is one small file that turns the whole loop on. Rule ids landed 2026-09-07, so only the mining pass is left in front of it
+- [ ] **See the hooks fire in a live session** — `bash lab/scripts/try.sh` once a real check exists. 14 tests cover everything the suite can reach; what they cannot cover is Claude Code actually calling `rule-check.js` and reading back an `additionalContext` warning. Also the moment to measure the hook's latency, guessed at 50 to 100 ms per edit and never timed
 - [ ] **The daily sweep is a second mode** — analysing every session since yesterday is batch, and batch wants parallel dispatch, which is blocked on git worktrees. The deterministic half runs at zero token cost over every new session and escalates only what it flags
 - [ ] **`flow audit prune`** — `cleanupPeriodDays` is 365, so nothing bounds `~/.claude/projects/` for a year, and the index is 44 MB against 241 MB of transcripts as of 2026-09-02. Prune by run rather than by age, delete only what the index has fully read, and never sweep what a study case pins
 - [ ] **A subagent's transcript is indexed and unreachable** — each one becomes its own session row carrying `agent_of`, and no query joins on it. A subagent's tool calls do not appear in its parent's totals
@@ -132,7 +137,7 @@ What Claude Code actually does, written down and kept current, so no session re-
 Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and the verified facts.
 
 - [ ] **Strip every em dash from the repo.** `references/style.md` bans them under `### Anywhere`. Both `CLAUDE.md` files were cleared 2026-09-06 and every skill, reference, design record and this file still carry them. Ruled by the user 2026-09-05: strip them out of any section you rewrite, inside that edit, and sweep whatever is left before release.
-- [ ] **Rewrite every written file against `style.md`.** Opus 5 wrote most of the skills, both `CLAUDE.md` files, the references and the design records, and its prose is unreadable in long stretches: clauses compressed until they carry no meaning, terms used before they are defined, a file path standing where an explanation belongs. Every skill, both `CLAUDE.md` files, `references/`, `docs/dev/`, and whatever the conduct-rules work writes. A full pass per file, never patches. Ruled by the user 2026-09-05, in the message that rejected a proposed `## Acting` section as unreadable. Runs with the em dash sweep above.
+- [ ] **Rewrite every written file against `style.md`.** Opus 5 wrote most of the skills, both `CLAUDE.md` files, the references and the design records, and its prose is unreadable in long stretches: clauses compressed until they carry no meaning, terms used before they are defined, a file path standing where an explanation belongs. Every skill, both `CLAUDE.md` files, `references/`, `docs/dev/`, and whatever the conduct-rules work writes. A full pass per file, never patches. Ruled by the user 2026-09-05, in the message that rejected a proposed `## Acting` section as unreadable. Runs with the em dash sweep above. Both `CLAUDE.md` files are done. **The Sonnet 4.6 requirement is dropped**, by the user 2026-09-07: the sweep runs on whatever model is in the session.
 - [ ] **Set up the dev checkout** — `git worktree add ../flow-dev <branch>`, so a multi-file rework is testable without reaching any real project. Works today with no code change: `lib/clone.js` derives the clone from `__dirname`, so a `try.sh` in the dev checkout installs the dev checkout. `design-dev-loop.md`
 
 ## The design record
@@ -162,11 +167,48 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 
 ## Other people, other models
 
-- [ ] **Name what in Flow is Claude Code and what is portable** — **talk first**, and the first step of everything below. Skills, hooks, `~/.claude/`, `settings.json`, subagents and the audit are one vendor's shapes. The rules, the ticket model, the phases and `util` are not. Nothing records the split
-- [ ] **Behavior varies by model — rules affect each model differently** — Sonnet 4.6 consistently puts the report before edits; Opus 5 never does that but fails at plain-language explanation even when pointed at `## Explaining` and `/visualize`. Each rule changes each model's behavior differently, so a rule that fixes one model may do nothing on another. The workflow needs to account for this — whether by model-specific tuning, by testing rules against each model, or by accepting that some rules only bind some models. **talk first**
-- [ ] **Run Flow on models other than Claude** — **talk first**. GPT, Qwen and GLM are the targets. Claude Code speaks only the Anthropic Messages API, and gateway model discovery keeps an id only when it contains `claude` or `anthropic`. Whether a translating proxy defeats that filter is open, and the research decides it. `lab/research/claude-code-docs/llms.md` indexes the gateway protocol page
-- [ ] **Survey the harnesses that could host Flow besides Claude Code** — **talk first**. Codex, `deepseek-harness`, and whatever else the search turns up. Each one splits Flow differently, so the survey sizes the portability work
-- [ ] **Build Flow for a stranger** — **talk first**. `home/CLAUDE.md` carries a personal profile, the install has never run on a second machine, and no page explains Flow to somebody who has never seen it. A setup script is fine, and a one-command npm install is not required
+Researched 2026-09-06 and 2026-09-07. `harness-portability.md` carries running Flow on another
+harness or another model; `model-identity.md` carries telling which model did the work. Both are
+findings and recommendations, and nothing in either is locked.
+
+- [ ] **Add `model` and `effort` to the scorecard's result record** at `scripts/rule-check.js:111`,
+  beside `project`. Free now, impossible to backfill, and it is what turns "rules affect each model
+  differently" into a number. Effort is already in the `PreToolUse` payload; the model needs the
+  status-line sensor below. `scripts/rule-checks/` is still empty, so nothing is lost yet.
+  `model-identity.md`
+- [ ] **The status line writes the active model to a file, so hooks can read it** without parsing the
+  transcript on every edit. Claude Code exposes the model nowhere else that survives a `/model`
+  switch. `model-identity.md`
+- [ ] **Behavior varies by model, and no rule is measured per model** yet. Sonnet 4.6 puts the report
+  before edits; Opus 5 does not, and fails plain-language explanation with `## Explaining` loaded. A
+  base rule set plus a per-model overlay is the shape, earned by the scorecard split rather than
+  assumed. **talk first**. `model-identity.md`
+- [ ] **Buy one coding plan and run Flow on it.** GLM at $18 or Qwen at about ¥200 are the cheapest,
+  and the Qwen plan bundles Kimi, GLM and MiniMax alongside Qwen. It answers the 3 things no
+  documentation can: whether a non-Claude model holds Flow's rules, whether the quota survives Flow's
+  token profile, and whether auto mode's classifier runs on the gateway model
+- [ ] **Replace `WebSearch` and `WebFetch` for a non-Anthropic run.** `WebSearch` is a server-side
+  Anthropic tool and stops; `WebFetch` preflights to `api.anthropic.com` and reportedly fails behind
+  third-party providers. An MCP search server is the replacement, and `CLAUDE.md`'s read-the-docs
+  rule depends on both. `harness-portability.md`
+- [ ] **`flow audit` reads Claude Code transcripts only.** Codex writes
+  `~/.codex/sessions/YYYY/MM/DD/rollout-<id>.jsonl`, so `scan.js` needs a sibling. Until then every
+  Codex session is invisible to the audit and to the per-model split
+- [ ] **The audit's `cost_usd` and cache columns are wrong across providers.** They come from the
+  `usage` block, and a flat plan has no per-request dollar figure. Any query summing cost across
+  models is wrong from the first non-Anthropic session. `model-identity.md`
+- [ ] **`flow install` gains `~/.agents/` as a second link root**, pointing at the clone rather than
+  chaining through `~/.claude/`. Skills already link per item, which is what makes it safe.
+  `harness-portability.md`
+- [ ] **Codex caps an always-loaded file at 32 KiB and resolves no imports**, so `~/.codex/AGENTS.md`
+  is whatever `home/CLAUDE.md` plus every `rules/` file concatenates to. Measured 2026-09-07:
+  `home/CLAUDE.md` is 14,595 bytes and `rules/` is empty, so there is headroom and nothing to do yet.
+  Revisit when `rules/` fills. `harness-portability.md`
+- [ ] **Survey the remaining harnesses.** Codex is written up; `deepseek-harness` and whatever else
+  the search turns up are not. **talk first**
+- [ ] **Build Flow for a stranger.** `home/CLAUDE.md` carries a personal profile, the install has
+  never run on a second machine, and no page explains Flow to somebody who has never seen it. A setup
+  script is fine, and a one-command npm install is not required. **talk first**
 
 ## Research still to read
 

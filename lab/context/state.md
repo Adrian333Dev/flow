@@ -16,8 +16,8 @@ owed.
 ## What works today
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
-`flow overlays`, `flow audit`, `util` in full, and the test harness. Flow's suite passes 58 tests;
-`util`'s own suite passes 29.
+`flow overlays`, `flow audit`, `flow scorecard`, `util` in full, and the test harness. Flow's suite
+passes 72 tests; `util`'s own suite passes 29.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -52,8 +52,8 @@ home/CLAUDE.md` preambles and the 3-bullet deviation note went with it.
 `## Reading` (3 bullets), `## Writing files` (6) and `## Tools` (3), and 4 bullets left it entirely:
 `Skip a Flow step` to `## Workflow`, `User likely dictates` to `## The turn` step 1, `No cause without
 evidence` to `## Judgment`, and `Every path named here is a default` to the top of the file. Grouping
-first is what makes the split threshold measurable, and only `## Writing files` crosses it. `## The
-turn` also absorbed `Never argue a decision already made` into step 2 and the capture confirmation
+first is what made the split threshold measurable, and `## Writing files` was the only group to cross
+it, which is the split the user then cancelled the next day. `## The turn` also absorbed `Never argue a decision already made` into step 2 and the capture confirmation
 into step 5. `## Workflow` lost `/cut-from-spec` and `/start` from the chain and the whole typed-only
 paragraph, so neither skill is named in the file now. Both `CLAUDE.md` files are at 0 em dashes.
 
@@ -84,6 +84,74 @@ inbox, because inbox length has nothing to do with a ticket.
 session is not being shown, which is the whole question when `/research` asks whether a skill for some
 tool already exists: anything `on` is already in context with its description. An unknown `--group`
 refuses with the list of real ones, because an empty table reads like a group with nothing in it.
+
+**The enforcement bridge machinery is built and empty, 2026-09-07.** Steps 4 and 5 of
+`design-knowledge-base.md` → `## Build plan`, brought forward because they are code and the rest of
+that plan is writing. `scripts/rule-check.js` is the `PreToolUse` hook on `Edit|Write`, running every
+check in `scripts/rule-checks/` and appending one line per result to
+`~/.flow/scorecards/<session>.jsonl`. `scripts/instructions-loaded.js` is the `InstructionsLoaded`
+hook, recording which rule files entered context, which is what decides whether a warning names a rule
+id or injects the rule's whole text. `scripts/flow/lib/checks.js` loads and validates check files and
+reads rule ids out of markdown; `scripts/flow/lib/scorecard.js` owns the append-only store; `flow
+scorecard` prints the 4 lists and its own coverage. Both hooks are in `home/settings.json`.
+**`scripts/rule-checks/` ships empty**, so both hooks return immediately, and the folder's `.info`
+states the export contract. The first real check is now unblocked, because every rule has an id.
+`FLOW_CHECKS` overrides the folder, which is how the 12 new tests drive it.
+
+**Every rule in both `CLAUDE.md` files carries an id, 2026-09-07.** 57 in `home/CLAUDE.md` and 85 in
+the repo file, 102 distinct once the two files' shared rules are counted once, which `flow scorecard`
+prints as `0 rules measured, 102 not measurable`. The id sits in the bold slot the label used to
+fill, so `- **Never run git mutations.** No `add`...` became ``- **`no-git-mutations`** No `add`...``
+and nothing was paid twice. The user dropped the "run this pass on Sonnet 4.6" ruling the same day,
+so it ran on Opus 5. **A shared rule shares its id on purpose**: `one-idea-per-sentence` is defined
+in both files, `definedRules` in `scripts/flow/commands/scorecard.js` keeps the first, and the
+scorecard counts the rule once rather than twice.
+
+**Three rule shapes carry an id, not one.** `scripts/flow/lib/checks.js` matched only a bullet, so
+`## The turn`'s numbered steps and every section-governing paragraph would have had no id. `ID_LINE`
+now matches a bullet, a `1.` step and a bare paragraph, and the turn steps became a real ordered list
+to fit. Extracting one rule's text also changed: a rule ends at the next rule that is **no deeper**
+than it is, so a sub-bullet like `one-approval-runs-to-the-end` stops at the numbered step below
+instead of swallowing it. 2 new tests, and the scorecard report test no longer pins the
+not-measurable total, which now moves with every rule added to either file.
+
+**Splitting `home/CLAUDE.md` into `rules/` files is off, 2026-09-07.** The user approved the split
+earlier the same day, then reversed it: a rule file with no `paths:` loads every session at
+`CLAUDE.md` priority, so the move buys length in the core file and nothing else, and that does not pay
+for a second always-loaded file. `rules/` stays on disk holding only its `.info`, and it fills from
+mining real projects rather than from moving existing text. The rule-ID pass survives on its own,
+because a check names the rule ID it enforces.
+
+**Both `CLAUDE.md` files were rewritten direct on 2026-09-07**, a first cut on Opus 4.8 and the rest
+on Fable 5.1 against the user's line-by-line feedback. Direct means the rule stated and nothing arguing
+for it: no mechanism behind it, no consequence the reader infers, no contrast with a rejected reading.
+`home/CLAUDE.md` is 147 lines. It lost the path-default line, the `docs/` and `.flow/` paragraph, the
+git-repo line (`scripts/flow/lib/root.js` already refuses to run outside one), and the `/debug`,
+`/prototype` and `/research` triggers (their descriptions sit in context, and `/execute` and
+`/groundwork` route to them). The 3 description bullets became 1. `## Capture` names the file behind
+every route and sends a rule to `.flow/findings/` for `/file-findings` to promote, instead of straight
+to `## Rules`; it also gained the `.flow/findings/scorecard.md` route the design had locked.
+`## Explaining` gained `Recommend, never enumerate`, `Show the data`, `A synonym is not a definition`
+and `Never point at an earlier message`, and a readable heading example. The repo `CLAUDE.md` is 152
+lines, keeps every dated ruling and lost the story behind each. Its *This repo only, never carry it
+back* clause went as stale: `## The turn` step 3 carried *one instruction runs to the last file* back
+into `home/CLAUDE.md` on 2026-09-05. Model comparison tests ran the same day across Opus 4.6, Sonnet
+4.6, Opus 4.8 and Opus 5: Opus 4.8 made the best cuts, Opus 4.6 dropped trigger conditions, Sonnet 4.6
+cut least, Opus 5's prose is heaviest. `references/style.md` §6, §7 and §9 carry the direct-writing
+rule. `lab/context/writing-feedback.md` carries the user's feedback verbatim and replaced
+`rewrite-plan.md`. **Two more rulings landed on the rewrite itself.** The writing pass covers
+*every markdown file*, never every file, because a TypeScript file has no use for it; it stayed in
+`home/CLAUDE.md` because a plain "write me a README" loads no skill. A section pointer is written as
+an anchor, `~/.claude/CLAUDE.md#preferences` rather than `` `## Preferences` in
+`~/.claude/CLAUDE.md` ``.
+
+**A project rule has two homes by scope, not one, settled 2026-09-07.** The user ruled that the
+`## Rules` section of a project `CLAUDE.md` and `.claude/rules/` are the project-level copy of the
+global split: always relevant goes in the always-loaded file, tied to a stack or a file type goes in
+a rule file with `paths:`. `/file-findings` → `## Routing` now carries 4 lines instead of 3, and the
+global half changed with it: a universal rule that is always relevant goes to the section of
+`~/.claude/CLAUDE.md` that owns the subject, never to a `rules/` file with no `paths:`, which is the
+second always-loaded file the user rejected earlier the same day.
 
 **`docs/dev/context-cost.md` says which shortenings buy tokens**, written 2026-09-06. The short
 answer: digits, symbols and abbreviations save nothing and abbreviations usually cost more; articles
@@ -166,7 +234,7 @@ deletes a findings file once drained. `rules/` exists at the repo top level, ini
 `flow install` symlinks its files per-item to `~/.claude/rules/` in the same pass as skills and
 agents. `design-knowledge-base.md` carries every locked decision.
 
-**The enforcement bridge is designed in full, and only its skill is built, 2026-09-05.** One
+**The enforcement bridge design, 2026-09-05. Its machinery landed 2026-09-07; see above.** One
 `PreToolUse` hook on `Edit|Write` will run one script that records, warns and blocks, with each
 check's own `tier` field deciding which. Checks are self-describing files at
 `scripts/rule-checks/<id>.js`, so the folder is the registry. Every rule gets an ID written inline in
@@ -180,9 +248,10 @@ undesigned.
 **`/file-findings` owns the whole of it.** The user merged the separate `rule-checks` skill into it
 on 2026-09-05, because a rule and its check are written in the same pass. The skill now reads `flow
 scorecard` as a fifth input, writes a check for every rule it touches, and carries an 89-line
-`references/write-checks.md` beside `write-skills.md`. **Nothing it describes exists yet**: no hook,
-no `scripts/rule-checks/`, no `flow scorecard`. `design-knowledge-base.md` → `## Locked decisions —
-the enforcement bridge` carries the design, and `## Build plan` carries the 6 steps left.
+`references/write-checks.md` beside `write-skills.md`. **Everything it describes now exists and holds
+nothing**: both hooks, `scripts/rule-checks/` and `flow scorecard` all shipped 2026-09-07, and the
+folder is empty until a rule has an id to name. `design-knowledge-base.md` → `## Locked decisions —
+the enforcement bridge` carries the design, and `## Build plan` carries what is left.
 
 **`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01.** It holds external tools filed
 by job — MCP servers, plugins, skills, libraries, apps. Nothing loads it, nothing installs from it,
@@ -216,3 +285,9 @@ All under `lab/context/`, and every one is history rather than status.
 - `design-knowledge-base.md` — the knowledge system: capture to `.flow/findings/`, promotion through
   `/file-findings`, the loading ladder, aging, and the enforcement bridge. Capture and promotion wired
   2026-09-04; enforcement bridge designed but unbuilt
+- `harness-portability.md`: running Flow on another harness or another model. What Claude Code needs
+  to reach a non-Anthropic model, which providers sell a plan, what breaks, what Flow costs to port
+  to Codex, and the `.agents/` layout. Researched 2026-09-06 and 2026-09-07, nothing locked
+- `model-identity.md`: telling which model produced a piece of work. What each harness exposes, the
+  status line as the sensor, and the 2 fields the scorecard record is missing. Researched 2026-09-06
+  and 2026-09-07, nothing locked

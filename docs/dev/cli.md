@@ -14,6 +14,7 @@
 - [Overlays](#overlays)
 - [Git](#git)
 - [Audit](#audit)
+- [Rules](#rules)
 - [Install](#install)
 
 ## The shape
@@ -320,3 +321,26 @@ Open a bounded turn range of the original conversation. `--turns <n>` is require
 ### `flow audit sql "<query>"`
 
 Run a read-only SQL query against the index. Only `SELECT` and `WITH` are allowed. The schema holds `session`, `segment`, `turn`, `event`, `tool_call`, and `file_touch` tables.
+
+## Rules
+
+Whether the rules Flow writes are actually being followed. A **rule check** is one JavaScript file at `scripts/rule-checks/<id>.js`, named after the rule id it enforces. Two hooks feed it, both wired in `home/settings.json`:
+
+- `rule-check.js` runs on `PreToolUse` for Edit and Write. It runs every check against the edit and appends one line per result to `~/.flow/scorecards/<session>.jsonl`.
+- `instructions-loaded.js` runs on `InstructionsLoaded`, recording which `CLAUDE.md` and rule files entered context. A warning names the rule id when the rule's file is loaded, and carries the rule's whole text when it is not.
+
+Each check declares its own `tier`. `measure` records and interrupts nothing, `warn` puts a line in front of the agent, `block` refuses the edit. Every check starts at `measure`. The `.info` file in `scripts/rule-checks/` states the full export contract.
+
+### `flow scorecard`
+
+Add up every session file and print four lists: checks naming a rule no file defines, the rules broken most, the ones past the promotion threshold of 5 violations at 60%, and the ones that load every session and never once apply.
+
+Broken check files print above all four, because a check that will not load is the whole report.
+
+The command closes with its own coverage, as `12 rules measured, 89 not measurable`. Without that line a clean report reads as a clean session, when the usual truth is that most rules were never checked.
+
+A result recorded before a check's `since` date is dropped, so rewriting a check throws away the counts the old version produced rather than averaging two different questions.
+
+**Never violated is not a dead rule.** A rule only gets written after a real mistake, so zero violations means the fix took. The `never applied` list is the demotion signal: the situation the rule governs stopped arising.
+
+The command only reads. Acting on it means editing a check file, which needs approval like any change.

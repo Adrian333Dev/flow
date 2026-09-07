@@ -28,13 +28,16 @@ When you first open the repository, the split that matters has four parts:
 
 **`home/CLAUDE.md`** is the rules that apply in every directory, project or not. It is copied to `~/.claude/CLAUDE.md` on a first install, then personalized there. The copy here is the template: placeholders and rules, never personal content.
 
-**`home/settings.json`** is the permissions, the `PreToolUse` hook, feature flags, and `skillOverrides` (the machine's off list). `home/settings.md` explains every key. It is merged into `~/.claude/settings.json` by hand, because `flow install` never writes that file.
+**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the machine's off list). `home/settings.md` explains every key. It is merged into `~/.claude/settings.json` by hand, because `flow install` never writes that file.
 
 **`scripts/`** holds the CLI and the hooks:
 
 - `flow/flow.js` is the entry point. `lib/` holds the argument layer and the model. `commands/` holds one file per command group. `lib/audit/` reads Claude Code's transcripts.
 - `guard.js` is the `PreToolUse` hook that blocks unauthorized commands.
 - `snapshot.js` takes snapshots before and after subagent runs.
+- `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
+- `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
+- `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and its `.info` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
@@ -92,6 +95,7 @@ Neither survives a fresh clone, and nothing at runtime reads either one.
 - A note about why something was decided → `lab/context/`, flat, one file per decision
 - An open item → `backlog.md`, one line, with a pointer to the argument
 - A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`
+- A rule check → `scripts/rule-checks/<rule-id>.js`, named after the rule it enforces. Nothing registers it
 - A scratch file → `tmp/`, never the repository root
 - A skill → `skills/<group>/<name>/SKILL.md`. [Adding a skill](skills.md) covers the rest.
 

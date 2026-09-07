@@ -43,6 +43,27 @@ Two consequences worth knowing:
 - **The diff covers the window, not the worker.** Everything that changed between the two events lands in it, whoever changed it, so one subagent at a time and a parent that touches nothing meanwhile. `/execute` carries that as an instruction; this is where it comes from.
 - **`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state. It runs as a hook rather than through the Bash tool, so `guard.js` never sees it and the git mode never applies to it.
 
+### The rule-check pair
+
+```json
+"PreToolUse":         [ { "matcher": "Edit|Write", "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/rule-check.js\"" } ] } ],
+"InstructionsLoaded": [ { "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/instructions-loaded.js\"" } ] } ]
+```
+
+**Nothing fires yet.** `scripts/rule-checks/` ships empty, so both hooks return immediately. They come alive one check file at a time.
+
+`rule-check.js` runs every check in that folder against the pending edit and appends one line per result to `~/.flow/scorecards/<session>.jsonl`. Each check carries its own tier: `measure` records silently, `warn` returns a line in `additionalContext`, `block` returns a `deny`. `flow scorecard` adds the counts up.
+
+`instructions-loaded.js` records which `CLAUDE.md` and rule files entered context. That is what decides the shape of a warning: the rule id alone when the rule's file is loaded, and the rule's whole text injected when it is not. Telling the agent to go read the file costs a turn and can be skipped.
+
+**The hole this fills is file creation.** A `paths:`-scoped rule triggers when Claude *reads* a matching file, so writing `src/foo.ts` in a session that opened no `.ts` file leaves the TypeScript rules out of context entirely. `PreToolUse` fires on `Write` whatever loaded.
+
+**It never returns `allow`, and it never fails closed.** `guard.js` denies on an unexpected throw because it is the last thing holding git back. This one stays silent instead: it measures writing habits, and breaking every edit in a session over a bug in one check would cost far more than the counts are worth. `permissionDecisionReason` is used only on a deny, since on an allow it reaches the terminal and never Claude.
+
+`InstructionsLoaded` has no decision control at all. Claude Code discards its output and ignores its exit code, so it records or it does not.
+
 ### Why worktree isolation is off
 
 `EnterWorktree` and `Agent(isolation:worktree)` both move work into a second directory. The snapshot compares one directory against itself, and `snapshot.js` gives up when the directory moves between its two events — so worktree isolation turns the diff off and says nothing.

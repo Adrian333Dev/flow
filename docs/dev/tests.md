@@ -30,6 +30,12 @@ Both tools write to real directories in normal use, so both suites move those di
 
 Flow's install has a flag per root: `--home` and `--flow-home`: and refuses one without the other.
 
+Flow's own environment variables do the same job for the stores each command owns:
+
+- **`FLOW_PROJECT`**: the enclosing project, normally found through `git rev-parse`
+- **`FLOW_HOME`**: the machine store, normally `~/.flow/`, holding study cases and the scorecards
+- **`FLOW_CHECKS`**: where the rule checks live, normally `scripts/rule-checks/` inside the clone
+
 `util` has three environment variables, and `tests/helpers/scratch.js` sets every one of them on every test:
 
 - **`UTIL_HOME`**: where the source registry lives, normally `~/.util/`
@@ -40,7 +46,9 @@ They are set whether the test needs them or not. Left unset, a test that dispatc
 
 ## What they cover
 
-Flow's suite covers ticket operations (create with every flag, edit, deps, parking, transition guards, drop with repair, filing), the board commands (filtered listing, next ranking, tree nesting, check integrity, priority inheritance), study cases (lifecycle, near-match detection, issues listing), the install arrangement, skill discovery and the group overrides, the `PreToolUse` guard, the project overlays, and the audit reader: including indexing one transcript whole against indexing it in two halves, which is the only way an appended tail counted twice would show.
+Flow's suite covers ticket operations (create with every flag, edit, deps, parking, transition guards, drop with repair, filing), the board commands (filtered listing, next ranking, tree nesting, check integrity, priority inheritance), study cases (lifecycle, near-match detection, issues listing), the install arrangement, skill discovery and the group overrides, the `PreToolUse` guard, the project overlays, the audit reader: including indexing one transcript whole against indexing it in two halves, which is the only way an appended tail counted twice would show: and the enforcement bridge, meaning the check loader's refusals, rule id extraction, all three check tiers, whether a warning injects the rule text or names its id, and the scorecard's counting and coverage line.
+
+The bridge is tested against fixture checks written into a scratch folder, because `scripts/rule-checks/` ships empty and the first real rule id does not exist yet.
 
 `util`'s suite covers the source registry, namespace resolution and the short form, a name claimed by two sources, the description reader, the shipped commands, and `util install`.
 

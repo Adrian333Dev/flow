@@ -106,12 +106,13 @@ Cut what lengthens a sentence without clarifying it. Readability first; the toke
 
 - Drop articles and filler verbs where the sentence still reads: "Grep it, read the matching slices", not "You should use grep on it and then read only the slices that match".
 - Grammar bends where meaning survives. A fragment beats a padded sentence.
-- Delete a whole sentence when it changes no behavior. Trimming it keeps the noise, and an instruction the model already follows by default says nothing.
+- Delete a whole sentence when it changes no behavior. Never trim it.
+- **Assume an intelligent reader.** Never write the consequence of a rule, the mechanism behind it, or the case it plainly covers. A command is one executable line, then what it prints. A rule is the rule, then nothing.
 
 ## 7. Never cut these
 
 - **A rule.** Compression removes words and duplication, never rules. Cutting rule count is banned as a strategy.
-- **The reason**, wherever the rule does not cover every case. The reason is what generalizes to the case nobody enumerated. Bare all-caps MUST/NEVER with no reason is a warning sign in Anthropic's own guidance. Drop it only for a mechanical, fully specified constraint.
+- **The reason, where it decides a case the rule does not name.** A reason that only argues for the rule is cut. A rule needs no argument.
 - **One example**, wherever the rule alone is ambiguous. Several examples of one pattern → keep the best one. Going to zero is the riskiest cut there is.
 - **Information.** Cut words. A file that drops a load-bearing detail to look short has failed.
 
@@ -128,7 +129,7 @@ The description is in context from the moment a session starts, whether the skil
 
 ## 9. Transformations
 
-Each pair is verbatim from one real rewrite: a global rules file, 187 lines / 2941 words down to 96 / 1324, no rule lost.
+Each pair is verbatim from a real rewrite. The first eight are from one pass over a global rules file, 187 lines / 2941 words down to 96 / 1324, no rule lost. The last is from the direct pass of 2026-09-07, which `lab/context/writing-feedback.md` records.
 
 ### State the test, delete the illustrations
 
@@ -183,6 +184,19 @@ True, and useless to a reader already reading it.
 ### Rejected: structure absorbs repetition
 
 A table header carrying what each row would repeat. Dropped: a list is preferred to a table, so the header saves nothing worth the columns.
+
+### State the rule, cut the argument
+
+A rule followed by the case for it, the mechanism behind it, or a consequence the reader infers. The rule stays, the rest goes. Ruled by the user 2026-09-07: assume an intelligent reader.
+
+- **Before:** "**A description is a few words long.** Write what the name is missing, then stop. A listing puts dozens of them in front of an agent at once, and every one is read on every run. `util fs tree` and `util ls` cut at the first full stop or 120 characters, so a second sentence is written and never seen. That is a bound, never a target."
+- **After:** "A few words saying what it holds." The tool's cut-off is the tool's business.
+
+- **Before:** "**Every path named here is a default.** One named in `## Preferences`, in this directory's `CLAUDE.md`, or by the user wins."
+- **After:** deleted. An override is read where it is written. Had a line been needed: "Every path here can be overridden."
+
+- **Before:** "**`docs/` and `.flow/` both always exist**, project or not, repo or not. Paths are created on first write. `docs/` is the project's own: the spec, durable facts, fetched research, anything there before Flow. `.flow/` is Flow's working store: tickets, groundwork, the inbox, the handoff."
+- **After:** deleted. Every route under it names its own path, and `references/workflow.md` maps the folders.
 
 ## 10. A documentation page
 

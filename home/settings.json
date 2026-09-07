@@ -19,6 +19,25 @@
             "command": "node \"$HOME/.flow/scripts/snapshot.js\" --before"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/rule-check.js\""
+          }
+        ]
+      }
+    ],
+    "InstructionsLoaded": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/instructions-loaded.js\""
+          }
+        ]
       }
     ],
     "PostToolUse": [

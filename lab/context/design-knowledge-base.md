@@ -570,14 +570,36 @@ Capture and promotion. `home/CLAUDE.md` → `## Capture` routes reusable knowled
 
 The skill and the group moves, which were the last 2 steps of the order below and ran first because the design changed under them. `commands/` dissolved into `session/`, `knowledge/` and `tools/`. `/file-findings` moved to `skills/knowledge/` and gained `flow scorecard` as a fifth input, a check step in `## Method`, a `## Checks` section, and an 89-line `references/write-checks.md`. `write-skills.md`, `docs/dev/skills.md`, `docs/dev/layout.md`, `README.md` and the repo `CLAUDE.md` carry the new groups. Nothing enforces anything yet: the skill describes a hook and a folder that do not exist.
 
+### Built 2026-09-07
+
+Steps 4 and 5, out of order. Both are code and everything above them is writing, and the user set rule rewriting aside for a Sonnet session, so the machinery went in first and ships empty.
+
+`scripts/rule-check.js` is the `PreToolUse` hook on `Edit|Write`, running every check in `scripts/rule-checks/` and appending one line per result to `~/.flow/scorecards/<session>.jsonl`. `scripts/instructions-loaded.js` is the `InstructionsLoaded` hook. `scripts/flow/lib/checks.js` loads and validates check files and reads rule ids out of markdown, `scripts/flow/lib/scorecard.js` owns the append-only store, and `flow scorecard` prints the 4 lists and its coverage line. Both hooks are wired in `home/settings.json`. 14 tests, driven by fixture checks through a `FLOW_CHECKS` override.
+
+**One thing the build changed about the design.** The scorecard scans the rule file every check points at, not only the files in known places. A project keeping its own rules under `.claude/rules/` would otherwise have every check against them reported as stale.
+
+**The `since` comparison is against the check on disk, never the value stored on the row.** The row records which version produced a count; the question the scorecard asks is whether that version is still the one running.
+
+### Built 2026-09-07, the ids
+
+Step 1. 57 ids in `home/CLAUDE.md`, 85 in the repo `CLAUDE.md`, 102 distinct. The user dropped the "run this on Sonnet 4.6" ruling on the same day, so the pass ran on Opus 5.
+
+**Three shapes carry an id, where the design assumed one.** A bullet was the only shape `ID_LINE` matched, and `## The turn` is 5 numbered steps while `## Explaining` and `## Judgment` each open with a paragraph that governs the section. All three now match, and the turn steps were rewritten as a real ordered list to fit. Without the change those rules would have been the subset the design forbids.
+
+**A rule ends at the next rule no deeper than itself.** The old boundary looked for the next bullet at the same indent, so a sub-bullet under a numbered step ran on into the step below it. `one-approval-runs-to-the-end`, nested under step 3, was the case that showed it.
+
+**A shared rule shares its id.** `one-idea-per-sentence` is defined in both files, and `definedRules` keeps the first definition, so the scorecard counts one rule rather than two. The alternative, an id unique per file, would report the same rule as two uncovered rules and inflate the coverage line.
+
+**A universal rule that is always relevant goes to `~/.claude/CLAUDE.md`, not `rules/`.** The routing at the top of this record predates the 2026-09-07 reversal and still sent it to a `rules/` file with no `paths:`, which is the second always-loaded file the user rejected. `/file-findings` → `## Routing` carries the corrected 4 lines, and the same split now applies inside a project: always relevant → `## Rules` in the project `CLAUDE.md`, tied to a stack or file type → `.claude/rules/<topic>.md` with `paths:`. Set by the user 2026-09-07.
+
+**What it costs.** A rule in `~/.claude/CLAUDE.md` is a personalized copy that drifts from `home/CLAUDE.md`, so a check naming the template reads a file the machine may no longer match. `rules/` has no such drift, being symlinked. The user's ruling accepts the drift rather than pay for a second always-loaded file.
+
 ### The order for the rest
 
-1. **Split `home/CLAUDE.md`.** Topic rules move into `rules/*.md`. **Every rule gets an ID in the same pass**, across `home/CLAUDE.md`, the repo `CLAUDE.md` and every file the split creates. One pass, never two: doing IDs first edits every rule twice, doing them after sweeps every file again.
+1. **Give every rule an ID.** Done 2026-09-07, 102 across the two `CLAUDE.md` files. `## Built 2026-09-07, the ids` below says what it changed.
 2. **Mine the 2 projects.** Delapse and lumacraft_v2, from the live checkouts at `~/code/projects/`, since the copies under `repos/` may be behind. Both carry a `CLAUDE.md` and `docs/agents/conventions.md`. Delapse adds `workflow-rules.md` and `superpowers-overrides.md`, lumacraft_v2 adds `testing.md`. Universal → `rules/<topic>.md`. Tied to a language or file type → the same with `paths:`. True of one project → stays there.
-3. **The first check.** `scripts/rule-checks/comment-density.js` against `rules/comments.md`. Commenting rules are universal, broken constantly, and mechanically checkable, so that pair runs the whole loop on one small case.
-4. **The scorecard script.** The `PreToolUse` hook on `Edit|Write`, the `InstructionsLoaded` hook, append-only recording.
-5. **`flow scorecard`.** Aggregation across sessions, the 4 lists, the coverage line.
-6. **Tests.** `npm test` for staleness both directions, `bash lab/scripts/try.sh` for a live session with the hooks firing.
+3. **The first check.** `scripts/rule-checks/comment-density.js` against `rules/comments.md`. Commenting rules are universal, broken constantly, and mechanically checkable, so that pair runs the whole loop on one small case. The machinery around it is built and waiting.
+4. **A live run.** `bash lab/scripts/try.sh` with a real check in place, so the hooks are seen firing rather than only asserted. Everything the suite can reach is covered already.
 
 Documentation comes after. Manual pages and the Claude Code reference page are separate work.
 

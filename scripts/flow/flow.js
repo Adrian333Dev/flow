@@ -23,6 +23,7 @@ const skills = require('./commands/skills');
 const git = require('./commands/git');
 const install = require('./commands/install');
 const audit = require('./commands/audit');
+const scorecard = require('./commands/scorecard');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -43,13 +44,14 @@ const TITLE = 'flow — tickets, computed from .flow/tickets/';
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...board, ...tickets.actions, ...install };
+const commands = { ...board, ...tickets.actions, ...install, ...scorecard };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
   { key: 'tickets', title: 'tickets', lead: [['flow <id>', 'show one in full']] },
   { key: 'status', title: 'status — the move is the command' },
   { key: 'setup', title: 'setup — this machine' },
+  { key: 'rules', title: 'rules — whether the checks are catching anything' },
 ];
 
 const NOTES = `shape   flow <command> [id] [--flags]. A word naming no command is read as a
@@ -122,6 +124,14 @@ audit   what Claude Code did, read back afterwards. It reads the transcripts
         Queries narrow to a turn range, and flow audit read opens that range of
         the original conversation. Never a whole session: one segment averages
         270k tokens
+checks  a rule check is one file in ~/.flow/scripts/rule-checks/, named after
+        the rule id it enforces. The PreToolUse hook on Edit and Write runs
+        every one of them and appends a line per result to
+        ~/.flow/scorecards/<session>.jsonl. Each check carries its own tier:
+        measure records and interrupts nothing, warn puts a line in front of
+        the agent, block refuses the edit. Every check starts at measure, and
+        flow scorecard says which have earned a promotion. A rule with no check
+        is listed as coverage, never as a failure
 git     off everywhere by default: the agent names a git command that writes
         and you run it. flow git allow lifts that for an hour, flow git ask
         confirms each one instead. guard.js reads the entry before every shell
