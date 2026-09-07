@@ -8,182 +8,182 @@ If you only read five: `claude-memory-compiler`, `agent-knowledge-cycle`, `taosm
 
 ## 1. Session → learned rules/knowledge, built for Claude Code
 
-**https://github.com/coleam00/claude-memory-compiler** — MEM, RULES, KS, LOOP, HOOK
+**https://github.com/coleam00/claude-memory-compiler**: MEM, RULES, KS, LOOP, HOOK
 Hooks capture the transcript on session end or auto-compact, spawn a background Agent SDK process that extracts decisions, lessons, patterns and gotchas into a daily log, then an LLM "compiler" organizes those logs into structured cross-referenced knowledge articles; retrieval is a plain index file, no vector DB. Closest thing to what you're describing, and the compile step is the interesting part.
 
-**https://github.com/rohitg00/pro-workflow** — MEM, RULES, KS, LOOP, HOOK
+**https://github.com/rohitg00/pro-workflow**: MEM, RULES, KS, LOOP, HOOK
 Single SQLite store under every session: each correction becomes a rule that's FTS5-searchable and auto-loaded at SessionStart, plus persistent research wikis on disk with an FTS5 shadow index and an optional auto-research loop; 37 hook scripts across 24 events. The most complete implementation of the whole stack in one repo.
 
-**https://github.com/shimo4228/agent-knowledge-cycle** — KS, RULES, LOOP
-Six-phase knowledge cycle specification — ADRs, JSON schemas, and a reference implementation — that turns coding-agent sessions into persistent skills, rules, and memory. Spec-first rather than tool-first. Read the schemas even if you don't use the code.
+**https://github.com/shimo4228/agent-knowledge-cycle**: KS, RULES, LOOP
+Six-phase knowledge cycle specification (ADRs, JSON schemas, and a reference implementation) that turns coding-agent sessions into persistent skills, rules, and memory. Spec-first rather than tool-first. Read the schemas even if you don't use the code.
 
-**https://github.com/rlancemartin/claude-diary** — MEM, RULES, LOOP
-Writes a per-session diary entry to `~/.claude/memory/diary/` covering decisions, preferences, failures and code patterns, then a `/reflect` command distills those into CLAUDE.md updates — explicitly modeled on the Generative Agents observation/reflection/retrieval split.
+**https://github.com/rlancemartin/claude-diary**: MEM, RULES, LOOP
+Writes a per-session diary entry to `~/.claude/memory/diary/` covering decisions, preferences, failures and code patterns, then a `/reflect` command distills those into CLAUDE.md updates: explicitly modeled on the Generative Agents observation/reflection/retrieval split.
 
-**https://github.com/TerenceBristol/claude-improve** — RULES, LOOP, KS
+**https://github.com/TerenceBristol/claude-improve**: RULES, LOOP, KS
 Retrospective skill with two-level learnings: cross-project patterns in `~/.claude/improve-learnings.md` and per-project state under Claude Code's own project data dir, with a promotion rule that graduates settled patterns into config. The promotion criteria are the useful bit.
 
-**https://github.com/daegwang/self-learning-agent** — RULES, LOOP
+**https://github.com/daegwang/self-learning-agent**: RULES, LOOP
 Polls `~/.claude/projects/` and `~/.codex/sessions/` to record edits, commands, test results and user interventions, has an AI identify failure patterns on `/review`, and writes approved suggestions directly into CLAUDE.md / AGENTS.md with backups.
 
-**https://github.com/Digital-Process-Tools/claude-remember** — MEM, KS
-Hooks into the Claude Code lifecycle to save sessions, compress them through Haiku into layered daily summaries, and reload them at next session start. Worth reading for the failure modes they've hit (staging files, size caps, consolidation stalls) — that's hard-won.
+**https://github.com/Digital-Process-Tools/claude-remember**: MEM, KS
+Hooks into the Claude Code lifecycle to save sessions, compress them through Haiku into layered daily summaries, and reload them at next session start. Worth reading for the failure modes they've hit (staging files, size caps, consolidation stalls): that's hard-won.
 
-**https://github.com/axmeai/axme-code-plugin** — MEM, RULES, HOOK
+**https://github.com/axmeai/axme-code-plugin**: MEM, RULES, HOOK
 Background auditor extracts memories, decisions and safety rules from session transcripts when you close a window; hooks intercept dangerous commands at the harness level; session handoff tells the next session where work stopped.
 
-**https://github.com/EveryInc/compound-engineering-plugin** — RULES, LOOP
+**https://github.com/EveryInc/compound-engineering-plugin**: RULES, LOOP
 Plan → Work → Review → Compound loop where `/workflows:compound` documents learnings so plans inform future plans and patterns get codified. Philosophy-heavy, but it's the origin of the "compounding engineering" framing.
 
-**https://github.com/kaina404/claude-code-workflow** — RULES, LOOP
+**https://github.com/kaina404/claude-code-workflow**: RULES, LOOP
 Workflow template built from months of daily use: remembers past mistakes and applies lessons automatically, plus context management and model-tier routing.
 
 ---
 
 ## 2. Knowledge bases agents read and write (structure-focused)
 
-**https://github.com/AlmanacCode/codealmanac** — KS, MEM, LOOP
+**https://github.com/AlmanacCode/codealmanac**: KS, MEM, LOOP
 Plain-markdown wiki in your repo (`almanac/` with `topics.yaml` and page folders) indexed locally, with background jobs that scan recent Codex and Claude conversations to queue useful knowledge and review every wiki for stale, duplicated or poorly connected pages. Design principles worth stealing: one page per stable concept, a notability bar for what deserves a page, edits in place when facts change, and "if a session adds no durable knowledge, the wiki is left unchanged."
 
-**https://github.com/basicmachines-co/basic-memory** — KS, MEM
+**https://github.com/basicmachines-co/basic-memory**: KS, MEM
 Knowledge lives as Markdown files both you and the agent read, write and search over MCP; observations and wikilinks compound into a real knowledge graph, local-first and two-way.
 
-**https://github.com/7xuanlu/origin** — MEM, KS
+**https://github.com/7xuanlu/origin**: MEM, KS
 Local-first work memory for Claude Code, Cursor, Codex and MCP clients with session handoffs, source-backed wiki pages, graph context and hybrid retrieval through a single local daemon.
 
-**https://github.com/fockus/skill-memory-bank** — KS, MEM, RULES
+**https://github.com/fockus/skill-memory-bank**: KS, MEM, RULES
 `.memory-bank/` is plain committed markdown covering TDD rules, code graph and spec-driven dev, with adapters for Claude Code, Cursor, Windsurf, Cline, Kilo, OpenCode, Pi and Codex.
 
-**https://github.com/cline/prompts** (`.clinerules/memory-bank.md`) — KS
+**https://github.com/cline/prompts** (`.clinerules/memory-bank.md`): KS
 The canonical memory-bank hierarchy: core files that build on each other, all markdown, read in full at the start of every task. Pure prompt, no code, but it's the schema everyone else forked.
 
-**https://github.com/GreatScottyMac/roo-code-memory-bank** — KS, MEM
+**https://github.com/GreatScottyMac/roo-code-memory-bank**: KS, MEM
 Structured memory across sessions with `activeContext.md`, `productContext.md`, `progress.md` and `decisionLog.md`, plus per-mode rules governing when each gets updated. The mode-specific update strategies are the part worth copying.
 
-**https://github.com/kevdogg102396-afk/packrat** — KS
+**https://github.com/kevdogg102396-afk/packrat**: KS
 Auto-learning codebook compression that shrinks agent context files while keeping them LLM-readable. Directly relevant if your KB index starts blowing the context budget.
 
-**https://github.com/sunnja69/akephalos** — KS, MEM, RULES
-Local-first markdown portable agent profile — preferences, rules, durable memories — synced across agents via plain files and Git.
+**https://github.com/sunnja69/akephalos**: KS, MEM, RULES
+Local-first markdown portable agent profile (preferences, rules, durable memories) synced across agents via plain files and Git.
 
-**https://github.com/memovai/memov** — MEM, KS
+**https://github.com/memovai/memov**: MEM, KS
 Git-based traceable memory layer for Claude Code.
 
-**https://github.com/ModernRelay/omnigraph** — KS, MEM
+**https://github.com/ModernRelay/omnigraph**: KS, MEM
 Object-storage-native graph engine for agent memory with git-style branch/merge workflows. Branch/merge on a knowledge base is an idea worth stealing even if you don't use it.
 
-**https://github.com/Ikalus1988/MisakaNet** — KS, LOOP
+**https://github.com/Ikalus1988/MisakaNet**: KS, LOOP
 Git-based distributed swarm memory where agents share lessons across nodes via GitHub Issues. Odd, but the "lesson as an issue" transport is a real design.
 
-**https://github.com/clawde-agent/memobank-cli** — MEM, KS
+**https://github.com/clawde-agent/memobank-cli**: MEM, KS
 Three-tier memory model with automatic secret redaction before every write, epoch-aware scoring so team knowledge fades, and `memo lifecycle` health scans; hooks into Claude Code, Cursor, Codex, Gemini CLI. The redaction-before-write and lifecycle/health-scan pieces are things most repos here skip.
 
-**https://github.com/DeusData/codebase-memory-mcp** — KS, MEM
-Indexes codebases into a persistent knowledge graph, 158 languages, single static binary. Their README also documents per-client hook reliability (which hooks fire, which are ignored) across Cursor/Cline/Codex/Junie — useful reference if you go cross-agent.
+**https://github.com/DeusData/codebase-memory-mcp**: KS, MEM
+Indexes codebases into a persistent knowledge graph, 158 languages, single static binary. Their README also documents per-client hook reliability (which hooks fire, which are ignored) across Cursor/Cline/Codex/Junie: useful reference if you go cross-agent.
 
 ---
 
-## 3. Memory engines — read these for storage/retrieval/update mechanics
+## 3. Memory engines: read these for storage/retrieval/update mechanics
 
-**https://github.com/jaylfc/taosmd** — MEM, KS
+**https://github.com/jaylfc/taosmd**: MEM, KS
 Local-first offline memory on an append-only transcript (messages, tool calls and results, decisions, errors); a "librarian" derives a typed temporal knowledge graph from it, corrected facts supersede old ones via invalidation, hybrid vector + BM25 retrieval, tuned for small local models. Best single answer to "how do you *update* a knowledge base without corrupting it."
 
-**https://github.com/samvallad33/vestige** — MEM, KS
+**https://github.com/samvallad33/vestige**: MEM, KS
 Local-first cognitive memory MCP server for coding agents with FSRS-6 decay, spreading activation, active suppression, Receipt Lock and an inspectable dashboard.
 
-**https://github.com/oceanbase/powermem** — MEM, KS, LOOP
+**https://github.com/oceanbase/powermem**: MEM, KS, LOOP
 Hybrid vector/full-text/graph retrieval with LLM-driven extraction, Ebbinghaus-style decay, and two-layer Experience + Skill distillation. The Experience→Skill distillation layer is your self-improvement loop in miniature.
 
-**https://github.com/vectorize-io/hindsight** — MEM, LOOP
+**https://github.com/vectorize-io/hindsight**: MEM, LOOP
 Organizes memories in biomimetic structures rather than flat vectors, and a `reflect` operation lets the agent form broader observations over time about what worked and what didn't. Note the vendor benchmark claims are self-reported; ignore the leaderboard, read the data model.
 
-**https://github.com/campfirein/cipher** (now `byterover-cli`) — MEM
+**https://github.com/campfirein/cipher** (now `byterover-cli`): MEM
 Dual memory layer capturing System 1 (concepts, business logic, past interaction) and System 2 (the model's reasoning steps when generating code), exposed to Cursor, Codex, Claude Code, Cline, Windsurf and others over MCP. Storing reasoning traces separately from facts is a distinction most repos miss.
 
-**https://github.com/atw4757-byte/archon-memory-core** — MEM
+**https://github.com/atw4757-byte/archon-memory-core**: MEM
 Local-first agent memory with nightly consolidation, active forgetting, and salience scoring.
 
-**https://github.com/xiaofanliu525-ctrl/suyi-memory** — MEM
+**https://github.com/xiaofanliu525-ctrl/suyi-memory**: MEM
 SQLite-backed, zero-dependency dual-temporal memory with Ebbinghaus decay and skill crystallization.
 
-**https://github.com/moorcheh-ai/memanto** — MEM, KS
+**https://github.com/moorcheh-ai/memanto**: MEM, KS
 Typed semantic memory with `remember`/`recall`/`answer` operations and information-theoretic retrieval.
 
-**https://github.com/fpytloun/mnemory** — MEM
+**https://github.com/fpytloun/mnemory**: MEM
 Multi-type agent memory (facts, preferences, episodic) with TTLs, user/agent scoping, and an MCP server.
 
-**https://github.com/christian-byrne/claude-code-vector-memory** — MEM
+**https://github.com/christian-byrne/claude-code-vector-memory**: MEM
 Semantic memory for Claude Code: indexes session summaries and exposes vector search over them via a `/system:semantic-memory-search` command.
 
-**https://github.com/getzep/graphiti** — MEM, KS
-Indexes facts as time-stamped relationships with fact-validity windows — a live-ingestion temporal knowledge graph rather than batch recompute.
+**https://github.com/getzep/graphiti**: MEM, KS
+Indexes facts as time-stamped relationships with fact-validity windows: a live-ingestion temporal knowledge graph rather than batch recompute.
 
-**https://github.com/letta-ai/letta** — MEM, KS
-Memory split into tiers the agent manages itself: labeled memory blocks with fixed character limits that stay in context permanently and the agent edits via tool calls, with archival vector memory and recall history behind them. Their own "Is a Filesystem All You Need?" result — plain files beating specialized memory systems on LOCOMO — is worth reading before you over-engineer storage.
+**https://github.com/letta-ai/letta**: MEM, KS
+Memory split into tiers the agent manages itself: labeled memory blocks with fixed character limits that stay in context permanently and the agent edits via tool calls, with archival vector memory and recall history behind them. Their own "Is a Filesystem All You Need?" result (plain files beating specialized memory systems on LOCOMO) is worth reading before you over-engineer storage.
 
-**https://github.com/topoteretes/cognee** — MEM, KS — ingest→cognify→search pipeline building a self-hosted knowledge graph combining vector embeddings, graph reasoning and ontology generation.
+**https://github.com/topoteretes/cognee** (MEM, KS) ingest→cognify→search pipeline building a self-hosted knowledge graph combining vector embeddings, graph reasoning and ontology generation.
 
-**https://github.com/mem0ai/mem0** — MEM. Baseline; note the v3 open-source rewrite removed the graph layer entirely, which is itself a data point.
+**https://github.com/mem0ai/mem0**: MEM. Baseline; note the v3 open-source rewrite removed the graph layer entirely, which is itself a data point.
 
-**https://github.com/OWASP/www-project-agent-memory-guard** — KS (integrity)
-Runtime defense layer that screens agent memory writes for poisoning before they reach the agent — validation, semantic anomaly detection, entropy scoring, provenance verification, cross-reference and temporal checks. If your agent writes its own rules, this is the failure mode nobody plans for.
+**https://github.com/OWASP/www-project-agent-memory-guard**: KS (integrity)
+Runtime defense layer that screens agent memory writes for poisoning before they reach the agent: validation, semantic anomaly detection, entropy scoring, provenance verification, cross-reference and temporal checks. If your agent writes its own rules, this is the failure mode nobody plans for.
 
 ---
 
 ## 4. Hook-based enforcement
 
-**https://github.com/karanb192/claude-code-hooks** — HOOK, RULES
-Includes a CLAUDE.md compliance scorecard that tallies which rules Claude follows vs ignores as you edit (SessionStart + PostToolUse + SessionEnd) and flags chronically-ignored rules to promote into a deterministic hook. That promotion path — advisory rule fails repeatedly → becomes a hook — is exactly the bridge between your "learned rules" and "hook enforcement" concerns. Also has a hook that remembers approaches you tried and reverted, with reason and token cost, and warns before you retry them.
+**https://github.com/karanb192/claude-code-hooks**: HOOK, RULES
+Includes a CLAUDE.md compliance scorecard that tallies which rules Claude follows vs ignores as you edit (SessionStart + PostToolUse + SessionEnd) and flags chronically-ignored rules to promote into a deterministic hook. That promotion path (advisory rule fails repeatedly → becomes a hook) is exactly the bridge between your "learned rules" and "hook enforcement" concerns. Also has a hook that remembers approaches you tried and reverted, with reason and token cost, and warns before you retry them.
 
-**https://github.com/ithiria894/awesome-claude-code-hooks** — HOOK
-Curated index of hooks tagged by trigger event. Mine it directly — it lists things like a PostCompact hook that injects a reminder to re-read AGENTS.md to prevent post-compaction rule amnesia, and a "Founder OS" pattern that accumulates learnings from task completions into `.claude/learnings/` for future sessions to reference.
+**https://github.com/ithiria894/awesome-claude-code-hooks**: HOOK
+Curated index of hooks tagged by trigger event. Mine it directly: it lists things like a PostCompact hook that injects a reminder to re-read AGENTS.md to prevent post-compaction rule amnesia, and a "Founder OS" pattern that accumulates learnings from task completions into `.claude/learnings/` for future sessions to reference.
 
-**https://github.com/allgrit/claude-code-guards** — HOOK
-PreToolUse hooks intercepting every Bash and Edit/Write op, returning `permissionDecision: "deny"` with a reason so Claude auto-recovers instead of stopping; config-driven via `.claude/guards.config.json`. The deny-with-reason pattern matters — it turns enforcement into feedback.
+**https://github.com/allgrit/claude-code-guards**: HOOK
+PreToolUse hooks intercepting every Bash and Edit/Write op, returning `permissionDecision: "deny"` with a reason so Claude auto-recovers instead of stopping; config-driven via `.claude/guards.config.json`. The deny-with-reason pattern matters, it turns enforcement into feedback.
 
-**https://github.com/rulebricks/claude-code-guardrails** — HOOK
+**https://github.com/rulebricks/claude-code-guardrails**: HOOK
 Rules live in an editable decision table; publishing a new version applies immediately with no restart, and blocked commands are queryable in a logs view. Rules as data, not code.
 
-**https://github.com/disler/claude-code-hooks-mastery** — HOOK
+**https://github.com/disler/claude-code-hooks-mastery**: HOOK
 Reference implementation across the hook surface, plus sub-agents and a meta-agent that generates new sub-agents from descriptions.
 
 Also from that awesome list: `dwarvesf/claude-guardrails` (deny rules, exfiltration prevention, prompt-injection scanning), `panuhorsmalahti/claude-code-permissions-hook` (Rust, TOML allow/deny with regex and JSON audit logging), and `liberzon/claude-hooks` (decomposes compound bash commands into sub-commands before matching each against your patterns).
 
-Read **https://github.com/anthropics/claude-code/issues/45427** before you commit to hooks as your enforcement layer — it documents the real gaps: hooks don't fire for Bash file writes via `cat >`, heredocs and redirects; PreToolUse hook failures can be silently bypassed; and Claude can edit its own settings.json and hook files.
+Read **https://github.com/anthropics/claude-code/issues/45427** before you commit to hooks as your enforcement layer: it documents the real gaps: hooks don't fire for Bash file writes via `cat >`, heredocs and redirects; PreToolUse hook failures can be silently bypassed; and Claude can edit its own settings.json and hook files.
 
 ---
 
 ## 5. Research implementations worth reading for architecture
 
-**ACE (Agentic Context Engineering)** — the intellectual core of what you're building. Treats context as an evolving playbook that accumulates, refines and organizes strategies via generation/reflection/curation, specifically to avoid brevity bias (dropping domain insight for concise summaries) and context collapse (iterative rewriting eroding detail), using structured incremental updates rather than rewrites. SambaNova/Stanford/Berkeley open-sourced the full implementation with Generator/Reflector/Curator components and runnable Finance and AppWorld scripts. Paper: arxiv.org/abs/2510.04618.
+**ACE (Agentic Context Engineering)**: the intellectual core of what you're building. Treats context as an evolving playbook that accumulates, refines and organizes strategies via generation/reflection/curation, specifically to avoid brevity bias (dropping domain insight for concise summaries) and context collapse (iterative rewriting eroding detail), using structured incremental updates rather than rewrites. SambaNova/Stanford/Berkeley open-sourced the full implementation with Generator/Reflector/Curator components and runnable Finance and AppWorld scripts. Paper: arxiv.org/abs/2510.04618.
 
 Third-party implementations to read:
-- **https://github.com/kimtth/agent-agentic-context-engineering** — section-based playbook store with bullet IDs that exports to a `SKILL.md` any coding agent can consume as static instructions. Most directly usable for a Claude Code workflow.
-- **https://github.com/mmprotest/ace-playbook** — SQLite-backed playbook with bullet embeddings and hybrid retrieval scoring embedding similarity, helpful/harmful counters and freshness bonuses.
-- **https://github.com/DannyMac180/ace-platform** — connects evolving playbooks to MCP-compatible clients like Claude Code and Codex, recording outcomes from real work.
+- **https://github.com/kimtth/agent-agentic-context-engineering**: section-based playbook store with bullet IDs that exports to a `SKILL.md` any coding agent can consume as static instructions. Most directly usable for a Claude Code workflow.
+- **https://github.com/mmprotest/ace-playbook**: SQLite-backed playbook with bullet embeddings and hybrid retrieval scoring embedding similarity, helpful/harmful counters and freshness bonuses.
+- **https://github.com/DannyMac180/ace-platform**: connects evolving playbooks to MCP-compatible clients like Claude Code and Codex, recording outcomes from real work.
 
-**https://github.com/sentient-agi/EvoSkill** — LOOP, RULES
+**https://github.com/sentient-agi/EvoSkill**: LOOP, RULES
 Automatically discovers and synthesizes reusable agent skills from failed trajectories; proposes multiple skill and prompt mutations jointly, evaluates variants on held-out data, and works with Claude Code, Codex CLI, OpenCode, OpenHands and Goose.
 
-**https://github.com/zorazrw/agent-workflow-memory** — LOOP, KS. Induces reusable workflows from past trajectories; the original "learn procedures, not facts" paper with code.
+**https://github.com/zorazrw/agent-workflow-memory**: LOOP, KS. Induces reusable workflows from past trajectories; the original "learn procedures, not facts" paper with code.
 
-**https://github.com/agentscope-ai/ReMe** — LOOP. Dynamic procedural memory for experience-driven agent evolution.
+**https://github.com/agentscope-ai/ReMe**: LOOP. Dynamic procedural memory for experience-driven agent evolution.
 
-**https://github.com/bingreeky/MemEvolve** — LOOP. Meta-evolution of the memory system itself.
+**https://github.com/bingreeky/MemEvolve**: LOOP. Meta-evolution of the memory system itself.
 
 ---
 
 ## 6. Lists to mine further
 
-- **https://github.com/TeleAI-UAGI/Awesome-Agent-Memory** — the master index. ~50 open-source memory products ranked by stars, plus benchmarks and papers. Everything in section 3 above came out of it; there's more I didn't list.
-- **https://github.com/rohitg00/awesome-claude-code-toolkit** — Claude Code-specific: agents, skills, hooks, plugins.
-- **https://github.com/kyrolabs/awesome-agents** — surfaced a few you'd otherwise miss: `piia-engram` (cross-tool local-first identity and knowledge layer across Claude Code, Cursor, Codex), `Statewave` (memory runtime turning events into structured memories with evolution, consolidation and supersession), and `IWE` (markdown knowledge graph with editor LSP, CLI and MCP server).
+- **https://github.com/TeleAI-UAGI/Awesome-Agent-Memory**: the master index. ~50 open-source memory products ranked by stars, plus benchmarks and papers. Everything in section 3 above came out of it; there's more I didn't list.
+- **https://github.com/rohitg00/awesome-claude-code-toolkit**: Claude Code-specific: agents, skills, hooks, plugins.
+- **https://github.com/kyrolabs/awesome-agents**: surfaced a few you'd otherwise miss: `piia-engram` (cross-tool local-first identity and knowledge layer across Claude Code, Cursor, Codex), `Statewave` (memory runtime turning events into structured memories with evolution, consolidation and supersession), and `IWE` (markdown knowledge graph with editor LSP, CLI and MCP server).
 
 ---
 
-**One pattern to note across all of this:** the repos that work long-term converge on the same three things — an append-only raw layer (transcripts/logs), a derived structured layer (typed facts, wiki pages, rules) built by a separate compaction pass, and a small always-loaded index that points into the structured layer rather than containing it. `taosmd`, `claude-memory-compiler` and `codealmanac` all landed there independently. The ones that skip the raw layer can't correct bad extractions later, and the ones that skip the index blow the context budget.
+**One pattern to note across all of this:** the repos that work long-term converge on the same three things: an append-only raw layer (transcripts/logs), a derived structured layer (typed facts, wiki pages, rules) built by a separate compaction pass, and a small always-loaded index that points into the structured layer rather than containing it. `taosmd`, `claude-memory-compiler` and `codealmanac` all landed there independently. The ones that skip the raw layer can't correct bad extractions later, and the ones that skip the index blow the context budget.
 
-A deeper investigation could compare the actual update semantics across these — how each handles fact supersession, contradiction, staleness and forgetting — which is where most of them quietly differ and where your system will live or die.
+A deeper investigation could compare the actual update semantics across these (how each handles fact supersession, contradiction, staleness and forgetting) which is where most of them quietly differ and where your system will live or die.
 
 # ChatGPT
 
@@ -191,12 +191,12 @@ Yes. I went fairly deep here, specifically looking for **implemented systems rat
 
 The most interesting finding is that there are now **several distinct architectural approaches** to this problem:
 
-1. **Transcript → learned knowledge → retrieval** — e.g. Claude-Mem, SixthSense.
-2. **Structured knowledge graph / memory database** — e.g. n2n-memory, MemoryGraph, memex.
-3. **Learnings → procedural skills/rules** — e.g. Self-Improving Skills, SixthSense.
-4. **Memory + deterministic hooks** — e.g. Claude Code Memory, Session Continuity.
-5. **Memory-first agent architectures** — e.g. Letta Code.
-6. **Self-modifying/self-evaluating agents** — more research-oriented systems such as SICA.
+1. **Transcript → learned knowledge → retrieval**: e.g. Claude-Mem, SixthSense.
+2. **Structured knowledge graph / memory database**: e.g. n2n-memory, MemoryGraph, memex.
+3. **Learnings → procedural skills/rules**: e.g. Self-Improving Skills, SixthSense.
+4. **Memory + deterministic hooks**: e.g. Claude Code Memory, Session Continuity.
+5. **Memory-first agent architectures**: e.g. Letta Code.
+6. **Self-modifying/self-evaluating agents**: more research-oriented systems such as SICA.
 
 ## My strongest findings
 
@@ -206,14 +206,14 @@ The most interesting finding is that there are now **several distinct architectu
 | **[d2a8k3u/claude-code-memory](https://github.com/d2a8k3u/claude-code-memory?utm_source=chatgpt.com)**       | A fully local Claude Code memory plugin with typed memories, embeddings, hybrid search, automatic extraction, relation-building and lifecycle hooks.          |   ✓✓✓  |       ✓✓      |         ✓✓✓         |        ✓✓        |  ✓✓✓  |
 | **[shihwesley/sixthsense](https://github.com/shihwesley/sixthsense?utm_source=chatgpt.com)**                 | Extracts learnings from Claude Code sessions into SQLite, scores them, synthesizes MEMORY.md, and automatically promotes valuable learnings into skills.      |   ✓✓   |      ✓✓✓      |          ✓✓         |        ✓✓✓       |  ✓✓✓  |
 | **[melvenac/Self-Improving-Agent](https://github.com/melvenac/Self-Improving-Agent?utm_source=chatgpt.com)** | A complete persistent-memory protocol for coding agents with retrieval, pattern detection, skill generation, feedback and session hooks.                      |   ✓✓✓  |       ✓✓      |         ✓✓✓         |        ✓✓✓       |   ✓✓  |
-| **[n2ns/n2n-memory](https://github.com/n2ns/n2n-memory?utm_source=chatgpt.com)**                             | Stores project knowledge as a Git-friendly knowledge graph in `.mcp/memory.json`, plus active task context in `.mcp/context.json`.                            |   ✓✓✓  |       ✓       |         ✓✓✓         |         —        |   —   |
-| **[STiFLeR7/memex](https://github.com/STiFLeR7/memex?utm_source=chatgpt.com)**                               | Builds a bitemporal Neo4j graph of modules, symbols, decisions and problems from repository changes, with agents able to write decisions back.                |   ✓✓✓  |       ✓✓      |         ✓✓✓         |         ✓        |   —   |
-| **[memory-graph/memory-graph](https://github.com/memory-graph/memory-graph?utm_source=chatgpt.com)**         | MCP memory server backed by a graph database that lets coding agents store patterns, relationships and persistent knowledge across sessions.                  |   ✓✓✓  |       ✓✓      |         ✓✓✓         |         ✓        |   —   |
-| **[0xK3vin/MegaMemory](https://github.com/0xK3vin/MegaMemory?utm_source=chatgpt.com)**                       | Lets an agent build a persistent conceptual graph of features, modules, patterns and decisions and explicitly follow an `understand → work → update` loop.    |   ✓✓✓  |       ✓✓      |         ✓✓✓         |        ✓✓        |   —   |
-| **[letta-ai/letta-code](https://github.com/letta-ai/letta-code?utm_source=chatgpt.com)**                     | A memory-first coding-agent architecture where agents modify their own memory/context and learn skills over long-running interactions.                        |   ✓✓✓  |      ✓✓✓      |          ✓✓         |        ✓✓✓       |   —   |
-| **[dan-calin/shared-agent-memory](https://github.com/dan-calin/shared-agent-memory?utm_source=chatgpt.com)** | Gives Claude Code, Codex and other MCP clients one shared knowledge graph stored locally, with token-efficient project-scoped recall and secret filtering.    |   ✓✓✓  |       ✓       |         ✓✓✓         |         ✓        |   —   |
+| **[n2ns/n2n-memory](https://github.com/n2ns/n2n-memory?utm_source=chatgpt.com)**                             | Stores project knowledge as a Git-friendly knowledge graph in `.mcp/memory.json`, plus active task context in `.mcp/context.json`.                            |   ✓✓✓  |       ✓       |         ✓✓✓         |         -        |   -   |
+| **[STiFLeR7/memex](https://github.com/STiFLeR7/memex?utm_source=chatgpt.com)**                               | Builds a bitemporal Neo4j graph of modules, symbols, decisions and problems from repository changes, with agents able to write decisions back.                |   ✓✓✓  |       ✓✓      |         ✓✓✓         |         ✓        |   -   |
+| **[memory-graph/memory-graph](https://github.com/memory-graph/memory-graph?utm_source=chatgpt.com)**         | MCP memory server backed by a graph database that lets coding agents store patterns, relationships and persistent knowledge across sessions.                  |   ✓✓✓  |       ✓✓      |         ✓✓✓         |         ✓        |   -   |
+| **[0xK3vin/MegaMemory](https://github.com/0xK3vin/MegaMemory?utm_source=chatgpt.com)**                       | Lets an agent build a persistent conceptual graph of features, modules, patterns and decisions and explicitly follow an `understand → work → update` loop.    |   ✓✓✓  |       ✓✓      |         ✓✓✓         |        ✓✓        |   -   |
+| **[letta-ai/letta-code](https://github.com/letta-ai/letta-code?utm_source=chatgpt.com)**                     | A memory-first coding-agent architecture where agents modify their own memory/context and learn skills over long-running interactions.                        |   ✓✓✓  |      ✓✓✓      |          ✓✓         |        ✓✓✓       |   -   |
+| **[dan-calin/shared-agent-memory](https://github.com/dan-calin/shared-agent-memory?utm_source=chatgpt.com)** | Gives Claude Code, Codex and other MCP clients one shared knowledge graph stored locally, with token-efficient project-scoped recall and secret filtering.    |   ✓✓✓  |       ✓       |         ✓✓✓         |         ✓        |   -   |
 
-### 1. Claude-Mem — probably the first one I'd study
+### 1. Claude-Mem: probably the first one I'd study
 
 ![Image](https://images.openai.com/static-rsc-4/aczlsk7T-XQF8Wazo_wv-HOhjCw1a_pTXoV7BzO5cmQI4FZOaryirc1E_zLuhs2at4tFUplw1I4K6QDR-5pL-nAdT0i3QdyaVc3NTbNJSVK64BhG1HPmStyUaO5Qi37R-PAGntGvN2MLdcellMNHydbyolclxb_J46c6NtJ6fBL_8CGDkGSkc_vzHvI7UOq2?purpose=fullsize)
 
@@ -249,7 +249,7 @@ That's much closer to a real knowledge system.
 
 ---
 
-### 2. Claude Code Memory — extremely relevant to your exact question
+### 2. Claude Code Memory: extremely relevant to your exact question
 
 **[https://github.com/d2a8k3u/claude-code-memory](https://github.com/d2a8k3u/claude-code-memory?utm_source=chatgpt.com)**
 
@@ -257,10 +257,10 @@ This one is particularly interesting because it goes beyond basic transcript rec
 
 It has explicit memory types:
 
-* `episodic` — what happened
-* `semantic` — facts about the project
-* `procedural` — how to do something
-* `pattern` — recurring behavior
+* `episodic`: what happened
+* `semantic`: facts about the project
+* `procedural`: how to do something
+* `pattern`: recurring behavior
 
 It uses:
 
@@ -282,7 +282,7 @@ The repo explicitly describes automatic merging of near-duplicates and a relatio
 
 ---
 
-### 3. SixthSense — perhaps the most interesting learned-rule pipeline
+### 3. SixthSense: perhaps the most interesting learned-rule pipeline
 
 **[https://github.com/shihwesley/sixthsense](https://github.com/shihwesley/sixthsense?utm_source=chatgpt.com)**
 
@@ -336,7 +336,7 @@ I'd put this **very high on your reading list**.
 
 ---
 
-### 4. Self-Improving-Agent — unusually complete architecture
+### 4. Self-Improving-Agent: unusually complete architecture
 
 **[https://github.com/melvenac/Self-Improving-Agent](https://github.com/melvenac/Self-Improving-Agent?utm_source=chatgpt.com)**
 
@@ -925,7 +925,7 @@ It's useful if your definition of "self-improvement" eventually extends beyond l
 
 ---
 
-### 24. SIA — Self-Improving Software Engineering Agent
+### 24. SIA: Self-Improving Software Engineering Agent
 
 ---
 
@@ -1021,7 +1021,7 @@ That is a crucial distinction:
 
 If I were you, I would **not** read these 24 repositories sequentially. I'd build the research around these eight:
 
-### Tier A — study the implementation deeply
+### Tier A: study the implementation deeply
 
 **1. [Claude-Mem](https://github.com/thedotmack/claude-mem?utm_source=chatgpt.com)**
 Best overall implementation of **capture → compression → storage → retrieval**.
@@ -1152,10 +1152,10 @@ The repos above collectively give you pieces of almost every stage of that pipel
 [1]: https://github.com/thedotmack/claude-mem/blob/main/docs/public/introduction.mdx?utm_source=chatgpt.com "claude-mem/docs/public/introduction.mdx at main · thedotmack/claude-mem · GitHub"
 [2]: https://github.com/thedotmack/claude-mem/blob/main/plugin/.codex-plugin/plugin.json?utm_source=chatgpt.com "claude-mem/plugin/.codex-plugin/plugin.json at main · thedotmack/claude-mem · GitHub"
 [3]: https://github.com/d2a8k3u/claude-code-memory?utm_source=chatgpt.com "GitHub - d2a8k3u/claude-code-memory: A Claude Code plugin that gives Claude fully automatic, per-project cognitive memory with hybrid search, session lifecycle hooks, and local embeddings. · GitHub"
-[4]: https://github.com/shihwesley/sixthsense?utm_source=chatgpt.com "GitHub - shihwesley/sixthsense: Self-learning memory for Claude Code. Your agent gets smarter every session — automatically. · GitHub"
-[5]: https://github.com/melvenac/Self-Improving-Agent?utm_source=chatgpt.com "GitHub - melvenac/Self-Improving-Agent: Self-improving agent protocol — persistent memory, pattern recognition, and compound learning across AI coding sessions · GitHub"
-[6]: https://github.com/n2ns/n2n-memory?utm_source=chatgpt.com "GitHub - n2ns/n2n-memory: Project-local MCP memory server for AI coding agents. Knowledge graph stored in .mcp/ inside each repo — isolated per project, Git-friendly JSON, dual-buffer (durable graph + active context). · GitHub"
-[7]: https://github.com/STiFLeR7/memex?utm_source=chatgpt.com "GitHub - STiFLeR7/memex: Persistent memory for AI coding agents via MCP — a bitemporal knowledge graph of your codebase, served to Claude Code, Cursor, Gemini CLI, and any MCP client. Tree-sitter + Gemini Flash → Neo4j (via Graphiti). 12 MCP tools, hierarchical clusters, two-regime confidence decay. · GitHub"
+[4]: https://github.com/shihwesley/sixthsense?utm_source=chatgpt.com "GitHub - shihwesley/sixthsense: Self-learning memory for Claude Code. Your agent gets smarter every session, automatically. · GitHub"
+[5]: https://github.com/melvenac/Self-Improving-Agent?utm_source=chatgpt.com "GitHub - melvenac/Self-Improving-Agent: Self-improving agent protocol, persistent memory, pattern recognition, and compound learning across AI coding sessions · GitHub"
+[6]: https://github.com/n2ns/n2n-memory?utm_source=chatgpt.com "GitHub - n2ns/n2n-memory: Project-local MCP memory server for AI coding agents. Knowledge graph stored in .mcp/ inside each repo, isolated per project, Git-friendly JSON, dual-buffer (durable graph + active context). · GitHub"
+[7]: https://github.com/STiFLeR7/memex?utm_source=chatgpt.com "GitHub - STiFLeR7/memex: Persistent memory for AI coding agents via MCP, a bitemporal knowledge graph of your codebase, served to Claude Code, Cursor, Gemini CLI, and any MCP client. Tree-sitter + Gemini Flash → Neo4j (via Graphiti). 12 MCP tools, hierarchical clusters, two-regime confidence decay. · GitHub"
 [8]: https://github.com/memory-graph/memory-graph?utm_source=chatgpt.com "GitHub - memory-graph/memory-graph: A graph DB-based MCP memory server for coding agents with intelligent relationship tracking · GitHub"
 [9]: https://github.com/0xK3vin/MegaMemory?utm_source=chatgpt.com "GitHub - 0xK3vin/MegaMemory: Persistent project knowledge graph for coding agents. MCP server with semantic search, in-process embeddings, and web explorer. · GitHub"
 [10]: https://github.com/lexCoder2/lxDIG-MCP?utm_source=chatgpt.com "GitHub - lexCoder2/lxDIG-MCP: Dynamic Intelligence Graph (DIG) MCP server for AI coding agents. Persistent code knowledge graph, a code RAG improvement, with hybrid Graph + Vector + BM25 retrieval, agent memory, multi-agent coordination, and impact-scoped test selection. Works with Claude Code, VS Code Copilot, and Cursor. · GitHub"
@@ -1170,7 +1170,7 @@ The repos above collectively give you pieces of almost every stage of that pipel
 [19]: https://github.com/B0904/Cagentmemory "https://github.com/B0904/Cagentmemory"
 [20]: https://github.com/SiamAlSobari/mnemo-agent-memory?utm_source=chatgpt.com "GitHub - SiamAlSobari/mnemo-agent-memory: High-precision persistent memory & knowledge graph engine for AI coding agents via Model Context Protocol. · GitHub"
 [21]: https://github.com/letta-ai/letta-code?utm_source=chatgpt.com "GitHub - letta-ai/letta-code: The memory-first coding agent · GitHub"
-[22]: https://github.com/jakemannix/yaucca?utm_source=chatgpt.com "GitHub - jakemannix/yaucca: Yet Another Useless Claude Code Agent — persistent long-term memory for Claude Code · GitHub"
+[22]: https://github.com/jakemannix/yaucca?utm_source=chatgpt.com "GitHub - jakemannix/yaucca: Yet Another Useless Claude Code Agent, persistent long-term memory for Claude Code · GitHub"
 [23]: https://github.com/MrTsepa/micro-sica "https://github.com/MrTsepa/micro-sica"
 [24]: https://github.com/MaximeRobeyns/self_improving_coding_agent "https://github.com/MaximeRobeyns/self_improving_coding_agent"
 [25]: https://github.com/vermayuvraj/self-improving-agent "https://github.com/vermayuvraj/self-improving-agent"
@@ -1182,7 +1182,7 @@ The repos above collectively give you pieces of almost every stage of that pipel
 
 # DeepSeek
 
-Here are GitHub repositories that implement persistent memory, learned behaviors, knowledge bases, self-improvement, or hook enforcement for coding agents — with an emphasis on actual implementation and knowledge architecture.
+Here are GitHub repositories that implement persistent memory, learned behaviors, knowledge bases, self-improvement, or hook enforcement for coding agents, with an emphasis on actual implementation and knowledge architecture.
 
 ---
 
@@ -1191,7 +1191,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 1. claude-mem (thedotmack/claude-mem)
 **URL:** https://github.com/thedotmack/claude-mem (89k+ stars)
 
-**What it does:** Captures everything your agent does during sessions, compresses it with AI, and injects relevant context back into future sessions — works with Claude Code, OpenClaw, Codex, Gemini, Hermes, and Copilot.
+**What it does:** Captures everything your agent does during sessions, compresses it with AI, and injects relevant context back into future sessions: works with Claude Code, OpenClaw, Codex, Gemini, Hermes, and Copilot.
 
 **Addresses:** Memory persistence, knowledge structure (compression + relevance injection).
 
@@ -1200,7 +1200,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 2. total-agent-memory (vbcherepanov/total-agent-memory)
 **URL:** https://github.com/vbcherepanov/total-agent-memory
 
-**What it does:** Persistent memory with auto-extracted knowledge graph, multi-representation embeddings, and 3D WebGL visualization — achieving LongMemEval R@5=97.45% with self-hosted Ollama optional. Tracks sessions, consolidated error patterns, and active behavioral rules with fire counts.
+**What it does:** Persistent memory with auto-extracted knowledge graph, multi-representation embeddings, and 3D WebGL visualization: achieving LongMemEval R@5=97.45% with self-hosted Ollama optional. Tracks sessions, consolidated error patterns, and active behavioral rules with fire counts.
 
 **Addresses:** Memory persistence, knowledge structure (knowledge graph + embeddings + session tracking), learned rules.
 
@@ -1209,7 +1209,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 3. deep-memory (kevintsai1202/deep-memory)
 **URL:** https://github.com/kevintsai1202/deep-memory
 
-**What it does:** A self-evolving knowledge accumulation system with hybrid retrieval (ChromaDB + BM25 + BGE-Reranker) that turns your agent into a "second brain" — hot/cold tiered storage, cross-skill memory, and proactive experience capture.
+**What it does:** A self-evolving knowledge accumulation system with hybrid retrieval (ChromaDB + BM25 + BGE-Reranker) that turns your agent into a "second brain": hot/cold tiered storage, cross-skill memory, and proactive experience capture.
 
 **Addresses:** Memory persistence, knowledge structure (tiered storage + hybrid retrieval), self-improvement loop, learned rules.
 
@@ -1218,7 +1218,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 4. agent-memory (OctavianTocan/agent-memory)
 **URL:** https://github.com/OctavianTocan/agent-memory
 
-**What it does:** Persistent, structured memory via SQLite + semantic search with hooks for Claude Code, Cline, Gemini CLI, Codex, Aider, Cursor, and Windsurf — all agents on your machine share one database. Three layers: hook/context injection, CLI subcommands, and SQLite with facts, soul, daily_logs, and embeddings tables.
+**What it does:** Persistent, structured memory via SQLite + semantic search with hooks for Claude Code, Cline, Gemini CLI, Codex, Aider, Cursor, and Windsurf: all agents on your machine share one database. Three layers: hook/context injection, CLI subcommands, and SQLite with facts, soul, daily_logs, and embeddings tables.
 
 **Addresses:** Memory persistence, knowledge structure (SQLite + embeddings + shared across agents), hook enforcement.
 
@@ -1227,7 +1227,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 5. am-memory (danielwanwx/am-memory)
 **URL:** https://github.com/danielwanwx/am-memory
 
-**What it does:** SQLite-backed persistent memory with BM25+Vector search and MCP integration — a self-evolving knowledge layer that surfaces relevant context automatically. Four semantic layers: FTS5 virtual table (trigram tokenizer, BM25 ranking), sqlite-vec (HNSW index), documents table with priority tiers (P0 never expires, P1 90 days, P2 30 days), and session lifecycle.
+**What it does:** SQLite-backed persistent memory with BM25+Vector search and MCP integration: a self-evolving knowledge layer that surfaces relevant context automatically. Four semantic layers: FTS5 virtual table (trigram tokenizer, BM25 ranking), sqlite-vec (HNSW index), documents table with priority tiers (P0 never expires, P1 90 days, P2 30 days), and session lifecycle.
 
 **Addresses:** Memory persistence, knowledge structure (FTS5 + vector + priority tiers + LRU), self-improvement loop (session promotion).
 
@@ -1263,7 +1263,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 9. memorize (shakystar/memorize)
 **URL:** https://github.com/shakystar/memorize
 
-**What it does:** Shared, persistent memory — Claude Code & Codex share one local-first, event-sourced project brain that survives sessions and syncs across machines. Records work signals, distills into long-term memory, injects right context when sessions start.
+**What it does:** Shared, persistent memory: Claude Code & Codex share one local-first, event-sourced project brain that survives sessions and syncs across machines. Records work signals, distills into long-term memory, injects right context when sessions start.
 
 **Addresses:** Memory persistence, knowledge structure (event-sourced + distillation), hook enforcement.
 
@@ -1272,7 +1272,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 10. Hippocamp
 **URL:** https://www.npmjs.com/package/hippocamp
 
-**What it does:** Local Git-backed memory for AI coding agents — plain Markdown in a private Git repo, no database, no vector store. Stores durable preferences, current project state, open threads, decisions, and references to commits/PRs/issues. Git provides auditability, readability, collaboration, portability.
+**What it does:** Local Git-backed memory for AI coding agents: plain Markdown in a private Git repo, no database, no vector store. Stores durable preferences, current project state, open threads, decisions, and references to commits/PRs/issues. Git provides auditability, readability, collaboration, portability.
 
 **Addresses:** Memory persistence, knowledge structure (Git-backed Markdown + project-scoped memory), hook enforcement.
 
@@ -1290,7 +1290,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 12. Meridian (meridianmcp/mcp)
 **URL:** https://www.npmjs.com/package/@meridianmcp/mcp
 
-**What it does:** Persistent memory, task coordination, and HITL queue for Claude Code, Cursor, Windsurf, Codex CLI — includes task log, pinned decisions, human-in-the-loop queue, and tiered handoffs.
+**What it does:** Persistent memory, task coordination, and HITL queue for Claude Code, Cursor, Windsurf, Codex CLI: includes task log, pinned decisions, human-in-the-loop queue, and tiered handoffs.
 
 **Addresses:** Memory persistence, learned rules (pinned decisions).
 
@@ -1301,7 +1301,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 13. learned-behavior (lisn0/learned-behavior)
 **URL:** https://github.com/lisn0/learned-behavior
 
-**What it does:** Self-improving memory that observes what your agent does, distills recurring patterns into lessons, surfaces relevant ones before each task, and auto-promotes rules that keep proving themselves while decaying stale ones — with **no LLM in the loop**, pure behavioral signal from agent hook events. Captures repeated failures, skill bypasses, repeated edit self-corrections, and PreToolUse blocks. Every lesson has confidence score and status (candidate → approved → dormant).
+**What it does:** Self-improving memory that observes what your agent does, distills recurring patterns into lessons, surfaces relevant ones before each task, and auto-promotes rules that keep proving themselves while decaying stale ones, with **no LLM in the loop**, pure behavioral signal from agent hook events. Captures repeated failures, skill bypasses, repeated edit self-corrections, and PreToolUse blocks. Every lesson has confidence score and status (candidate → approved → dormant).
 
 **Addresses:** Learned rules, self-improvement loop (confidence scoring + promotion/decay), hook enforcement (PreToolUse blocks).
 
@@ -1310,7 +1310,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 14. pi-continuous-learning
 **URL:** https://www.npmjs.com/package/pi-continuous-learning
 
-**What it does:** Pi extension that watches coding sessions and distills patterns into reusable instincts — atomic learned behaviors with confidence scoring, project scoping, and closed-loop feedback validation.
+**What it does:** Pi extension that watches coding sessions and distills patterns into reusable instincts: atomic learned behaviors with confidence scoring, project scoping, and closed-loop feedback validation.
 
 **Addresses:** Learned rules, self-improvement loop (confidence scoring + feedback validation), hook enforcement.
 
@@ -1319,7 +1319,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 15. agent-learner (cafitac/agent-learner)
 **URL:** https://www.npmjs.com/package/@cafitac/agent-learner
 
-**What it does:** Reusable learning control plane for coding-agent workflows — captures learned rules from agent work, keeps repo-scoped and global learning assets in one canonical global store, reviews candidates, and promotes useful rules via dashboard UI.
+**What it does:** Reusable learning control plane for coding-agent workflows: captures learned rules from agent work, keeps repo-scoped and global learning assets in one canonical global store, reviews candidates, and promotes useful rules via dashboard UI.
 
 **Addresses:** Learned rules, knowledge structure (canonical global store + review/promotion workflow), self-improvement loop.
 
@@ -1328,7 +1328,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 16. smart-agent-cc
 **URL:** https://www.npmjs.com/package/smart-agent-cc
 
-**What it does:** Learns skills from coding conversations automatically — extracts reusable workflow skills AND project knowledge via LLM, captures preferences, gotchas, architecture decisions.
+**What it does:** Learns skills from coding conversations automatically: extracts reusable workflow skills AND project knowledge via LLM, captures preferences, gotchas, architecture decisions.
 
 **Addresses:** Learned rules, knowledge structure, memory persistence.
 
@@ -1337,7 +1337,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 17. self-learning-skills (kulaxyz)
 **URL:** https://github.com/kulaxyz/self-learning-skills
 
-**What it does:** A "meta-skill" that addresses AI coding agents losing learned knowledge between sessions — tracks successful workflows, commands, skills, and rules including failures.
+**What it does:** A "meta-skill" that addresses AI coding agents losing learned knowledge between sessions: tracks successful workflows, commands, skills, and rules including failures.
 
 **Addresses:** Learned rules, self-improvement loop.
 
@@ -1346,7 +1346,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 18. continuous-learning-v2
 **URL:** https://skillsmp.com/continuous-learning-v2
 
-**What it does:** Instinct-based learning system that observes sessions via hooks, creates atomic instincts with confidence scoring, and evolves them into skills/commands/agents — v2.1 adds project-scoped instincts to prevent cross-project contamination.
+**What it does:** Instinct-based learning system that observes sessions via hooks, creates atomic instincts with confidence scoring, and evolves them into skills/commands/agents: v2.1 adds project-scoped instincts to prevent cross-project contamination.
 
 **Addresses:** Learned rules, self-improvement loop, hook enforcement.
 
@@ -1357,7 +1357,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 19. knowledge-mcp (Dantesong/knowledge-mcp)
 **URL:** https://github.com/Dantesong/knowledge-mcp
 
-**What it does:** Local MCP server giving Claude Code persistent memory through a git-managed knowledge base — exposes 9 tools: `kb_search`, `kb_read`, `kb_write` (auto git commit), `kb_log_decision`, `kb_index`, `kb_init`, `kb_link_track`, `kb_drift`, `kb_drift_all`. Features **drift detection** — links each doc to the code it documents via YAML frontmatter with `last-verified-commit`, `code-repo`, `code-tracks`.
+**What it does:** Local MCP server giving Claude Code persistent memory through a git-managed knowledge base: exposes 9 tools: `kb_search`, `kb_read`, `kb_write` (auto git commit), `kb_log_decision`, `kb_index`, `kb_init`, `kb_link_track`, `kb_drift`, `kb_drift_all`. Features **drift detection**, links each doc to the code it documents via YAML frontmatter with `last-verified-commit`, `code-repo`, `code-tracks`.
 
 **Addresses:** Knowledge structure (git-managed + drift detection + verification), memory persistence.
 
@@ -1366,7 +1366,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 20. my-memory-wiki
 **URL:** https://www.npmjs.com/package/my-memory-wiki
 
-**What it does:** Git-synced, agent-maintained team memory for Claude Code — knowledge lives as Markdown in your repo under `.memory/`, shared through git, gated by PR review. Two tiers: Tier 0 = constraints (hard rules, always loaded), Tier 1 = knowledge (decisions, conventions, library notes, retrieved on demand). MCP server exposes `memory.search` (BM25), `memory.remember`, `memory.related`, `memory.lint`.
+**What it does:** Git-synced, agent-maintained team memory for Claude Code: knowledge lives as Markdown in your repo under `.memory/`, shared through git, gated by PR review. Two tiers: Tier 0 = constraints (hard rules, always loaded), Tier 1 = knowledge (decisions, conventions, library notes, retrieved on demand). MCP server exposes `memory.search` (BM25), `memory.remember`, `memory.related`, `memory.lint`.
 
 **Addresses:** Knowledge structure (two-tier + git + PR review gate), memory persistence, learned rules, hook enforcement.
 
@@ -1375,7 +1375,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 21. roboto-mem
 **URL:** https://socket.dev/npm/package/roboto-mem
 
-**What it does:** Team Memory sync for Claude Code — git-backed knowledge base injected into agent sessions. Entries are Standards (authored rules, always in force) or Lessons (learned gotchas).
+**What it does:** Team Memory sync for Claude Code: git-backed knowledge base injected into agent sessions. Entries are Standards (authored rules, always in force) or Lessons (learned gotchas).
 
 **Addresses:** Knowledge structure (Standards + Lessons), memory persistence, learned rules.
 
@@ -1384,7 +1384,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 22. obsidian-agent-wiki
 **URL:** https://socket.dev/npm/package/obsidian-agent-wiki
 
-**What it does:** Personal knowledge base powered by Obsidian, Claude Code, qmd, and GitHub — Claude reads sources and writes wiki pages, cross-links, flags contradictions; qmd provides local hybrid search (vector + BM25).
+**What it does:** Personal knowledge base powered by Obsidian, Claude Code, qmd, and GitHub: Claude reads sources and writes wiki pages, cross-links, flags contradictions; qmd provides local hybrid search (vector + BM25).
 
 **Addresses:** Knowledge structure (Obsidian + hybrid search), memory persistence.
 
@@ -1393,7 +1393,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 23. ContextKeeper (contextkeeper-mcp)
 **URL:** https://www.npmjs.com/package/contextkeeper-mcp
 
-**What it does:** Records architectural decisions as plain markdown files in your repo, indexes them with SQLite, and injects relevant ones into every Claude Code session via deterministic hooks. Retrieval is deterministic: path globs + tags + FTS5 + recency — no embeddings, 100% reliable recall. Two modes: auto (aggressive recording) and manual (explicit control).
+**What it does:** Records architectural decisions as plain markdown files in your repo, indexes them with SQLite, and injects relevant ones into every Claude Code session via deterministic hooks. Retrieval is deterministic: path globs + tags + FTS5 + recency, no embeddings, 100% reliable recall. Two modes: auto (aggressive recording) and manual (explicit control).
 
 **Addresses:** Knowledge structure (markdown + SQLite + deterministic retrieval), memory persistence, hook enforcement.
 
@@ -1404,7 +1404,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 24. self-improving-agent (BerriAI)
 **URL:** https://github.com/BerriAI/self-improving-agent
 
-**What it does:** Drop-in self-improvement loop for any AI agent — two tools. The agent proposes a minimal diff, you approve, a draft PR opens. Agent fixes itself under explicit human approval, addressing skipped setup steps, vague prompts, wrong tool routing.
+**What it does:** Drop-in self-improvement loop for any AI agent: two tools. The agent proposes a minimal diff, you approve, a draft PR opens. Agent fixes itself under explicit human approval, addressing skipped setup steps, vague prompts, wrong tool routing.
 
 **Addresses:** Self-improvement loop.
 
@@ -1413,7 +1413,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 25. self_improving_coding_agent (MaximeRobeyns)
 **URL:** https://github.com/MaximeRobeyns/self_improving_coding_agent
 
-**What it does:** A coding agent framework that works on its own codebase — an iterative improvement loop.
+**What it does:** A coding agent framework that works on its own codebase: an iterative improvement loop.
 
 **Addresses:** Self-improvement loop.
 
@@ -1422,7 +1422,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 26. Self-Improving-Agent (Grail-Computer)
 **URL:** https://github.com/Grail-Computer/Self-Improving-Agent
 
-**What it does:** Starter template instructing agents to always update their rules and context to learn from every interaction — includes Codebase Map, Local Norms, Guardrails, and Patterns & Gotchas.
+**What it does:** Starter template instructing agents to always update their rules and context to learn from every interaction: includes Codebase Map, Local Norms, Guardrails, and Patterns & Gotchas.
 
 **Addresses:** Self-improvement loop, learned rules, knowledge structure.
 
@@ -1442,7 +1442,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 28. steerhook (meganemura/steerhook)
 **URL:** https://github.com/meganemura/steerhook
 
-**What it does:** Rules that block or warn before Claude Code runs a tool and tell Claude the alternative — a fork of Anthropic's hookify plugin. Key difference: rule message reaches Claude (not just the user), so Claude learns the alternative at the moment it matters. Rules live in `~/.claude/steerhook/` and apply in every project; projects can override or disable rules.
+**What it does:** Rules that block or warn before Claude Code runs a tool and tell Claude the alternative: a fork of Anthropic's hookify plugin. Key difference: rule message reaches Claude (not just the user), so Claude learns the alternative at the moment it matters. Rules live in `~/.claude/steerhook/` and apply in every project; projects can override or disable rules.
 
 **Addresses:** Hook enforcement, learned rules (Claude learns alternatives).
 
@@ -1451,7 +1451,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 29. monkeyleash (wusuowei-tw/monkeyleash)
 **URL:** https://github.com/wusuowei-tw/monkeyleash
 
-**What it does:** Six-stage gates for AI coding agents — rules that block, not rules that ask nicely. Machine-enforced gates for a test-first development pipeline using git hooks and Claude Code hooks that refuse to let agents (or humans) skip steps.
+**What it does:** Six-stage gates for AI coding agents: rules that block, not rules that ask nicely. Machine-enforced gates for a test-first development pipeline using git hooks and Claude Code hooks that refuse to let agents (or humans) skip steps.
 
 **Addresses:** Hook enforcement.
 
@@ -1460,7 +1460,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 30. pi-hookify (nunofgs/pi-hookify)
 **URL:** https://github.com/nunofgs/pi-hookify
 
-**What it does:** Hook enforcement extension for pi coding agent — create rules from natural language that block or allow tool calls via shell commands. Example: `/hookify Don't allow git push -f` generates a shell command hook and saves it. Hooks stored in `~/.pi/hookify/hooks.json`.
+**What it does:** Hook enforcement extension for pi coding agent: create rules from natural language that block or allow tool calls via shell commands. Example: `/hookify Don't allow git push -f` generates a shell command hook and saves it. Hooks stored in `~/.pi/hookify/hooks.json`.
 
 **Addresses:** Hook enforcement, learned rules (natural language → shell hooks).
 
@@ -1469,7 +1469,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 31. chock
 **URL:** https://pypi.org/project/chock
 
-**What it does:** Your repo's rules become deterministic guardrails — compiled to git hooks + CI gate + native pre-execution hooks (Claude Code and Cursor) + AGENTS.md, across 14 agents.
+**What it does:** Your repo's rules become deterministic guardrails: compiled to git hooks + CI gate + native pre-execution hooks (Claude Code and Cursor) + AGENTS.md, across 14 agents.
 
 **Addresses:** Hook enforcement.
 
@@ -1478,7 +1478,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 ### 32. right-hooks
 **URL:** https://www.npmjs.com/package/right-hooks
 
-**What it does:** Auto-detects project type, installs hooks, copies rules and templates, configures Claude Code, and sets up git hooks — Claude Code hooks control agent behavior, git hooks via husky control git operations, behavioral rules guide agent decisions through `.claude/rules/`.
+**What it does:** Auto-detects project type, installs hooks, copies rules and templates, configures Claude Code, and sets up git hooks: Claude Code hooks control agent behavior, git hooks via husky control git operations, behavioral rules guide agent decisions through `.claude/rules/`.
 
 **Addresses:** Hook enforcement.
 
@@ -1498,7 +1498,7 @@ Here are GitHub repositories that implement persistent memory, learned behaviors
 
 ## Repositories You Already Studied (for reference)
 
-- **browser-harness (browser-use)** — Not in results; likely browser automation.
-- **TencentDB-Agent-Memory (Tencent)** — Not surfaced in these searches.
-- **everything-claude-code and ECC (affaan-m)** — Not surfaced.
-- **superpowers** — Not surfaced.
+- **browser-harness (browser-use)**, Not in results; likely browser automation.
+- **TencentDB-Agent-Memory (Tencent)**, Not surfaced in these searches.
+- **everything-claude-code and ECC (affaan-m)**, Not surfaced.
+- **superpowers**, Not surfaced.

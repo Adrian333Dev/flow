@@ -1,17 +1,17 @@
 /**
- * agent-proxy — see what Claude Code actually sends the model.
+ * agent-proxy: see what Claude Code actually sends the model.
  *
  * A zero-dependency logging proxy for Claude Code. It sits between the CLI and
  * the Anthropic API, forwards every request untouched (auth header and all),
  * streams the response straight back so the CLI is unaffected, and for each
- * request writes a readable Markdown document — led by a ranked table of what
+ * request writes a readable Markdown document: led by a ranked table of what
  * is eating your context.
  *
  * Run:   node proxy.mjs
  * Point Claude Code at it:
  *   ANTHROPIC_BASE_URL=http://localhost:8787 claude
  *
- * Zero runtime dependencies — Node built-ins only. Requires Node 18+.
+ * Zero runtime dependencies: Node built-ins only. Requires Node 18+.
  */
 
 import http from "node:http";
@@ -31,7 +31,7 @@ const LOG_DIR = path.join(HERE, "logs");
 const estTokens = (bytes) => Math.round(bytes / 4);
 
 /** count_tokens calls send content but get back only a number, never a reply.
- * A single turn fires many as housekeeping — pure noise here, so skip them. */
+ * A single turn fires many as housekeeping: pure noise here, so skip them. */
 const isTokenCount = (reqPath) => reqPath.includes("count_tokens");
 
 const REDACT = new Set(["authorization", "x-api-key", "api-key"]);
@@ -64,7 +64,7 @@ function baseName() {
 // ---------------------------------------------------------------------------
 
 /** Measure every removable region of the request and rank the tools by size.
- * This is the whole point of the proxy — the numbers you cut against. */
+ * This is the whole point of the proxy: the numbers you cut against. */
 function auditRequest(reqJson, realInputTokens) {
   const tools = Array.isArray(reqJson?.tools) ? reqJson.tools : [];
   const toolRows = tools
@@ -112,7 +112,7 @@ function renderAudit(a) {
     `- **system prompt**: ${a.systemBytes.toLocaleString()} bytes (~${estTokens(a.systemBytes).toLocaleString()} tokens)`,
     `- **total request**: ${a.totalBytes.toLocaleString()} bytes`,
     "",
-    "**Tools, ranked by size — this is your cut list:**",
+    "**Tools, ranked by size: this is your cut list:**",
     "",
     "| tool | bytes | ~tokens | % of request |",
     "| --- | --: | --: | --: |",
@@ -122,7 +122,7 @@ function renderAudit(a) {
   ].join("\n");
 }
 
-/** The same ranking, compact, for the terminal — so you see the bloat live. */
+/** The same ranking, compact, for the terminal, so you see the bloat live. */
 function printAudit(a, base) {
   const top = a.toolRows.slice(0, 12);
   const w = Math.max(4, ...top.map((r) => r.name.length));
@@ -182,7 +182,7 @@ function renderTools(tools) {
 function imagePlaceholder(b) {
   const src = b.source ?? {};
   const bytes = typeof src.data === "string" ? src.data.length : 0;
-  return `\`[image: ${src.media_type ?? "unknown"}, ${bytes} base64 chars — full data in .request.txt]\``;
+  return `\`[image: ${src.media_type ?? "unknown"}, ${bytes} base64 chars, full data in .request.txt]\``;
 }
 
 function renderContent(content) {
@@ -251,7 +251,7 @@ function renderMessages(messages) {
   );
 }
 
-/** Reassemble the streamed SSE response so we can read the reply — and pull the
+/** Reassemble the streamed SSE response so we can read the reply, and pull the
  * real input-token count out of the usage events. */
 function decodeResponse(raw) {
   const events = [];

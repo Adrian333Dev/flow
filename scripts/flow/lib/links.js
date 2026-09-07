@@ -2,7 +2,7 @@
 /**
  * Symlinks, and the 1 rule about them: Flow links per item, never per folder.
  *
- * `~/.claude/skills/` and `agents/` hold entries Flow does not own — other
+ * `~/.claude/skills/` and `agents/` hold entries Flow does not own: other
  * catalogs, hand-written ones. A folder link would evict every one of them and
  * block new ones, so each entry gets its own link.
  */
@@ -28,7 +28,7 @@ function link(from, to) {
   }
   if (existing) {
     if (!existing.isSymbolicLink()) {
-      throw new FlowError(`${to} is a real file, not a link — Flow will not replace it.`);
+      throw new FlowError(`${to} is a real file, not a link: Flow will not replace it.`);
     }
     fs.unlinkSync(to);
   }
@@ -37,7 +37,7 @@ function link(from, to) {
 
 /**
  * Drop links into the clone that no longer resolve, left behind by a rename or
- * a delete. Only ever a broken link whose target is inside the clone — never a
+ * a delete. Only ever a broken link whose target is inside the clone, never a
  * real file, and never somebody else's link.
  */
 function pruneDead(dir, clone) {
@@ -65,7 +65,7 @@ function pruneDead(dir, clone) {
   return gone;
 }
 
-/** Every `*.md` in a folder, sorted — how commands and agents are named. */
+/** Every `*.md` in a folder, sorted: how commands and agents are named. */
 function markdownFiles(dir) {
   try {
     return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort();

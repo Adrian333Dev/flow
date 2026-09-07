@@ -30,7 +30,7 @@ Let's evaluate every runtime.
 
 ---
 
-## Option 1 — Service Worker ❌ (not recommended)
+## Option 1: Service Worker ❌ (not recommended)
 
 ### Advantages
 
@@ -87,7 +87,7 @@ For an 85 MB TTS model, this is exactly what you want to avoid.
 
 ---
 
-## Option 2 — Offscreen document ✅ (best choice)
+## Option 2: Offscreen document ✅ (best choice)
 
 This is currently the strongest architecture.
 
@@ -614,12 +614,12 @@ Only reload from disk if Chrome destroys the offscreen document.
 
 # 9. Final recommendation
 
-For your use case—an **85 MB Kokoro TTS model where eliminating cold-start latency is the priority**—I would design the extension as follows:
+For your use case: an **85 MB Kokoro TTS model where eliminating cold-start latency is the priority**, I would design the extension as follows:
 
 - **Service worker:** use only for event handling, message routing, and ensuring the offscreen document exists. Never hold the ONNX session here.
 - **Offscreen document:** host the ONNX Runtime Web/Transformers.js engine, load the model once, keep the `InferenceSession` in a module-global variable, and serve all TTS requests from this context.
 - **Storage:** keep the model in the extension's **IndexedDB or Cache API** so the initial download happens once, but expect to reconstruct the in-memory session if Chrome ever tears down the offscreen document.
-- **Content scripts:** keep them lightweight—UI integration, page interaction, and audio playback—not model execution.
+- **Content scripts:** keep them lightweight (UI integration, page interaction, and audio playback) not model execution.
 - **Workers:** if inference blocks the offscreen document's main thread, spawn a dedicated Web Worker **from the offscreen document** rather than from a content script, preserving the extension-origin context and keeping the model isolated from page lifecycles.
 
 Among the available MV3 execution contexts today, **an offscreen document hosting ONNX Runtime is the closest equivalent to the persistent background page that MV2 extensions used for long-lived AI models**, while still fitting within Chrome's supported architecture.
@@ -658,13 +658,13 @@ The error encountered when trying to use WebGPU or WASM backends inside a Servic
 
 The reason is a hard constraint in the service worker spec: dynamic import() is banned in ServiceWorkerGlobalScope. ONNX Runtime Web uses dynamic imports to load its WASM binaries and execution backend modules. There is no workaround for this inside the service worker itself. The feature works by design constraint and not just a Chrome-specific bug.
 
-Even the keepalive hacks that people use to extend service worker lifetime do not fix this — you would still have a worker that cannot load the ONNX backend in the first place.
+Even the keepalive hacks that people use to extend service worker lifetime do not fix this: you would still have a worker that cannot load the ONNX backend in the first place.
 
 The Transformers.js team's own recommendation for MV3 is explicit: service workers can be suspended and restarted, so model runtime state should be treated as recoverable and re-initialized when needed. This acknowledgment from the library authors confirms the service worker is not a warm-model host.
 
 CONTENT SCRIPT DIRECTLY
 
-Running inference in the content script itself is technically possible from a JS environment standpoint — content scripts run in a real renderer process and have access to WebAssembly. But there are three layered problems that make it a dead end for your voiceover feature.
+Running inference in the content script itself is technically possible from a JS environment standpoint: content scripts run in a real renderer process and have access to WebAssembly. But there are three layered problems that make it a dead end for your voiceover feature.
 
 First, a content script is tied to the tab's lifecycle. If the user navigates to a new page, the content script is destroyed and any loaded model goes with it. For a voiceover feature triggered by button clicks on YouTube, you are targeting a single-page application, so navigation inside YouTube itself (going from one video to another without a full reload) may or may not destroy the content script depending on how the tab navigation is structured.
 
@@ -688,11 +688,11 @@ Content scripts don't have direct access to the service worker or the Cache API 
 
 There is a workaround described in old tooling (Rob W's worker_proxy patch, using an iframe to host the worker on the extension origin), but this adds significant complexity, depends on iframe availability on the host page, and gets destroyed if the page removes the iframe. It also ties the worker's lifetime to the tab's lifetime anyway, so you still lose the model on tab close or navigation.
 
-The lifetime problem makes this option worse than offscreen even if you solved the origin isolation: a Worker spawned from a content script lives exactly as long as that content script does — meaning as long as the tab is open and the content script is injected. If the user closes the tab and reopens YouTube, you reload the model. There is no way to share one Worker instance across multiple tabs.
+The lifetime problem makes this option worse than offscreen even if you solved the origin isolation: a Worker spawned from a content script lives exactly as long as that content script does, meaning as long as the tab is open and the content script is injected. If the user closes the tab and reopens YouTube, you reload the model. There is no way to share one Worker instance across multiple tabs.
 
 ---
 
-PART 2: THE OFFSCREEN DOCUMENT — THE CORRECT CONTEXT
+PART 2: THE OFFSCREEN DOCUMENT, THE CORRECT CONTEXT
 
 THE BASIC MECHANICS
 
@@ -702,7 +702,7 @@ This is the key architectural fact. The offscreen document is a real hidden HTML
 
 Unlike service workers that terminate quickly to save resources, offscreen documents can maintain persistent state and perform continuous operations without being visible to the user. Offscreen documents are ideal for persistent data processing, heavy computations requiring consistent access to memory, and audio/video processing requiring continuous operation.
 
-LIFETIME MECHANICS — WHAT ACTUALLY CONTROLS IT
+LIFETIME MECHANICS: WHAT ACTUALLY CONTROLS IT
 
 Reasons are set during document creation to determine the document's lifespan. The AUDIO_PLAYBACK reason sets the document to close after 30 seconds without audio playing. All other reasons don't set lifetime limits.
 
@@ -710,7 +710,7 @@ This is the critical decision you need to make at creation time. The reason you 
 
 If you declare AUDIO_PLAYBACK as the reason, Chrome will terminate the document after 30 idle seconds with no audio playing. This is exactly what you do not want, because it means the model gets dropped between voiceover button clicks that are more than 30 seconds apart.
 
-If you declare any other valid reason — CLIPBOARD, DOM_SCRAPING, WORKERS, LOCAL_STORAGE, or others — the document has no enforced idle timeout. It stays alive until Chrome needs to terminate it for resource reasons or the extension is unloaded.
+If you declare any other valid reason (CLIPBOARD, DOM_SCRAPING, WORKERS, LOCAL_STORAGE, or others) the document has no enforced idle timeout. It stays alive until Chrome needs to terminate it for resource reasons or the extension is unloaded.
 
 For all other reasons besides AUDIO_PLAYBACK, the lifetime is unbounded and the page can remain open forever. An offscreen document has been observed staying alive for over 12 hours in testing with only a message listener active.
 
@@ -750,7 +750,7 @@ Because the offscreen document runs at the extension's origin (chrome-extension:
 
 The Worker has access to the extension's Cache API and IndexedDB. When Transformers.js or kokoro-js downloads and caches the Kokoro model weights, the cache is stored under the extension origin. This cache persists across offscreen document restarts (the offscreen document can be torn down and recreated and the Worker can fetch the model from cache in seconds instead of downloading 85MB again).
 
-The Worker lifecycle is tied to the offscreen document's lifecycle — when the offscreen document is terminated, the Worker is terminated too. But since the offscreen document itself has an unbounded lifetime (given a non-AUDIO_PLAYBACK reason), this is fine.
+The Worker lifecycle is tied to the offscreen document's lifecycle: when the offscreen document is terminated, the Worker is terminated too. But since the offscreen document itself has an unbounded lifetime (given a non-AUDIO_PLAYBACK reason), this is fine.
 
 The manifest.json requires the WORKERS reason to be declared to spawn workers from an offscreen document (Chrome added this reason specifically for this use case).
 
@@ -770,7 +770,7 @@ Transformers.js automatically caches models in IndexedDB. You can check cache st
 
 The pattern from existing Kokoro extension implementations is to store model weights in the browser cache under the extension origin on first load, then on subsequent loads (after offscreen document recreation) fetch from cache rather than network. For an 85MB Q8 model, fetching from cache and deserializing into the ONNX session takes a few seconds, not the tens of seconds a network download would take.
 
-Service workers' storage (and by extension, extension origin storage) lasts indefinitely — there is no periodic deletion. Installed storage is only evicted by the Quota Manager when Chrome is using over one-third of the disk or when the system has less than the minimum of 1GB or 1% disk free. When eviction starts, origins are purged on an LRU basis.
+Service workers' storage (and by extension, extension origin storage) lasts indefinitely: there is no periodic deletion. Installed storage is only evicted by the Quota Manager when Chrome is using over one-third of the disk or when the system has less than the minimum of 1GB or 1% disk free. When eviction starts, origins are purged on an LRU basis.
 
 An 85MB extension cache is small enough that eviction is very unlikely under normal conditions.
 

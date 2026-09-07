@@ -2,7 +2,7 @@
 
 2.8k stars. The most complete single implementation: self-correcting memory, persistent research wikis, auto-research loop, hybrid retrieval, LLM council, and 37 hook scripts across 24 events. Published as both a Claude Code plugin and a cross-agent skill bundle (32+ agents via `skills add`).
 
-## Core mechanism — self-correcting memory
+## Core mechanism: self-correcting memory
 
 The correction-to-rule loop:
 
@@ -16,7 +16,7 @@ Categories: Navigation, Editing, Testing, Git, Quality, Context, Architecture, P
 
 The correction rate is tracked over time. After 50 sessions, corrections approach zero for learned patterns.
 
-## Knowledge plane — persistent research wikis
+## Knowledge plane: persistent research wikis
 
 Each wiki is a markdown folder with an SQLite FTS5 shadow index:
 
@@ -33,21 +33,21 @@ UserPromptSubmit auto-loads top-3 wiki hits when prompts mention indexed topics.
 
 37 hook scripts covering 24 events. Key hooks:
 
-- **PreToolUse on Edit/Write** — quality gate, read-before-write enforcement, secret scanning, tool-call budget.
-- **PostToolUse on Edit** — post-edit checks, test failure → learning suggestion.
-- **Stop** — session check (wrap-up reminders), auto-capture `[LEARN]` blocks.
-- **SessionStart** — load learnings, list wikis, previous session context.
-- **UserPromptSubmit** — auto-inject wiki hits, detect task drift.
-- **PreCompact/PostCompact** — save and re-inject critical context.
-- **ConfigChange** — detect mid-session config modification.
+- **PreToolUse on Edit/Write**: quality gate, read-before-write enforcement, secret scanning, tool-call budget.
+- **PostToolUse on Edit**: post-edit checks, test failure → learning suggestion.
+- **Stop**: session check (wrap-up reminders), auto-capture `[LEARN]` blocks.
+- **SessionStart**: load learnings, list wikis, previous session context.
+- **UserPromptSubmit**: auto-inject wiki hits, detect task drift.
+- **PreCompact/PostCompact**: save and re-inject critical context.
+- **ConfigChange**: detect mid-session config modification.
 
 ## Correction analytics
 
 `/insights` provides:
 
 - Correction heatmaps by category and project.
-- Hot learnings (most corrected, least learned) — patterns that keep recurring despite being captured.
-- Cold learnings (learned but never applied) — candidates for pruning.
+- Hot learnings (most corrected, least learned): patterns that keep recurring despite being captured.
+- Cold learnings (learned but never applied): candidates for pruning.
 - Adaptive quality gates: edit-count thresholds tighten when correction rate is high, relax when low.
 - Productivity metrics: session duration, edits per session, correction rate trend.
 
@@ -55,7 +55,7 @@ UserPromptSubmit auto-loads top-3 wiki hits when prompts mention indexed topics.
 
 ### The self-correction loop is the right starting point
 
-Corrections are the highest-signal knowledge: the user explicitly said what was wrong and what is right. Capturing corrections is cheaper and more reliable than extracting knowledge from transcripts. The `[LEARN]` tag auto-capture is clever — the agent can emit learnings as a natural part of its response, and the Stop hook persists them without a separate step.
+Corrections are the highest-signal knowledge: the user explicitly said what was wrong and what is right. Capturing corrections is cheaper and more reliable than extracting knowledge from transcripts. The `[LEARN]` tag auto-capture is clever, the agent can emit learnings as a natural part of its response, and the Stop hook persists them without a separate step.
 
 ### Correction analytics identify what to promote
 

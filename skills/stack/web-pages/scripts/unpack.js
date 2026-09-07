@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * page-capture — unpack (Slice 1)
+ * page-capture: unpack (Slice 1)
  * -------------------------------
  * Explodes a downloaded `capture.json` (produced by tools/capture.js) into
  * a bundle directory an agent can read.
@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-// Bundles are per-investigation artifacts — they belong to the project you're
+// Bundles are per-investigation artifacts: they belong to the project you're
 // debugging, NOT inside this (reusable) skill. Default to ./captures in the CWD;
 // override with -o. HERE is kept only for resolving skill-local assets.
 void HERE;
@@ -91,16 +91,16 @@ function renderReadme(cap, files) {
     `- **URL:** ${cap.url}`,
     `- **Captured:** ${cap.capturedAt}`,
     `- **Backend(s):** ${[cap.backend].filter(Boolean).join(", ")}`,
-    `- **User agent:** ${cap.userAgent || "—"}`,
+    `- **User agent:** ${cap.userAgent || "unknown"}`,
     "",
     "## What's here",
     "",
-    ...files.map((f) => `- \`${f.path}\` — ${f.desc}`),
+    ...files.map((f) => `- \`${f.path}\`: ${f.desc}`),
     "",
     "## At a glance",
     "",
     `- DOM nodes: ${m.domNodes ?? "?"} (open shadow roots: ${m.openShadowRoots ?? 0}, same-origin iframes: ${m.sameOriginFrames ?? 0}, cross-origin iframes: ${m.crossOriginFrames ?? 0})`,
-    `- Listener attachments: ${m.listenerAttachments ?? "?"} across ${listTypes.length} event types: ${listTypes.join(", ") || "—"}`,
+    `- Listener attachments: ${m.listenerAttachments ?? "?"} across ${listTypes.length} event types: ${listTypes.join(", ") || "none"}`,
     `- Stylesheets: ${m.stylesheets ?? "?"} · Scripts: ${m.scripts ?? "?"} · HTML bytes: ${m.htmlBytes ?? "?"}`,
     `- Detected: ${fw.join(", ") || "none"}`,
     "",
@@ -113,12 +113,12 @@ function renderReadme(cap, files) {
     "",
     "## How to query this bundle",
     "",
-    "These files are multi-MB. **Query them — don't read them whole into context.**",
+    "These files are multi-MB. **Query them: don't read them whole into context.**",
     "",
-    "- **`page.html`** — text/attribute lookups with `grep`/`rg` (it's real, newline'd HTML). For structural queries or text extraction, parse it in Node with `cheerio` or `linkedom` and use `querySelectorAll`/`.textContent`. Do NOT try to re-execute the page's own JS against this static file — it expects the live origin and will just error.",
-    "- **`shadow-and-frames.json`** — `jq` to list `.[].hostPath` / `.kind`, then treat each `.html` value like `page.html`.",
-    "- **`listeners.json`** — `jq` (e.g. `.byType.keydown` for keyboard handlers; `.byNode[\"<css-path>\"]` for one node). Grouped by identical handler, so counts collapse duplicates.",
-    "- **`runtime.json` / `manifest.json`** — `jq`.",
+    "- **`page.html`**: text/attribute lookups with `grep`/`rg` (it's real, newline'd HTML). For structural queries or text extraction, parse it in Node with `cheerio` or `linkedom` and use `querySelectorAll`/`.textContent`. Do NOT try to re-execute the page's own JS against this static file: it expects the live origin and will just error.",
+    "- **`shadow-and-frames.json`**: `jq` to list `.[].hostPath` / `.kind`, then treat each `.html` value like `page.html`.",
+    "- **`listeners.json`**: `jq` (e.g. `.byType.keydown` for keyboard handlers; `.byNode[\"<css-path>\"]` for one node). Grouped by identical handler, so counts collapse duplicates.",
+    "- **`runtime.json` / `manifest.json`**: `jq`.",
     "",
   ];
   if ((cap.warnings || []).length) {
@@ -157,8 +157,8 @@ async function main() {
   await mkdir(path.join(outDir, "meta"), { recursive: true });
 
   const files = [
-    { path: "page.html", layer: "html", desc: "full light-DOM HTML (outerHTML of <html>) — the lossless source for structure & content" },
-    { path: "shadow-and-frames.json", layer: "shadow", desc: "lossless HTML for open shadow roots & same-origin iframes — the content page.html physically can't hold" },
+    { path: "page.html", layer: "html", desc: "full light-DOM HTML (outerHTML of <html>), the lossless source for structure & content" },
+    { path: "shadow-and-frames.json", layer: "shadow", desc: "lossless HTML for open shadow roots & same-origin iframes, the content page.html physically can't hold" },
     { path: "listeners.json", layer: "listeners", desc: "event listeners grouped by type + identical handler source, with CSS-path locators" },
     { path: "runtime.json", layer: "runtime", desc: "framework/site detection and runtime notes" },
     { path: "meta/capture.raw.json", layer: "meta", desc: "raw producer output (provenance)" },

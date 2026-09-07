@@ -64,11 +64,11 @@ Four kinds, recorded as a `type` field in each file's frontmatter:
 **It has been running on this machine for months.** Delapse has 24 files. Three of them:
 
 ```
-- [Communication style](feedback_communication_style.md) — be very direct, no filler/cheerleading;
+- [Communication style](feedback_communication_style.md): be very direct, no filler/cheerleading;
   bring creative high-bar proposals; `type` not `kind`; voice-to-text → confirm garbled phrasing
-- [Approve before change](feedback_approve_before_change.md) — always explain planned changes and
+- [Approve before change](feedback_approve_before_change.md): always explain planned changes and
   wait for explicit approval before editing any code
-- [Git read-only rule](feedback_git_readonly.md) — user owns all git ops; agent may only use
+- [Git read-only rule](feedback_git_readonly.md): user owns all git ops; agent may only use
   git diff/log/status/show
 ```
 

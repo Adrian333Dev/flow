@@ -15,15 +15,15 @@ every one of them, and `git log -- lab/context/shit-explanations.md` is how to r
 **Context.** The user asked four things in one message: why `ptree` and `fmerge` had not moved into
 the `util` repo, what happened to the commands list holding `clone` and `bookmark`, a description for
 the `util` repo, and why its README claims to ship no commands. The reply answered all four. Two
-sections were rejected. Both decisions had been locked days earlier, so neither needed an argument —
+sections were rejected. Both decisions had been locked days earlier, so neither needed an argument:
 only a plan.
 
 **Sent, the first rejected section (opening and close, of 9 paragraphs):**
 
-> ## `ptree` and `fmerge` were agreed — I built the batch you approved, and they were not in it
+> ## `ptree` and `fmerge` were agreed: I built the batch you approved, and they were not in it
 
 > **The two are not the same problem, and that is worth knowing before you sequence them.** `ptree`
-> has no code dependency anywhere in Flow. Every reference to it is prose in `home/CLAUDE.md` — line
+> has no code dependency anywhere in Flow. Every reference to it is prose in `home/CLAUDE.md`: line
 > 11, where the `description:` rule says *`ptree` prints it beside the filename*, and the `##
 > Scripts` entry at line 85.
 
@@ -38,7 +38,7 @@ only a plan.
 > Nothing was lost. `design-util.md` → `### The namespaces at the start` carries all of it, and
 > `backlog.md:69` holds the `github` half:
 >
-> - **`github`, alias `gh`** — `clone`, taking one or more repos in any URL form; `bookmark`, which
+> - **`github`, alias `gh`**: `clone`, taking one or more repos in any URL form; `bookmark`, which
 >   fetches a repo's stars, language, pushed date and description and appends one line about it to a
 >   file
 >
@@ -84,7 +84,7 @@ only a plan.
    markdown line about a repo into a file, so a list of interesting repos builds up. That sentence
    appears nowhere; the bullet carries the alias, the sibling command and a parenthetical instead.
 
-**Rule that failed.** Two, both loaded. *Match depth to weight* — *a minor point gets a line* — did
+**Rule that failed.** Two, both loaded. *Match depth to weight* (*a minor point gets a line*) did
 not fire, because it names the symptom without saying what length costs. *A label, a pointer and a
 quote are not explanations* did not fire on a file path used as an answer.
 
@@ -107,7 +107,7 @@ encountered.
 **Sent, whole:**
 
 > A shell command is prose as often as it is a command. The first pass recorded the, a and and as
-> files read 46 times, out of heredoc bodies — a line reading `tail the log` parses as a `tail`. It
+> files read 46 times, out of heredoc bodies: a line reading `tail the log` parses as a `tail`. It
 > also recorded `2>/dev/null` as a file, and `/^##` 63 times from a sed pattern. Heredoc bodies are
 > stripped before parsing now, redirections are dropped, a path needs a slash or an extension, and
 > sed's own grammar decides which argument is the script.
@@ -160,7 +160,7 @@ and never showed what the data looks like.
 **Sent, the first rejected paragraph:**
 
 > The scorecard is a tally sheet that runs in the background. Every time the agent edits or
-> writes a file, a script checks the written content against a list of mechanical patterns —
+> writes a file, a script checks the written content against a list of mechanical patterns:
 > banned patterns, naming conventions, things a regex can catch. It counts three things per rule:
 > how many edits the rule applied to, how many followed it, how many violated it. At session end,
 > a second script prints those counts.
@@ -181,11 +181,11 @@ and never showed what the data looks like.
 
 **Faults.**
 
-1. **"Tally sheet" — a label used as a definition, and an unfamiliar one.** The user asked what
+1. **"Tally sheet": a label used as a definition, and an unfamiliar one.** The user asked what
    a scorecard is. The answer was a synonym the user does not know either. "Define from zero"
    failed on the very first word of the explanation.
-2. **The whole machine is never shown.** The explanation describes pieces — a script, a pattern
-   check, a count — without ever saying what connects them or how the whole thing moves from
+2. **The whole machine is never shown.** The explanation describes pieces: a script, a pattern
+   check, a count, without ever saying what connects them or how the whole thing moves from
    start to finish. "Open with the whole, then its parts" did not fire.
 3. **Never said what the scorecard file actually contains.** The user asked what data lives in
    it, and the reply said "counts" without showing what a count looks like. No example, no
@@ -195,7 +195,7 @@ and never showed what the data looks like.
    scorecard's patterns are hand-written JavaScript regex checks, separate from the prose rules
    the agent reads.
 5. **No visualization.** The enforcement bridge is a flow from rules through checking to
-   enforcement — structure that belongs in a diagram. The reply used prose for all of it.
+   enforcement: structure that belongs in a diagram. The reply used prose for all of it.
 
 **Rule that failed.** Four, all loaded. "Define from zero" (§5). "Open with the whole, then its
 parts" (§5). "Name the subject first" (§5). "UI is drawn, never described" (repo CLAUDE.md

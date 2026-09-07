@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# try.sh — a throwaway Claude Code config, so a real session can run against
+# try.sh: a throwaway Claude Code config, so a real session can run against
 # this repo while nothing is installed.
 #
 # A development script. It ships nowhere, and `flow install` never links it.
@@ -11,7 +11,7 @@
 # read nor written.
 #
 # Skills and agents are symlinked rather than copied, so editing one in the
-# repo is live inside the running session — write, save, invoke. That is the
+# repo is live inside the running session: write, save, invoke. That is the
 # point of it: a change is usually five skills and a global rule, and this is
 # the only way to test the whole state at once.
 #
@@ -30,7 +30,7 @@ for arg in "$@"; do
   case "$arg" in
     --fresh) fresh=1 ;;
     --print) start=0 ;;
-    *) echo "try.sh: unknown argument \"$arg\" — takes --fresh and --print" >&2; exit 2 ;;
+    *) echo "try.sh: unknown argument \"$arg\", takes --fresh and --print" >&2; exit 2 ;;
   esac
 done
 
@@ -70,7 +70,7 @@ creds="$HOME/.claude/.credentials.json"
 if [ -e "$creds" ]; then
   ln -sfn "$creds" "$home/.credentials.json"
 else
-  echo "warning: no credentials at $creds — the scratch session will ask you to log in"
+  echo "warning: no credentials at $creds, the scratch session will ask you to log in"
 fi
 
 # The credentials alone leave the session at the first-run screens: a theme, the
@@ -82,7 +82,7 @@ fi
 #
 # Named keys, never the whole file. The real ~/.claude.json also carries every
 # project opened on this machine, every MCP server ever connected and every
-# skill's usage count — none of which a session pretending to be a fresh install
+# skill's usage count: none of which a session pretending to be a fresh install
 # should see.
 node - "$HOME/.claude.json" "$HOME/.claude/settings.json" "$home" <<'NODE'
 const fs = require('fs');
@@ -127,7 +127,7 @@ NODE
 # ---- the scratch project ----------------------------------------------------
 
 # Built once and kept. flow finds the project root through git, and tmp/ sits
-# inside the Flow repo — without a repo of its own here, every ticket would
+# inside the Flow repo, without a repo of its own here, every ticket would
 # land in Flow itself.
 if [ ! -e "$proj/.git" ]; then
   cp -r "$root/project-template/." "$proj/"
@@ -151,8 +151,8 @@ fi
 cat <<EOF
 
 built $try
-  home/     what Claude Code reads — skills and agents linked live
-  flow/     what only Flow reads — scripts and references
+  home/     what Claude Code reads: skills and agents linked live
+  flow/     what only Flow reads: scripts and references
   project/  a git repo carrying the project template, kept between runs
 
 start the session from the project:

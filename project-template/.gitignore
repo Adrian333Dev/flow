@@ -7,7 +7,7 @@ node_modules
 .claude/skills/*
 !.claude/skills/*/
 
-# .flow/ is Flow's working store — tickets, groundwork, the inbox, the handoff.
+# .flow/ is Flow's working store: tickets, groundwork, the inbox, the handoff.
 # It is committed. A hidden folder invites a blanket ignore, and one stray line
 # here loses every ticket the project has.
 #

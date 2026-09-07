@@ -11,7 +11,7 @@
 
 const path = require('path');
 
-/** The clone root — 3 folders up from `scripts/flow/lib/`. */
+/** The clone root: 3 folders up from `scripts/flow/lib/`. */
 const cloneRoot = () => path.resolve(__dirname, '..', '..', '..');
 
 /** Every skill really lives under here, filed into a group folder. */

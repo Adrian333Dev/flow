@@ -1,14 +1,14 @@
 /*
- * page-capture — console snippet (Slice 1)
+ * page-capture: console snippet (Slice 1)
  * ---------------------------------------
  * PASTE THIS INTO THE DEVTOOLS CONSOLE on the page you want to capture.
  * (It must run in the *console*: it uses getEventListeners(), which only
- *  exists in the DevTools command-line API — a normal injected page script
+ *  exists in the DevTools command-line API: a normal injected page script
  *  cannot call it.)
  *
  * It gathers: metadata, full HTML, grouped event listeners, lossless HTML for
  * OPEN shadow roots + same-origin iframes (the content page.html physically
- * can't hold), and light framework detection — then downloads one `capture.json`.
+ * can't hold), and light framework detection, then downloads one `capture.json`.
  *
  * Next: run `node .claude/skills/web-pages/scripts/unpack.js ~/Downloads/capture.json`
  * to explode it into a bundle directory (writes ./captures/<slug>-<ts>/).
@@ -21,13 +21,13 @@
   const blindSpots = [
     "closed shadow roots are not traversable via the console backend",
     "listeners on non-DOM EventTargets (XHR, WebSocket, AudioContext, custom) are not found by the tree walk",
-    "artifacts are sampled across a few ms of a live, mutating page — a handful of listeners.json node paths may not resolve in page.html (see design doc: 'inherent skew')",
+    "artifacts are sampled across a few ms of a live, mutating page: a handful of listeners.json node paths may not resolve in page.html (see design doc: 'inherent skew')",
   ];
 
   const hasGEL = typeof getEventListeners === "function";
   if (!hasGEL) {
     warnings.push(
-      "getEventListeners() unavailable — snippet was not run in the DevTools console; listeners were skipped.",
+      "getEventListeners() unavailable: snippet was not run in the DevTools console; listeners were skipped.",
     );
   }
 
@@ -172,7 +172,7 @@
           kind: "iframe",
           origin: "cross-origin",
           src: el.getAttribute("src") || null,
-          note: "cross-origin iframe — internals not accessible (browser security boundary)",
+          note: "cross-origin iframe, internals not accessible (browser security boundary)",
         });
       }
     }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * flow — tickets for a Flow project.
+ * flow: tickets for a Flow project.
  *
  * The entry point only: it names the commands and hands argv to the argument
  * layer. Every rule the surface follows, and the reasoning behind each, lives
@@ -9,7 +9,7 @@
  *
  * Frontmatter is owned by these commands; everything else in a ticket is
  * written by hand. The project root is found from the current directory, so
- * only `get` takes a path — loose work has no ticket id to name.
+ * only `get` takes a path: loose work has no ticket id to name.
  */
 
 const { FlowError } = require('./lib/error');
@@ -27,18 +27,18 @@ const scorecard = require('./commands/scorecard');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
-// whatever you were reading — for something that is not a failure at all: the
+// whatever you were reading, for something that is not a failure at all: the
 // reader stopped, which is what `head` is for.
 process.stdout.on('error', (e) => {
   if (e.code === 'EPIPE') process.exit(0);
   throw e;
 });
 
-const TITLE = 'flow — tickets, computed from .flow/tickets/';
+const TITLE = 'flow: tickets, computed from .flow/tickets/';
 
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
- * name of their own — `flow ls`, `flow build t047`. `cases` and `work` each
+ * name of their own: `flow ls`, `flow build t047`. `cases` and `work` each
  * keep a group, because each is a different stored thing, typed a tenth as
  * often.
  *
@@ -49,9 +49,9 @@ const commands = { ...board, ...tickets.actions, ...install, ...scorecard };
 const SECTIONS = [
   { key: 'board', title: 'the board' },
   { key: 'tickets', title: 'tickets', lead: [['flow <id>', 'show one in full']] },
-  { key: 'status', title: 'status — the move is the command' },
-  { key: 'setup', title: 'setup — this machine' },
-  { key: 'rules', title: 'rules — whether the checks are catching anything' },
+  { key: 'status', title: 'status, the move is the command' },
+  { key: 'setup', title: 'setup, this machine' },
+  { key: 'rules', title: 'rules, whether the checks are catching anything' },
 ];
 
 const NOTES = `shape   flow <command> [id] [--flags]. A word naming no command is read as a
@@ -59,7 +59,7 @@ const NOTES = `shape   flow <command> [id] [--flags]. A word naming no command i
 ids     t047-parser-split. The number is the identity and the label is
         decoration, so t047, 47, parser and the whole thing all resolve. A
         ticket is never renamed, so a label that goes stale breaks nothing
-layout  .flow/tickets/<id>-<label>/ — ticket.md and groundwork/ from birth,
+layout  .flow/tickets/<id>-<label>/: ticket.md and groundwork/ from birth,
         plan.md and reports/ written by the work. One report per thing
         answered, named after what it answers, whether a hunt found it or a
         prototype did. Done and dropped tickets move to .flow/tickets/archive/
@@ -73,7 +73,7 @@ pickup  flow <id> prints the command a todo or parked ticket is waiting for
         reading. The status verbs are the only way to move a ticket
 resume  flow get --files reads the ticket, then every file named in its
         fenced flow-open block. handoff writes that block, and decides what
-        goes in it — an empty one is a real answer for a ticket that carries
+        goes in it: an empty one is a real answer for a ticket that carries
         its own context. Paths resolve beside the ticket first, then from the
         repo root, and a line range passes through: src/parser.js:40-120.
         Nothing is truncated, so a huge block costs what it costs
@@ -81,15 +81,15 @@ park    parking stores the status it left, and reviving is the verb for that
         status. A feature parked at building comes back at building
 parent  a ticket split out of another carries parent: t047. Disk stays flat;
         the hierarchy is frontmatter. A parent waits while its children are
-        open — it leaves flow next, and picking it up refuses — then returns
+        open (it leaves flow next, and picking it up refuses) then returns
         for whatever work no child holds
 pri     high or low on disk and nothing else: normal is the absent field, so an
         ordinary ticket has no priority line to go stale. A ticket with none
         inherits the nearest ancestor's, and an explicit value always beats an
-        inherited one — so marking one parent high lifts a whole feature, and a
+        inherited one, so marking one parent high lifts a whole feature, and a
         low chore inside it stays low
 root    the enclosing git repo; override with FLOW_PROJECT=/path
-cases   ~/.flow/study-cases/<issue>/<date>-<slug>.md — global, filed by issue
+cases   ~/.flow/study-cases/<issue>/<date>-<slug>.md: global, filed by issue
         and never by project, because the payoff is seeing one failure three
         times. Override with FLOW_HOME
 work    uncommitted work, stored as a commit under refs/unfinished/<machine>/
@@ -118,7 +118,7 @@ audit   what Claude Code did, read back afterwards. It reads the transcripts
         Claude Code already writes at ~/.claude/projects/ and derives an index
         at ~/.flow/audit/audit.db; nothing is recorded and nothing is
         intercepted, so a session that ran before any of this existed reads the
-        same as one that ran today. flow audit index first, every time — it
+        same as one that ran today. flow audit index first, every time: it
         walks only what was appended since the last run. The index is derived:
         deleting it loses nothing, and --rebuild is how a schema change lands.
         Queries narrow to a turn range, and flow audit read opens that range of

@@ -1,6 +1,6 @@
 ---
 name: chrome-extension
-description: Base architecture guide for Chrome MV3 extensions — three-world model (content script, service worker, main world), folder structure, cross-world communication via named clients, file naming, and entry point patterns. Read when building or extending any Chrome MV3 extension.
+description: Base architecture guide for Chrome MV3 extensions, three-world model (content script, service worker, main world), folder structure, cross-world communication via named clients, file naming, and entry point patterns. Read when building or extending any Chrome MV3 extension.
 ---
 
 > For SPA hosts, also read `chrome-extension-spa.md`. For YouTube specifically, also read `chrome-extension-youtube.md`.
@@ -9,21 +9,21 @@ description: Base architecture guide for Chrome MV3 extensions — three-world m
 
 ## The Core Mental Model: Three Worlds
 
-Chrome MV3 extensions run in three isolated JavaScript contexts. Code in one context cannot call code in another directly — it must pass messages.
+Chrome MV3 extensions run in three isolated JavaScript contexts. Code in one context cannot call code in another directly: it must pass messages.
 
 | World | Analogy | What it can do |
 |---|---|---|
 | **Content script** | Frontend client | DOM access, `chrome.storage`, `browser.runtime.sendMessage`, inject UI, `fetch` declared external hosts |
-| **Service worker** | Backend server | `chrome.scripting.executeScript`, `chrome.tabs`, `chrome.commands`, all privileged Chrome APIs — short-lived (terminated and restarted by Chrome) |
-| **Main world** | External data source | The host page's JS globals (`window`, page-owned variables) — read it, don't own it |
+| **Service worker** | Backend server | `chrome.scripting.executeScript`, `chrome.tabs`, `chrome.commands`, all privileged Chrome APIs: short-lived (terminated and restarted by Chrome) |
+| **Main world** | External data source | The host page's JS globals (`window`, page-owned variables): read it, don't own it |
 
 The content script is a **client**. It renders UI, reacts to user interactions, and asks the service worker when it needs a privileged API.
 
-The service worker is a **lean dispatcher**. It owns privileged APIs. Keep it thin — unnecessary routing through it adds latency and a failure surface.
+The service worker is a **lean dispatcher**. It owns privileged APIs. Keep it thin: unnecessary routing through it adds latency and a failure surface.
 
 The main world is an **external data source**. Extract state from it; make zero product decisions inside it.
 
-There is usually also a real backend (NestJS, Express, etc.) which the content script calls directly over HTTP — not through the service worker, since content scripts can `fetch` declared external hosts.
+There is usually also a real backend (NestJS, Express, etc.) which the content script calls directly over HTTP, not through the service worker, since content scripts can `fetch` declared external hosts.
 
 ---
 
@@ -65,9 +65,9 @@ apps/extension/
 
 ### Why world-named folders
 
-- `background/` — MV2 artifact. MV3 uses a service worker.
-- `sources/`, `lib/` — opaque; require domain knowledge to interpret.
-- `service-worker/`, `content-script/`, `main-world/` — self-documenting to any reader.
+- `background/`: MV2 artifact. MV3 uses a service worker.
+- `sources/`, `lib/`: opaque; require domain knowledge to interpret.
+- `service-worker/`, `content-script/`, `main-world/`: self-documenting to any reader.
 
 ### Platform adapter boundary
 
@@ -96,20 +96,20 @@ A **named client object at each world boundary**, typed and named to signal exac
 
 ### Why named clients
 
-**Raw `sendMessage` in business logic — invisible boundary:**
+**Raw `sendMessage` in business logic: invisible boundary:**
 ```typescript
-// boundary is invisible — reader has no idea this leaves the content script
+// boundary is invisible: reader has no idea this leaves the content script
 const resp = await browser.runtime.sendMessage({ type: 'read-page-state' });
 ```
 
-**RPC proxy — boundary completely hidden:**
+**RPC proxy: boundary completely hidden:**
 ```typescript
-// looks exactly like a local call; tried and reverted — makes the boundary invisible
+// looks exactly like a local call; tried and reverted: makes the boundary invisible
 const state = createRpcClient<PageStateService>('PageStateService');
 await state.read();
 ```
 
-**Named client — boundary is obvious:**
+**Named client: boundary is obvious:**
 ```typescript
 // Sw prefix signals: this call leaves the content script
 const pageState = await SwClient.readPageState();
@@ -136,9 +136,9 @@ export class SwClient {
 
 Rules:
 - One class, all CS→SW methods. New SW operation = new method here.
-- Static methods — clients are stateless callers.
+- Static methods: clients are stateless callers.
 - Message type string lives only here. Never repeat it elsewhere.
-- Return `null` for "SW unavailable" — never throw. The SW can be killed at any moment.
+- Return `null` for "SW unavailable", never throw. The SW can be killed at any moment.
 
 ### MwClient
 
@@ -165,16 +165,16 @@ export class MwClient {
 ```
 
 Rules:
-- `tabId` comes from `sender.tab?.id` in the message router — MwClient never looks it up itself.
+- `tabId` comes from `sender.tab?.id` in the message router: MwClient never looks it up itself.
 - Retry logic belongs here, not in the router.
-- Functions passed as `func:` are serialized by Chrome — they cannot close over imports. All logic must be self-contained.
+- Functions passed as `func:` are serialized by Chrome: they cannot close over imports. All logic must be self-contained.
 
 ### ApiClient
 
-Content scripts can call declared external hosts directly. Do not route API calls through the service worker — adds a round trip and a failure surface.
+Content scripts can call declared external hosts directly. Do not route API calls through the service worker: adds a round trip and a failure surface.
 
 ```typescript
-// CS calls ApiClient directly — no SW hop needed
+// CS calls ApiClient directly: no SW hop needed
 await ApiClient.registerSource(body);
 ```
 
@@ -182,20 +182,20 @@ await ApiClient.registerSource(body);
 
 ## The Main World Bridge
 
-`src/main-world/[platform].bridge.ts` — functions injected into the host page's JS context.
+`src/main-world/[platform].bridge.ts`: functions injected into the host page's JS context.
 
 **Hard constraints:**
 
-1. **Self-contained.** Cannot import anything at runtime. Chrome serializes the function body — `import` statements are not included. Use `import type` only.
+1. **Self-contained.** Cannot import anything at runtime. Chrome serializes the function body: `import` statements are not included. Use `import type` only.
 2. **Read-only.** Extract page-owned state only. No UI, no LLM calls, no side effects, no product decisions.
 3. **No routing logic.** Returns data; the caller decides what to do with it.
 
 ```typescript
-// IMPORTANT: injected into main world via executeScript — cannot close over imports.
+// IMPORTANT: injected into main world via executeScript: cannot close over imports.
 // All logic must be self-contained. Read-only; no side effects.
 export function readHostPageState(): HostPageState | null {
   // reads globals from the host page's JS context
-  // declare globals with `declare const` — do not import them
+  // declare globals with `declare const`: do not import them
 }
 ```
 
@@ -203,7 +203,7 @@ export function readHostPageState(): HostPageState | null {
 
 ## The Message Router
 
-`src/service-worker/message.router.ts` — maps incoming `browser.runtime.sendMessage` calls to handlers.
+`src/service-worker/message.router.ts`: maps incoming `browser.runtime.sendMessage` calls to handlers.
 
 ```typescript
 // routes CS→SW messages to typed handlers
@@ -227,7 +227,7 @@ export function routeMessage(msg: Msg, sender: Sender, sendResponse: Respond): b
 Rules:
 - Sync handlers: fire-and-forget, return void.
 - Async handlers: call `sendResponse` when done; `routeMessage` returns `true` to keep the channel open.
-- Each handler is a named function — greppable, stacktrace-legible.
+- Each handler is a named function: greppable, stacktrace-legible.
 - Router dispatches only. No business logic here.
 
 ---
@@ -252,7 +252,7 @@ No business logic. Wires listeners and delegates immediately.
 
 ### `[host].content.tsx`
 
-`main(ctx)` should be ~30 lines — a table of contents of named functions:
+`main(ctx)` should be ~30 lines: a table of contents of named functions:
 
 ```typescript
 async main(ctx) {
@@ -271,7 +271,7 @@ async main(ctx) {
 }
 ```
 
-**Teardown list pattern** — every listener registered during `activate()` pushes its cleanup:
+**Teardown list pattern**: every listener registered during `activate()` pushes its cleanup:
 
 ```typescript
 interface CsState {
@@ -285,7 +285,7 @@ function cleanup(state: CsState, fn: () => void) {
 
 `deactivate()` runs all of them. Prevents leaks on navigation without tracking each listener individually.
 
-**`activate()` and `deactivate()` stay as closures** inside `main(ctx)` — they close over `ctx` (required by WXT's `createShadowRootUi`). Everything else is extracted to module-level named functions.
+**`activate()` and `deactivate()` stay as closures** inside `main(ctx)`: they close over `ctx` (required by WXT's `createShadowRootUi`). Everything else is extracted to module-level named functions.
 
 ---
 
@@ -315,9 +315,9 @@ Files whose name already describes what they are without a role suffix stay hyph
 ## Classes vs Plain Objects
 
 Export a class when the module is imported by other files:
-- Boundary clients (`SwClient`, `MwClient`, `ApiClient`) — static methods
-- Domain objects with state — instance methods
-- Adapters, observers — instance methods
+- Boundary clients (`SwClient`, `MwClient`, `ApiClient`): static methods
+- Domain objects with state: instance methods
+- Adapters, observers: instance methods
 
 Plain `const` objects and loose exports are fine for pure utilities in `shared/utils.ts`.
 
@@ -328,9 +328,9 @@ Plain `const` objects and loose exports are fine for pure utilities in `shared/u
 All injected UI lives inside a Shadow Root via WXT's `createShadowRootUi` with `cssInjectionMode: 'ui'`.
 
 Rules:
-- CSS tokens and variables defined on `:host` or a root wrapper inside the shadow tree — never on `:root`.
-- No Radix-portal-heavy components (Dialog, Popover, Select, Dropdown) inside injected UI — portals render outside the shadow root and break style isolation.
-- Set `z-index` defensively — the host page owns the stacking context.
+- CSS tokens and variables defined on `:host` or a root wrapper inside the shadow tree, never on `:root`.
+- No Radix-portal-heavy components (Dialog, Popover, Select, Dropdown) inside injected UI: portals render outside the shadow root and break style isolation.
+- Set `z-index` defensively: the host page owns the stacking context.
 
 ---
 
@@ -338,9 +338,9 @@ Rules:
 
 The SW is terminated by Chrome when idle and restarted on the next event.
 
-- Never store state in SW module-level variables — lost between events.
+- Never store state in SW module-level variables: lost between events.
 - Persist everything in `chrome.storage` or the backend.
-- The SW's `onMessage` listener runs from a cold start on every message — must be idempotent.
+- The SW's `onMessage` listener runs from a cold start on every message: must be idempotent.
 - Test termination deliberately: DevTools → Application → Service Workers → Stop, then trigger a hotkey. The extension must still work.
 
 **Belongs in SW:** `chrome.scripting.executeScript`, `chrome.tabs.*`, `chrome.commands.onCommand`.
@@ -386,21 +386,21 @@ At every step the boundary is explicit:
 2. Add handler function in `service-worker/message.router.ts`
 3. Register in `SYNC_HANDLERS` or `ASYNC_HANDLERS`
 4. If main world access needed: add method to `MwClient` + function to `main-world/[platform].bridge.ts`
-5. Add inline comment at every `SwClient` call site — it looks local but isn't
+5. Add inline comment at every `SwClient` call site: it looks local but isn't
 
 ## Checklist: Adding a New Platform
 
 1. Create `entrypoints/[platform].content.tsx` with appropriate `matches`
 2. Create `src/content-script/[platform]/` with platform adapter, navigation observer, ingestor
 3. Add bridge functions to `src/main-world/[platform].bridge.ts`
-4. `SwClient`, `MwClient`, `shared/`, `ui/` are untouched — they consume generic types
+4. `SwClient`, `MwClient`, `shared/`, `ui/` are untouched: they consume generic types
 
 ---
 
 ## What to Avoid
 
-- **RPC proxy** — makes the boundary invisible
-- **API calls routed through SW** — content scripts can `fetch` declared hosts directly
-- **State in SW module scope** — terminated and restarted constantly
-- **Single-file folders** — adds a navigation hop with no benefit
-- **`background/`, `lib/`, `sources/` folder names** — opaque or MV2 artifacts
+- **RPC proxy**: makes the boundary invisible
+- **API calls routed through SW**: content scripts can `fetch` declared hosts directly
+- **State in SW module scope**: terminated and restarted constantly
+- **Single-file folders**: adds a navigation hop with no benefit
+- **`background/`, `lib/`, `sources/` folder names**: opaque or MV2 artifacts

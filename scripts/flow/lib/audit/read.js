@@ -4,7 +4,7 @@
  *
  * This is the expensive tool of the three, and it is bounded on purpose.
  * The largest session on this machine is roughly 15 million tokens, and one
- * segment of it averages a megabyte — still past any context window. So
+ * segment of it averages a megabyte: still past any context window. So
  * nothing here takes a session: it takes a turn range, and the index supplies
  * the line numbers that make reading that range cost what the range costs
  * rather than what the file costs.

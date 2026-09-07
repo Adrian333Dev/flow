@@ -16,15 +16,15 @@ A ticket is a commitment to build, so one cut from a `later` behavior fills the 
 
 ## Cutting the work
 
-One ticket per unit of work — something a session can pick up, plan and build without waiting on a decision nobody has made.
+One ticket per unit of work: something a session can pick up, plan and build without waiting on a decision nobody has made.
 
 - A behavior needing an unmade decision is still one ticket. The decision gets made at pickup, in that ticket's own `groundwork/`.
-- A behavior too big for one pickup gets a parent ticket plus children carrying `parent:`. The parent keeps only what no child holds — the wiring, the test that covers them together — and `flow` withholds it until they close.
+- A behavior too big for one pickup gets a parent ticket plus children carrying `parent:`. The parent keeps only what no child holds (the wiring, the test that covers them together) and `flow` withholds it until they close.
 - **Record order that matters as `deps`.** Sequence in the spec file carries none.
 
 ## Writing each one
 
-Create and fill in one command — never create, then edit:
+Create and fill in one command, never create, then edit:
 
 ```bash
 flow new "Title" --type feature --deps t045 --body - <<'EOF'
@@ -32,7 +32,7 @@ What changes and why. One paragraph, from the spec section this came from.
 
 ## References
 
-- `docs/context/<subject>.md` — what it settles, in a few words
+- `docs/context/<subject>.md`: what it settles, in a few words
 
 ## Done when
 
@@ -43,10 +43,10 @@ EOF
 Each ticket carries:
 
 - **What the spec says**, in the ticket's own words. Whoever picks it up will not re-read the spec.
-- **A `## References` section** — whatever the spec section attached, plus the conventions this work has to respect: a research report, a file under `docs/context/`, a skill this work should reach for. One line each, the path then what it settles. A reference left only in the spec is a reference nobody follows.
+- **A `## References` section**: whatever the spec section attached, plus the conventions this work has to respect: a research report, a file under `docs/context/`, a skill this work should reach for. One line each, the path then what it settles. A reference left only in the spec is a reference nobody follows.
 - **A `## Done when`** naming something observable.
 
-Never copy a whole spec section in. One live copy of anything — the ticket points at `docs/spec/product.md` for the full statement.
+Never copy a whole spec section in. One live copy of anything: the ticket points at `docs/spec/product.md` for the full statement.
 
 ## After
 

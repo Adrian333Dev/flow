@@ -1,4 +1,4 @@
-# agent-skills — skill catalog
+# agent-skills: skill catalog
 
 All 24 skills. Columns: lines / words / shape / what it makes the agent do / Flow equivalent.
 
@@ -49,7 +49,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 ---
 
-### idea-refine (178 lines / 1250 words) — has sub-files
+### idea-refine (178 lines / 1250 words): has sub-files
 
 **Sub-files**: `examples.md`, `frameworks.md`, `refinement-criteria.md`, `scripts/` (initialize script). The main SKILL.md loads these by reference during specific phases.
 
@@ -57,7 +57,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **What it makes the agent do**: Three-phase ideation process. Phase 1: restate as "How Might We," ask 3–5 sharpening questions, then generate 5–8 variations using named lenses (inversion, constraint removal, 10x version, etc.). Phase 2: cluster into 2–3 directions, stress-test each against user value / feasibility / differentiation, name hidden assumptions for each. Phase 3: produce a markdown one-pager with Recommended Direction, Key Assumptions to Validate, MVP Scope, and a "Not Doing" list. The agent is explicitly told to push back on weak ideas.
 
-**Flow equivalent**: brainstorm (partial). Flow's brainstorm skill also explores a design space and produces a decision tree. But idea-refine is narrower — it is about divergent/convergent thinking on a concept, not about resolving open decisions for a work item. Flow's brainstorm applies at any level (product, feature, ticket); idea-refine is specifically pre-spec ideation.
+**Flow equivalent**: brainstorm (partial). Flow's brainstorm skill also explores a design space and produces a decision tree. But idea-refine is narrower, it is about divergent/convergent thinking on a concept, not about resolving open decisions for a work item. Flow's brainstorm applies at any level (product, feature, ticket); idea-refine is specifically pre-spec ideation.
 
 ---
 
@@ -65,7 +65,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · The Gated Workflow (4 phases with gate diagram) · Keeping the Spec Alive · Common Rationalizations · Red Flags · Verification
 
-**What it makes the agent do**: Four-phase gated workflow — Specify, Plan, Tasks, Implement — where each phase requires human review before advancing. In Specify: surface assumptions explicitly ("ASSUMPTIONS I'M MAKING: ... correct me now"), write a spec covering Objective / Commands / Project Structure / Code Style / Testing Strategy / Boundaries. In Plan: generate a technical plan, save to `tasks/plan.md`. In Tasks: break into items with acceptance criteria, verification step, and file list, save to `tasks/todo.md`. In Implement: follow incremental-implementation and test-driven-development skills.
+**What it makes the agent do**: Four-phase gated workflow (Specify, Plan, Tasks, Implement) where each phase requires human review before advancing. In Specify: surface assumptions explicitly ("ASSUMPTIONS I'M MAKING: ... correct me now"), write a spec covering Objective / Commands / Project Structure / Code Style / Testing Strategy / Boundaries. In Plan: generate a technical plan, save to `tasks/plan.md`. In Tasks: break into items with acceptance criteria, verification step, and file list, save to `tasks/todo.md`. In Implement: follow incremental-implementation and test-driven-development skills.
 
 **Flow equivalent**: Partial match to execute (which does ticket pickup and planning) plus write-spec.md (which writes docs/spec/). But Flow's planning happens at ticket pickup, not up front, and is written into the ticket itself rather than `tasks/`. The four-gate model is more explicit than Flow's approach.
 
@@ -85,7 +85,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · The Increment Cycle (diagram) · Slicing Strategies (3 types) · Implementation Rules (5 numbered rules) · Working with Agents · Increment Checklist · Common Rationalizations · Red Flags · Verification
 
-**What it makes the agent do**: Build in thin vertical slices — implement, test, verify, commit, then move to the next slice. Hard rules: touch only task scope (no drive-by cleanup), keep the codebase compilable between increments, use feature flags for incomplete work, make each increment independently revertable. After each increment: run the repo's specific test command (never assume `npm test`), run the build, run type checking, run linting. After a clean run, do not repeat the same command — re-running without code changes adds nothing.
+**What it makes the agent do**: Build in thin vertical slices, implement, test, verify, commit, then move to the next slice. Hard rules: touch only task scope (no drive-by cleanup), keep the codebase compilable between increments, use feature flags for incomplete work, make each increment independently revertable. After each increment: run the repo's specific test command (never assume `npm test`), run the build, run type checking, run linting. After a clean run, do not repeat the same command, re-running without code changes adds nothing.
 
 **Flow equivalent**: Partial match to execute. Flow's execute also prescribes building step by step, but does not lay out the specific rules about scope discipline (Rule 0.5), the feature-flag rule (Rule 3), or the "don't re-run the same command" check. Flow's execute is more focused on ticket state transitions.
 
@@ -95,7 +95,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · Discover the Stack First · The TDD Cycle (RED/GREEN/REFACTOR with code examples) · The Prove-It Pattern (bug fixes) · The Test Pyramid · Writing Good Tests (5 subsections) · Test Anti-Patterns · Browser Testing with DevTools · When to Use Subagents · See Also · Common Rationalizations · Red Flags · Verification
 
-**What it makes the agent do**: Before writing implementation, discover the repo's actual test stack (package.json, go.mod, pyproject.toml, etc.) and use its specific test command. Write the failing test first — if it passes immediately, it proves nothing. For bug fixes, reproduce with a test before attempting the fix. Test state not interactions; use DAMP (Descriptive And Meaningful Phrases) over DRY; prefer real implementations over mocks. After a passing run, do not re-run the same command without code changes.
+**What it makes the agent do**: Before writing implementation, discover the repo's actual test stack (package.json, go.mod, pyproject.toml, etc.) and use its specific test command. Write the failing test first, if it passes immediately, it proves nothing. For bug fixes, reproduce with a test before attempting the fix. Test state not interactions; use DAMP (Descriptive And Meaningful Phrases) over DRY; prefer real implementations over mocks. After a passing run, do not re-run the same command without code changes.
 
 **Flow equivalent**: None. Flow has no testing skill. This is one of the most significant gaps. The systematic-debugging hard rule in Flow's CLAUDE.md ("No cause without evidence. Hypothesis: X. To verify: Y.") is philosophically adjacent but covers only debugging, not test authorship.
 
@@ -107,7 +107,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **What it makes the agent do**: Structure what the agent sees and when. Level 1 (always-on): rules files (CLAUDE.md etc.) with tech stack, commands, conventions, boundaries. Level 2 (per-feature): only the relevant spec section, not the whole spec. Level 3 (per-task): read the files to be modified plus one example of the pattern. Level 4 (per-iteration): specific error output, not full 500-line test logs. Level 5 (conversation): start fresh sessions when switching major tasks. When encountering conflicts between spec and existing code, surface the conflict explicitly with options; never silently pick one.
 
-**Flow equivalent**: None as a skill, but Flow's home/CLAUDE.md itself is context engineering — it defines what loads, sets the scripts to avoid excessive reads, and instructs the agent to read the least that answers the question. The refactor-agenda item 5 (cutting home/CLAUDE.md down) is context engineering in practice.
+**Flow equivalent**: None as a skill, but Flow's home/CLAUDE.md itself is context engineering, it defines what loads, sets the scripts to avoid excessive reads, and instructs the agent to read the least that answers the question. The refactor-agenda item 5 (cutting home/CLAUDE.md down) is context engineering in practice.
 
 ---
 
@@ -117,7 +117,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **What it makes the agent do**: Before writing any framework-specific code, read the dependency file to identify exact versions, fetch the specific official documentation page for the pattern being implemented (not the homepage, not blog posts, not Stack Overflow), cite the source with a full URL in code comments and conversation, and flag anything that cannot be verified as "UNVERIFIED." When docs conflict with existing code, surface the conflict rather than picking one silently.
 
-**Flow equivalent**: research (partial). Flow's research skill also fetches current docs before working from stale knowledge. But SDD is narrower — it is specifically about framework-specific implementation decisions in the code-writing moment. Flow's research is broader, covering any knowledge gap before a plan or spec is written.
+**Flow equivalent**: research (partial). Flow's research skill also fetches current docs before working from stale knowledge. But SDD is narrower, it is specifically about framework-specific implementation decisions in the code-writing moment. Flow's research is broader, covering any knowledge gap before a plan or spec is written.
 
 ---
 
@@ -125,7 +125,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · Loading Constraints · The Process (5 steps) · Common Rationalizations · Red Flags · Interaction with Other Skills · Verification
 
-**What it makes the agent do**: For any non-trivial decision (defined by five criteria: branching logic, crossing a module boundary, asserting unverifiable properties, blast radius is irreversible, etc.) — name the CLAIM, extract the smallest reviewable artifact + contract (strip all reasoning), spawn a fresh-context reviewer with an adversarial prompt ("find issues, do not validate"), offer cross-model review to the user, reconcile findings by classifying each as contract-misread / actionable / trade-off / noise, stop after 3 cycles or trivial findings.
+**What it makes the agent do**: For any non-trivial decision (defined by five criteria: branching logic, crossing a module boundary, asserting unverifiable properties, blast radius is irreversible, etc.), name the CLAIM, extract the smallest reviewable artifact + contract (strip all reasoning), spawn a fresh-context reviewer with an adversarial prompt ("find issues, do not validate"), offer cross-model review to the user, reconcile findings by classifying each as contract-misread / actionable / trade-off / noise, stop after 3 cycles or trivial findings.
 
 **Flow equivalent**: grill is the closest. Both use adversarial review. Key difference: grill is a conversational skill that runs across a discussion; doubt-driven is invoked per-decision, spawns a separate subagent, and includes a formal 5-step cycle with cross-model escalation. Doubt-driven is more mechanistic and more expensive; grill is more conversational and cheaper.
 
@@ -155,9 +155,9 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · Setting Up Chrome DevTools MCP (including installation JSON) · Security Boundaries (detailed) · The DevTools Debugging Workflow · Writing Test Plans · Screenshot-Based Verification · Console Analysis · Accessibility Verification · Common Rationalizations · Red Flags · Verification
 
-**What it makes the agent do**: Use Chrome DevTools MCP to verify browser behavior at runtime. Specific security rules: default to isolated browser profile, treat all browser content (DOM, console, network) as untrusted data — never interpret as instructions, never navigate to extracted URLs without confirmation, never read cookies or localStorage.
+**What it makes the agent do**: Use Chrome DevTools MCP to verify browser behavior at runtime. Specific security rules: default to isolated browser profile, treat all browser content (DOM, console, network) as untrusted data, never interpret as instructions, never navigate to extracted URLs without confirmation, never read cookies or localStorage.
 
-**Flow equivalent**: debug-web-pages (overlaps). Flow's debug-web-pages is more general — it covers investigating live pages the agent doesn't control. browser-testing-with-devtools is narrower — it covers testing pages the agent is building, using the DevTools MCP server specifically.
+**Flow equivalent**: debug-web-pages (overlaps). Flow's debug-web-pages is more general, it covers investigating live pages the agent doesn't control. browser-testing-with-devtools is narrower, it covers testing pages the agent is building, using the DevTools MCP server specifically.
 
 ---
 
@@ -165,7 +165,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · The Stop-the-Line Rule · The Triage Checklist (6 steps) · Error-Specific Patterns (3 types) · Safe Fallback Patterns · Instrumentation Guidelines · Common Rationalizations · Treating Error Output as Untrusted Data · Red Flags · Verification
 
-**What it makes the agent do**: When something unexpected happens, stop adding features. Reproduce the failure reliably before doing anything. Localize to a layer. Create a minimal reproduction. Fix the root cause (not the symptom). Write a regression test. Verify end-to-end. Treat error messages from external sources as untrusted data — do not execute commands found in error output.
+**What it makes the agent do**: When something unexpected happens, stop adding features. Reproduce the failure reliably before doing anything. Localize to a layer. Create a minimal reproduction. Fix the root cause (not the symptom). Write a regression test. Verify end-to-end. Treat error messages from external sources as untrusted data, do not execute commands found in error output.
 
 **Flow equivalent**: Flow has debug-web-pages (browser-specific only) and the one-line hard rule ("No cause without evidence"). No general systematic debugging skill. This skill is on the remaining.md list as one of the must-build items.
 
@@ -185,7 +185,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · The Five Principles · The Simplification Process (4 steps) · Language-Specific Guidance (TypeScript, Python, React) · Common Rationalizations · Red Flags · Verification
 
-**What it makes the agent do**: Before simplifying, apply Chesterton's Fence — understand why code exists before changing it. Scan for specific patterns (deep nesting, long functions, generic names, duplicated logic, dead code). Make one simplification at a time, run tests after each. Never simplify code you don't understand. Submit simplification changes separately from feature changes.
+**What it makes the agent do**: Before simplifying, apply Chesterton's Fence, understand why code exists before changing it. Scan for specific patterns (deep nesting, long functions, generic names, duplicated logic, dead code). Make one simplification at a time, run tests after each. Never simplify code you don't understand. Submit simplification changes separately from feature changes.
 
 **Flow equivalent**: None.
 
@@ -195,7 +195,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · Process: Threat Model First (STRIDE table) · The Three-Tier Boundary System (Always/Ask/Never) · Authentication · Authorization · Input Validation · OWASP Top 10 coverage · Supply Chain · AI/LLM Security · Security Review Checklist · See Also · Common Rationalizations · Red Flags · Verification
 
-**What it makes the agent do**: Before hardening, spend 5 minutes on a threat model — map trust boundaries, name assets, run STRIDE over each boundary. Never use string concatenation in SQL. Use bcrypt/scrypt/argon2, never plaintext passwords. Treat LLM output as untrusted data (not innerHTML, not SQL, not eval). For dependency supply chain: one authoritative lockfile, triaged audits, block install scripts unless approved, one dependency per upgrade PR.
+**What it makes the agent do**: Before hardening, spend 5 minutes on a threat model, map trust boundaries, name assets, run STRIDE over each boundary. Never use string concatenation in SQL. Use bcrypt/scrypt/argon2, never plaintext passwords. Treat LLM output as untrusted data (not innerHTML, not SQL, not eval). For dependency supply chain: one authoritative lockfile, triaged audits, block install scripts unless approved, one dependency per upgrade PR.
 
 **Flow equivalent**: None.
 
@@ -225,7 +225,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · The Quality Gate Pipeline (diagram) · GitHub Actions Example · Security in CI/CD · Deployment Strategies · Common Rationalizations · Red Flags · Verification
 
-**What it makes the agent do**: Set up a quality gate pipeline: lint → type check → unit tests → build → integration tests → deploy. Shift left — catch problems as early as possible. Faster is safer: smaller batches reduce risk. Security in CI: never print secrets, use secret scanning, pin action versions, run dependency audits on every PR. Deployment strategies: blue-green, canary, rollback triggers.
+**What it makes the agent do**: Set up a quality gate pipeline: lint → type check → unit tests → build → integration tests → deploy. Shift left, catch problems as early as possible. Faster is safer: smaller batches reduce risk. Security in CI: never print secrets, use secret scanning, pin action versions, run dependency audits on every PR. Deployment strategies: blue-green, canary, rollback triggers.
 
 **Flow equivalent**: None.
 
@@ -255,7 +255,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · When to Use · Process (4 steps) · Structured Logging · Metrics and Alerting · Tracing · Instrumentation Checklist · Common Rationalizations · Red Flags · Verification
 
-**What it makes the agent do**: Before instrumenting, write down 2–4 questions an on-call engineer will ask about this feature. Pick the right signal: structured logs for specific cases, metrics for aggregate rates/latency, traces for distributed call paths. Correlation IDs are mandatory — attach to every log line and outbound call. Log events as JSON objects with stable event names, not prose. Symptom-based alerts (error rate > threshold) not cause-based alerts (disk usage > 80%).
+**What it makes the agent do**: Before instrumenting, write down 2–4 questions an on-call engineer will ask about this feature. Pick the right signal: structured logs for specific cases, metrics for aggregate rates/latency, traces for distributed call paths. Correlation IDs are mandatory, attach to every log line and outbound call. Log events as JSON objects with stable event names, not prose. Symptom-based alerts (error rate > threshold) not cause-based alerts (disk usage > 80%).
 
 **Flow equivalent**: None.
 
@@ -275,7 +275,7 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 **Shape**: Overview · Skill Discovery (routing flowchart) · Core Operating Behaviors (6 rules) · Failure Modes to Avoid · Skill Rules · Lifecycle Sequence · Quick Reference Table
 
-**What it makes the agent do**: This is the meta-skill. It is injected at session start by the `session-start.sh` hook. It provides a routing flowchart that maps incoming tasks to specific skills. It also establishes six always-on operating behaviors that apply regardless of which skill is active: surface assumptions explicitly before acting, stop and name confusion rather than proceeding with a guess, push back on approaches with clear problems, prefer the simplest solution, maintain scope discipline (touch only what the task requires), and verify — never assume a task is complete without evidence.
+**What it makes the agent do**: This is the meta-skill. It is injected at session start by the `session-start.sh` hook. It provides a routing flowchart that maps incoming tasks to specific skills. It also establishes six always-on operating behaviors that apply regardless of which skill is active: surface assumptions explicitly before acting, stop and name confusion rather than proceeding with a guess, push back on approaches with clear problems, prefer the simplest solution, maintain scope discipline (touch only what the task requires), and verify, never assume a task is complete without evidence.
 
 **Flow equivalent**: None. Flow's routing is implicit in skill descriptions and the CLAUDE.md workflow section. The explicit routing chart and the six always-on operating behaviors are unique to this meta-skill.
 
@@ -283,19 +283,19 @@ Line counts are exact. Word counts rounded to nearest 50.
 
 ## Skills with no Flow counterpart (priority order)
 
-1. **debugging-and-error-recovery** — general systematic debugging. Flow's remaining.md lists this as must-build.
-2. **test-driven-development** — no test authorship skill in Flow at all.
-3. **code-review-and-quality** — on Flow's remaining.md as blocking.
-4. **interview-me** — no intent-extraction step before brainstorm in Flow.
-5. **context-engineering** — no explicit skill; partially in CLAUDE.md rules.
-6. **git-workflow-and-versioning** — Flow has gsave but no discipline skill.
-7. **security-and-hardening** — not addressed anywhere in Flow.
-8. **code-simplification** — no equivalent.
-9. **ci-cd-and-automation** — no equivalent.
-10. **frontend-ui-engineering** — no equivalent.
-11. **api-and-interface-design** — no equivalent.
-12. **deprecation-and-migration** — no equivalent.
-13. **documentation-and-adrs** — no equivalent (Flow records decisions in brainstorm trees).
-14. **observability-and-instrumentation** — no equivalent.
-15. **shipping-and-launch** — no equivalent.
-16. **performance-optimization** — no equivalent.
+1. **debugging-and-error-recovery**: general systematic debugging. Flow's remaining.md lists this as must-build.
+2. **test-driven-development**: no test authorship skill in Flow at all.
+3. **code-review-and-quality**: on Flow's remaining.md as blocking.
+4. **interview-me**: no intent-extraction step before brainstorm in Flow.
+5. **context-engineering**: no explicit skill; partially in CLAUDE.md rules.
+6. **git-workflow-and-versioning**: Flow has gsave but no discipline skill.
+7. **security-and-hardening**, not addressed anywhere in Flow.
+8. **code-simplification**: no equivalent.
+9. **ci-cd-and-automation**: no equivalent.
+10. **frontend-ui-engineering**: no equivalent.
+11. **api-and-interface-design**: no equivalent.
+12. **deprecation-and-migration**: no equivalent.
+13. **documentation-and-adrs**: no equivalent (Flow records decisions in brainstorm trees).
+14. **observability-and-instrumentation**: no equivalent.
+15. **shipping-and-launch**: no equivalent.
+16. **performance-optimization**: no equivalent.

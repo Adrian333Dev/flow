@@ -1,4 +1,4 @@
-# Skills — groups, install tiers, overlays, external plugins
+# Skills: groups, install tiers, overlays, external plugins
 
 Settled 2026-08-26, revised 2026-08-28. Nothing built. Two designs were tried and dropped along the
 way, and `## Rejected` holds both with the argument that killed each. Every test named below ran
@@ -15,29 +15,29 @@ disagree.
 **Flow keeps Claude Code's skills.** A skill stays a hand-written `SKILL.md` in the shape it has today.
 4 additions carry everything a mechanism of Flow's own was going to buy.
 
-- **A group is a folder in Flow's tree** — `skills/phases/groundwork/SKILL.md`. It files a skill and
+- **A group is a folder in Flow's tree**: `skills/phases/groundwork/SKILL.md`. It files a skill and
   decides nothing else.
 - **A skill installs globally, per project, or not at all.** Not installed costs nothing and stays
   findable.
-- **An overlay is 1 line at the bottom of the skill** — `` !`flow overlays get groundwork` ``. The
+- **An overlay is 1 line at the bottom of the skill**: `` !`flow overlays get groundwork` ``. The
   shell runs as the skill loads, and its output replaces the line.
 - **A description says what the skill is. A trigger is written only where one is wanted.**
 
 ## The groups
 
-**Reversed 2026-08-29: `commands/` holds every skill the user mainly invokes, and it wins wherever two groups fit.** `/cut-from-spec` moved out of `phases/`. The earlier rule — a phase files under `phases/` even when only the user invokes it — is dead, and the argument behind it (that `phases/` should answer "what are the phases" on disk) was already broken by `/file-findings` sitting in `commands/`. Closed by the user: *"we're fucking moving all of the commands, the skill that will be mainly utilized by the user under the commands folder. Period."*
+**Reversed 2026-08-29: `commands/` holds every skill the user mainly invokes, and it wins wherever two groups fit.** `/cut-from-spec` moved out of `phases/`. The earlier rule (a phase files under `phases/` even when only the user invokes it) is dead, and the argument behind it (that `phases/` should answer "what are the phases" on disk) was already broken by `/file-findings` sitting in `commands/`. Closed by the user: *"we're fucking moving all of the commands, the skill that will be mainly utilized by the user under the commands folder. Period."*
 
 
 4 of them: `phases/`, `tools/`, `standards/`, `stack/`. Split by what decides whether you read one,
 never by subject.
 
-- **`phases/`** — what you are doing, one at a time: `groundwork`, `cut-from-spec`, `execute`,
+- **`phases/`**: what you are doing, one at a time: `groundwork`, `cut-from-spec`, `execute`,
   `prototype`, `debug`.
-- **`tools/`** — something you do inside a phase. It starts, produces something, finishes: `research`,
+- **`tools/`**: something you do inside a phase. It starts, produces something, finishes: `research`,
   `visualize`, `handoff`, `file-findings`.
-- **`standards/`** — how you work, held the whole way through. It produces nothing on its own and
+- **`standards/`**: how you work, held the whole way through. It produces nothing on its own and
   never finishes. Empty today; comments, naming and error handling land here.
-- **`stack/`** — what you are touching: `debug-web-pages`, and where most of the next 40 land.
+- **`stack/`**: what you are touching: `debug-web-pages`, and where most of the next 40 land.
 
 **The group is a filing decision.** It says where a file sits. Which skills install globally and which
 carry a trigger are per-skill choices that move as the set grows.
@@ -67,8 +67,8 @@ none. At ten stack skills it is ten descriptions in every session, forever.
   nothing about the group decides which
 
 **It is written in `home/settings.json`**, which ships a `skillOverrides` block naming the off ones.
-That file already owns the key. The alternative — a default in each skill's frontmatter, generated
-into settings by `flow install` — needs a frontmatter key Claude Code ignores, and `install.js`
+That file already owns the key. The alternative: a default in each skill's frontmatter, generated
+into settings by `flow install`: needs a frontmatter key Claude Code ignores, and `install.js`
 deliberately does not write `settings.json` at all.
 
 **Off globally, on in one project, already works and needs nothing built.** Verified 2026-08-29
@@ -83,7 +83,7 @@ values as if all four were live and becomes two, with a line saying why the othe
 never-fire-anywhere case stays in `disable-model-invocation`, in the skill's own frontmatter.
 
 **`flow skills ls` becomes load-bearing.** It prints `global` on every row today and carries no
-information. The moment most `stack/` skills are off, a session cannot see them — that is the point —
+information. The moment most `stack/` skills are off, a session cannot see them: that is the point,
 and something has to answer *what exists that I am not being shown*. Nothing announces a hidden skill
 and nothing should. So `flow skills ls` is the only discovery path, and its column becomes each
 skill's state, read from the machine's settings and the project's, with the group beside it.
@@ -95,7 +95,7 @@ has no exceptions and every Flow skill is on it: 12 skills on disk, 12 names in 
 hand-maintained copy that can only ever be wrong.
 
 **The drafts group removes the last case for it.** The one reason to name skills individually is
-*some skills do not ship*, and a group folder answers that better — visible on disk, cannot drift, and
+*some skills do not ship*, and a group folder answers that better: visible on disk, cannot drift, and
 adding a skill to it is a `mkdir` rather than an edit in two places.
 
 `flow install` links every skill in the catalog whose group is not `drafts/`. Two commands change and
@@ -110,7 +110,7 @@ no case for not installing one.
 ### `.claude/flow/skills` is deleted, and so is the mechanism behind it (user, 2026-08-30)
 
 **What it was:** a file of skill names in a project. The skill folders lived in the Flow clone, and the
-list existed because the symlink could not be committed — it points at wherever that machine's clone
+list existed because the symlink could not be committed: it points at wherever that machine's clone
 sits.
 
 **An external skill used by one project does not need to be in the Flow clone at all.** Copy the folder
@@ -118,11 +118,11 @@ into `<project>/.claude/skills/<name>/` and commit it. Real files. No list, no d
 and the project works on a machine that never installed Flow.
 
 **This already worked.** `project-template/.gitignore` carries `.claude/skills/*` then
-`!.claude/skills/*/`, which ignores symlinks and tracks real folders — verified in a real repo
+`!.claude/skills/*/`, which ignores symlinks and tracks real folders: verified in a real repo
 2026-08-28. Copying an external skill in has been supported the whole time; the list was solving a
 problem the gitignore had already solved differently.
 
-**Claude Code already owns per-project external things** — MCP servers in `.mcp.json`, plugins in
+**Claude Code already owns per-project external things**: MCP servers in `.mcp.json`, plugins in
 settings. Flow inventing a third list, for skills only, was the odd one out, and its name read as if it
 held something of Flow's.
 
@@ -139,7 +139,7 @@ held something of Flow's.
 ### Built 2026-08-30, all three blocks in one pass
 
 **`skillOverrides` reading turned out to be the interesting part.** `flow skills ls` now resolves each
-skill's state itself, merging the machine's `settings.json` under the project's key by key — the same
+skill's state itself, merging the machine's `settings.json` under the project's key by key: the same
 merge Claude Code does. The machine's config follows `CLAUDE_CODE_CONFIG_DIR`'s successor
 `CLAUDE_CONFIG_DIR`, so the scratch session reads the scratch settings rather than the real ones. The
 table prints `SKILL | GROUP | STATE | SET BY`, and `SET BY` is what answers *who turned this off*.
@@ -150,7 +150,7 @@ disk. The mechanism is built for a full catalog; the list is short because the t
 **`flow skills` lost half its actions.** `add` and `sync` both existed to maintain the two deleted
 lists, so both went with them. `ls` and `get` remain, and `get` is still the default action.
 
-**`lib/skills.js` lost `globalList`, `projectList`, `projectLinks`, `readList` and `addToList`** — the
+**`lib/skills.js` lost `globalList`, `projectList`, `projectLinks`, `readList` and `addToList`**: the
 last two had no other caller once the lists were gone, since `work.js` reads `.flow-include` itself. It
 gained `DRAFTS`, `installable({ drafts })` and `states(root)`.
 
@@ -164,7 +164,7 @@ because the group folder *is* the mechanism and faking it anywhere else would te
 
 **Everything from here to the end of this section is history.** The three tiers below were superseded on 2026-08-29, and the all-on rule that replaced them was superseded on 2026-08-30 by the three blocks above.
 
-The tiers answered one question with one lever. *Not installed* was meant to keep a rarely-wanted skill out of context, and it also made the skill untypeable — which is the wrong trade on a machine with one user, who wants every skill reachable and pays for a description he never uses.
+The tiers answered one question with one lever. *Not installed* was meant to keep a rarely-wanted skill out of context, and it also made the skill untypeable, which is the wrong trade on a machine with one user, who wants every skill reachable and pays for a description he never uses.
 
 Two questions, and they are separate:
 
@@ -173,13 +173,13 @@ Two questions, and they are separate:
 
 **Every Flow skill installs on every machine.** `home/skills` names all 12. A skill the model is never shown costs nothing, so there is no reason to leave one unreachable.
 
-**`skillOverrides` is keyed by skill name and takes 4 values** — `on` (name and description), `name-only` (the name alone, still invocable), `user-invocable-only` (`/name` works, the model sees nothing), `off` (`/name` refuses too).
+**`skillOverrides` is keyed by skill name and takes 4 values**: `on` (name and description), `name-only` (the name alone, still invocable), `user-invocable-only` (`/name` works, the model sees nothing), `off` (`/name` refuses too).
 
-**Every skill is `on` by default, and `home/settings.json` names none of them** (user, 2026-08-29, after two reversals). A project turns off what it does not want, so the project's settings file reads as the list of what is off there. The inverse — off on the machine, re-enabled per project — was proposed twice and rejected twice: it makes the common case the one you have to configure.
+**Every skill is `on` by default, and `home/settings.json` names none of them** (user, 2026-08-29, after two reversals). A project turns off what it does not want, so the project's settings file reads as the list of what is off there. The inverse (off on the machine, re-enabled per project) was proposed twice and rejected twice: it makes the common case the one you have to configure.
 
 **`name-only` is never the value.** It hides the description and leaves the skill invocable, so the model keeps the power to fire a skill and loses the only thing it could judge with. `off` blocks the typed path as well, which is right for a project opting out and wrong as a machine default.
 
-**Nothing announces a hidden skill, and a line in `~/.claude/CLAUDE.md` was rejected for it** (user, 2026-08-29). That file loads in every session, so a browser skill would announce itself in projects with no browser — the exact cost this key exists to remove. Discovery is a read, not a broadcast: `flow skills ls` lists every skill on the machine, and `settings.json` says what each is set to.
+**Nothing announces a hidden skill, and a line in `~/.claude/CLAUDE.md` was rejected for it** (user, 2026-08-29). That file loads in every session, so a browser skill would announce itself in projects with no browser: the exact cost this key exists to remove. Discovery is a read, not a broadcast: `flow skills ls` lists every skill on the machine, and `settings.json` says what each is set to.
 
 ### Verified, 2026-08-29, Claude Code 2.1.251
 
@@ -192,7 +192,7 @@ Four `-p` runs against a scratch config built by `try.sh`:
 
 ### What this costs
 
-**`flow skills add` loses its users.** It refuses a name already global, and every Flow skill now is, so the command's remaining job is a skill that is not Flow's — vendored in, or belonging to one project. None exists yet. `sync` still earns its place the day one does, and the refusal now points at `skillOverrides` instead of telling you to edit `home/skills`.
+**`flow skills add` loses its users.** It refuses a name already global, and every Flow skill now is, so the command's remaining job is a skill that is not Flow's: vendored in, or belonging to one project. None exists yet. `sync` still earns its place the day one does, and the refusal now points at `skillOverrides` instead of telling you to edit `home/skills`.
 
 **Kept rather than archived** (user, 2026-08-29). This design is young enough to be reversed, and `add` is the command a reversal would need back.
 
@@ -204,25 +204,25 @@ Four `-p` runs against a scratch config built by `try.sh`:
 
 3 states:
 
-1. **Global** — `~/.claude/skills/<name>`. The essentials, read in every session in every project.
-2. **This project** — `<project>/.claude/skills/<name>`. Read only here.
-3. **Not installed** — everything else. Costs nothing, and `flow skills ls` still finds it.
+1. **Global**: `~/.claude/skills/<name>`. The essentials, read in every session in every project.
+2. **This project**: `<project>/.claude/skills/<name>`. Read only here.
+3. **Not installed**: everything else. Costs nothing, and `flow skills ls` still finds it.
 
 **Installing decides what Claude Code loads. It decides nothing about what is readable.** Every skill
 file sits in the Flow clone, so a command reads an uninstalled skill as easily as an installed one.
 
 Starting set, and it moves freely afterwards:
 
-- **Global** — the 5 phases, plus `research`, `visualize`, `handoff`, `file-findings`. All 9 fire or
+- **Global**: the 5 phases, plus `research`, `visualize`, `handoff`, `file-findings`. All 9 fire or
   get typed in any project.
-- **This project** — `debug-web-pages`, and every `stack/` skill from here on.
+- **This project**: `debug-web-pages`, and every `stack/` skill from here on.
 
 9 of 10 landing globally is a fact about today's catalog, not a rule. Every skill written so far is a
 process skill. The next 40 are `stack/` skills and none of them installs globally.
 
 ### The 2 lists
 
-A skill's name in a list is what makes it install. 2 files, same format — 1 name per line, no paths, no
+A skill's name in a list is what makes it install. 2 files, same format: 1 name per line, no paths, no
 groups, no versions. Different owners:
 
 - **`home/skills`, in the Flow repo, committed with Flow.** Names what links into `~/.claude/skills/`.
@@ -232,12 +232,12 @@ groups, no versions. Different owners:
 
 Commands:
 
-- **`flow skills add react`** — links `react` into this project, appends the name to the project list.
+- **`flow skills add react`**: links `react` into this project, appends the name to the project list.
   **It refuses a name already linked globally**, because the global copy silently wins.
-- **`flow skills add --global research`** — the same against `home/skills`.
-- **`flow skills sync`** — reads the list and rebuilds every link against wherever the clone lives here.
+- **`flow skills add --global research`**: the same against `home/skills`.
+- **`flow skills sync`**: reads the list and rebuilds every link against wherever the clone lives here.
   The 1 command a fresh clone needs.
-- **`flow skills ls`** and **`flow skills get`** — read Flow's tree whether a skill is installed or not.
+- **`flow skills ls`** and **`flow skills get`**: read Flow's tree whether a skill is installed or not.
 
 `link.sh` reads `home/skills` for its skill section, and keeps doing commands, agents and scripts.
 
@@ -264,7 +264,7 @@ clone already needs setup, so the command costs nothing new.
 
 `.gitignore` matches path names with globs, and it has exactly 1 filter that tests what a thing is: a
 trailing slash means directories only. **Git never treats a symlink as a directory**, because git does
-not follow symlinks — it stores one as a small file holding the target path.
+not follow symlinks: it stores one as a small file holding the target path.
 
 So 2 static lines in `project-template/.gitignore` split the folder correctly:
 
@@ -281,14 +281,14 @@ folder and a link is never one, and it means a real loose file in that directory
 
 A project therefore holds 2 Flow things under `.claude/`:
 
-- **`.claude/skills/`** — Flow's links, rebuilt by `flow skills sync`; external skills, committed
-- **`.claude/flow/`** — real files, tracked: `overlays/` and the `skills` list
+- **`.claude/skills/`**: Flow's links, rebuilt by `flow skills sync`; external skills, committed
+- **`.claude/flow/`**: real files, tracked: `overlays/` and the `skills` list
 
 ### How `flow` finds the clone
 
 Nothing stores the path. `~/.local/bin/flow` is a symlink to `<clone>/scripts/flow/flow.js`, and
 **node resolves symlinks before the script runs**. Inside `flow.js`, `__dirname` holds
-`<clone>/scripts/flow` — the real location, not the link. The clone is 3 folders up.
+`<clone>/scripts/flow`: the real location, not the link. The clone is 3 folders up.
 
 Tested, and `commands/open.js` already resolves `fmerge.js` this way.
 
@@ -299,13 +299,13 @@ with it.
 
 3 kinds of outside material, each landing differently.
 
-- **An external skill for 1 project** — copy the folder into `<project>/.claude/skills/` and commit it.
+- **An external skill for 1 project**: copy the folder into `<project>/.claude/skills/` and commit it.
   The drift argument does not reach it: its source of truth is someone else's repo, and it changes when
   you pull a new version. Freezing it is correct.
-- **An external skill wanted in several projects** — vendor it into Flow's tree under a group, with its
+- **An external skill wanted in several projects**: vendor it into Flow's tree under a group, with its
   origin in the file, then link it like any Flow skill. 1 copy again, and you own the copy. This is
   where writing our own version starts.
-- **A plugin** — never in `.claude/skills/`. Claude Code installs it and reads it from elsewhere.
+- **A plugin**, never in `.claude/skills/`. Claude Code installs it and reads it from elsewhere.
 
 ### A plugin brings more than a skill
 
@@ -313,7 +313,7 @@ impeccable ships 1 skill, 4 subagents, 23 commands and 2 hooks. Enabling it adds
 
 **Prefer external material that carries knowledge. Weigh anything carrying process.** Flow is a process
 workflow, so a skill with its own build order competes with `execute` and nothing arbitrates. Of the 3
-surveyed, `ui-ux-pro-max` is mostly knowledge — a searchable database of styles, palettes and font
+surveyed, `ui-ux-pro-max` is mostly knowledge: a searchable database of styles, palettes and font
 pairings. `impeccable` is mostly process. `taste-skill` sits between.
 
 ### Off by default, enabled per project
@@ -325,9 +325,9 @@ running. impeccable's `Stop` hook fires at the end of every turn either way.
 
 Where each setting sits:
 
-- **`.claude/settings.json`, committed** — `extraKnownMarketplaces`, recording that this project may use
+- **`.claude/settings.json`, committed**: `extraKnownMarketplaces`, recording that this project may use
   the plugin.
-- **`.claude/settings.local.json`, gitignored** — `enabledPlugins`, flipped whenever you want it. No
+- **`.claude/settings.local.json`, gitignored**: `enabledPlugins`, flipped whenever you want it. No
   diff, no commit, and the project is never forced into the state.
 
 **A flip takes effect in the next session.** Skills, commands, subagents and hooks are all read once at
@@ -336,7 +336,7 @@ session start.
 ### Hiding a skill, when that is what is wanted
 
 `"skillOverrides": { "<name>": "user-invocable-only" }` removes a skill from the model's view
-completely — no name, no description, nothing. Typing `/<name>` still loads it and runs its shell.
+completely: no name, no description, nothing. Typing `/<name>` still loads it and runs its shell.
 Tested both halves.
 
 That fits a plugin you want reachable but never self-firing. It leaves the hooks running, so it is a
@@ -358,7 +358,7 @@ shares it.
   roughly 50ms. Selective would mean editing the shared copy the day a project wants a skill that
   lacks it.
 
-**An overlay holds anything** — an override, an addition, an extension, a mix. `## Overrides` is a
+**An overlay holds anything**: an override, an addition, an extension, a mix. `## Overrides` is a
 heading someone writes, and the words under it do the work. Guidance on writing a good one belongs
 wherever that is taught, and never in the command.
 
@@ -373,17 +373,17 @@ same whether its skill installed globally or here.
 Every installed skill's full description sits in context from the moment a session starts. Tested.
 
 **A description says what the skill is and what it covers.** It carries nothing about when to invoke
-it. `visualize` names its media because a reader cannot otherwise tell what it draws — **under-explaining
+it. `visualize` names its media because a reader cannot otherwise tell what it draws: **under-explaining
 is the failure to avoid**, and no word count overrides it.
 
 **A trigger is written only where one is wanted**, and lands in exactly 1 place:
 
-- **`home/CLAUDE.md`** — the few that must fire with nothing else loaded.
-- **A phase's body** — where the phase is what needs it. A global comment standard is named by
+- **`home/CLAUDE.md`**: the few that must fire with nothing else loaded.
+- **A phase's body**: where the phase is what needs it. A global comment standard is named by
   `execute`.
-- **A phase's project overlay** — where 1 project wants it. A project `CLAUDE.md` would load that
+- **A phase's project overlay**: where 1 project wants it. A project `CLAUDE.md` would load that
   trigger into groundwork and debugging sessions too, where the standard is noise.
-- **A project `CLAUDE.md`** — where it is project-wide and belongs to no phase.
+- **A project `CLAUDE.md`**: where it is project-wide and belongs to no phase.
 
 Which skills get one:
 
@@ -408,7 +408,7 @@ Compressing 5 phase triggers into 1 block is real but small beside that.
 **Finding a skill nobody triggers is research.** `research` gains a step: before working against an
 external tool, search outward for an existing skill, plugin or MCP server for it, then check Flow's own
 tree, judge what comes back, and record it. Most of what exists is external, and an existing skill for
-a tool is often worth more than that tool's documentation. Flow's own `stack/` skills start there —
+a tool is often worth more than that tool's documentation. Flow's own `stack/` skills start there:
 adopt one, work with it, then write ours.
 
 ## Arguments
@@ -436,7 +436,7 @@ Two consequences:
 
 - **No `argument-hint` on a Flow skill**, and no ticket id in a description. Both invite what the rule
   bans.
-- **A command earns its place 2 ways now** — running something before the model thinks, or needing an
+- **A command earns its place 2 ways now**: running something before the model thinks, or needing an
   argument. The repo `CLAUDE.md` states only the first.
 
 ## Files load at session start
@@ -446,8 +446,8 @@ only caller. **It stays exactly as built.**
 
 Two doors already exist, and only 1 loads files:
 
-- **`flow t047`** — the ticket alone
-- **`flow open t047`** — the ticket, then its files
+- **`flow t047`**: the ticket alone
+- **`flow open t047`**: the ticket, then its files
 
 Only `open.js:131` reads the block. Nothing else in `scripts/` touches it.
 
@@ -472,7 +472,7 @@ Tested, not assumed.
 - **The model supplies arguments on its own.** Asked to run a skill twice for 2 ticket ids, it sent
   `{"skill":"noargs"}` first and `{"skill":"noargs","args":"t099"}` second. Nothing instructed either.
 - **The model does not re-read what a skill printed.** A skill that `cat`s a file, then a question
-  needing that file, produced 1 tool call — `Skill`. No `Read`, no `Bash`, no `Grep`. The body said the
+  needing that file, produced 1 tool call: `Skill`. No `Read`, no `Bash`, no `Grep`. The body said the
   content was printed above in full. Keep that wording.
 - **Every installed skill's full description is in context from the start.** A session asked to list
   what it could see printed every local skill and every installed one, each with its description word
@@ -480,14 +480,14 @@ Tested, not assumed.
 - **A global skill beats a project skill of the same name, silently.** With `dupname` in both folders,
   the listing showed 1 entry carrying the global description word for word, and invoking it loaded the
   global body. The project copy produced no warning and no error. Run twice.
-- **Exactly 2 skill directories are read** — `<project>/.claude/skills/*/SKILL.md` and
+- **Exactly 2 skill directories are read**: `<project>/.claude/skills/*/SKILL.md` and
   `~/.claude/skills/*/SKILL.md`. No setting adds a third, so a symlink or a copy is the only way to
   make a skill visible in 1 project.
 - **Skill discovery is 1 level deep.** The loader reads the entries of a skills directory and stats
   `<entry>/SKILL.md`. No recursion, and the permission parser accepts exactly 4 path segments. A
   grouped folder under `~/.claude/skills/` never loads.
 - **`user-invocable-only` removes a skill from the model's view entirely.** A session asked to list
-  every skill including ones it may not invoke did not list it — no name, no description. Typing
+  every skill including ones it may not invoke did not list it: no name, no description. Typing
   `/pingtest` in the same project loaded the body and ran its shell line.
 - **`name-only` shows the name and hides the description.** The skill stays invocable.
 - **`off` and `disable-model-invocation: true` take the skill away from the model.** Naming it
@@ -517,17 +517,17 @@ Tested, not assumed.
 
 ## Rejected
 
-**Playbooks — a unit of Flow's own, with a generated `SKILL.md`.** Locked 2026-08-25, dropped
+**Playbooks: a unit of Flow's own, with a generated `SKILL.md`.** Locked 2026-08-25, dropped
 2026-08-26. Two files per playbook: `PLAYBOOK.md` written by hand, a 6-line `SKILL.md` written by
 `link.sh` carrying only frontmatter and a loader call. It was correct against what was known that day.
 5 arguments supported it. 3 tests since dissolved 4 of them:
 
-- **Grouping** — needs 6 lines in `link.sh`, not a mechanism.
-- **Compression** — install tiers do it, at zero cost.
-- **A `flow-open` block cannot name a built-in skill** — true, and moot. `/start` routes and the model
+- **Grouping**: needs 6 lines in `link.sh`, not a mechanism.
+- **Compression**: install tiers do it, at zero cost.
+- **A `flow-open` block cannot name a built-in skill**: true, and moot. `/start` routes and the model
   invokes the skill itself.
-- **Overlays** — 1 line at the bottom of a skill.
-- **The word "skill" fits badly** — still true, and cosmetic.
+- **Overlays**: 1 line at the bottom of a skill.
+- **The word "skill" fits badly**: still true, and cosmetic.
 
 It also broke the duplicate check, by putting a ticket id into every render. It pointed the base
 directory at a generated folder holding 1 file, which put a skill's own `refs/` out of reach.
@@ -535,7 +535,7 @@ directory at a generated folder holding 1 file, which put a skill's own `refs/` 
 **Committing copies of Flow's skills into a project.** See `### Committed copies were rejected`.
 
 **A global overlay tier.** A `~/.claude/flow/overlays/` file would change a skill everywhere, and you
-own the skill — that edit belongs in the skill. The project tier exists because the shared copy cannot
+own the skill: that edit belongs in the skill. The project tier exists because the shared copy cannot
 be edited per project, and no such argument holds globally.
 
 **A generated `.claude/skills/.gitignore`** listing the linked names. 2 static lines do it, because git
@@ -546,7 +546,7 @@ Flow's source, and it is not where a repo carrying uncommitted work belongs. Not
 a fixed path, because `flow` reads its own location.
 
 **`skillOverrides` as the way to hide skills from context.** `name-only` works, and costs a name per
-skill forever. Not installing costs nothing and reads the same. It survives for 1 narrow job — stopping
+skill forever. Not installing costs nothing and reads the same. It survives for 1 narrow job: stopping
 a plugin from self-firing.
 
 **`skillOverrides` as a plugin off switch.** It leaves the commands and the hooks running.
@@ -581,7 +581,7 @@ text with no completion, no filtering and no descriptions.
 
 **Overlays injected by a hook.** 2 hooks for 2 invocation routes, and the model may refuse the text.
 
-**A `SessionStart` index of skill names.** Dead — a description already does it.
+**A `SessionStart` index of skill names.** Dead: a description already does it.
 
 **Verb-first skill names.** Never a real rule. The goal was short names, and a `stack/` skill is named
 for what it touches. A skill's name is short and says what it is for.
@@ -596,5 +596,5 @@ for what it touches. A skill's name is short and says what it is for.
 - **Whether a plugin skill beats a Flow skill of the same name.** Untested. 1 run when a plugin goes in.
 - **How a design plugin gets used.** What fires it, whether design work is its own phase, what happens
   when 2 of them disagree, the boundary with `visualize`, and what comes back into Flow afterwards.
-  **Decided after the first real run in a project, never before.** Not essential — Flow works without
+  **Decided after the first real run in a project, never before.** Not essential: Flow works without
   one. **talk first**

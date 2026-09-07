@@ -1,8 +1,8 @@
-# Flow's public documentation — `docs/manual/`
+# Flow's public documentation: `docs/manual/`
 
 Designed 2026-08-29, unwritten and staying unwritten. Two things have to land first: the workflow
 finished, and the management skill built. **Read this when writing starts, or when `references/style.md`
-gets restructured** — `## Writing style` below binds every file Flow writes, not only a manual page.
+gets restructured**: `## Writing style` below binds every file Flow writes, not only a manual page.
 
 Not to be confused with `design-project-docs.md`, which is a *project's* `docs/context/` tree.
 
@@ -16,7 +16,7 @@ is. They have not touched hooks or most settings. Claude Code and skills get a s
 first named, never a section.
 
 **It is the only part of Flow with no token budget and no agent reading it.** That decides everything
-else: `docs/` explains and never states. A page never restates what a skill says — it says why the
+else: `docs/` explains and never states. A page never restates what a skill says, it says why the
 skill says it, and links. **No skill and no `CLAUDE.md` ever points into `docs/`.**
 
 ## The six sections
@@ -24,33 +24,33 @@ skill says it, and links. **No skill and no `CLAUDE.md` ever points into `docs/`
 Grouped by **why you are reading**, never by which part of the machine a page touches. Grouping by
 component was rejected outright: *"that's absolute worst way to teach strangers."*
 
-- **Use Flow** — concepts first (what Flow is, tickets, phases, the approval discipline), then running
+- **Use Flow**: concepts first (what Flow is, tickets, phases, the approval discipline), then running
   work. Concepts live here rather than in their own wing, the way ESLint files its core concepts
-- **Configure Flow** — settings, `skillOverrides`, overlays, the project template, **precedence and
+- **Configure Flow**: settings, `skillOverrides`, overlays, the project template, **precedence and
   resolution order**, and **why didn't my skill fire**
-- **Extend Flow** — write a skill, add a stack skill, vendor an external one
-- **Why it works this way** — the decisions
-- **Reference** — every command, key, skill and file
-- **Work on Flow** — the repo, the tests, `try.sh`
+- **Extend Flow**: write a skill, add a stack skill, vendor an external one
+- **Why it works this way**: the decisions
+- **Reference**: every command, key, skill and file
+- **Work on Flow**: the repo, the tests, `try.sh`
 
 **Reference is a section, not the spine.** Both research reports recommended a reference-heavy site on
 the ESLint model, and it is wrong here: ESLint's reader knows what linting is and arrives from an error
 message, while Flow's reader does not know what a phase is. Flow's explanation load is higher and its
 config surface is far smaller.
 
-## `Why it works this way` — four groups
+## `Why it works this way`: four groups
 
 By **scope and consequence**. This is the user's axis, and it is what makes a decision file itself.
 
-- **What you can change** — global, tied to no step, safe to drop. The git-mutation ban,
+- **What you can change**: global, tied to no step, safe to drop. The git-mutation ban,
   `AskUserQuestion` denied, plan mode denied, no changelog, ASCII over images, how the agent explains
   itself
-- **What holds it together** — global, and something breaks. Nothing may change the working tree while
+- **What holds it together**: global, and something breaks. Nothing may change the working tree while
   a subagent runs, because the snapshot diff is the only honest account of what it touched. `git add`
   staying reachable. Descriptions carrying no trigger. One copy of a skill per machine
-- **Inside a phase** — review running in-session, no `code-review` skill, groundwork walking every open
+- **Inside a phase**: review running in-session, no `code-review` skill, groundwork walking every open
   decision to an answer
-- **At setup, once** — symlinks and no copies, no versions, no plugin manifest, every skill on by
+- **At setup, once**: symlinks and no copies, no versions, no plugin manifest, every skill on by
   default, a project overriding key by key
 
 Entry format is Go's FAQ: **the decision, the alternative rejected, the consequence**, in 1 to 3 blunt
@@ -75,7 +75,7 @@ written test rather than by resemblance.**
 - **`docs/README.md` is the index and the tracker.** Every planned page is listed in reading order,
   written or not. A written page is a link, an unwritten one is plain text
 
-## Writing style — three scopes in one file, landed 2026-08-30
+## Writing style: three scopes in one file, landed 2026-08-30
 
 `references/writing.md` became `references/style.md`. It claimed one style with no exceptions and held
 more than one: a manual page is read once by a stranger arriving from a search and never enters a
@@ -83,7 +83,7 @@ session, so rules written for a file that costs tokens on every run do not reach
 
 The file now names three scopes at the top and assigns every section.
 
-**Everything Flow writes** — a skill, a `CLAUDE.md`, a workflow doc, a message to the user, a manual
+**Everything Flow writes**: a skill, a `CLAUDE.md`, a workflow doc, a message to the user, a manual
 page: §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
 
 **Only a file that enters an agent's context**: §1's Step / Reference mark, §2 section shapes, §3 one
@@ -93,7 +93,7 @@ home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatt
 
 **§6 held both and split in place.** `### Anywhere` keeps digits over words, a skill written `/name`,
 and symbols only where genuinely clearer. `### Only in a loaded file` keeps dropping articles, bending
-grammar, and deleting a sentence that changes no behavior — a rule that judges a model rather than a
+grammar, and deleting a sentence that changes no behavior: a rule that judges a model rather than a
 reader, and a manual sentence that changes no behavior may still teach. The section's own opening line
 is why the other half reaches a manual page: *readability first; the token saving is small*.
 
@@ -122,24 +122,24 @@ architecture rather than style, and it lives in this file until the manual is bu
 
 ### What names `style.md`
 
-- **Routing pointers** — the writing-pass rule in `home/CLAUDE.md` → `## Hard rules`,
+- **Routing pointers**: the writing-pass rule in `home/CLAUDE.md` → `## Hard rules`,
   `skills/commands/file-findings/references/write-skills.md:3`, `skills/phases/execute/SKILL.md:154`,
   and 2 in the repo's own `CLAUDE.md` (the hard rule, and `## Writing any file`)
-- **Citations by section number** — `compression.md` cites §3 and §7, `backlog.md` cites §5, §6, §8 and
+- **Citations by section number**: `compression.md` cites §3 and §7, `backlog.md` cites §5, §6, §8 and
   §9, and this file cites §1 through §10
-- **Never swept** — the 2 hits in `skills/tools/visualize/references/draw-mockups.md` are ASCII inside a
+- **Never swept**: the 2 hits in `skills/tools/visualize/references/draw-mockups.md` are ASCII inside a
   mockup, not pointers
 
-## The docs collision — `docs/` was wanted by two things
+## The docs collision: `docs/` was wanted by two things
 
 Flow writes 8 things into a project's `docs/`, and a project installing Flow very often has a `docs/`
 folder already. Both halves settled 2026-08-30.
 
-**Flow's working store moved to `.flow/`** — `tickets/`, `groundwork/`, `inbox.md` and `handoff.md`. A
+**Flow's working store moved to `.flow/`**: `tickets/`, `groundwork/`, `inbox.md` and `handoff.md`. A
 ticket queue is not documentation, which is the line `references/workflow.md` already draws for
 `protos/`: *a prototype is runnable code, and `docs/` stops being documentation once code lives in it*.
 
-**The project's documents stayed in `docs/`** — `spec/`, `context/`, `research/` and `intake/`. Someone
+**The project's documents stayed in `docs/`**: `spec/`, `context/`, `research/` and `intake/`. Someone
 who inherits the repo and never heard of Flow has to find these, and `intake/` holds their own prior
 material. Burying them under a folder named after the tool makes them unfindable by the person who owns
 them: six months on, nobody opens `docs/flow/` to learn why checkout was rebuilt.
@@ -150,7 +150,7 @@ storing tickets in `docs/flow/` puts its whole ticket queue on the internet, and
 hidden root folder sits outside every one of those defaults.
 
 **Flow's own manual is `docs/manual/`.** A root-level `manual/` was argued first and loses the stranger.
-All 3 competitor repos — superpowers, agent-skills, mattpocock's skills — publish from `docs/`, so a
+All 3 competitor repos (superpowers, agent-skills, mattpocock's skills) publish from `docs/`, so a
 stranger opens `docs/` first and lands in Flow's internal specs. Under `docs/manual/` the same instinct
 puts them one click from the manual.
 
@@ -164,7 +164,7 @@ own documentation is served from this repository by GitHub Pages, which is all i
 Flow touches is planning a generator. A landing page for the workflow would reopen the question; nothing
 short of one does.
 
-## `docs/dev/` — the second audience, added 2026-08-30
+## `docs/dev/`: the second audience, added 2026-08-30
 
 **Developer documentation had no home.** Three places existed and none fits: `docs/manual/` is for
 someone using Flow, `lab/` holds *why* a decision was made rather than *how* to carry a procedure out,
@@ -173,8 +173,8 @@ turn that never runs it.
 
 ```
 docs/
-├─ manual/     using Flow — every concept, every command, the reasoning
-└─ dev/        developing Flow — the dev checkout, the scratch session, the tests
+├─ manual/     using Flow: every concept, every command, the reasoning
+└─ dev/        developing Flow: the dev checkout, the scratch session, the tests
 ```
 
 **Both are published and `README.md` indexes both.** The split is audience, and it is the same split
@@ -186,7 +186,7 @@ between a file that enters an agent's context and one read on demand.
 
 `lab/context/design-dev-loop.md` holds what the first pages have to describe.
 
-## `~/.flow/` — one rule for both levels, decided 2026-08-30
+## `~/.flow/`: one rule for both levels, decided 2026-08-30
 
 **`.claude/` holds what Claude Code reads. `.flow/` holds what Flow owns.** One rule, applied on the
 machine and inside a project, and it is the only rule that says without opening anything whether
@@ -201,7 +201,7 @@ Four things under `~/.claude/` are read by Claude Code and stay: `CLAUDE.md`, `s
 
 **The project side had the same problem twice as badly.** A Flow project carried `.claude/flow/skills`
 and `.claude/flow/overlays/` alongside `.flow/tickets/`, `.flow/groundwork/`, `.flow/inbox.md` and
-`.flow/handoff.md` — two Flow folders, one nested inside Claude Code's, and nothing read
+`.flow/handoff.md`: two Flow folders, one nested inside Claude Code's, and nothing read
 `.claude/flow/` except Flow. `.claude/flow/overlays/` moves to `.flow/overlays/`;
 `.claude/flow/skills` is deleted outright, along with the mechanism behind it
 (`design-skills.md` → `## Installing and showing`).
@@ -219,7 +219,7 @@ into the real study cases today.
 **`flow install` resolved one root and hung all four link groups off it**, so `--home` redirected the
 whole install in one move. That single flag is what made `try.sh` safe. Splitting the destination left
 `--home` covering only what Claude Code reads, so `scripts/` and `references/` would have installed
-into the real `~/.flow` from a scratch run — silently, the symlinks then pointing at whichever
+into the real `~/.flow` from a scratch run: silently, the symlinks then pointing at whichever
 checkout ran the script.
 
 **`flow install --flow-home <path>` closes it**, defaulting to `~/.flow`, and `lab/scripts/try.sh`
@@ -269,10 +269,10 @@ has one author).
 - **A generated command reference.** Hand-written, and a command may be explained in several places
   where it is actually reached for. Docs get updated inside the change that touched the CLI, the way the
   writing pass already works
-- **Grouping decisions by component** — `skills.md`, `subagents.md`. Closed
-- **Naming a project's disabled skills in `home/CLAUDE.md`** — that file loads everywhere. Discovery is
+- **Grouping decisions by component**: `skills.md`, `subagents.md`. Closed
+- **Naming a project's disabled skills in `home/CLAUDE.md`**: that file loads everywhere. Discovery is
   `flow skills ls` or the project's settings
-- **Off-by-default for skills — overturned 2026-08-30.** Proposed twice and rejected twice, then
+- **Off-by-default for skills: overturned 2026-08-30.** Proposed twice and rejected twice, then
   reversed by the user: `stack/` skills ship off and a project turns one on. Kept here because the
   2 rejections are still findable and the reversal is what holds. `design-skills.md` →
   `## Installing and showing`
@@ -284,9 +284,9 @@ has one author).
 
 ## Parked, with nothing owed
 
-- **The license.** MIT recommended — every project Flow competes with is MIT. It is just a file: no
+- **The license.** MIT recommended: every project Flow competes with is MIT. It is just a file: no
   registration, no fee. Copyright exists on creation; the file is the permission granted on top. Add it
   any time before the repo goes public
-- **The upstream research caches.** 16 tracked files are verbatim copies of other people's docs —
+- **The upstream research caches.** 16 tracked files are verbatim copies of other people's docs:
   `lab/research/claude-code-docs/` (12), `claude-agent-skill-best-practices.md`, and 3
   `agentskills-*.md`. Publishing republishes them. The user chose to keep them tracked for now

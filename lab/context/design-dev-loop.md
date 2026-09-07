@@ -1,4 +1,4 @@
-# Developing Flow — two checkouts, a scratch session, and a drafts group
+# Developing Flow: two checkouts, a scratch session, and a drafts group
 
 **Locked 2026-08-30.** How a change to Flow gets made and tested without reaching the projects that
 run it. Nothing here is built except the drafts group's absence, which is the current state.
@@ -14,9 +14,9 @@ that holds back one skill answers nothing. What needs two versions is the whole 
 
 ## Two checkouts
 
-- **Stable — `~/code/flow`.** Every symlink in `~/.claude/` and `~/.local/bin/` points here. This is
+- **Stable: `~/code/flow`.** Every symlink in `~/.claude/` and `~/.local/bin/` points here. This is
   what real projects run, and it is not edited during a rework.
-- **Dev — `~/code/flow-dev`.** A second working copy of the same repository, on a branch. Five skills,
+- **Dev: `~/code/flow-dev`.** A second working copy of the same repository, on a branch. Five skills,
   both global files, a new draft, all at once. Nothing reaches a real project, because nothing points
   here.
 
@@ -33,14 +33,14 @@ added or renamed, which is the existing rule.
 
 **Both editing modes exist with no switch to remember:**
 
-- **A quick fix wanted live now** — edit the stable checkout. Instant, in every open session.
-- **A multi-file rework** — edit the dev checkout, test the whole state, merge when it holds.
+- **A quick fix wanted live now**: edit the stable checkout. Instant, in every open session.
+- **A multi-file rework**: edit the dev checkout, test the whole state, merge when it holds.
 
 **Make the second checkout with `git worktree add ../flow-dev <branch>`**, which shares one object
 store. A plain second clone behaves identically. Gitignored folders do not come across, which costs
 nothing: `repos/` is not needed to test the workflow and `tmp/` is rebuilt.
 
-## The scratch session — three fixes to `try.sh`
+## The scratch session: three fixes to `try.sh`
 
 `try.sh` builds a throwaway `~/.claude` under `tmp/try/` and prints the line that starts a real
 session against it. The user called it useless in its current form; the mechanism is right and three
@@ -69,7 +69,7 @@ Code 2.1.251. What it is not is a way to try a single skill.
 ## The drafts group
 
 **A group folder the linker skips.** A new skill starts in `skills/drafts/<name>/`, and graduating is
-`mv skills/drafts/<name> skills/phases/<name>` — free, because nothing outside `skills/` reads a
+`mv skills/drafts/<name> skills/phases/<name>`: free, because nothing outside `skills/` reads a
 group. The catalog's existing name-collision check covers a draft clashing with a shipped skill.
 
 **`flow install --drafts` links them too, and the scratch session passes it always.** Without the
@@ -83,7 +83,7 @@ The installed one keeps working. This is the small case; the two checkouts are t
 moves into a real group when it is worth shipping.
 
 **`flow install --pin <name>`**, which would replace one skill's symlink with a real copy, was designed
-and deferred. A pin you must remember to remove is a new failure mode — a skill silently frozen at an
+and deferred. A pin you must remember to remove is a new failure mode: a skill silently frozen at an
 old version, inside a workflow whose best property is that an edit is live. Build it the first time
 the copy-into-drafts route actually annoys.
 
@@ -96,14 +96,14 @@ turn that never runs it.
 
 ```
 docs/
-├─ manual/     using Flow — every concept, every command, the reasoning
-└─ dev/        developing Flow — the dev checkout, the scratch session, the tests
+├─ manual/     using Flow: every concept, every command, the reasoning
+└─ dev/        developing Flow: the dev checkout, the scratch session, the tests
 ```
 
 **Both are published and `README.md` indexes both.** The split is audience.
 
 **The line against the repo `CLAUDE.md` is rule versus procedure.** `CLAUDE.md` keeps the short rules
-that must be in context — never install, scratch files in `tmp/`, a skill edit is live. `docs/dev/`
+that must be in context, never install, scratch files in `tmp/`, a skill edit is live. `docs/dev/`
 holds the long how-to: setting up the dev checkout, what merging back does, running the scratch
 session, running the tests, adding a skill. The dev checkout is the first page it needs, and nothing
 describes it anywhere today.
@@ -126,9 +126,9 @@ describes it anywhere today.
 
 **Two files are copied and then personalised, so a new Flow version never reaches them:**
 
-- `~/.claude/CLAUDE.md` — `install.js` prints `kept: CLAUDE.md — yours, already here` and leaves it. A
+- `~/.claude/CLAUDE.md`: `install.js` prints `kept: CLAUDE.md, yours, already here` and leaves it. A
   rule added to `home/CLAUDE.md` next month reaches nobody who already installed
-- `~/.claude/settings.json` — merged by hand, once, at install
+- `~/.claude/settings.json`: merged by hand, once, at install
 
 **Everything else updates with `git pull`, because every other path is a symlink.** So the whole of
 what the management skill has to solve for updates is: on a re-install, diff those two shipped files
@@ -141,8 +141,8 @@ above says the dev checkout is the first page it needs and that nothing describe
 sentences are answered now.
 
 **Scope was cut to what is locked** (user, 2026-08-31). The workflow is still moving and the user
-said so while approving the pages, so the set covers the mechanics of changing Flow — the two
-checkouts, `try.sh`, the tests, the groups, `flow install`, `util` — and describes no skill and no
+said so while approving the pages, so the set covers the mechanics of changing Flow: the two
+checkouts, `try.sh`, the tests, the groups, `flow install`, `util`, and describes no skill and no
 phase. Nothing in the 5 pages goes stale when a skill is rewritten.
 
 **The pages took the procedure out of `CLAUDE.md`, rather than restating it.** `## Trying a change`
@@ -152,14 +152,14 @@ the rule-versus-procedure line `design-public-docs.md` drew, applied for the fir
 
 **`## Authoring a skill` stayed whole.** Those are rules deciding what you write rather than steps
 you follow, and `style.md` § 10 tells a documentation page to state a definition rather than send the
-reader away for it. The section now names both other homes for the same material —
-`write-skills.md` for a project, `docs/dev/skills.md` for Flow — so an edit hits all 3.
+reader away for it. The section now names both other homes for the same material:
+`write-skills.md` for a project, `docs/dev/skills.md` for Flow, so an edit hits all 3.
 
 ## The tree map left `CLAUDE.md`, 2026-09-01
 
 **The complaint was frequency, not length.** The user noticed that almost every turn ended in an edit
 to the repo `CLAUDE.md` and read that as status living in a file that must hold none. The history
-agrees: 31 commits have touched the file since 2026-07-18, and `## Layout` was in 24 of them — the
+agrees: 31 commits have touched the file since 2026-07-18, and `## Layout` was in 24 of them, the
 most edited section in the file, and a census of what sits in each folder rather than a rule about
 anything.
 
@@ -175,7 +175,7 @@ anyone scanning for rules, which is how all 5 ended up there.
 
 **`## Authoring a skill` was cut, reversing 2026-08-31.** The entry above says it stayed whole
 because its bullets are rules rather than steps. That held until the same material existed in 3
-places and the section itself instructed editing all 3 — which made it the second most edited
+places and the section itself instructed editing all 3, which made it the second most edited
 section, at 17 commits. What stayed is the 6 decisions no page carries: `commands/` is closed,
 `code-review` is never built, a repeatedly invoked skill stays short, `file-findings` is the density
 target, plain words only, and no versions or plugin manifest. `docs/dev/skills.md` holds the how-to.

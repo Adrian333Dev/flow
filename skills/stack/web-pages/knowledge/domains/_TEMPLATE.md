@@ -3,7 +3,7 @@
 _Last updated: <YYYY-MM-DD> from capture `<bundle-name>`._
 
 > Copy this file to `<slug>.md` (e.g. `youtube-watch.md`) for a new page. Record
-> only what you **verified** from a real capture — this file is trusted by future
+> only what you **verified** from a real capture: this file is trusted by future
 > runs. Mark anything unconfirmed as an open question.
 
 ## What this page is
@@ -20,7 +20,7 @@ Detected frameworks; important globals (`window.X`); how state is stored.
 `event → which handler owns it` (include `handlerHash` and/or the node's css-path
 when known), and any **intervention** proven to work or fail (e.g. "← seek blocked
 by `window`-capture `stopImmediatePropagation`; `preventDefault` alone does
-nothing"). This is the highest-value section — the "we already figured this out"
+nothing"). This is the highest-value section: the "we already figured this out"
 cache.
 
 ## Shadow DOM / iframes

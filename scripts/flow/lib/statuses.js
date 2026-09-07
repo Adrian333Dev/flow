@@ -9,15 +9,15 @@
  * you type to move a ticket into it.
  *
  * Adding a status means adding a row, and the row brings its own command with
- * it. The one thing a row cannot carry is a refusal — `done` refuses on a
- * parent with open children, `dropped` refuses while live dependents exist —
+ * it. The one thing a row cannot carry is a refusal: `done` refuses on a
+ * parent with open children, `dropped` refuses while live dependents exist,
  * so those stay in the command that writes them.
  */
 
 /*
  * Three statuses cover the work, and each names what is happening.
- * `groundwork` — the questions are still open. `planning` — they are settled
- * and the plan is being written. `building` — the plan is approved and code
+ * `groundwork`: the questions are still open. `planning`: they are settled
+ * and the plan is being written. `building`: the plan is approved and code
  * starts. The trio replaces `in-progress`, which was true during all of it and
  * answered nothing, and then `thinking`, which covered the first two at once
  * and so could not say whether a ticket was still undecided.
@@ -68,7 +68,7 @@ const RANK = Object.fromEntries(STATUSES.map((s) => [s.name, s.rank]));
  * How far along the line a status sits, for asking whether a ticket has already
  * passed some point. Row order is lifecycle order, so the index answers it.
  *
- * `parked` and `dropped` sit off the line and their numbers mean nothing here —
+ * `parked` and `dropped` sit off the line and their numbers mean nothing here:
  * handle both before comparing.
  */
 const ORDER = Object.fromEntries(STATUSES.map((s, i) => [s.name, i]));
@@ -77,7 +77,7 @@ const ORDER = Object.fromEntries(STATUSES.map((s, i) => [s.name, i]));
  * The verbs, and what each one does.
  *
  * A status move is the most-typed thing `flow` does, and it used to be spelled
- * `flow tickets edit t047 --status building` — 5 words to write one field. The
+ * `flow tickets edit t047 --status building`: 5 words to write one field. The
  * summaries are separate from the table because a sentence inside an aligned
  * row destroys the alignment that makes the row readable.
  */
@@ -96,12 +96,12 @@ const DOES = {
 
 /**
  * The first status a type actually uses. An `issue` and a `prototype` have no
- * questions to settle before work starts — a bug's cause is hunted while the
- * fix is written, and a prototype's question arrives with the ticket — so both
+ * questions to settle before work starts: a bug's cause is hunted while the
+ * fix is written, and a prototype's question arrives with the ticket, so both
  * open at `building` rather than resting in a status that describes neither.
  *
  * Nothing performs this move. `flow <id>` prints the verb for it, and the skill
- * picking the ticket up types it — after reading the ticket, never before.
+ * picking the ticket up types it: after reading the ticket, never before.
  */
 const ENTRY_STATUS = { issue: 'building', prototype: 'building' };
 const entryStatusFor = (type) => ENTRY_STATUS[type] || 'groundwork';

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * snapshot.js — hands the parent the diff of what a subagent changed.
+ * snapshot.js: hands the parent the diff of what a subagent changed.
  *
  * Registered twice on the Agent tool: PreToolUse with --before, PostToolUse
  * with --after. Reads the tool call as JSON on stdin, the same way guard.js
@@ -19,7 +19,7 @@
  * be taken before the subagent exists, and a skill can be skipped at exactly
  * that moment. A hook cannot forget.
  *
- * Silent wherever it has nothing to say — not a git repo, no stored snapshot,
+ * Silent wherever it has nothing to say, not a git repo, no stored snapshot,
  * nothing changed, any failure at all. A hook that prints nothing changes
  * nothing, and a broken diff must never take a dispatch down with it.
  */
@@ -114,7 +114,7 @@ try {
   const stat = git(['diff-tree', '-r', '--stat', state.tree, after], cwd);
   emit(
     `The subagent changed these files. The patch was too large to inline, so ` +
-    `every file is listed here and the full patch is at ${patchPath} — read it ` +
+    `every file is listed here and the full patch is at ${patchPath}: read it ` +
     `for any file whose changes matter.\n\n${stat}`
   );
 } catch {

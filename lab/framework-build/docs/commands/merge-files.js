@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * merge-files — Merge files/folders into a single LLM-friendly output streamed to stdout.
+ * merge-files: Merge files/folders into a single LLM-friendly output streamed to stdout.
  *
  * Each file becomes a fenced code block: ```lang path/to/file
  * Consecutive blank lines are collapsed to one.

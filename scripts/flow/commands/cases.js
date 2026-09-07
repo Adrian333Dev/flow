@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Recorded failures — the one group that works outside a project, because the
+ * Recorded failures: the one group that works outside a project, because the
  * payoff is seeing one failure three times rather than once per repo.
  *
  * No `drop`. A recorded failure is never removed: keeping it is the whole
@@ -31,7 +31,7 @@ function readBody(flags) {
 const actions = {};
 
 /**
- * The issue is the folder, and the folder is the whole mechanism — 3 cases of
+ * The issue is the folder, and the folder is the whole mechanism: 3 cases of
  * one failure only add up while they share a name. So `--issue` is required, it
  * is slugified rather than trusted, and a near-miss refuses.
  */
@@ -57,7 +57,7 @@ actions.new = {
         throw new FlowError(
           `"${issue}" is close to an issue that already exists:\n` +
           near.map((n) => `  ${n}`).join('\n') +
-          '\n\nOne failure, one folder — a second spelling splits the count and nothing errors.\n' +
+          '\n\nOne failure, one folder: a second spelling splits the count and nothing errors.\n' +
           `  Reuse it:           flow cases new "${title}" --issue ${near[0]}\n` +
           `  A new kind, really: flow cases new "${title}" --issue ${issue} --force`
         );
@@ -133,9 +133,9 @@ actions.edit = {
     }
 
     if (flags.status === 'fixed') {
-      // A fix nobody can point at is not a fix — the file that changed is the
+      // A fix nobody can point at is not a fix: the file that changed is the
       // only evidence the rule actually moved.
-      if (!flags.by && !c.data.fix) throw new FlowError('--by names the file that changed — a fix nobody can point at is not a fix.');
+      if (!flags.by && !c.data.fix) throw new FlowError('--by names the file that changed: a fix nobody can point at is not a fix.');
       if (c.data.status === 'fixed' && !flags.by) {
         out(`${c.issue}/${c.name} is already fixed by ${c.data.fix || '-'}.`);
         return 0;
@@ -152,7 +152,7 @@ actions.edit = {
       c.data.fix = '';
     }
 
-    if (!changes.length) throw new FlowError('nothing to change — pass --status or --rule.');
+    if (!changes.length) throw new FlowError('nothing to change: pass --status or --rule.');
 
     cases.writeCase(c);
     out(`${c.issue}/${c.name}\n  ${changes.join('\n  ')}`);

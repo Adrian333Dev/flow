@@ -14,7 +14,7 @@ The other computer takes a different one. Every copy is filed under the name, so
 
     flow work send
 
-Stores everything uncommitted and pushes it. Your files, your branch and your staging area are untouched — nothing is committed and nothing moves.
+Stores everything uncommitted and pushes it. Your files, your branch and your staging area are untouched: nothing is committed and nothing moves.
 
 Run it on whichever branch you are on, before you walk away.
 
@@ -30,7 +30,7 @@ The branch does not have to be where it was. A copy holds a **set of edits**, no
 
     flow work send --clear
 
-Sends, then empties the folder so `git checkout` works. A local copy stays in git's stash, and `git stash pop` puts everything back. Gitignored files stay where they are — the stash does not sweep those.
+Sends, then empties the folder so `git checkout` works. A local copy stays in git's stash, and `git stash pop` puts everything back. Gitignored files stay where they are: the stash does not sweep those.
 
 ## When the branch moved underneath
 

@@ -1,6 +1,6 @@
 'use strict';
 /**
- * YAML frontmatter — the controlled subset Flow actually stores.
+ * YAML frontmatter: the controlled subset Flow actually stores.
  *
  * Scalars and flat arrays, nothing else. Block sequences are accepted on read
  * (a file may have been hand-edited) but never written; arrays serialize inline

@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow audit` — what Claude Code did, read back after the fact.
+ * `flow audit`: what Claude Code did, read back after the fact.
  *
  * A log, never a fixed report. What counts as a problem is not known before
  * the question is asked, so nothing here ranks or scores: it narrows. The
@@ -19,8 +19,8 @@
  * command here only reads it. The index is derived and rebuildable: delete it
  * and `flow audit index` writes it again.
  *
- * It works with no ticket and outside any project. A run — the piece of work a
- * ticket names — is optional everywhere, which is what makes that true.
+ * It works with no ticket and outside any project. A run (the piece of work a
+ * ticket names) is optional everywhere, which is what makes that true.
  */
 
 const fs = require('fs');
@@ -86,7 +86,7 @@ actions.index = {
 
     const seconds = ((Date.now() - started) / 1000).toFixed(1);
     out(`${result.files} transcripts read, ${result.skipped} unchanged, ` +
-        `${result.lines} new lines, ${result.sessions.size} sessions — ${seconds}s`);
+        `${result.lines} new lines, ${result.sessions.size} sessions: ${seconds}s`);
     out(store.dbPath());
     return 0;
   },
@@ -113,7 +113,7 @@ actions.sessions = {
 
 actions.session = {
   args: '<id>',
-  summary: 'one session in full — segments, tools, files, heaviest turns',
+  summary: 'one session in full, segments, tools, files, heaviest turns',
   run({ positional, usage }) {
     out(query.session(opened(true), one(positional, usage, 'session id')));
     return 0;
@@ -189,7 +189,7 @@ actions.sql = {
   args: '<query>',
   summary: 'any question the named ones do not cover',
   run({ positional, usage }) {
-    out(query.sql(opened(true), one(positional, usage, 'query — quote it')));
+    out(query.sql(opened(true), one(positional, usage, 'query: quote it')));
     return 0;
   },
 };
@@ -211,7 +211,7 @@ actions.schema = {
  * The transcripts are 241 MB on this machine and grow monthly, gzip only cuts
  * them to a third, and the index already survives the sweep with every derived
  * fact in it. What a bulk copy buys is asking a *new* question of old chat
- * text — worth it for the few sessions a study case rests on, and for nothing
+ * text: worth it for the few sessions a study case rests on, and for nothing
  * else. This is that escape hatch.
  */
 actions.keep = {

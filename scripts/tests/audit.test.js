@@ -1,11 +1,11 @@
 'use strict';
 /**
- * `flow audit` — the reader, against a transcript built line by line.
+ * `flow audit`: the reader, against a transcript built line by line.
  *
  * A hand-built transcript rather than a real one: the assertions here are
  * about the derivations, and a real session cannot be asserted against without
  * restating what it holds. The shapes are copied from what Claude Code
- * actually writes — verified 2026-09-02 against version 2.1.258 — so a change
+ * actually writes (verified 2026-09-02 against version 2.1.258) so a change
  * to the format breaks this file rather than passing quietly.
  *
  * The incremental walk is the case worth guarding. It resumes from a byte

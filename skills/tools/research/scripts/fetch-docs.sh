@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# fetch-docs.sh — download current docs for a tool into the local research cache.
+# fetch-docs.sh: download current docs for a tool into the local research cache.
 # Part of the `/research` skill. Run from the project root.
 #
 # Usage:
 #   fetch-docs.sh <tool> <domain> [url...]
 #
-#   <tool>    cache folder name — files land in tmp/references/<tool>/
-#   <domain>  bare domain (e.g. ai-sdk.dev) — llms.txt candidates are derived
+#   <tool>    cache folder name: files land in tmp/references/<tool>/
+#   <domain>  bare domain (e.g. ai-sdk.dev): llms.txt candidates are derived
 #             from it. Pass "-" to skip discovery and only fetch the extra URLs.
 #   [url...]  extra URLs fetched verbatim (individual doc pages, raw markdown)
 #
@@ -25,7 +25,7 @@ dest="tmp/references/$tool"
 mkdir -p "$dest"
 meta="$dest/_sources.md"
 
-# fetch <url> <outfile> — succeeds only on HTTP 200 with non-empty, non-HTML content
+# fetch <url> <outfile>: succeeds only on HTTP 200 with non-empty, non-HTML content
 fetch() {
   local url="$1" out="$2" code
   code=$(curl -sL --max-time 120 -o "$out.part" -w '%{http_code}' "$url" 2>/dev/null) || { rm -f "$out.part"; return 1; }
@@ -38,7 +38,7 @@ fetch() {
   echo "saved: $out ($(wc -c < "$out" | tr -d ' ') bytes) <- $url"
 }
 
-# llms.txt discovery — chained candidates, first real hit per variant wins
+# llms.txt discovery: chained candidates, first real hit per variant wins
 if [ "$domain" != "-" ]; then
   for variant in llms-full.txt llms.txt; do
     for base in "https://$domain" "https://docs.$domain" "https://$domain/docs"; do
@@ -46,7 +46,7 @@ if [ "$domain" != "-" ]; then
     done
   done
   if [ ! -e "$dest/llms.txt" ] && [ ! -e "$dest/llms-full.txt" ]; then
-    echo "no llms.txt found for $domain — fall back: Context7 -> web search -> ask the user"
+    echo "no llms.txt found for $domain: fall back: Context7 -> web search -> ask the user"
   fi
 fi
 

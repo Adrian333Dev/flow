@@ -15,14 +15,14 @@ const out = (s) => process.stdout.write(s.endsWith('\n') ? s : s + '\n');
 const HELP_WORDS = ['-h', '--help', 'help'];
 
 /**
- * Matches a typed word against the names that are legal in its position — the
+ * Matches a typed word against the names that are legal in its position: the
  * command, a group's action, a flag, a flag's value. The whole name, always:
  * an abbreviation changes meaning the day a name is added beside it.
  */
 function resolve(word, candidates, label, prefix = '') {
   if (candidates.includes(word)) return word;
   const show = candidates.map((c) => prefix + c).join(', ');
-  throw new FlowError(`unknown ${label} "${prefix}${word}" — one of: ${show}`);
+  throw new FlowError(`unknown ${label} "${prefix}${word}", one of: ${show}`);
 }
 
 /**
@@ -84,7 +84,7 @@ function runAction(action, argv, usage, extra) {
 
 /**
  * The first word is the command. Almost every one of them acts on a ticket, so
- * tickets have no name of their own here — `flow ls`, `flow build t047`. A word
+ * tickets have no name of their own here: `flow ls`, `flow build t047`. A word
  * that names no command is a ticket id, which is what makes `flow t047` show
  * one. `cases` and `work` keep a group each, because each is a different
  * stored thing.
@@ -100,7 +100,7 @@ function dispatch(argv, { commands, groups, fallback, sections, title, notes }) 
   }
 
   const [first, ...rest] = argv;
-  if (first.startsWith('-')) throw new FlowError(`"${first}" is a flag — a command comes first.`);
+  if (first.startsWith('-')) throw new FlowError(`"${first}" is a flag: a command comes first.`);
 
   const names = [...Object.keys(commands), ...Object.keys(groups)];
   const name = names.includes(first) ? first : null;
@@ -112,7 +112,7 @@ function dispatch(argv, { commands, groups, fallback, sections, title, notes }) 
   const [typed, ...args] = rest;
 
   // A group with nothing after it prints its help, unless its default action
-  // takes no argument — then the bare form is that action. `flow cases` has
+  // takes no argument, then the bare form is that action. `flow cases` has
   // nothing to show without a name and helps instead; `flow git` answers.
   if (!typed || HELP_WORDS.includes(typed)) {
     const fallbackAction = group.default && group.actions[group.default];
@@ -194,7 +194,7 @@ function help({ commands, groups, sections, title, notes }) {
     lines.push(...actionLines('flow', picked));
   }
   for (const [name, group] of Object.entries(groups)) {
-    lines.push('', group.summary ? `${name} — ${group.summary}` : name);
+    lines.push('', group.summary ? `${name}: ${group.summary}` : name);
     lines.push(...groupLines(name, group));
   }
   if (notes) lines.push('', notes);
@@ -202,7 +202,7 @@ function help({ commands, groups, sections, title, notes }) {
 }
 
 function groupHelp(name, group) {
-  const lines = [group.summary ? `flow ${name} — ${group.summary}` : `flow ${name}`, ''];
+  const lines = [group.summary ? `flow ${name}: ${group.summary}` : `flow ${name}`, ''];
   lines.push(...groupLines(name, group));
   return lines.join('\n');
 }

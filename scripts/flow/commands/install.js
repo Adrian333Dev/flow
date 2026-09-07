@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Put Flow on this machine — every symlink, in one idempotent pass.
+ * Put Flow on this machine: every symlink, in one idempotent pass.
  *
  * Run it once by path on a fresh machine, because `flow` is not a command
  * until this has made it one:
@@ -125,7 +125,7 @@ actions.install = {
     // profile. Overwriting would take the second one away.
     const rules = path.join(home, 'CLAUDE.md');
     if (fs.existsSync(rules)) {
-      done.push(`kept: CLAUDE.md — yours, already here`);
+      done.push(`kept: CLAUDE.md, yours, already here`);
     } else {
       fs.copyFileSync(path.join(clone, 'home', 'CLAUDE.md'), rules);
       done.push('copied: CLAUDE.md');
@@ -138,7 +138,7 @@ actions.install = {
       `into ${path.join(home, 'settings.json')}. It carries the permission rules, the\n` +
       `PreToolUse hook and a few feature flags; ${path.join(clone, 'home', 'settings.md')} explains every key.\n` +
       `Merged rather than copied, because your settings hold things Flow should not own.\n` +
-      `Restart Claude Code afterwards — settings load at startup.`
+      `Restart Claude Code afterwards: settings load at startup.`
     );
 
     if (!flags['no-bin']) {

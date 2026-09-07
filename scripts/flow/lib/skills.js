@@ -2,7 +2,7 @@
 /**
  * The skill catalog, what installs, and what a session is shown of each one.
  *
- * A skill is a folder holding `SKILL.md`, filed 1 level deep under a group —
+ * A skill is a folder holding `SKILL.md`, filed 1 level deep under a group:
  * `skills/phases/groundwork/`. The group files it and decides one thing:
  * `drafts/` does not install, and every other group does.
  *
@@ -39,7 +39,7 @@ const subdirs = (dir) => {
 /**
  * Every skill in the clone, keyed by name.
  *
- * A name is the whole identity — it is the filename of every link — so two
+ * A name is the whole identity (it is the filename of every link) so two
  * skills sharing one across groups is a collision rather than a preference.
  * Refusing here surfaces it on the next command instead of the day one link
  * silently overwrites the other.
@@ -62,7 +62,7 @@ function catalog() {
   }
 
   if (clashes.size) {
-    const lines = [...clashes].map(([name, groups]) => `  ${name} — ${groups.join(', ')}`);
+    const lines = [...clashes].map(([name, groups]) => `  ${name}: ${groups.join(', ')}`);
     throw new FlowError(
       'two skills share a name, and a link is named for the skill:\n' +
       lines.join('\n') +
@@ -97,12 +97,12 @@ function readOverrides(file) {
     text = fs.readFileSync(file, 'utf8');
   } catch (e) {
     if (e.code === 'ENOENT') return {};
-    throw new FlowError(`${file} could not be read — ${e.message}`);
+    throw new FlowError(`${file} could not be read: ${e.message}`);
   }
   try {
     return JSON.parse(text).skillOverrides || {};
   } catch (e) {
-    throw new FlowError(`${file} is not valid JSON — ${e.message}`);
+    throw new FlowError(`${file} is not valid JSON: ${e.message}`);
   }
 }
 
@@ -112,7 +112,7 @@ function readOverrides(file) {
  * A name nobody mentions is `on`: Claude Code shows a skill it was told nothing
  * about. The project's file beats the machine's key by key rather than
  * replacing the object, so a project `on` restores a skill the machine turned
- * off — verified against Claude Code 2.1.251 on 2026-08-29.
+ * off: verified against Claude Code 2.1.251 on 2026-08-29.
  */
 function states(root) {
   const machine = readOverrides(path.join(configDir(), 'settings.json'));

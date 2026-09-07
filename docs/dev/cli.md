@@ -45,9 +45,9 @@ What to work on, ranked by priority.
 
 Three sections, in order. Each appears only when it has content:
 
-1. **In flight** — tickets someone is already working on (groundwork, planning, building, review). Shown first so a new session finishes existing work before starting more.
-2. **Ready** — todo tickets whose dependencies are all satisfied and whose children (if any) are all closed. Ranked by effective priority: a child inherits its nearest ancestor's priority when it has none of its own.
-3. **Blocked** — shown only when nothing is ready. Lists todo tickets with unsatisfied dependencies and names what each one waits on.
+1. **In flight**: tickets someone is already working on (groundwork, planning, building, review). Shown first so a new session finishes existing work before starting more.
+2. **Ready**: todo tickets whose dependencies are all satisfied and whose children (if any) are all closed. Ranked by effective priority: a child inherits its nearest ancestor's priority when it has none of its own.
+3. **Blocked**: shown only when nothing is ready. Lists todo tickets with unsatisfied dependencies and names what each one waits on.
 
 Flags: `--limit <n>` (show at most n ready tickets, default 10), `--all` (no limit).
 
@@ -55,11 +55,11 @@ Flags: `--limit <n>` (show at most n ready tickets, default 10), `--all` (no lim
 
 Integrity problems in the ticket graph. Exits 0 when clean, 1 when problems exist. Reports:
 
-- **Dependency cycles** — t001 → t002 → t001
-- **Dangling deps** — a ticket depends on an id that does not exist
-- **Dropped blockers** — a ticket depends on a dropped ticket, so it can never become ready
-- **Dangling parents** — a ticket names a parent that does not exist
-- **Closed parents** — a ticket is still open but its parent is done or dropped
+- **Dependency cycles**: t001 → t002 → t001
+- **Dangling deps**: a ticket depends on an id that does not exist
+- **Dropped blockers**: a ticket depends on a dropped ticket, so it can never become ready
+- **Dangling parents**: a ticket names a parent that does not exist
+- **Closed parents**: a ticket is still open but its parent is done or dropped
 
 Only live tickets are reported. A done ticket that once depended on a dropped one is history.
 
@@ -85,9 +85,9 @@ Commands that name a ticket and act on it.
 
 Three shapes:
 
-- **`flow get`** — the board: counts across every status, last closed ticket, in-flight work, ready tickets, parked tickets, and unfiled tickets. `flow <id>` is a shorthand for `flow get <id>`.
-- **`flow get <id>`** — one ticket in full. Prints every field: status, type, priority (own and inherited), parent, deps (with their statuses), dependents, children (with a progress count), plan steps if a plan exists, reports, closed and filed dates, the pickup command, and the ticket body.
-- **`flow get <path>`** — reads a file (a handoff, a spec, loose notes) and loads any `flow-open` block it contains.
+- **`flow get`**: the board: counts across every status, last closed ticket, in-flight work, ready tickets, parked tickets, and unfiled tickets. `flow <id>` is a shorthand for `flow get <id>`.
+- **`flow get <id>`**: one ticket in full. Prints every field: status, type, priority (own and inherited), parent, deps (with their statuses), dependents, children (with a progress count), plan steps if a plan exists, reports, closed and filed dates, the pickup command, and the ticket body.
+- **`flow get <path>`**: reads a file (a handoff, a spec, loose notes) and loads any `flow-open` block it contains.
 
 An id is a number and a label: `t047-parser-split`. The number is the identity. Any unambiguous part resolves it: `t047`, `47`, `parser`, or the whole thing.
 
@@ -101,14 +101,14 @@ Create a ticket. Returns the id, the path, and the pickup command.
 
 Flags:
 
-- `--type <type>` — feature (default), issue, chore, topic, or prototype
-- `--priority <level>` — high, normal (default, not stored), or low
-- `--parent <id>` — the ticket this one was split out of
-- `--deps <id,id>` — tickets that must be satisfied before this one can start. Each id is validated against existing tickets
-- `--label "<words>"` — 1-3 words for the folder name. Generated from the title when absent
-- `--body "<text>"` — the ticket body, replacing the template
-- `--body -` — read the body from stdin, so creating and filling a ticket is one command
-- `--from-groundwork <path>` — move an existing groundwork folder in as this ticket's own
+- `--type <type>`: feature (default), issue, chore, topic, or prototype
+- `--priority <level>`: high, normal (default, not stored), or low
+- `--parent <id>`: the ticket this one was split out of
+- `--deps <id,id>`: tickets that must be satisfied before this one can start. Each id is validated against existing tickets
+- `--label "<words>"`: 1-3 words for the folder name. Generated from the title when absent
+- `--body "<text>"`: the ticket body, replacing the template
+- `--body -`: read the body from stdin, so creating and filling a ticket is one command
+- `--from-groundwork <path>`: move an existing groundwork folder in as this ticket's own
 
 Every ticket gets a `groundwork/` folder with a `map.md` from birth. The folder exists whether groundwork is needed or not, because a ticket's path is fixed for life.
 
@@ -138,9 +138,9 @@ Kill a ticket. `--reason` is always required: nothing else records why the work 
 
 The danger is what depended on it. `deps` is stored on one side only, so dropping a ticket silently strands everything that needed it. Three behaviors handle this:
 
-- **Bare drop** — refuses when live dependents exist, and prints the whole chain (transitive, not just direct).
-- **`--by <id>`** — re-points every direct dependent at the replacement ticket. The dropped ticket's edge is replaced, and anything further out keeps working.
-- **`--force`** — drops every transitive dependent along with it.
+- **Bare drop**: refuses when live dependents exist, and prints the whole chain (transitive, not just direct).
+- **`--by <id>`**: re-points every direct dependent at the replacement ticket. The dropped ticket's edge is replaced, and anything further out keeps working.
+- **`--force`**: drops every transitive dependent along with it.
 
 `--by` and `--force` are mutually exclusive. `--by` refuses a dropped replacement (those dependents could never become ready) and refuses when re-pointing would close a cycle.
 
@@ -166,8 +166,8 @@ There is no `flow dropped` command. Dropping uses `flow drop` instead, because i
 
 Where a ticket starts depends on its type:
 
-- **Features, chores, topics** open at `groundwork` — questions to settle first
-- **Issues and prototypes** open at `building` — no separate groundwork phase, the investigation happens while building
+- **Features, chores, topics** open at `groundwork`: questions to settle first
+- **Issues and prototypes** open at `building`: no separate groundwork phase, the investigation happens while building
 
 `flow <id>` prints the pickup command: `pick up with: flow groundwork t047` or `pick up with: flow build t047`.
 
@@ -181,10 +181,10 @@ Where a ticket starts depends on its type:
 
 Four guards, each refused with a message explaining what to do:
 
-1. **Unmet dependencies** — picking up a todo ticket (or moving back to planning) refuses when any dep is unsatisfied. A dep is satisfied by `review` or `done`.
-2. **Open children** — picking up a parent ticket refuses while children are still open. The parent's work runs after theirs.
-3. **Done with open children** — `flow done` refuses on a parent whose children are still open.
-4. **Reason required** — `flow park` refuses without `--reason`.
+1. **Unmet dependencies**: picking up a todo ticket (or moving back to planning) refuses when any dep is unsatisfied. A dep is satisfied by `review` or `done`.
+2. **Open children**: picking up a parent ticket refuses while children are still open. The parent's work runs after theirs.
+3. **Done with open children**: `flow done` refuses on a parent whose children are still open.
+4. **Reason required**: `flow park` refuses without `--reason`.
 
 `--force` overrides guards 1, 2, and 3. Guard 4 has no override.
 
@@ -192,7 +192,7 @@ Four guards, each refused with a message explaining what to do:
 
 A ticket with no priority inherits the nearest ancestor's through the parent chain. Marking one parent `high` lifts a whole feature without touching any child. An explicit value always beats an inherited one, so a `low` chore under a `high` feature stays `low`.
 
-`flow get <id>` spells out the inheritance: `priority: high — inherited from t012`.
+`flow get <id>` spells out the inheritance: `priority: high (inherited from t012)`.
 
 ## Cases
 

@@ -8,7 +8,7 @@
  *
  * The mechanism, in full: build a commit holding everything in the project
  * folder, hang it off the commit you are on, and write its name into a label
- * under refs/unfinished/ — a place git never looks on its own. The label is not
+ * under refs/unfinished/: a place git never looks on its own. The label is not
  * a branch, so it never shows up in `git branch`, nothing switches to it, and
  * committing does not move it. Push the label and the other machine can fetch
  * it. Nothing about the branch, the staging area or the files on disk changes
@@ -16,7 +16,7 @@
  *
  * One label per machine per branch, so two machines can never overwrite each
  * other. Only the newest copy is kept, which is what makes the push a forced
- * one — safe here because one machine writes each label and nothing reads it as
+ * one: safe here because one machine writes each label and nothing reads it as
  * history.
  *
  * references/work-sync.md explains what a copy is and why the label sits
@@ -44,7 +44,7 @@ const SHOWN = 12;
 /**
  * Every git call in this file goes through here. Two forms: `git(args)` throws
  * a readable failure, `git.try(args)` hands back the exit code so the caller can
- * treat a non-zero as an answer — which it is for `apply`, where conflicts are
+ * treat a non-zero as an answer, which it is for `apply`, where conflicts are
  * the expected outcome rather than a fault.
  */
 function runner(root) {
@@ -129,7 +129,7 @@ const UNNAMED =
  * Set by hand, once per machine, and never guessed.
  *
  * The name decides which label a copy is filed under, so two machines that
- * answer to the same one share a slot and overwrite each other every send —
+ * answer to the same one share a slot and overwrite each other every send,
  * with no error, because from the outside it looks like one machine sending
  * twice. The hostname was the first design and was dropped for exactly that:
  * WSL hands out defaults like `me`, which both machines would report.
@@ -206,7 +206,7 @@ function buildCopy(ctx, message) {
 }
 
 /**
- * A folder with its own .git inside it records as a pointer and nothing else —
+ * A folder with its own .git inside it records as a pointer and nothing else:
  * git stores the inner commit's name, not the inner files, and that name means
  * nothing on the other machine. Worth saying out loud at send time, because the
  * files look included right up until they are missing.
@@ -263,7 +263,7 @@ function readCopies(git) {
 function fetchCopies(git, remote) {
   if (!remote) return null;
   const r = git.try(['fetch', '--force', '--prune', remote, `${NS}/*:${NS}/*`]);
-  return r.ok ? null : `could not reach ${remote} — showing whatever was already fetched.`;
+  return r.ok ? null : `could not reach ${remote}: showing whatever was already fetched.`;
 }
 
 function age(ms) {
@@ -291,7 +291,7 @@ actions.send = {
 
     const built = buildCopy(ctx, flags.message || `unfinished: ${machine}/${branch}`);
     if (built.tree === treeOf(git, head)) {
-      throw new FlowError(`nothing uncommitted on ${branch} — the folder already matches the last commit.`);
+      throw new FlowError(`nothing uncommitted on ${branch}: the folder already matches the last commit.`);
     }
     git(['update-ref', ref, built.copy]);
 
@@ -321,7 +321,7 @@ actions.send = {
     if (!push.ok) {
       out(`\nThe copy is stored here, but ${remote} refused it:`);
       out(indent(push.stderr));
-      out(`\n  Nothing is lost — the copy is at ${ref} on this machine.`);
+      out(`\n  Nothing is lost: the copy is at ${ref} on this machine.`);
       return 1;
     }
     out(`\npushed to ${remote}`);
@@ -345,7 +345,7 @@ function clearFolder(git) {
   }
   out('\nThe folder is clean, so a branch switch works now.');
   out('  put it back here:  git stash pop');
-  out('  Gitignored files were left alone — git stash does not sweep those.');
+  out('  Gitignored files were left alone: git stash does not sweep those.');
 }
 
 actions.get = {
@@ -412,7 +412,7 @@ actions.get = {
       git(['reset', '--quiet']);
     } else {
       // `diff --cached` reports unmerged paths as well as staged ones, so the
-      // conflicted files have to come back out or they get counted twice —
+      // conflicted files have to come back out or they get counted twice,
       // once as a conflict and again as a clean merge.
       const staged = lines(git(['diff', '--cached', '--name-only'])).filter((f) => !conflicted.includes(f));
       if (staged.length) {
@@ -430,7 +430,7 @@ actions.get = {
 /**
  * Which copy to replay. The other machine's is what you almost always want, so
  * that is the default and this machine's own is only used when it is the only
- * one — the case where the folder was re-cloned. More than one candidate refuses
+ * one: the case where the folder was re-cloned. More than one candidate refuses
  * and lists them rather than guessing.
  */
 function chooseCopy(copies, { branch, machine, wanted }) {
@@ -443,8 +443,8 @@ function chooseCopy(copies, { branch, machine, wanted }) {
   if (wanted) {
     const exact = here.filter((c) => c.machine === wanted);
     const hits = exact.length ? exact : here.filter((c) => c.machine.startsWith(wanted));
-    if (!hits.length) throw new FlowError(`no copy from "${wanted}" on ${branch} — there is one from ${here.map((c) => c.machine).join(', ')}.`);
-    if (hits.length > 1) throw new FlowError(`"${wanted}" matches ${hits.map((c) => c.machine).join(', ')} — name one in full.`);
+    if (!hits.length) throw new FlowError(`no copy from "${wanted}" on ${branch}: there is one from ${here.map((c) => c.machine).join(', ')}.`);
+    if (hits.length > 1) throw new FlowError(`"${wanted}" matches ${hits.map((c) => c.machine).join(', ')}: name one in full.`);
     return hits[0];
   }
 
@@ -452,7 +452,7 @@ function chooseCopy(copies, { branch, machine, wanted }) {
   const pool = others.length ? others : here;
   if (pool.length > 1) {
     throw new FlowError(
-      `${pool.length} machines have a copy of ${branch} — name one:\n` +
+      `${pool.length} machines have a copy of ${branch}: name one:\n` +
       pool.map((c) => `  flow work get ${c.machine}   (${age(c.when)})`).join('\n')
     );
   }
@@ -460,7 +460,7 @@ function chooseCopy(copies, { branch, machine, wanted }) {
 }
 
 actions.ls = {
-  summary: 'every stored copy — machine, branch, age, file count',
+  summary: 'every stored copy, machine, branch, age, file count',
   flags: { offline: { bool: true } },
   run({ flags }) {
     const ctx = context();
@@ -521,11 +521,11 @@ actions.drop = {
       if (!targets.length) targets = here.filter((c) => c.machine.startsWith(wanted));
       if (!targets.length) {
         throw new FlowError(
-          `no copy from "${wanted}" on ${branch} — there is one from ${here.map((c) => c.machine).join(', ')}.\n` +
+          `no copy from "${wanted}" on ${branch}: there is one from ${here.map((c) => c.machine).join(', ')}.\n` +
           '  Every one of them:  flow work drop --all'
         );
       }
-      if (targets.length > 1) throw new FlowError(`"${wanted}" matches ${targets.map((c) => c.machine).join(', ')} — name one in full.`);
+      if (targets.length > 1) throw new FlowError(`"${wanted}" matches ${targets.map((c) => c.machine).join(', ')}: name one in full.`);
     }
 
     const remote = remoteOf(git, branch);

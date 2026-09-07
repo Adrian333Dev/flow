@@ -19,7 +19,7 @@ class Canvas {
   }
 
   // Write one character. Refuses to leave the grid, and refuses to overwrite a
-  // different character unless it is listed in `over` — that is the overlap check.
+  // different character unless it is listed in `over`: that is the overlap check.
   put(r, c, ch, over = "") {
     if (!(r >= 0 && r < this.H && c >= 0 && c < this.W))
       throw new Error(`off canvas (${r},${c}) ${ch}`);
@@ -72,7 +72,7 @@ class Canvas {
     return [r1, c1];
   }
 
-  // Horizontal run with the label centred inside it — `── to PromptSubmit ──`.
+  // Horizontal run with the label centred inside it: `── to PromptSubmit ──`.
   // Throws when the label does not fit, which is the defect a reread never catches.
   run(r, c0, c1, label, ch = "─") {
     const tag = ` ${label} `;

@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow overlays get` — the command every skill's last line runs.
+ * `flow overlays get`: the command every skill's last line runs.
  *
  * Its two silences matter more than its output. A skill loads in projects that
  * carry no overlay and in folders that are not projects at all, and neither may

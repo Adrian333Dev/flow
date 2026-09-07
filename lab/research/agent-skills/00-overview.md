@@ -1,4 +1,4 @@
-# agent-skills — overview
+# agent-skills: overview
 
 Repository: [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills)
 Version at time of reading: 0.6.6 (plugin.json)
@@ -6,20 +6,20 @@ Cloned to: `repos/agent-skills/` (read-only)
 
 ## What it is
 
-A curated library of 24 engineering workflow skills for AI coding agents. Each skill is a `SKILL.md` file that tells an agent *how* to follow a specific engineering process — not what the process is, but which steps to take, what to check, and what rationalizations to reject. The repo ships those skills plus the test infrastructure to prove they route correctly and change agent behavior as claimed.
+A curated library of 24 engineering workflow skills for AI coding agents. Each skill is a `SKILL.md` file that tells an agent *how* to follow a specific engineering process, not what the process is, but which steps to take, what to check, and what rationalizations to reject. The repo ships those skills plus the test infrastructure to prove they route correctly and change agent behavior as claimed.
 
 The target audience is any engineering team that wants their AI agent to behave like a disciplined senior engineer rather than a code-completion machine. The skills are designed to be multi-tool: the same files install into Claude Code, Cursor, Windsurf, GitHub Copilot, OpenAI Codex, and others via their respective rules-file conventions.
 
 ## The problem it solves
 
-An agent given "build this feature" will take the shortest path to code. It will skip the spec, write 500 lines before testing anything, commit everything in one blob, and never verify its assumptions. These skills install friction at exactly the moments where engineers slow down on purpose — before writing code, at each increment, before merging.
+An agent given "build this feature" will take the shortest path to code. It will skip the spec, write 500 lines before testing anything, commit everything in one blob, and never verify its assumptions. These skills install friction at exactly the moments where engineers slow down on purpose: before writing code, at each increment, before merging.
 
 ## Scale
 
-- 24 skills — one `SKILL.md` each
+- 24 skills: one `SKILL.md` each
 - 87 markdown files total across the repo
 - ~85,000 words total
-- 24 eval case files — one JSON per skill
+- 24 eval case files: one JSON per skill
 - 8 TOML slash commands
 - 4 agent personas
 - 4 hooks (2 are paired pre/post)
@@ -105,13 +105,13 @@ agent-skills/
 
 ## How the skills are grouped (their own grouping)
 
-**Define** — interview-me, idea-refine, spec-driven-development
-**Plan** — planning-and-task-breakdown
-**Build** — incremental-implementation, test-driven-development, context-engineering, source-driven-development, doubt-driven-development, frontend-ui-engineering, api-and-interface-design
-**Verify** — browser-testing-with-devtools, debugging-and-error-recovery
-**Review** — code-review-and-quality, code-simplification, security-and-hardening, performance-optimization
-**Ship** — git-workflow-and-versioning, ci-cd-and-automation, deprecation-and-migration, documentation-and-adrs, observability-and-instrumentation, shipping-and-launch
-**Meta** — using-agent-skills
+**Define**: interview-me, idea-refine, spec-driven-development
+**Plan**: planning-and-task-breakdown
+**Build**: incremental-implementation, test-driven-development, context-engineering, source-driven-development, doubt-driven-development, frontend-ui-engineering, api-and-interface-design
+**Verify**: browser-testing-with-devtools, debugging-and-error-recovery
+**Review**: code-review-and-quality, code-simplification, security-and-hardening, performance-optimization
+**Ship**: git-workflow-and-versioning, ci-cd-and-automation, deprecation-and-migration, documentation-and-adrs, observability-and-instrumentation, shipping-and-launch
+**Meta**: using-agent-skills
 
 ## How skills load
 
@@ -123,4 +123,4 @@ The repo supports a Claude Code marketplace plugin (`plugin.json`), which instal
 
 ## Key design bet
 
-Skills are workflows, not reference docs. Every `SKILL.md` tells the agent what to *do* — steps, checks, and tables of excuses to reject — not facts about the subject. A skill that says "here is what TDD is" is documentation. A skill that says "write the failing test before the code; if you find yourself writing the code first, stop" is a behavioral intervention.
+Skills are workflows, not reference docs. Every `SKILL.md` tells the agent what to *do* (steps, checks, and tables of excuses to reject) not facts about the subject. A skill that says "here is what TDD is" is documentation. A skill that says "write the failing test before the code; if you find yourself writing the code first, stop" is a behavioral intervention.

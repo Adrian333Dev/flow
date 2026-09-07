@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow skills` and `flow install` — what installs, and what a session is shown.
+ * `flow skills` and `flow install`: what installs, and what a session is shown.
  *
  * Every install here targets a scratch folder and passes --no-bin. A test that
  * wrote into ~/.claude, ~/.flow or ~/.local/bin would install Flow on the

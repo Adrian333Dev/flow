@@ -1,6 +1,6 @@
 'use strict';
 /**
- * settings.json — what Flow itself reads, as opposed to what Claude Code reads.
+ * settings.json: what Flow itself reads, as opposed to what Claude Code reads.
  *
  *   ~/.flow/settings.json          global, and where a session entry lives
  *   <project>/.flow/settings.json  one project
@@ -10,7 +10,7 @@
  *
  * Reading never throws. `guard.js` calls it before every shell command the
  * agent runs, and a missing, empty or corrupt file has to mean the same thing
- * as a file that says off — never a crash that leaves the decision unmade.
+ * as a file that says off, never a crash that leaves the decision unmade.
  */
 
 const fs = require('fs');
@@ -86,7 +86,7 @@ const live = (entry) =>
  *
  * A `session` field is what makes the global file's entry session-scoped, so a
  * session entry belonging to a different session is not a global entry that
- * happens to be narrowed — it governs nothing here at all.
+ * happens to be narrowed: it governs nothing here at all.
  */
 function gitScope({ session, cwd }) {
   const global = globalFile();

@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Project root discovery. Commands take no path — they find the project from
+ * Project root discovery. Commands take no path: they find the project from
  * wherever they were run.
  *
  * `git rev-parse --show-toplevel` rather than a hand-rolled walk up the tree:

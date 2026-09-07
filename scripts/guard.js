@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * guard.js — PreToolUse guard, enforcing what CLAUDE.md can only ask for.
+ * guard.js: PreToolUse guard, enforcing what CLAUDE.md can only ask for.
  *
  * Registered as a PreToolUse hook on Bash. Reads the pending tool call as JSON
  * on stdin and prints a verdict on stdout.
@@ -60,7 +60,7 @@ const SELF_UNLOCK = [
 
 // Destructive whatever the mode says: each one throws away work that no reflog,
 // stash or remote gets back. These ask rather than deny, so nothing is walled
-// off — you are still the one who says yes, every time.
+// off: you are still the one who says yes, every time.
 //
 // Matched on the subcommand and its own tokens, never on the raw text. A
 // pattern over the whole segment makes `git log --grep=clean` a destructive
@@ -83,7 +83,7 @@ const GIT_DESTRUCTIVE = {
   gc: [(t) => has(t, '--prune'), 'a prune'],
 };
 
-// Every git subcommand that only reads. Anything missing from this set denies —
+// Every git subcommand that only reads. Anything missing from this set denies:
 // a write, an alias, a typo, a subcommand a future git adds.
 //
 // Inverted deliberately. A list of forbidden writes is only ever as complete as
@@ -103,7 +103,7 @@ const GIT_READS = new Set([
 // belongs here: an entry is a rule Flow states somewhere, never a convenience.
 //
 // `worktree` is here rather than behind the switch because it writes no history
-// and touches nothing in the checkout you are standing in — it makes a second
+// and touches nothing in the checkout you are standing in: it makes a second
 // directory, which is closer to `clone` than to `commit`, and dispatch will
 // instruct it. `worktree remove --force` is destructive and asks above.
 const GIT_INSTRUCTED = new Set(['clone', 'worktree']);
@@ -164,7 +164,7 @@ function shellSplit(segment) {
   return tokens;
 }
 
-/** realpath that tolerates a target which does not exist yet — rm arguments often do not. */
+/** realpath that tolerates a target which does not exist yet: rm arguments often do not. */
 function realpathish(p) {
   let abs = path.resolve(p);
   const tail = [];
@@ -246,16 +246,16 @@ function gitMode() {
 }
 
 const OFF_REASON =
-  'git writes are off — name the command, the user runs it. ' +
+  'git writes are off: name the command, the user runs it. ' +
   'Turning them on is theirs to type: ! flow git allow';
 
 for (const [pattern, reason] of DENY) {
-  if (pattern.test(cmd)) verdict('deny', `${reason} — name the command, the user runs it`);
+  if (pattern.test(cmd)) verdict('deny', `${reason}: name the command, the user runs it`);
 }
 
 for (const [pattern, reason] of SELF_UNLOCK) {
   if (pattern.test(cmd)) {
-    verdict('deny', `${reason} is the user's to run, not yours — they type it as ! flow git allow`);
+    verdict('deny', `${reason} is the user's to run, not yours: they type it as ! flow git allow`);
   }
 }
 
@@ -266,7 +266,7 @@ for (const [pattern, reason] of ASK) {
 // Per-command checks: which git subcommand, and where an `rm -r` points.
 //
 // `&&` matches before the character class, so it still splits as one operator.
-// A command substitution — `$(rm -rf ~)`, backticks — is not split at all, and
+// A command substitution (`$(rm -rf ~)`, backticks) is not split at all, and
 // separating it properly needs a real shell parser. The DENY patterns above
 // still see inside one, so what escapes here is the `rm` check alone.
 /**
@@ -280,7 +280,7 @@ function decideGit(tokens) {
   const sub = gitSubcommand(tokens);
   const destructive = GIT_DESTRUCTIVE[sub];
   const risky = !!destructive && destructive[0](tokens);
-  const asks = () => verdict('ask', `${destructive[1]} — this one asks however git is set`);
+  const asks = () => verdict('ask', `${destructive[1]}: this one asks however git is set`);
 
   // A read passes, and so does a write Flow itself instructs. The destructive
   // form of an instructed one still asks: `git worktree add` is routine, and
@@ -312,7 +312,7 @@ function decideGit(tokens) {
  */
 function walk() {
   // `&&` matches before the character class, so it still splits as one operator.
-  // A command substitution — `$(rm -rf ~)`, backticks — is not split at all, and
+  // A command substitution (`$(rm -rf ~)`, backticks) is not split at all, and
   // separating it properly needs a real shell parser. The DENY patterns above
   // still see inside one, so what escapes here is the `rm` check alone.
   for (const segment of cmd.split(/&&|\|\||[;|&]/)) {
@@ -354,6 +354,6 @@ try {
 } catch (e) {
   if (e && e.__verdict) throw e;
   if (/\bgit\b/.test(cmd)) {
-    verdict('deny', `the guard could not decide this one — ${e && e.message}. Name the command, the user runs it`);
+    verdict('deny', `the guard could not decide this one: ${e && e.message}. Name the command, the user runs it`);
   }
 }

@@ -2,14 +2,14 @@
 /**
  * The relational queries. Two edges exist on a ticket: `deps` (what must be
  * finished first) and `parent` (what this was split out of), so every question
- * here — what is workable, what is broken, what would a drop damage — is a walk
+ * here (what is workable, what is broken, what would a drop damage) is a walk
  * over one of them.
  *
  * A dep is satisfied by `review` or `done`: review means built and checked, and
  * that is enough to unblock work that sits on top of it.
  */
 
-// Every property of a status is a column in one table — see statuses.js. These
+// Every property of a status is a column in one table: see statuses.js. These
 // are that table's columns, read as sets: SATISFYING unblocks a dependent, LIVE
 // is still repairable, OPEN still owes work, IN_FLIGHT is being worked on now.
 const statuses = require('./statuses');
@@ -17,14 +17,14 @@ const { SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT } = statuses;
 const STATUS_RANK = statuses.RANK;
 
 // `normal` sits between the two deliberate answers, and is what an absent field
-// means — so a ticket nobody has judged never outranks one judged low.
+// means, so a ticket nobody has judged never outranks one judged low.
 const PRIORITY_RANK = { high: 0, normal: 1, low: 2 };
 
 const indexById = (tickets) => new Map(tickets.map((t) => [t.id, t]));
 
 /**
  * Why a ticket cannot start yet. Empty array = every dep is satisfied.
- * Each entry: { dep, reason } — reason is 'missing', 'dropped', or the
+ * Each entry: { dep, reason }, reason is 'missing', 'dropped', or the
  * blocking ticket's status.
  */
 function unmetDeps(ticket, index) {
@@ -46,8 +46,8 @@ function hasOpenChildren(tickets, id) {
 /**
  * todo, every dep satisfied, and nothing left open underneath.
  *
- * A parent keeps whatever work no child holds — the wiring, the integration
- * test, the final suite — and that work runs after they close. Offering it
+ * A parent keeps whatever work no child holds: the wiring, the integration
+ * test, the final suite, and that work runs after they close. Offering it
  * while they are open offers something that cannot be built yet, so it appears
  * the moment the last child closes.
  */
@@ -75,7 +75,7 @@ function blockedTickets(tickets) {
  * explicit value always wins over an inherited one, so a low chore under a high
  * feature stays low. The walk goes the whole chain rather than one level: a
  * grandchild belongs to the feature as much as a child does. `seen` only
- * matters for a hand-edited parent cycle — `ticket edit` refuses to make one.
+ * matters for a hand-edited parent cycle: `ticket edit` refuses to make one.
  */
 function effectivePriority(ticket, index) {
   const seen = new Set();
@@ -89,7 +89,7 @@ function effectivePriority(ticket, index) {
 }
 
 // Both sorts are stable and every list starts in id order, so tickets that tie
-// stay oldest-first — which is the direction stale work should drift when a
+// stay oldest-first, which is the direction stale work should drift when a
 // ceiling hides the tail of the list.
 const rank = (list, pool) => {
   const index = indexById(pool || list);
@@ -97,7 +97,7 @@ const rank = (list, pool) => {
     PRIORITY_RANK[effectivePriority(a, index)] - PRIORITY_RANK[effectivePriority(b, index)]);
 };
 
-/** Status first, then priority — for the views that hold more than one status. */
+/** Status first, then priority, for the views that hold more than one status. */
 const rankByStatus = (list, pool) => {
   const index = indexById(pool || list);
   return [...list].sort((a, b) =>
@@ -106,7 +106,7 @@ const rankByStatus = (list, pool) => {
 };
 
 /**
- * Ready tickets cut out of work that is still open — the child a groundwork session
+ * Ready tickets cut out of work that is still open: the child a groundwork session
  * split off so it could keep going, picked up in a later session.
  *
  * Membership carries the whole signal, so order inside the band stays
@@ -124,7 +124,7 @@ function continuingTickets(tickets) {
 
 /**
  * The ticket that finished most recently. `closed` is the only field that can
- * answer it — ids are creation order, and `filed` is stamped days later.
+ * answer it: ids are creation order, and `filed` is stamped days later.
  * Sorts as a string because `YYYY-MM-DD HH:MM` already sorts chronologically.
  */
 function lastClosed(tickets) {
@@ -140,7 +140,7 @@ function dependents(tickets, id) {
 }
 
 /**
- * Everything that would go stale if `id` died — dependents, their dependents,
+ * Everything that would go stale if `id` died: dependents, their dependents,
  * and so on. `deps` is stored on one side only, so the damage from a drop lands
  * entirely on tickets the user was not thinking about. Showing only the direct
  * layer would hide t070 behind t060 behind t047.
@@ -173,12 +173,12 @@ function children(tickets, id) {
   return tickets.filter((t) => t.data.parent === id);
 }
 
-/** Children that still owe work — what makes a parent refuse to close. */
+/** Children that still owe work: what makes a parent refuse to close. */
 function openChildren(tickets, id) {
   return children(tickets, id).filter((t) => OPEN.has(t.data.status));
 }
 
-/** Children, their children, and so on — what `flow tree --parent` keeps. */
+/** Children, their children, and so on: what `flow tree --parent` keeps. */
 function descendants(tickets, id) {
   const found = [];
   const seen = new Set([id]);
@@ -199,15 +199,15 @@ function descendants(tickets, id) {
 }
 
 /**
- * The parent forest — roots first, each node carrying its children.
+ * The parent forest: roots first, each node carrying its children.
  *
  * Ordering here is structural, and that is the whole difference between this
  * and `flow next`: that list is flat and priority is its only key, so a high
  * child outranks its own parent. A tree cannot do that without lying about the
  * shape, so nesting wins and priority only orders siblings and roots.
  *
- * Deps are not drawn. They cross the tree — a ticket can depend on anything,
- * anywhere — so they surface as a note on the blocked ticket instead.
+ * Deps are not drawn. They cross the tree: a ticket can depend on anything,
+ * anywhere, so they surface as a note on the blocked ticket instead.
  */
 function forest(tickets) {
   const pool = new Set(tickets.map((t) => t.id));
@@ -280,7 +280,7 @@ function findCycles(tickets) {
 }
 
 /**
- * Integrity problems worth acting on. Only live tickets are reported — a done
+ * Integrity problems worth acting on. Only live tickets are reported: a done
  * ticket that once depended on a dropped one is history, not a problem.
  */
 function check(tickets) {
@@ -300,7 +300,7 @@ function check(tickets) {
       // recorded the override before this: the parent said its work belonged to
       // them, then finished without them, and `flow tree` nests live work under
       // an archived ticket. Readiness never consults a parent, so nothing is
-      // lost — only the claim, which is what this reports.
+      // lost: only the claim, which is what this reports.
       else if (TERMINAL.has(parent.data.status)) closedParents.push({ ticket: t, parent });
     }
 

@@ -1,4 +1,4 @@
-# `util` — the utility command dispatcher
+# `util`: the utility command dispatcher
 
 **Locked 2026-08-30.** `util` is a second command-line tool, separate from `flow`, holding every
 general-purpose script the user types. It ships in its own repository, dispatches to commands it does
@@ -43,10 +43,10 @@ u ...                              second PATH link, same program
 
 ### The namespaces at the start
 
-- **`git`, alias `g`** — `save`, which is `gsave.sh` today: add, commit and push in one step
-- **`github`, alias `gh`** — `clone` (one or more repos, any URL form) and `bookmark` (fetch a repo's
+- **`git`, alias `g`**: `save`, which is `gsave.sh` today: add, commit and push in one step
+- **`github`, alias `gh`**: `clone` (one or more repos, any URL form) and `bookmark` (fetch a repo's
   stars, language, pushed date and description, and append one line to a file)
-- **`fs`** — `tree` (was `ptree.js`), `merge` (was `fmerge.js`), and `link`, which builds a symlink and
+- **`fs`**: `tree` (was `ptree.js`), `merge` (was `fmerge.js`), and `link`, which builds a symlink and
   refuses to replace a real file
 
 **`github`, not `repo`.** Both commands are GitHub-specific: `bookmark` calls `gh api repos/<slug>`,
@@ -57,7 +57,7 @@ not exist.
 one line about it down, which is what bookmarking is. The name also survives the namespace being
 dropped: `util bookmark <url>` still reads correctly.
 
-## Sources — how private and public share one namespace
+## Sources: how private and public share one namespace
 
 **`util` is a dispatcher, not a monolith.** It ships no commands of its own. It reads a registry of
 source directories and builds its namespace from what it finds.
@@ -70,10 +70,10 @@ source directories and builds its namespace from what it finds.
 
 Three kinds of source, and the kind is decided by the directory rather than by any marker:
 
-- **Public** — the `util` repository's own `commands/`, registered at install
-- **Private** — a second repository, registered by hand, never published. Nothing inside it is marked
+- **Public**: the `util` repository's own `commands/`, registered at install
+- **Private**: a second repository, registered by hand, never published. Nothing inside it is marked
   private; the repository it sits in is what makes it so
-- **A project's own** — `<project-root>/.util/`, picked up automatically when the working directory is
+- **A project's own**: `<project-root>/.util/`, picked up automatically when the working directory is
   inside that project. This is the local-script case: write a command in the repository that needs it
   and it exists nowhere else
 
@@ -97,7 +97,7 @@ tree command and `util ls` end up in one codebase and share the parser. Flow nev
 **A description is an index entry, never the file's documentation** (user, 2026-08-30). A file's own
 header comment explaining what it does stays as long as it needs to be. The `description:` line is
 the one-line entry printed beside the filename. Capped at 120 characters, raised from 60 the same
-day, because 60 cut the end off — which is where the distinguishing detail sits.
+day, because 60 cut the end off, which is where the distinguishing detail sits.
 
 **A few words, not a sentence** (user, 2026-08-31). The 120 characters are a bound, and the rule as
 first written gave nothing else, so everything was written to the bound. What decides the length is
@@ -105,7 +105,7 @@ the reader: a listing puts dozens of descriptions in front of an agent at once, 
 on every listing. `home/CLAUDE.md` now says to write what the name is missing and stop.
 
 **A skill's frontmatter `description` is a different field and keeps its own rule.** Claude Code
-loads it whole, never clips it, and fires the skill from it — so `references/style.md` § 8 wants it
+loads it whole, never clips it, and fires the skill from it, so `references/style.md` § 8 wants it
 sufficient rather than short. Both fields are spelled `description`, which is the whole reason the
 boundary is written down in both files.
 
@@ -155,7 +155,7 @@ $ util ls
 
 Three commands leave `flow install`'s link table, and Flow gains a prerequisite it did not have.
 
-- **`home/CLAUDE.md`** mandates `ptree` in every session — *every look at structure goes through it*.
+- **`home/CLAUDE.md`** mandates `ptree` in every session: *every look at structure goes through it*.
   That line becomes `util tree`.
 - **`scripts/flow/commands/open.js`** executes `fmerge.js` by absolute path out of the Flow clone. It
   becomes a call to `util fs merge`.
@@ -182,14 +182,14 @@ inside the folder, then the new pointer is committed here.
 
 - **Folding the utilities into `flow`.** See `## Why it is not part of flow`.
 - **Bare PATH names, one per command.** Proposed first and dropped: dozens of commands means dozens of
-  names to remember and to collide with real binaries. The short obvious ones — `tree`, `link`,
-  `clone`, `merge` — are all taken or ambiguous, which is why the prefixes existed at all.
+  names to remember and to collide with real binaries. The short obvious ones: `tree`, `link`,
+  `clone`, `merge`: are all taken or ambiguous, which is why the prefixes existed at all.
 - **Per-domain letter prefixes.** `p` for project, `f` for file, `g` for git already gave two meanings
   to `f` once `flow` and `fw` were counted, and domains multiply faster than letters.
 - **Declared flags, the way `cli-design.md` requires of `flow`.** `util` dispatches to programs it did
   not write, so it cannot validate their flags. Everything after the command name passes through, and
   each command validates its own. This is the one rule that does not transfer.
-- **Splitting `references/cli-design.md` now.** Half of it is `flow`-specific — the status table,
+- **Splitting `references/cli-design.md` now.** Half of it is `flow`-specific: the status table,
   ticket ids, the default noun. The general half transfers cleanly and gets copied when `util` is
   built. Splitting a reference file for a repository that does not exist buys nothing.
 - **Publishing to npm.** `package.json` is wanted for `node --test`, for `"type": "commonjs"`, and for
@@ -201,11 +201,11 @@ inside the folder, then the new pointer is committed here.
 `git save` and nothing else. One command proves the dispatch, the registry and the help before
 `ptree` and `fmerge` have to move and Flow has to change with them.
 
-## Built 2026-08-30 — the dispatcher, the registry, and `git save`
+## Built 2026-08-30: the dispatcher, the registry, and `git save`
 
 `lab/util/` holds a working `util`: `util.js`, `lib/` (sources, catalog, description reader,
 listing), `builtin/` (`ls` and `source`), `commands/git/save.sh`, a README and 16 tests. **It is not
-a repository yet** — `git init`, the first commit and `git submodule add` are the user's to run.
+a repository yet**: `git init`, the first commit and `git submodule add` are the user's to run.
 *Superseded the same day: it is a repository, and all 3 namespaces are built. See
 `## The rest of it, 2026-08-30` below.*
 
@@ -216,7 +216,7 @@ always-loaded rules mandate `ptree` and `open.js` runs `fmerge.js`, so those two
 edits that pay for them.
 
 **`util ls` was built now, not later.** `## Where to start` asks for the dispatch, the registry and
-the help, and the listing *is* the help — bare `util` prints the conventions and then the same
+the help, and the listing *is* the help: bare `util` prints the conventions and then the same
 grouped output. Splitting them would have meant writing the listing twice.
 
 ### Eight decisions the design did not carry
@@ -224,13 +224,13 @@ grouped output. Splitting them would have meant writing the listing twice.
 Each one came up while building and none reverses anything above.
 
 - **A clash refuses one command, never the catalog.** `## Sources` says two sources defining one
-  `namespace/command` refuse and name both, and `lib/skills.js` was the model — but that one throws
+  `namespace/command` refuse and name both, and `lib/skills.js` was the model, but that one throws
   while building the catalog, which here would take `util ls` down with it. `util ls` is the tool you
   reach for to diagnose a clash, so the clash is recorded on the command instead: running it refuses
   and names both files, the listing marks it with both paths, and every other command keeps working.
 - **The command name is the filename with any extension dropped.** `git/save.sh` is `util git save`.
   The design says "one executable per command" and stops there, which would have made the command
-  `save.sh`. Dropping the extension carries Flow's own rule across — the file says what runs it, the
+  `save.sh`. Dropping the extension carries Flow's own rule across: the file says what runs it, the
   name you type does not.
 - **A source labels itself in its own `.info`.** The drawing in `## util ls` prints `public` and
   `not published` beside two source paths, and nothing in the design says where either word comes
@@ -258,7 +258,7 @@ Each one came up while building and none reverses anything above.
 `package.json` `bin` field going anywhere real. Nothing has run outside a test and a scratch
 registry, because `util` is not installed and Flow does not go on this machine yet.
 
-## The rest of it, 2026-08-30 — `fs`, `github`, and Flow's dependency
+## The rest of it, 2026-08-30: `fs`, `github`, and Flow's dependency
 
 Everything above shipped the same day. `util` is now a repository, a submodule of Flow at
 `lab/util/`, and it carries all 3 namespaces the design named: `git save`, `fs tree|merge|link` and
@@ -271,7 +271,7 @@ a machine without `util` opens the ticket, prints `util is not on PATH` where th
 been, and carries on. A missing prerequisite degrades the resume instead of breaking `flow open`.
 
 **One reader now, in `lib/describe.js`.** `ptree.js` carried a fuller version than the one written
-for `util ls` — markdown frontmatter, a binary-file skip, and a folder reader that falls back to a
+for `util ls`: markdown frontmatter, a binary-file skip, and a folder reader that falls back to a
 README. The merge took all three, so `util ls` gained them and the duplicate is gone. One behaviour
 changed for `fs tree`: the trailing full stop is now clipped off every description, because these are
 rows in a list rather than prose, and `util ls` had always clipped it.
@@ -283,7 +283,7 @@ one call, matching `clone`. And the target file resolves against the directory y
 rather than against one repository's root, with `--to` and `$UTIL_BOOKMARKS` to move it.
 
 **A namespace `.info` exists only where an alias needs a home** (user, 2026-08-31). The design gave
-all 3 namespaces a description — `files and directories`, `git, wrapped`, `the GitHub API` — and
+all 3 namespaces a description (`files and directories`, `git, wrapped`, `the GitHub API`) and
 every one restates the name it sits beside. The standing rule is that a name already saying what it
 holds gets no description, so `fs/.info` is deleted and `git/.info` and `github/.info` are one
 `alias:` line each. The listing prints a bare namespace name, which `render.js` already handled, and
@@ -306,11 +306,11 @@ the drawing under `## util ls` was corrected to match.
 ### `master`, then `main`
 
 `git init` ran without `-b main`, so the repository and its GitHub default both started on `master`,
-while every other repository the user has is `main`. The user renamed it on 2026-08-31 — local
+while every other repository the user has is `main`. The user renamed it on 2026-08-31: local
 branch, remote branch, GitHub default, old branch deleted. The lasting fix is that nothing in Flow
 ever writes a bare `git init` again; the management skill and the manual both name `-b main`.
 
-## `util install`, 2026-08-31 — the last piece
+## `util install`, 2026-08-31: the last piece
 
 `util` goes on a machine now. `builtin/install.js` links `util` and `u` in `~/.local/bin`, both
 pointing at `util.js`, and registers this repository's `commands/` through `sources.add()`, on the
@@ -327,7 +327,7 @@ the link points into, which is what makes moving the clone and re-running the fi
 
 **A second redirect, because a test cannot forget an environment variable.** The registry already
 moves with `UTIL_HOME`. `~/.local/bin` had nothing, so a test omitting a flag would have put real
-symlinks on the machine running the suite — the accident `flow install` refuses a lone `--home` to
+symlinks on the machine running the suite: the accident `flow install` refuses a lone `--home` to
 prevent, in a shape no flag pair can catch. `--bin <path>` is the flag a person types, `UTIL_BIN` is
 the fallback ahead of the default, and the test helper sets it beside `UTIL_HOME` once for every test.
 

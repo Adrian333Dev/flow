@@ -1,4 +1,4 @@
-# agent-skills vs. Flow — comparison
+# agent-skills vs. Flow: comparison
 
 A philosophical and structural comparison. Opinionated. One view and an argument for it.
 
@@ -28,7 +28,7 @@ Flow's failure mode: the global rules are too abstract to fire at the moment an 
 
 1. *Skills are workflows, not docs.* A skill is an executable process that changes agent behavior, not a reference document. A skill that an agent reads and ignores has failed. The eval system tests this directly.
 
-2. *Multi-tool portability is possible.* The same skill works in Claude Code, OpenAI Codex, Gemini CLI, OpenCode. The tradeoff is that skills must avoid tool-specific affordances — no mentions of agent spawning, no Claude-specific hooks, only generic "your agent tool" language. This costs expressiveness to gain reach.
+2. *Multi-tool portability is possible.* The same skill works in Claude Code, OpenAI Codex, Gemini CLI, OpenCode. The tradeoff is that skills must avoid tool-specific affordances: no mentions of agent spawning, no Claude-specific hooks, only generic "your agent tool" language. This costs expressiveness to gain reach.
 
 3. *Behavioral mechanisms are as important as process steps.* Having the right process is necessary but not sufficient. An agent that knows the process but rationalizes skipping it is equivalent to an agent that never had the process. The Common Rationalizations table, the Verification checklist, and the pressure-case evals are all responses to this insight.
 
@@ -40,11 +40,11 @@ Flow's failure mode: the global rules are too abstract to fire at the moment an 
 
 2. *A personal workflow does not need routing machinery.* The user is the same person every session. They know what the skills do and when to invoke them. A session-start hook that injects a routing chart is solving a problem that does not exist in a one-person workflow.
 
-3. *The ticket system is the integration layer.* Flow has a tool (`flow`) that manages work items, and every other piece of the system — skills, commands, the brainstorm process — connects to the ticket system. This gives the workflow persistence and queryability that agent-skills' free-floating `tasks/` folder cannot match.
+3. *The ticket system is the integration layer.* Flow has a tool (`flow`) that manages work items, and every other piece of the system (skills, commands, the brainstorm process) connects to the ticket system. This gives the workflow persistence and queryability that agent-skills' free-floating `tasks/` folder cannot match.
 
 4. *Claude-specific is not a liability.* Being Claude Code-specific means Flow can use agent spawning, hooks, worktrees, and TOML commands to their fullest. Portability constraints would make the system weaker, not stronger, for a user who only ever uses Claude.
 
-**Where the philosophies conflict**: agent-skills bets that behavioral enforcement in each skill is worth the context cost of the enforcement machinery. Flow bets that global rules applied with good judgment are sufficient and cheaper. The experimental evidence favors agent-skills here — behavioral pre-emption at the skill level is more reliable than hoping global principles propagate to the moment of failure. But Flow's context budget bet is also correct: carrying 24 skills and their routing overhead would be a net loss for a solo developer with a settled workflow.
+**Where the philosophies conflict**: agent-skills bets that behavioral enforcement in each skill is worth the context cost of the enforcement machinery. Flow bets that global rules applied with good judgment are sufficient and cheaper. The experimental evidence favors agent-skills here, behavioral pre-emption at the skill level is more reliable than hoping global principles propagate to the moment of failure. But Flow's context budget bet is also correct: carrying 24 skills and their routing overhead would be a net loss for a solo developer with a settled workflow.
 
 The right resolution is not to pick one philosophy wholesale. It is to steal agent-skills' behavioral enforcement mechanisms (Common Rationalizations, Verification checklists, Red Flags) and keep Flow's everything else.
 
@@ -74,7 +74,7 @@ This works well for a team. The routing meta-skill handles the fact that differe
 
 This works well for a solo developer. The ticket system gives persistence; `flow next` always knows what is left. The skill set is smaller and narrower because the user's workflow is narrower. There is no review fan-out because there is one developer.
 
-**The structural difference**: agent-skills covers the SDLC from first spec to production launch, with skills for each phase and personas for each review role. Flow covers the development cycle from idea to shipped code, with the assumption that deployment and production monitoring are the developer's own domain. This is not a gap in Flow — it is a scope decision.
+**The structural difference**: agent-skills covers the SDLC from first spec to production launch, with skills for each phase and personas for each review role. Flow covers the development cycle from idea to shipped code, with the assumption that deployment and production monitoring are the developer's own domain. This is not a gap in Flow, it is a scope decision.
 
 The workflows are not competitive. They solve different problems for different users.
 
@@ -89,7 +89,7 @@ The workflows are not competitive. They solve different problems for different u
 | Skill routing | TF-IDF descriptions + session-start injection | Description alone; user is consistent |
 | Slash commands | 8 TOML commands (build, plan, review, ship, spec, test, simplify, webperf) | 1 markdown command (/handoff) |
 | Agent personas | 4 (code-reviewer, security-auditor, test-engineer, web-perf-auditor) | None |
-| Hooks | SessionStart (meta-skill inject), PreToolUse/PostToolUse Read/Edit/Write/Stop (simplify-ignore), PreToolUse/PostToolUse WebFetch (sdd-cache) | PreToolUse Bash (guard.js — command blocking) |
+| Hooks | SessionStart (meta-skill inject), PreToolUse/PostToolUse Read/Edit/Write/Stop (simplify-ignore), PreToolUse/PostToolUse WebFetch (sdd-cache) | PreToolUse Bash (guard.js: command blocking) |
 | Validator/CI | 5 Node scripts; checks structure, commands, artifact paths, versions, evals | flow check (ticket integrity only) |
 | Eval system | 3 tiers: structural (free) + routing/TF-IDF (free) + behavioral (tokens, opt-in) | None |
 | Behavioral mechanisms | Common Rationalizations tables, Verification checklists, Red Flags, pressure-case evals | Judgment section in home/CLAUDE.md |
@@ -102,7 +102,7 @@ The workflows are not competitive. They solve different problems for different u
 
 Two structural asymmetries matter most:
 
-**Behavioral enforcement**: agent-skills has three per-skill behavioral mechanisms (rationalizations, red flags, verification) plus a full eval tier to test them. Flow has one global principle (Judgment) with no per-skill enforcement and no way to detect drift. This is the biggest structural gap — and the one most worth closing.
+**Behavioral enforcement**: agent-skills has three per-skill behavioral mechanisms (rationalizations, red flags, verification) plus a full eval tier to test them. Flow has one global principle (Judgment) with no per-skill enforcement and no way to detect drift. This is the biggest structural gap, and the one most worth closing.
 
 **Work tracking**: Flow's ticket system is structurally superior to their `tasks/` folder. The ticket is a durable artifact that survives the session, carries the spec, records intermediate decisions, and is queryable via `flow`. Their task list is a flat file that gets written and then abandoned. For a multi-session project, Flow's approach is much more useful.
 
@@ -122,7 +122,7 @@ The 15 skills Flow doesn't have are not all gaps. Most of them (security-and-har
 
 Everything else on their list is either already covered differently in Flow (spec via brainstorm, planning via tickets) or genuinely not needed (production monitoring, security audits for a solo project with no users).
 
-The scale difference reflects audience, not quality. 24 skills for a library that installs into any engineering team's workflow is correct. 9–12 skills for a personal workflow is correct. Bigger is not better here — bigger is more to maintain and more context overhead per session.
+The scale difference reflects audience, not quality. 24 skills for a library that installs into any engineering team's workflow is correct. 9–12 skills for a personal workflow is correct. Bigger is not better here: bigger is more to maintain and more context overhead per session.
 
 ---
 
@@ -132,7 +132,7 @@ The scale difference reflects audience, not quality. 24 skills for a library tha
 - Behavioral enforcement is the best in any publicly available skill library. Common Rationalizations is the single most valuable idea here.
 - The eval system is real engineering. Tier 2 routing tests cost nothing and catch description drift before it causes invisible routing failures.
 - Coverage is comprehensive for its audience. If you are an engineering team or a developer who works across many domains, the coverage maps to your actual work.
-- Multi-tool portability means the investment compounds — the same skills work in 6+ environments.
+- Multi-tool portability means the investment compounds: the same skills work in 6+ environments.
 - The session-start hook is clever: always-on content without making CLAUDE.md longer.
 
 **agent-skills weaknesses**:
@@ -143,7 +143,7 @@ The scale difference reflects audience, not quality. 24 skills for a library tha
 
 **Flow strengths**:
 - Telegraphic style is the right approach. Skills load into context budget; every unnecessary word is a cost. Flow's discipline here is correct and should not be softened.
-- The ticket system is structurally superior to a task list. Persistence, queryability, spec attachment, session handoff — all of this is better for multi-session projects.
+- The ticket system is structurally superior to a task list. Persistence, queryability, spec attachment, session handoff: all of this is better for multi-session projects.
 - Claude-specific design means the system uses its tool to the fullest. Agent spawning, hooks, worktrees are all available without portability constraints.
 - Scope is correct for the audience. 9 skills for a solo developer is the right size.
 
@@ -151,7 +151,7 @@ The scale difference reflects audience, not quality. 24 skills for a library tha
 - No per-skill behavioral enforcement. The Judgment section in CLAUDE.md is a good principle but too abstract to fire at the moment an agent is rationalizing its way out of a hard step.
 - No verification mechanism. Skills end at the last instruction. "Is this done?" is unanswered.
 - No way to detect discipline drift. If a skill stops changing behavior, Flow has no mechanism to notice.
-- Missing debug and code-review skills. These are not design gaps — they're build gaps. But they are real missing pieces.
+- Missing debug and code-review skills. These are not design gaps: they're build gaps. But they are real missing pieces.
 
 ---
 
@@ -167,10 +167,10 @@ The scale difference reflects audience, not quality. 24 skills for a library tha
 
 Pick the system that matches your audience and build the missing pieces from the other.
 
-For Flow's user: Flow's architecture is correct. Keep it. The single most important thing to steal from agent-skills is the behavioral enforcement mechanism — Common Rationalizations tables, Verification checklists, and Red Flags — not the additional skills, not the eval infrastructure, not the scale. These mechanisms cost nothing to add (write 4–8 lines per skill per section) and address the one real failure mode in Flow's design: an agent that knows the process but finds a locally-valid excuse to skip the hard step.
+For Flow's user: Flow's architecture is correct. Keep it. The single most important thing to steal from agent-skills is the behavioral enforcement mechanism (Common Rationalizations tables, Verification checklists, and Red Flags) not the additional skills, not the eval infrastructure, not the scale. These mechanisms cost nothing to add (write 4–8 lines per skill per section) and address the one real failure mode in Flow's design: an agent that knows the process but finds a locally-valid excuse to skip the hard step.
 
 The second thing worth stealing is the session-start hook approach, specifically as a solution to Flow's refactor agenda item 2 (where to put always-on content that is currently in a skill). A lightweight routing list injected at session start keeps CLAUDE.md lean without losing the routing information.
 
-Everything else — the 24-skill library, the personas, the eval system, the TOML commands — is engineering for a different audience. Worth studying. Not worth importing.
+Everything else (the 24-skill library, the personas, the eval system, the TOML commands) is engineering for a different audience. Worth studying. Not worth importing.
 
 The point at which this verdict changes: if Flow ever distributes to more than one user, the eval system and the routing CI become necessary. A library without tests is faith-based; a library used by multiple people with different vocabularies is a library where faith runs out fast. The eval system architecture (described in `evals.md`) should be the design reference at that point.

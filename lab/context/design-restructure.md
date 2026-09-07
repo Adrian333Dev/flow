@@ -1,7 +1,7 @@
-# Restructure — the repo layout, the cleanup, and the test harness
+# Restructure: the repo layout, the cleanup, and the test harness
 
 Settled 2026-08-28 in conversation, and built the same day. All 8 steps ran. `## The second cut` was
-not part of the plan — the user opened it after the build, and it is where `lab/context/` shrank from
+not part of the plan: the user opened it after the build, and it is where `lab/context/` shrank from
 6,500 lines to 4,005.
 
 Sections below are written as the plan they were. Where the build departed from the plan, the section
@@ -11,7 +11,7 @@ says so.
 
 **Group by kind. Never by destination.**
 
-A skill installs globally or into a project depending on which of the 2 lists names it — never on where
+A skill installs globally or into a project depending on which of the 2 lists names it, never on where
 its folder sits. Destination is a per-skill choice that changes without moving a file. So a top-level
 folder named for a destination carries no rule.
 
@@ -28,7 +28,7 @@ Two costs, both paid today:
 
 ## The layout
 
-- **`home/`** → `~/.claude/`. `CLAUDE.md`, `settings.json`, `settings.md`, and `skills` — the list of
+- **`home/`** → `~/.claude/`. `CLAUDE.md`, `settings.json`, `settings.md`, and `skills`: the list of
   globally linked skill names, 1 per line, read by `link.sh`
 - **`skills/`** → `~/.claude/skills/`, a symlink per skill folder. Holds the 4 group folders:
   `phases/`, `tools/`, `standards/`, `stack/`
@@ -38,13 +38,13 @@ Two costs, both paid today:
   Node package root
 - **`references/`** → `~/.claude/flow/references`, one symlink. Renamed from `refs/`
 - **`toolbox/`** → `~/.claude/flow/toolbox`. Submodule, unchanged
-- **`project-template/`** — copied into a project. Unchanged
-- **`docs/`** — guides, concepts, the philosophy behind each phase and tool. The first folder someone
+- **`project-template/`**: copied into a project. Unchanged
+- **`docs/`**: guides, concepts, the philosophy behind each phase and tool. The first folder someone
   reads after cloning. **Authored, never moved into.** Starts empty and grows
-- **`lab/`** — the design record and the evidence. What survives of `wip/`
-- **`repos/`** — other people's repos, gitignored. The 9 clones, `deepseek-harness`, `Delapse`,
+- **`lab/`**: the design record and the evidence. What survives of `wip/`
+- **`repos/`**: other people's repos, gitignored. The 9 clones, `deepseek-harness`, `Delapse`,
   `lumacraft_v2`
-- **`tmp/`** — scratch and the test harness, gitignored. Deleted freely
+- **`tmp/`**: scratch and the test harness, gitignored. Deleted freely
 
 `wip/` disappears, which closes the rename item.
 
@@ -55,21 +55,21 @@ Two costs, both paid today:
 2. **Move.** `global/` dissolves into `home/`, `scripts/`, `references/`. `wip/` becomes `lab/`. The
    clones come out into `repos/`. Check: `ls` at the root matches `## The layout`.
 3. **Sweep the paths.** Roughly 370 mentions, plus every `refs/` that became `references/`. Sweep the
-   records under `lab/` too — a design record read cold with wrong paths in it fails at the one job it
+   records under `lab/` too: a design record read cold with wrong paths in it fails at the one job it
    has. Check: no tracked file greps for `global/`, `wip/` or `refs/`.
    **The rename went wider than the 2 folders named above**, on the argument that one name per concept
    is the whole point: the 4 `refs/` folders inside skills, and the `tmp/refs/<tool>/` docs cache that
    `research` writes into a project. Git's own `refs/heads/` and `refs/unfinished/` are untouched.
 4. **Fix the 6 lines** under `## What breaks`. Check: `bash scripts/link.sh` prints the right targets
-   without running — read it, never run it.
+   without running: read it, never run it.
 5. **Write `docs/repos.md` and `scripts/repos.sh`.** No `git rm --cached`: moving the clones into
    gitignored `repos/` makes git see 10 deletions, which an ordinary commit records. Check: after that
    commit, `git ls-files -s | awk '$1==160000'` lists `toolbox` alone.
-6. **Build the harness** — `scripts/package.json`, `node --test`, `scripts/try.sh`. Check: `try.sh`
+6. **Build the harness**: `scripts/package.json`, `node --test`, `scripts/try.sh`. Check: `try.sh`
    builds `tmp/try/` and `~/.claude/` has no new mtime.
 7. **Operate on `remaining.md`.** Extract the 2 locked sections at its top, delete the other 1,200
    lines. Check: nothing in the file predates 2026-08-08.
-   **Ran as part of `## The second cut`, and the estimate was long** — the 2 locked sections are 360
+   **Ran as part of `## The second cut`, and the estimate was long**: the 2 locked sections are 360
    lines, so 868 went rather than 1,200.
 8. **Rewrite `CLAUDE.md`** for the new layout, with the whole writing pass inside that edit.
 
@@ -82,30 +82,30 @@ untracked ones never can.
 
 **11 context files, ~2,550 lines.** All under `wip/context/`:
 
-- `handoff.md` — the v1 sweep, finished
-- `user-profile.md` — personal, and it belongs on the machine rather than in a public repo
-- `design-explain-rework.md` — its own condition landed 2026-08-12, and its charset reasoning now sits
+- `handoff.md`: the v1 sweep, finished
+- `user-profile.md`: personal, and it belongs on the machine rather than in a public repo
+- `design-explain-rework.md`: its own condition landed 2026-08-12, and its charset reasoning now sits
   in `visualize/SKILL.md` under *never predict a character from a property*
-- `design-capture-rework.md` — capture dissolved into `CLAUDE.md`, built the day it was designed
-- `design-project-genesis.md` — its successor's header says it supersedes this
-- `design-skill-ecosystem.md` — the knowledge layer, now `file-findings` plus `docs/context/`
-- `design-brainstorm-rework.md` — `groundwork` is built and reworked, and `refactor-agenda.md` §9
+- `design-capture-rework.md`: capture dissolved into `CLAUDE.md`, built the day it was designed
+- `design-project-genesis.md`: its successor's header says it supersedes this
+- `design-skill-ecosystem.md`: the knowledge layer, now `file-findings` plus `docs/context/`
+- `design-brainstorm-rework.md`: `groundwork` is built and reworked, and `refactor-agenda.md` §9
   carries the decision table and every rejection
-- `brief-context-compression-research.md` — consumed; it produced `compression.md`
-- `brief-explore-agent-skills.md` — consumed; it produced `research/agent-skills/`
-- `how-to-kill-the-bloat-in-claude-codes-system-prompt.md` — a saved article, acted on
-- `audit.md` — verified spent. Its `## Still open after the fix batch` reads "Nothing"
+- `brief-context-compression-research.md`: consumed; it produced `compression.md`
+- `brief-explore-agent-skills.md`: consumed; it produced `research/agent-skills/`
+- `how-to-kill-the-bloat-in-claude-codes-system-prompt.md`: a saved article, acted on
+- `audit.md`: verified spent. Its `## Still open after the fix batch` reads "Nothing"
 
 **5 folders:**
 
-- `wip/archive/` — the old global `CLAUDE.md` is in git, and `check-frame.js` is superseded by
+- `wip/archive/`: the old global `CLAUDE.md` is in git, and `check-frame.js` is superseded by
   `skills/visualize/scripts/canvas.js`
-- `wip/archived-skills/` — 3 retired skills, all replaced: `brainstorm` → `groundwork`,
+- `wip/archived-skills/`: 3 retired skills, all replaced: `brainstorm` → `groundwork`,
   `visualization` → `visualize`, `research-evaluation` → `research`
-- `wip/rejected-init-flow/` — the rejected skill, and the record of why it was rejected went the same
+- `wip/rejected-init-flow/`: the rejected skill, and the record of why it was rejected went the same
   day in the second cut below
-- `wip/v1-template/` — the previous generation, no longer needed
-- `wip/study-cases/` minus `premature-implementation/` — so `bad-explanations/`, `delapse/`,
+- `wip/v1-template/`: the previous generation, no longer needed
+- `wip/study-cases/` minus `premature-implementation/`, so `bad-explanations/`, `delapse/`,
   `handoff/`, `handy-workspaces/` and `read-aloud-app/` go. Drop the `bad-explanations` pointer at
   `shit-explanations.md:6` with them
 
@@ -114,20 +114,20 @@ untracked ones never can.
 
 **Kept, and why:**
 
-- `study-cases/premature-implementation/` — a `CLAUDE.md` rewritten without approval, and unproposed
+- `study-cases/premature-implementation/`: a `CLAUDE.md` rewritten without approval, and unproposed
   changes applied on a partial approval. Every other case documents a failure that got fixed; this one
   documents a failure that recurs
-- `excalidraw/` — a skill gets built from it later
-- `framework-build/` — the backlog wants it harvested into skills first
-- `design-debug.md` and `design-browser-tooling.md` — both describe work awaiting a rewrite
-- `session-new-plugin.md` — the only origin record for pre-refactor decisions, and no commits during
+- `excalidraw/`: a skill gets built from it later
+- `framework-build/`: the backlog wants it harvested into skills first
+- `design-debug.md` and `design-browser-tooling.md`: both describe work awaiting a rewrite
+- `session-new-plugin.md`: the only origin record for pre-refactor decisions, and no commits during
   the refactor replace it
 
 Three of these were cut further the same day. `## The second cut` below says what happened to each.
 
 `lab/context/` ends at 18 files, down from 29. The second cut below takes it to 17.
 
-## The second cut — `lab/context/` itself, 2026-08-28
+## The second cut: `lab/context/` itself, 2026-08-28
 
 The first cut deleted whole folders and left every context file standing. The user then asked which of
 the 17 remaining files were still needed. **Only 2 were dead. The weight was inside 4 files**, not spread
@@ -150,7 +150,7 @@ disk. The 2 files nothing pointed at are the 2 that went.
 - **`remaining.md`**, 1,276 → 368. The 2 locked sections stay and the header was rewritten. What went:
   build steps for skills never built under those names, `## Design threads still open` where every entry
   reads `[x] BUILT`, and a restructure plan for the file itself. Both items under
-  `## Deferred deliberately` were checked first — the user had already closed the fifth ticket type, and
+  `## Deferred deliberately` were checked first: the user had already closed the fifth ticket type, and
   the frontmatter question was already at `backlog.md`
 - **`session-new-plugin.md`**, 774 → 146. Lines 111 to 641 logged sessions from 2026-07-01 to 07-27 under
   names that no longer exist: `agentic-setup`, `flow-skills`, `new-workflow/`, `plugin.json`. The 2 August
@@ -161,7 +161,7 @@ disk. The 2 files nothing pointed at are the 2 that went.
   routing test, the harvest boundary, and the 2026-07-29 survey of Delapse and lumacraft_v2. **The 4 rules
   exist nowhere on disk**, which is why the file survives at all
 - **`threads.md`**, 726 → 671. `## command-surface` went; its own row already said the write-up moved to
-  `design-cli-rework.md`. `## execute-cost` stays — also built, but the only record of why `execute` looks
+  `design-cli-rework.md`. `## execute-cost` stays, also built, but the only record of why `execute` looks
   the way it does
 - **`refactor-agenda.md`**, 405 → 385. The `## Status` table went. It contradicted its own body on 2 rows,
   which was an open backlog item, and every row restated a section above it
@@ -176,15 +176,15 @@ both because neither line names a skill. Fixed with `backlog.md:67`, which said 
 
 6 lines, all mechanical:
 
-- **`link.sh:10`** — repo root reads `dirname/../..`, becomes `dirname/..`
-- **`link.sh:41`** — the skill glob reads `*/`, and becomes `*/*/` only when the group folders exist.
+- **`link.sh:10`**: repo root reads `dirname/../..`, becomes `dirname/..`
+- **`link.sh:41`**: the skill glob reads `*/`, and becomes `*/*/` only when the group folders exist.
   **Left alone.** The skills build creates them; widening the glob first would make `link.sh` find
   nothing at all today
-- **`.gitignore`** — `tmp/` becomes `/tmp/`, and `/repos/` joins it
-- **`.claude/settings.json`** — `**/global/CLAUDE.md` → `**/home/CLAUDE.md`, `**/wip/**` → `**/lab/**`,
+- **`.gitignore`**: `tmp/` becomes `/tmp/`, and `/repos/` joins it
+- **`.claude/settings.json`**: `**/global/CLAUDE.md` → `**/home/CLAUDE.md`, `**/wip/**` → `**/lab/**`,
   and `**/repos/**` joins them
-- **`flow.js:8`** — a comment naming `global/refs/cli-design.md`
-- **`work.js:22`** — a comment naming `wip/context/design-work-sync.md`. A shipped file pointing into
+- **`flow.js:8`**: a comment naming `global/refs/cli-design.md`
+- **`work.js:22`**: a comment naming `wip/context/design-work-sync.md`. A shipped file pointing into
   the design lab, which `CLAUDE.md` forbids
 
 **Verified unchanged.** `open.js:31`'s `../../fmerge.js` resolves the same after the move.
@@ -199,11 +199,11 @@ cannot start from inside one.
 
 What it builds:
 
-- **`tmp/try/home/`** — a complete fake `~/.claude`. `CLAUDE.md` and `settings.json` copied from
+- **`tmp/try/home/`**: a complete fake `~/.claude`. `CLAUDE.md` and `settings.json` copied from
   `home/`. A symlink per skill folder, per command file and per agent file. `scripts` and
   `flow/references` as folder symlinks. `.credentials.json` symlinked to the real one, so the session
   authenticates
-- **`tmp/try/project/`** — a real git repo. `project-template/` copied in, plus `.claude/flow/skills`
+- **`tmp/try/project/`**: a real git repo. `project-template/` copied in, plus `.claude/flow/skills`
 
 4 properties earn it:
 
@@ -212,7 +212,7 @@ What it builds:
 - **Nothing outside the repo is written.** One read-only symlink reaches out, to the credential file.
   `~/.claude/` stays untouched, so the never-install rule holds and the holding is checkable
 - **Gitignored**, since it lives under `tmp/`
-- **It runs the real thing** — both skill lists, the project `CLAUDE.md`, the `flow` CLI against a real
+- **It runs the real thing**: both skill lists, the project `CLAUDE.md`, the `flow` CLI against a real
   repo, the hooks
 
 It never tests whether a real install works on a clean machine. That stays with the management skill,
@@ -222,10 +222,10 @@ The same scratch-project builder feeds `node --test`, which covers `flow`, `ptre
 `guard`.
 
 **Order.** The restructure runs before the skills build, reversing the backlog. Its old reason expired:
-the grouping is decided and the restructure never moves `skills/`. The new reason is `try.sh` — the 10
+the grouping is decided and the restructure never moves `skills/`. The new reason is `try.sh`: the 10
 descriptions get tested in a real session as they are written, rather than blind.
 
-## Verified — never re-derive
+## Verified, never re-derive
 
 Every line below came from running something, 2026-08-28:
 
@@ -262,7 +262,7 @@ named as the thing that widens with them.
 - **The 10 gitlinks as real submodules.** This material is read for ideas, never built against, so a
   pinned commit buys nothing and `clone --recursive` would pull 15,000 files
 - **`try.sh --skills` and `--project`.** The first was justified by a skill-firing risk that does not
-  hold — a skill in context gets invoked, and the phase routing covers the rest. The second had nothing
+  hold: a skill in context gets invoked, and the phase routing covers the rest. The second had nothing
   to point at, since Delapse is testable only after its migration
 - **Moving the `/copy` habit into a `CLAUDE.md`.** `global/CLAUDE.md` is a public template and could
   never hold it, and the rule is minor. `user-profile.md` goes whole

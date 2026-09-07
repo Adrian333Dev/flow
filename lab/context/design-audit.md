@@ -1,9 +1,9 @@
-# The audit — a full record of what Claude Code did
+# The audit: a full record of what Claude Code did
 
 Decided 2026-09-01, designed 2026-09-02, nothing built. This file is the whole conversation, written
 down because it ran on verified facts that die with the session that found them.
 
-`lab/research/claude-audit.md` is the earlier research report. **Its architecture is superseded** —
+`lab/research/claude-audit.md` is the earlier research report. **Its architecture is superseded**:
 it proposed a hook pipeline writing to `~/.claude-audit/`, and both halves are wrong. It was written
 before that conversation could see this repo, so it also names no Flow path correctly. Read it only
 for the Agent SDK and OpenTelemetry sections, which nothing here reopens.
@@ -23,7 +23,7 @@ never the taxonomy.
 Three requirements the user set:
 
 - **Works with no ticket**, and in no project at all.
-- **Read at any point**, in any phase — start of a session, middle, 3 sessions later. Nothing
+- **Read at any point**, in any phase: start of a session, middle, 3 sessions later. Nothing
   produces anything on a schedule.
 - **Query, never bulk read.** Reading the log into context is the exact waste the audit exists to
   find.
@@ -36,18 +36,18 @@ and no wrapper sits in any path.
 
 What is on disk without Flow doing anything:
 
-- `~/.claude/projects/<project>/<session-id>.jsonl` — the docs call it "Full conversation transcript:
+- `~/.claude/projects/<project>/<session-id>.jsonl`: the docs call it "Full conversation transcript:
   every message, tool call, and tool result". `<project>` is the working directory with every
   non-alphanumeric character replaced by `-`, truncated at 200 characters plus a hash of the full
   path.
-- `~/.claude/projects/<project>/<session-id>/subagents/` — one transcript per subagent. `SubagentStop`
+- `~/.claude/projects/<project>/<session-id>/subagents/`: one transcript per subagent. `SubagentStop`
   hands a hook the same path as `agent_transcript_path`.
-- `~/.claude/projects/<project>/<session-id>/tool-results/` — large tool outputs spilled to separate
+- `~/.claude/projects/<project>/<session-id>/tool-results/`: large tool outputs spilled to separate
   files.
 
 ### What a transcript line carries
 
-Read off disk 2026-09-02, from `c5612fb1` — 23,671 lines, 61 MB, the largest session on this machine.
+Read off disk 2026-09-02, from `c5612fb1`: 23,671 lines, 61 MB, the largest session on this machine.
 
 **Every line** carries `sessionId`, `promptId`, `parentUuid`, `uuid`, `isSidechain`, `cwd`,
 `gitBranch`, `timestamp`, `version` and `type`.
@@ -58,7 +58,7 @@ Read off disk 2026-09-02, from `c5612fb1` — 23,671 lines, 61 MB, the largest s
 `queue-operation` 36.
 
 **A read records its line range.** `toolUseResult.file` carries `filePath`, `startLine`, `numLines`
-and `totalLines`, even when the call passed no `offset` — the result records what was delivered. An
+and `totalLines`, even when the call passed no `offset`: the result records what was delivered. An
 edit writes `structuredPatch` beside `oldString`, `newString` and `originalFile`. A Bash result
 carries `stdout`, `stderr` and `interrupted`, and names no file.
 
@@ -73,7 +73,7 @@ alone measures a corner and calls it the room.
 `selected_lines_in_ide` 41 (with `lineStart` and `lineEnd`), `task_reminder` 36, `nested_memory` 24
 (a `CLAUDE.md` loading, with its path), `date_change` 15, `diagnostics` 3.
 
-**Every assistant message carries full token accounting** — `input_tokens`, `output_tokens`,
+**Every assistant message carries full token accounting**: `input_tokens`, `output_tokens`,
 `cache_creation_input_tokens`, `cache_read_input_tokens`, `thinking_tokens`, the model id and a
 `requestId`.
 
@@ -86,7 +86,7 @@ alone measures a corner and calls it the room.
 The question that started this: does a session id change when the context compacts? **It does not.**
 
 - **Compaction stays inside one session.** `SessionEnd`'s reason list is `clear`, `resume`, `logout`,
-  `prompt_input_exit`, `bypass_permissions_disabled`, `other` — compaction is absent, and the docs
+  `prompt_input_exit`, `bypass_permissions_disabled`, `other`: compaction is absent, and the docs
   file `/compact` under managing context within a session. Proven on disk: `c5612fb1` holds **58
   compaction summaries under one `sessionId`**.
 - **`/clear` ends the session and starts a new one.** `SessionEnd` with reason `clear`, `SessionStart`
@@ -109,7 +109,7 @@ The question that started this: does a session id change when the context compac
 - `claude project purge <path>` deletes one project's state whole, with `--dry-run` and `--yes`.
 - `/cd` relocates a session's storage to the new directory's project folder, so one session id can
   appear under 2 project folders.
-- Transcripts compress poorly — gzip took `c5612fb1` from 63.5 MB to 19.4 MB, a ratio of 3.3. They
+- Transcripts compress poorly: gzip took `c5612fb1` from 63.5 MB to 19.4 MB, a ratio of 3.3. They
   are mostly file content, which is already near-incompressible.
 - The docs disclaim the JSONL format: "internal to Claude Code and changes between versions". It
   survives here because the raw file is always kept, the index is derived and rebuildable, and every
@@ -125,7 +125,7 @@ through `/handoff` and `/clear` instead, and `/compact` becomes rare. Both paths
 same, and segment is what makes them.
 
 ```
-  TODAY — /compact                             SOON — handoff + /clear
+  TODAY: /compact                             SOON: handoff + /clear
   one session id                               three session ids
 
   ┌───────────┬───────────┬───────────┐        ┌───────────┐  ┌───────────┐  ┌───────────┐
@@ -142,17 +142,17 @@ same, and segment is what makes them.
 
 The 4 levels:
 
-- **Turn** — `promptId`, native, one per user prompt.
-- **Segment** — derivable with no hook under compaction, from `compact_boundary`. Under `/clear` it
+- **Turn**: `promptId`, native, one per user prompt.
+- **Segment**: derivable with no hook under compaction, from `compact_boundary`. Under `/clear` it
   is the whole session.
-- **Session** — `sessionId`, native, and load-bearing for nothing.
-- **Run** — the piece of work, spanning segments. Nothing in Claude Code has this, and it is the only
+- **Session**: `sessionId`, native, and load-bearing for nothing.
+- **Run**: the piece of work, spanning segments. Nothing in Claude Code has this, and it is the only
   level Flow supplies.
 
 **The run needs an explicit record, and `/clear` is why.** Under compaction the segments share a
 session id, so a run reassembles itself. Under `/clear` nothing links 3 sessions but the handoff,
 which the database cannot see. A `SessionStart` hook writes the new session id into the project's
-`.flow/`, **upserting on session id** — the hook also fires on compaction with `source: compact`, and
+`.flow/`, **upserting on session id**: the hook also fires on compaction with `source: compact`, and
 an append would record one session 5 times.
 
 ## The shape
@@ -190,7 +190,7 @@ an append would record one session 5 times.
                        │  "open turns 412-460 of session c5612fb1"
                        ▼
                        the agent opens that slice of the original transcript
-                       and reads it in full — every tool call, every result
+                       and reads it in full: every tool call, every result
 ```
 
 Drawn 2026-09-02 after a first attempt failed. The fault: it never said which boxes exist today and
@@ -198,24 +198,24 @@ which get written, so `reader` read as something Claude Code might already ship.
 
 ## What the database holds
 
-One table per word defined above, plus one for bookkeeping. Every row is derived and rebuildable —
+One table per word defined above, plus one for bookkeeping. Every row is derived and rebuildable:
 delete the file and `flow audit index` writes it again.
 
-- **`session`** — where it ran, which git branch, start and end, Claude Code version.
-- **`segment`** — one row per unbroken context window.
-- **`turn`** — one row per `promptId`, with the tokens the turn spent.
-- **`event`** — one row per transcript line, **including its line number in the file**. That number is
-  what makes reading one turn cost nothing. Without it, reaching turn 412 means re-parsing 61 MB —
+- **`session`**: where it ran, which git branch, start and end, Claude Code version.
+- **`segment`**: one row per unbroken context window.
+- **`turn`**: one row per `promptId`, with the tokens the turn spent.
+- **`event`**: one row per transcript line, **including its line number in the file**. That number is
+  what makes reading one turn cost nothing. Without it, reaching turn 412 means re-parsing 61 MB:
   the exact waste the audit exists to catch.
-- **`tool_call`** — which tool, its input, whether it errored, how long it took.
-- **`file_touch`** — which file entered or left context, which lines, and how sure the path is. Two
+- **`tool_call`**, which tool, its input, whether it errored, how long it took.
+- **`file_touch`**, which file entered or left context, which lines, and how sure the path is. Two
   path columns: the absolute one, resolved against the directory the event ran in, and the one the
   command actually wrote. Without the first, `cat backlog.md` and `Read /home/…/backlog.md` are 2
   different files.
-- **`run`** and **`run_session`** — the piece of work. Both stay empty with no project, and every
+- **`run`** and **`run_session`**: the piece of work. Both stay empty with no project, and every
   query treats run as optional. That is what makes the audit work with no ticket. Built and empty as
   of 2026-09-02: nothing writes a row yet.
-- **`transcript`** — the reader's bookmark: which files it has read and **the byte offset it stopped
+- **`transcript`**: the reader's bookmark: which files it has read and **the byte offset it stopped
   at**. Transcripts only ever grow, so re-indexing reads the new tail instead of 61 MB again. Store
   the inode too, to catch a file replaced rather than extended, and the turn and segment the walk
   stopped inside, so the next walk continues them instead of opening new ones.
@@ -233,17 +233,17 @@ fixed report over up to 50 sessions at once. That machinery serves batch report 
 nothing here is batch.
 
 The skill's steps run in the main session. That matches the standing decision that review runs in the
-session rather than a subagent — `## Authoring a skill` in `CLAUDE.md`, the reason `code-review` was
+session rather than a subagent: `## Authoring a skill` in `CLAUDE.md`, the reason `code-review` was
 never built.
 
 **It hands the agent 3 tools and says when each is worth reaching for. The agent picks.** Settled
 2026-09-02, after a draft that made transcript reading the ground truth and demoted the rest.
 
-1. **Query the index** — counts, costs, rankings, error rates. Enough alone for most waste questions.
+1. **Query the index**: counts, costs, rankings, error rates. Enough alone for most waste questions.
    A file pulled 14 times is a finding with nothing else read.
-2. **Read the tool calls for a turn range** — what ran, what came back. Where `cat`, `util fs merge`
+2. **Read the tool calls for a turn range**: what ran, what came back. Where `cat`, `util fs merge`
    and anything a parser missed become visible.
-3. **Read the conversation** — reasoning, the user's corrections, where it went sideways. The
+3. **Read the conversation**: reasoning, the user's corrections, where it went sideways. The
    expensive one, for when the first 2 show something is wrong but not why.
 
 The agent works down that list as far as the question needs, then stops. Nothing is fed to it up
@@ -265,7 +265,7 @@ scores friction as `misunderstood_request`, `wrong_approach`, `buggy_code`, `use
 pass skipped, stopped at a checkpoint waiting for a second go, `ls` where `util fs tree` is mandated.
 
 **The daily sweep is a second mode and waits.** Analysing every session since yesterday is batch, and
-batch is what wants parallel dispatch — which is blocked on git worktrees and the git toggle. It also
+batch is what wants parallel dispatch, which is blocked on git worktrees and the git toggle. It also
 mostly needs no model: the deterministic pass runs over every new session at zero token cost and
 escalates only what it flags. Build the focused audit first.
 
@@ -273,11 +273,11 @@ escalates only what it flags. Build the focused audit first.
 
 Three tiers, and size decides each one.
 
-- **The database** — machine-local, never synced, never in a repo. `~/.flow/audit/`, excluded if
+- **The database**: machine-local, never synced, never in a repo. `~/.flow/audit/`, excluded if
   `~/.flow` ever becomes a synced repo. It describes work that happened on one machine.
-- **The run-to-session mapping** — which sessions worked a ticket. A few dozen bytes, written into the
+- **The run-to-session mapping**, which sessions worked a ticket. A few dozen bytes, written into the
   ticket, travels with the project.
-- **Evidence a study case cites** — extracted and committed with the case. The transcripts are swept
+- **Evidence a study case cites**: extracted and committed with the case. The transcripts are swept
   and machine-local, so a case that only points at them is empty on the other machine.
   `references/study-cases.md` already demands the artifact verbatim, and that rule stands unchanged.
 
@@ -303,16 +303,16 @@ on 2026-09-01.
 
 Four phases:
 
-1. **Lite scan** — walks `~/.claude/projects/` reading filesystem metadata only, no parsing.
-2. **Deterministic extract** — a `SessionMeta` per session, no model involved: project path, start
+1. **Lite scan**: walks `~/.claude/projects/` reading filesystem metadata only, no parsing.
+2. **Deterministic extract**: a `SessionMeta` per session, no model involved: project path, start
    time, duration, message counts, `tool_counts` per tool name, `languages` by extension, git commits
    and pushes, token counts, first prompt, user interruptions, response times, tool errors with
    categories, whether subagents, MCP, WebSearch or WebFetch were used, lines added and removed, files
    modified, message hours. Cached at `~/.claude/usage-data/session-meta/<session-id>.json`.
-3. **LLM facets** — a model returns underlying goal, goal categories, outcome, satisfaction counts,
+3. **LLM facets**: a model returns underlying goal, goal categories, outcome, satisfaction counts,
    helpfulness, session type, friction counts, friction detail, primary success, brief summary. Capped
    at 50 extractions a run. Cached at `~/.claude/usage-data/facets/<session-id>.json`.
-4. **Aggregate and render** — 8 sections, each its own parallel model call, into HTML.
+4. **Aggregate and render**: 8 sections, each its own parallel model call, into HTML.
 
 **Two mechanisms worth taking.** Both caches key on session id and carry `transcript_mtime`, so a
 re-run pays only for what changed. And it already solves 2 problems we hit:
@@ -323,7 +323,7 @@ re-run pays only for what changed. And it already solves 2 problems we hit:
 truncates every user message to 500 characters and every assistant message to 300, and **includes no
 tool calls at all**; past 30,000 characters that text is chunked and summarized before analysis. So
 the model judging a session never sees a single tool call. The deterministic layer does see tool
-calls and keeps only counts — `tool_counts` says `Read: 58`, never which files; the source builds a
+calls and keeps only counts: `tool_counts` says `Read: 58`, never which files; the source builds a
 set of modified paths and then discards it, storing a number. No line ranges anywhere. Both layers are
 per-session aggregates with no turn, segment, run or ticket.
 
@@ -340,42 +340,42 @@ No audit code exists. Everything below is retention and writing.
 
 **2026-09-01**
 
-- `~/.claude/settings.json` — `cleanupPeriodDays: 365`. The machine was on the 30-day default with its
+- `~/.claude/settings.json`: `cleanupPeriodDays: 365`. The machine was on the 30-day default with its
   oldest transcript 28 days old, so August's start was days from deletion.
-- `home/settings.json` — the same key, so every install carries it.
-- `home/settings.md` — a `## cleanupPeriodDays` section: what the sweep takes, why Flow raises it, why
+- `home/settings.json`: the same key, so every install carries it.
+- `home/settings.md`: a `## cleanupPeriodDays` section: what the sweep takes, why Flow raises it, why
   365 and not more. A month of real work is about 305 MB, so a year costs a few gigabytes and a decade
   costs tens with nothing pruning.
-- `CLAUDE.md` → `## Hard rules` — **never run an experiment to answer what the documentation answers.**
+- `CLAUDE.md` → `## Hard rules`: **never run an experiment to answer what the documentation answers.**
   Added at the user's instruction after a design ran on guesses that `claude-directory.md` and
   `sessions.md` had already answered. It covers any tool, not Claude Code alone.
 
 **2026-09-02**
 
-- **`flow audit` — the whole of it.** `scripts/flow/commands/audit.js` is the surface;
+- **`flow audit`: the whole of it.** `scripts/flow/commands/audit.js` is the surface;
   `scripts/flow/lib/audit/` holds `store.js` (the schema), `scan.js` (the reader), `files.js` (which
   file a call touched), `query.js` (the named queries) and `read.js` (a turn range of the
   conversation). `skills/commands/audit/SKILL.md` is the skill, filed under `commands/` because that
   group wins wherever 2 fit. 6 tests in `scripts/tests/audit.test.js`; the suite is 27 and passes.
 
-- `lab/context/design-audit.md` — **the Claude Code reference pages go to `docs/dev/`, not
+- `lab/context/design-audit.md`: **the Claude Code reference pages go to `docs/dev/`, not
   `references/`.** Reversed by the user: `lab/research/claude-code-docs/` is a clone that will be
   deleted, so no maintained page may sit beside it or point into it, and a published URL is the only
   citation that survives.
 
-- `backlog.md` → `## Other people, other models` — a new section, 4 items: naming what in Flow is
+- `backlog.md` → `## Other people, other models`: a new section, 4 items: naming what in Flow is
   Claude Code and what is portable, running Flow on GPT, Qwen and GLM, surveying the harnesses that
   could host Flow, and building Flow for a stranger. The `deepseek-harness` research line lost the
   portability question it had been carrying and now points at the section.
-- `home/CLAUDE.md` → `## Hard rules` — **never run an experiment to answer what the documentation
+- `home/CLAUDE.md` → `## Hard rules`: **never run an experiment to answer what the documentation
   answers**, carried across from this repo's `CLAUDE.md` at the user's approval. The two wordings
   differ on purpose: the repo copy names `lab/research/claude-code-docs/`, and no `lab/` path may
   leak into `home/`.
-- `CLAUDE.md` → `## Hard rules` — **never re-ask a settled point, and never list one as open.** The
+- `CLAUDE.md` → `## Hard rules`: **never re-ask a settled point, and never list one as open.** The
   existing "silence on a decision is a yes" rule covered delay and said nothing about re-asking, so
   settled points kept reappearing under `## Open`. Set by the user after 2 of them were re-raised
   across 3 messages.
-- **`~/.flow/notes.md` renamed to `~/.flow/workflow-notes.md`** across every live file — this repo's
+- **`~/.flow/notes.md` renamed to `~/.flow/workflow-notes.md`** across every live file: this repo's
   `CLAUDE.md`, `home/CLAUDE.md`, `references/study-cases.md`,
   `skills/commands/file-findings/SKILL.md`, `docs/dev/README.md` and 2 lines in `backlog.md`. The
   backlog item requesting the rename was deleted, per that file's rule that a finished item is
@@ -398,7 +398,7 @@ from the turn sums, which exist for all 51 sessions; `cost-state` exists for 9 a
 dollar figure alone.
 
 **A shell command is prose as often as it is a command.** The first pass over this machine recorded
-`the`, `a` and `and` as files read, out of heredoc bodies — a line reading `tail the log` parses as a
+`the`, `a` and `and` as files read, out of heredoc bodies: a line reading `tail the log` parses as a
 `tail`. Every heredoc body is stripped before parsing now, redirections are dropped, a path needs a
 slash or an extension, and sed's own grammar decides which argument is the script.
 
@@ -408,11 +408,11 @@ event carries.
 
 **A walk has to hand the next walk its open turn and segment.** Reading resumes from a byte offset,
 and the turn and segment it stopped inside are already written as closed. Without their ids in the
-bookmark, an appended tail opened a second segment where the conversation had one — and nothing
+bookmark, an appended tail opened a second segment where the conversation had one, and nothing
 about the output looked wrong. `scripts/tests/audit.test.js` guards it by indexing a file whole, then
 in 2 halves, and comparing every count.
 
-Measured, 2026-09-02: 51 transcripts and 241 MB walked in 3 seconds into a 44 MB index — 79,676
+Measured, 2026-09-02: 51 transcripts and 241 MB walked in 3 seconds into a 44 MB index, 79,676
 events, 3,189 turns, 276 segments, 12,278 tool calls, 10,294 file touches. A second run over
 unchanged files opens nothing.
 
@@ -425,14 +425,14 @@ recommendation of `references/`.
 documentation, and it gets deleted.** A page that distils it must not sit beside it, and must not
 point into it either. Anything durable cites the published URL instead, which survives the clone.
 
-`lab/` is wrong for the same reason twice over — every record there is history, and a facts page
+`lab/` is wrong for the same reason twice over: every record there is history, and a facts page
 about Claude Code is maintained. `references/` is wrong because it installs to `~/.flow/references/`
 and loads mid-work; these are pages a person reads while changing Flow, which is what `docs/dev/`
 already holds.
 
 `docs/manual/` is the other half of the docs tree and does not exist yet. It waits on the workflow
 being finished, and it is about using Flow rather than building it. `backlog.md` → `## Next` item 4
-is a manual page on features Claude Code already ships that would have replaced things Flow built —
+is a manual page on features Claude Code already ships that would have replaced things Flow built:
 a different subject, and no collision with this one.
 
 **Two consequences, neither one handled yet.** This repo's `CLAUDE.md` hard rule on reading the docs

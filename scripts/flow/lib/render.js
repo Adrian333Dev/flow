@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Output. Plain text, no colour — the agent reads this as often as the user
+ * Output. Plain text, no colour: the agent reads this as often as the user
  * does, and ANSI codes are noise in a transcript.
  */
 
@@ -9,7 +9,7 @@ const graph = require('./graph');
 const store = require('./store');
 const statuses = require('./statuses');
 
-/** Aligned columns with no header row — the tree needs the padding without one. */
+/** Aligned columns with no header row: the tree needs the padding without one. */
 function columns(rows) {
   const widths = [];
   for (const r of rows) {
@@ -38,7 +38,7 @@ const ticketRow = (t, index) => [
 ];
 
 // `pool` is the full ticket set when the list being printed is a filtered slice
-// of it — priority is inherited, so a parent outside the slice still decides.
+// of it: priority is inherited, so a parent outside the slice still decides.
 function ticketTable(tickets, pool) {
   if (tickets.length === 0) return 'no tickets.';
   const index = graph.indexById(pool || tickets);
@@ -50,7 +50,7 @@ function ticketTable(tickets, pool) {
 
 /**
  * The forest, drawn. One line per ticket: the branch, then status, priority and
- * whatever single fact matters most about it — how much of a parent is done,
+ * whatever single fact matters most about it: how much of a parent is done,
  * what a blocked ticket waits on, why a parked one was set aside.
  */
 function tree(nodes, all) {
@@ -89,7 +89,7 @@ function treeNote(t, all, index) {
 }
 
 /**
- * How many of a parent's children are finished — the parent's whole progress
+ * How many of a parent's children are finished: the parent's whole progress
  * story, and the only counting `flow` does. It reads `status` in frontmatter,
  * which these commands own outright, so it cannot disagree with anything.
  */
@@ -101,7 +101,7 @@ function progressOf(t, tickets) {
 
 const blockText = (u) =>
   u.reason === 'missing' ? `${u.dep} does not exist`
-  : u.reason === 'dropped' ? `${u.dep} was dropped — this ticket can never become ready`
+  : u.reason === 'dropped' ? `${u.dep} was dropped: this ticket can never become ready`
   : `${u.dep} is ${u.reason}`;
 
 const blockedLines = (entries) =>
@@ -130,7 +130,7 @@ function show(ticket, tickets, root) {
     `deps:       ${deps.length ? deps.join(', ') : '-'}`,
     `dependents: ${dependents.length ? dependents.join(', ') : '-'}`,
     kids.length
-      ? `children:   ${progressOf(ticket, tickets)} done — ${kids.map((k) => `${k.id} (${k.data.status})`).join(', ')}`
+      ? `children:   ${progressOf(ticket, tickets)} done, ${kids.map((k) => `${k.id} (${k.data.status})`).join(', ')}`
       : null,
     planLine(ticket),
     reportsLine(ticket),
@@ -150,7 +150,7 @@ function show(ticket, tickets, root) {
 
 /**
  * Where a parked ticket comes back to. Parking stores the status it left, so
- * this is a lookup rather than a guess — the guess is what sent a feature
+ * this is a lookup rather than a guess: the guess is what sent a feature
  * parked at `building` back to `groundwork`. A ticket parked before that field
  * existed, or parked straight out of `done`, has nothing stored and falls back
  * to where its type opens.
@@ -159,7 +159,7 @@ const reviveVerb = (t) =>
   statuses.VERB_OF[t.data.resume] || statuses.VERB_OF[statuses.entryStatusFor(t.data.type)];
 
 /**
- * The one command this ticket is waiting for — printed, never run.
+ * The one command this ticket is waiting for: printed, never run.
  *
  * `flow start` used to compute this status and write it, and `/start` ran that
  * through an injected shell line, so a ticket moved before the model had read a
@@ -191,7 +191,7 @@ const planLine = (ticket) => {
   return steps ? `plan:       plan.md   ${steps.done}/${steps.total} steps` : 'plan:       plan.md';
 };
 
-/** Named, not counted — a report is read by opening it, and the name says what it answers. */
+/** Named, not counted: a report is read by opening it, and the name says what it answers. */
 const reportsLine = (ticket) => {
   const files = store.reportFiles(ticket);
   return files.length ? `reports:    ${files.map((f) => `reports/${f}`).join(', ')}` : null;
@@ -203,7 +203,7 @@ function priorityLine(ticket, index) {
   if (effective === 'normal') return 'normal';
   let p = ticket.data.parent ? index.get(ticket.data.parent) : null;
   while (p && !p.data.priority) p = p.data.parent ? index.get(p.data.parent) : null;
-  return `${effective} — inherited from ${p ? p.id : '?'}`;
+  return `${effective} (inherited from ${p ? p.id : '?'})`;
 }
 
 /**
@@ -212,7 +212,7 @@ function priorityLine(ticket, index) {
  *
  * The counts come off the status table, so a new status appears here without
  * this line being touched. Parked tickets are invisible in the daily loop by
- * design, and this is the one place they surface — a deliberate "not now"
+ * design, and this is the one place they surface: a deliberate "not now"
  * cannot quietly become "forgotten".
  */
 function status(tickets, limit) {
@@ -235,7 +235,7 @@ function status(tickets, limit) {
 /**
  * The session opener, printed by `flow get` with no argument. Four questions
  * what did I finish last, what is still open, what continues it, what could
- * start. Read-only on purpose — this is the view for not knowing what is next,
+ * start. Read-only on purpose: this is the view for not knowing what is next,
  * and picking is a separate act.
  */
 function brief(tickets, limit) {
@@ -254,7 +254,7 @@ function brief(tickets, limit) {
 
   const inFlight = tickets.filter((t) => graph.IN_FLIGHT.has(t.data.status));
   if (inFlight.length) {
-    out.push(`in flight (${inFlight.length}) — finish these before starting more:`);
+    out.push(`in flight (${inFlight.length}), finish these before starting more:`);
     out.push(indent(ticketTable(graph.rank(inFlight, tickets), tickets)));
     out.push('');
   }
@@ -281,7 +281,7 @@ function brief(tickets, limit) {
     const blocked = graph.blockedTickets(tickets);
     out.push(blocked.length
       ? `nothing ready. ${blocked.length} todo ticket${blocked.length === 1 ? '' : 's'} blocked:\n${blockedLines(blocked.slice(0, 8))}`
-      : 'nothing ready and nothing blocked — no todo tickets left.');
+      : 'nothing ready and nothing blocked: no todo tickets left.');
     out.push('');
   }
 
@@ -293,7 +293,7 @@ function brief(tickets, limit) {
     out.push('         run file-findings to sweep them');
   }
   const problems = graph.check(tickets);
-  if (graph.hasProblems(problems)) out.push('the ticket graph has problems — flow check');
+  if (graph.hasProblems(problems)) out.push('the ticket graph has problems: flow check');
 
   return out.join('\n').replace(/\n+$/, '');
 }
@@ -308,22 +308,22 @@ function checkReport(problems) {
     out.push('');
   }
   if (problems.dangling.length) {
-    out.push(`dangling deps (${problems.dangling.length}) — the dep does not exist:`);
+    out.push(`dangling deps (${problems.dangling.length}), the dep does not exist:`);
     for (const d of problems.dangling) out.push(`  ${d.ticket.id} depends on ${d.dep}`);
     out.push('');
   }
   if (problems.droppedBlockers.length) {
-    out.push(`dropped blockers (${problems.droppedBlockers.length}) — these can never become ready:`);
+    out.push(`dropped blockers (${problems.droppedBlockers.length}), these can never become ready:`);
     for (const d of problems.droppedBlockers) out.push(`  ${d.ticket.id} depends on ${d.dep} (dropped)`);
     out.push('');
   }
   if (problems.danglingParents.length) {
-    out.push(`dangling parents (${problems.danglingParents.length}) — the parent does not exist:`);
+    out.push(`dangling parents (${problems.danglingParents.length}), the parent does not exist:`);
     for (const d of problems.danglingParents) out.push(`  ${d.ticket.id} has parent ${d.parent}`);
     out.push('');
   }
   if (problems.closedParents.length) {
-    out.push(`closed parents (${problems.closedParents.length}) — the parent finished while this was still open:`);
+    out.push(`closed parents (${problems.closedParents.length}), the parent finished while this was still open:`);
     for (const d of problems.closedParents) {
       out.push(`  ${d.ticket.id} (${d.ticket.data.status}) has parent ${d.parent.id}, which is ${d.parent.data.status}`);
     }
@@ -338,11 +338,11 @@ const indent = (text) => text.split('\n').map((l) => '  ' + l).join('\n');
 
 /**
  * The index that decides where a new case goes. One line per issue, because it
- * is read before every create — the rules are here because "is my failure this
+ * is read before every create: the rules are here because "is my failure this
  * one?" is answered by the rule that failed far more often than by the name.
  */
 function issueTable(issues) {
-  if (issues.length === 0) return 'no issues yet — the first study case creates one.';
+  if (issues.length === 0) return 'no issues yet: the first study case creates one.';
   return table(
     ['ISSUE', 'CASES', 'OPEN', 'LATEST', 'RULES'],
     issues.map((i) => [i.issue, i.total, i.open, i.latest || '-', i.rules.length ? i.rules.join('; ') : '-'])

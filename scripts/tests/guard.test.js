@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `guard` — the PreToolUse hook that vets a Bash call before it runs.
+ * `guard`: the PreToolUse hook that vets a Bash call before it runs.
  *
  * `ptree` and `fmerge` were tested here too, until 2026-08-30 moved both into
  * the `util` repo as `fs tree` and `fs merge`. Their tests moved with them.

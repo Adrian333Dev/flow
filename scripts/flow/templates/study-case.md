@@ -2,7 +2,7 @@
 
 ## What the user sent
 
-<!-- Verbatim where the wording is the evidence — a hedge, a question, a repeat.
+<!-- Verbatim where the wording is the evidence: a hedge, a question, a repeat.
      The perishable half: paste it now, before the conversation is compacted. -->
 
 ## What happened

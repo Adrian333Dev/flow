@@ -2,7 +2,7 @@
 
 3.8k stars. Markdown files with wikilinks as a knowledge graph. The file is the source of truth; SQLite is a derived index. MCP server for search and retrieval. Local-first with optional cloud sync. AGPL-3.0.
 
-## Core mechanism — structured markdown as the knowledge format
+## Core mechanism: structured markdown as the knowledge format
 
 Every note is a plain markdown file with three parts:
 
@@ -17,7 +17,7 @@ permalink: coffee-brewing-methods
 ---
 ```
 
-Standard fields (title, type, tags, permalink, schema) plus arbitrary custom metadata. Permalink is the stable identifier — survives file moves.
+Standard fields (title, type, tags, permalink, schema) plus arbitrary custom metadata. Permalink is the stable identifier: survives file moves.
 
 ### 2. Observations (categorized facts)
 
@@ -39,7 +39,7 @@ Syntax: `- [category] content #tag (context)`. The category is required, tags an
 
 Syntax: `- relation_type [[Target Entity]]`. Common types: implements, depends_on, relates_to, extends, part_of, contains. Inline wikilinks in prose create implicit `links_to` relations. Forward references resolve when the target is created.
 
-## Schema validation — Picoschema
+## Schema validation: Picoschema
 
 Optional schemas define expected structure:
 
@@ -58,17 +58,17 @@ Schemas map to observation and relation syntax: `name: string` → `[name] value
 - **Files are truth.** Changes to files automatically update the knowledge graph in the database. SQLite is a derived cache, rebuilt silently when pages change.
 - **`memory://` URLs.** Every note is addressable by permalink, title, or path. Pattern matching supported (`memory://auth*`).
 - **MCP server.** Search (full-text + semantic), read/write notes, canvas views for graph visualization.
-- **Optional semantic search.** Cross-encoder reranking for vector and hybrid results. Not required — FTS5 works at personal scale.
+- **Optional semantic search.** Cross-encoder reranking for vector and hybrid results. Not required: FTS5 works at personal scale.
 
 ## What matters for Flow
 
 ### The observation syntax is the right granularity
 
-`[category] content #tag (context)` captures a single fact with its classification, topics, and supporting detail. It is both human-readable and machine-parseable. For Flow's knowledge types: `[incident] symptom/cause/fix/prevention`, `[convention] naming rule`, `[decision] architecture choice with rationale`. The syntax works without any infrastructure — it is just markdown.
+`[category] content #tag (context)` captures a single fact with its classification, topics, and supporting detail. It is both human-readable and machine-parseable. For Flow's knowledge types: `[incident] symptom/cause/fix/prevention`, `[convention] naming rule`, `[decision] architecture choice with rationale`. The syntax works without any infrastructure, it is just markdown.
 
 ### Files as truth, database as cache
 
-Flow already uses markdown files as the source of truth for skills, rules, and references. A knowledge base that follows the same pattern — markdown files with a derived index — fits naturally. No migration path needed, no new infrastructure, and Git provides version history.
+Flow already uses markdown files as the source of truth for skills, rules, and references. A knowledge base that follows the same pattern (markdown files with a derived index) fits naturally. No migration path needed, no new infrastructure, and Git provides version history.
 
 ### Wikilinks create a navigable graph
 

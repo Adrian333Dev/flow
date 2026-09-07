@@ -4,7 +4,7 @@
  * the index from them.
  *
  * Nothing here intercepts anything. There is no hook, no wrapper and no
- * recorder in any path — `~/.claude/projects/<project>/<session>.jsonl` exists
+ * recorder in any path: `~/.claude/projects/<project>/<session>.jsonl` exists
  * whether Flow is installed or not, and this file only ever opens it for
  * reading.
  *
@@ -266,7 +266,7 @@ function statements(db) {
 
 /**
  * Throws away everything derived from one transcript. Only reached when the
- * file was replaced rather than appended to — a shrinking file or a new inode
+ * file was replaced rather than appended to: a shrinking file or a new inode
  * means the byte offset points at the wrong place, and half-correct rows are
  * worse than none.
  */
@@ -312,7 +312,7 @@ function indexTranscript(db, stmt, entry) {
 
   // Every walk closes the turn and the segment it stopped inside, because the
   // rows have to be readable between runs. The next walk picks the same two up
-  // again, totals and all — otherwise an appended tail opens a second segment
+  // again, totals and all: otherwise an appended tail opens a second segment
   // where the conversation had one, and nothing about the output looks wrong.
   let segmentTurns = segment == null ? 0
     : db.prepare('SELECT turns FROM segment WHERE id = ?').get(segment).turns || 0;
@@ -488,7 +488,7 @@ function indexTranscript(db, stmt, entry) {
     }
 
     // The file ends the last turn and the last segment. What ended the session
-    // — /clear, a logout, closing the terminal — is not written anywhere in
+    // (/clear, a logout, closing the terminal) is not written anywhere in
     // it, so `end` is as much as the transcript can say.
     const lastTurn = turn;
     const lastSegment = segment;

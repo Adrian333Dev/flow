@@ -1,6 +1,6 @@
-# `settings.json` — what every key is for
+# `settings.json`: what every key is for
 
-Reference for `home/settings.json`, which merges into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things — model, effort level, plugins, statusline — that Flow shouldn't own.
+Reference for `home/settings.json`, which merges into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
 
 `settings.json` is strict JSON. No comments, which is why this file exists.
 
@@ -17,9 +17,9 @@ Settings load at startup. **Restart Claude Code after any change.**
 
 Runs `scripts/guard.js` before every Bash call. The script reads the pending command on stdin and returns `deny`, `ask`, or nothing.
 
-Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed under nvm has to be on it — but `flow` and `util` are Node too, so that is already a hard requirement of the toolchain and this adds nothing new. What it removes is a third language in a five-file folder.
+Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed under nvm has to be on it, but `flow` and `util` are Node too, so that is already a hard requirement of the toolchain and this adds nothing new. What it removes is a third language in a five-file folder.
 
-**The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves nothing deciding a shell command — the deny list holds no `Bash` entries at all, because a static list cannot name the open set of what a shell command can be.
+**The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves nothing deciding a shell command: the deny list holds no `Bash` entries at all, because a static list cannot name the open set of what a shell command can be.
 
 ### The snapshot pair
 
@@ -66,13 +66,13 @@ Two consequences worth knowing:
 
 ### Why worktree isolation is off
 
-`EnterWorktree` and `Agent(isolation:worktree)` both move work into a second directory. The snapshot compares one directory against itself, and `snapshot.js` gives up when the directory moves between its two events — so worktree isolation turns the diff off and says nothing.
+`EnterWorktree` and `Agent(isolation:worktree)` both move work into a second directory. The snapshot compares one directory against itself, and `snapshot.js` gives up when the directory moves between its two events, so worktree isolation turns the diff off and says nothing.
 
 **A hold, not a verdict.** Separate directories are the obvious road to running several subagents at once, which the one-at-a-time rule above rules out today. Lift this once the snapshot handles a per-subagent working directory.
 
 `Agent(isolation:worktree)` is a scoped rule rather than a bare name, so the Agent tool stays available and only that one parameter value is blocked.
 
-**`worktree.bgIsolation` closes the same door from the other side.** Its default, `"worktree"`, blocks `Edit` and `Write` in the main checkout until `EnterWorktree` runs — and `EnterWorktree` is denied above, so a background session would read files and run commands and never write a fix. `"none"` lets it edit the working copy directly. The `debug` agent runs as one of those sessions, and isolation is wrong for debugging anyway: the bug often lives in uncommitted state that a fresh worktree does not carry.
+**`worktree.bgIsolation` closes the same door from the other side.** Its default, `"worktree"`, blocks `Edit` and `Write` in the main checkout until `EnterWorktree` runs, and `EnterWorktree` is denied above, so a background session would read files and run commands and never write a fix. `"none"` lets it edit the working copy directly. The `debug` agent runs as one of those sessions, and isolation is wrong for debugging anyway: the bug often lives in uncommitted state that a fresh worktree does not carry.
 
 ---
 
@@ -94,26 +94,26 @@ A tool name written **without parentheses matches every use of that tool**.
 
 Why blanket rather than a curated list: approving a command through the permission dialog saves the *exact string* that ran, so `util fs tree --depth 3` and `util fs tree --depth 4` become two rules. A hand-kept list of command patterns never converges and goes stale the moment a path moves. The deny list plus the guard define the boundary instead.
 
-Not on the list, so still prompts: reads outside the working directory, and writes into protected paths — `.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends, which allow rules cannot pre-approve by design.
+Not on the list, so still prompts: reads outside the working directory, and writes into protected paths (`.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends), which allow rules cannot pre-approve by design.
 
 **Spawning a subagent never prompts, so `Agent` needs no entry.** Claude Code checks a subagent's own tool calls against these same rules while it works, and that is what governs a worker.
 
-### `deny` — Claude Code surfaces Flow doesn't use
+### `deny`: Claude Code surfaces Flow doesn't use
 
 These are **bare tool names**, which removes each tool from the model's context entirely rather than blocking it at call time. That also drops its schema from every request: `DesignSync` alone measured ~2,200 tokens.
 
 | Entry | Why |
 |---|---|
 | `EnterPlanMode`, `ExitPlanMode` | Flow owns planning: `/groundwork` → tickets → the ticket's `plan.md`. Built-in plan mode also blocks the file writes those phases depend on. |
-| `AskUserQuestion` | Presents a canned multiple-choice list. Flow's rule is the inverse — the agent commits to a recommendation and the user reacts. |
+| `AskUserQuestion` | Presents a canned multiple-choice list. Flow's rule is the inverse: the agent commits to a recommendation and the user reacts. |
 | `SendMessage`, `ListAgents` | Agent-to-agent messaging, and the tool that finds agents to message. `/execute` dispatches subagents with self-contained assignments; there is no back-channel to keep open. |
 | `PushNotification`, `ScheduleWakeup`, `RemoteTrigger`, `ReportFindings` | Out-of-band and unattended operation. One author, one terminal, every session watched. |
 | `SendUserFile`, `ShareOnboardingGuide` | Send a file off the machine, to a device or behind a public link. Same reason, plus the work is not the agent's to publish. |
 | `CronCreate`, `CronDelete`, `CronList` | Scheduled background jobs. Same reason. |
 | `NotebookEdit` | Jupyter notebooks. Not in any workflow here. |
-| `DesignSync` | Design-tool sync. Unused — and absent from the published tool reference, so it was found by logging a real request rather than by reading the docs. |
+| `DesignSync` | Design-tool sync. Unused, and absent from the published tool reference, so it was found by logging a real request rather than by reading the docs. |
 
-### `deny` — no git entries, and why
+### `deny`: no git entries, and why
 
 **No `Bash(git …)` rule appears in this file, and adding one would break the switch.** `guard.js` decides every git command instead.
 
@@ -128,14 +128,14 @@ flow git ask                the same, confirming every one
 flow git off                back to reads only
 ```
 
-The scope is the session you type it in, unless `--project` or `--global` widens it. It lasts an hour unless `--for` says otherwise. Past that, the guard deletes the entry the first time it looks — so a switch left on turns itself off.
+The scope is the session you type it in, unless `--project` or `--global` widens it. It lasts an hour unless `--for` says otherwise. Past that, the guard deletes the entry the first time it looks, so a switch left on turns itself off.
 
 `--project` writes `.flow/settings.json` inside the repository, and the project template ignores that path. An unlock is this machine's state with a clock on it: committed, it would be one commit saying git writes are on and another an hour later saying they are off.
 
 Three things hold whatever the mode says:
 
 - **Reads always run.** `status`, `log`, `diff`, `show` and 22 more, by allowlist. Anything outside it is a write
-- **Destructive commands always ask.** A force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, a tag or ref delete, `reflog delete`, `gc --prune`, `worktree remove --force`. They ask rather than deny, so you can still say yes — they just never run silently
+- **Destructive commands always ask.** A force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, a tag or ref delete, `reflog delete`, `gc --prune`, `worktree remove --force`. They ask rather than deny, so you can still say yes: they just never run silently
 - **The agent cannot turn it on.** `flow git allow` is refused when the agent runs it. Type it yourself as `! flow git allow`, which reaches no tool call and so reaches no guard
 
 `guard.js` is the only thing between the agent and git now, so an error it cannot recover from denies a git command rather than falling through.
@@ -144,7 +144,7 @@ Three things hold whatever the mode says:
 
 Six of them, cycled with Shift+Tab and overridable for one session with `--permission-mode <name>`. A mode only decides what happens to a call no rule above matched.
 
-**Stay on `default`**, labelled Manual. There is no `defaultMode` key here because `default` is already the default, and the allow list covers everything routine — so the prompts left over are the ones worth seeing.
+**Stay on `default`**, labelled Manual. There is no `defaultMode` key here because `default` is already the default, and the allow list covers everything routine, so the prompts left over are the ones worth seeing.
 
 **`dontAsk` is the unattended mode.** It auto-denies whatever the allow list does not cover and never interrupts, so a long run finishes and every denial shows up in the transcript. Reach for it with Shift+Tab, never by setting it here.
 
@@ -152,7 +152,7 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 **`bypassPermissions` is locked out**, by `permissions.disableBypassPermissionsMode: "disable"`. Its one addition over `acceptEdits` is silent writes into `.claude` and `.git`, and Flow's entire content *is* `.claude`. The same key disables the `--dangerously-skip-permissions` flag that `guard.js` already denies as a Bash command, and makes Claude Code ignore `permissionMode: bypassPermissions` in any agent definition.
 
-**`auto` was rejected, not locked out.** It routes every shell command and network call through a classifier model carrying a slice of the transcript — a per-command token cost on a workflow that is mostly shell. Rejecting it needs no key: its cost is tokens rather than damage, and nothing reaches it by accident the way `--dangerously-skip-permissions` reaches bypass.
+**`auto` was rejected, not locked out.** It routes every shell command and network call through a classifier model carrying a slice of the transcript: a per-command token cost on a workflow that is mostly shell. Rejecting it needs no key: its cost is tokens rather than damage, and nothing reaches it by accident the way `--dangerously-skip-permissions` reaches bypass.
 
 ---
 
@@ -160,19 +160,19 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 **What a session is shown of each skill.** A description sits in context from the moment a session starts, whether the skill is ever invoked or not, so every installed skill costs something in every session. This key is where that cost is decided, per skill, per machine and per project.
 
-Installing and being shown are separate questions. Every skill outside `drafts/` installs on every machine, and a skill set to `off` costs nothing — so nothing is gained by leaving one uninstalled.
+Installing and being shown are separate questions. Every skill outside `drafts/` installs on every machine, and a skill set to `off` costs nothing, so nothing is gained by leaving one uninstalled.
 
 ### The default belongs to the group
 
 - **`phases/`, `session/`, `knowledge/`, `tools/`, `dev/` → on.** Reached in ordinary work, in any project
 - **`stack/` → off**, turned on by the projects that touch that stack. Ten stack skills would otherwise be ten descriptions in every session, forever, and the one project doing browser work is the only one that needs the browser skill
 
-Reversed 2026-08-30. Every skill was on by default until then, on the argument that one author wants everything reachable everywhere — which stays true, and is why `off` never stops a skill from installing.
+Reversed 2026-08-30. Every skill was on by default until then, on the argument that one author wants everything reachable everywhere, which stays true, and is why `off` never stops a skill from installing.
 
 ### Two values, keyed by skill name
 
-- **`on`** — the name and the description. What a skill gets when it is named nowhere
-- **`off`** — the model is shown nothing, and `/name` refuses with *disabled via skillOverrides*
+- **`on`**: the name and the description. What a skill gets when it is named nowhere
+- **`off`**: the model is shown nothing, and `/name` refuses with *disabled via skillOverrides*
 
 **Claude Code accepts two more and Flow uses neither.** `name-only` shows the name and hides the description, so the model keeps the power to fire a skill and loses the only thing it could judge with. `user-invocable-only` hides it from the model and leaves `/name` working, which was proposed for `stack/` on 2026-08-30 and rejected: a stack skill exists to fire during a phase, so a state the model cannot see makes it unfirable. All four verified 2026-08-29.
 
@@ -209,17 +209,17 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 | Key | Value | Effect |
 |---|---|---|
 | `disableBundledSkills` | `true` | Anthropic's bundled skills stay out, so only Flow's skills load. |
-| `disableWorkflows` | `true` | Built-in workflows off — Flow's skills are the workflow. |
+| `disableWorkflows` | `true` | Built-in workflows off: Flow's skills are the workflow. |
 | `disableRemoteControl` | `true` | No driving the session from claude.ai or mobile. |
 | `disableClaudeAiConnectors` | `true` | No claude.ai connectors. |
 | `disableArtifact` | `true` | No artifact tool. `/visualize` renders inline. |
-| `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo — `CLAUDE.md`, `docs/`, or a skill. |
-| `respondToBashCommands` | `false` | A command you type behind `!` in the input box puts its output in context and stops there, instead of spending a turn reacting to it. `! flow git allow` and `! ls` should cost nothing. When you want a reaction, the next message asks for one — and it carries your instructions, which an automatic reply cannot. |
+| `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo: `CLAUDE.md`, `docs/`, or a skill. |
+| `respondToBashCommands` | `false` | A command you type behind `!` in the input box puts its output in context and stops there, instead of spending a turn reacting to it. `! flow git allow` and `! ls` should cost nothing. When you want a reaction, the next message asks for one, and it carries your instructions, which an automatic reply cannot. |
 
 ---
 
 ## Deliberately absent
 
-**The built-in task tools** — `TaskCreate`, `TaskGet`, `TaskList`, `TaskUpdate` — stay allowed rather than joining the deny list. They look like a tracker competing with `flow` and are not: `flow` records work that outlives the session, these are a scratch checklist for the turn in front of you. Denying them costs the checklist and saves nothing.
+**The built-in task tools** (`TaskCreate`, `TaskGet`, `TaskList`, `TaskUpdate`) stay allowed rather than joining the deny list. They look like a tracker competing with `flow` and are not: `flow` records work that outlives the session, these are a scratch checklist for the turn in front of you. Denying them costs the checklist and saves nothing.
 
-**`sandbox`.** Claude Code's bubblewrap jail was considered and rejected. It is a genuine OS-level boundary at zero token cost, and it remains the right answer for unattended runs — but it needs `socat` installed, blocks Windows binaries under WSL2, and adds a second boundary to reason about.
+**`sandbox`.** Claude Code's bubblewrap jail was considered and rejected. It is a genuine OS-level boundary at zero token cost, and it remains the right answer for unattended runs, but it needs `socat` installed, blocks Windows binaries under WSL2, and adds a second boundary to reason about.

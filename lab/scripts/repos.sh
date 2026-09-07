@@ -7,7 +7,7 @@
 # gaps and nothing else.
 #
 # Dev-only. It ships nowhere, and a machine that installed Flow never runs it.
-# The list below is its one home — a repo joins the set by gaining a line, and
+# The list below is its one home: a repo joins the set by gaining a line, and
 # leaves by losing one. Notes say what Flow took from each, so a clone can be
 # dropped without opening it.
 set -euo pipefail

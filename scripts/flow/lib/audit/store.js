@@ -3,7 +3,7 @@
  * The audit database: where it lives, and the shape it holds.
  *
  * Every row here is derived from a transcript Claude Code wrote anyway.
- * Nothing is authoritative — delete the file and `flow audit index` writes it
+ * Nothing is authoritative: delete the file and `flow audit index` writes it
  * again from the same source. That is what allows the schema to change without
  * a migration: bump SCHEMA and the next index rebuilds.
  *

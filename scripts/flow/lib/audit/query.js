@@ -3,7 +3,7 @@
  * The named queries: the shapes asked for often enough to have a name.
  *
  * Every one of them narrows. A session holds tens of thousands of events and
- * no answer is found by loading them into context — the whole point of the
+ * no answer is found by loading them into context: the whole point of the
  * index is that a question returns 40 rows and a line range, and the line
  * range is what `flow audit read` opens.
  *
@@ -57,7 +57,7 @@ const projectName = (p) => String(p || '').replace(/^-+/, '').split('-').pop() |
  * A prefix matching two sessions refuses rather than picking one.
  */
 function findSession(db, id) {
-  if (!id) throw new FlowError('name a session — flow audit sessions lists them.');
+  if (!id) throw new FlowError('name a session: flow audit sessions lists them.');
   const rows = db.prepare('SELECT * FROM session WHERE id LIKE ? ORDER BY id').all(id + '%');
   if (rows.length === 1) return rows[0];
   if (rows.length === 0) {
@@ -111,7 +111,7 @@ function session(db, id) {
   out.push(`  spend       ${money(s.cost_usd)} · out ${num(s.output_tokens)} · cache read ${num(s.cache_read)} · cache write ${num(s.cache_write)}`);
 
   const segs = db.prepare('SELECT * FROM segment WHERE session_id = ? ORDER BY ordinal').all(s.id);
-  out.push('', 'SEGMENTS — one unbroken context window each');
+  out.push('', 'SEGMENTS: one unbroken context window each');
   out.push(table(
     ['#', 'LINES', 'TURNS', 'ENDED', 'TRIGGER', 'BEFORE', 'AFTER', 'DROPPED'],
     segs.map((g) => [
@@ -129,14 +129,14 @@ function session(db, id) {
   const files = db.prepare(`SELECT path, COUNT(*) n, SUM(kind = 'read') reads,
     SUM(kind IN ('edit','write')) writes FROM file_touch WHERE session_id = ?
     GROUP BY path ORDER BY n DESC LIMIT 12`).all(s.id);
-  out.push('', 'FILES — every route into context, exact and parsed alike');
+  out.push('', 'FILES: every route into context, exact and parsed alike');
   out.push(table(['TOUCHES', 'READS', 'WRITES', 'PATH'],
     files.map((f) => [f.n, f.reads, f.writes, f.path])));
 
   const costly = db.prepare(`SELECT ordinal, segment_id, first_line, last_line, output_tokens,
     cache_read, tool_calls, prompt FROM turn WHERE session_id = ?
     ORDER BY cache_read DESC LIMIT 8`).all(s.id);
-  out.push('', 'HEAVIEST TURNS — by context read, which is what a turn actually costs');
+  out.push('', 'HEAVIEST TURNS: by context read, which is what a turn actually costs');
   out.push(table(['TURN', 'LINES', 'TOOLS', 'OUT', 'CACHE', 'PROMPT'],
     costly.map((t) => [
       t.ordinal, `${t.first_line}-${t.last_line}`, t.tool_calls,
@@ -148,7 +148,7 @@ function session(db, id) {
 }
 
 /**
- * The turn list. LINES is the column that matters — it is what `flow audit
+ * The turn list. LINES is the column that matters: it is what `flow audit
  * read` takes, and it is why the index stores a line number per event.
  */
 function turns(db, id, { limit = 60, from = null } = {}) {
@@ -260,7 +260,7 @@ function sql(db, text) {
   if (!READ_ONLY.test(text) || FORBIDDEN.test(text)) {
     throw new FlowError(
       'flow audit sql runs SELECT and WITH only.\n' +
-      '  The index is derived — rebuild it with flow audit index rather than editing it.'
+      '  The index is derived: rebuild it with flow audit index rather than editing it.'
     );
   }
 

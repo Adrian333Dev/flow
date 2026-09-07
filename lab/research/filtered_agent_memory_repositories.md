@@ -1,4 +1,4 @@
-# Filtered GitHub Repositories — Agent Memory / Self-Improvement
+# Filtered GitHub Repositories: Agent Memory / Self-Improvement
 
 Filtered from the supplied research report.
 

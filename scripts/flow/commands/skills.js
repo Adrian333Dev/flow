@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Skills — what exists in the clone, and what a session here is shown of each.
+ * Skills: what exists in the clone, and what a session here is shown of each.
  *
  * Every skill outside `drafts/` installs on every machine, as one symlink named
  * for the skill. Nothing is copied, so every project shares one file and an
@@ -25,7 +25,7 @@ const { projectRoot } = require('../lib/root');
 const render = require('../lib/render');
 const skills = require('../lib/skills');
 
-/** The project, or null where there is none — `ls` works anywhere. */
+/** The project, or null where there is none: `ls` works anywhere. */
 function maybeRoot() {
   try {
     return projectRoot();

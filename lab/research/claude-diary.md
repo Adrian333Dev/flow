@@ -2,11 +2,11 @@
 
 379 stars. The simplest memory loop: diary entries → reflection → CLAUDE.md updates. Two commands (`/diary`, `/reflect`), one hook (PreCompact), no infrastructure. Inspired by the Generative Agents paper (observations → reflection → retrieval) and a conversation between Dan Shipper and Cat Wu / Boris Cherny from the Claude Code team about diary entries for sessions.
 
-## Core mechanism — the diary-reflection-memory loop
+## Core mechanism: the diary-reflection-memory loop
 
 ### Diary (capture)
 
-`/diary` creates a structured diary entry from the current session's conversation context. The command reflects on what is already in context — user messages, tool invocations, files modified, errors, solutions, design decisions, user preferences. No JSONL transcript parsing needed for typical sessions (fallback for post-session analysis or precise statistics).
+`/diary` creates a structured diary entry from the current session's conversation context. The command reflects on what is already in context: user messages, tool invocations, files modified, errors, solutions, design decisions, user preferences. No JSONL transcript parsing needed for typical sessions (fallback for post-session analysis or precise statistics).
 
 Diary entries are saved to `~/.claude/memory/diary/YYYY-MM-DD-session-N.md` with sections:
 - Task Summary, Work Summary, Design Decisions Made
@@ -58,7 +58,7 @@ Most memory repos stop at capture. claude-diary adds a synthesis step that looks
 
 ### Rule violation detection closes the loop
 
-The reflect command checks whether diary entries show the agent violating existing CLAUDE.md rules. Violations are the highest-priority output: they mean an existing rule is not working and needs strengthening. This is the same insight as dead-rules-audit, implemented differently — diary analysis instead of real-time compliance scoring.
+The reflect command checks whether diary entries show the agent violating existing CLAUDE.md rules. Violations are the highest-priority output: they mean an existing rule is not working and needs strengthening. This is the same insight as dead-rules-audit, implemented differently, diary analysis instead of real-time compliance scoring.
 
 ### The diary format is too verbose
 

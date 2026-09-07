@@ -7,7 +7,7 @@
  * Filed by issue, never by project: the payoff is seeing one failure three
  * times, and a project folder scatters exactly that. The project is a field.
  *
- * Frontmatter is owned by these commands and the body is written by hand — the
+ * Frontmatter is owned by these commands and the body is written by hand: the
  * same split tickets use. `slugify` and `renderTemplate` are borrowed from
  * store.js rather than copied; nothing else is shared, and cases have no graph.
  */
@@ -30,7 +30,7 @@ const casesDir = () => path.join(flowHome(), 'study-cases');
 
 const NAME_RE = /^(\d{4}-\d{2}-\d{2})-(.+)$/;
 
-/** The project a case happened in, as a name. Empty outside a repo — a study
+/** The project a case happened in, as a name. Empty outside a repo: a study
  *  case is worth recording wherever it happened, so this never refuses. */
 function currentProject() {
   try {
@@ -74,7 +74,7 @@ function readCases() {
     }
   }
 
-  // Newest first — the recent ones are the ones being worked on.
+  // Newest first: the recent ones are the ones being worked on.
   cases.sort((a, b) => String(b.data.date).localeCompare(String(a.data.date)) || a.name.localeCompare(b.name));
   return cases;
 }

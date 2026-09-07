@@ -2,13 +2,13 @@
 
 993 stars, YC S26. A living wiki for codebases, maintained by AI coding agents. The wiki is plain markdown in `almanac/` within the repo, indexed locally with SQLite + FTS5, and reviewed in Git like any other code change. The cleanest design philosophy of all repos studied.
 
-## Core mechanism — intelligence in prompts, not pipelines
+## Core mechanism: intelligence in prompts, not pipelines
 
 Three agents do all the work:
 
-1. **ingest** — folds material (files, diffs, commits, PRs, transcripts, URLs) into the wiki. Decides what is worth adding. No-op is valid: if the material adds no durable knowledge, the wiki stays unchanged.
-2. **garden** — reviews the wiki for stale pages, weak links, duplicated knowledge, and poor graph structure. Runs as periodic maintenance.
-3. **sync** — scans Codex and Claude transcripts for conversations that produced durable knowledge and queues them as ingest jobs.
+1. **ingest**: folds material (files, diffs, commits, PRs, transcripts, URLs) into the wiki. Decides what is worth adding. No-op is valid: if the material adds no durable knowledge, the wiki stays unchanged.
+2. **garden**: reviews the wiki for stale pages, weak links, duplicated knowledge, and poor graph structure. Runs as periodic maintenance.
+3. **sync**: scans Codex and Claude transcripts for conversations that produced durable knowledge and queues them as ingest jobs.
 
 All three run as background macOS `launchd` jobs on a schedule (sync every 5h, garden every 24h). No human intervention required for ongoing maintenance.
 
@@ -37,7 +37,7 @@ SQLite is a derived index, not the source of truth. Every query command silently
 
 sync may decide that a conversation contains no durable knowledge and leave the wiki unchanged. This is the critical filter missing from most memory systems: not everything is worth remembering. The agent makes a judgment call about what crosses the notability threshold.
 
-## Design philosophy — the manual
+## Design philosophy: the manual
 
 codealmanac's `MANUAL.md` is the most thoughtful engineering document in the batch. Key principles:
 

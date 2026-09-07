@@ -1,20 +1,20 @@
-# Knowledge system — design
+# Knowledge system: design
 
 Research is complete. The design discussion locked all decisions across 5 sessions, the last of them 2026-09-05, which closed the semantic-rule gap the enforcement bridge had left open. This file carries the locked decisions, the research inventory, and the build plan.
 
-## Locked decisions — the knowledge system
+## Locked decisions: the knowledge system
 
 ### The name
 
-The mechanism is the **knowledge system** — it captures, stores, surfaces, and maintains what the agent learns across sessions and projects. "Knowledge system" over "memory system" because memory is passive (store and recall); what Flow builds is active (capture, organize, promote, age, enforce).
+The mechanism is the **knowledge system**: it captures, stores, surfaces, and maintains what the agent learns across sessions and projects. "Knowledge system" over "memory system" because memory is passive (store and recall); what Flow builds is active (capture, organize, promote, age, enforce).
 
-### Capture — `.flow/findings/<subject>.md`
+### Capture: `.flow/findings/<subject>.md`
 
-During work in any phase, the agent writes reusable knowledge directly to `.flow/findings/<subject>.md` — one file per subject, organized by topic, not chronologically. A Prisma finding goes to `.flow/findings/prisma.md`. A prompting technique goes to `.flow/findings/prompting.md`. Files can be 10 lines or 500 lines — research output, tool behavior details, library quirks, conventions discovered.
+During work in any phase, the agent writes reusable knowledge directly to `.flow/findings/<subject>.md`: one file per subject, organized by topic, not chronologically. A Prisma finding goes to `.flow/findings/prisma.md`. A prompting technique goes to `.flow/findings/prompting.md`. Files can be 10 lines or 500 lines: research output, tool behavior details, library quirks, conventions discovered.
 
 **Format**: plain markdown with sub-topic headings (`## Connection pooling`, `## Migration quirks`). No frontmatter, no metadata. File-findings routes by content, not by when something was captured. New findings on the same sub-topic update the existing section (topic-key upsert).
 
-**Duplicate filter**: before writing to findings, check whether the loaded skill already covers it. If it does, skip. Contradictions and extensions are new knowledge — write them, and file-findings edits the skill when promoting.
+**Duplicate filter**: before writing to findings, check whether the loaded skill already covers it. If it does, skip. Contradictions and extensions are new knowledge, write them, and file-findings edits the skill when promoting.
 
 The inbox (`.flow/inbox.md`) stays for work items: potential tickets, fragments, half-formed ideas. Knowledge and work items are different streams captured to different places.
 
@@ -50,49 +50,49 @@ Filed items are cleared from findings and inbox. Findings files fully drained ar
 
 **File-findings never runs mid-session.** Promoting to skills writes through symlinks into the Flow repo, which invalidates the prompt cache. Capture happens during work (zero cache impact); promotion happens at session end or in a dedicated session.
 
-### Surfacing — the loading ladder
+### Surfacing: the loading ladder
 
 Knowledge defaults to the lowest loading tier and is promoted only with evidence:
 
-- **Skill `references/`** (default destination) — loaded only when the skill fires. Most knowledge stays here.
-- **`.claude/rules/` with `paths:` frontmatter** — loaded when the agent reads a matching file. For rules tied to a file type or directory.
-- **`.claude/rules/` without `paths:`** or **`home/CLAUDE.md`** — loaded every session. Only for universal rules that apply regardless of stack or context.
+- **Skill `references/`** (default destination): loaded only when the skill fires. Most knowledge stays here.
+- **`.claude/rules/` with `paths:` frontmatter**: loaded when the agent reads a matching file. For rules tied to a file type or directory.
+- **`.claude/rules/` without `paths:`** or **`home/CLAUDE.md`**: loaded every session. Only for universal rules that apply regardless of stack or context.
 
-Promotion up the ladder requires evidence: repeated corrections, repeated violations measured by the compliance scorecard. Knowledge that loads every session but never applies is wasted context — every loaded token gets re-read on every message in the conversation.
+Promotion up the ladder requires evidence: repeated corrections, repeated violations measured by the compliance scorecard. Knowledge that loads every session but never applies is wasted context, every loaded token gets re-read on every message in the conversation.
 
-### Aging — no scheduled maintenance
+### Aging: no scheduled maintenance
 
 Three mechanisms, no timers or scheduled jobs:
 
 1. **Default low, promote with evidence.** New knowledge enters at skill references. Promotion to rules requires the agent repeatedly violating a convention or the user repeatedly correcting the same thing.
-2. **Demote via dead-rules-audit signal.** Rules that load but never apply get flagged for demotion — move back to skill references, or delete.
+2. **Demote via dead-rules-audit signal.** Rules that load but never apply get flagged for demotion: move back to skill references, or delete.
 3. **Update on conflict.** New findings that contradict existing knowledge supersede the old record. The agent notices the contradiction during work and updates.
 
 ### What knowledge types exist
 
 Four types, each with a different final destination:
 
-- **Tool/library knowledge** (descriptive, detailed, 50-500 lines) — how a tool actually behaves. Goes to skill `references/`.
-- **Rules and conventions** (prescriptive, short) — "always do X." Goes to `rules/` or project CLAUDE.md depending on scope.
-- **Patterns and techniques** (instructional, medium) — "when doing X, approach it this way." Goes to skill `references/` or `rules/` depending on scope.
-- **Project-specific facts** (descriptive, varies) — "this repo uses X." Goes to `docs/context/<subject>.md`. This already works today.
+- **Tool/library knowledge** (descriptive, detailed, 50-500 lines): how a tool actually behaves. Goes to skill `references/`.
+- **Rules and conventions** (prescriptive, short): "always do X." Goes to `rules/` or project CLAUDE.md depending on scope.
+- **Patterns and techniques** (instructional, medium): "when doing X, approach it this way." Goes to skill `references/` or `rules/` depending on scope.
+- **Project-specific facts** (descriptive, varies): "this repo uses X." Goes to `docs/context/<subject>.md`. This already works today.
 
 ### What each project-level folder holds
 
-- `.flow/inbox.md` — work items, fragments, ideas. Not knowledge. Drained by file-findings into tickets and project docs.
-- `.flow/findings/<subject>.md` — reusable knowledge captured during work, organized by subject. Temporary staging. Drained by file-findings into skills and rules.
-- `docs/context/<subject>.md` — project-specific facts. Permanent. Not promoted.
-- `.claude/rules/<topic>.md` — project-specific prescriptive rules. Permanent in this project.
+- `.flow/inbox.md`: work items, fragments, ideas. Not knowledge. Drained by file-findings into tickets and project docs.
+- `.flow/findings/<subject>.md`: reusable knowledge captured during work, organized by subject. Temporary staging. Drained by file-findings into skills and rules.
+- `docs/context/<subject>.md`: project-specific facts. Permanent. Not promoted.
+- `.claude/rules/<topic>.md`: project-specific prescriptive rules. Permanent in this project.
 
-## Locked decisions — the enforcement bridge
+## Locked decisions: the enforcement bridge
 
 Locked 2026-09-05, across the session that also resolved the semantic-rule gap.
 
 ### The three tiers
 
-1. **Measure** — the rule is text the agent reads. A check counts violations silently. Nothing interrupts.
-2. **Warn** — the same check runs before the edit and returns a message the agent reads. The edit proceeds.
-3. **Block** — the same check rejects the edit. Reserved for rules with no false positives.
+1. **Measure**: the rule is text the agent reads. A check counts violations silently. Nothing interrupts.
+2. **Warn**: the same check runs before the edit and returns a message the agent reads. The edit proceeds.
+3. **Block**: the same check rejects the edit. Reserved for rules with no false positives.
 
 Most rules stay at measure. Promotion needs evidence from the scorecard.
 
@@ -119,14 +119,14 @@ Injecting beats telling the agent to go read the file. No extra turn, and no cha
 
 One file per check at `scripts/rule-checks/<id>.js`, exporting everything about itself:
 
-- `id` — groups the counts, and matches a rule ID in a rule file
-- `rule` — path to the file holding that rule
-- `tier` — `measure`, `warn` or `block`
-- `applies(path, content)` — is the rule relevant to this edit
-- `check(path, content)` — was it followed
-- `needs` — `'added'` for only the text this edit introduces, `'file'` for the whole file as it will read afterwards
-- `message` — the one line the agent reads on a violation
-- `since` — the date the check last changed materially, so `flow scorecard` skips counts an older version produced
+- `id`: groups the counts, and matches a rule ID in a rule file
+- `rule`: path to the file holding that rule
+- `tier`: `measure`, `warn` or `block`
+- `applies(path, content)`: is the rule relevant to this edit
+- `check(path, content)`: was it followed
+- `needs`: `'added'` for only the text this edit introduces, `'file'` for the whole file as it will read afterwards
+- `message`: the one line the agent reads on a violation
+- `since`: the date the check last changed materially, so `flow scorecard` skips counts an older version produced
 
 The folder is the registry. Adding a check adds a file. Promotion changes one word.
 
@@ -158,10 +158,10 @@ Extracting one rule's text means reading from a bullet to the next bullet at the
 
 Reads every session file under `~/.flow/scorecards/`, adds the counts across all of them, and prints 4 lists:
 
-- **Stale checks** — the check names a rule ID no rule file defines
-- **Violated most** — rule, count, rate
-- **Ready for promotion** — past the threshold, meaning measure becomes warn
-- **Never applied** — loaded every session, never once relevant
+- **Stale checks**: the check names a rule ID no rule file defines
+- **Violated most**: rule, count, rate
+- **Ready for promotion**: past the threshold, meaning measure becomes warn
+- **Never applied**: loaded every session, never once relevant
 
 Thresholds start at 5 violations and a 60% rate. Both are guesses until real data exists.
 
@@ -228,7 +228,7 @@ The periodic scorecard sweep is not a second skill either. It is `/file-findings
 
 Not `dev/`, for whichever skill holds this. That group builds Flow itself, and rule enforcement is something a user runs in their own project.
 
-## Locked decisions — supporting
+## Locked decisions: supporting
 
 ### `commands/` is dissolved, and 2 groups replace it
 
@@ -257,7 +257,7 @@ Topic-specific rules move from `home/CLAUDE.md` to `rules/<topic>.md` in the Flo
 
 ### The `rules/` folder
 
-Lives at the top level of the Flow repo, alongside `skills/`, `scripts/`, `references/`. Not under `home/`. `flow install` symlinks per file (never the folder) to `~/.claude/rules/`, same pattern as skills. Same safety: refuses to replace anything that isn't already a symlink. Handled by `--home` in the same pass as skills — no new flags.
+Lives at the top level of the Flow repo, alongside `skills/`, `scripts/`, `references/`. Not under `home/`. `flow install` symlinks per file (never the folder) to `~/.claude/rules/`, same pattern as skills. Same safety: refuses to replace anything that isn't already a symlink. Handled by `--home` in the same pass as skills, no new flags.
 
 ### `.claude/rules/` is a standard Claude Code feature
 
@@ -511,27 +511,27 @@ Twelve files analyzing external repos, in two batches.
 
 **Batch 1** (user-provided repos, analyzed first session):
 
-- `browser-harness.md` — self-improvement through agent-authored helpers and domain skills. Learning is the work itself, zero overhead.
-- `tencentdb-agent-memory.md` — server-side layered memory (L0 raw → L1 atoms → L2 scenarios → L3 personas). Heavy infrastructure, but the layering concept translates.
-- `everything-claude-code.md` — first-generation solo-developer approach. Session lifecycle hooks, continuous learning via Stop hook, rules as separate files, strategic compact.
-- `ecc.md` — ECC's instinct system (trigger + action + confidence + scope). Real-time observation via hooks, project-scoped by git hash, background Haiku observer, promotion from project → global.
+- `browser-harness.md`: self-improvement through agent-authored helpers and domain skills. Learning is the work itself, zero overhead.
+- `tencentdb-agent-memory.md`: server-side layered memory (L0 raw → L1 atoms → L2 scenarios → L3 personas). Heavy infrastructure, but the layering concept translates.
+- `everything-claude-code.md`: first-generation solo-developer approach. Session lifecycle hooks, continuous learning via Stop hook, rules as separate files, strategic compact.
+- `ecc.md`: ECC's instinct system (trigger + action + confidence + scope). Real-time observation via hooks, project-scoped by git hash, background Haiku observer, promotion from project → global.
 
 **Batch 2** (cloned to `repos/batch1/`, analyzed second session):
 
-- `claude-mem.md` — 93k stars. Progressive-disclosure retrieval (search → timeline → get), SQLite + FTS5, optional Chroma vector search. Heavy infrastructure (Bun worker, HTTP API).
-- `claude-memory-compiler.md` — 1.3k stars. Simplest viable architecture: transcript → daily log → compiled wiki articles → `index.md`. No RAG at personal scale (Karpathy insight).
-- `pro-workflow.md` — 2.8k stars. Self-correcting memory (corrections → rules → SQLite), persistent FTS5 wikis, correction heatmaps, adaptive quality gates. 37 hooks across 24 events.
-- `codealmanac.md` — 993 stars, YC S26. Cleanest design. Wiki-as-code in `almanac/`, background sync/garden agents, notability bar, intelligence in prompts not pipelines.
-- `claude-code-hooks-repo.md` — 498 stars + Anthropic's hookify. dead-rules-audit compliance scorecard (deterministic rule violation tracking, promote→hook flag). hookify creates hook rules from conversation analysis.
-- `engram.md` — 6.3k stars. Go binary, agent-decides-what-to-save, topic-key upserts (evolving knowledge stays one record), conflict detection.
-- `basic-memory.md` — 3.8k stars. Markdown + wikilinks as knowledge graph. `[category] content #tag (context)` observation syntax. Schema validation via Picoschema.
-- `claude-diary.md` — 379 stars. Simplest complete loop: diary → reflection → CLAUDE.md updates. No infrastructure beyond two command files.
+- `claude-mem.md`: 93k stars. Progressive-disclosure retrieval (search → timeline → get), SQLite + FTS5, optional Chroma vector search. Heavy infrastructure (Bun worker, HTTP API).
+- `claude-memory-compiler.md`: 1.3k stars. Simplest viable architecture: transcript → daily log → compiled wiki articles → `index.md`. No RAG at personal scale (Karpathy insight).
+- `pro-workflow.md`: 2.8k stars. Self-correcting memory (corrections → rules → SQLite), persistent FTS5 wikis, correction heatmaps, adaptive quality gates. 37 hooks across 24 events.
+- `codealmanac.md`: 993 stars, YC S26. Cleanest design. Wiki-as-code in `almanac/`, background sync/garden agents, notability bar, intelligence in prompts not pipelines.
+- `claude-code-hooks-repo.md`: 498 stars + Anthropic's hookify. dead-rules-audit compliance scorecard (deterministic rule violation tracking, promote→hook flag). hookify creates hook rules from conversation analysis.
+- `engram.md`: 6.3k stars. Go binary, agent-decides-what-to-save, topic-key upserts (evolving knowledge stays one record), conflict detection.
+- `basic-memory.md`: 3.8k stars. Markdown + wikilinks as knowledge graph. `[category] content #tag (context)` observation syntax. Schema validation via Picoschema.
+- `claude-diary.md`: 379 stars. Simplest complete loop: diary → reflection → CLAUDE.md updates. No infrastructure beyond two command files.
 
 ### Additional research
 
-- `inspirational-repos.md` — broad sweep, unfiltered, includes low-quality repos.
-- `filtered_agent_memory_repositories.md` — filtered to 200+ stars and recent maintenance. 35 repos retained.
-- `agentic-atlas-refs.md` — Agentic Atlas pages on statelessness, deferred context, and reference data. Source of the loading-ladder and rent-test concepts used in the aging design.
+- `inspirational-repos.md`: broad sweep, unfiltered, includes low-quality repos.
+- `filtered_agent_memory_repositories.md`: filtered to 200+ stars and recent maintenance. 35 repos retained.
+- `agentic-atlas-refs.md`: Agentic Atlas pages on statelessness, deferred context, and reference data. Source of the loading-ladder and rent-test concepts used in the aging design.
 
 ### Repos cloned and analyzed
 
@@ -541,20 +541,20 @@ All at `repos/batch1/`. Anthropic's `claude-code` also cloned there for the hook
 
 The repos that work long-term land on the same three layers independently:
 
-1. **Append-only raw layer** — transcripts, logs, observations. Cheap to capture, never edited.
-2. **Derived structured layer** — typed facts, wiki pages, rules, instincts. Built by a separate extraction/compilation pass.
-3. **Small always-loaded index** — points into the structured layer rather than containing it. Keeps the context budget intact.
+1. **Append-only raw layer**: transcripts, logs, observations. Cheap to capture, never edited.
+2. **Derived structured layer**: typed facts, wiki pages, rules, instincts. Built by a separate extraction/compilation pass.
+3. **Small always-loaded index**: points into the structured layer rather than containing it. Keeps the context budget intact.
 
-### Mechanisms worth stealing — cross-repo synthesis
+### Mechanisms worth stealing: cross-repo synthesis
 
 Six mechanisms that survive across implementations:
 
-1. **Progressive disclosure for retrieval** — compact index → chronological context → full detail. Flow's skill loading model already follows this.
-2. **Topic-key upserts for evolving knowledge** — one file per subject, updated in place. Adopted as `.flow/findings/<subject>.md`.
-3. **Notability bar for capture** — not everything is worth remembering. The agent exercises judgment about what crosses the threshold.
-4. **Compilation from raw to structured** — raw session logs → structured articles → index. Flow uses file-findings as the promotion step instead of a separate compiler.
-5. **Compliance scorecard for rule enforcement** — deterministic measurement of rule compliance, flagging chronic violations for hook promotion. Adopted.
-6. **Garden/maintenance for aging knowledge** — periodic review for staleness. Flow uses dead-rules-audit signal and conflict detection instead of scheduled maintenance.
+1. **Progressive disclosure for retrieval**: compact index → chronological context → full detail. Flow's skill loading model already follows this.
+2. **Topic-key upserts for evolving knowledge**: one file per subject, updated in place. Adopted as `.flow/findings/<subject>.md`.
+3. **Notability bar for capture**, not everything is worth remembering. The agent exercises judgment about what crosses the threshold.
+4. **Compilation from raw to structured**: raw session logs → structured articles → index. Flow uses file-findings as the promotion step instead of a separate compiler.
+5. **Compliance scorecard for rule enforcement**: deterministic measurement of rule compliance, flagging chronic violations for hook promotion. Adopted.
+6. **Garden/maintenance for aging knowledge**: periodic review for staleness. Flow uses dead-rules-audit signal and conflict detection instead of scheduled maintenance.
 
 ### What none of them do
 
@@ -605,6 +605,6 @@ Documentation comes after. Manual pages and the Claude Code reference page are s
 
 ### Separate from this design
 
-- **Documentation and examples for workflow artifacts** — ticket templates, groundwork examples. Needed but not part of the knowledge system
-- **`name-only` skill overrides for obvious stack skills** — backlog idea, saves description budget
-- **Manual pages** — a capture page and a knowledge-system page. The manuals folder is planned and unbuilt, so no path is settled
+- **Documentation and examples for workflow artifacts**: ticket templates, groundwork examples. Needed but not part of the knowledge system
+- **`name-only` skill overrides for obvious stack skills**: backlog idea, saves description budget
+- **Manual pages**: a capture page and a knowledge-system page. The manuals folder is planned and unbuilt, so no path is settled

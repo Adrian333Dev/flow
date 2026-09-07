@@ -1,4 +1,4 @@
-# State — what Flow is right now
+# State: what Flow is right now
 
 **This file is maintained as the work moves. Where it disagrees with disk, this file is the bug.**
 Every other record under `lab/` is the opposite: a design doc says what was decided, and the code on
@@ -27,9 +27,9 @@ behind it are `design-util.md` and `design-dev-loop.md`.
 **`flow install` builds two roots, and neither one exists on this machine.** Nothing is installed
 here and that is the normal state, so `~/.claude/` and `~/.flow/` are both absent; `bash
 lab/scripts/try.sh` builds them under `tmp/` instead. The split shipped 2026-08-30 with the
-`--flow-home` flag the design had missed — one flag redirected the whole install beforehand, and
+`--flow-home` flag the design had missed: one flag redirected the whole install beforehand, and
 afterwards it covered half. `CLAUDE.md` → `## Repo rules` carries the rule. **From 2026-09-02 the
-scratch configuration is seeded from `~/.claude/`** — the credentials, the account and the theme — so
+scratch configuration is seeded from `~/.claude/`** (the credentials, the account and the theme) so
 a rebuilt session starts signed in instead of running first-install onboarding every time.
 
 **`home/CLAUDE.md` opens with `## The turn`, added 2026-09-05.** 5 numbered steps covering one user
@@ -55,7 +55,7 @@ evidence` to `## Judgment`, and `Every path named here is a default` to the top 
 first is what made the split threshold measurable, and `## Writing files` was the only group to cross
 it, which is the split the user then cancelled the next day. `## The turn` also absorbed `Never argue a decision already made` into step 2 and the capture confirmation
 into step 5. `## Workflow` lost `/cut-from-spec` and `/start` from the chain and the whole typed-only
-paragraph, so neither skill is named in the file now. Both `CLAUDE.md` files are at 0 em dashes.
+paragraph, so neither skill is named in the file now. Both `CLAUDE.md` files are at 0 em dashes, and so is the rest of the repo since the sweep of 2026-09-08.
 
 **`## Scripts` was drained 2026-09-06, taking `home/CLAUDE.md` to 165 lines before the regrouping below cut it to 162.** The section went from 45
 lines to 9: the 2 `util` commands with their signatures, and 3 sentences on `flow`. Out went
@@ -217,7 +217,7 @@ changed and no install is owed. One path in `scripts/tests/skills.test.js` moved
 
 **`util` is a second CLI and a submodule of this repo at `lab/util/`,** built 2026-08-30 and
 finished 2026-08-31. Working today: the dispatcher, the `~/.util/sources` registry, `util source
-add/ls/drop`, namespace resolution, `util ls`, `util install`, and 3 namespaces — `git save`,
+add/ls/drop`, namespace resolution, `util ls`, `util install`, and 3 namespaces: `git save`,
 `fs tree|merge|link`, `github clone|bookmark`. Nothing in `design-util.md` is unbuilt. The repository
 is [`Adrian333Dev/util`](https://github.com/Adrian333Dev/util), and its default branch was `master`
 until 2026-08-31, because `git init` ran without `-b main`. **Nothing has run outside a test and a
@@ -226,7 +226,7 @@ never been run against the real one.
 
 **`docs/dev/` is written and `docs/manual/` is not, as of 2026-09-01.** 6 pages under `docs/dev/`:
 an index, the repository layout, the two checkouts, the scratch session, the tests, and adding a
-skill. Written to `references/style.md` § 10, and deliberately limited to what is locked — the
+skill. Written to `references/style.md` § 10, and deliberately limited to what is locked: the
 mechanics of changing Flow, `flow install`, `util`, the groups, the tree. Nothing describes the skill
 set, which is still moving. The root `README.md` indexes both folders. `docs/manual/` waits on the
 workflow being finished and the management skill existing.
@@ -242,7 +242,7 @@ in `## Writing any file`. The 8th section is `## The turn`, added 2026-09-06.
 **`flow audit` is built, 2026-09-02.** It reads the transcripts Claude Code writes at
 `~/.claude/projects/`, derives a SQLite index, and answers queries against it. Nothing is recorded
 and nothing is intercepted, so the whole thing works on sessions that ran before it existed. **The
-index is derived and rebuildable** — `flow audit index --rebuild` throws the file away and writes it
+index is derived and rebuildable**: `flow audit index --rebuild` throws the file away and writes it
 again, which is also what a schema change does. 3 modules under `scripts/flow/lib/audit/`: `store.js`
 holds the schema, `scan.js` walks the transcripts, `files.js` decides which file a tool call touched.
 `query.js` and `read.js` sit on top, and `/audit` is the skill. Measured on this machine: 51
@@ -256,7 +256,7 @@ it; `backlog.md` → `## The audit` carries the 7 items left.
 the next call with nothing to restart. Off is the default. Scope is the session unless `--project` or
 `--global` widens it, an hour unless `--for` says otherwise, and the guard deletes an entry the first
 time it looks at an expired one. All 19 git entries left `permissions.deny`, which makes `guard.js`
-the only thing between the agent and git — so a throw there denies a git command rather than falling
+the only thing between the agent and git, so a throw there denies a git command rather than falling
 through. Destructive commands ask however the mode is set, `worktree` joined `clone` as instructed,
 and the agent running `flow git allow` is denied. `threads.md` → `git-writes` carries the arguments.
 
@@ -290,11 +290,11 @@ on 2026-09-05, because a rule and its check are written in the same pass. The sk
 scorecard` as a fifth input, writes a check for every rule it touches, and carries an 89-line
 `references/write-checks.md` beside `write-skills.md`. **Everything it describes now exists and holds
 nothing**: both hooks, `scripts/rule-checks/` and `flow scorecard` all shipped 2026-09-07, and the
-folder is empty until a rule has an id to name. `design-knowledge-base.md` → `## Locked decisions —
+folder is empty until a rule has an id to name. `design-knowledge-base.md` → `## Locked decisions:
 the enforcement bridge` carries the design, and `## Build plan` carries what is left.
 
 **`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01.** It holds external tools filed
-by job — MCP servers, plugins, skills, libraries, apps. Nothing loads it, nothing installs from it,
+by job: MCP servers, plugins, skills, libraries, apps. Nothing loads it, nothing installs from it,
 and the rewrite that earns it a way back has not started. `repos/toolbox` is the old plain clone,
 still on disk and redundant now.
 
@@ -309,20 +309,20 @@ acceptable only while `util` is public.
 
 All under `lab/context/`, and every one is history rather than status.
 
-- `design-restructure.md` — why `global/` dissolved, and where everything moved
-- `design-skills.md` — how a skill installs. `## Installing and showing` leads with the 2026-08-30
+- `design-restructure.md`: why `global/` dissolved, and where everything moved
+- `design-skills.md`: how a skill installs. `## Installing and showing` leads with the 2026-08-30
   reversal and keeps the superseded states below it
-- `design-commands-as-skills.md` — why `commands/` is a group, and the verified Claude Code behavior
+- `design-commands-as-skills.md`: why `commands/` is a group, and the verified Claude Code behavior
   behind it
-- `design-public-docs.md` — the manual, the scopes in `style.md`, why the working store is `.flow/`,
+- `design-public-docs.md`: the manual, the scopes in `style.md`, why the working store is `.flow/`,
   and the `~/.flow/` and `docs/dev/` decisions
-- `design-util.md` — the utility CLI: why it is not `flow`, the namespaces, the source registry, and
+- `design-util.md`: the utility CLI: why it is not `flow`, the namespaces, the source registry, and
   what it costs Flow. Built in full
-- `design-dev-loop.md` — two checkouts, the scratch session, the `drafts/` group, and the real
+- `design-dev-loop.md`: two checkouts, the scratch session, the `drafts/` group, and the real
   migration problem. Built, except the two checkouts, which are a procedure rather than code
-- `design-audit.md` — the audit: what a transcript line carries, why a segment is the grouping unit,
+- `design-audit.md`: the audit: what a transcript line carries, why a segment is the grouping unit,
   the schema, the 3 tools the skill offers, and where the data lives. Built
-- `design-knowledge-base.md` — the knowledge system: capture to `.flow/findings/`, promotion through
+- `design-knowledge-base.md`: the knowledge system: capture to `.flow/findings/`, promotion through
   `/file-findings`, the loading ladder, aging, and the enforcement bridge. Capture and promotion wired
   2026-09-04; enforcement bridge designed but unbuilt
 - `harness-portability.md`: running Flow on another harness or another model. What Claude Code needs

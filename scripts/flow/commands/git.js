@@ -1,12 +1,12 @@
 'use strict';
 /**
- * `flow git` — whether the agent may run a git command that writes.
+ * `flow git`: whether the agent may run a git command that writes.
  *
  * Off is the normal state and the default everywhere. Turning it on writes an
  * entry that `guard.js` reads before every shell command, so it takes effect on
  * the next one with nothing to restart.
  *
- * The actions are named after the state they land in — `flow git allow` — which
+ * The actions are named after the state they land in (`flow git allow`) which
  * is the shape the status verbs already use.
  *
  * Nothing here decides what a git command may do. This command only writes down
@@ -21,7 +21,7 @@ const settings = require('../lib/settings');
 
 const DEFAULT_MINUTES = 60;
 
-/** The project, or null outside one — every action works anywhere. */
+/** The project, or null outside one: every action works anywhere. */
 function maybeRoot() {
   try {
     return projectRoot();
@@ -35,7 +35,7 @@ function maybeRoot() {
  *
  * Left off, an unlock lasts an hour. Nothing tells Flow that a session ended or
  * that you finished committing, so an entry with no expiry is one you have to
- * remember to turn off — which is the failure this exists to prevent, not a
+ * remember to turn off, which is the failure this exists to prevent, not a
  * convenience to default to.
  */
 function minutes(value) {
@@ -44,7 +44,7 @@ function minutes(value) {
 
   const match = /^(\d+)([mh]?)$/.exec(value.trim());
   if (!match) {
-    throw new FlowError(`--for takes 30m, 2h or never — not "${value}".`);
+    throw new FlowError(`--for takes 30m, 2h or never, not "${value}".`);
   }
   const count = Number(match[1]);
   if (!count) throw new FlowError('--for needs a length greater than zero, or never.');
@@ -89,7 +89,7 @@ function remaining(until) {
 const WHERE = { session: 'in this session', project: 'in this project', global: 'everywhere' };
 
 function describe(state) {
-  if (state.mode === 'off') return 'git writes: off — name the command, you run it';
+  if (state.mode === 'off') return 'git writes: off, name the command, you run it';
   const where = WHERE[state.scope];
   const when = state.entry.until ? `, expires ${clock(state.entry.until)} (${remaining(state.entry.until)})` : ', no expiry';
   return `git writes: ${state.mode} ${where}${when}`;

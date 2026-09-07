@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow` — the ticket lifecycle, end to end against a real folder on disk.
+ * `flow`: the ticket lifecycle, end to end against a real folder on disk.
  *
  * One walk rather than many isolated assertions: a ticket is created, listed,
  * moved through two statuses and archived, and every step reads the state the

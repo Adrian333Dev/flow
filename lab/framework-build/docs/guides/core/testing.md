@@ -1,19 +1,19 @@
 ---
 name: testing
-description: Testing patterns for real-behavior coverage — minimal mocks, real HTTP/DB, file naming, folder structure, and the required coverage comment block. Read before writing any test suite or deciding between mocks and real infrastructure.
+description: Testing patterns for real-behavior coverage, minimal mocks, real HTTP/DB, file naming, folder structure, and the required coverage comment block. Read before writing any test suite or deciding between mocks and real infrastructure.
 ---
 
 ## Philosophy
 
-Test real behavior, not implementation details. Every test should exercise code the way the system actually uses it — real HTTP, real DB, real module wiring. Mocks are the exception, not the default.
+Test real behavior, not implementation details. Every test should exercise code the way the system actually uses it: real HTTP, real DB, real module wiring. Mocks are the exception, not the default.
 
 ---
 
-## File naming — split by type
+## File naming: split by type
 
 | Suffix | What it covers |
 |---|---|
-| `.unit.test.ts` | Pure logic — no I/O, no framework, no DB |
+| `.unit.test.ts` | Pure logic: no I/O, no framework, no DB |
 | `.integration.test.ts` | Real HTTP + real DB + real module wiring |
 | `.e2e.test.ts` | Full stack end-to-end (browser, extension, or CLI-driven) |
 
@@ -38,7 +38,7 @@ src/domains/message/
 
 ## Required: test coverage comment block
 
-Every test file must start with a comment block listing every scenario it tests — before any imports or `describe` blocks. Detailed enough that the user never has to read the test body to understand coverage.
+Every test file must start with a comment block listing every scenario it tests: before any imports or `describe` blocks. Detailed enough that the user never has to read the test body to understand coverage.
 
 ```typescript
 // Tests: MessageService flow selection
@@ -61,7 +61,7 @@ No scenario is implied. If it's tested, it's listed. If it's not listed, it's no
 ## Test naming
 
 Describe blocks: name the thing under test.
-`it` / `test` blocks: describe the scenario and expected outcome — not the implementation.
+`it` / `test` blocks: describe the scenario and expected outcome, not the implementation.
 
 ```typescript
 // Good
@@ -80,19 +80,19 @@ it('checks video_beats')
 **Mock external third-party services** (LLM providers, SponsorBlock, PostHog, Sentry). These have network cost, rate limits, and non-deterministic output.
 
 **Never mock internal infrastructure** in integration tests:
-- No mock DB — use a real test database
-- No mock HTTP — use supertest against a real NestJS app instance
-- No mock queue — use a real pg-boss instance or a real in-process handler
+- No mock DB: use a real test database
+- No mock HTTP: use supertest against a real NestJS app instance
+- No mock queue: use a real pg-boss instance or a real in-process handler
 
 **When you mock something, comment why:**
 ```typescript
-// mocking Gemini — real calls are non-deterministic and cost money
+// mocking Gemini: real calls are non-deterministic and cost money
 jest.mock('../llm/llm.service');
 ```
 
 ---
 
-## Integration tests — HTTP
+## Integration tests: HTTP
 
 Spin up a real NestJS app instance. Send real HTTP requests via supertest. Assert on response shape, status codes, and DB state.
 
@@ -113,9 +113,9 @@ expect(res.status).toBe(200);
 
 ## Database
 
-Use a dedicated test database — never production. Configure the connection in `.env.test`.
+Use a dedicated test database, never production. Configure the connection in `.env.test`.
 
-Clean state between test suites. Strategy is project-level choice (truncate tables, rollback transactions, reset sequences) — pick one and apply it consistently. The important rule: tests must not depend on data left by previous tests.
+Clean state between test suites. Strategy is project-level choice (truncate tables, rollback transactions, reset sequences): pick one and apply it consistently. The important rule: tests must not depend on data left by previous tests.
 
 ---
 
@@ -134,6 +134,6 @@ Clean state between test suites. Strategy is project-level choice (truncate tabl
 |---|---|
 | Unit | Pure functions, decision trees, business logic, state machines, validators |
 | Integration | HTTP endpoints, DB queries, queue dispatch, auth guards, streaming responses |
-| E2E | Critical user flows end-to-end — the minimum set that proves the system works as a whole |
+| E2E | Critical user flows end-to-end: the minimum set that proves the system works as a whole |
 
 **Skip:** simple pass-through controllers, trivial getters, framework boilerplate, generated code.

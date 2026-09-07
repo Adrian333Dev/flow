@@ -5,11 +5,11 @@ Converted from `hooks-lifecycle-dark.svg` (520 x 1228). 113 columns, 97 rows.
 Three conventions carry the structure.
 
 **A container's wall is `¦`, its top and bottom edges are dashed.** Every stroke of the border is an
-interrupted line, and every solid line in the picture is a connector — the two never read as each other, on
+interrupted line, and every solid line in the picture is a connector: the two never read as each other, on
 any row. The group is named twice, top-left and bottom-right, which identifies the far edge as belonging to
 the same container. Solid `│` walls, alternating `─`/`│` and the wider bar glyphs all failed this test.
 
-**Every return lane is labelled at both ends** — `from X` where it leaves, `to Y` where it lands — so a line
+**Every return lane is labelled at both ends** (`from X` where it leaves, `to Y` where it lands) so a line
 running 40 rows can be picked up at either end without tracing it.
 
 **The spine breaks each container's edge** where it passes through, which says the flow crosses the boundary

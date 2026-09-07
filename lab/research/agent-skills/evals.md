@@ -1,4 +1,4 @@
-# agent-skills — evals
+# agent-skills: evals
 
 Their entire testing story, documented here because Flow has no equivalent and a `flow` test suite is on the remaining list.
 
@@ -14,7 +14,7 @@ Their eval system has three tiers with different cost profiles. The key insight 
 
 ## The three tiers
 
-### Tier 1 — Structural (free, runs in CI)
+### Tier 1: Structural (free, runs in CI)
 
 Checks that the skill is well-formed:
 - `SKILL.md` exists
@@ -28,7 +28,7 @@ Implemented in `scripts/validate-skills.js` (thin wrapper) and `scripts/lib/skil
 
 **What this catches**: broken skill files, description omitting the trigger condition, structural decay as skills are edited.
 
-### Tier 2 — Trigger and routing (free, runs in CI)
+### Tier 2: Trigger and routing (free, runs in CI)
 
 A deterministic routing test that spends no tokens. The eval runner uses stemmed TF-IDF over all 24 skill descriptions to score each positive and negative trigger prompt.
 
@@ -42,17 +42,17 @@ Two CI floors:
 
 **Key rule for writing trigger prompts**: paraphrase how users actually talk; don't copy from the description (that games the eval). A realistic prompt that fails to rank is a real finding about the description, not about the eval.
 
-### Tier 3 — Behavioral (costs tokens, opt-in)
+### Tier 3: Behavioral (costs tokens, opt-in)
 
 Invokes headless `claude` with the skill loaded, runs the prompt against fixture files in a throwaway git repo, captures the full `--output-format stream-json --verbose` execution trace including tool calls, and grades the trace against `expectations[]` strings.
 
 Two kinds:
 - **execution**: the agent edits real files. Fixtures at `evals/fixtures/<skill-name>/` are committed as a baseline before the run. The grader judges whether the agent's tool calls and file changes match expectations.
-- **dialogue**: the deliverable is the conversation itself. No fixtures needed. The grader judges the agent's conversational turns. This is a human-reviewed exemption — claiming `dialogue` for a skill whose deliverable is code edits is explicitly flagged as abuse.
+- **dialogue**: the deliverable is the conversation itself. No fixtures needed. The grader judges the agent's conversational turns. This is a human-reviewed exemption, claiming `dialogue` for a skill whose deliverable is code edits is explicitly flagged as abuse.
 
 The runner uses `--permission-mode acceptEdits` plus a pre-approved tool list so execution evals can genuinely edit files and run commands. The grader prompt is piped via stdin (traces can be megabytes; argv would hit the OS limit). Traces are fenced as untrusted data in the grader prompt. Results are written to `evals/results/` (gitignored) in skill-creator's `grading.json` shape.
 
-**Pressure cases**: discipline skills (TDD, incremental-implementation, etc.) include eval cases where the prompt argues for skipping the hard step — time pressure, authority pressure ("the engineering lead says to skip the tests"), sunk cost ("we've already built so much, let's not redo it"). These verify that the workflow holds under adversarial conditions, not just cooperative ones.
+**Pressure cases**: discipline skills (TDD, incremental-implementation, etc.) include eval cases where the prompt argues for skipping the hard step, time pressure, authority pressure ("the engineering lead says to skip the tests"), sunk cost ("we've already built so much, let's not redo it"). These verify that the workflow holds under adversarial conditions, not just cooperative ones.
 
 ---
 
@@ -103,7 +103,7 @@ One JSON file per skill: `evals/cases/<skill-name>.json`.
 
 Field semantics:
 - `trigger.positive[].top_k`: how high the skill must rank for this prompt (default 3, set to 1 for a skill's signature trigger)
-- `trigger.negative[].owner`: the skill that *should* win — makes the negative a pairwise test rather than just "doesn't win"
+- `trigger.negative[].owner`: the skill that *should* win: makes the negative a pairwise test rather than just "doesn't win"
 - `evals[].files[]`: paths relative to `evals/fixtures/`. Can name a file or a project directory. Execution evals must have non-empty `files[]`. Dialogue evals may omit.
 - `evals[].expectations[]`: verifiable statements, not phrasings. "A failing test is written and shown failing before the fix" not "the agent uses TDD."
 
@@ -113,11 +113,11 @@ CI enforcement: every skill must have an eval case file with at least 3 positive
 
 ## Fixtures
 
-Real project files used in execution evals. Each skill's fixture is a small but realistic codebase that provides a meaningful context for the eval prompt. For example, `evals/fixtures/test-driven-development/` is a Python project with an invoice module that has a known rounding bug — the eval runs the agent against this project and checks that a failing test appears before any fix.
+Real project files used in execution evals. Each skill's fixture is a small but realistic codebase that provides a meaningful context for the eval prompt. For example, `evals/fixtures/test-driven-development/` is a Python project with an invoice module that has a known rounding bug: the eval runs the agent against this project and checks that a failing test appears before any fix.
 
 The fixture is committed as the baseline. The eval runner creates a throwaway git repo, copies the fixture in, commits it, then runs the agent. After the run, the diff between the initial commit and the agent's changes is part of what gets graded.
 
-Pressure-case fixtures (`incremental-implementation-pressure`, `test-driven-development-ecosystem`) simulate adversarial conditions — a project with tests missing, a multi-ecosystem project where the agent might pick the wrong test runner.
+Pressure-case fixtures (`incremental-implementation-pressure`, `test-driven-development-ecosystem`) simulate adversarial conditions: a project with tests missing, a multi-ecosystem project where the agent might pick the wrong test runner.
 
 ---
 
@@ -126,13 +126,13 @@ Pressure-case fixtures (`incremental-implementation-pressure`, `test-driven-deve
 **Tier 2 (routing) is immediately adoptable** with minimal infrastructure. The approach: write a few trigger prompts for each skill (positive: tasks where the skill should fire; negative: tasks that belong to a different skill), run TF-IDF over the skill descriptions, check ranking. No Claude invocations, no tokens spent. This would catch description drift and routing ambiguity between Flow's 9 skills.
 
 **Tier 3 (behavioral) requires more investment**:
-1. A fixture for each skill — a small project or context that gives the skill something real to act on
+1. A fixture for each skill: a small project or context that gives the skill something real to act on
 2. A test runner that invokes Claude Code headlessly (they use `claude --output-format stream-json --verbose`)
 3. A grader that reads the execution trace and evaluates `expectations[]` against it
 4. A way to maintain fixtures as Flow's paths and conventions change
 
-The biggest practical obstacle for Flow is that Flow's skills are tightly tied to Flow's own infrastructure (`flow` commands, `docs/tickets/`, `docs/brainstorms/`). A Tier 3 eval for the execute skill would need a real Flow project as a fixture, meaning the eval depends on `flow` being installed and working correctly — which means the test suite and the tool under test are coupled. Theirs avoid this by testing skills against generic software projects (invoice calculators, task apps) that have no dependency on their tool infrastructure.
+The biggest practical obstacle for Flow is that Flow's skills are tightly tied to Flow's own infrastructure (`flow` commands, `docs/tickets/`, `docs/brainstorms/`). A Tier 3 eval for the execute skill would need a real Flow project as a fixture, meaning the eval depends on `flow` being installed and working correctly, which means the test suite and the tool under test are coupled. Theirs avoid this by testing skills against generic software projects (invoice calculators, task apps) that have no dependency on their tool infrastructure.
 
 The implication: Flow should build the test runner for `flow` itself (on the remaining list) first, then build skill evals that operate against the verified `flow` tool.
 
-**The pressure-case concept is worth stealing first** — before any infrastructure, write down the specific excuses a user or agent might give to skip each skill's hard step, and make those the "When NOT to use" or Common Rationalizations content. This costs nothing and makes the skills more robust immediately.
+**The pressure-case concept is worth stealing first**: before any infrastructure, write down the specific excuses a user or agent might give to skip each skill's hard step, and make those the "When NOT to use" or Common Rationalizations content. This costs nothing and makes the skills more robust immediately.

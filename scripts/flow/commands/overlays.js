@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Project overlays — what one project adds to a skill it cannot edit.
+ * Project overlays: what one project adds to a skill it cannot edit.
  *
  * A skill exists once per machine and every project shares that copy, so a
  * project extends one by writing `.flow/overlays/<name>.md`. A skill
@@ -8,7 +8,7 @@
  * whatever it prints lands in the body Claude Code loads.
  *
  * Nothing here reads what the file holds. No schema, no keys, no section this
- * command knows about — whatever the overlay says is what the skill gets.
+ * command knows about: whatever the overlay says is what the skill gets.
  *
  * `get` is the only action, and the default, so `flow overlays groundwork` is
  * the whole of it. An overlay is written in an editor, and listing them is
@@ -26,7 +26,7 @@ const actions = {};
  * Two silences are deliberate, because both are ordinary.
  *
  * No overlay file means the skill reads as though its last line were not
- * there, which is the common case — most skills carry no overlay in most
+ * there, which is the common case: most skills carry no overlay in most
  * projects. Outside a git repo there is no project to ask, and a skill is
  * invocable anywhere, so throwing there would print an error into a skill
  * body for running in the wrong folder.
@@ -57,7 +57,7 @@ actions.get = {
       body = fs.readFileSync(file, 'utf8');
     } catch (e) {
       if (e.code === 'ENOENT') return 0;
-      throw new FlowError(`${file} exists and could not be read — ${e.message}`);
+      throw new FlowError(`${file} exists and could not be read: ${e.message}`);
     }
 
     process.stdout.write(body.endsWith('\n') ? body : body + '\n');

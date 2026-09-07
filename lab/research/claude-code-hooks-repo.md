@@ -2,17 +2,17 @@
 
 498 stars (claude-code-hooks by karanb192). A 20-plugin installable marketplace of hooks for Claude Code: safety, automation, notifications. Plus Anthropic's own hookify plugin inside the `claude-code` repo. Together they cover both sides of the knowledge-to-enforcement bridge.
 
-## dead-rules-audit — the compliance scorecard
+## dead-rules-audit: the compliance scorecard
 
 The most relevant plugin for Flow's knowledge base design. It mechanically measures whether the agent follows its own rules.
 
 ### How it works
 
-1. **SessionStart** — parses the nearest CLAUDE.md into numbered atomic rules. A rule is a list item or blockquote that contains a directive word (always, never, must, avoid, use, etc.). Stored as a session snapshot.
+1. **SessionStart**: parses the nearest CLAUDE.md into numbered atomic rules. A rule is a list item or blockquote that contains a directive word (always, never, must, avoid, use, etc.). Stored as a session snapshot.
 
-2. **PostToolUse on Edit/MultiEdit/Write** (async, zero latency) — scores each change against each rule using deterministic keyword/pattern heuristics. No model call, no network. Per-rule tallies: how often the rule was relevant, whether it was followed or violated. Appended to a local JSONL ledger at `~/.claude/dead-rules-audit/`.
+2. **PostToolUse on Edit/MultiEdit/Write** (async, zero latency): scores each change against each rule using deterministic keyword/pattern heuristics. No model call, no network. Per-rule tallies: how often the rule was relevant, whether it was followed or violated. Appended to a local JSONL ledger at `~/.claude/dead-rules-audit/`.
 
-3. **SessionEnd** — renders a worst-first compliance scorecard: rule text, times relevant, times violated, compliance %, and a `promote→hook` flag for chronically-ignored rules.
+3. **SessionEnd**: renders a worst-first compliance scorecard: rule text, times relevant, times violated, compliance %, and a `promote→hook` flag for chronically-ignored rules.
 
 ### The promotion threshold
 
@@ -31,14 +31,14 @@ The parser is deliberately conservative:
 - Capped at 200 rules and 256KB of CLAUDE.md.
 - Keywords from backticked code tokens get the highest relevance signal.
 
-## hookify — rule creation from conversation
+## hookify: rule creation from conversation
 
 Anthropic's plugin in the claude-code repo. Creates hook rules from conversation analysis or explicit instructions.
 
 ### How it works
 
 1. User says `/hookify Don't use console.log in TypeScript files` (or runs `/hookify` with no arguments to analyze recent conversation for frustration signals).
-2. hookify creates `.claude/hookify.{rule-name}.local.md` — a markdown file with YAML frontmatter defining the pattern and action (warn or block).
+2. hookify creates `.claude/hookify.{rule-name}.local.md`: a markdown file with YAML frontmatter defining the pattern and action (warn or block).
 3. Rules take effect immediately on the next tool use. No restart needed.
 
 ### Rule format
@@ -80,7 +80,7 @@ Flow's CLAUDE.md already has rules the agent ignores. dead-rules-audit provides 
 
 ### Deterministic scoring, not LLM scoring
 
-The rule engine uses keyword/pattern heuristics, not model calls. This keeps hook evaluation fast (zero latency when async), cheap (no API cost), and predictable. For Flow, this means the enforcement layer can be purely mechanical — no LLM in the hot path.
+The rule engine uses keyword/pattern heuristics, not model calls. This keeps hook evaluation fast (zero latency when async), cheap (no API cost), and predictable. For Flow, this means the enforcement layer can be purely mechanical: no LLM in the hot path.
 
 ### The markdown rule format is the right shape
 

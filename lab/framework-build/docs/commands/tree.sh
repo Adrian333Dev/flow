@@ -2,7 +2,7 @@
 # Filtered directory tree. Run from project root.
 # Usage: bash docs/commands/tree.sh [path] [--depth N] [--except pattern]
 #   --depth N      Limit output depth (default: unlimited)
-#   --except pat   Exclude by name, folder name, or glob — repeatable
+#   --except pat   Exclude by name, folder name, or glob: repeatable
 #                  Examples: --except __tests__  --except .github  --except "*.md"
 
 TARGET="."
@@ -28,7 +28,7 @@ if command -v tree &>/dev/null; then
   [[ -n "$DEPTH" ]] && ARGS+=(-L "$DEPTH")
   tree "$TARGET" "${ARGS[@]}"
 else
-  # find fallback — flat sorted list (best effort when tree not installed)
+  # find fallback: flat sorted list (best effort when tree not installed)
   PRUNE=()
   first=true
   for seg in node_modules .git dist build .next .turbo __pycache__ .cache coverage out .svelte-kit temp .venv vendor tmp "${EXCEPT[@]}"; do

@@ -15,7 +15,7 @@ A key conclusion from the research: **the highest-value additions are capability
 ### 1. GitHub MCP Server
 
 - **What it does:** Gives Claude structured access to repositories, issues, pull requests, branches, files, and GitHub API operations.
-- **Use when:** You want Claude to work with GitHub state without relying entirely on ad-hoc `gh`/REST commands—especially for PR/issue triage, repository inspection, and GitHub-native workflows.
+- **Use when:** You want Claude to work with GitHub state without relying entirely on ad-hoc `gh`/REST commands: especially for PR/issue triage, repository inspection, and GitHub-native workflows.
 - **Install/source:** Use the official GitHub MCP Server and Claude Code MCP configuration; prefer the maintained official implementation rather than older community forks.
 - **Maturity:** **Very high / official.** GitHub is one of the most adopted MCP integrations in current ecosystem rankings. ([SFEIR Institute][2])
 
@@ -29,7 +29,7 @@ A key conclusion from the research: **the highest-value additions are capability
 ### 3. Chrome DevTools MCP
 
 - **What it does:** Exposes Chrome DevTools capabilities to the agent for inspecting live pages, performance, network behavior, console output, and browser state.
-- **Use when:** The problem is specifically runtime browser behavior—performance, network requests, rendering, console errors, or debugging a running web application.
+- **Use when:** The problem is specifically runtime browser behavior: performance, network requests, rendering, console errors, or debugging a running web application.
 - **Install/source:** Official `ChromeDevTools/chrome-devtools-mcp` repository; install according to its current README.
 - **Maturity:** **High / Google-maintained open source.** The project was actively releasing in May 2026, including support for third-party developer tools. ([GitHub][4])
 
@@ -82,7 +82,7 @@ A key conclusion from the research: **the highest-value additions are capability
 - **Install/source:** Use Cloudflare's official MCP integration.
 - **Maturity:** **High / vendor-backed.** A good example of a platform MCP that is useful across many projects without being tied to a particular application architecture.
 
-### 11. Sequential Thinking MCP — **conditional**
+### 11. Sequential Thinking MCP: **conditional**
 
 - **What it does:** Provides a structured reasoning tool for decomposing complex problems into explicit steps.
 - **Use when:** A task genuinely benefits from externally represented intermediate reasoning.
@@ -145,28 +145,28 @@ A key conclusion from the research: **the highest-value additions are capability
 
 These are the most useful candidates for the `npx skills add` ecosystem, but I would be **more selective here than with MCP**. The ecosystem is growing extremely quickly, and research suggests that many skills add little value or can even hurt when their instructions conflict with the project context. ([arXiv][1])
 
-### 18. `skill-creator` — Anthropic
+### 18. `skill-creator`: Anthropic
 
 - **What it does:** Teaches the agent how to create, structure, and improve reusable Agent Skills.
 - **Use when:** You are extending your own template with a genuinely reusable capability rather than writing another one-off instruction file.
 - **Install/source:** `npx skills add https://github.com/anthropics/skills`
 - **Maturity:** **Very high / official Anthropic repository.** ([GitHub][10])
 
-### 19. `MCP Integration` — Anthropic
+### 19. `MCP Integration`: Anthropic
 
 - **What it does:** Provides procedural guidance for configuring MCP servers inside Claude Code plugins and projects.
 - **Use when:** You are adding or maintaining MCP integrations and want the agent to follow current transport, configuration, authentication, and plugin conventions.
 - **Install:** `npx skills add https://github.com/anthropics/claude-code --skill "MCP Integration"`
 - **Maturity:** **Very high / official Anthropic skill.** ([MCP Servers][11])
 
-### 20. `webapp-testing` — Anthropic
+### 20. `webapp-testing`: Anthropic
 
 - **What it does:** Provides repeatable guidance for testing web applications using browser automation.
 - **Use when:** You need a browser-level test workflow that complements Playwright MCP rather than replacing it.
 - **Install/source:** `npx skills add https://github.com/anthropics/skills`
 - **Maturity:** **High / official Anthropic skill repository.** ([GitHub][10])
 
-### 21. `code-review` — Block
+### 21. `code-review`: Block
 
 - **What it does:** Provides a structured code-review checklist covering functionality, edge cases, error handling, testing, and related quality concerns.
 - **Use when:** You want a portable review rubric that can be used across Claude Code and other Agent Skills-compatible agents.
@@ -180,7 +180,7 @@ These are the most useful candidates for the `npx skills add` ecosystem, but I w
 - **Install:** `npx skills add https://developer.paddle.com/`
 - **Maturity:** **High / official vendor release, May 2026.** Also available as an official Claude Code plugin with the Paddle docs MCP server. ([Paddle Developer Docs][13])
 
-### 23. `find-skills` — ecosystem discovery
+### 23. `find-skills`: ecosystem discovery
 
 - **What it does:** Helps an agent discover relevant skills from the broader Agent Skills ecosystem.
 - **Use when:** You have a specific capability gap and want to find candidates rather than manually browsing thousands of skills.
@@ -206,12 +206,12 @@ I would **not install all 23**. For a solo TypeScript full-stack developer, I wo
 
 ### Add when relevant
 
-8. **Sentry MCP** — production observability
-9. **Figma MCP/plugin** — design-driven work
-10. **Supabase MCP** — Supabase projects
-11. **Stripe MCP** — billing
-12. **Cloudflare MCP** — Workers/platform work
-13. **Notion MCP** — if Notion is a real source of truth
+8. **Sentry MCP**: production observability
+9. **Figma MCP/plugin**: design-driven work
+10. **Supabase MCP**: Supabase projects
+11. **Stripe MCP**: billing
+12. **Cloudflare MCP**: Workers/platform work
+13. **Notion MCP**, if Notion is a real source of truth
 
 ### Skills: keep the set deliberately small
 
@@ -224,18 +224,18 @@ I would **not install all 23**. For a solo TypeScript full-stack developer, I wo
 
 # What I would explicitly _not_ recommend
 
-- **Generic “superpowers”/orchestration bundles** — too much overlap with your existing workflow.
-- **Planning/specification skills** — redundant by definition.
-- **Research/search skills** — already covered in-house and better handled through your existing research workflow.
-- **Generic debugging skills** — redundant.
-- **Generic “task manager” or autonomous execution plugins** — redundant and likely to interfere with your workflow architecture.
-- **Large collections of miscellaneous skills** — poor signal-to-noise ratio and increased prompt/context surface.
+- **Generic “superpowers”/orchestration bundles**: too much overlap with your existing workflow.
+- **Planning/specification skills**: redundant by definition.
+- **Research/search skills**: already covered in-house and better handled through your existing research workflow.
+- **Generic debugging skills**: redundant.
+- **Generic “task manager” or autonomous execution plugins**: redundant and likely to interfere with your workflow architecture.
+- **Large collections of miscellaneous skills**: poor signal-to-noise ratio and increased prompt/context surface.
 - **Unmaintained MCP wrappers** around services that now have official integrations.
 - **Random skills installed directly from marketplaces without source review.**
 
 The security point is not theoretical: MCP servers and skills are executable capability extensions, and recent research has identified meaningful security risks across the skill lifecycle. There have also been real-world incidents involving malicious third-party AI plugins and suspicious community skills. I would therefore treat **source provenance, recent commits/releases, permissions, network access, and install scripts as part of the maturity evaluation**, not as an afterthought. ([The JetBrains Blog][15])
 
-**Bottom line:** for your particular template, the best additions are **MCPs that connect Claude to live external state, plugins that add narrow safety/productivity capabilities, and a very small number of specialized skills**. Avoid adding another meta-layer for thinking, planning, delegation, or project memory—the areas your template already owns are precisely where the current ecosystem has the most redundant tooling.
+**Bottom line:** for your particular template, the best additions are **MCPs that connect Claude to live external state, plugins that add narrow safety/productivity capabilities, and a very small number of specialized skills**. Avoid adding another meta-layer for thinking, planning, delegation, or project memory: the areas your template already owns are precisely where the current ecosystem has the most redundant tooling.
 
 [1]: https://arxiv.org/abs/2603.15401?utm_source=chatgpt.com "SWE-Skills-Bench: Do Agent Skills Actually Help in Real-World Software Engineering?"
 [2]: https://institute.sfeir.com/en/claude-code/claude-code-mcp-model-context-protocol/?utm_source=chatgpt.com "MCP: Model Context Protocol | SFEIR Institute"
@@ -248,7 +248,7 @@ The security point is not theoretical: MCP servers and skills are executable cap
 [9]: https://claude.com/plugins/frontend-design?utm_source=chatgpt.com "Frontend Design Plugin | Claude by Anthropic"
 [10]: https://github.com/anthropics/skills?utm_source=chatgpt.com "GitHub - anthropics/skills: Public repository for Agent Skills · GitHub"
 [11]: https://mcpservers.org/agent-skills/anthropic/mcp-integration?utm_source=chatgpt.com "MCP Integration | Agent Skills Library"
-[12]: https://www.skills.sh/block/agent-skills/code-review?utm_source=chatgpt.com "code-review — block/agent-skills"
+[12]: https://www.skills.sh/block/agent-skills/code-review?utm_source=chatgpt.com "code-review, block/agent-skills"
 [13]: https://developer.paddle.com/changelog/2026/agent-skills-claude-code-plugin/?utm_source=chatgpt.com "Build Paddle integrations faster with agent skills and the Claude Code plugin"
 [14]: https://www.skills.sh/docs?utm_source=chatgpt.com "Documentation | Skills"
 [15]: https://blog.jetbrains.com/platform/2026/06/marketplace-ecosystem-security-update-malicious-ai-plugins/?utm_source=chatgpt.com "JetBrains Marketplace Ecosystem Security Update: Addressing Malicious Third-Party AI Plugins - The JetBrains Blog"
@@ -367,7 +367,7 @@ These are installed natively via Claude Code's plugin manager to enhance its cor
 
 ### 3. Standalone Agent Skills
 
-Skills are lightweight markdown files that use "progressive disclosure" — they load only their name/description initially, pulling in full SDK instructions only when the task requires it to save context window tokens.
+Skills are lightweight markdown files that use "progressive disclosure": they load only their name/description initially, pulling in full SDK instructions only when the task requires it to save context window tokens.
 
 - **Vercel AI SDK Skill**
 - **What it does:** Specialized, up-to-date instructions for implementing the Vercel AI SDK.
@@ -394,7 +394,7 @@ Skills are lightweight markdown files that use "progressive disclosure" — they
 
 # DeepSeek Instant
 
-Here’s a curated set of optional tools for mid-2026 that complement—rather than duplicate—the workflow skills you already have.
+Here’s a curated set of optional tools for mid-2026 that complement (rather than duplicate) the workflow skills you already have.
 
 ---
 
@@ -405,41 +405,41 @@ _Connect Claude Code to external systems, databases, and APIs via the Model Cont
 ### 1. GitHub MCP Server
 
 **What it does:** Lets Claude read issues, review PRs, search repositories, and open pull requests directly.  
-**Use when:** You want Claude to act on your repo—triage issues, review PRs, or automate GitHub workflows without leaving the terminal.  
+**Use when:** You want Claude to act on your repo: triage issues, review PRs, or automate GitHub workflows without leaving the terminal.  
 **Install:** `claude mcp add github https://api.github.com/mcp` (remote OAuth) or local via `npx -y @modelcontextprotocol/server-github`.  
 **Maturity:** Production-ready, maintained by GitHub, 30,800+ GitHub stars.
 
 ### 2. Context7 MCP Server
 
 **What it does:** Pulls fresh, version-specific documentation for 50+ frameworks (Next.js 15, React, Tailwind 4.0, etc.) directly into Claude’s context.  
-**Use when:** You need accurate, up-to-date API references—especially for recently updated libraries where Claude’s training data may be stale.  
+**Use when:** You need accurate, up-to-date API references: especially for recently updated libraries where Claude’s training data may be stale.  
 **Install:** `claude mcp add context7 https://mcp.context7.com/mcp`.  
 **Maturity:** Actively maintained by Upstash; widely used.
 
 ### 3. Playwright MCP Server
 
-**What it does:** Exposes full browser automation—launch a headless browser, navigate, interact with UI elements, run JavaScript, and return structured results.  
+**What it does:** Exposes full browser automation: launch a headless browser, navigate, interact with UI elements, run JavaScript, and return structured results.  
 **Use when:** You need end-to-end testing, web scraping, or UI interaction validation that Claude can drive programmatically.  
 **Install:** `claude mcp add playwright npx -y @modelcontextprotocol/server-playwright`.  
 **Maturity:** Production-ready, maintained by Microsoft.
 
 ### 4. Sentry MCP Server
 
-**What it does:** Connects Claude to error and performance data—pull a specific issue, its stack trace, and related events for debugging against real production failures.  
+**What it does:** Connects Claude to error and performance data: pull a specific issue, its stack trace, and related events for debugging against real production failures.  
 **Use when:** You’re fixing bugs already reported as Sentry issues and want Claude to read the full error context.  
 **Install:** `claude mcp add sentry https://mcp.sentry.dev/mcp` (remote OAuth).  
 **Maturity:** Production-ready, maintained by Sentry.
 
 ### 5. Supabase MCP Server
 
-**What it does:** Direct line from Claude into your Supabase backend—manage tables, query data, inspect schema, manage auth, and invoke edge functions.  
+**What it does:** Direct line from Claude into your Supabase backend: manage tables, query data, inspect schema, manage auth, and invoke edge functions.  
 **Use when:** Your project runs on Supabase and you want Claude to interact with your full backend stack.  
 **Install:** `claude mcp add supabase https://mcp.supabase.com/mcp?project_ref=<your-ref>` (remote OAuth).  
 **Maturity:** Actively maintained by Supabase community; recommended for dev environments only.
 
 ### 6. Jira / Confluence MCP Server (Atlassian)
 
-**What it does:** Puts Jira and Confluence inside Claude—search tickets with JQL, update statuses, add comments, create tickets, and pull documentation.  
+**What it does:** Puts Jira and Confluence inside Claude: search tickets with JQL, update statuses, add comments, create tickets, and pull documentation.  
 **Use when:** Your team tracks work in Jira and you want to generate or update tickets from code context without context-switching.  
 **Install:** `claude mcp add atlassian https://mcp.atlassian.com/v1/mcp` (remote OAuth).  
 **Maturity:** Production-ready, maintained by Atlassian.
@@ -460,28 +460,28 @@ _Connect Claude Code to external systems, databases, and APIs via the Model Cont
 
 ### 9. Grafana MCP Server
 
-**What it does:** Lets Claude query dashboards, datasources, Prometheus and Loki data, and incidents—turning observability into something Claude can read during debugging.  
+**What it does:** Lets Claude query dashboards, datasources, Prometheus and Loki data, and incidents: turning observability into something Claude can read during debugging.  
 **Use when:** You’re diagnosing production issues and want Claude to correlate metrics, logs, and alerts.  
 **Install:** `claude mcp add grafana npx -y @modelcontextprotocol/server-grafana`.  
 **Maturity:** Production-ready, maintained by Grafana Labs.
 
 ### 10. Stripe MCP Server
 
-**What it does:** Lets Claude work with the Stripe API—create products and prices, inspect customers and subscriptions, and search Stripe documentation.  
+**What it does:** Lets Claude work with the Stripe API: create products and prices, inspect customers and subscriptions, and search Stripe documentation.  
 **Use when:** You’re building or debugging Stripe integrations and want Claude to test against the real API surface.  
 **Install:** `claude mcp add stripe https://mcp.stripe.com/mcp`.  
 **Maturity:** Production-ready, maintained by Stripe.
 
 ### 11. Notion MCP Server
 
-**What it does:** Connects Claude to Notion workspaces—read and write pages and databases.  
+**What it does:** Connects Claude to Notion workspaces: read and write pages and databases.  
 **Use when:** Your specs, runbooks, or task tracking live in Notion and you want Claude to pull requirements or update status.  
 **Install:** `claude mcp add notion https://mcp.notion.com/mcp`.  
 **Maturity:** Production-ready, official Notion server.
 
 ### 12. Figma MCP Server
 
-**What it does:** Connects Claude to Figma layout data, component structures, design tokens, and variables—enabling design-to-code generation.  
+**What it does:** Connects Claude to Figma layout data, component structures, design tokens, and variables: enabling design-to-code generation.  
 **Use when:** You need to implement designs from Figma and want Claude to generate code that matches actual layout, spacing, and component hierarchy.  
 **Install:** `claude mcp add figma https://mcp.figma.com/mcp` (remote).  
 **Maturity:** Production-ready, maintained by Figma.
@@ -494,7 +494,7 @@ _Connect Claude Code to external systems, databases, and APIs via the Model Cont
 
 ## Category 2: Claude Code Plugins
 
-_Packaged bundles of skills, MCP server references, slash commands, sub-agents, and hooks—installable from the official marketplace._
+_Packaged bundles of skills, MCP server references, slash commands, sub-agents, and hooks: installable from the official marketplace._
 
 > **Note:** The official Anthropic marketplace (`claude-plugins-official`) is auto-installed on Claude Code startup. Run `/plugin` in Claude Code to browse, or `/plugin install <name>@claude-plugins-official` to install.
 
@@ -507,7 +507,7 @@ _Packaged bundles of skills, MCP server references, slash commands, sub-agents, 
 
 ### 14. Code Intelligence Plugins (LSP)
 
-**What it does:** Enables Claude’s built-in LSP tool—jump to definitions, find references, and see type errors immediately after edits.  
+**What it does:** Enables Claude’s built-in LSP tool: jump to definitions, find references, and see type errors immediately after edits.  
 **Use when:** You want symbol-level navigation and live type checking inside Claude Code sessions.  
 **Install:** Available via the official marketplace; browse under "Code Intelligence" in `/plugin`.  
 **Maturity:** Official Anthropic plugins; actively maintained.
@@ -523,7 +523,7 @@ _Packaged bundles of skills, MCP server references, slash commands, sub-agents, 
 
 ## Category 3: Standalone Agent Skills
 
-_Reusable skills installable via `npx skills add`—cross-agent compatible (Claude Code, Codex, Cursor, etc.)._
+_Reusable skills installable via `npx skills add`: cross-agent compatible (Claude Code, Codex, Cursor, etc.)._
 
 ### 16. vercel-labs/agent-skills
 
@@ -541,21 +541,21 @@ _Reusable skills installable via `npx skills add`—cross-agent compatible (Clau
 
 ### 18. shengyy/agent-skills
 
-**What it does:** Reusable AI agent skills for Claude Code and Codex—installable with a single `skills` CLI command.  
+**What it does:** Reusable AI agent skills for Claude Code and Codex: installable with a single `skills` CLI command.  
 **Use when:** You want a lightweight, focused skill collection that works across multiple agents.  
 **Install:** `npx skills add shengyy/agent-skills -a claude-code`.  
 **Maturity:** Actively maintained (June 2026).
 
 ### 19. @skill-hub/cli
 
-**What it does:** Single-command skill installer—`npx @skill-hub/cli install <skill> --agent claude`.  
+**What it does:** Single-command skill installer: `npx @skill-hub/cli install <skill> --agent claude`.  
 **Use when:** You want a centralized skill registry with simple installation.  
 **Install:** `npx @skill-hub/cli install <skill-name> --agent claude`.  
 **Maturity:** Actively maintained (July 2026).
 
 ### 20. Metaplex Skill
 
-**What it does:** Agent skill for Metaplex (Solana NFT protocol)—installable via `npx skills add` for any compatible agent.  
+**What it does:** Agent skill for Metaplex (Solana NFT protocol): installable via `npx skills add` for any compatible agent.  
 **Use when:** You’re building on Solana/Metaplex and want Claude to understand the protocol.  
 **Install:** `npx skills add metaplex-foundation/metaplex-skills -a claude-code`.  
 **Maturity:** Actively maintained; supports project-scoped and global installs.
@@ -588,7 +588,7 @@ _Reusable skills installable via `npx skills add`—cross-agent compatible (Clau
 
 ---
 
-**Final note:** Start with 2–3 MCP servers that match your daily stack—GitHub + Context7 + one domain-specific (database, cloud, or ticketing)—rather than installing everything at once. Plugins and skills are lighter-weight; add them as you identify recurring needs.
+**Final note:** Start with 2–3 MCP servers that match your daily stack (GitHub + Context7 + one domain-specific (database, cloud, or ticketing)) rather than installing everything at once. Plugins and skills are lighter-weight; add them as you identify recurring needs.
 
 # Claude
 
@@ -599,172 +599,172 @@ that duplicates the template's built-in skills: brainstorming/spec-writing, impl
 planning, task execution/subagent delegation, external research, diagramming/visualization,
 passive context-capture/checkpoints, debugging, completion-verification.
 
-This ecosystem churns fast — install commands and star counts are a snapshot, not a promise.
+This ecosystem churns fast: install commands and star counts are a snapshot, not a promise.
 Re-verify a repo's activity before installing anything, especially community entries.
 
 ---
 
 ## 1. MCP Servers
 
-**Context7** — Upstash
+**Context7**: Upstash
 Pulls live, version-pinned docs/code examples for a library into context instead of Claude
 guessing from stale training data.
 _Use when:_ working with any fast-moving JS/TS library or framework version.
 _Install:_ `claude mcp add --transport http context7 https://mcp.context7.com/mcp` (or `/plugin install context7@context7-marketplace`)
 _Maturity:_ Actively maintained by Upstash; one of the most-installed MCP integrations in the ecosystem (300K+ installs mid-2026).
 
-**Chrome DevTools MCP** — Google / Chrome DevTools team
-Gives the agent a live, inspectable Chrome instance — DOM snapshots, console, network,
+**Chrome DevTools MCP**: Google / Chrome DevTools team
+Gives the agent a live, inspectable Chrome instance: DOM snapshots, console, network,
 performance traces, Lighthouse audits.
 _Use when:_ debugging Delapse's actual rendered UI, a rendering bug, or a perf issue that only shows up in a real browser.
 _Install:_ `/plugin marketplace add ChromeDevTools/chrome-devtools-mcp` → `/plugin install chrome-devtools-mcp@chrome-devtools-plugins` (or standalone `npx chrome-devtools-mcp@latest`)
-_Maturity:_ Official Google repo, active weekly-ish releases. Note: this is a tool/capability grant (live browser access), not a debugging methodology — complements your template's debugging skill rather than duplicating it.
+_Maturity:_ Official Google repo, active weekly-ish releases. Note: this is a tool/capability grant (live browser access), not a debugging methodology, complements your template's debugging skill rather than duplicating it.
 
-**Playwright MCP** — Microsoft
+**Playwright MCP**: Microsoft
 Cross-browser (Chromium/Firefox/WebKit) automation via the accessibility tree: navigate, click,
 fill, screenshot, assert.
 _Use when:_ you want a repeatable E2E check across browsers, not just Chrome internals.
 _Install:_ `claude mcp add playwright npx @playwright/mcp@latest` (or `/plugin install playwright@claude-plugins-official`)
-_Maturity:_ Microsoft-maintained, most-starred browser-automation MCP (7k+★), weekly updates. Official successor to the now-deprecated `server-puppeteer` — don't use the old Puppeteer MCP.
+_Maturity:_ Microsoft-maintained, most-starred browser-automation MCP (7k+★), weekly updates. Official successor to the now-deprecated `server-puppeteer`: don't use the old Puppeteer MCP.
 _Note:_ overlaps Chrome DevTools MCP in scope. DevTools for debugging/perf, Playwright for repeatable cross-browser test flows. Running both is fine, but you likely only need one per task.
 
-**Sentry MCP** — Sentry
+**Sentry MCP**: Sentry
 Read-only query access to production issues, stack traces, breadcrumbs, and performance traces.
 _Use when:_ you're running Sentry on Delapse's backend/extension and want "error reported → fix" without leaving the session.
 _Install:_ `{"mcpServers":{"sentry":{"url":"https://mcp.sentry.dev/mcp"}}}` (OAuth on first use)
-_Maturity:_ Official, actively maintained. Read-only by design (can't create/modify/delete). Install once you actually have a Sentry project — no value idle.
+_Maturity:_ Official, actively maintained. Read-only by design (can't create/modify/delete). Install once you actually have a Sentry project: no value idle.
 
-**MCP Toolbox for Databases** — Google (`googleapis/mcp-toolbox`, formerly `genai-toolbox`)
+**MCP Toolbox for Databases**: Google (`googleapis/mcp-toolbox`, formerly `genai-toolbox`)
 Official MCP for querying/exploring Cloud SQL, AlloyDB, Spanner, Postgres, MySQL with built-in
 auth and connection pooling.
 _Use when:_ Claude needs to inspect your GCP-hosted DB schema/data directly instead of you pasting a dump.
 _Install:_ `claude mcp add --transport stdio googleapis-genai-toolbox -- docker run -i --rm us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:<version>`
-_Maturity:_ Official Google repo, 8k+★, actively developed. Still pre-1.0 (beta) — breaking changes possible between versions.
+_Maturity:_ Official Google repo, 8k+★, actively developed. Still pre-1.0 (beta): breaking changes possible between versions.
 
-**Google Cloud MCP (gcloud-backed, remote/OAuth)** — Google
-Natural-language access to broader GCP resources — Compute Engine, Cloud Run, Cloud Storage,
-BigQuery — via per-service remote MCP endpoints.
+**Google Cloud MCP (gcloud-backed, remote/OAuth)**: Google
+Natural-language access to broader GCP resources: Compute Engine, Cloud Run, Cloud Storage,
+BigQuery: via per-service remote MCP endpoints.
 _Use when:_ checking a Cloud Run deployment, tailing logs, or poking at Storage/BigQuery without switching to the console.
-_Install:_ per Google's official docs (`docs.cloud.google.com/mcp`) — create an OAuth client, connect the service-specific remote MCP URL.
-_Maturity:_ Official, actively expanding mid-2026. Scope read-only where you can — it can act on live infra.
+_Install:_ per Google's official docs (`docs.cloud.google.com/mcp`): create an OAuth client, connect the service-specific remote MCP URL.
+_Maturity:_ Official, actively expanding mid-2026. Scope read-only where you can: it can act on live infra.
 
-**Stripe MCP** — Stripe
+**Stripe MCP**: Stripe
 Official hosted MCP over customers, payments, subscriptions, invoices, refunds.
-_Use when:_ (forward-looking) once Delapse has a paid tier — debug a failed payment or draft a subscription flow with live Stripe context.
+_Use when:_ (forward-looking) once Delapse has a paid tier: debug a failed payment or draft a subscription flow with live Stripe context.
 _Install:_ hosted at `mcp.stripe.com` (OAuth), or `npx -y @stripe/mcp-server`
-_Maturity:_ Official, actively maintained. Skip until you actually integrate Stripe — it's payment/PII data sitting in your context window, so scope the API key tightly when you do.
+_Maturity:_ Official, actively maintained. Skip until you actually integrate Stripe: it's payment/PII data sitting in your context window, so scope the API key tightly when you do.
 
 ### Explicitly skip
 
-- **GitHub MCP** — for Claude Code specifically, don't bother. Claude Code already treats `gh` CLI as a first-class tool; a benchmarked GitHub query costs ~30x more tokens through MCP than through `gh` directly (44k vs ~1.4k tokens). Only reach for the plugin if you're on a client without native CLI/bash access.
-- **Filesystem / generic Git MCP servers** — redundant; Claude Code already has direct file and git access via its bash tool.
-- **Postgres MCP (`@modelcontextprotocol/server-postgres`) / Puppeteer MCP** — both archived by the MCP steering group. Still run, no longer maintained. Use MCP Toolbox for Databases and Playwright MCP instead, respectively.
+- **GitHub MCP**, for Claude Code specifically, don't bother. Claude Code already treats `gh` CLI as a first-class tool; a benchmarked GitHub query costs ~30x more tokens through MCP than through `gh` directly (44k vs ~1.4k tokens). Only reach for the plugin if you're on a client without native CLI/bash access.
+- **Filesystem / generic Git MCP servers**: redundant; Claude Code already has direct file and git access via its bash tool.
+- **Postgres MCP (`@modelcontextprotocol/server-postgres`) / Puppeteer MCP**: both archived by the MCP steering group. Still run, no longer maintained. Use MCP Toolbox for Databases and Playwright MCP instead, respectively.
 
 ---
 
 ## 2. Claude Code Plugins
 
-**Frontend Design** — Anthropic (official)
+**Frontend Design**: Anthropic (official)
 Pushes generated UI toward considered typography/layout/restraint instead of generic
 "AI slop" gradient-and-card templates.
-_Use when:_ any Delapse UI work — popup, options page, in-page overlay.
+_Use when:_ any Delapse UI work: popup, options page, in-page overlay.
 _Install:_ `/plugin install frontend-design@claude-plugins-official`
 _Maturity:_ Anthropic first-party; most-installed plugin in the official marketplace (500K+ installs mid-2026).
 
-**security-guidance** — Anthropic (official)
+**security-guidance**: Anthropic (official)
 Quietly reviews every diff for injection, XSS, SSRF, exposed secrets, IDOR, auth-bypass before you see it.
 _Use when:_ always-on. Negligible overhead.
 _Install:_ `/plugin install security-guidance@claude-plugins-official`
 _Maturity:_ Official; ships enabled by default in recent Claude Code versions.
 
-**code-review** — Anthropic (official)
+**code-review**: Anthropic (official)
 Runs specialized parallel subagents (bug-hunting, convention-compliance, history-aware) over a
 diff for a fast second opinion before you commit.
-_Use when:_ before merging anything non-trivial — you have no human reviewer to catch this otherwise.
+_Use when:_ before merging anything non-trivial: you have no human reviewer to catch this otherwise.
 _Install:_ `/plugin install code-review@claude-plugins-official` (also `pr-review-toolkit@claude-plugins-official` for a PR-specific variant)
-_Maturity:_ Official. Note: this is a code-quality/security pass, adjacent to — but a different concern than — your template's completion-verification skill (that one likely checks "did it meet spec," this checks "is the diff itself sound"). Worth a quick look to confirm they don't overlap for your setup.
+_Maturity:_ Official. Note: this is a code-quality/security pass, adjacent to (but a different concern than) your template's completion-verification skill (that one likely checks "did it meet spec," this checks "is the diff itself sound"). Worth a quick look to confirm they don't overlap for your setup.
 
-**TypeScript LSP** — Anthropic (official)
+**TypeScript LSP**: Anthropic (official)
 Real go-to-definition, find-references, and live type errors instead of Claude guessing from text.
 _Use when:_ any TS work, especially across your monorepo.
 _Install:_ `/plugin install typescript-lsp@claude-plugins-official`
 _Maturity:_ Official, one of ~12 language-server plugins Anthropic maintains.
 
-**Semgrep Guardian** — Semgrep
+**Semgrep Guardian**: Semgrep
 Bundles the Semgrep MCP server + hooks + skills: scans every file Claude writes against
 5,000+ SAST rules (SQLi, XSS, SSRF, secrets) and makes Claude regenerate until it's clean.
 _Use when:_ you want a non-optional safety net on AI-generated code, not just an MCP tool Claude can choose to skip.
 _Install:_ see `docs.semgrep.dev/guardian` (search "Semgrep" in `/plugin`)
-_Maturity:_ Actively maintained by Semgrep. Note: the older standalone `semgrep/mcp` repo is explicitly deprecated in favor of Guardian / the official Semgrep binary — use Guardian, not the old repo.
+_Maturity:_ Actively maintained by Semgrep. Note: the older standalone `semgrep/mcp` repo is explicitly deprecated in favor of Guardian / the official Semgrep binary, use Guardian, not the old repo.
 
-**commit-commands** — official marketplace
+**commit-commands**: official marketplace
 Chains stage → conventional-commit-message-from-diff → commit → push → PR creation into one
 namespaced skill bundle.
 _Use when:_ you commit/PR often and want it to stop being three manual steps.
 _Install:_ `/plugin install commit-commands@claude-code-plugins`, then `/reload-plugins`, invoke with `/commit-commands:commit`
 _Maturity:_ Official, free.
 
-**skill-creator** — Anthropic (official)
+**skill-creator**: Anthropic (official)
 Interviews you about a repeated workflow and scaffolds a properly-triggered `SKILL.md`; can also audit/improve skills you already have.
 _Use when:_ you notice yourself giving Claude the same multi-step instructions repeatedly (you've already built a diagrams skill and a market-research skill this way).
 _Install:_ `/plugin install skill-creator@claude-plugins-official`
 _Maturity:_ Official.
 
-**Caveman** — JuliusBrussee
-Forces terse "caveman-speak" prose while keeping code/commands/errors byte-exact — cuts output tokens ~65% on long agentic runs.
+**Caveman**: JuliusBrussee
+Forces terse "caveman-speak" prose while keeping code/commands/errors byte-exact: cuts output tokens ~65% on long agentic runs.
 _Use when:_ long unattended multi-step runs where you don't need full prose reasoning, just the result.
 _Install:_ `/plugin marketplace add JuliusBrussee/caveman` → `/plugin install caveman@caveman`
-_Maturity:_ Community, ~86k★, actively used. Situational — turn off when you need Claude's reasoning spelled out.
+_Maturity:_ Community, ~86k★, actively used. Situational: turn off when you need Claude's reasoning spelled out.
 
 ### Explicitly skip (duplicates your template)
 
-- **Superpowers** (`obra/superpowers`) — bundles brainstorm → spec → plan → TDD → subagent-delegation. Most-starred plugin in the whole ecosystem (~248k★), but a straight duplicate of what your template already owns end-to-end.
-- **Claude Mem** (`thedotmack/claude-mem`) — persistent cross-session memory; overlaps your template's passive context-capture/checkpoints skill. Only worth a look if that skill doesn't already give you this.
-- **planning-with-files** — duplicates implementation planning.
-- **ECC and similar "god-mode" mega-harnesses** — bundle dozens of agents/skills covering most of your excluded list at once. Skip the category, not just one repo.
+- **Superpowers** (`obra/superpowers`): bundles brainstorm → spec → plan → TDD → subagent-delegation. Most-starred plugin in the whole ecosystem (~248k★), but a straight duplicate of what your template already owns end-to-end.
+- **Claude Mem** (`thedotmack/claude-mem`): persistent cross-session memory; overlaps your template's passive context-capture/checkpoints skill. Only worth a look if that skill doesn't already give you this.
+- **planning-with-files**: duplicates implementation planning.
+- **ECC and similar "god-mode" mega-harnesses**: bundle dozens of agents/skills covering most of your excluded list at once. Skip the category, not just one repo.
 
 ---
 
 ## 3. Standalone Agent Skills
 
-**react-best-practices** — Vercel Labs
+**react-best-practices**: Vercel Labs
 ~40 React/Next.js performance and code-quality rules from Vercel engineering (data-fetching,
 server/client boundaries, re-render and bundle-size anti-patterns), prioritized by real-world
 Core Web Vitals impact.
-_Use when:_ writing or reviewing any React code — Delapse's UI now, any future frontend project.
+_Use when:_ writing or reviewing any React code: Delapse's UI now, any future frontend project.
 _Install:_ `npx skills add vercel-labs/agent-skills --skill react-best-practices`
-_Maturity:_ Actively maintained by Vercel, 180K+ installs, genuinely cross-project (any React/Next codebase — not tied to Vercel hosting).
+_Maturity:_ Actively maintained by Vercel, 180K+ installs, genuinely cross-project (any React/Next codebase, not tied to Vercel hosting).
 
-**web-design-guidelines** — Vercel Labs
+**web-design-guidelines**: Vercel Labs
 Audits UI code against 100+ accessibility/UX/performance rules; fetches the latest guidelines
 fresh before each review rather than relying on a frozen copy.
 _Use when:_ polishing any user-facing screen before you ship it.
 _Install:_ `npx skills add vercel-labs/agent-skills --skill web-design-guidelines`
 _Maturity:_ Actively maintained, cross-project.
 
-**mcp-builder** — Anthropic (`anthropics/skills`)
+**mcp-builder**: Anthropic (`anthropics/skills`)
 Scaffolds a new MCP server when you need to wire Claude into something not already covered.
 _Use when:_ exposing an internal API (e.g. a Delapse admin endpoint) to Claude as a proper tool.
 _Install:_ copy the `mcp-builder` folder into `~/.claude/skills/`
 _Maturity:_ Official Anthropic skill.
 
-**theme-factory** — Anthropic (`anthropics/skills`)
+**theme-factory**: Anthropic (`anthropics/skills`)
 Applies coherent, professional color/typography themes to generated UI.
 _Use when:_ you need a real color system/type scale and have no designer to hand it to.
 _Install:_ copy the `theme-factory` folder into `~/.claude/skills/`
 _Maturity:_ Official Anthropic skill; pairs with the Frontend Design plugin above.
 
-**nestjs-best-practices** — community (e.g. `Kadajett/agent-nestjs-skills`)
+**nestjs-best-practices**: community (e.g. `Kadajett/agent-nestjs-skills`)
 ~40 NestJS rules (architecture, DI, security, error handling, testing) with wrong/right code examples.
 _Use when:_ backend work on your NestJS API.
 _Install:_ `npx skills add Kadajett/agent-nestjs-skills`
-_Maturity:_ Community, smaller/newer — not Anthropic/Vercel-scale adoption. A few competing forks exist with overlapping content (also see the `xirothedev` and `giuseppe-trisciuoglio` variants) — skim the rules before trusting them blindly, but genuinely useful since nothing official exists for NestJS.
+_Maturity:_ Community, smaller/newer, not Anthropic/Vercel-scale adoption. A few competing forks exist with overlapping content (also see the `xirothedev` and `giuseppe-trisciuoglio` variants): skim the rules before trusting them blindly, but genuinely useful since nothing official exists for NestJS.
 
 ### Explicitly skip (duplicates your template, or you already have it)
 
-- **Grill Me** — already installed (`/mnt/skills/user/grill-me`).
-- **webapp-testing / Playwright skill** (as a _skill_, distinct from Playwright MCP above) — "does the built thing actually run" sits close to your completion-verification skill's territory. Compare before adding; likely redundant.
-- **Skill Seekers** (turns any docs site into a skill) — adjacent to your external-research skill. Only add if that skill doesn't already do doc-ingestion for you.
+- **Grill Me**: already installed (`/mnt/skills/user/grill-me`).
+- **webapp-testing / Playwright skill** (as a _skill_, distinct from Playwright MCP above): "does the built thing actually run" sits close to your completion-verification skill's territory. Compare before adding; likely redundant.
+- **Skill Seekers** (turns any docs site into a skill): adjacent to your external-research skill. Only add if that skill doesn't already do doc-ingestion for you.
 
 ---
 
@@ -772,5 +772,5 @@ _Maturity:_ Community, smaller/newer — not Anthropic/Vercel-scale adoption. A 
 
 If you only install six things: **Context7**, **Chrome DevTools MCP**, **Frontend Design**,
 **security-guidance**, **TypeScript LSP**, and **react-best-practices**. Everything else here
-is situational — add it when the specific need (Stripe integration, Sentry monitoring, NestJS
+is situational: add it when the specific need (Stripe integration, Sentry monitoring, NestJS
 backend work) actually shows up.

@@ -3,7 +3,7 @@
  * Everything that acts on a ticket.
  *
  * None of it is spelled `flow tickets ...`. A ticket is what this tool is
- * about, so these sit at the top level and the noun is left out — `flow ls`,
+ * about, so these sit at the top level and the noun is left out: `flow ls`,
  * `flow build t047`. Only `cases` keeps a group name, being a different thing.
  *
  * The status verbs are generated from the status table rather than written out.
@@ -31,7 +31,7 @@ const rel = (root, p) => path.relative(root, p) || p;
 
 /**
  * `flow t047` and `flow get t047` both land on the same lookup. The first got
- * here because `t047` matched no command — which means a mistyped command,
+ * here because `t047` matched no command, which means a mistyped command,
  * `flow buidl t047`, arrives here too and would fail with a message about
  * tickets. `unnamed` is passed on that path only, and says what else it tried.
  */
@@ -40,7 +40,7 @@ function find(tickets, ref, unnamed) {
     return store.findTicket(tickets, ref);
   } catch (e) {
     if (unnamed && e instanceof FlowError) {
-      throw new FlowError(`${e.message}\n  "${ref}" is not a command either — flow help lists them.`);
+      throw new FlowError(`${e.message}\n  "${ref}" is not a command either: flow help lists them.`);
     }
     throw e;
   }
@@ -82,7 +82,7 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
 
   if (statuses.NEEDS_REASON.has(status) && !reason) {
     throw new FlowError(
-      `moving ${t.id} to ${status} needs a reason — in six months it is the only thing that explains the ticket.\n` +
+      `moving ${t.id} to ${status} needs a reason: in six months it is the only thing that explains the ticket.\n` +
       `  ${verb} --reason "vendor API changes land in Q3, pointless before that"`
     );
   }
@@ -94,30 +94,30 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
   const unmet = entering ? graph.unmetDeps(t, graph.indexById(tickets)) : [];
   if (unmet.length && !force) {
     throw new FlowError(
-      `${t.id} is blocked — deps are not satisfied:\n` +
+      `${t.id} is blocked, deps are not satisfied:\n` +
       unmet.map((u) => `  ${render.blockText(u)}`).join('\n') +
       `\n  Clear those first, or override with: ${verb} --force`
     );
   }
 
   // The pair to `done` refusing on open children. A parent keeps whatever work
-  // no child holds — the wiring, the final suite — and that work runs after
+  // no child holds (the wiring, the final suite) and that work runs after
   // they close, so this refuses early rather than at the finish line.
   const openKids = graph.openChildren(tickets, t.id);
   if (entering && openKids.length && !force) {
     throw new FlowError(
-      `${t.id} has ${openKids.length} open child ticket${openKids.length === 1 ? '' : 's'} — finish those first:\n` +
+      `${t.id} has ${openKids.length} open child ticket${openKids.length === 1 ? '' : 's'}, finish those first:\n` +
       openKids.map((c) => `  ${c.id}  ${c.data.status.padEnd(10)} ${c.data.title}`).join('\n') +
       `\n  Or override with: ${verb} --force`
     );
   }
 
   // A parent finishing is a judgment about whether the original question got
-  // answered. The children finishing is evidence, not proof — so the call stays
+  // answered. The children finishing is evidence, not proof, so the call stays
   // with the user and this only refuses to make it for them.
   if (status === 'done' && openKids.length && !force) {
     throw new FlowError(
-      `${t.id} has ${openKids.length} open child ticket${openKids.length === 1 ? '' : 's'} — its work is theirs:\n` +
+      `${t.id} has ${openKids.length} open child ticket${openKids.length === 1 ? '' : 's'}, its work is theirs:\n` +
       openKids.map((c) => `  ${c.id}  ${c.data.status.padEnd(10)} ${c.data.title}`).join('\n') +
       `\n  Finish those, or close it anyway with: ${verb} --force`
     );
@@ -135,7 +135,7 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
   t.data.reason = reason || '';
   // Where a parked ticket comes back to. Nothing used to store this: revive
   // recomputed the entry status from the type, so a feature parked at
-  // `building` came back at `groundwork` — losing two phases, on the command
+  // `building` came back at `groundwork`: losing two phases, on the command
   // the tool printed for it. The status it left is the only thing that knows.
   t.data.resume = status === 'parked' ? from : '';
 
@@ -143,7 +143,7 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
   out(`${t.id}  ${from} → ${status}   ${t.data.title}`);
   if (t.data.reason) out(`      reason: ${t.data.reason}`);
   if (moved) out(`      moved → ${rel(root, moved.to)}`);
-  if (revived) out(`      revived — cleared reason: ${revived}`);
+  if (revived) out(`      revived, cleared reason: ${revived}`);
 
   if (unmet.length) {
     out('\nforced past unsatisfied deps:');
@@ -158,7 +158,7 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
   }
 
   // The mirror. A move back down the line un-satisfies deps, so work `flow next`
-  // was offering stops being workable — and the ticket that moved is not one of
+  // was offering stops being workable, and the ticket that moved is not one of
   // them, since leaving `todo` drops it from the ready list on every pickup.
   const blocked = tickets.filter((x) => x.id !== t.id && before.includes(x.id) && !ready.includes(x.id));
   if (blocked.length) {
@@ -205,7 +205,7 @@ actions.ls = {
 
 /**
  * The whole shape, which nothing else shows. `ls` is a flat table with a parent
- * column and `get` is one ticket — the hierarchy that `parent` builds had no
+ * column and `get` is one ticket: the hierarchy that `parent` builds had no
  * renderer at all.
  */
 actions.tree = {
@@ -225,12 +225,12 @@ actions.tree = {
     // Done and dropped collapse into the parent's count by default. A tree
     // carrying every finished ticket is the noise a tree exists to strip.
     const visible = flags.all ? pool : pool.filter((t) => !statuses.TERMINAL.has(t.data.status));
-    if (!visible.length) { out('nothing live here — flow tree --all includes done and dropped.'); return 0; }
+    if (!visible.length) { out('nothing live here: flow tree --all includes done and dropped.'); return 0; }
 
     out(render.tree(graph.forest(visible), tickets));
     const hidden = pool.length - visible.length;
     out(`\n${visible.length} ticket${visible.length === 1 ? '' : 's'}` +
-      (hidden ? `, ${hidden} done or dropped hidden — flow tree --all` : ''));
+      (hidden ? `, ${hidden} done or dropped hidden: flow tree --all` : ''));
     return 0;
   },
 };
@@ -280,9 +280,9 @@ function loadRefs(specs, bases, cwd) {
       });
     } catch (e) {
       const why = e.code === 'ENOENT'
-        ? 'util is not on PATH — install it, then run flow get --files again'
+        ? 'util is not on PATH: install it, then run flow get --files again'
         : String(e.stderr || e.message).trim();
-      failed = `unread: util fs merge failed — ${why}`;
+      failed = `unread: util fs merge failed, ${why}`;
     }
   }
 
@@ -411,8 +411,8 @@ actions.new = {
 
 /**
  * Every field a ticket carries except `status`, which belongs to the verbs.
- * Two spellings for one move meant skills wrote the long one — it was the
- * documented general form — so the surface read as if the verbs did not exist.
+ * Two spellings for one move meant skills wrote the long one: it was the
+ * documented general form, so the surface read as if the verbs did not exist.
  */
 actions.edit = {
   section: 'tickets',
@@ -441,7 +441,7 @@ actions.edit = {
       t.data.type = flags.type;
     }
     if (flags.priority !== undefined) {
-      // `normal` and `""` both clear it — the field goes away rather than
+      // `normal` and `""` both clear it: the field goes away rather than
       // storing the default, so an ordinary ticket has no priority line to go stale.
       const priority = store.toPriority(flags.priority);
       changes.push(`priority: ${t.data.priority || 'normal'} → ${priority || 'normal'}`);
@@ -469,7 +469,7 @@ actions.edit = {
 
     if (!changes.length) {
       throw new FlowError(
-        'nothing to change — pass --title, --label, --type, --priority or --parent.\n' +
+        'nothing to change: pass --title, --label, --type, --priority or --parent.\n' +
         `  Status moves are their own commands: flow build ${t.id}, flow review ${t.id}, flow done ${t.id}.`
       );
     }
@@ -516,7 +516,7 @@ actions.dep = {
 
 /**
  * The filing pass marks what it swept. Several ids at once, because sweeping a
- * batch of closed tickets is the normal case — and every id gets stamped,
+ * batch of closed tickets is the normal case, and every id gets stamped,
  * including the tickets that produced nothing worth keeping. A ticket nobody
  * looked at and a ticket that taught nothing are indistinguishable from the
  * outside, so only the mark drains the queue.
@@ -546,7 +546,7 @@ actions.file = {
 
     const left = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
     out(left.length
-      ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled — flow ls --unfiled`
+      ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled: flow ls --unfiled`
       : '\nnothing left unfiled.');
     return 0;
   },
@@ -566,7 +566,7 @@ actions.drop = {
   args: '<id>',
   summary: 'kill it, and repair what depended on it',
   flags: {
-    reason: { required: true, arg: '"<why>"', missing: 'dropping needs a reason — nothing else records why the work died.' },
+    reason: { required: true, arg: '"<why>"', missing: 'dropping needs a reason, nothing else records why the work died.' },
     by: { arg: '<id>' },
     force: { bool: true },
   },
@@ -592,7 +592,7 @@ actions.drop = {
       // satisfied on arrival, so it costs nothing beyond a line of frontmatter.
       if (replacement.data.status === 'dropped') {
         throw new FlowError(
-          `--by names ${replacement.id}, which is itself dropped — those dependents could never become ready.\n` +
+          `--by names ${replacement.id}, which is itself dropped: those dependents could never become ready.\n` +
           '  Pick a live replacement, or drop them too with --force.'
         );
       }
@@ -669,7 +669,7 @@ actions.drop = {
 
 /**
  * One command per status, built from the table. Every refusal lives in
- * `transition`, so these carry no logic of their own beyond naming a target —
+ * `transition`, so these carry no logic of their own beyond naming a target,
  * which is why adding a status to `statuses.js` is the whole cost of adding a
  * status.
  */
@@ -681,7 +681,7 @@ for (const s of statuses.VERBS) {
     summary: statuses.DOES[s.verb],
     flags: {
       ...(needsReason
-        ? { reason: { required: true, arg: '"<why>"', missing: `${s.verb}ing needs a reason — in six months it is the only thing that explains the ticket.` } }
+        ? { reason: { required: true, arg: '"<why>"', missing: `${s.verb}ing needs a reason: in six months it is the only thing that explains the ticket.` } }
         : {}),
       force: { bool: true },
     },

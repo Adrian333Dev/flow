@@ -100,7 +100,7 @@ Cut what lengthens a sentence without clarifying it. Readability first; the toke
 - Digits, not words: `5`, not `five`.
 - Name a skill with its slash: `/groundwork`, never `groundwork`. The slash is what the user types, and it tells the skill from the ordinary word.
 - Symbols only where genuinely clearer than the word. Usually they are not. They also save nothing: `→` and `·` are each their own token, as are invented abbreviations like `cfg`.
-- Never use em dashes. Use a period, a comma, a colon, or parentheses. **No file in the repo obeys this yet.** Strip the em dashes out of any section you rewrite, inside that same edit. A one-line fix in a long file does not trigger a pass over the rest of it. The sweep across everything else happens before release.
+- Never use em dashes. Use a period, a comma, a colon, or parentheses. The repo was swept 2026-09-08. The only ones left are the character itself, listed as a drawing glyph in `/visualize` and as the example check in `write-checks.md`.
 
 ### Only in a loaded file
 
@@ -135,26 +135,26 @@ Each pair is verbatim from a real rewrite. The first eight are from one pass ove
 
 Biggest single win. Four examples means the test was never written.
 
-- **56w:** "**Picking an external tool** — MCP server, plugin, skill, library, app → read `~/.claude/toolbox/`, a catalog filed by the job you're doing: `video.md`, `voice.md`, `browser.md`, `ui-design.md`, `ui-libs.md`, `code-quality.md`, `security.md`, `prod-services.md`, `marketing.md`, `agent-tooling.md`, `automation.md`, `collections.md`, `inbox.md`. `README.md` indexes them and carries the install syntax for each kind. Read the one file that fits; never preload the set."
-- **29w:** "`~/.claude/flow/toolbox/` — external tools filed by job: MCP servers, plugins, skills, libraries, apps. `README.md` indexes them and carries install syntax. Read the one file that fits, never the set"
+- **56w:** "**Picking an external tool**: MCP server, plugin, skill, library, app → read `~/.claude/toolbox/`, a catalog filed by the job you're doing: `video.md`, `voice.md`, `browser.md`, `ui-design.md`, `ui-libs.md`, `code-quality.md`, `security.md`, `prod-services.md`, `marketing.md`, `agent-tooling.md`, `automation.md`, `collections.md`, `inbox.md`. `README.md` indexes them and carries the install syntax for each kind. Read the one file that fits; never preload the set."
+- **29w:** "`~/.claude/flow/toolbox/`: external tools filed by job: MCP servers, plugins, skills, libraries, apps. `README.md` indexes them and carries install syntax. Read the one file that fits, never the set"
 
 ### Delete the elaboration
 
 Restatement and hedging around a rule already stated. The reason itself stays. See section 7.
 
-- **39w:** "**Read minimal context.** Access to the codebase is not a mandate to read it — target by path and line range, prefer one filtered query over many reads, stop when the answer is in hand."
+- **39w:** "**Read minimal context.** Access to the codebase is not a mandate to read it: target by path and line range, prefer one filtered query over many reads, stop when the answer is in hand."
 - **20w:** "**Read minimal context.** Path and line range, one filtered query over many reads, stop when answered."
 
 ### Delete the derivable
 
-- **45w:** "**No project here?** Every project row collapses to the working file in front of you — the brainstorm doc, the notes file. Never create a `docs/` tree just to have somewhere to route to. The `~/.claude/flow/notes.md` row is unaffected; it is global and always available."
-- **18w:** "Without one there is no `docs/` — every path below collapses to the file in front of you." The exemption follows from that path being absolute.
+- **45w:** "**No project here?** Every project row collapses to the working file in front of you: the brainstorm doc, the notes file. Never create a `docs/` tree just to have somewhere to route to. The `~/.claude/flow/notes.md` row is unaffected; it is global and always available."
+- **18w:** "Without one there is no `docs/`: every path below collapses to the file in front of you." The exemption follows from that path being absolute.
 
 ### Delete the rebuttal
 
 A design debate fossilised into an instruction, arguing against an option the reader never heard of. Three deleted, nothing kept:
 
-- "The test is commitment, not size — there is no backlog file"
+- "The test is commitment, not size: there is no backlog file"
 - "**The tree is the decision log**; there is no `decisions.md`"
 - "Nothing is called `plan.md`."
 
@@ -163,7 +163,7 @@ A design debate fossilised into an instruction, arguing against an option the re
 A rule that fires at one moment goes in the file that loads at that moment, and drops the clause saying when it applies.
 
 - **51 lines:** a whole `## Workflow` section: the chain, the pickup diagram, the departure clause.
-- **1 line:** "`~/.claude/flow/references/workflow.md` — how Flow's pieces fit together. Only when that is genuinely unclear". The content moved there intact; the condition became the location.
+- **1 line:** "`~/.claude/flow/references/workflow.md`: how Flow's pieces fit together. Only when that is genuinely unclear". The content moved there intact; the condition became the location.
 - Same mechanism behind a skill's trigger living in its own `description:`.
 
 ### Move what a skill owns into the skill
@@ -179,7 +179,7 @@ A `## Rendering` section, near word-for-word what the drawing skill already said
 True, and useless to a reader already reading it.
 
 - **49w:** a title, a blockquote, and a paragraph on where the file installs and what a project adds on top.
-- **31w:** "Flow — an agentic development workflow for a solo developer. Work runs groundwork → tickets → plan → build, one skill per step; the rules below hold across all of them."
+- **31w:** "Flow: an agentic development workflow for a solo developer. Work runs groundwork → tickets → plan → build, one skill per step; the rules below hold across all of them."
 
 ### Rejected: structure absorbs repetition
 

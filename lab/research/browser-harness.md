@@ -6,8 +6,8 @@ A thin CDP (Chrome DevTools Protocol) layer that connects Claude Code to a real 
 
 The harness improves itself every run through two editable surfaces the agent writes into during execution:
 
-- **`agent_helpers.py`** — task-specific browser helpers. When the agent hits a missing capability mid-task, it writes the helper code itself, then uses it. The helper persists for future sessions.
-- **`domain-skills/`** — site-specific skills the agent generates after figuring out selectors, flows, and edge cases for a particular site. Organized by hostname. Loaded before the agent invents an approach for a site it already has a skill for.
+- **`agent_helpers.py`**: task-specific browser helpers. When the agent hits a missing capability mid-task, it writes the helper code itself, then uses it. The helper persists for future sessions.
+- **`domain-skills/`**: site-specific skills the agent generates after figuring out selectors, flows, and edge cases for a particular site. Organized by hostname. Loaded before the agent invents an approach for a site it already has a skill for.
 
 The loop: agent attempts a task, discovers something non-obvious, writes the knowledge as code or a skill file, and next time the same site or mechanic comes up, the harness loads the prior work instead of rediscovering it.
 
@@ -16,7 +16,7 @@ The loop: agent attempts a task, discovers something non-obvious, writes the kno
 - **The improvement is the work itself.** There is no separate "learning" step. The agent writes helpers because it needs them to complete the current task, and those helpers happen to persist. No extraction pass, no observer, no background agent.
 - **Knowledge is code, not prose.** Helpers are executable Python; domain skills are markdown with selectors and flows. Both are testable.
 - **Domain skills are opt-in** (`BH_DOMAIN_SKILLS=1`). The system works without them; they are an accelerator, not a dependency.
-- **Skills are agent-authored, not hand-authored.** The README explicitly asks contributors not to hand-write skills — the agent generates ones that reflect what actually works.
+- **Skills are agent-authored, not hand-authored.** The README explicitly asks contributors not to hand-write skills: the agent generates ones that reflect what actually works.
 
 ## Hooks and enforcement
 

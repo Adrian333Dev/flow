@@ -34,7 +34,7 @@ Built the approved `flow case` group. Then also invented and applied, with no pr
 
 Three of the four were wrong on their merits and had to be redone the next turn.
 
-The gathering rules went **inside the HTML placeholder comments**, which are deleted the first time a user fills those sections in — so the rule vanishes exactly when it starts to matter. The compression file was not written telegraphically, and its first before/after pair showed an *after* longer than the *before*, because the before was paraphrased and the after quoted: a compression guide presenting a compression as an expansion.
+The gathering rules went **inside the HTML placeholder comments**, which are deleted the first time a user fills those sections in, so the rule vanishes exactly when it starts to matter. The compression file was not written telegraphically, and its first before/after pair showed an *after* longer than the *before*, because the before was paraphrased and the after quoted: a compression guide presenting a compression as an expansion.
 
 A proposal would have caught all of it in one message. Instead it cost a build, a rewrite, and the user's time reading both.
 
@@ -50,7 +50,7 @@ Read a message-level approval as covering everything the message contained, rath
 
 ## What would have been right
 
-Build the approved `flow case` surface. For the three new asks, propose — the exact comment text, the compression file's structure with one sample entry, the shape of the `issues` command — and wait.
+Build the approved `flow case` surface. For the three new asks, propose (the exact comment text, the compression file's structure with one sample entry, the shape of the `issues` command) and wait.
 
 ## The rule that failed
 

@@ -2,7 +2,7 @@
 
 The successor to everything-claude-code, by the same author. A Claude Code plugin with 68 agents, 286 skills, and 94 commands, plus hooks, rules, memory, continuous learning, and AgentShield security scanning. Actively maintained. Supports Claude Code, Codex, Kimi Code, and other harnesses.
 
-## Continuous Learning v2 — the instinct system
+## Continuous Learning v2: the instinct system
 
 The most developed learning mechanism across all four repos. Replaces v1's session-end evaluation with real-time observation and background analysis.
 
@@ -10,12 +10,12 @@ The most developed learning mechanism across all four repos. Replaces v1's sessi
 
 An instinct is an atomic learned behavior:
 
-- **Trigger** — when the behavior fires (e.g., "when writing new functions").
-- **Action** — what to do (e.g., "use functional patterns over classes").
-- **Confidence** — 0.3 (tentative) to 0.9 (near certain), weighted by evidence.
-- **Domain tag** — code-style, testing, git, debugging, workflow, etc.
-- **Evidence** — what observations created the instinct.
-- **Scope** — `project` (default) or `global`.
+- **Trigger**: when the behavior fires (e.g., "when writing new functions").
+- **Action**: what to do (e.g., "use functional patterns over classes").
+- **Confidence**: 0.3 (tentative) to 0.9 (near certain), weighted by evidence.
+- **Domain tag**: code-style, testing, git, debugging, workflow, etc.
+- **Evidence**: what observations created the instinct.
+- **Scope**: `project` (default) or `global`.
 
 ### Observation pipeline
 
@@ -35,10 +35,10 @@ A Haiku-powered background agent that reads observations and creates/updates ins
 
 ### Instinct lifecycle
 
-1. **Capture** — observation hook writes to `observations.jsonl`.
-2. **Analysis** — background observer creates instincts with initial confidence.
-3. **Evolution** — `/evolve` clusters related instincts into full skills, commands, or agents.
-4. **Promotion** — `/promote` moves project-scoped instincts to global scope when they appear in 2+ projects.
+1. **Capture**: observation hook writes to `observations.jsonl`.
+2. **Analysis**: background observer creates instincts with initial confidence.
+3. **Evolution**: `/evolve` clusters related instincts into full skills, commands, or agents.
+4. **Promotion**: `/promote` moves project-scoped instincts to global scope when they appear in 2+ projects.
 
 ### Storage
 
@@ -87,12 +87,12 @@ Moves instincts from project scope to global scope. Detects candidates that appe
 
 ### Ideas that don't fit
 
-- **Background observer agent.** ECC uses a Haiku-powered background agent to analyze observations. Flow has no background agents and no mechanism to run one. The observation capture is still useful — a human or a future session can analyze the log.
+- **Background observer agent.** ECC uses a Haiku-powered background agent to analyze observations. Flow has no background agents and no mechanism to run one. The observation capture is still useful: a human or a future session can analyze the log.
 - **286 skills and 94 commands.** ECC is a kitchen-sink plugin. Flow is a focused solo-developer workflow. The breadth is noise; the mechanisms are signal.
 - **Cross-harness portability.** ECC targets Claude Code, Codex, Kimi Code, and others. Flow targets Claude Code only.
 
 ### The key tension
 
-ECC's learning system is real-time but complex. The observation hook runs on every tool call (Python invocation, stdin parsing, project detection, secret scrubbing, throttled signaling, lock files). The browser-harness approach has zero overhead — learning is the work. Flow should aim closer to the browser-harness end: learning happens as a natural byproduct of the work, not as machinery bolted alongside it.
+ECC's learning system is real-time but complex. The observation hook runs on every tool call (Python invocation, stdin parsing, project detection, secret scrubbing, throttled signaling, lock files). The browser-harness approach has zero overhead: learning is the work. Flow should aim closer to the browser-harness end: learning happens as a natural byproduct of the work, not as machinery bolted alongside it.
 
 The instinct model itself (trigger, action, confidence, scope) is the right abstraction regardless of how the instincts get created.

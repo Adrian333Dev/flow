@@ -11,7 +11,7 @@
  *
  * Every row therefore carries a confidence:
  *
- *   exact     the tool itself reported the path — Read, Edit, Write
+ *   exact     the tool itself reported the path: Read, Edit, Write
  *   parsed    a command line or an output stream was read for it
  *   declared  Claude Code named it in an attachment
  *
@@ -36,7 +36,7 @@ const IGNORED_PREFIX = /^(sudo|command|time|env)$/;
  *
  * The last of those is why this is strict. A shell command arrives as free
  * text, and a heredoc body full of prose parses as commands unless something
- * refuses it — the first pass over this machine recorded `the`, `a` and `and`
+ * refuses it: the first pass over this machine recorded `the`, `a` and `and`
  * as files read 46 times. A path here has a slash, an extension, or a leading
  * dot, and a bare word is thrown away even when it is a real directory name.
  */
@@ -53,7 +53,7 @@ function looksLikePath(word) {
  * Removes every heredoc body, keeping the line that opened it.
  *
  * A heredoc is how this workflow writes files from the shell, and its body is
- * prose, markdown or code — not commands. Left in, a line reading "tail the
+ * prose, markdown or code, not commands. Left in, a line reading "tail the
  * log" parses as a `tail` of a file named `the`. Nothing inside one is ever a
  * file read by the command that carries it.
  */
@@ -213,7 +213,7 @@ function fromCommand(command) {
       continue;
     }
 
-    // `util fs merge src/` and `util fs tree docs` — a merge is a read of
+    // `util fs merge src/` and `util fs tree docs`: a merge is a read of
     // every file it prints, and the output names them, so the paths come from
     // there. A tree is recorded as a listing and never as a read.
     if (verb === 'util' && rest[0] === 'fs' && rest[1] === 'tree') {
@@ -228,7 +228,7 @@ function fromCommand(command) {
   return found;
 }
 
-// ` ```js path/to/file ` — the opener util fs merge writes above each file.
+// ` ```js path/to/file `: the opener util fs merge writes above each file.
 const FENCE = /^```([A-Za-z0-9+#-]*)[ \t]+(\S.*?)\s*$/;
 
 /**
