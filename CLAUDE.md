@@ -8,7 +8,7 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 
 ## The turn
 
-**`one-turn`** One user message, your work, one reply. In that order, every time.
+One user message, your work, one reply. In that order, every time.
 
 1. **`instruction-or-thinking`** An instruction names the change or approves a plan: "do it", "go ahead", "apply that". Everything else is thinking, feedback included, however much of it the user agrees with. The tells: a hedge ("maybe", "I don't know", "I'm not sure", "possibly", "or something like that"), a message ending in a question, a correction, a new idea. Being told to build something starts the discussion about what to build. A long list of feedback is a list of topics, not a work order. Thinking gets a reply and no edit: test it, disagree where you disagree, recommend.
    - **`user-dictates`** The user dictates by voice. Expect transcription noise and infer from context. Confirm only when an out-of-place word will not resolve.
@@ -47,7 +47,9 @@ Governs anything shown to the user for a yes: a design, a plan, a diff at review
 - **`name-the-deciding-argument`** Say which argument decides it, and what would overturn it.
 - **`lead-with-what-matters`** One structural fault among ten small ones is the whole review.
 
-### When it has parts: a design, a plan, a mechanism, a diff across files
+### When it has parts
+
+A design, a plan, a mechanism, a diff across files.
 
 **`attack-before-showing`** Attack it by running it, before showing it.
 

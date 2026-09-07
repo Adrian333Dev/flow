@@ -20,6 +20,11 @@
  * paragraph, so all three carry an id and all three are read back here.
  * Extracting one rule's text means reading from its own line to the next line
  * that opens a rule at the same indent.
+ *
+ * A heading is a target too, and its id is the slug of its own text, so
+ * `## The turn` is `the-turn`. A check names a whole section that way, and no
+ * rule has to be invented to restate a heading. Both kinds share one namespace:
+ * an id is unique inside its file whichever kind defines it.
  */
 
 const fs = require('fs');
@@ -98,48 +103,88 @@ const ID_LINE = /^(\s*)(?:[-*]\s+|\d+\.\s+)?\*\*`([a-z0-9-]+)`\*\*/;
 /** A line that opens a rule of its own, whatever its depth. */
 const OPENS_RULE = /^(\s*)(?:[-*]\s|\d+\.\s|\*\*`)/;
 
+/** A heading, level 2 and deeper. The title names the file, never a section. */
+const SECTION_LINE = /^(#{2,6})\s+(\S.*?)\s*$/;
+
+/** Lowercase, dashes for everything else. `## The turn` becomes `the-turn`. */
+const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+/**
+ * Every id one file defines, in the order they appear, each with what it needs
+ * to be read back out: a section carries its heading level, a rule its indent.
+ */
+function scan(file) {
+  if (!fs.existsSync(file)) return { lines: [], found: [] };
+  const lines = fs.readFileSync(file, 'utf8').split('\n');
+  const found = [];
+  lines.forEach((line, index) => {
+    const heading = line.match(SECTION_LINE);
+    if (heading) {
+      found.push({ id: slug(heading[2]), index, level: heading[1].length, indent: '' });
+      return;
+    }
+    const rule = line.match(ID_LINE);
+    if (rule) found.push({ id: rule[2], index, level: null, indent: rule[1] });
+  });
+  return { lines, found };
+}
+
 /** Every rule id defined in one markdown file, in the order they appear. */
-function ruleIds(file) {
-  if (!fs.existsSync(file)) return [];
-  const ids = [];
-  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-    const m = line.match(ID_LINE);
-    if (m) ids.push(m[2]);
+const ruleIds = (file) => scan(file).found.filter((f) => f.level === null).map((f) => f.id);
+
+/** Every section id, which is every heading below the title. */
+const sectionIds = (file) => scan(file).found.filter((f) => f.level !== null).map((f) => f.id);
+
+/** Both kinds, since a check names either one and the two share a namespace. */
+const ids = (file) => scan(file).found.map((f) => f.id);
+
+/**
+ * Every id one file defines more than once.
+ *
+ * Only ever within one file. Two files defining the same id is normal: a rule
+ * shipped in `home/CLAUDE.md` is restated in a project's own rules, and both
+ * are the same rule. Twice in one file is a rule nothing can name.
+ */
+function duplicateIds(file) {
+  const seen = new Set();
+  const twice = new Set();
+  for (const id of ids(file)) {
+    if (seen.has(id)) twice.add(id);
+    seen.add(id);
   }
-  return ids;
+  return [...twice];
 }
 
 /**
- * One rule's text, from its own line to the next rule no deeper than it is.
+ * One target's text: a rule to the next rule no deeper than it is, a section to
+ * the next heading no deeper than it is.
  *
  * This is what gets injected when a check fires against a rule whose file never
  * loaded. Telling the agent to go read the file costs a turn and can be
- * skipped; handing it the text cannot.
+ * skipped; handing it the text cannot. A section comes back whole, sub-headings
+ * and all, because a check naming a section wants what the section governs.
  */
 function ruleText(file, id) {
-  if (!fs.existsSync(file)) return null;
-  const lines = fs.readFileSync(file, 'utf8').split('\n');
-  let start = -1;
-  let indent = '';
+  const { lines, found } = scan(file);
+  const target = found.find((f) => f.id === id);
+  if (!target) return null;
 
-  for (let i = 0; i < lines.length; i++) {
-    const m = lines[i].match(ID_LINE);
-    if (m && m[2] === id) {
-      start = i;
-      indent = m[1];
-      break;
-    }
-  }
-  if (start === -1) return null;
-
-  // A nested rule ends at the next rule that is no deeper than it is, so a
-  // sub-bullet stops at the numbered step below it rather than swallowing it.
+  const start = target.index;
   let end = lines.length;
-  for (let i = start + 1; i < lines.length; i++) {
-    const opens = lines[i].match(OPENS_RULE);
-    if (/^#{1,6}\s/.test(lines[i]) || (opens && opens[1].length <= indent.length)) {
-      end = i;
-      break;
+
+  if (target.level !== null) {
+    const next = found.find((f) => f.index > start && f.level !== null && f.level <= target.level);
+    if (next) end = next.index;
+  } else {
+    // A nested rule ends at the next rule that is no deeper than it is, so a
+    // sub-bullet stops at the numbered step below it rather than swallowing it.
+    for (let i = start + 1; i < lines.length; i++) {
+      const opens = lines[i].match(OPENS_RULE);
+      if (SECTION_LINE.test(lines[i]) || /^#\s/.test(lines[i])
+        || (opens && opens[1].length <= target.indent.length)) {
+        end = i;
+        break;
+      }
     }
   }
   return lines.slice(start, end).join('\n').trimEnd();
@@ -154,4 +199,7 @@ function rulePath(rule) {
   return path.isAbsolute(rule) ? rule : path.join(__dirname, '..', '..', '..', rule);
 }
 
-module.exports = { TIERS, NEEDS, checksDir, load, ruleIds, ruleText, rulePath };
+module.exports = {
+  TIERS, NEEDS, checksDir, load,
+  ruleIds, sectionIds, ids, duplicateIds, ruleText, rulePath,
+};

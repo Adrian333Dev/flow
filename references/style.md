@@ -4,7 +4,7 @@ Three scopes, and every section below belongs to one.
 
 **Everything Flow writes**: a skill, a `CLAUDE.md`, a workflow doc, a message to the user, a documentation page a stranger reads that no session ever loads. §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
 
-**Only a file that enters an agent's context.** §1's Step / Reference mark, §2 section shapes, §3 one home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatter, §9 transformations.
+**Only a file that enters an agent's context.** §1's Step / Reference mark, §2 section shapes, §3 one home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatter, §9 transformations, §11 rule ids.
 
 **A documentation page**, on top of the first scope: §10.
 
@@ -207,3 +207,36 @@ A page in a published documentation set. Nobody loads it into a session: a reade
 - **Open with a table of contents** under a `## Table of contents` heading, one line per heading, in order.
 - **Plan what the reader knows on arrival, what they know on leaving, and the path between.** The arrival state decides the first section. Skip it and the page opens in the middle.
 - **A link names the page it points at.** Never a position. No *the next page*, no *as shown above*, no numbered filenames. Order lives in the index alone, so inserting a page breaks nothing.
+
+## 11. Rule ids
+
+Every rule in a loaded file carries an id, so a check can name it and a reply can cite it. An id is lowercase, its words joined by dashes, in a bold code span at the start of the rule:
+
+```
+- **`no-git-mutations`** No `add`, `commit`, `push`, `checkout`.
+```
+
+**The id states the rule. The body says only what the id cannot.**
+
+### What gets one
+
+3 questions, in order.
+
+- **Does it group other rules?** It is a section, and its id is the slug of its heading text: `## The turn` is `the-turn`. Never write a rule that restates its own heading.
+- **Does it instruct?** It is a rule. It gets an id.
+- **Does it only frame what follows?** It gets none. "One user message, your work, one reply" sets up the 5 steps under `## The turn` and instructs nothing.
+
+### The shapes that carry one
+
+- A bullet.
+- A numbered step, where the rules run in order.
+- A paragraph, where one rule governs the section under it.
+
+A sub-bullet under any of the 3 is a rule of its own and takes its own id. Nest as deep as the material needs. A rule ends where the next rule at its own depth or shallower begins.
+
+A `→` branch list takes no ids. Its lines are the cases of one rule, and the rule above them owns the id.
+
+### The constraints
+
+- **Unique inside its file.** Section ids and rule ids share one namespace. Two files defining the same id is normal, since a shipped rule gets restated where it applies. The same id twice in one file names two rules and reaches neither. `flow scorecard` prints every one it finds.
+- **Every heading slugs cleanly.** Rename a heading whose text makes an unreadable id. Never invent syntax to avoid it. `### When it has parts: a design, a plan, a mechanism, a diff across files` became `### When it has parts`, with the list on the line below.

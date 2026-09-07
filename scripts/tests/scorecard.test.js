@@ -139,12 +139,69 @@ test('a numbered step and a paragraph carry a rule id too', () => {
     '2. **`disagree-first`** Say it once, before building.');
 });
 
-test('every rule id in the two CLAUDE.md files is defined once in its file', () => {
+test('a heading is a target too, and its id is the slug of its own text', () => {
+  const dir = project('checks-sections');
+  const file = write(dir, 'rules.md', [
+    '# The title names the file, never a section',
+    '',
+    '## The turn',
+    '',
+    '**`name-each-action`** One line as you take it.',
+    '',
+    '### When it has parts',
+    '',
+    '- **`walk-a-real-case`** Start to finish.',
+    '',
+    '## Reading',
+    '',
+    '- **`read-minimal-context`** Path and line range.',
+  ].join('\n'));
+
+  assert.deepStrictEqual(checks.sectionIds(file), ['the-turn', 'when-it-has-parts', 'reading']);
+  assert.deepStrictEqual(checks.ids(file),
+    ['the-turn', 'name-each-action', 'when-it-has-parts', 'walk-a-real-case', 'reading', 'read-minimal-context']);
+
+  // A section comes back whole, sub-headings and all, because a check naming a
+  // section wants everything the section governs.
+  assert.strictEqual(checks.ruleText(file, 'the-turn'), [
+    '## The turn',
+    '',
+    '**`name-each-action`** One line as you take it.',
+    '',
+    '### When it has parts',
+    '',
+    '- **`walk-a-real-case`** Start to finish.',
+  ].join('\n'));
+  assert.strictEqual(checks.ruleText(file, 'when-it-has-parts'),
+    '### When it has parts\n\n- **`walk-a-real-case`** Start to finish.');
+  assert.strictEqual(checks.ruleText(file, 'reading'),
+    '## Reading\n\n- **`read-minimal-context`** Path and line range.');
+});
+
+test('an id defined twice in one file is reported, and twice across files is not', () => {
+  const dir = project('checks-duplicates');
+  const clash = write(dir, 'clash.md', [
+    '## Capture',
+    '',
+    '**`capture`** Write anything worth keeping.',
+    '',
+    '## Reading',
+    '',
+    '- **`read-minimal-context`** Path and line range.',
+    '- **`read-minimal-context`** The same id, a second rule.',
+  ].join('\n'));
+  const other = write(dir, 'other.md', '- **`read-minimal-context`** Same id, another file, still fine.');
+
+  assert.deepStrictEqual(checks.duplicateIds(clash).sort(), ['capture', 'read-minimal-context']);
+  assert.deepStrictEqual(checks.duplicateIds(other), []);
+});
+
+test('every id in the two CLAUDE.md files is defined once in its file', () => {
   const clone = path.join(SCRIPTS, '..');
   for (const file of [path.join(clone, 'home', 'CLAUDE.md'), path.join(clone, 'CLAUDE.md')]) {
-    const ids = checks.ruleIds(file);
-    assert.ok(ids.length > 30, `${file}: only ${ids.length} rule ids`);
-    assert.deepStrictEqual(ids.length, new Set(ids).size, `${file}: a rule id is used twice`);
+    const ids = checks.ids(file);
+    assert.ok(ids.length > 30, `${file}: only ${ids.length} ids`);
+    assert.deepStrictEqual(checks.duplicateIds(file), [], `${file}: an id is used twice`);
   }
 });
 
@@ -271,6 +328,24 @@ test('the scorecard counts, ranks, and states what it did not measure', () => {
   // it moves whenever a rule is added to either CLAUDE.md. Only the measured
   // half is this test's subject.
   assert.match(report.stdout, /2 rules measured, \d+ not measurable/);
+  assert.strictEqual(report.code, 0);
+});
+
+test('the scorecard names an id its own file defines twice', () => {
+  const dir = project('scorecard-duplicate');
+  const rule = write(dir, 'rules.md', [
+    '## Capture',
+    '',
+    '**`capture`** Write anything worth keeping.',
+    '',
+    '- **`no-todo`** Never leave a TODO behind.',
+  ].join('\n'));
+  check(dir, 'no-todo', { rule, check: '() => true' });
+
+  const report = run('flow/flow.js', ['scorecard'], { env: env(dir) });
+
+  assert.match(report.stdout, /defined twice in one file/);
+  assert.match(report.stdout, /capture\s+\(.*rules\.md\)/);
   assert.strictEqual(report.code, 0);
 });
 

@@ -2,7 +2,7 @@ Flow: an agentic development workflow for a solo developer.
 
 ## The turn
 
-**`one-turn`** One user message, your work, one reply. In that order, every time.
+One user message, your work, one reply. In that order, every time.
 
 1. **`instruction-or-thinking`** An instruction names the change or approves a plan. Everything else is thinking: a hedge ("maybe", "not sure"), a question, feedback, a reaction. A long list of feedback is a list of topics, not tasks. Thinking gets a reply: test it, disagree where you disagree, recommend. An instruction gets work, never a restatement of itself.
    - **`user-dictates`** Expect transcription noise and infer from context. Confirm only when a wrong word won't resolve.
@@ -16,6 +16,8 @@ Flow: an agentic development workflow for a solo developer.
 ## Reading
 
 - **`read-minimal-context`** Path and line range, one filtered query over many reads, stop when answered.
+- **`tree-for-structure`** Every look at structure goes through `util fs tree`, never `ls`, `find` or `cd`.
+- **`merge-for-bulk-reads`** Every read above 4 files goes through `util fs merge`, and every grep-then-read.
 - **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
 - **`handoff-read-once`** A handoff file is read once, then left alone. A ticket is the opposite: whoever works it keeps it true.
 
@@ -29,6 +31,7 @@ Flow: an agentic development workflow for a solo developer.
 ## Tools
 
 - **`batch-calls`** Shell steps chain with `&&`; independent tool calls go in one block. Split only where a step's output decides the next.
+- **`read-a-refusal`** Read a refusal before working around it. `--force` is a deliberate override.
 - **`no-mkdir`** Write creates directories.
 - **`no-git-writes`** Not unless the user enables them.
 
@@ -61,7 +64,7 @@ No background: audio APIs, compilers, ML internals." -->
 
 ## Capture
 
-**`capture`** Write anything worth keeping the moment it surfaces. A background reflex, not every turn. On request ("note that"), immediately. Unsure: write it.
+**`capture-on-sight`** Write anything worth keeping the moment it surfaces. A background reflex, not every turn. On request ("note that"), immediately. Unsure: write it.
 
 - Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
 - How the user wants to work → `~/.claude/CLAUDE.md#preferences`. What they know or don't → `#the-user`. Both inferred from evidence, never announced: the same correction twice, irritation at a habit, a term you had to explain.
@@ -76,10 +79,9 @@ No background: audio APIs, compilers, ML internals." -->
 
 `util` and `flow` are on `PATH`. `util ls` and a bare `flow` print every command.
 
-- **`call-by-name`** Call them by name, never with `bash`, `node` or a path.
-- **`tree-for-structure`** `util fs tree [path] [--depth N] [--except pattern]` prints the tree under a path, here by default, full depth. Every look at structure goes through it, never `ls`, `find` or `cd`.
-- **`merge-for-bulk-reads`** `util fs merge [--ext ts,tsx] [--except pattern] [--force] <path>...` prints the files joined into one stream. A path is a file, a folder (recursive) or a range, `file.md:45-89`. Every read above 4 files goes through it, and every grep-then-read. Past 2000 lines it prints line counts instead; `--force` overrides.
-- **`read-a-refusal`** `flow` is the ticket system and the only writer of ticket frontmatter. `flow t047` shows a ticket. Read a refusal before working around it; `--force` is a deliberate override.
+- `util fs tree [path] [--depth N] [--except pattern]` prints the tree under a path, here by default, full depth.
+- `util fs merge [--ext ts,tsx] [--except pattern] [--force] <path>...` prints the files joined into one stream. A path is a file, a folder (recursive) or a range, `file.md:45-89`. Past 2000 lines it prints line counts instead; `--force` overrides.
+- `flow t047` shows a ticket. `flow` is the ticket system and the only writer of ticket frontmatter.
 
 ## Judgment
 
@@ -89,7 +91,9 @@ Governs anything shown to the user for a yes: a design, a plan, a diff at review
 - **`lead-with-what-matters`** One structural fault among ten small ones is the whole review.
 - **`no-cause-without-evidence`** "Hypothesis: X. To verify: Y."
 
-### When it has parts: a design, a plan, a mechanism, a diff across files
+### When it has parts
+
+A design, a plan, a mechanism, a diff across files.
 
 **`attack-before-showing`** Attack it by running it, before showing it.
 

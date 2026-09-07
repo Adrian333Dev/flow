@@ -49,7 +49,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`rules/`** holds prescriptive rules, one markdown file per topic. Each file is symlinked into `~/.claude/rules/` by `flow install`. Rules without `paths:` frontmatter load every session; rules with `paths:` load only when the agent reads a matching file. Populated by `/file-findings` when knowledge is promoted from `.flow/findings/`.
 
-**`project-template/`** is what a new project starts with: a `CLAUDE.md` with `## Project` and `## Rules` sections, a `.gitignore`, a `.flow-include`, and `.flow/overlays/` with an `.info` that explains what overlays are. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.flow-include` ships empty, with a comment explaining that it names the gitignored files that travel with `flow work send`.
+**`project-template/`** is what a new project starts with: a `CLAUDE.md` with a `## Project` section, a `.gitignore`, a `.flow-include`, and `.flow/overlays/` with an `.info` that explains what overlays are. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.flow-include` ships empty, with a comment explaining that it names the gitignored files that travel with `flow work send`.
 
 ## What belongs to the repository
 

@@ -59,11 +59,15 @@ function ruleFiles() {
  */
 function definedRules(all = []) {
   const map = new Map();
-  const files = [...ruleFiles(), ...all.map((c) => checks.rulePath(c.rule))];
-  for (const file of [...new Set(files)]) {
-    for (const id of checks.ruleIds(file)) if (!map.has(id)) map.set(id, file);
+  for (const file of scannedFiles(all)) {
+    for (const id of checks.ids(file)) if (!map.has(id)) map.set(id, file);
   }
   return map;
+}
+
+/** Every file scanned for ids: the known places, plus wherever a check points. */
+function scannedFiles(all = []) {
+  return [...new Set([...ruleFiles(), ...all.map((c) => checks.rulePath(c.rule))])];
 }
 
 /**
@@ -109,6 +113,13 @@ actions.scorecard = {
     // it reads as a footnote, and the counts it should have produced are the
     // ones missing from them.
     lines.push(...section('broken check files', problems));
+
+    // An id defined twice in one file names two different rules, so a check
+    // pointing at it gets whichever came first. Reported above the counts,
+    // because until it is fixed the counts below are about the wrong rule.
+    lines.push(...section('defined twice in one file',
+      scannedFiles(all).flatMap((f) => checks.duplicateIds(f)
+        .map((id) => `${id}  (${path.relative(clone(), f) || f})`))));
 
     lines.push(...section('stale: the check names a rule no file defines',
       all.filter((c) => !defined.has(c.id)).map((c) => `${c.id}  (${c.rule})`)));

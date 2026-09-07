@@ -17,7 +17,7 @@ owed.
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
 `flow overlays`, `flow audit`, `flow scorecard`, `util` in full, and the test harness. Flow's suite
-passes 72 tests; `util`'s own suite passes 29.
+passes 75 tests; `util`'s own suite passes 29.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -96,7 +96,7 @@ reads rule ids out of markdown; `scripts/flow/lib/scorecard.js` owns the append-
 scorecard` prints the 4 lists and its own coverage. Both hooks are in `home/settings.json`.
 **`scripts/rule-checks/` ships empty**, so both hooks return immediately, and the folder's `.info`
 states the export contract. The first real check is now unblocked, because every rule has an id.
-`FLOW_CHECKS` overrides the folder, which is how the 12 new tests drive it.
+`FLOW_CHECKS` overrides the folder, which is how the 15 new tests drive it.
 
 **Every rule in both `CLAUDE.md` files carries an id, 2026-09-07.** 57 in `home/CLAUDE.md` and 85 in
 the repo file, 102 distinct once the two files' shared rules are counted once, which `flow scorecard`
@@ -105,7 +105,9 @@ fill, so `- **Never run git mutations.** No `add`...` became ``- **`no-git-mutat
 and nothing was paid twice. The user dropped the "run this pass on Sonnet 4.6" ruling the same day,
 so it ran on Opus 5. **A shared rule shares its id on purpose**: `one-idea-per-sentence` is defined
 in both files, `definedRules` in `scripts/flow/commands/scorecard.js` keeps the first, and the
-scorecard counts the rule once rather than twice.
+scorecard counts the rule once rather than twice. A heading is a target too, from 2026-09-07:
+`checks.js` collects heading slugs beside rule ids, `ruleText` returns a whole section when a check
+names one, and `duplicateIds` reports an id its own file defines twice.
 
 **Three rule shapes carry an id, not one.** `scripts/flow/lib/checks.js` matched only a bullet, so
 `## The turn`'s numbered steps and every section-governing paragraph would have had no id. `ID_LINE`
@@ -152,6 +154,44 @@ a rule file with `paths:`. `/file-findings` → `## Routing` now carries 4 lines
 global half changed with it: a universal rule that is always relevant goes to the section of
 `~/.claude/CLAUDE.md` that owns the subject, never to a `rules/` file with no `paths:`, which is the
 second always-loaded file the user rejected earlier the same day.
+
+**The rule-file review closed 2026-09-07, and 6 changes came out of it.** The user answered the id
+pass with 10 topics, then 2 rounds of feedback on the answers. Built: `one-turn` cut, so `## The
+turn` carries the id `the-turn` and the sentence under it is plain framing; a heading is a target,
+its id being the slug of its own text; an id defined twice in one file reported by `flow scorecard`;
+`references/style.md` § 11 stating the rule format; `## Scripts` reduced to signatures, with its
+mandates moved to `## Reading` and `## Tools`; and `project-template/CLAUDE.md` dropping `## Rules`
+for sections named after their subject. `rules-review.md` carries the decisions and the 3 items left
+open.
+
+**A duplicate id is only ever checked inside one file.** `home/CLAUDE.md` and the repo `CLAUDE.md`
+shared 40 ids the day it was measured, deliberately, so flagging a cross-file duplicate would fire 40
+times on a correct tree. Twice in one file has no legitimate case, and the check caught one on its
+first run: `## Capture` and the rule `capture` inside it both slugged to `capture`, so the rule is
+now `capture-on-sight`.
+
+**The repo's own `CLAUDE.md` only has to align roughly**, ruled by the user 2026-09-07. It is not
+part of the workflow, nothing installs from it, and duplicate ids inside it do not matter until
+`home/CLAUDE.md` is installed. `home/` is the file that counts.
+
+**Capture may write a file that is already loaded**, ruled by the user 2026-09-07. A mid-session edit
+to `~/.claude/CLAUDE.md` is silently inert for that session, which is the wanted behavior: the write
+lands on disk for the next session, and the agent that made it already knows what it wrote. No rule
+was written about loaded files. The routing through `.flow/inbox.md` and `.flow/findings/` stays,
+because a capture is an unreviewed guess and `/file-findings` is the review.
+
+**Auto memory is off and was never a replacement for `## Capture`.** `home/settings.json` sets
+`autoMemoryEnabled: false` and `home/settings.md` gives the reason, being per repository and
+machine-local. A 2026-09-07 research pass read Anthropic's docs without reading Flow's own settings
+and reported it as live. `claude-code-memory.md` settles 2 things the design did have wrong: editing
+a loaded `CLAUDE.md` mid-session applies nothing and invalidates no cache, and a conduct rule is
+checkable from the turn, because `MessageDisplay` carries Claude's prose, `PreToolUse` carries a
+`prompt_id`, and `Stop` carries the final message and can block.
+
+**No hook loads a skill or a rule file, closed 2026-09-07.** A condition richer than a path glob has
+no mechanism: `InstructionsLoaded` cannot modify loading, `SessionStart` → `reloadSkills` only
+re-scans the folder, and `UserPromptExpansion` fires only on a typed `/name`. A skill does take
+`paths:` frontmatter, the same as a rule file, which Flow uses nowhere yet.
 
 **`docs/dev/context-cost.md` says which shortenings buy tokens**, written 2026-09-06. The short
 answer: digits, symbols and abbreviations save nothing and abbreviations usually cost more; articles
@@ -288,6 +328,12 @@ All under `lab/context/`, and every one is history rather than status.
 - `harness-portability.md`: running Flow on another harness or another model. What Claude Code needs
   to reach a non-Anthropic model, which providers sell a plan, what breaks, what Flow costs to port
   to Codex, and the `.agents/` layout. Researched 2026-09-06 and 2026-09-07, nothing locked
+- `claude-code-memory.md`: what Claude Code does about instruction files, its own auto memory, and
+  what a hook can load or see. Every fact documented rather than measured, with the page named.
+  Researched 2026-09-07, nothing locked, and `docs/dev/claude-code.md` is its public home once
+  written
+- `rules-review.md`: the 2026-09-07 review of both `CLAUDE.md` files. Closed. What got built, the
+  decision behind each change, and the 3 items left open
 - `model-identity.md`: telling which model produced a piece of work. What each harness exposes, the
   status line as the sensor, and the 2 fields the scorecard record is missing. Researched 2026-09-06
   and 2026-09-07, nothing locked
