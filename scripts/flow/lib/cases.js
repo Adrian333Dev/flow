@@ -23,8 +23,10 @@ const { slugify, renderTemplate, today } = require('./store');
 const CASE_KEYS = ['date', 'project', 'rule', 'status', 'fix'];
 const CASE_STATUSES = ['open', 'fixed'];
 
-// FLOW_HOME mirrors FLOW_PROJECT: the default is the installed location, and an
-// override exists so the tool can be exercised without writing to it.
+/**
+ * FLOW_HOME mirrors FLOW_PROJECT: the default is the installed location, and an
+ * override exists so the tool can be exercised without writing to it.
+ */
 const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.flow');
 const casesDir = () => path.join(flowHome(), 'study-cases');
 

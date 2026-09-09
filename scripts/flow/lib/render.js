@@ -37,8 +37,10 @@ const ticketRow = (t, index) => [
   t.data.parent || '-', t.data.title,
 ];
 
-// `pool` is the full ticket set when the list being printed is a filtered slice
-// of it: priority is inherited, so a parent outside the slice still decides.
+/**
+ * `pool` is the full ticket set when the list being printed is a filtered slice
+ * of it: priority is inherited, so a parent outside the slice still decides.
+ */
 function ticketTable(tickets, pool) {
   if (tickets.length === 0) return 'no tickets.';
   const index = graph.indexById(pool || tickets);
@@ -76,8 +78,10 @@ function tree(nodes, all) {
   return columns(rows);
 }
 
-// Counted against every ticket, never the visible slice: a parent whose
-// children are all done must still read 3/3 once those children are hidden.
+/**
+ * Counted against every ticket, never the visible slice: a parent whose
+ * children are all done must still read 3/3 once those children are hidden.
+ */
 function treeNote(t, all, index) {
   const kids = graph.children(all, t.id);
   if (kids.length) return `${progressOf(t, all)} done`;

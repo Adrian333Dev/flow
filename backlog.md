@@ -15,16 +15,16 @@ Everything below has to be true before Flow installs on a machine and gets used.
 
 **The rule-check loop**
 
-1. **Harvest Delapse and lumacraft_v2**, rules and skills in one read
-2. **`rules/comments.md` and the first check**, `scripts/rule-checks/comment-density.js`
-3. **A live run under `try.sh`**, so the hooks are seen firing rather than asserted
+1. **The first check**, `scripts/rule-checks/comment-density.js` against `rules/comments.md`
+2. **A live run under `try.sh`**, so the hooks are seen firing rather than asserted
 
 **Install, management, manual**
 
-4. **`flow doctor`**, the deterministic half of verifying a machine
-5. **The management skill**: install, verify, and re-install across both machines
-6. **`## The user` and `## Preferences`**, with the interview and the merge question
-7. **`docs/manual/`**: Reference first, then Use Flow
+3. **`flow doctor`**, the deterministic half of verifying a machine
+4. **The management skill**: install, verify, and re-install across both machines
+5. **`## The user` and `## Preferences`**, with the interview and the merge question
+6. **`docs/manual/`**: Reference first, then Use Flow
+7. **Document everything, with a captured example on every page**, which is the bar 6 and 8 both have to clear
 
 **The release bar**
 
@@ -109,7 +109,7 @@ Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` 
 
 - [ ] **A run is not wired to anything**: `run` and `run_session` are built and empty, every query treats them as optional, and nothing writes a row. A `SessionStart` hook has `session_id` and `cwd`, and `statuses.js` says which ticket is in flight. It also fires on `compact`, so a naive hook counts one session 4 times. **talk first**
 - [ ] **Nothing scores a session against Flow's own rules**: the machinery landed 2026-09-07 and holds no checks, so nothing is scored yet in practice. What this line tracks from here is the half a check cannot reach: deterministic where a function can decide it, a model call only for what it cannot. `design-knowledge-base.md` → `## Locked decisions: the enforcement bridge`
-- [ ] **Write the first rule check**, `scripts/rule-checks/comment-density.js` against a `rules/comments.md` that the harvest produces. The hooks, the loader, the store and `flow scorecard` are all built and empty, so this is one small file that turns the whole loop on. Rule ids landed 2026-09-07 and the result record gained `effort` 2026-09-08, so only the harvest is left in front of it. **v1**
+- [ ] **Write the first rule check**, `scripts/rule-checks/comment-density.js` against `rules/comments.md`, written with the user 2026-09-10. Never a ratio: `buildEntry` in `lab/util/commands/fs/merge.js` runs 11 lines of comment over 6 lines of code and is the most useful comment in the repo. The check looks for a comment restating the line under it, which is `never-restate-the-line`. The hooks, the loader, the store and `flow scorecard` are all built and empty, so this is one small file that turns the whole loop on. Rule ids landed 2026-09-07 and the result record gained `effort` 2026-09-08, so only that one file is left in front of it. **v1**
 - [ ] **See the hooks fire in a live session**: `bash lab/scripts/try.sh` once a real check exists. 14 tests cover everything the suite can reach; what they cannot cover is Claude Code actually calling `rule-check.js` and reading back an `additionalContext` warning. Also the moment to measure the hook's latency, guessed at 50 to 100 ms per edit and never timed. **v1**
 - [ ] **A conduct rule is checkable from the turn, and the design says it is not.** `design-knowledge-base.md` assumes one `PreToolUse` hook on `Edit|Write` and sends everything else to a `UserPromptSubmit` reminder. Three documented hooks reach further: `MessageDisplay` streams Claude's prose with a `turn_id`, `PreToolUse` carries a `prompt_id` for the user prompt being processed, and `Stop` carries `last_assistant_message` and can block, up to 8 consecutive times. So text against edits inside one turn is readable, which makes `the-turn` and `explaining` enforceable rather than only measurable, both now nameable as sections. Raised by the user 2026-09-07. **talk first**, and a design pass rather than an edit. `claude-code-memory.md` → `## What a hook can see of the conversation`
 - [ ] **The daily sweep is a second mode**: analysing every session since yesterday is batch, and batch wants parallel dispatch, which is blocked on git worktrees. The deterministic half runs at zero token cost over every new session and escalates only what it flags
@@ -187,7 +187,6 @@ Built 2026-08-28. `design-restructure.md` carries the plan, the delete list and 
 - [ ] **Test built-in `/init` with `CLAUDE_CODE_NEW_INIT=1`** against a real repo first: it already does the codebase survey, the gap questions and a reviewable proposal
 - [ ] **Migrate Delapse**: **parked** until the workflow is finished. The real test, and where its conventions route into the project `CLAUDE.md` and `docs/context/`. `design-project-docs.md` carries the routing test and the 2026-07-29 survey of its docs
 - [ ] **Keep Delapse's project-local skills, converted**: **parked** with the migration. Reversed 2026-08-26. They are not Flow's skills. With `.claude/flow/skills` gone, each one is either copied into `<project>/.claude/skills/<name>/` and committed with Delapse, or vendored into Flow's tree under a group when a second project wants it. `design-skills.md`
-- [ ] **Harvest Delapse and lumacraft_v2, for rules and skills in one read.** The read is the same either way, so splitting it means opening the same 6 files twice. From the live checkouts at `~/code/projects/`, since the copies under `repos/` may be behind: both carry a `CLAUDE.md` and `docs/agents/conventions.md`, Delapse adds `workflow-rules.md` and `superpowers-overrides.md`, lumacraft_v2 adds `testing.md`. Universal → `rules/<topic>.md`. Tied to a language or file type → the same with `paths:`. True of one project → stays there. `framework-build` is dropped, by the user 2026-09-08: nothing is left to take from it. Until 2026-09-08 this existed only as step 2 of `design-knowledge-base.md` and had no line here. **v1**. `design-knowledge-base.md`
 - [ ] **Tune `guard.js`'s deny and ask lists** against real use: they were written from the rules, never against an observed false positive
 - [ ] **An interview at install to fill `## The user`.** Merged 2026-09-08 with the profile item under `## Rules and always-loaded files`: one job, done inside the management skill. **v1**
 

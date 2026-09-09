@@ -243,8 +243,10 @@ function relocate(t) {
   return { from, to: wanted };
 }
 
-// `tickets` is passed in when the caller already read the pool: at a few
-// thousand tickets a second scan is the most expensive thing a command does.
+/**
+ * `tickets` is passed in when the caller already read the pool: at a few
+ * thousand tickets a second scan is the most expensive thing a command does.
+ */
 function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, fromGroundwork, label }) {
   const id = nextId(tickets || readTickets(root));
   const slug = labelize(label || title);

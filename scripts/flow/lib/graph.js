@@ -88,9 +88,11 @@ function effectivePriority(ticket, index) {
   return 'normal';
 }
 
-// Both sorts are stable and every list starts in id order, so tickets that tie
-// stay oldest-first, which is the direction stale work should drift when a
-// ceiling hides the tail of the list.
+/**
+ * Both sorts are stable and every list starts in id order, so tickets that tie
+ * stay oldest-first, which is the direction stale work should drift when a
+ * ceiling hides the tail of the list.
+ */
 const rank = (list, pool) => {
   const index = indexById(pool || list);
   return [...list].sort((a, b) =>

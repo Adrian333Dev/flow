@@ -49,7 +49,7 @@ function parseBlock(lines) {
   return data;
 }
 
-// Drops a trailing ` # comment`, but not a # inside a quoted string.
+/** Drops a trailing ` # comment`, but not a # inside a quoted string. */
 function stripComment(s) {
   const t = s.trimStart();
   if (t.startsWith('"') || t.startsWith("'")) {

@@ -21,8 +21,10 @@ const { FlowError } = require('../error');
 // so the cost of a rebuild is time, never data.
 const SCHEMA = 6;
 
-// FLOW_HOME mirrors the rest of flow: the default is the installed location,
-// and an override exists so the tool can be exercised without writing to it.
+/**
+ * FLOW_HOME mirrors the rest of flow: the default is the installed location,
+ * and an override exists so the tool can be exercised without writing to it.
+ */
 const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.flow');
 const auditDir = () => path.join(flowHome(), 'audit');
 const dbPath = () => path.join(auditDir(), 'audit.db');

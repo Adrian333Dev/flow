@@ -25,7 +25,7 @@ One user message, your work, one reply. In that order, every time.
 
 - **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a `CLAUDE.md`, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. Never defer a file to a later pass.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
-- **`describe-an-opaque-name`** A file whose name doesn't hint what it holds gets a `description:` line at the top, in a comment or frontmatter, below any shebang. A folder gets `.info`, description in the first paragraph. A few words saying what it holds. Longer notes go below it, in a header comment or a second `.info` paragraph. Most files and folders need none.
+- **`describe-an-opaque-name`** A file whose name doesn't hint what it holds gets a `description:` line at the top, in a comment or frontmatter, below any shebang. A folder gets `.info`, description in the first paragraph. A few words saying what it holds. Longer notes go below it, in the same header comment or a second `.info` paragraph. Most files and folders need none.
 - **`never-hand-write-generated`** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
 
 ## Tools

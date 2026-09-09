@@ -58,16 +58,18 @@ const SELF_UNLOCK = [
   [/\bflow\.js\s+git\s+(allow|ask)\b/, 'flow git allow'],
 ];
 
-// Destructive whatever the mode says: each one throws away work that no reflog,
-// stash or remote gets back. These ask rather than deny, so nothing is walled
-// off: you are still the one who says yes, every time.
-//
-// Matched on the subcommand and its own tokens, never on the raw text. A
-// pattern over the whole segment makes `git log --grep=clean` a destructive
-// clean, and a read that stops to ask is a read nobody trusts.
 const short = (tokens, letter) => tokens.some((t) => new RegExp(`^-[^-]*${letter}`).test(t));
 const has = (tokens, ...names) => tokens.some((t) => names.includes(t));
 
+/**
+ * Destructive whatever the mode says: each one throws away work that no reflog,
+ * stash or remote gets back. These ask rather than deny, so nothing is walled
+ * off: you are still the one who says yes, every time.
+ *
+ * Matched on the subcommand and its own tokens, never on the raw text. A
+ * pattern over the whole segment makes `git log --grep=clean` a destructive
+ * clean, and a read that stops to ask is a read nobody trusts.
+ */
 const GIT_DESTRUCTIVE = {
   push: [(t) => t.some((x) => x.startsWith('--force')) || short(t, 'f') || t.some((x) => /^\+.+:/.test(x)),
     'a force push, which overwrites what is on the remote'],

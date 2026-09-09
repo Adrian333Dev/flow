@@ -46,8 +46,10 @@ const clock = (t) => (t ? String(t).slice(11, 16) : '-');
 const short = (id) => String(id || '').slice(0, 8);
 const trim = (s, n) => (s == null ? '' : String(s).replace(/\s+/g, ' ').trim().slice(0, n));
 
-// The project folder name is the working directory with its separators
-// flattened, so it reads better with the leading path thrown away.
+/**
+ * The project folder name is the working directory with its separators
+ * flattened, so it reads better with the leading path thrown away.
+ */
 const projectName = (p) => String(p || '').replace(/^-+/, '').split('-').pop() || String(p || '');
 
 // ---------------------------------------------------------------- lookup

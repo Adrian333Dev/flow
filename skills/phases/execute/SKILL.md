@@ -131,6 +131,10 @@ Whether you ran it or a worker did.
 
 **Fix it here while the cause is in front of you**, and keep going as long as every attempt stays mechanical: a version pin, a config key, a wrong path, a missing import. Never count attempts: 3 obvious fixes cost less than one hunt.
 
+**Mechanical fixes that change nothing mean the assumption is wrong, not the fix.** A mechanical failure falls to a mechanical fix: the pin lands, the path resolves, the import appears. A run of them leaving the same failure standing says the failure was never mechanical. Every attempt after that is aimed the same wrong way. The run is the signal, never the count.
+
+**Say the assumption to the user before hunting it.** Name what you believed was true, what you changed on the strength of it, and what failed anyway. They read the direction from outside the attempt. What breaks the assumption is usually something only they hold: what that service really returns, what changed last week, which of two files the build actually loads. One message ends most of these.
+
 **Stop after one attempt where the code runs and the answer is wrong.** Nothing about that failure is mechanical, and the second guess costs what the first did.
 
 **Then `/debug`.** It hunts here, and it owns what happens when the hunt runs out.

@@ -604,6 +604,56 @@ says it and the word repeated on every file in the stream. `EXT_TO_LANG` is dele
 was already the full path relative to the directory the command ran in, and did not change. 37 tests
 in util.
 
+**The Delapse and lumacraft_v2 harvest ran and closed on 2026-09-10, and produced almost nothing.**
+All 7 files were read, 1,004 lines: both `CLAUDE.md` files, both `docs/agents/conventions.md`,
+Delapse's `workflow-rules.md` and `superpowers-overrides.md`, lumacraft's `testing.md`. **Flow already
+had most of it.** Chaining shell steps with `&&` is `batch-calls`. The git prohibition is
+`no-git-writes`. `pnpm add` and CLI-first scaffolding are `never-hand-write-generated`. Delapse's
+whole `explain` skill is Flow's `## Explaining`, in places word for word. Of the 7 rules proposed to
+the user, 5 were already covered and checked against the files: `AskUserQuestion` is denied at
+`home/settings.json:87`, so no rule is needed; confirming a root cause before coding and treating
+debugging as a two-person activity are both what `skills/phases/debug/SKILL.md` is built out of;
+speculative generality is `skills/phases/execute/references/review-code.md:33`. **The user rejected a
+`rules/typescript.md`**: stack content lives in a `stack/` skill, never split across a rules file with
+`paths:`, which reverses step 2 of `design-knowledge-base.md` on that point. A `rules/tests.md` was
+dropped too, since neither project's testing doctrine proved itself. **One genuine gap was found and
+filled**: nothing in Flow caught the agent looping while unblocked. `debug/SKILL.md:20` stops when a
+step cannot be finished, which fires when the agent is stuck, never when it is fixing away in the
+wrong direction. Both projects state a two-strike rule, Delapse three separate times, and the user
+rejected the count as the wrong shape: `execute/SKILL.md` already says **never count attempts**,
+because 3 obvious fixes cost less than one hunt. The user's own framing is the rule that went in.
+**A run of mechanical fixes that changes nothing means the assumption is wrong, not the fix**, and the
+next move is to name the assumption to the user rather than hunt it, because they read the direction
+from outside the attempt. Two paragraphs in `skills/phases/execute/SKILL.md` under
+`### When a step fails`, sitting between the mechanical-fixes line and the existing stop rule.
+
+**`rules/comments.md` is written**, 11 rules over 2 sections, and it is the first file in `rules/`.
+It carries `paths:` frontmatter over 5 language groups: the JS and TS extensions, `.py`, `.sh` and
+`.bash`, `.sql`, and `.css` with `.scss`. The rule never loads while the session is in markdown.
+Section 1 decides whether a comment is worth writing, section 2 which form it takes, and the form
+rule generalises past JS: **position decides the form**, so a declaration takes whatever the language
+surfaces at the call site, which is `/** */` in JS and TS and a docstring in Python. Bash has no
+second form and CSS has no line form, both stated rather than left to inference.
+
+**Frontmatter is not a toggle**, which the user expected it to be. `paths:` is the only field a rules
+file takes, confirmed against the memory page 2026-09-10. Two real switches exist: `flow install`
+links `rules/*.md` one file at a time, so not linking one turns it off, and `claudeMdExcludes` in
+`settings.json` drops a rules file by glob without touching the install. **The reason it lives in
+`rules/` and not `home/CLAUDE.md`** is still the user's: some developers ban comments outright, and a
+`CLAUDE.md` line has neither switch.
+
+The first draft was 6 rules written as bare ids with no verb in them, and the user rejected it as
+unreadable and as not explaining the situation to the agent. The rewrite names the situation above
+each list and gives every rule a verb. `docs/dev/layout.md:50` already documented `paths:`, so the
+first draft missed a mechanism Flow had written down.
+
+The `description:` collision resolved with 1 word rather than a rule: `home/CLAUDE.md`'s
+`describe-an-opaque-name` now reads **the same header comment**, because the marker is that comment's
+first line and never a second comment above it. `describe.js` reads the marker and `command.js:49`
+strips it before printing the rest as `--help`. 10 sites in Flow and util had a `//` above a
+declaration and were converted. One was a real bug: the comment at `scripts/guard.js:61` described
+`GIT_DESTRUCTIVE` while two one-line helpers sat between them, so the helpers moved above it.
+
 **Neither `/context` nor the proxy is the answer to "what was in the context".** The user rejected
 both on 2026-09-10: the agent must be able to check on its own, without the user present, and about
 any past session including one already compacted or cleared. `/context` is a slash command only the
