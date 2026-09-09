@@ -251,12 +251,16 @@ const looksLikePath = (word) =>
  * same terms. What stays here is where Flow runs it from. That command resolves
  * a path beside the document first and then from its working directory, so
  * running it at the repo root against `ticket.md` gives exactly the two bases a
- * ticket needs, and no flag has to say so.
+ * ticket needs.
+ *
+ * `--files-only` because `get` has already printed the ticket by the time this
+ * runs. Without the flag the command prints the document too, which is what it
+ * should do for anyone opening a document cold.
  */
 function loadOpen(file, cwd) {
   let printed;
   try {
-    printed = execFileSync('util', ['fs', 'open', file], {
+    printed = execFileSync('util', ['fs', 'open', '--files-only', file], {
       cwd,
       encoding: 'utf8',
       maxBuffer: 64 * 1024 * 1024,

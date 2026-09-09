@@ -118,7 +118,7 @@ A skill is installed globally and shared across every project. A project that ne
 
 ### Pre-loaded files
 
-An `open` block in a ticket or handoff names files and line ranges. When `flow get --files` loads the ticket, those files arrive in context before the session's first turn. The next session does not have to find or open anything: the files are already there. The block is `util fs open`'s format, so any document can carry one.
+An `open` block in a ticket or handoff names files and line ranges. When `flow get --files` loads the ticket, those files arrive in context before the session's first turn. The next session does not have to find or open anything: the files are already there. The block is `util fs open`'s format, so any document can carry one, and [the `open` block](https://github.com/Adrian333Dev/util#the-open-block) in util's README defines it.
 
 ### The audit system
 

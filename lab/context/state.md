@@ -17,7 +17,7 @@ owed.
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
 `flow overlays`, `flow audit`, `flow scorecard`, `util` in full, and the test harness. Flow's suite
-passes 75 tests; `util`'s own suite passes 29.
+passes 76 tests; `util`'s own suite passes 35.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -306,8 +306,9 @@ changed and no install is owed. One path in `scripts/tests/skills.test.js` moved
 
 **`util` is a second CLI and a submodule of this repo at `lab/util/`,** built 2026-08-30 and
 finished 2026-08-31. Working today: the dispatcher, the `~/.util/sources` registry, `util source
-add/ls/drop`, namespace resolution, `util ls`, `util install`, and 3 namespaces: `git save`,
-`fs tree|merge|link`, `github clone|bookmark`. Nothing in `design-util.md` is unbuilt. The repository
+add/ls/drop`, namespace resolution, `util ls`, `util install`, and 4 namespaces: `claude proxy`,
+`fs tree|merge|open|link`, `git save|work`, `github clone|bookmark`. The last three commands arrived
+from Flow on 2026-09-09. Nothing in `design-util.md` is unbuilt. The repository
 is [`Adrian333Dev/util`](https://github.com/Adrian333Dev/util), and its default branch was `master`
 until 2026-08-31, because `git init` ran without `-b main`. **Nothing has run outside a test and a
 scratch registry.** `util install` writes the `util` and `u` links into `~/.local/bin`, and it has
@@ -512,6 +513,116 @@ frontmatter fields twice, the 4 body sections twice, and `## State`'s labels a t
 stranger learns more from a ticket that looks right than from a form with instructions in it, and
 `flow new` makes the tickets anyway. The `flow` command owning the id, the folder and the frontmatter
 moved to the opening, where the user asked for it.
+
+**Two more features left Flow for `util` on 2026-09-09**, on the user's approval, in the same
+conversation that moved the `open` block. The user asked what else could go, naming a half-remembered
+command that saved uncommitted work "like an invisible branch".
+
+**`flow work` is `util git work`.** It carries uncommitted files between the desktop and the laptop by
+building a commit, hanging it off the commit you are on, and writing its name into a label under
+`refs/unfinished/<machine>/<branch>`: outside `refs/heads/`, so nothing switches to it and committing
+never moves it. **The line that decided the move: it never touches `.flow/`.** A git repository and a
+remote are the whole of what it needs, and `projectRoot()`, its only real import from Flow, was one
+`git rev-parse --show-toplevel`. Applied across the whole surface that line catches this command and
+stops. `flow audit` passes the letter, reading `~/.claude/projects/` with no ticket involved, and fails
+it on `~/.flow/audit/`, and the four hooks cannot move at all, having no command to type.
+
+**The move renamed three things.** `git config util.machine` replaces `flow.machine`, `UTIL_MACHINE`
+replaces `FLOW_MACHINE`, and `.work-include` replaces `.flow-include`, which is also renamed in
+`project-template/`. **The refs are untouched**: `refs/unfinished/` never said "flow", so a copy stored
+before the move still reads. The cost was the framework rather than the git code: `flow/lib/cli.js`
+supplied the flag parsing and the help text, and util has no shared library, so the file hand-rolls
+both plus a 10-line column printer. `references/work-sync.md` is deleted and its 80 lines are
+compressed into `lab/util/README.md` under `### Moving uncommitted work`, because a page describing a
+util command cannot install to `~/.flow/references/`.
+
+**The second argument for the move was the tests.** `flow work` had none. `backlog.md` recorded that a
+77-check prototype over it was written into `tmp/`, which git ignores, and lost. It is the one command
+in either repo that overwrites the folder you are standing in, and it had zero coverage for two weeks.
+It now has 4 tests in util, against two real clones of a bare remote: the round trip, `.work-include`
+carrying a gitignored file, the unnamed-machine refusal, and the missing default action.
+
+**One defect was found and left alone.** `drop` reads only the labels this clone already has, while
+`ls` and `get` fetch first, so `drop <machine>` on a clone that has never listed reports no copy. It is
+inherited behavior, and a port that quietly fixes things is a port nobody can trust, so `backlog.md`
+has it instead.
+
+**`lab/scripts/proxy.mjs` is `util claude proxy`.** A zero-dependency logging proxy that sits between
+Claude Code and the API and writes one Markdown document per request, led by a table ranking what is
+eating the context. Not Flow's code and never was: the user supplied the origin, Matt Pocock's
+`agent-proxy` gist, and the header now credits it along with r1cc4rd0m4zz4's fork. **Two changes came
+off that gist page.** The fork's `UPSTREAM_URL` is in, so the proxy points at any Anthropic-compatible
+endpoint. A commenter's report that tool search switches off under the proxy checked out against
+Claude Code's own documentation, and the commenter had it right: the trigger is an
+`ANTHROPIC_BASE_URL` pointing at a **non-first-party host**, which a localhost proxy is. A claim here
+on 2026-09-09 that **any** custom base URL did it was wrong, corrected 2026-09-10 against
+`agent-sdk/tool-search`, which also carries the override: `ENABLE_TOOL_SEARCH=true` forces tool search
+back on, and survives a proxy that forwards the request body unmodified, as this one does. That is why another commenter measured 14.5k
+tokens without the proxy and 68k with it, and both facts are now in the README beside the command.
+**One change the move forced**: the documents landed in `path.join(HERE, "logs")`, beside the script,
+which for a command on `PATH` means writing into the util clone. They land in the working directory
+now, with `PROXY_LOGS` to move them.
+
+**`lab/util/README.md` was rewritten whole the same day**, on the user's ruling that the `open` block
+section was unreadable. The fault: it opened on "a document naming the files that go with it", which
+describes a document rather than a block, and closed on "a saved argument list, written where the
+reason for it already lives", which names nothing. It opens now on the sentence that is the whole
+feature, that a document can carry the list of files that go with it and `util fs open` prints them,
+and the fence is shown wrapped so the backticks are visible. The order changed too: `## Installing`
+moved up ahead of the commands, and the five sections on extending it became `###` sections under one
+`## Adding a command`. **Every existing anchor survived**, which is what let the cross-references
+land. `refs/unfinished/` is now defined where it is used: git keeps its named pointers under `refs/`,
+a branch is the kind under `refs/heads/`, and a copy is written outside that so nothing acts on it.
+
+**`lab/util/lib/command.js` is util's first shared library for commands, approved 2026-09-10.** The
+case for it was not duplication, it was `--help`. Run against every shipped command, `--help` did 4
+different things: `git work` and `git save` printed their whole header, `fs open` and `fs merge`
+printed one usage line, `fs link` refused it as an unknown flag, and **`fs tree --help` printed a
+directory tree of wherever you were standing**. The README's claim that `--help` on any of them was
+that command's own help was false for 4 of 6. `command.js` exports `usage(file)`, `wantsHelp(argv)`
+and `helpOrRun(file, argv)`; it reuses `describe.js`'s `COMMENT` regex, now exported, and handles a
+`/* */` block, a run of `//` lines and a run of `#` lines, skipping a shebang and a `'use strict';`
+above them. Five CJS commands wire it in one line, `proxy.mjs` does it through `createRequire`, and
+`work.js` dropped its own copy. `git save` keeps its awk reader, because a shell script cannot require
+a Node module. **Optional by design**: a command in a private source cannot reach `lib/` at all, so
+util's promise that any executable in any language works is untouched. One test covers all 7 commands,
+36 total in util.
+
+**`util fs open` was printing everything except the document it was given, fixed 2026-09-10.** It read
+`notes.md`, printed the files the `open` block named, and never printed `notes.md` itself. The command
+exists so a session arrives at a document and its files in one shot, and the document was the one
+thing missing. The gap survived a day because Flow's only caller hid it: `flow get --files` prints the
+ticket through `render.show`, then a rule, then this output, so the ticket was on screen by the time
+the hole would have shown. The command now prints the document first, whole, ahead of everything its
+block named, and `flow get --files` passes the new `--files-only` flag, for a caller already holding
+the document. Two more corrections came with it, both the user's. **`merge.js` fenced with exactly
+three backticks and never escalated**, so any markdown file carrying a code block closed the wrapper
+early; the fence now runs one backtick wider than the longest fence inside the file, which is what
+made printing a document possible at all. **The language label is gone from the opener**: three
+backticks then `markdown plan.md` is now three backticks then `plan.md`, because the extension already
+says it and the word repeated on every file in the stream. `EXT_TO_LANG` is deleted. The path label
+was already the full path relative to the directory the command ran in, and did not change. 37 tests
+in util.
+
+**Neither `/context` nor the proxy is the answer to "what was in the context".** The user rejected
+both on 2026-09-10: the agent must be able to check on its own, without the user present, and about
+any past session including one already compacted or cleared. `/context` is a slash command only the
+user can type and shows only the live session. The proxy has to be started in advance. **The
+mechanism that does meet the bar already exists in Flow and predates the question**:
+`scripts/instructions-loaded.js` is the `InstructionsLoaded` hook, which Claude Code fires whenever a
+`CLAUDE.md` or a `.claude/rules/*.md` enters context, including once more with `load_reason: "compact"`
+after a compaction. It appends `{kind: 'loaded', file, memory, why}` to
+`~/.flow/scorecards/<session-id>.jsonl`, one file per session, permanent and readable by any later
+session. `rule-check.js` already reads it back. **What it does not record**: skills, tool definitions,
+subagent definitions and message sizes. Extending the same hook record to cover those is the shape of
+the fix, not a new instrument.
+
+**Four Flow files link the `open` block section by URL**: `docs/manual/tickets.md`, `docs/dev/cli.md`,
+the root `README.md` and `references/workflow.md`, all at
+https://github.com/Adrian333Dev/util#the-open-block. The user's rule is that a referenced feature gets
+a link the reader can click, and a `lab/` path is not one once Flow is installed.
+`skills/tools/handoff/SKILL.md` was left alone: it teaches the whole format inline, so it sends nobody
+anywhere.
 
 ## Which design record covers what
 

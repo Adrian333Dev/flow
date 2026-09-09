@@ -1,6 +1,6 @@
 # The `flow` CLI
 
-`flow` manages tickets, dependencies, status transitions, study cases, uncommitted work, skill discovery, git write locking, and session history. This page covers every command and flag.
+`flow` manages tickets, dependencies, status transitions, study cases, skill discovery, git write locking, and session history. This page covers every command and flag.
 
 ## Table of contents
 
@@ -9,7 +9,6 @@
 - [One ticket](#one-ticket)
 - [Status verbs](#status-verbs)
 - [Cases](#cases)
-- [Work](#work)
 - [Skills](#skills)
 - [Overlays](#overlays)
 - [Git](#git)
@@ -25,7 +24,7 @@ flow <command> [id]... [--flags]
 
 The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
-Six groups carry their own actions: `cases`, `work`, `skills`, `overlays`, `git`, `audit`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
+Five groups carry their own actions: `cases`, `skills`, `overlays`, `git`, `audit`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
 
 Before the first install, the command is typed by path:
 
@@ -91,9 +90,11 @@ Three shapes:
 
 An id is a number and a label: `t047-parser-split`. The number is the identity. Any unambiguous part resolves it: `t047`, `47`, `parser`, or the whole thing.
 
-`--files` loads every file named in the ticket's `open` block, by running `util fs open` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/start` passes `--files` explicitly.
+`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/start` passes `--files` explicitly.
 
-**The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files; `lab/util/README.md` defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
+**The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files. [The `open` block](https://github.com/Adrian333Dev/util#the-open-block) in util's README defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
+
+**`--files-only` is why the ticket is not printed twice.** Run bare, `util fs open` prints the document first and then the files it names, because whoever opens a document cold needs both. `get` has already printed the ticket by the time it shells out, so it asks for the files alone.
 
 Flags: `--files` (load the `open` block), `--limit <n>` and `--all` (for the bare-board shape).
 
@@ -225,34 +226,6 @@ Change a field. `--status fixed` requires `--by <file>` (the file that changed t
 ### `flow cases issues`
 
 Every issue folder with its count, open count, latest date, and the rules that failed across its cases. Read this before creating a new case, so a repeat failure lands in the folder it already has.
-
-## Work
-
-Uncommitted work, moved between two machines. The problem: committed work travels through `git push`, but uncommitted and untracked files have no route, so switching machines either loses them or forces a junk commit.
-
-Each machine needs a name, set once: `git config --global flow.machine desktop`. The name decides which slot a copy is filed under. Two machines sharing a name overwrite each other silently.
-
-`flow work` with nothing after it prints help, because the default action (`get`) overwrites your working tree and a mistyped action falling through to it is worth refusing.
-
-### `flow work send`
-
-Snapshot everything in the folder as a commit hanging off HEAD, file it under `refs/unfinished/<machine>/<branch>`, and push it. Nothing about the branch, the staging area, or the files on disk changes. Gitignored files travel only when named in `.flow-include` at the project root.
-
-Flags: `--clear` (stash the working tree after sending, so a branch switch works), `--message "<text>"`.
-
-### `flow work get [<machine>]`
-
-Replay the other machine's copy onto the folder with a 3-way merge. Conflict markers appear where both sides changed the same lines. What was in the folder before the replay is backed up at `refs/unfinished-backup/<branch>`.
-
-When multiple machines have copies, the command refuses and lists them. Name one explicitly: `flow work get laptop`.
-
-### `flow work ls`
-
-Every stored copy: machine, branch, age, file count. Fetches from the remote first. `--offline` skips the fetch.
-
-### `flow work drop [<machine>]`
-
-Delete a stored copy, locally and on the remote. `--all` drops every copy on this branch.
 
 ## Skills
 

@@ -55,11 +55,8 @@ test('a name is typed in full, and a group reads a stray word as an argument', (
   assert.notStrictEqual(short.code, 0);
   assert.match(short.stderr, /no ticket matching "ne"/);
 
-  // work names no default action, because its get writes over the folder.
-  const stray = flow(dir, ['work', 'g']);
-  assert.notStrictEqual(stray.code, 0);
-  assert.match(stray.stderr, /unknown work action "g"/);
-
+  // Every group names a default action now, so a stray word after one is that
+  // action's argument. `flow overlays groundwork` is covered in its own file.
   // skills defaults to ls; a stray word is an unknown action.
   const skill = flow(dir, ['skills']);
   assert.strictEqual(skill.code, 0, skill.stderr);

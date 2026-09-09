@@ -45,7 +45,7 @@ function looksLikePath(word) {
   if (/[<>*?$`(){}]/.test(word)) return false;          // a redirect, a glob, a substitution
   if (/^\d+$/.test(word)) return false;
   if (word.startsWith('/') || word.includes('/')) return true;
-  if (/^\.[\w.-]+$/.test(word)) return true;             // .gitignore, .flow-include
+  if (/^\.[\w.-]+$/.test(word)) return true;             // .gitignore, .work-include
   return /^[\w.\- ]+\.[A-Za-z0-9]{1,8}$/.test(word);     // anything with an extension
 }
 

@@ -41,7 +41,7 @@ When you first open the repository, the split that matters has four parts:
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
-**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, `workflow.md` describes how the pieces fit, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, and `work-sync.md` covers moving uncommitted work between machines. Symlinked as `~/.flow/references`.
+**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, `workflow.md` describes how the pieces fit, `study-cases.md` says how to record a failure, and `cli-design.md` carries the rules the `flow` command surface follows. Symlinked as `~/.flow/references`.
 
 **`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `stack/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. A symlink in `~/.claude/skills/` is flat and named for the skill, so nothing outside this tree ever reads a group name.
 
@@ -49,7 +49,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`rules/`** holds prescriptive rules, one markdown file per topic. Each file is symlinked into `~/.claude/rules/` by `flow install`. Rules without `paths:` frontmatter load every session; rules with `paths:` load only when the agent reads a matching file. Populated by `/file-findings` when knowledge is promoted from `.flow/findings/`.
 
-**`project-template/`** is what a new project starts with: a `CLAUDE.md` with a `## Project` section, a `.gitignore`, a `.flow-include`, and `.flow/overlays/` with an `.info` that explains what overlays are. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.flow-include` ships empty, with a comment explaining that it names the gitignored files that travel with `flow work send`.
+**`project-template/`** is what a new project starts with: a `CLAUDE.md` with a `## Project` section, a `.gitignore`, a `.work-include`, and `.flow/overlays/` with an `.info` that explains what overlays are. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.work-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git work send`.
 
 ## What belongs to the repository
 
@@ -80,7 +80,7 @@ Everything beside `context/` is a folder:
 
 - **`util/`**: the `util` CLI, a submodule: [Adrian333Dev/util](https://github.com/Adrian333Dev/util). Edited here, committed from inside the folder, and the new pointer committed here afterwards.
 - **`toolbox/`**: external tools filed by job, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It left the workflow and installs nowhere.
-- **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, `try.sh` builds [the scratch session](scratch-session.md), and `proxy.mjs` is a context auditor used while developing.
+- **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, and `try.sh` builds [the scratch session](scratch-session.md).
 - **`research/`**: evidence behind the skills, and cached upstream documentation.
 
 ## What is gitignored

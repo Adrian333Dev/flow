@@ -17,7 +17,6 @@ const cli = require('./lib/cli');
 const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
-const work = require('./commands/work');
 const overlays = require('./commands/overlays');
 const skills = require('./commands/skills');
 const git = require('./commands/git');
@@ -38,9 +37,8 @@ const TITLE = 'flow: tickets, computed from .flow/tickets/';
 
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
- * name of their own: `flow ls`, `flow build t047`. `cases` and `work` each
- * keep a group, because each is a different stored thing, typed a tenth as
- * often.
+ * name of their own: `flow ls`, `flow build t047`. `cases` keeps a group of
+ * its own, being a different stored thing and typed a tenth as often.
  *
  * The order inside each section is the order help prints it.
  */
@@ -93,14 +91,6 @@ root    the enclosing git repo; override with FLOW_PROJECT=/path
 cases   ~/.flow/study-cases/<issue>/<date>-<slug>.md: global, filed by issue
         and never by project, because the payoff is seeing one failure three
         times. Override with FLOW_HOME
-work    uncommitted work, stored as a commit under refs/unfinished/<machine>/
-        <branch> and pushed. Not a branch: nothing switches to it and nothing
-        moves it. Send from one machine, get on the other. Name each machine
-        once with git config --global flow.machine <name>; sending refuses
-        until it is set, because two machines sharing one name overwrite each
-        other silently. Gitignored files travel only when named in
-        .flow-include at the project root. Full instructions in
-        ~/.flow/references/work-sync.md
 skills  one real copy of each lives in the clone, filed under a group folder.
         Every group but drafts installs on every machine, as one symlink named
         for the skill, so there is no list to keep in step. What a session is
@@ -113,8 +103,7 @@ overlay a project adds to a skill without editing it, because one copy of that
         project with no overlay file prints nothing
 default cases and overlays each read a bare word as an argument to their
         most used action: flow overlays groundwork is flow overlays get
-        groundwork. skills defaults to ls. work has none, because its get
-        writes over the folder you are standing in
+        groundwork. skills defaults to ls
 audit   what Claude Code did, read back afterwards. It reads the transcripts
         Claude Code already writes at ~/.claude/projects/ and derives an index
         at ~/.flow/audit/audit.db; nothing is recorded and nothing is
@@ -145,7 +134,7 @@ git     off everywhere by default: the agent names a git command that writes
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, work, skills, overlays, git, audit },
+    groups: { cases, skills, overlays, git, audit },
     fallback: tickets.fallback,
     sections: SECTIONS,
     title: TITLE,
