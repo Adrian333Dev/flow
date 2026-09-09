@@ -12,7 +12,7 @@ flow <command> [id]... [--flags]
 - **A word naming no command is a ticket id.** `flow t047` shows one; `flow get t047` is the same thing spelled out.
 - **Positionals name what the command acts on**: one id, several ids, or the title for `new`, where no ticket exists yet to point at.
 - **A positional names one target, never two things.** `get` takes one id or one path. The status verbs each take one id. Cut 2026-09-04, having carried `flow get t047 build` since 2026-08-24: the combined form added a second path into `transition` and saved nothing the agent needs, `flow build t047` then `flow get t047` is two commands and no ambiguity.
-- **A path positional is allowed only on `get`.** `flow get .flow/handoff.md` reads a file and loads any `flow-open` block it contains, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
+- **A path positional is allowed only on `get`.** `flow get .flow/handoff.md` reads a file and loads any `open` block it contains, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
 - **Everything else is a flag.**
 
 ## One default noun

@@ -64,19 +64,20 @@ layout  .flow/tickets/<id>-<label>/: ticket.md and groundwork/ from birth,
         answered, named after what it answers, whether a hunt found it or a
         prototype did. Done and dropped tickets move to .flow/tickets/archive/
         and move back if reopened
-steps   flow <id> counts the checkboxes in plan.md each time it prints, so the
-        count cannot drift from the file. The lists never count: out there
-        status already says whether a ticket is being built, waiting on
-        review, or finished
+steps   flow <id> counts the checkboxes in plan.md and in groundwork/map.md
+        each time it prints, so neither count can drift from its file. The
+        two artifacts say whether a phase finished; status only claims it.
+        The lists never count: out there status already says whether a ticket
+        is being built, waiting on review, or finished
 pickup  flow <id> prints the command a todo or parked ticket is waiting for
         and never runs it, so the skill picking the ticket up moves it after
         reading. The status verbs are the only way to move a ticket
 resume  flow get --files reads the ticket, then every file named in its
-        fenced flow-open block. handoff writes that block, and decides what
-        goes in it: an empty one is a real answer for a ticket that carries
-        its own context. Paths resolve beside the ticket first, then from the
-        repo root, and a line range passes through: src/parser.js:40-120.
-        Nothing is truncated, so a huge block costs what it costs
+        fenced open block, through util fs open. handoff writes that block,
+        and decides what goes in it: an empty one is a real answer for a
+        ticket carrying its own context. Paths resolve beside the ticket
+        first, then from the repo root, and a line range passes through:
+        src/parser.js:40-120. Nothing is truncated
 park    parking stores the status it left, and reviving is the verb for that
         status. A feature parked at building comes back at building
 parent  a ticket split out of another carries parent: t047. Disk stays flat;

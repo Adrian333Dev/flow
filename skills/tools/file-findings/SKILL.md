@@ -56,7 +56,7 @@ Match the note's scope to the skill's scope:
 - tool quirk → that tool's skill
 - framework pattern → that framework's skill
 - broad principle, such as "the client never touches the DB directly" → a high-level concept skill, `architecture` for that one
-- seam between two tools → the **source** tool's skill, plus a one-line pointer from the other
+- seam between 2 tools → the **source** tool's skill, plus a one-line pointer from the other
 
 Never a "tool-A-with-tool-B" skill. One home per fact, a pointer everywhere else.
 

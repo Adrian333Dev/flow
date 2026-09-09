@@ -122,7 +122,7 @@ test('install builds a whole config, is idempotent, and prunes a dead link', () 
   assert.ok(!fs.existsSync(path.join(home, 'scripts')), 'scripts no longer land under ~/.claude');
   assert.strictEqual(
     linkTarget(path.join(home, 'skills', 'start')),
-    path.join(REPO, 'skills', 'session', 'start'),
+    path.join(REPO, 'skills', 'tools', 'start'),
     'a typed-only skill installs like any other'
   );
   assert.strictEqual(

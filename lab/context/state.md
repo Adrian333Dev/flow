@@ -63,7 +63,7 @@ everything a bare `flow` prints, and every command the skill that runs it alread
 moved to keep a home that loads when they fire: `--priority` only on request → `## Capture`;
 `flow skills ls` → `## Workflow`, and on to `/research` when that paragraph was deleted 2026-09-06; create and fill in one command → `/groundwork` Phase 4; `done`
 against `filed` → `/file-findings` step 8; id resolution → `references/workflow.md`. `flow edit`,
-`flow dep`, `flow tree`, `flow check` and the `flow ls` flags are in no loaded file now, by decision:
+`flow dep`, `flow tree` and the `flow ls` flags are in no loaded file now, by decision:
 the CLI's own help is their one home.
 
 **`lab/study-cases/` holds 5 cases in 4 issue folders, as of 2026-09-06.** 3 were added that day, one
@@ -193,6 +193,95 @@ no mechanism: `InstructionsLoaded` cannot modify loading, `SessionStart` → `re
 re-scans the folder, and `UserPromptExpansion` fires only on a typed `/name`. A skill does take
 `paths:` frontmatter, the same as a rule file, which Flow uses nowhere yet.
 
+**The skill groups are 3, cut from 5 on 2026-09-08.** `phases/`, `tools/` and `stack/`, plus `dev/`
+and `drafts/`. `session/` and `knowledge/` were dissolved into `tools/`, taking `start`, `handoff` and
+`file-findings` with them. The deciding argument is that a group's only function is the on/off switch:
+`stack/` is the only group set differently, `phases/` is the only closed set with a rule behind it, and
+nothing distinguished the other 3 from each other. `knowledge/` held 1 skill and was never going to hold
+more. No code changed, because `flow install` reads the tree. `docs/dev/skills.md`, `docs/dev/layout.md`,
+`references/write-skills.md`, `home/settings.md`, `README.md`, the repo `CLAUDE.md` and one path in
+`skills.test.js` moved with it.
+
+**`project-template/CLAUDE.md` is 8 lines and holds no rules, 2026-09-08.** 2 comments, both fill-in
+prompts, both deleted the moment their section is written. The 3 rules that had been sitting in comments
+are gone: section naming and `.claude/rules/<topic>.md` with `paths:` were already in `/file-findings` →
+`## Routing`, and the *global rules live at `~/.claude/CLAUDE.md`* line was cut by the user, on the
+grounds that a machine without the install skill is broken whatever the template says. A rule in a
+comment is broken by construction, since `placeholder-comments-are-deleted` deletes the comment.
+`project-template/.claude/settings.json` now ships too, holding an empty `skillOverrides`, which is what
+a project writes into to turn a `stack/` skill on.
+
+**`/groundwork` was rewritten around a pile of input, 2026-09-08.** Phase 1 gained the greenfield
+folder, `groundwork/<slug>/` where you are standing, and the case of a directory that becomes a project
+mid-run. `## Arriving` had 3 entry paths for one day and was cut back to 2 the same day: the 3-way list
+branched on where you were standing, every arrow pointed at Phase 1, and it repeated `### 1. Pick the
+folder` 12 lines above it. The only thing that actually differs on arrival is whether a ticket has a
+status to move. The 2026-08-09 two-mode decision in `remaining.md` had covered the product path, and the
+modes dissolving took it with them. **The product mode's outputs never went**: Phase 4 still routes
+through `references/write-spec.md` and still invokes `/cut-from-spec`.
+
+**Nothing written before the session is settled, 2026-09-08.** The rule the whole intake design rests
+on, set by the user against 5 real folders at `tmp/planned-projects/`: 34,327 lines, 62 files, the
+largest folder 12,209 lines on its own. One of them carries a heading reading *Decisions locked* with 25
+entries, all reached in a context-starved web chat with no compaction. The user's ruling: those are not
+decisions and they are not proposals either, because a weaker model produced them and an agent must
+never launder them into its own Phase 2 recommendation. What a pile is reliable about is **which
+questions exist**, never the answers, and a constraint somebody hit, because that is a consequence
+rather than a judgment. Every claim becomes a branch walked from the start.
+
+**`references/read-intake.md` is the procedure for a large pile, 2026-09-08.** 70 lines, loaded only
+when a folder of pre-Flow material exists, following `style.md` §4: a case changing more than half a
+step gets its own file. List with sizes before reading anything, read the small navigation files first,
+write `index.md`, propose the cleanup, leave the big files closed until a branch needs one. **The
+deciding evidence came from the user's own good folder**: a 129-line master index was the only place
+recording that a 296-line design beside it had been rejected. Reading that design first, an agent has no
+way to tell. `docs/intake/index.md` is agent-written and rewritten whole, so later runs read 129 lines
+instead of 12,000. `references/workflow.md` no longer says intake is *preserved as-is*, and a ticket
+folder may now hold `intake/` for material dropped in for one job.
+
+**Rejected is not dead**, set by the user 2026-09-08. A design turned down because its mechanism failed
+is a live open decision carrying evidence about what does not work, which is worth more than a blank
+branch. It stays in intake, marked rejected.
+
+**A child map splits on independence, never on size, 2026-09-08.** `/groundwork` Phase 2 used to say
+*most never need it* about `--type topic --parent`, which is right for a feature and wrong for a
+product. The criterion is now whether the branch can be settled without answers from its siblings, since
+one `map.md` already spans as many sessions as it takes and a long section spills to
+`<index>-<name>.md`. **A decision binding more than 1 child goes to the parent's map**, named with the
+child that raised it. That last rule is unproven and logged in `backlog.md`: no product has been split
+into child maps yet.
+
+**Every scorecard result records the effort level, 2026-09-08.** `PreToolUse` carries `effort` as an
+object with a `level` field, so `scripts/rule-check.js` stores it beside `project`. The model does not
+follow: `model` reaches a hook on `SessionStart` alone, where it can be omitted and where a later
+`/model` switch is invisible. Both are impossible to backfill, which is why effort went in before any
+check exists to produce a row.
+
+**`flow check` has never existed**, and this file said it did until 2026-09-08. The verification command
+is `flow doctor`, named by the user to match Claude Code's own `/doctor`. It owns what a function can
+decide about an installed machine; the management skill owns the live half.
+
+**The skills passed the `style.md` writing pass, 2026-09-08.** 75 spelled-out counts became digits under
+§6 across 16 files, and 6 sentences that had to be read twice were split. `/web-pages` is excluded until
+it is rebuilt on `browser-harness`. The em dash sweep was finished separately by the user the same day:
+3,529 dashes across 151 files, with 6 left on purpose as data. `/groundwork` got a second, deeper pass
+later that day on the user's report that it read as unintelligible. The fault was a compressed
+aphoristic style that only works for a reader who already knows the answer: *the work before the work*,
+*order is a dependency claim*, *turning the crank*, *force a distant analogue*, *a group with nothing
+under it is an agenda*.
+
+**`style.md` §4 has a 4th branch shape, 2026-09-08: the entrance.** The other 3 are exits, matched
+against by a reader who does not yet know which line is theirs, so a label there is a test. A reader
+arriving already knows how they got here, so a label is recognition and has to name what they can see.
+3 drafts of `/groundwork`'s `## Arriving` were rejected before the shape was named, all 3 because they
+labelled cases by a state the reader would have to work out.
+
+**`ui-is-drawn` was merged into `invoke-the-skill`, 2026-09-08.** `home/CLAUDE.md:49` now reads *Anything
+drawn: structure, architecture, layout, density, hierarchy, colour → `/visualize`*. The rule it replaced
+added 3 nouns and a *never improvise a diagram or a mockup* clause that `invoke-the-skill` already
+carried as *never improvise its job*. The repo's own copy at `CLAUDE.md:82` stays, because this file has
+no `## Workflow` section to fold into.
+
 **`docs/dev/context-cost.md` says which shortenings buy tokens**, written 2026-09-06. The short
 answer: digits, symbols and abbreviations save nothing and abbreviations usually cost more; articles
 are about 6% of `home/CLAUDE.md`; deleting a rule beats rewording thirty. It marks every claim as
@@ -304,6 +393,125 @@ and `fmerge.js` moved on 2026-08-30, becoming `git save`, `fs tree` and `fs merg
 real but soft:** `open.js` runs `util fs merge` off `PATH`, and a machine without `util` still opens
 the ticket and prints `util is not on PATH` where the files would have been. The coupling is
 acceptable only while `util` is public.
+
+**`/groundwork` was audited against the `flow` source 2026-09-09, and 8 issues came out.** Nothing is
+fixed yet; the list is the deliverable. **The status and the artifact can disagree, and today the
+skill trusts the status**: `## Arriving` branches on `status: groundwork` plus whether anything is
+still `[ ]`, and an untouched `map.md` has nothing `[ ]`, so it takes the finished branch and routes
+decisions nobody made. **The user overturned the patch**: the rule is that the artifact decides which
+phase you are in and the status is corrected to match, because a third branch fixes one mismatch and
+leaves `todo` with a half-walked map, `building` with open questions, and a finished map whose tickets
+already exist. `lab-records-are-history` already says disk wins over a record. The other 7: `flow new
+--body` replaces the ticket template outright (`store.js:269`) so `## Done when` never lands, which
+`/execute:34` already catches but describes wrongly; the skill lists 3 groundwork folders and
+`workflow.md:30` lists 2; `## Assumptions` at `SKILL.md:194` names no file and appears nowhere else in
+the repo; Phase 3 is numbered as a step but runs at 3 moments, 2 of them inside Phase 2's walk; "not
+worth building" reaches for `flow park` where `flow drop` is the verb, and `statuses.js:51` gives
+`parked` `satisfies: false` so dependents block forever with no repair path; the `map.md` template puts
+rules inside a placeholder comment, against `placeholder-comments-are-deleted`; and `research:95` says
+"A question never becomes a ticket of its own" with no qualifier, colliding on the page with
+`groundwork:135` cutting a `prototype` ticket.
+
+**Intake is material carrying work already done, not files and not age.** Ruled by the user
+2026-09-09, replacing two wrong definitions in a row: "a pile from before Flow" (`read-intake.md:1`)
+and "the run was pointed at files instead of being told the idea". Neither holds, because a file
+holding only the user's idea is ordinary input and a research report generated yesterday is intake.
+The test is whether the material carries conclusions somebody else reached. That is also the danger:
+it looks settled because real work went into it. `read-intake.md` is still written around the specific
+folders under `tmp/planned-projects/`, quoting an audit of them as evidence, which the user rejected as
+over-fitting. Unbuilt.
+
+**`## References` and the `open` block are different mechanisms, and only `/execute:187` said so.**
+`## References` is durable, written by whoever cut the ticket, and survives to `done`; `## State`
+holds work in flight and is deleted at review. The `open` block is a fenced block inside `##
+State`, `/handoff` writes it, and `flow get --files` loads every file it names before the session's
+first turn. **The user ruled 2026-09-09 that `/groundwork` says nothing about any of this**: the
+manuals explain the mechanism, `references/workflow.md` gets a note for the agent, and the block is
+generalized to work with any file. The section's example lists `/visualize`, which is correct: the
+rule above it names "a skill that covers it" as a reference worth a line.
+
+**A ticket body cannot legitimately run long, and 8 of the 9 creation sites already cap it.** Walked
+2026-09-09. Capture and `--from-groundwork` write no body at all; `/debug` carries 3 things and never
+the hunt, which lives in `reports/`; `/prototype` caps at 3 questions; `/cut-from-spec` says never copy
+a whole spec section; `/groundwork:202` says copy only the lines that ticket needs. The uncapped one is
+the child topic ticket at `/groundwork:120` and `:203`, "carrying what this map already settled about
+it", which is where 300 lines could really come from and should point at the parent's map instead. The
+user was convinced by the 4 costs of `--body -` and invited pushback; **the pushback is that `--body -`
+stays**, because every post-stdin failure (`--deps`, `--parent`, empty title, existing directory, bad
+`--type`) is knowable before the command runs, what is lost is now 20 to 60 lines, and the atomicity it
+buys does not shrink with size. Create-then-`Write` is the escape hatch past about 100 lines, and
+`flow new` prints both file paths so nothing has to guess one.
+
+**`docs/manual/tickets.md` is the home for the ticket shape**, decided by the user 2026-09-09: a page
+saying what a ticket is, what each status means, and what belongs in the body against the map or the
+spec, with a placeholder template at the bottom rather than a filled-in sample. Every frontmatter field
+carries its alternatives in a trailing `#` comment, and `frontmatter.js` → `parseBlock` skips full-line
+comments and strips trailing ones, so the shape parses as a real file.
+
+**Global groundwork goes to `~/.flow/groundwork/<slug>/`**, proposed by the user 2026-09-09 to replace
+`groundwork/<slug>/` in whatever directory you are standing in, which is litter nobody finds again.
+`~/.flow/study-cases/` is the precedent. **"No project" means no git repository**, not a missing
+`.flow/` folder: `root.js` runs `git rev-parse --show-toplevel` and throws when it fails. **`FLOW_PROJECT` is the way through**, and it needs no code: `projectRoot()` checks only that the
+override path exists and never that it is a repository, so `FLOW_PROJECT=$HOME flow new "…"` runs
+outside git today and writes to `~/.flow/tickets/` on its own id sequence. **The user ruled 2026-09-09
+that nothing global reaches `docs/`**, because there is no product to hold a spec: every `docs/` route
+in a global run lands under `~/.flow/` instead, and the rest lands in the ticket. One defect survives.
+`store.js:282` moves a groundwork folder in with `fs.renameSync` under a comment reading "Same
+filesystem by construction", which a global-to-project move breaks: `EXDEV`, after the ticket folder
+has already been created.
+
+**The audit's fixes landed 2026-09-09, on the user's go-ahead**, across 9 files. The rule that binds
+everything else: **the artifact decides the phase, and the status is corrected to match.** It is in
+`references/workflow.md` as the general statement and operative in all 4 phase skills, each naming its
+own artifact. `/groundwork`'s `## Arriving` now branches on `map.md` rather than on the status, and
+writes the correcting command after; `/execute` Phase 1 gained the artifact-wins rule plus a check that
+any `[ ]` left in `groundwork/map.md` is groundwork that never closed; `/debug` reads `## State`
+before step 1 and resumes at the first live hypothesis. `references/workflow.md` also gained the
+`open` block agent note and the `## References` distinction. `read-intake.md` was rewritten whole around input that arrives as files somebody already
+worked on, with the `tmp/planned-projects/` audit numbers stripped and a 2000-line gate above the 5
+steps. `docs/manual/tickets.md` exists. `/groundwork` lost 145
+words to compression and gained the global-folder rule, the child topic body cap, and `drop` where it
+said `park`. `scripts/flow/templates/map.md` lost the rules from its placeholder comment. `/research`'s
+"a question never becomes a ticket" now reads "a question reading can answer". 75 of 75 tests pass and
+`rule-check.js` is silent.
+
+**The manual page and the pickup rules were corrected 2026-09-09, in a second pass.** The user
+rejected four things from the first one and approved the fixes.
+
+**The `open` block left Flow for `util`.** It was `flow-open`, parsed inside `flow get` by
+`store.openBlock`. The user's argument: it is a feature, not a ticket format, and it belongs wherever
+features are defined. The code agreed, because `flow get <path>` already loaded the block out of any
+file with no ticket involved. It is now `util fs open <file>`, in the `fs` namespace beside `fs merge`,
+which already took the same `:40-120` range syntax and did the printing. **Flow supplies only the
+working directory**: that command resolves a path beside the named document first and then from its own
+cwd, so running it at the repo root against `ticket.md` gives exactly the two bases a ticket needs, and
+the `--base` flag proposed for it was never built. `store.openBlock`, `resolveSpec`, `splitRange` and
+`loadRefs` are deleted, about 60 lines, and the fence is now ```` ```open ````. Free to rename because
+Flow is installed nowhere and no ticket exists on any machine. `lab/util/README.md` gained a
+`## Commands` section, the page the user asked for: every shipped command, with the block format under
+it. Two tests in `lab/util/tests/commands.test.js`, which is more than the block ever had in Flow.
+
+**`flow get` prints a `map:` line, and the skills stopped restating it.** The user's objection was that
+the first pass added the same paragraph to four skills without asking where it belonged. It belonged in
+the header every pickup already prints: `map: groundwork/map.md 2/4 answered`, beside `plan:` and
+`reports:`. `store.mapQuestions` counts every box at any indent, because a group is a question at the
+coarse level. **A commented-out box is not a box**: both templates ship their example inside an HTML
+comment, so `countBoxes` strips comments first, and `planSteps` was reading them too. An untouched map
+prints no line at all, so the line appearing means real questions exist.
+
+**The `reports/` checks came out of `/debug` and `/prototype`.** The user called them an unnecessary
+read for a case that should not happen. The premise was off, since `reports/` is inside the ticket
+folder and never holds another job's files, but the conclusion held for a better reason: `flow get`
+already prints `reports:` with every filename, so the instruction looked up something already on
+screen.
+
+**`docs/manual/tickets.md` was rewritten**, 208 lines to 186. Its table of contents was plain text
+rather than links, against `style.md` §10, and missing the two `###` headings. The page defined the 11
+frontmatter fields twice, the 4 body sections twice, and `## State`'s labels a third time after
+`/handoff`. **The annotated placeholder became one filled ticket**, which kills all three copies: a
+stranger learns more from a ticket that looks right than from a form with instructions in it, and
+`flow new` makes the tickets anyway. The `flow` command owning the id, the folder and the frontmatter
+moved to the opening, where the user asked for it.
 
 ## Which design record covers what
 

@@ -9,13 +9,15 @@ Find the cause by evidence, prove it, then fix it. The fix is the cheap part.
 
 **The failing check**: something that fails on this exact bug, every run, and prints something that moves when the bug does. Everything below reads from it.
 
-Usually it is one command you run yourself. Where the failure lives somewhere you cannot reach (a browser, a phone, a service behind a login) the check is a short sequence the user runs and reports back, and it has to be as exact and as repeatable as a command.
+Usually it is one command you run yourself. Where the failure lives out of reach, in a browser, a phone or a service behind a login, the check is a short sequence the user runs and reports back. Write it as exact and as repeatable as a command.
 
-**On a ticket** → `flow build <id>` before step 1, unless a `→ building` line above shows `/start` already made the move. An `issue` has no phase before building.
+**On a ticket** → read `## State` before step 1. It is where the hunt is written, so it says how far this one got: resume at the first hypothesis nothing killed, and never restart the loop. Nothing written there → step 1.
+
+Then `flow build <id>`, unless a `→ building` line above shows `/start` already made the move. An `issue` has no phase before building.
 
 ## The loop
 
-Four steps, in order. A step you cannot finish is the finding: say so and stop there.
+4 steps, in order. A step you cannot finish is the finding: say so and stop there.
 
 1. **Build the failing check.** Tighten it until it is fast and deterministic: a narrower test, a smaller input, a direct call instead of the whole suite. Reading code to work out what the check should be is part of building it.
 
@@ -23,13 +25,13 @@ Four steps, in order. A step you cannot finish is the finding: say so and stop t
 
    **Never name a cause, a suspect or a likely file until the check has failed in front of you.** "Do not trust your own guess" asks you to watch your own belief, and nothing on the page shows whether you did. Whether the check ran shows.
 
-2. **Rank three hypotheses, then show the user.** Three, always, before testing any of them. One hypothesis becomes the fact by default; three cannot all be.
+2. **Rank 3 hypotheses, then show the user.** 3, always, before testing any of them. One hypothesis becomes the fact by default; 3 cannot all be.
 
-   **Find one case that works and one that breaks**, then narrow the gap between them. In time: the last commit that passed against the first that failed, which is what `git bisect` automates. In the input, the largest payload that survives against the smallest that fails. In the machine, the box that works against the box that does not. Two known points either side beat any amount of guessing.
+   **Find one case that works and one that breaks**, then narrow the gap between them. In time: the last commit that passed against the first that failed, which is what `git bisect` automates. In the input, the largest payload that survives against the smallest that fails. In the machine, the box that works against the box that does not. 2 known points either side beat any amount of guessing.
 
-   **Force the three apart, each a different kind of cause.** Bad data arriving, an environment that differs from the one that works, and two things happening in the wrong order are three kinds. "`parseDate` mishandles the timezone", "`parseDate` mishandles the locale" and "`parseDate` mishandles a leap year" are one kind in three coats of paint.
+   **Force the 3 apart, each a different kind of cause.** Bad data arriving, an environment that differs from the one that works, and 2 things happening in the wrong order are 3 kinds. "`parseDate` mishandles the timezone", "`parseDate` mishandles the locale" and "`parseDate` mishandles a leap year" are one kind in 3 coats of paint.
 
-   **Send the ranked three before testing the first.** The user re-ranks instantly from what you cannot see: a deploy last week, a suspect they already cleared, a machine that was rebuilt. It is the cheapest correction in the loop.
+   **Send the ranked 3 before testing the first.** The user re-ranks instantly from what you cannot see: a deploy last week, a suspect they already cleared, a machine that was rebuilt. It is the cheapest correction in the loop.
 
 3. **Write the prediction, then run the check.** "If X is the cause, changing Y makes the check pass." Written first, or ambiguous output reads as confirmation: that retro-fit is the moment a guess turns into a fact.
 
@@ -62,15 +64,15 @@ No way in → ask, and ask early. It is never defeat.
 
 Raise the failure rate instead of chasing a clean reproduction. Loop the command a hundred times, shrink the timeout, load the machine, run the suite in a random order. A bug that fails one run in fifty is a failing check with a `for` loop around it.
 
-Record what was different about the run that failed. Then split four ways: timing, environment, leftover state, ordering. Those cover nearly all of it, and each one raises the rate differently.
+Record what was different about the run that failed. Then split 4 ways: timing, environment, leftover state, ordering. Those cover nearly all of it, and each one raises the rate differently.
 
 ### When it only fails in a browser
 
-DOM, events, network, rendering: anything that reproduces only inside a page → `/web-pages`. It owns the capture bundles and the probe snippets, and it runs the loop above with tooling built for a page. It builds the failing check; the four steps above still run here.
+DOM, events, network, rendering: anything that reproduces only inside a page → `/web-pages`. It owns the capture bundles and the probe snippets, and it runs the loop above with tooling built for a page. It builds the failing check; the 4 steps above still run here.
 
 ### When the hypotheses run out
 
-Four moves, in order. None of them is guessing harder.
+4 moves, in order. None of them is guessing harder.
 
 - **Restate the failure in different words.** "The test fails" → "the assertion reads `undefined` where the fixture wrote `0`". Stuck debugging is usually a question too vague to answer.
 - **Trace the bad value back to where it was born.** Print it at every boundary it crosses until you find the first place it is already wrong. That place is the cause; everything after it is the symptom.
@@ -79,19 +81,19 @@ Four moves, in order. None of them is guessing harder.
 
 Still nothing → say so, list what was ruled out and what would settle it, then hand it back. **Evidence with no cause is a real result.** A guess dressed as a cause is not.
 
-### When three fixes have failed
+### When 3 fixes have failed
 
-Stop fixing. Three failed fixes means the hypothesis was never the problem: the shape of the code is. Name the structure that makes this bug possible, and hand the decision back under `FOUND_NOT_FIXED`: the structure is the cause, and replacing it is a decision nobody gave. A fourth attempt from the same understanding costs the same and lands the same.
+Stop fixing. 3 failed fixes means the hypothesis was never the problem: the shape of the code is. Name the structure that makes this bug possible, and hand the decision back under `FOUND_NOT_FIXED`: the structure is the cause, and replacing it is a decision nobody gave. A fourth attempt from the same understanding costs the same and lands the same.
 
 ## Handing it back
 
 **Hunt here.** The fix lands in code this session already knows, and a fresh session re-derives all of that first.
 
-Three things end the hunt here: **the fix needs a decision nobody gave**, **the hypotheses ran out**, or **three fixes have failed**. All three go the same way, a ticket, then the user.
+3 things end the hunt here: **the fix needs a decision nobody gave**, **the hypotheses ran out**, or **3 fixes have failed**. All 3 go the same way, a ticket, then the user.
 
-**Write the report first, then cut a thin ticket at it.** The report already carries the error, every hypothesis and how it died. Copying that into a ticket body hands the next session two versions of one hunt.
+**Write the report first, then cut a thin ticket at it.** The report already carries the error, every hypothesis and how it died. Copying that into a ticket body hands the next session 2 versions of one hunt.
 
-**The body carries three things and never the conversation:**
+**The body carries 3 things and never the conversation:**
 
 - **What failed**, in one line: the step, the command, or what the user did
 - **The report**, by its path from the repo root. It sits in *this* ticket's folder, and `flow get --files` resolves a path against the new ticket first, so a bare `reports/<failure>.md` points at an empty folder
@@ -99,7 +101,7 @@ Three things end the hunt here: **the fix needs a decision nobody gave**, **the 
 
 ```bash
 flow new "<what failed>" --type issue --parent t047 --body - <<'EOF'
-<the three things>
+<the 3 things>
 EOF
 ```
 

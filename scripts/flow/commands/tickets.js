@@ -237,61 +237,37 @@ actions.tree = {
 
 // ---------------------------------------------------------------- one ticket
 
-const MERGE = ['fs', 'merge', '--force'];
 const RULE = '-'.repeat(60);
 const NEXT_LIMIT = 10;
 
 const looksLikePath = (word) =>
   word.includes('/') || word.includes('\\') || word.endsWith('.md') || fs.existsSync(word);
 
-const splitRange = (spec) => {
-  const m = spec.match(/^(.*?)(:\d+-\d+)?$/);
-  return { file: m[1], range: m[2] || '' };
-};
-
-function resolveSpec(spec, bases) {
-  const { file, range } = splitRange(spec);
-  for (const base of bases) {
-    const abs = path.resolve(base, file);
-    if (fs.existsSync(abs)) return abs + range;
+/**
+ * The files a document names in its own `open` block, printed under a rule.
+ *
+ * `util fs open` owns the format, the parse and the merge, because the block is
+ * not a ticket format: a handoff, a spec or a loose note carries one on the
+ * same terms. What stays here is where Flow runs it from. That command resolves
+ * a path beside the document first and then from its working directory, so
+ * running it at the repo root against `ticket.md` gives exactly the two bases a
+ * ticket needs, and no flag has to say so.
+ */
+function loadOpen(file, cwd) {
+  let printed;
+  try {
+    printed = execFileSync('util', ['fs', 'open', file], {
+      cwd,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+  } catch (e) {
+    const why = e.code === 'ENOENT'
+      ? 'util is not on PATH: install it, then run flow get --files again'
+      : String(e.stderr || e.message).trim();
+    printed = `unread: util fs open failed, ${why}`;
   }
-  return null;
-}
-
-function loadRefs(specs, bases, cwd) {
-  if (!specs.length) return;
-
-  const found = [];
-  const missing = [];
-  for (const spec of specs) {
-    const abs = resolveSpec(spec, bases);
-    if (abs) found.push(abs);
-    else missing.push(spec);
-  }
-
-  let merged = '';
-  let failed = '';
-  if (found.length) {
-    try {
-      merged = execFileSync('util', [...MERGE, ...found], {
-        cwd,
-        encoding: 'utf8',
-        maxBuffer: 64 * 1024 * 1024,
-      });
-    } catch (e) {
-      const why = e.code === 'ENOENT'
-        ? 'util is not on PATH: install it, then run flow get --files again'
-        : String(e.stderr || e.message).trim();
-      failed = `unread: util fs merge failed, ${why}`;
-    }
-  }
-
-  const count = `${found.length} file${found.length === 1 ? '' : 's'}`;
-  const size = merged ? `, ${merged.split('\n').length} lines` : '';
-  out(`\n${RULE}\nflow-open: ${count}${size}`);
-  if (missing.length) out(`missing: ${missing.join(', ')}`);
-  if (failed) out(failed);
-  if (merged) out(`\n${merged.trimEnd()}`);
+  out(`\n${RULE}\n${printed.trimEnd()}`);
 }
 
 function nextLimit(flags) {
@@ -326,7 +302,7 @@ actions.get = {
       const abs = path.resolve(first);
       const content = fs.readFileSync(abs, 'utf8');
       out(content.trimEnd());
-      loadRefs(store.openBlock(content), [path.dirname(abs), process.cwd()], path.dirname(abs));
+      loadOpen(abs, process.cwd());
       return 0;
     }
 
@@ -335,7 +311,7 @@ actions.get = {
 
     out(render.show(t, tickets, root));
     if (flags.files) {
-      loadRefs(store.openBlock(t.body), [t.dir, root], root);
+      loadOpen(t.file, root);
     }
     return 0;
   },

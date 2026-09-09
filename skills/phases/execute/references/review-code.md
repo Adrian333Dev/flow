@@ -35,12 +35,12 @@ Twelve shapes worth naming, each as what it is and what to do about it. Match th
 - **Middle man**: a class or function that mostly delegates onward. Cut it, call the real target.
 - **Refused bequest**: a subclass ignoring most of what it inherits. Drop the inheritance, use composition.
 
-Two rules bind the list:
+2 rules bind the list:
 
 - **The project overrides.** A convention named in `## References` or in `CLAUDE.md` wins. Where it endorses what the baseline would flag, drop the flag.
 - **Every one is a judgement call.** Report "possible feature envy", never a violation. Skip anything a linter already catches.
 
-## Two conditional checks
+## 2 conditional checks
 
 - **Input, auth, secrets or data from outside → check the boundary.** Is the input validated where it arrives, is the query parameterized, is the secret out of the file. Running this on every ticket is ceremony, and ceremony gets skipped.
 - **A loop over a collection that grows → check the cost.** A query per item, an unbounded fetch, a list endpoint with no limit.
@@ -51,7 +51,7 @@ Name what this change orphaned: the function nothing calls now, the constant wit
 
 ## What to report
 
-Two levels, and no more:
+2 levels, and no more:
 
 - **Fix before the ticket closes**: it is wrong, it is unsafe, or it does not do what the ticket asked.
 - **Noted**: everything else. It gets said once and left alone.

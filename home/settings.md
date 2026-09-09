@@ -164,7 +164,7 @@ Installing and being shown are separate questions. Every skill outside `drafts/`
 
 ### The default belongs to the group
 
-- **`phases/`, `session/`, `knowledge/`, `tools/`, `dev/` → on.** Reached in ordinary work, in any project
+- **`phases/`, `tools/`, `dev/` → on.** Reached in ordinary work, in any project
 - **`stack/` → off**, turned on by the projects that touch that stack. Ten stack skills would otherwise be ten descriptions in every session, forever, and the one project doing browser work is the only one that needs the browser skill
 
 Reversed 2026-08-30. Every skill was on by default until then, on the argument that one author wants everything reachable everywhere, which stays true, and is why `off` never stops a skill from installing.

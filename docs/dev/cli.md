@@ -86,14 +86,16 @@ Commands that name a ticket and act on it.
 Three shapes:
 
 - **`flow get`**: the board: counts across every status, last closed ticket, in-flight work, ready tickets, parked tickets, and unfiled tickets. `flow <id>` is a shorthand for `flow get <id>`.
-- **`flow get <id>`**: one ticket in full. Prints every field: status, type, priority (own and inherited), parent, deps (with their statuses), dependents, children (with a progress count), plan steps if a plan exists, reports, closed and filed dates, the pickup command, and the ticket body.
-- **`flow get <path>`**: reads a file (a handoff, a spec, loose notes) and loads any `flow-open` block it contains.
+- **`flow get <id>`**: one ticket in full. Prints every field: status, type, priority (own and inherited), parent, deps (with their statuses), dependents, children (with a progress count), map questions and plan steps where those files exist, reports, closed and filed dates, the pickup command, and the ticket body.
+- **`flow get <path>`**: reads a file (a handoff, a spec, loose notes) and loads any `open` block it contains.
 
 An id is a number and a label: `t047-parser-split`. The number is the identity. Any unambiguous part resolves it: `t047`, `47`, `parser`, or the whole thing.
 
-`--files` loads every file named in the ticket's `flow-open` block through `util fs merge`. Off by default, so a second `get` in the same session never double-loads context. `/start` passes `--files` explicitly.
+`--files` loads every file named in the ticket's `open` block, by running `util fs open` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/start` passes `--files` explicitly.
 
-Flags: `--files` (load the `flow-open` block), `--limit <n>` and `--all` (for the bare-board shape).
+**The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files; `lab/util/README.md` defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
+
+Flags: `--files` (load the `open` block), `--limit <n>` and `--all` (for the bare-board shape).
 
 ### `flow new "<title>"`
 

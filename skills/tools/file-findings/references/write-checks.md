@@ -58,7 +58,7 @@ Every check gets a test in `~/.flow/scripts/tests/`, holding at minimum one real
 
 A check with no test is a check nobody can change later without guessing at what it was for.
 
-## The three tiers
+## The 3 tiers
 
 1. **`measure`** counts violations and interrupts nothing. Every check starts here.
 2. **`warn`** returns the message to the agent before the edit, which then proceeds.
@@ -70,7 +70,7 @@ A check with no test is a check nobody can change later without guessing at what
 
 ## Reading `flow scorecard`
 
-It prints four lists, each with an action:
+It prints 4 lists, each with an action:
 
 - **Stale** means the check's rule ID no longer exists. Repoint it or delete it.
 - **Ready to promote** means enough applications and no false positives. Move it up a tier.

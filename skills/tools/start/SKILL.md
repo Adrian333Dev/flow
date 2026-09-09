@@ -15,7 +15,7 @@ disable-model-invocation: true
 
 ## When a ticket is above
 
-**A `flow-open` block already loaded the files it names**, so the phase's artifact may be on screen. Read what is there before opening anything.
+**An `open` block already loaded the files it names**, so the phase's artifact may be on screen. Read what is there before opening anything.
 
 **A line reading `planning → building` means the user named that move and `flow` made it.** Take the ticket at the status it now holds, and never move it again.
 

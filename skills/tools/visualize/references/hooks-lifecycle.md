@@ -2,7 +2,7 @@
 
 Converted from `hooks-lifecycle-dark.svg` (520 x 1228). 113 columns, 97 rows.
 
-Three conventions carry the structure.
+3 conventions carry the structure.
 
 **A container's wall is `¦`, its top and bottom edges are dashed.** Every stroke of the border is an
 interrupted line, and every solid line in the picture is a connector: the two never read as each other, on

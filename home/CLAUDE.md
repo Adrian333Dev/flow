@@ -46,7 +46,7 @@ One phase at a time:
 ```
 
 - **`invoke-the-skill`** Invoke the skill that fits, never improvise its job. A small obvious task takes none.
-  - Structure, architecture or layout to convey → `/visualize`
+  - Anything drawn: structure, architecture, layout, density, hierarchy, colour → `/visualize`
   - Context filling, a stretch of work closing, or a job needing its own session → `/handoff`
 - **`skip-a-step`** Skip a Flow step that makes the work worse. Name the step and the reason. Never ask first.
 - **`read-workflow-md`** `~/.flow/references/workflow.md` says how the pieces fit. Read it only when more context needed.

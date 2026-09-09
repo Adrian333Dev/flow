@@ -19,7 +19,7 @@ Decide this **before** drawing anything. Picking wrong is the most expensive mis
 - **ASCII frame**: layout and proportion of a real screen → `references/draw-mockups.md`.
 - **HTML preview**: colour, shade, density, elevation, type weight, spacing feel → `references/draw-mockups.md`.
 
-**ASCII first, especially for layout.** Settle structure in a frame, then dress it in colour. Colour first puts two undecided things in one artifact, and the reaction cannot be attributed to either.
+**ASCII first, especially for layout.** Settle structure in a frame, then dress it in colour. Colour first puts 2 undecided things in one artifact, and the reaction cannot be attributed to either.
 
 **Reach for HTML only where ASCII genuinely cannot carry the component.**
 
@@ -27,7 +27,7 @@ Decide this **before** drawing anything. Picking wrong is the most expensive mis
 
 ## How to draw it
 
-Three methods, in order of preference.
+3 methods, in order of preference.
 
 - **Typed directly: 1–2k tokens.** The default, and correct for anything with few moving parts.
 - **A generator, row by row: 2–3k tokens per round.** Build each output row as one string, then join. Right when every row is an independent horizontal slice, which a page mockup is.
@@ -47,11 +47,11 @@ Reach for a generator when the artifact is obviously complex, or when the typed 
 - **Prose first.** Draw only when structure genuinely beats text.
 - **No SVG, no mermaid, no HTML for structure.** ASCII renders instantly everywhere: chat, file, diff. HTML is for the visual dimensions ASCII has no way to express.
 - **One idea per diagram.** Needing a legend means a second idea got in. Split it: an overview carrying the backbone, then a small separate frame per detail, and neither one needs a legend.
-- **Split wherever a connector outruns one screen.** This is the testable form of "keep it small": a line whose two ends never appear together conveys nothing, so where it stops fitting is where the diagram divides.
+- **Split wherever a connector outruns one screen.** This is the testable form of "keep it small": a line whose 2 ends never appear together conveys nothing, so where it stops fitting is where the diagram divides.
 - **Spacious.** Few boxes (~5–6 per idea), a blank line inside boxes between title and content. Cramped is where misalignment happens and cramped is unreadable anyway.
 - **Everything defined above it.** No element appears that the prose didn't already define.
 - **Plain labels.** No internal codes. Label arrows with what actually flows: `play()`, "plain text". An unlabeled arrow is a guess the reader has to make.
-- **The five-second test.** The one idea lands near-instantly, or the diagram failed. Simplify or split.
+- **The 5-second test.** The one idea lands near-instantly, or the diagram failed. Simplify or split.
 - **Never draw a sequence diagram**: lifelines down the page with arrows between them. Draw the exchange as a vertical flow instead, one box per step with the actor named inside it. The user reads the sequence form with difficulty, and that is not an ASCII problem: the SVG version reads no better.
 - **Dynamics go in prose.** Interactions and message flows are short prose steps. When the *direction* of flow is itself the idea, a layered stack with labeled directional arrows carries it.
 
@@ -59,7 +59,7 @@ Reach for a generator when the artifact is obviously complex, or when the typed 
 
 ### Characters: this is not style, it is correctness
 
-Three tiers, each set by drawing the character and looking at it.
+3 tiers, each set by drawing the character and looking at it.
 
 **Exact, safe anywhere:**
 
@@ -70,13 +70,13 @@ Three tiers, each set by drawing the character and looking at it.
 
 **Slightly over one cell: `◆ ◇ ☰ ❚ ⇆ ↻ ◁ ▷`. One per row at most, never several in a row, never in a border.** Each advances a fraction past its own cell, so one shifts nothing and twenty shift a whole column. A frame survives them only while every row carries the same count, which no frame guarantees.
 
-**Broken: `▶ ◀ ∣ ❘ ❙ ⏸ ⏵`.** Each pushes every column to its right. Use `►` and `◄` in place of `▶` and `◀`. `⏸` and `⏵` are the subtle pair: aligned in a terminal, visibly off in a file. A diagram is read in all three places, chat, file and diff, so terminal-only is out.
+**Broken: `▶ ◀ ∣ ❘ ❙ ⏸ ⏵`.** Each pushes every column to its right. Use `►` and `◄` in place of `▶` and `◀`. `⏸` and `⏵` are the subtle pair: aligned in a terminal, visibly off in a file. A diagram is read in all 3 places, chat, file and diff, so terminal-only is out.
 
 Widgets are ASCII only: `[x]` `[ ]` `(*)` `( )` `>` `v`.
 
 **Never predict a character from a property.** Width class, Unicode category and emoji capability all failed as predictors: `∣` matches `│` on every one of them and breaks anyway, and `▪` carries an emoji property and lands exact. **A character is safe once it has been drawn and looked at, and not before.** Using one that is not listed above means showing it to the user on its own first.
 
-**Padding cannot rescue a wide character.** The renderer advances by each character's real width, which is fractional: a substituted one advances about 1.4 cells, and no whole number of spaces cancels four tenths. Tried, and it makes the frame worse.
+**Padding cannot rescue a wide character.** The renderer advances by each character's real width, which is fractional: a substituted one advances about 1.4 cells, and no whole number of spaces cancels 4 tenths. Tried, and it makes the frame worse.
 
 ### Connectors
 
@@ -191,8 +191,8 @@ Proven layouts. Pick one, combine several, or invent a better-fitting layout: th
 
 **When:** a lifecycle, a state machine, a loop with escapes: a spine of ordered steps where some steps jump back.
 **How:** the spine runs straight down the middle; each return path gets its own column to the right, labelled at both ends; containers group the phases.
-**Failure:** a return path taller than the screen. That is where it splits into two diagrams.
-**At scale:** `references/hooks-lifecycle.md`: 113 × 97, a 15-step spine, two nested containers, three return paths.
+**Failure:** a return path taller than the screen. That is where it splits into 2 diagrams.
+**At scale:** `references/hooks-lifecycle.md`: 113 × 97, a 15-step spine, 2 nested containers, 3 return paths.
 
 ```
 ┌─  EACH TURN  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
@@ -224,8 +224,8 @@ core/
 
 ### Side-by-side
 
-**When:** comparing two options or states.
-**How:** two columns, same skeleton so the differences pop; verdict labels up front so the headers alone tell the story.
+**When:** comparing 2 options or states.
+**How:** 2 columns, same skeleton so the differences pop; verdict labels up front so the headers alone tell the story.
 **Failure:** if the columns are just attribute rows, nothing is being drawn. Use a list.
 
 ```
@@ -237,7 +237,7 @@ core/
 
 ### Rarer forms
 
-- **A schedule, a data model, or two representations that must map onto each other** → `references/rarer-forms.md`, which defines and draws all three.
+- **A schedule, a data model, or two representations that must map onto each other** → `references/rarer-forms.md`, which defines and draws all 3.
 - **A screen, or anything floating over one** → `references/draw-mockups.md`.
 
 ## Structure: adapt it, don't fill it in

@@ -37,13 +37,13 @@ Nothing here runs by default. Pick what the next session will trip over.
 
 **The destination decides the sections**, because it decides what already exists to be skipped. Drop any section nothing fills.
 
-### The `flow-open` block
+### The `open` block
 
 `/start` runs `flow get --files`, which finds this block and loads every file it names **before the session's first turn**. A path here is not a reading list. It is content, already in context when the reader wakes up.
 
 Write it fenced, inside `## State` on a ticket and near the top of a `handoff.md`:
 
-```flow-open
+```open
 plan.md
 src/parser.js:40-120   # where step 4 stopped
 ```
@@ -59,14 +59,14 @@ A subagent gets no block. It reads its prompt and never runs `/start`.
 
 ### In a ticket: `## State`
 
-Short by construction. Four other files already carry most of it, and none of it gets restated here:
+Short by construction. 4 other files already carry most of it, and none of it gets restated here:
 
 - **`plan.md`** holds the steps and which ones landed.
 - **`groundwork/map.md`** holds every decision and its reasoning.
 - **The ticket body** holds why the work exists; `## Done when` holds what finishes it.
 - **`docs/research/<question>.md`** holds the findings.
 
-What is left is what nobody wrote down, under four labels:
+What is left is what nobody wrote down, under 4 labels:
 
 - **Now**: what is half-done, broken, half-applied, or in flight this second.
 - **Found**: what cost real effort to learn and lives in no file: the version that turned out to matter, the exact payload, the trap already hit.
@@ -75,9 +75,9 @@ What is left is what nobody wrote down, under four labels:
 
 **`Now` and `Touched` are rewritten whole every time.** Both describe this second, and appending to them stacks up half-finished steps nobody can date.
 
-**`Found` and `Open` are added to, never regenerated.** Both outlive the session that wrote them. A line goes in the moment you learn it, and comes out when it stops being true: a decision closes, or a fact moves to `docs/context/`. Rewriting these two from context is how something learned three hours ago disappears.
+**`Found` and `Open` are added to, never regenerated.** Both outlive the session that wrote them. A line goes in the moment you learn it, and comes out when it stops being true: a decision closes, or a fact moves to `docs/context/`. Rewriting these two from context is how something learned 3 hours ago disappears.
 
-**How many fill depends entirely on the work, and most of the time it is two.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. Groundwork fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all four and runs long**, because `/debug` writes nothing durable while it hunts.
+**How many fill depends entirely on the work, and most of the time it is 2.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. Groundwork fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all 4 and runs long**, because `/debug` writes nothing durable while it hunts.
 
 A fat state section on a build ticket means the plan carries too little.
 
@@ -95,12 +95,12 @@ No ticket, so nothing else holds anything and this document carries all of it:
 
 ### Handing a job over: a child ticket's body
 
-Every section above, written into the ticket body instead of a file, plus four that exist because someone is waiting on an answer:
+Every section above, written into the ticket body instead of a file, plus 4 that exist because someone is waiting on an answer:
 
 - **What turns on the answer**: the decision waiting on it, and what changes if it comes back no. Without this, a marginal result reads like a decisive one.
 - **What done looks like**: written before the work starts, as the ticket's `## Done when`. Criteria written afterwards match whatever came out.
 - **What to produce**: the artifact and its shape: the questions it answers, in order.
-- **What to say back**: the two or three sentences this session needs to carry on.
+- **What to say back**: the 2 or 3 sentences this session needs to carry on.
 
 **A bug has no finished check yet.** Nobody has built the failing check, and `/debug` refuses to name a cause before one fails in front of it. Write the observable instead: the failure as seen, and what not seeing it would look like.
 
@@ -112,7 +112,7 @@ Every section above, written into the ticket body instead of a file, plus four t
 
 You pay once, in a context that is ending. The reader pays out of the context it needs for the work, and it cannot tell a file it must study from one it must glance at, so it reads all of them. A path in prose asks the reader to spend that context. A path in the block spends it for them.
 
-Two entries always cost more than they give:
+2 entries always cost more than they give:
 
 - **A file whose content you already wrote out here.** The reader reads both and cannot tell which one is current.
 - **A file the session must not act on.** Where a path exists only to stop the reader doing something, write that sentence and drop the path.

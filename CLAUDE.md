@@ -111,9 +111,9 @@ Two rules from it fire here constantly:
 
 ## Authoring a skill
 
-One folder per skill, filed under a group: `skills/phases/`, `session/`, `knowledge/`, `tools/`, `stack/`, `dev/` or `drafts/`. To add one, create `<group>/<name>/SKILL.md` with `name` and `description` frontmatter. Every skill outside `drafts/` installs, read off the tree. `flow install` skips `drafts/`, so a skill ships by being moved out of it.
+One folder per skill, filed under a group: `skills/phases/`, `tools/`, `stack/`, `dev/` or `drafts/`. To add one, create `<group>/<name>/SKILL.md` with `name` and `description` frontmatter. Every skill outside `drafts/` installs, read off the tree. `flow install` skips `drafts/`, so a skill ships by being moved out of it.
 
-**`skills-docs-move-together`** `docs/dev/skills.md` is the long form, and `skills/knowledge/file-findings/references/write-skills.md` says the same for a skill authored inside a project. Edit both in the same pass whenever a rule there changes.
+**`skills-docs-move-together`** `docs/dev/skills.md` is the long form, and `skills/tools/file-findings/references/write-skills.md` says the same for a skill authored inside a project. Edit both in the same pass whenever a rule there changes.
 
 The decisions neither page carries:
 

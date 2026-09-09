@@ -22,16 +22,18 @@ Never build a child's work in its parent. `flow ls --parent t047` lists them; th
 
 **The status says where the work stopped; the artifact says whether that phase finished.** Read the artifact, then move the ticket.
 
-**`/start` already moved it only where the user named the status**, and a line like `planning → building` above says so. Take the row for where it landed and leave the status alone.
+**`/start` already moved it only where the user named the status**, and a line like `planning → building` above says so. Take the row for where it landed.
 
 - **`todo`**: the ticket arrived decided, cut from a spec → `flow plan t047`, then Phase 2
 - **`planning`**: open `plan.md`. Written and approved → `flow build t047`, then Phase 3. Otherwise finish writing it
 - **`building`**: open `plan.md`. Every step `[x]` → Phase 4. Otherwise resume at the first `[ ]`; `flow t047` prints the count
 - **`review`**: the work is with the user, and their notes start `### When the user sends review notes`
 
-Then read the ticket body, its `## State` where one exists, and its `groundwork/map.md`.
+Then read the ticket body and its `## State` where one exists.
 
-**A ticket born in conversation has no `## Done when`**: `flow new` leaves the template's comment where the check belongs. Write the check here and show it with the plan. A ticket cut from a spec arrived with one.
+**A `map:` count short of its own total is groundwork that never closed.** Say which questions are open, run `flow groundwork t047`, and hand it to `/groundwork`. No `map:` line is normal: a ticket cut from a spec never had a map.
+
+**A ticket born in conversation often has no `## Done when`**: `--body` replaces the template outright, so whether the section exists depends on who wrote it. No check → write it here and show it with the plan. A ticket cut from a spec arrived with one.
 
 ## Phase 2: write the plan
 
@@ -163,7 +165,7 @@ Read the whole list before touching anything. **Anything you do not understand s
 
 Check each note against the code. A note that would break something gets said so, once, with the reason.
 
-**Then `flow build t047`, before the first edit.** Left in `review` while its code is being rewritten, the ticket reports itself as waiting on the user, and every ticket depending on it reads as ready, so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps; the old ones are all `[x]` and record none of it.
+**Then `flow build t047`, before the first edit.** A ticket left in `review` while its code is being rewritten reports itself as waiting on the user. Every ticket depending on it then reads as ready, so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps; the old ones are all `[x]` and record none of it.
 
 Then `flow done t047`, once the user says it is done.
 

@@ -132,6 +132,7 @@ function show(ticket, tickets, root) {
     kids.length
       ? `children:   ${progressOf(ticket, tickets)} done, ${kids.map((k) => `${k.id} (${k.data.status})`).join(', ')}`
       : null,
+    mapLine(ticket),
     planLine(ticket),
     reportsLine(ticket),
     ticket.data.closed ? `closed:     ${ticket.data.closed}` : null,
@@ -185,6 +186,19 @@ function pickupLine(ticket) {
  * true. It stays out of `ls` and `tree`, where `status` already answers what
  * the count was standing in for.
  */
+/**
+ * The map, and how many of its questions are answered.
+ *
+ * Here for the reason the plan count is here: it is the artifact deciding
+ * whether a phase finished, and every skill that is not `/groundwork` needs the
+ * count rather than the file. One printed line spares them the read, and the
+ * one that does need the file opens it anyway.
+ */
+const mapLine = (ticket) => {
+  const q = store.mapQuestions(ticket);
+  return q ? `map:        groundwork/map.md   ${q.done}/${q.total} answered` : null;
+};
+
 const planLine = (ticket) => {
   if (!store.hasPlan(ticket)) return null;
   const steps = store.planSteps(ticket);

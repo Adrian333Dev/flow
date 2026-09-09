@@ -13,7 +13,7 @@ description: Reads what an external tool actually does, from its own docs and so
 
 ## Look for one that already exists
 
-**Search for a skill, plugin or MCP server for this tool before reading a line of its documentation.** Most of what exists is external, and a skill written by the people who build the tool is worth more than the docs it was made from.
+**Search for a skill, plugin or MCP server for this tool before reading a line of its documentation.** Most of what exists is external. A skill written by the people who build the tool is worth more than the docs it was made from.
 
 1. **Search outward first:** the web, GitHub, the plugin marketplaces. Name the tool and the words `skill`, `plugin` and `mcp`.
 2. **Then Flow's own tree.** `flow skills ls --hidden` lists what this session is not being shown, which is the only part worth checking, and `--group stack` narrows it to the skills built around one tool.
@@ -24,7 +24,7 @@ Adopting one is where a Flow `stack/` skill starts. Work with it, then write our
 
 ## How deep to go
 
-Four levels. Match depth to the work, escalate when the current level cannot answer, and never start higher than needed. Enough for a confident answer at the current level → stop and answer.
+4 levels. Match depth to the work, escalate when the current level cannot answer, and never start higher than needed. Enough for a confident answer at the current level → stop and answer.
 
 1. **Targeted question**: one API, one config flag, "is X still maintained?" → Context7 or a single doc-page fetch. Inline, quick.
 2. **Working against a tool**: planning or building a feature on it → fetch its current docs by the llms.txt route below, cache them, read the relevant pages before freezing any API into a spec or plan.
@@ -33,7 +33,7 @@ Four levels. Match depth to the work, escalate when the current level cannot ans
 
 ## Getting current docs: the llms.txt route
 
-Two files most tools publish: **`llms.txt`**, an index linking to per-page markdown docs, and **`llms-full.txt`**, the whole docs in one file, often megabytes. These are the most complete and current machine-readable docs there are. Past level 1, prefer them over Context7, which lags.
+2 files most tools publish: **`llms.txt`**, an index linking to per-page markdown docs, and **`llms-full.txt`**, the whole docs in one file, often megabytes. These are the most complete and current machine-readable docs there are. Past level 1, prefer them over Context7, which lags.
 
 Fetch with the bundled script, run from the project root:
 
@@ -57,9 +57,9 @@ Using what came back:
 
 **`Explore` is the agent.** Claude Code ships it read-only and built for reading. Where the job has to run something before it can read, `general-purpose` does the same work with the full tool set.
 
-**Dispatch on how much there is to read.** The level never decides it. A cloned codebase, megabytes of cached docs, a question that means opening twenty files: that much reading buries the session it lands in. Send it out and read the findings. A page or two, one grep for a signature, a file whose name you already have: read it here. A dispatch costs a brief, a wait, and everything the subagent saw but never wrote down.
+**Dispatch on how much there is to read.** The level never decides it. A cloned codebase, megabytes of cached docs, a question that means opening 20 files: that much reading buries the session it lands in. Send it out and read the findings. A page or two, one grep for a signature, a file whose name you already have: read it here. A dispatch costs a brief, a wait, and everything the subagent saw but never wrote down.
 
-**The brief is a handoff**: `/handoff` writes it, delivered in the subagent's prompt rather than as a file. Three things it carries that belong to reading specifically:
+**The brief is a handoff**: `/handoff` writes it, delivered in the subagent's prompt rather than as a file. 3 things it carries that belong to reading specifically:
 
 - **The sources**: cache paths under `tmp/references/<tool>/`, the clone path, or URLs to fetch.
 - **The question**, precisely stated, with the constraints that shape the answer: stack, versions, decisions already locked.
@@ -92,7 +92,7 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 `docs/research/<question>.md`: **flat, and shared by the whole project.** Never inside a ticket or a groundwork folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds.
 
-**A question never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent.
+**A question reading can answer never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a `prototype` ticket, and `/groundwork` cuts it.
 
 Level 1 answers inline, no file. Level 2 and up always writes one: the synthesis has to survive compaction.
 

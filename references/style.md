@@ -45,15 +45,16 @@ Put the highest-stakes rules first or last. Material in the middle of a long fil
 
 ## 4. Branching a step
 
-A step whose content changes with the situation. Three kinds, each with its own shape.
+A step whose content changes with the situation. 4 kinds, each with its own shape.
 
 **Write the base first.** Put what is true in every case above the first case. Never repeat it inside one.
 
 **Never branch for examples alone.** A case that only swaps the nouns is not a case. Write the instruction in domain-free words, then give examples from more than one domain. Branching for examples doubles the file and adds no instruction.
 
 - **Pick one target, then the step ends** → a `→` list, one line per case, every case covered. `## Capture` in `home/CLAUDE.md` is the model.
-- **Extra material some runs need** → `### When <situation>` below the base. These add to the base and to each other, so one run hits none and the next hits four. Name the situation that fires each.
-- **A condition that holds for the whole run** → state it once at the top, never per step. Asked in five places, one question gets five different answers. Every reader also reads every path, on every run.
+- **Extra material some runs need** → `### When <situation>` below the base. These add to the base and to each other, so one run hits none and the next hits 4. Name the situation that fires each.
+- **A condition that holds for the whole run** → state it once at the top, never per step. Asked in 5 places, one question gets 5 different answers. Every reader also reads every path, on every run.
+- **How the run started, before any step runs** → an entrance list at the top of the file. The reader already knows their case, so a label is recognition and never a test. Name what they can see: the words they typed, the command that ran, what is on disk. A label naming a state they would have to work out matches nothing. Put what every entrance shares above the list, and leave only the difference on each line.
 
 **One case is a sentence. Two or more is a list.**
 

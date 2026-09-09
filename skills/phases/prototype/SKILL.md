@@ -9,7 +9,7 @@ Code written to answer one named question, then deleted.
 
 **Naive on purpose.** No tests, no error handling, no abstractions. The real build reads the prototype as a reference and starts again: nothing written here is ever promoted.
 
-**Two sessions.** Groundwork that hits a question talking cannot settle cuts a child ticket typed `prototype`, carrying the question, and waits. A fresh session picks that ticket up and builds. **Never do both in one session**: the session that invented the question will accept a vague one, because it already knows what it meant.
+**2 sessions.** Where talking cannot settle a question, groundwork cuts a child ticket typed `prototype` carrying it, then waits. A fresh session picks that ticket up and builds. **Never do both in one session**: the session that invented the question will accept a vague one, because it already knows what it meant.
 
 **Never start a prototype nobody asked for.**
 
@@ -23,10 +23,10 @@ Code written to answer one named question, then deleted.
 
 ## What the ticket must carry
 
-Groundwork writes these into the ticket body. The building session checks they arrived, and stops if they did not. Handed over without a ticket, it is the same three wherever the handoff put them.
+Groundwork writes these into the ticket body. The building session checks they arrived, and stops if they did not. Handed over without a ticket, it is the same 3 wherever the handoff put them.
 
-- **The question, in one sentence.** Three at most: past three it is a project.
-- **Pass and fail**, for a question that can come out false. What each answer means, and what each one changes. Skip a question whose two answers lead to the same decision.
+- **The question, in one sentence.** 3 at most: past 3 it is a project.
+- **Pass and fail**, for a question that can come out false. What each answer means, and what each one changes. Skip a question whose 2 answers lead to the same decision.
 - **The comparison plan**, for a question only the user can judge. What is being compared, and how many variants: **never one**, which gets approved by default. Pass and fail do not exist here; the user's reaction is the result.
 
 `/handoff` covers everything else a picked-up job needs: what turns on the answer, what is already set up, what was found, what to say back. Never restate any of that here.
@@ -39,7 +39,7 @@ Groundwork writes these into the ticket body. The building session checks they a
 
 Prove the machinery runs once, on the simplest input, before asking any question of it. Name a fallback route in advance.
 
-Most prototypes die here rather than in the test. The `tts-lab` harness needed a device override, an absolute path for a module its worker thread could not resolve, and a launch directory the package hard-codes: three traps, all in setup, all found before the first test ran.
+Most prototypes die here rather than in the test. The `tts-lab` harness needed a device override, an absolute path for a module its worker thread could not resolve, and a launch directory the package hard-codes: 3 traps, all in setup, all found before the first test ran.
 
 **Where the approach is not obvious, confirm it in one message first:** what gets built, which library and version, the fallback route if the machinery will not run, and how many variants a judged question needs. Then build. Nothing in that exchange reaches disk: the ticket stays in `building` throughout, and `## State` in `ticket.md` carries what was agreed if the round is interrupted.
 
@@ -57,7 +57,7 @@ Build nothing that serves a second purpose. Cut tests, error handling past runna
 
 **`reports/<question>.md` in the ticket folder**, named after what it answers, one file per question. No ticket → `REPORT.md` beside the code.
 
-- **Measured** → top-line answers first, in the words the question used. Give the numbers. A verdict alone rots: "timestamps are fine" means nothing in six months, "ratio 0.83 to 1.01, no desync" still does. Keep the raw output beside it and cite the code by its `protos/` path.
+- **Measured** → top-line answers first, in the words the question used. Give the numbers. A verdict alone rots: "timestamps are fine" means nothing in 6 months, "ratio 0.83 to 1.01, no desync" still does. Keep the raw output beside it and cite the code by its `protos/` path.
 - **Judged** → show the variants. Attach no recommendation until the user has looked.
 
 Then say the answers out loud, in the words the question asked for, and stop there. `flow review <id>` hands it over, and `flow done <id>` closes it once the user accepts the answer.

@@ -87,6 +87,13 @@ function main() {
 
   const loaded = scorecard.loadedIn(call.session_id);
   const project = call.cwd ? path.basename(call.cwd) : '';
+
+  // Which model wrote the line matters as much as which rule it broke, and a
+  // count is impossible to backfill. PreToolUse carries the effort level and
+  // not the model: `model` reaches a hook on SessionStart alone, where it can
+  // be omitted and where a later /model switch is invisible. Recording effort
+  // now costs nothing; the model waits for a sensor that survives the switch.
+  const effort = call.effort ? call.effort.level : null;
   const warnings = [];
   const blocks = [];
 
@@ -108,7 +115,7 @@ function main() {
       continue;
     }
 
-    scorecard.append(call.session_id, { kind: 'result', id: c.id, tier: c.tier, since: c.since, project, ok });
+    scorecard.append(call.session_id, { kind: 'result', id: c.id, tier: c.tier, since: c.since, project, effort, ok });
     if (ok || c.tier === 'measure') continue;
 
     // The agent already holds the rule when its file is in context, so the id

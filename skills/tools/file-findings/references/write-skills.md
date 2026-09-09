@@ -4,7 +4,7 @@ Read this before creating or restructuring a skill. Style lives in `~/.flow/refe
 
 ## Before writing one
 
-- **One job, sayable in a sentence.** Two sentences means two skills.
+- **One job, sayable in a sentence.** 2 sentences means 2 skills.
 - **Nothing already covers it.** Something close → extend that skill. A second skill on one subject splits the knowledge, and neither half is complete after that.
 
 ## Where it lives
@@ -12,18 +12,16 @@ Read this before creating or restructuring a skill. Style lives in `~/.flow/refe
 **Every skill lives once, in the Flow clone**, inside the group folder that files it. The group says where the file sits and decides nothing else.
 
 - **`phases/`**: what you are doing, one at a time
-- **`session/`**: opening a session, and closing one
-- **`knowledge/`**: the workflow learning from what happened, and holding itself to what it learned
-- **`tools/`**: something you do inside a phase. It starts, produces something, finishes
+- **`tools/`**: what you reach for around the work. It starts, produces something, finishes
 - **`stack/`**: what you are touching
 - **`dev/`**: building Flow itself
 - **`drafts/`**: a skill being written. `flow install` skips this group, so start every new skill here and graduate it with `mv`
 
 **Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. There is no list of names to keep in step with the tree. A skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it.
 
-**What a session is shown is decided by group, in `skillOverrides`.** `phases/`, `session/`, `knowledge/`, `tools/` and `dev/` are on. `stack/` is off, and a project turns on the one it needs. The machine's list ships in `home/settings.json`, and a project overrides it key by key in its own `.claude/settings.json`.
+**What a session is shown is decided by group, in `skillOverrides`.** `phases/`, `tools/` and `dev/` are on. `stack/` is off, and a project turns on the one it needs. The machine's list ships in `home/settings.json`, and a project overrides it key by key in its own `.claude/settings.json`.
 
-Two values, keyed by skill name:
+2 values, keyed by skill name:
 
 - **`on`**: the name and the description. What a skill gets when nothing names it
 - **`off`**: the model is shown nothing and `/name` refuses
@@ -52,7 +50,7 @@ One file until one file stops working.
 
 Later runs trust these files without re-checking them, so a project fact filed here gets read as a fact about the subject. Date every entry and cite what proved it.
 
-**Once a tactic appears in two files, promote it** into the shared file both then point at. Prune on the same pass, because a line the agent would follow by default says nothing.
+**Once a tactic appears in 2 files, promote it** into the shared file both then point at. Prune on the same pass, because a line the agent would follow by default says nothing.
 
 ## Frontmatter
 
@@ -84,7 +82,7 @@ disable-model-invocation: true                  # typed-only skills
 
 - the same thing written twice → one shared file, both point at it
 - a rarely-read reference crowding `SKILL.md` → move it to `references/`
-- two jobs in one skill → split it
+- 2 jobs in one skill → split it
 - grown by accretion → rewrite it, never patch it
 
 **Deleting a skill is the user's call.** Discuss it, never unprompted.

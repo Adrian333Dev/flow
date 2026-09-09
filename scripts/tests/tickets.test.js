@@ -280,3 +280,32 @@ test('flow file stamps a closed ticket, and --force re-stamps', () => {
   assert.strictEqual(forced.code, 0, forced.stderr);
   assert.match(forced.stdout, /filed/);
 });
+
+test('flow <id> counts the map questions, and an untouched map has none', () => {
+  const dir = project('tickets-map-count');
+
+  const created = flow(dir, ['new', 'Split the parser']);
+  assert.strictEqual(created.code, 0, created.stderr);
+  const [t] = ticket(dir);
+
+  // The template ships its example inside an HTML comment. A ticket nobody has
+  // opened has no answered questions and no unanswered ones either, so the line
+  // stays away rather than reading 1/4.
+  const fresh = flow(dir, ['get', t.id]);
+  assert.strictEqual(fresh.code, 0, fresh.stderr);
+  assert.doesNotMatch(fresh.stdout, /^map:/m, 'an untouched map is not a count');
+
+  write(dir, `.flow/tickets/${t.folder}/groundwork/map.md`, [
+    '# Split the parser: groundwork',
+    '',
+    '- [x] 0: Where the seam goes',
+    '  - [x] 0.0: does the tokenizer own whitespace?',
+    '  - [ ] 0.1: what happens to the error positions?',
+    '- [ ] 1: is the builder streaming?',
+    '',
+  ].join('\n'));
+
+  const worked = flow(dir, ['get', t.id]);
+  assert.strictEqual(worked.code, 0, worked.stderr);
+  assert.match(worked.stdout, /^map: +groundwork\/map\.md +2\/4 answered$/m);
+});

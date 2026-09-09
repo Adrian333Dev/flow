@@ -5,7 +5,7 @@ description: Reviews how Flow performed. Finds where rules failed, where frictio
 
 # Flow review
 
-Two shapes. A clear failure gets recorded. A suspected flaw gets investigated first.
+2 shapes. A clear failure gets recorded. A suspected flaw gets investigated first.
 
 ## Clear failure
 
@@ -30,7 +30,7 @@ Friction hit twice, a rule fought the work, or a pattern looks wrong without a c
 
 Both destinations are global, reachable from any project.
 
-- **Study case** (`~/.flow/study-cases/`): a failure with an artifact. Written in two stages: the artifact and one line now, the analysis later.
+- **Study case** (`~/.flow/study-cases/`): a failure with an artifact. Written in 2 stages: the artifact and one line now, the analysis later.
 - **Workflow note** (`~/.flow/workflow-notes.md`): friction, a gap, a pattern. One dated line.
 
 Neither shape derails the current work. Record and return.

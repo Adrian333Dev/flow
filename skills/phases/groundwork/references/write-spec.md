@@ -57,7 +57,7 @@ Then only what a branch actually covered. Most specs use 3 or 4 of these, and a 
 - **What it competes against**, and why this holds up. The survey itself belongs in `docs/research/`.
 - **The glossary**: every term invented here.
 
-**Every behavior carries a mark**, one of four:
+**Every behavior carries a mark**, one of 4:
 
 - **V1**: ships first. The only mark tickets are created from.
 - **next**: committed, not yet.
@@ -136,4 +136,4 @@ Same steps, scoped to what changed.
 
 Reasoning that outlives the build goes to `decisions.md`. Everything else stays in `map.md`. `product.md` says what the thing **is**, and `tech.md` says how it is **built**.
 
-**No fact in two files.** One live copy, a pointer everywhere else. A decision resting on evidence (a research report, a prototype, a drawing) names it **inline, on that decision**, plus a short reference list at the end of the file. No global index.
+**No fact in 2 files.** One live copy, a pointer everywhere else. A decision resting on evidence (a research report, a prototype, a drawing) names it **inline, on that decision**, plus a short reference list at the end of the file. No global index.

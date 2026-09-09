@@ -24,7 +24,7 @@ One ticket per unit of work: something a session can pick up, plan and build wit
 
 ## Writing each one
 
-Create and fill in one command, never create, then edit:
+Create and fill in one command. Never create, then edit:
 
 ```bash
 flow new "Title" --type feature --deps t045 --body - <<'EOF'

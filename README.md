@@ -59,7 +59,7 @@ Review runs two passes over the same diff: against the plan (every step delivere
 
 `flow` is a full CLI that manages work across sessions. It tracks status, dependencies, parent/child hierarchy, and five ticket types (feature, issue, chore, topic, prototype). Each type walks a subsequence of the same status line (`todo → groundwork → planning → building → review → done`). The system refuses what would break the graph: picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents.
 
-[`/start`](skills/session/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/groundwork`, a feature at `planning` goes to `/execute`, an issue goes to `/debug`, a prototype goes to `/prototype`.
+[`/start`](skills/tools/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/groundwork`, a feature at `planning` goes to `/execute`, an issue goes to `/debug`, a prototype goes to `/prototype`.
 
 Key commands:
 
@@ -75,13 +75,13 @@ flow audit read         query session history from indexed transcripts
 
 Status commands are named for where the ticket lands: `flow groundwork t047`, `flow plan t047`, `flow build t047`, `flow review t047`, `flow done t047`.
 
-The handoff (`/handoff`) writes what the next session would get wrong without it: what is half-done, what cost effort to learn, decisions half-made, files changed outside the plan. `flow open` assembles the ticket, its handoff state, and every file named in the `flow-open` block into a context the next session can act on immediately. Sessions do not start from zero.
+The handoff (`/handoff`) writes what the next session would get wrong without it: what is half-done, what cost effort to learn, decisions half-made, files changed outside the plan. `flow get --files` assembles the ticket, its handoff state, and every file named in its `open` block into a context the next session can act on immediately. Sessions do not start from zero.
 
 ## The workflow learns
 
 Capture writes everything worth keeping as it surfaces: preferences, patterns, constraints, corrections, things that cost effort to learn. Everything with no obvious home goes to the inbox, raw and unshaped.
 
-[`/file-findings`](skills/knowledge/file-findings/SKILL.md) drains the inbox and routes each item to its destination by scope. A tool quirk goes to that tool's skill. A broad principle goes to a high-level rule. A user preference goes to the profile. Several findings on one subject that no skill covers are what earns a new skill.
+[`/file-findings`](skills/tools/file-findings/SKILL.md) drains the inbox and routes each item to its destination by scope. A tool quirk goes to that tool's skill. A broad principle goes to a high-level rule. A user preference goes to the profile. Several findings on one subject that no skill covers are what earns a new skill.
 
 The skills and rules are not static. They accumulate what the work teaches, and the next session loads those changes automatically.
 
@@ -91,7 +91,7 @@ Three skills fire inside any phase:
 
 - [`/research`](skills/tools/research/SKILL.md) covers any topic: a library API, a design pattern, a domain the user barely knows. It fetches docs through the llms.txt route (most tools publish one), caches them locally under `tmp/references/`, and reads from cache on future runs so the same docs are never fetched twice. Four levels matched to depth: a single doc-page fetch, full docs cached before a plan freezes an API, a source clone for deep customization, or a landscape survey delegated to external LLMs (including free ones) in their own sessions.
 - [`/visualize`](skills/tools/visualize/SKILL.md) picks the medium before drawing: prose, a list, ASCII, an ASCII frame for screen layout, or an HTML preview for color and typography. ASCII first, because it costs a fraction of what an HTML round costs and renders inline. The skill carries a pattern vocabulary (layered stacks, pipelines, flows with return paths, trees, side-by-sides), correctness mechanics (collision detection, equal row length, label fitting), and references for [screen mockups](skills/tools/visualize/references/draw-mockups.md), [large-scale diagrams](skills/tools/visualize/references/hooks-lifecycle.md) (113 columns, 97 rows), and a [full-page YouTube mockup](skills/tools/visualize/references/youtube-page.md) at real proportion.
-- [`/handoff`](skills/session/handoff/SKILL.md) writes what the next session needs to carry on. It is what makes the ticket system work across sessions.
+- [`/handoff`](skills/tools/handoff/SKILL.md) writes what the next session needs to carry on. It is what makes the ticket system work across sessions.
 
 Two more fire on a situation:
 
@@ -116,9 +116,9 @@ A pair of hooks (PreToolUse and PostToolUse on the Agent tool) capture the full 
 
 A skill is installed globally and shared across every project. A project that needs to extend a skill writes `.flow/overlays/<name>.md`, and that content is appended to the skill's body when it loads. The global skill stays untouched, and the extension is scoped to the project that wrote it.
 
-### Flow-open pre-loading
+### Pre-loaded files
 
-A `flow-open` block in a ticket or handoff names files and line ranges. When `flow open` loads the ticket, those files arrive in context before the session's first turn. The next session does not have to find or open anything: the files are already there.
+An `open` block in a ticket or handoff names files and line ranges. When `flow get --files` loads the ticket, those files arrive in context before the session's first turn. The next session does not have to find or open anything: the files are already there. The block is `util fs open`'s format, so any document can carry one.
 
 ### The audit system
 
@@ -163,7 +163,7 @@ Other differentiators:
 
 - **The workflow improves itself.** Every session's findings get filed back into the skills and rules. The alternatives ship a fixed set of skills that update when the author ships a new version.
 - **Enforcement is at the tool level.** The guard intercepts commands before they execute. Permission denials block tools at the settings level. The alternatives rely on the agent following instructions in the prompt.
-- **State survives between sessions.** The ticket CLI, the handoff, and flow-open pre-loading carry context forward. The alternatives start fresh every session (mattpocock/skills integrates with issue trackers, but does not pre-load context or carry handoff state).
+- **State survives between sessions.** The ticket CLI, the handoff, and pre-loaded files carry context forward. The alternatives start fresh every session (mattpocock/skills integrates with issue trackers, but does not pre-load context or carry handoff state).
 - **One global install serves every project.** Skills, rules, preferences, and accumulated knowledge are shared. A project extends the base with overlays and local rules. The alternatives install per project or require copying files.
 - **Subagent work is verified by diffs, not by trust.** The snapshot system proves what a subagent changed. The alternatives delegate work and trust the report.
 - **Cost optimization is a design principle.** ASCII over HTML, research levels, delegation to cheaper models, merge over parallel reads. The alternatives do not optimize for token cost.
@@ -174,7 +174,7 @@ Other differentiators:
 |---|---|---|---|---|
 | Full project lifecycle | Idea through build, review, and filing | Brainstorming through shipping, each skill independent | /spec through /ship, checklists per step | Composable skills, no pipeline |
 | Start from any point | Yes, any phase | Each skill invoked independently | Each command invoked independently | Each skill invoked independently |
-| Cross-session state | Ticket CLI, handoffs, flow-open | No built-in state management | No built-in state management | Issue tracker integration |
+| Cross-session state | Ticket CLI, handoffs, pre-loaded files | No built-in state management | No built-in state management | Issue tracker integration |
 | Self-improving | Capture and file-findings loop | No | No | No |
 | Enforcement | Hook-level guard, git locking, permissions | SessionStart hook | No | No |
 | Subagent verification | Snapshot diffs | No | No | No |

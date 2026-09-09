@@ -27,7 +27,7 @@ There are no modes. Any run, any size, routes what it decided, often to more tha
 - a durable fact about the project → `docs/context/<subject>.md`
 - decided but not now, and anything else that dies with the build → the map itself
 
-**Groundwork lives where the thinking happens**: inside its ticket, or in `.flow/groundwork/<slug>/`.
+**Groundwork lives where the thinking happens**: inside its ticket, in `.flow/groundwork/<slug>/`, or in `~/.flow/groundwork/<slug>/` where there is no project. A global run routes nothing to `docs/`, because there is no product to hold a spec.
 
 ## Tickets
 
@@ -47,16 +47,22 @@ There are no modes. Any run, any size, routes what it decided, often to more tha
 
 Pickup is where a ticket's shape gets decided, and it is the one real decision in the system. `/start` walks it: it routes on `type:` and `status:`, and nothing else happens there. **The ticket does not move at pickup**, the skill that takes it writes the status, after opening the phase's own artifact. `/groundwork` settles what the ticket is; `/execute` plans, builds and reviews it.
 
+**The artifact decides the phase, and the status is corrected to match.** A status is a claim a command wrote. `map.md`, `plan.md` and the hunt in `## State` are what the work left behind, so the artifact wins wherever the two disagree. Every phase skill opens its own artifact first, says the disagreement out loud, and writes the correcting command. Evidence that reads both ways is a question for the user, never a guess.
+
+**An `open` block loads a ticket's files before the session's first turn.** `/handoff` writes it, fenced, inside `## State`, or near the top of a loose `handoff.md`; `flow get --files` reads it, and `/start` runs that command. **It is content, not a reading list**, which is why arriving at a resumed ticket costs no tool calls. A ticket nobody has worked carries no block, so its artifact gets opened by hand. The format is `util fs open`'s, not Flow's, and works on any document, ticket or not.
+
+**`## References` is not that block.** It is durable: whoever cut the ticket wrote what the build has to respect, and it survives to `done`. `## State` holds work in flight, and both it and its block are deleted at review.
+
 ## Inside each place
 
 **Two roots.** `docs/` holds the project's own documents, and a project that had a `docs/` folder before Flow keeps whatever was in it. `.flow/` holds Flow's working store, out of `docs/` so an existing documentation folder stays the project's, and out of any folder a site generator publishes.
 
-- **`.flow/tickets/t047-slug/`**: `ticket.md` (frontmatter, body, `## References`, `## Done when`, `## State`) and `groundwork/`, both from birth; `plan.md` and `reports/` appear when the work writes them, one report per thing answered, named after what it answers. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `.flow/tickets/archive/`.
+- **`.flow/tickets/t047-slug/`**: `ticket.md` (frontmatter, body, and whichever of `## References`, `## Done when` and `## State` the work has written) and `groundwork/`, both from birth; `intake/` when material for this job gets dropped in; `plan.md` and `reports/` appear when the work writes them, one report per thing answered, named after what it answers. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `.flow/tickets/archive/`.
 - **`.flow/groundwork/<slug>/`**: `map.md`, every branch and decision in one file, plus a detail file per branch that actually grew, plus `design.md` when one was earned. Nothing else.
 - **`docs/spec/`.** `product.md`: every behavior, every version, each marked V1 / next / later / never. `tech.md`: stack, repo layout, components, the decisions that constrain implementation. `decisions.md`: why each call was made, what was refused, what the whole thing bets on, what is still open. Markdown only. More files as the project needs them, and an index once there are more than three.
 - **`protos/`**: at repo root, never under `docs/`; a prototype is runnable code, and `docs/` stops being documentation once code lives in it. Flat, one folder each, named by what it proves. A prototype born in loose groundwork sits in that folder instead, linked from it.
 - **`docs/research/`**: fetched external docs and research writeups. Flat, subject-named, one set for the whole project.
-- **`docs/intake/`**: pre-Flow material, preserved as-is. Mine it; never treat it as current.
+- **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/groundwork` reads it through `references/read-intake.md`.
 - **`docs/context/<subject>.md`**: durable project facts, one file per subject: a verified command, a path, a settled convention.
 - **`.flow/inbox.md`**: raw capture, unshaped, drained by `/file-findings`.
 - **`.flow/handoff.md`**: session state when nothing narrower is live. State belongs to the most specific thing being worked: a ticket → its `## State`; loose groundwork → `handoff.md` in that folder; neither → here.

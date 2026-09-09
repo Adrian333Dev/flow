@@ -16,9 +16,11 @@
  * a warning names the rule id when its file is loaded, and carries the rule's
  * whole text when it is not.
  *
- * Every result records the project it happened in. That answers "violated here
- * and nowhere else", which is the signal that a global rule should have been
- * scoped to one project. It is free to record now and impossible to backfill.
+ * Every result records the project it happened in and the effort level it ran
+ * at. The project answers "violated here and nowhere else", which is the signal
+ * that a global rule should have been scoped to one project. The effort answers
+ * whether a rule holds when the model is thinking less. Both are free to record
+ * now and impossible to backfill.
  *
  * A session that edits nothing writes no file, so every reader here treats a
  * missing one as empty rather than an error.
