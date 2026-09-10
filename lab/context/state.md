@@ -392,6 +392,14 @@ util clone. Already gone exits 0, so re-running is safe. `README.md` § Installi
 `git clone`, because it opened on `node <clone>/util.js install` and never said where the clone came
 from.
 
+**`util` is at 0 em dashes as of 2026-09-11**, 47 sites swept, 31 in the JavaScript and 16 in the 3
+shell commands. The submodule was the one thing the 2026-09-08 sweep of this repo could not reach.
+`util help` and `util git save` both read differently now: the title line is `util: general-purpose
+commands`, and a generated commit message is `wip: 4 file(s) in scripts, docs`. In the same pass
+`util install` stopped ending on "check your PATH" and started printing `command -v util` and
+`hash -r`, after the user installed for real and the typed name did not resolve in the shell that
+was already open.
+
 **`docs/dev/` is written and `docs/manual/` is not, as of 2026-09-01.** 6 pages under `docs/dev/`:
 an index, the repository layout, the two checkouts, the scratch session, the tests, and adding a
 skill. Written to `references/style.md` § 10, and deliberately limited to what is locked: the
