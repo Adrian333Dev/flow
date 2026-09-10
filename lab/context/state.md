@@ -429,6 +429,34 @@ deliberately brittle here and would be wrong for a dispatched command, whose out
 own. `tests/util.test.js` spells out `shown` and `forShell` itself rather than importing them from
 `lib/sources`, because an expectation the code under test computed cannot catch that code being wrong.
 
+**A command's header is user documentation, enforced 2026-09-11.** `--help` prints the file's own
+header comment, so provenance printed to users: `util fs tree --help` closed on `Was ptree in the
+Flow repo until 2026-08-30` plus a sentence about `../../lib/describe.js`. `commands/git/work.js`
+had already solved it, holding its history in a second comment block below the one `--help` reads
+and saying so in the file, and `tests/commands.test.js` asserted `Flow` never reached that one
+command's help. 4 files never got the rule: `fs/tree.js`, `fs/merge.js`, `fs/open.js` and
+`github/bookmark.sh`. The history is gone from all 4, the behavior sentences buried in 2 of them
+were kept, and the test now runs over every shipped command and refuses `Was`, `Flow` and `TODO`.
+`commands/claude/proxy.mjs` keeps its gist links: crediting code this repository did not write is an
+obligation, not provenance. A `TODO:` about `--strip-comments` printed to users from `fs/merge.js`
+and is a backlog line here now.
+
+**`util fs tree` and `util fs merge` validate their arguments as of 2026-09-11.** `fs tree` accepted
+anything: `--depth x` and a bare `--depth` both printed the unlimited tree and exited 0, `--nope` did
+the same, and `--except` with nothing after it threw a raw `TypeError` stack. `fs merge` dropped an
+unknown `--flag` and merged the rest. Both refuse by name now, the way `commands/fs/link.js` always
+did, and `fs tree` also refuses a second bare path rather than silently using the last one.
+`lib/args.js` states the principle for the builtins and it now holds for the shipped commands too: a
+command exiting 0 having ignored the word you typed reads exactly like success. `fs/tree.js` moved
+to the house comment block, single quotes and no box-rule dividers in the same edit.
+
+**Every `/** */` header printed a stray `/` as the last line of its help**, found 2026-09-11 while
+checking the sweep above and fixed in `lib/command.js`. `usage()` stripped the comment marker before
+the closing `*/`, and `COMMENT` matches a run of stars, so ` */` became `/` and the terminator
+survived as content. 4 commands had it and nobody saw it; `fs/tree.js` became the 5th the moment its
+`//` header changed style. `lib/describe.js:46` orders the same two replacements the same wrong way
+in `bare`, which never surfaces because a `description:` line does not end a comment block.
+
 **`docs/dev/` is written and `docs/manual/` is not, as of 2026-09-01.** 6 pages under `docs/dev/`:
 an index, the repository layout, the two checkouts, the scratch session, the tests, and adding a
 skill. Written to `references/style.md` § 10, and deliberately limited to what is locked: the
