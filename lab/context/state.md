@@ -376,13 +376,21 @@ changed and no install is owed. One path in `scripts/tests/skills.test.js` moved
 
 **`util` is a second CLI and a submodule of this repo at `lab/util/`,** built 2026-08-30 and
 finished 2026-08-31. Working today: the dispatcher, the `~/.util/sources` registry, `util source
-add/ls/drop`, namespace resolution, `util ls`, `util install`, and 4 namespaces: `claude proxy`,
-`fs tree|merge|open|link`, `git save|work`, `github clone|bookmark`. The last three commands arrived
-from Flow on 2026-09-09. Nothing in `design-util.md` is unbuilt. The repository
+add/ls/drop`, namespace resolution, `util ls`, `util install`, `util uninstall`, and 4 namespaces:
+`claude proxy`, `fs tree|merge|open|link`, `git save|work`, `github clone|bookmark`. The last three
+commands arrived from Flow on 2026-09-09. Nothing in `design-util.md` is unbuilt. The repository
 is [`Adrian333Dev/util`](https://github.com/Adrian333Dev/util), and its default branch was `master`
 until 2026-08-31, because `git init` ran without `-b main`. **Nothing has run outside a test and a
 scratch registry.** `util install` writes the `util` and `u` links into `~/.local/bin`, and it has
 never been run against the real one.
+
+**`util uninstall` shipped 2026-09-11**, and the suite is 41 tests. It removes what `install` wrote
+and nothing else: the two links, and this clone's `commands/` line in the registry. A source
+registered by hand stays, `~/.util` stays, and the clone stays. A name it did not create is left
+alone and named in the output, which covers a real file somebody else owns and a link into a second
+util clone. Already gone exits 0, so re-running is safe. `README.md` § Installing now starts at
+`git clone`, because it opened on `node <clone>/util.js install` and never said where the clone came
+from.
 
 **`docs/dev/` is written and `docs/manual/` is not, as of 2026-09-01.** 6 pages under `docs/dev/`:
 an index, the repository layout, the two checkouts, the scratch session, the tests, and adding a

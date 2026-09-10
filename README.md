@@ -187,7 +187,7 @@ Flow coexists with skill set plugins. The rules and the guard apply regardless o
 
 ## Companion tools
 
-**[util](https://github.com/Adrian333Dev/util)** is a command registry and CLI. You register command sources from any directory with `util source add`, and the commands become available under namespaces on `PATH`. `util fs tree` and `util fs merge` are the two used in every session. The registry supports adding more commands from any source, and `util install` links them all at once.
+**[util](https://github.com/Adrian333Dev/util)** is a command registry and CLI. You register command sources from any directory with `util source add`, and the commands become available under namespaces on `PATH`. `util fs tree` and `util fs merge` are the two used in every session. `util install` puts the two names `util` and `u` on `PATH` and registers that repository's own commands, and `util uninstall` takes both back.
 
 ## What is next
 
