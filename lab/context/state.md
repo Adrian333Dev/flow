@@ -457,6 +457,21 @@ survived as content. 4 commands had it and nobody saw it; `fs/tree.js` became th
 `//` header changed style. `lib/describe.js:46` orders the same two replacements the same wrong way
 in `bare`, which never surfaces because a `description:` line does not end a comment block.
 
+**Every command's help opens with one plain sentence, ruled 2026-09-11.** `util fs tree --help`
+opened on "what a folder holds, without the folders nobody reads", which the user called a terrible
+way to explain a command: a riddle standing where a plain statement belongs. The first line of a
+header is now `util <name>:` and one sentence a reader can act on, and `tests/commands.test.js`
+asserts that shape over all 9 shipped commands. The same sweep rewrote every `description:` line,
+the `util help` notes, `README.md` and `docs/commands.md`: "many files as one stream, each in a
+fenced block" is now "print many files as one text, each in a code block labelled with its path".
+Two faults fell out of it. `util github clone --help` and `util github bookmark --help` printed
+their own `description:` line as the first line of the help, because their `awk` reader was a looser
+copy of `git save`'s, and all 3 now share one reader that drops that line and the blank line under
+it. The `util help` notes explained a namespace by naming `gsave` and `fmerge`, prefixes from a tool
+nobody outside this machine has seen, and labelled the description entry `descr`. `fs merge` also
+said `Warning: skipping missing path` and `No files matched after filtering.`, so its messages now
+open with the command's own name like every other command's.
+
 **`docs/dev/` is written and `docs/manual/` is not, as of 2026-09-01.** 6 pages under `docs/dev/`:
 an index, the repository layout, the two checkouts, the scratch session, the tests, and adding a
 skill. Written to `references/style.md` § 10, and deliberately limited to what is locked: the
