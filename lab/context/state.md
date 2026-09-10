@@ -384,7 +384,7 @@ until 2026-08-31, because `git init` ran without `-b main`. **Nothing has run ou
 scratch registry.** `util install` writes the `util` and `u` links into `~/.local/bin`, and it has
 never been run against the real one.
 
-**`util uninstall` shipped 2026-09-11**, and the suite is 41 tests. It removes what `install` wrote
+**`util uninstall` shipped 2026-09-11**, and the suite is 49 tests. It removes what `install` wrote
 and nothing else: the two links, and this clone's `commands/` line in the registry. A source
 registered by hand stays, `~/.util` stays, and the clone stays. A name it did not create is left
 alone and named in the output, which covers a real file somebody else owns and a link into a second
@@ -395,10 +395,39 @@ from.
 **`util` is at 0 em dashes as of 2026-09-11**, 47 sites swept, 31 in the JavaScript and 16 in the 3
 shell commands. The submodule was the one thing the 2026-09-08 sweep of this repo could not reach.
 `util help` and `util git save` both read differently now: the title line is `util: general-purpose
-commands`, and a generated commit message is `wip: 4 file(s) in scripts, docs`. In the same pass
-`util install` stopped ending on "check your PATH" and started printing `command -v util` and
-`hash -r`, after the user installed for real and the typed name did not resolve in the shell that
-was already open.
+commands`, and a generated commit message is `wip: 4 file(s) in scripts, docs`. The user installed util
+for real the same day, and the first typed command failed: `util unistall`, a typo. Two changes came
+out of it. `util install` checks `PATH` rather than warning about it, so a machine missing the link
+directory from it gets the export line and the file `$SHELL` names. It never
+writes a shell config, because `uninstall` could not take that back. And a word that resolves to
+nothing now prints `did you mean "uninstall"?`, from `lib/suggest.js`, when exactly one name is
+within two single character edits. The distance counts two swapped neighbours as one edit, or `gti`
+would tie between `git`, `g` and `gh` and answer nothing, and an alias is folded into its namespace
+for the same reason. It covers the builtins, the group actions, the namespaces and every command in
+every source: `util source drpo <path>` used to read as a bad `util source ls`. `RESERVED` in `lib/catalog.js` gained `install` and `uninstall`
+in the same edit, having listed only 3 of the 5 words `util` answers itself.
+
+**A check that passes says nothing, set by the user 2026-09-11.** A successful `util install` had
+grown to 7 lines on a machine where every part of it already worked, 4 of them about `PATH`, `hash
+-r` and what to type next. It prints 3 now, one per thing that changed, and the `PATH` block appears
+only where the directory is missing from `PATH` and there is a step left to take. `hash -r` lives in
+`README.md` alone, which is the right home for a symptom most runs never produce. A re-run of a
+finished install says `already linked:` per name: it used to print `linked:` while relinking
+nothing, which is reporting work it had not done. `util uninstall` lost its `1 other source stays
+registered` line on the same rule, and kept the empty-registry line, because that is the one moment
+the registry and the clone look deleted too.
+
+**A command that exists to print asserts its whole stdout, set 2026-09-11.** The `already linked:`
+bug had a test over the exact case, `install runs twice with the same result`, and it passed: every
+assertion in it read the filesystem, and the bug was the program describing the filesystem wrongly.
+The `PATH` test was worse, asserting `/is on your PATH/` was present, so it required the noise the
+user objected to. A test written from the implementation locks the behavior in rather than judging
+it. 5 tests now compare the entire output of `install`, `uninstall` and `ls` against a literal, and
+`util help` is checked for a row per word in `RESERVED` and for ending on exactly what `util ls`
+prints. Verified by putting the `linked:` bug back, which 2 of them caught. Exact matching is
+deliberately brittle here and would be wrong for a dispatched command, whose output `util` does not
+own. `tests/util.test.js` spells out `shown` and `forShell` itself rather than importing them from
+`lib/sources`, because an expectation the code under test computed cannot catch that code being wrong.
 
 **`docs/dev/` is written and `docs/manual/` is not, as of 2026-09-01.** 6 pages under `docs/dev/`:
 an index, the repository layout, the two checkouts, the scratch session, the tests, and adding a
