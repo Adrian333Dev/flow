@@ -75,6 +75,8 @@ No background: audio APIs, compilers, ML internals." -->
 - Flow itself failed (a rule that didn't fire, friction that repeated, output the user rejected) → `/flow-review`
 - Everything else → `.flow/inbox.md`, raw. Never shape it. Past 200 lines, offer `/file-findings`.
 
+**`docs-context-holds-verified-facts`** One question per file, facts and never process, rewritten rather than appended.
+
 ## Scripts
 
 `util` and `flow` are on `PATH`. `util ls` and a bare `flow` print every command.
@@ -106,6 +108,8 @@ A design, a plan, a mechanism, a diff across files.
 ## Explaining
 
 Governs every answer, status reports and one-line questions included.
+
+**`short-is-the-default`** The user is always short on time, so length is spent and never earned. Write the shortest answer that carries the point. `size-by-worth` ranks the topics against each other; this caps what they add up to.
 
 **`size-by-worth`** A long section claims the topic mattered. Size it by what the topic is worth to the reader, never by what it cost you. 20 topics get 20 answers. Never drop a point to be shorter, never inflate one to fill a section.
 

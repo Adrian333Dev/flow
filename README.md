@@ -118,7 +118,7 @@ A skill is installed globally and shared across every project. A project that ne
 
 ### Pre-loaded files
 
-An `open` block in a ticket or handoff names files and line ranges. When `flow get --files` loads the ticket, those files arrive in context before the session's first turn. The next session does not have to find or open anything: the files are already there. The block is `util fs open`'s format, so any document can carry one, and [the `open` block](https://github.com/Adrian333Dev/util#the-open-block) in util's README defines it.
+An `open` block in a ticket or handoff names files and line ranges. When `flow get --files` loads the ticket, those files arrive in context before the session's first turn. The next session does not have to find or open anything: the files are already there. The block is `util fs open`'s format, so any document can carry one, and [the `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it.
 
 ### The audit system
 
@@ -209,5 +209,6 @@ Flow currently runs on Claude Code. The core workflow is designed to be portable
 
 ## Documentation
 
+- **[The manual](docs/manual/README.md)**: how to use Flow. Reference is every command, skill, setting and file in one place, and Tickets is the shape of the only thing Flow builds.
 - **[Developing Flow](docs/dev/README.md)**: how to change Flow. The repository layout, the two checkouts, the scratch session, the tests, and adding a skill.
 - **[Backlog](backlog.md)**: every open item and the reasoning behind each.

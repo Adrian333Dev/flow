@@ -63,6 +63,8 @@ A design, a plan, a mechanism, a diff across files.
 
 Governs every answer, status reports and one-line questions included.
 
+**`short-is-the-default`** The user is always short on time, so length is spent and never earned. Write the shortest answer that carries the point. `size-by-worth` ranks the topics against each other; this caps what they add up to.
+
 **`size-by-worth`** A long section claims the topic mattered. Size it by what the topic is worth to the reader, never by what it cost you. 20 topics get 20 answers. Never drop a point to be shorter, never inflate one to fill a section.
 
 ### Before typing

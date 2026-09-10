@@ -97,7 +97,7 @@ Everything under the frontmatter. Four parts, and only the first is always there
 - **`## References`**: what the build has to read, one line each: the path, then what it says. **Durable.** Whoever cut the ticket found these, and they survive to `done`.
 - **`## State`**: what is true this second, and nothing another file already holds. **Work in flight.** It is deleted when the ticket reaches review, and anything in it still true moves out first.
 
-A `## State` section can end with a fenced `open` block: a list of file paths, one per line, that a session resuming this ticket is handed before its first turn. The format is `util fs open`'s rather than Flow's, and [the `open` block](https://github.com/Adrian333Dev/util#the-open-block) in util's README is the full account of it.
+A `## State` section can end with a fenced `open` block: a list of file paths, one per line, that a session resuming this ticket is handed before its first turn. The format is `util fs open`'s rather than Flow's, and [the `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation is the full account of it.
 
 ## What a ticket looks like
 

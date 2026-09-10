@@ -1,22 +1,49 @@
-# The `flow` CLI
+# Reference
 
-`flow` manages tickets, dependencies, status transitions, study cases, skill discovery, git write locking, and session history. This page covers every command and flag.
+Every command, skill, setting and file Flow gives you, in one place. Look one up here; the pages named alongside carry the long form.
 
 ## Table of contents
 
-- [The shape](#the-shape)
+- [Installing](#installing)
+- [Typing a command](#typing-a-command)
 - [The board](#the-board)
 - [One ticket](#one-ticket)
 - [Status verbs](#status-verbs)
 - [Cases](#cases)
-- [Skills](#skills)
+- [Skill discovery](#skill-discovery)
 - [Overlays](#overlays)
 - [Git](#git)
 - [Audit](#audit)
-- [Rules](#rules)
-- [Install](#install)
+- [Rule checks](#rule-checks)
+- [The skills](#the-skills)
+- [Settings](#settings)
+- [Files](#files)
 
-## The shape
+## Installing
+
+Flow lives in one clone, and installing creates symlinks pointing into it. Editing a file in the clone changes the installed workflow immediately, in every project and in every session already open.
+
+```bash
+node <clone>/scripts/flow/flow.js install
+```
+
+Run it by path the first time, because `flow` is not a command until that run has made it one. After that, the command is `flow install`.
+
+The run links every skill and agent into `~/.claude/`, links `scripts/` and `references/` into `~/.flow/`, and puts `flow` and `fw` on your `PATH` in `~/.local/bin/`. Skills are linked one at a time and agents the same way: both `~/.claude/` directories can hold entries Flow did not create, and a folder-level symlink would replace all of them.
+
+`--home <path>` moves where the Claude Code files go, and `--flow-home <path>` moves where the Flow files go. Passing one without the other is refused, because redirecting half the install writes the other half to the real machine.
+
+**Two files become yours and stop tracking the repository.** `~/.claude/CLAUDE.md` is copied from the template on a first install and never rewritten, so your name, your machine and your preferences survive a re-run, and a rule added to the template later has to be carried across by hand. `~/.claude/settings.json` is never written at all: `flow install` prints the file to merge and stops, because merging Flow's hooks and permission rules into your own model and plugin settings is a judgment call.
+
+**Install `util` first.** `util` is a separate command-line tool holding Flow's general-purpose commands, its own repository, included here as a submodule at `lab/util/`.
+
+```bash
+node <util-clone>/util.js install
+```
+
+Flow's rules name `util fs tree` for looking at directory structure, and `flow get --files` runs `util fs merge` to assemble context files. A machine without `util` still works: `flow get --files` prints that `util` is not on `PATH` where the files would have been, and carries on.
+
+## Typing a command
 
 ```
 flow <command> [id]... [--flags]
@@ -92,7 +119,7 @@ An id is a number and a label: `t047-parser-split`. The number is the identity. 
 
 `--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/start` passes `--files` explicitly.
 
-**The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files. [The `open` block](https://github.com/Adrian333Dev/util#the-open-block) in util's README defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
+**The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
 
 **`--files-only` is why the ticket is not printed twice.** Run bare, `util fs open` prints the document first and then the files it names, because whoever opens a document cold needs both. `get` has already printed the ticket by the time it shells out, so it asks for the files alone.
 
@@ -227,9 +254,9 @@ Change a field. `--status fixed` requires `--by <file>` (the file that changed t
 
 Every issue folder with its count, open count, latest date, and the rules that failed across its cases. Read this before creating a new case, so a repeat failure lands in the folder it already has.
 
-## Skills
+## Skill discovery
 
-Skill discovery. Every skill is a folder under `skills/<group>/` with a `SKILL.md`. See [Adding a skill](skills.md) for the groups and the frontmatter.
+Which skills this session is being shown, and where that was decided. [The skills](#the-skills) lists them; [Adding a skill](../dev/skills.md) covers writing one.
 
 ### `flow skills ls`
 
@@ -297,7 +324,7 @@ Open a bounded turn range of the original conversation. `--turns <n>` is require
 
 Run a read-only SQL query against the index. Only `SELECT` and `WITH` are allowed. The schema holds `session`, `segment`, `turn`, `event`, `tool_call`, and `file_touch` tables.
 
-## Rules
+## Rule checks
 
 Whether the rules Flow writes are actually being followed. A **rule check** is one JavaScript file at `scripts/rule-checks/<id>.js`, named after the rule id it enforces. Two hooks feed it, both wired in `home/settings.json`:
 
@@ -319,3 +346,62 @@ A result recorded before a check's `since` date is dropped, so rewriting a check
 **Never violated is not a dead rule.** A rule only gets written after a real mistake, so zero violations means the fix took. The `never applied` list is the demotion signal: the situation the rule governs stopped arising.
 
 The command only reads. Acting on it means editing a check file, which needs approval like any change.
+
+## The skills
+
+A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/name` to run one, or let Claude fire it from its description. The group decides whether a session is shown the skill at all, which [Settings](#settings) covers.
+
+**`phases/`, the four states a piece of work passes through.** Shown in every session.
+
+- **`/groundwork`**: refines the idea and designs the solution, walking every open decision including the ones nobody raised
+- **`/execute`**: builds one ticket, plan through review
+- **`/prototype`**: throwaway code answering one question, and a report of what it found. Naive on purpose
+- **`/debug`**: finds the cause by evidence, proves it, fixes it
+
+**`tools/`, the jobs that fit no phase.** Shown in every session.
+
+- **`/start`**: opens a session on the board, one ticket, or a loose file. Typed only
+- **`/handoff`**: writes what a session that was not here needs, the state itself rather than a reading list
+- **`/file-findings`**: files what a session learned into the skills, rules and checks that will hold it next time
+- **`/research`**: reads what an external tool actually does, from its own documentation and source
+- **`/visualize`**: draws ASCII diagrams, screen mockups and HTML previews
+- **`/cut-from-spec`**: cuts the next batch of work out of `docs/spec/` into tickets. Typed only
+
+**`stack/`, knowledge about one technology.** Off by default, turned on per project.
+
+- **`/web-pages`**: investigates and experiments on a live web page you do not control
+
+**`dev/`, working on Flow itself.** Shown in every session.
+
+- **`/flow-review`**: finds where Flow's rules failed, where friction repeated, and where the design was wrong
+
+A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is what ships it.
+
+## Settings
+
+Two files, and Flow contributes to one of them.
+
+**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. It prints what to merge and stops. Flow contributes four keys:
+
+- **`hooks`**: two pairs. The snapshot pair records the tree either side of a subagent dispatch. The rule-check pair runs Flow's rule checks on every edit and records which instruction files entered context
+- **`permissions`**: an allow list, a deny list for Claude Code surfaces Flow does not use, and no git entries at all, because `flow git` owns git
+- **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses
+- **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
+
+[`home/settings.md`](../../home/settings.md) explains every key, every value Flow rejected, and why. A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing.
+
+**`~/.flow/settings.json`** is Flow's own, and only `flow git` writes it. It holds the git write state and nothing else. There is nothing to edit by hand.
+
+## Files
+
+**On the machine**, two directories, split by who reads them.
+
+- **`~/.claude/`**: `CLAUDE.md` (the rules), `settings.json`, `skills/` (one symlink per skill), `agents/` (one symlink per agent), `rules/` (one symlink per rules file)
+- **`~/.flow/`**: `scripts/` (the CLI and the hooks), `references/` (the house style and the workflow map), `settings.json`, `workflow-notes.md`, `study-cases/`, `scorecards/`, `audit/`
+
+**In a project**, the same pair for the same reason.
+
+- **`.claude/`**: `settings.json`, and any skill belonging to this project alone
+- **`.flow/`**: `tickets/`, `groundwork/`, `inbox.md`, `handoff.md`, `overlays/`, `findings/`
+
+**Everything else in a project is the project's own.** `docs/spec/` is what the product is, `docs/context/` is durable verified facts about this repository, and `CLAUDE.md` at the root holds rules the conventions do not already imply. Flow writes into all three and owns none of them.

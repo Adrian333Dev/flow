@@ -61,7 +61,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `repos/`, `home/`, and `project-template/` from loading when a file beside one is read.
 
-**`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and `tickets.md` is the only page written so far. Both are authored here and never moved in from `lab/`.
+**`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and holds `reference.md` and `tickets.md` so far. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what `manual/` covers: install, the commands, the skills, the settings and the machine layout all live in `manual/reference.md`. Both folders are authored here and never moved in from `lab/`.
 
 ## The design record under `lab/`
 

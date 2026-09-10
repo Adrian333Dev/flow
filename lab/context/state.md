@@ -744,6 +744,37 @@ a link the reader can click, and a `lab/` path is not one once Flow is installed
 `skills/tools/handoff/SKILL.md` was left alone: it teaches the whole format inline, so it sends nobody
 anywhere.
 
+**`docs/` split by audience on 2026-09-10, on the user's rule that `dev/` holds only what `manual/`
+does not.** `docs/dev/cli.md` was the manual sitting in the developer folder: 321 lines of every
+`flow` command, which is what the designed Reference page is. It moved to `docs/manual/reference.md`
+and grew the 3 lists it was missing: the skills by group, the settings keys Flow contributes, and the
+files on a machine and in a project. The install sections came out of `docs/dev/README.md` and into
+Reference's `## Installing`, so 4 of that page's 5 sections were user-facing and are now gone from it.
+Both folders carry a `README.md` indexing their own pages; `manual/` had none. `docs/` is 4 pages in
+`manual/` terms and 6 in `dev/`, and no page restates another. **`## Next` item 4 is most of the way
+done by this**: Reference exists, and what is left of the manual is `Use Flow` plus the 4 sections
+outside v1.
+
+**`context-cost.md` is the one page nobody placed.** It reads as a design finding rather than a page
+a reader arrives at with a question, so `lab/context/` may be its real home. Left in `docs/dev/` and
+not decided.
+
+**util's `## Commands` became `lab/util/docs/commands.md` on 2026-09-10.** 172 lines out of the
+README, which keeps a 2-line pointer. The 4 Flow files linking the `open` block by URL now point at
+`.../blob/main/docs/commands.md#the-open-block`; the anchor did not change because the 3 deep-dive
+headings were promoted from `###` to `##` inside their own page.
+
+**Two rules landed 2026-09-10.** `short-is-the-default` sits above `size-by-worth` in both
+`CLAUDE.md` files: the user is always short on time, so length is spent and never earned.
+`size-by-worth` ranks topics against each other and never capped the total, which is why it did not
+fire. `docs-context-holds-verified-facts` closes `## Capture` in `home/CLAUDE.md` and ships the 4
+rules `design-project-docs.md` recorded and nothing carried: one question per file, facts and never
+process, rewritten rather than appended.
+
+**`design-debug.md` stopped saying "the red command".** The skill renamed it to "the failing check" on
+2026-08-24 and the origin record never followed, so the 2 files named the same artifact differently
+for 17 days. 4 sites, including the definition sentence, which also said "goes red" and "red signal".
+
 ## Which design record covers what
 
 All under `lab/context/`, and every one is history rather than status.
@@ -776,3 +807,7 @@ All under `lab/context/`, and every one is history rather than status.
 - `model-identity.md`: telling which model produced a piece of work. What each harness exposes, the
   status line as the sensor, and the 2 fields the scorecard record is missing. Researched 2026-09-06
   and 2026-09-07, nothing locked
+- `claude-code-gaps.md`: what Claude Code cannot do that Flow needs. 3 issues filed on
+  `anthropics/claude-code` 2026-09-10 (#93248 `paths:` fires on reads only, #93249 no `exclude:`
+  field, #93252 a hook cannot load a rule, a skill or a file), 9 gaps worth filing, 3 ruled out.
+  A record of upstream state, so nothing on it is an open Flow item
