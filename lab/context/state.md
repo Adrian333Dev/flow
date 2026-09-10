@@ -15,9 +15,9 @@ owed.
 
 ## What works today
 
-`home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow skills`,
-`flow overlays`, `flow audit`, `flow scorecard`, `util` in full, and the test harness. Flow's suite
-passes 76 tests; `util`'s own suite passes 35.
+`home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow doctor`,
+`flow skills`, `flow overlays`, `flow audit`, `flow scorecard`, `util` in full, and the test harness.
+Flow's suite passes 89 tests; `util`'s own suite passes 37.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -774,6 +774,24 @@ process, rewritten rather than appended.
 **`design-debug.md` stopped saying "the red command".** The skill renamed it to "the failing check" on
 2026-08-24 and the origin record never followed, so the 2 files named the same artifact differently
 for 17 days. 4 sites, including the definition sentence, which also said "goes red" and "red signal".
+
+**`flow doctor` shipped 2026-09-11**, the deterministic half of verifying a machine, and it writes
+nothing. 6 areas: the names on `PATH`, the 3 util commands Flow calls, `~/.claude/`,
+`~/.claude/settings.json`, `~/.flow/` and both test suites. It prints one line per clean area and one
+line per problem, and exits 1 when anything failed. Named `doctor` because `flow check` was already
+taken by the ticket graph, which needs a project where this needs a machine.
+
+**The util check is the half no symlink check reaches.** Nothing is built into `util`: it reads
+`~/.util/sources` and every command comes out of a directory named there, so a `util` on `PATH` with
+an empty registry carries no commands at all. Doctor runs `util fs tree`, `util fs merge` and `util
+fs open` with `--help`, which exits 0 only when the command resolved and ran, then explains a failure
+against that registry. Those 3 names are the only hand-maintained list in the file: the skills come
+off the tree and the hooks out of `home/settings.json`, so neither can fall behind.
+
+**The empty case gets 1 message.** A machine with no install would otherwise read as 20 separate
+failures that are all the same failure, and that is the state this machine is in until install day.
+5 tests cover it, and they cover `flow install` as a side effect: each one runs the real install into
+a scratch tree and then verifies what it wrote.
 
 ## Which design record covers what
 

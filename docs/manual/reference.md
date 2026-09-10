@@ -41,7 +41,22 @@ The run links every skill and agent into `~/.claude/`, links `scripts/` and `ref
 node <util-clone>/util.js install
 ```
 
-Flow's rules name `util fs tree` for looking at directory structure, and `flow get --files` runs `util fs merge` to assemble context files. A machine without `util` still works: `flow get --files` prints that `util` is not on `PATH` where the files would have been, and carries on.
+Flow's rules name `util fs tree` for looking at directory structure, and `flow get --files` runs `util fs open` to assemble context files. A machine without `util` still works: `flow get --files` prints that `util` is not on `PATH` where the files would have been, and carries on.
+
+### `flow doctor`
+
+Everything about an installed machine a function can decide. It writes nothing, prints one line per area when that area is clean and one line per problem when it is not, and exits 1 if anything failed. Run it after installing, and again whenever something behaves as though it were not installed.
+
+- **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, `~/.local/bin` is on your `PATH`, and `node`, `git` and `claude` are reachable.
+- **The 3 util commands Flow calls**: `util fs tree`, `util fs merge` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all.
+- **`~/.claude/`**: one link per skill, agent and rule, each pointing into this clone, and `CLAUDE.md` present.
+- **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a skill that no longer exists.
+- **`~/.flow/`**: `scripts` and `references` resolve into this clone.
+- **Both test suites**, Flow's and util's. They are the only slow part, and `--no-tests` drops them.
+
+`--home`, `--flow-home` and `--no-bin` mirror `flow install`, so an install redirected into a scratch tree can be verified where it sits. A machine with nothing installed gets a single message saying so, instead of every check failing separately.
+
+`flow check` is the other verification command and answers a different question: the ticket graph in the project you are standing in.
 
 ## Typing a command
 

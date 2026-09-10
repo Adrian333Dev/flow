@@ -21,6 +21,7 @@ const overlays = require('./commands/overlays');
 const skills = require('./commands/skills');
 const git = require('./commands/git');
 const install = require('./commands/install');
+const doctor = require('./commands/doctor');
 const audit = require('./commands/audit');
 const scorecard = require('./commands/scorecard');
 
@@ -42,7 +43,7 @@ const TITLE = 'flow: tickets, computed from .flow/tickets/';
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...board, ...tickets.actions, ...install, ...scorecard };
+const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...scorecard };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },

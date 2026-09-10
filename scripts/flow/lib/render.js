@@ -388,7 +388,41 @@ function caseList(cases) {
   return out.join('\n').trimEnd();
 }
 
+/**
+ * `flow doctor`: one line per area when it is clean, one line per problem when
+ * it is not.
+ *
+ * A clean area prints what it counted rather than nothing, because a report
+ * that only speaks up when something is wrong gives you no way to tell a pass
+ * from a check that never ran.
+ */
+function doctorReport(checks) {
+  const lines = [];
+  let failed = 0;
+  let ran = 0;
+
+  for (const check of checks) {
+    if (check.skipped) {
+      lines.push(`skip  ${check.name}: ${check.skipped}`);
+      continue;
+    }
+    ran++;
+    if (check.problems.length) {
+      failed++;
+      lines.push(`fail  ${check.name}:`);
+      for (const problem of check.problems) lines.push(`        ${problem}`);
+    } else {
+      lines.push(`ok    ${check.name}: ${check.summary}`);
+    }
+    for (const note of check.notes || []) lines.push(`note  ${check.name}: ${note}`);
+  }
+
+  lines.push('');
+  lines.push(failed ? `${failed} of ${ran} checks failed.` : 'nothing to fix.');
+  return lines.join('\n');
+}
+
 module.exports = {
-  columns, table, ticketTable, tree, progressOf, blockedLines, blockText, show, status, brief, checkReport, indent,
+  columns, table, ticketTable, tree, progressOf, blockedLines, blockText, show, status, brief, checkReport, doctorReport, indent,
   reviveVerb, pickupLine, issueTable, caseList,
 };

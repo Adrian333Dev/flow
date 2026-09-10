@@ -26,7 +26,7 @@ Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build t
 - **The board**: `get` bare, `next`, `check`, `ls`, `tree`. Each answers a question about the work as a whole. `get` with `--files` is the session opener: `/start` runs it, so the branching lives in tested code instead of shell inside a markdown file.
 - **One ticket**: `<id>`, `new`, `edit`, `dep`, `file`, `drop`, and the status verbs. Each names a ticket and acts on it.
 - **A group**: `cases`, `work`, `skills`, `overlays`. A different stored thing, carrying its own actions behind its own name.
-- **Setup**: `install`, and only `install`. It writes outside the project, into `~/.claude` and `~/.local/bin`, which no other command does. It is also the one run before `flow` is a command at all: on a machine that has just cloned Flow, it is typed by path, and it makes the link that lets everything else be typed by name.
+- **Setup**: `install` and `doctor`. Both act on the machine rather than on a project, and neither needs one: `install` writes outside the project, into `~/.claude` and `~/.local/bin`, and `doctor` reads the same places back. `install` is also the one command run before `flow` is a command at all: on a machine that has just cloned Flow it is typed by path, and it makes the link that lets everything else be typed by name.
 
 All 4 share one flat namespace, so a name is available exactly once. Help prints them in sections, which is the only place the distinction shows.
 
