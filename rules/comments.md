@@ -9,6 +9,8 @@ paths:
 
 Two decisions, in order: whether the comment is worth writing, then which form it takes.
 
+**None of this is worth stopping work for.** Write comments this way while writing the code. Code that already reads well in another shape is left alone, and the wrong form is never on its own a reason to go back and edit.
+
 ## Whether to write one
 
 **Write a comment where a reader fluent in the language would still guess wrong.** Everything else the code already says, and says more reliably, because code cannot go stale against itself.

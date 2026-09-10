@@ -12,6 +12,17 @@ Name the file after the rule id it enforces, so `no-git-mutations.js` holds the
 check for `no-git-mutations`. The loader refuses a file whose `id` and filename
 disagree.
 
+**Read `references/write-checks.md` beside the `/file-findings` skill before
+writing a line of code here.** It carries the one decision that comes first:
+whether the rule is checkable at all. Finish this sentence in plain words before
+anything else, and abandon the check if you cannot: *what is present in every
+violation and absent from every clean example*. Most rules never get a check,
+because no function can tell their violations apart. That is the normal outcome.
+
+**Collect the examples off disk or out of git history, never from your head.**
+An invented violation proves the check matches the pattern you already had in
+mind. It says nothing about what an agent actually writes.
+
 Each file exports:
 
     id       matches a rule id in a rule file, and groups the counts
@@ -25,9 +36,16 @@ Each file exports:
     since    the date the check last changed materially, so the scorecard
              throws away counts an older version produced
 
-Every check starts at `measure`, which records and interrupts nothing.
-Promotion to `warn` changes one word, and the scorecard says when a rule has
-earned it. `block` waits until the false positives are gone.
+Every check starts at `measure`, which records and interrupts nothing, with
+one exception two paragraphs down. Promotion to `warn` changes one word, and the
+scorecard says when a rule has earned it. `block` waits until the false
+positives are gone.
 
-`references/write-checks.md` beside the `/file-findings` skill says how to write
-one.
+**A rule the user calls minor stays at `measure` whatever the scorecard says.**
+Promotion buys an interruption, and an interruption is only worth it when the
+rule matters more than the edit it stops.
+
+**A path-scoped rule that matters starts at `warn` instead.** A rule carrying
+`paths:` loads when Claude reads a matching file, and creating one is not a
+read, so `measure` leaves a new file written with the rule absent. At `warn` the
+hook injects the rule's whole text at the moment it is broken.

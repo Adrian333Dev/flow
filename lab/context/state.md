@@ -94,9 +94,8 @@ hook, recording which rule files entered context, which is what decides whether 
 id or injects the rule's whole text. `scripts/flow/lib/checks.js` loads and validates check files and
 reads rule ids out of markdown; `scripts/flow/lib/scorecard.js` owns the append-only store; `flow
 scorecard` prints the 4 lists and its own coverage. Both hooks are in `home/settings.json`.
-**`scripts/rule-checks/` ships empty**, so both hooks return immediately, and the folder's `.info`
-states the export contract. The first real check is now unblocked, because every rule has an id.
-`FLOW_CHECKS` overrides the folder, which is how the 15 new tests drive it.
+The folder's `.info` states the export contract. `FLOW_CHECKS` overrides the folder, which is how the
+15 tests drive it. **The folder stopped being empty on 2026-09-10**; see below.
 
 **Every rule in both `CLAUDE.md` files carries an id, 2026-09-07.** 57 in `home/CLAUDE.md` and 85 in
 the repo file, 102 distinct once the two files' shared rules are counted once, which `flow scorecard`
@@ -250,6 +249,77 @@ one `map.md` already spans as many sessions as it takes and a long section spill
 `<index>-<name>.md`. **A decision binding more than 1 child goes to the parent's map**, named with the
 child that raised it. That last rule is unproven and logged in `backlog.md`: no product has been split
 into child maps yet.
+
+**The first rule check shipped 2026-09-10, and it is not the one the backlog named.**
+`scripts/rule-checks/js-and-ts.js`, `measure` tier, `needs: 'added'`, against the `js-and-ts` rule in
+`rules/comments.md`. It counts a run of 2 or more `//` lines directly above a top-level function,
+class, or `const` bound to an arrow. 8 tests in `scripts/tests/rule-checks.test.js`, every example
+taken off disk or out of `git show HEAD~1`.
+
+**`never-restate-the-line` was the first candidate and it does not survive measurement.** The
+proposed matcher took the comment's words, dropped stopwords, and fired when every remaining word
+appeared in the identifiers on the line below. Run over all 63 JS files it returned 1 hit, and the
+hit was a `// ---- rule ids` section divider above a `test('rule ids …')` call. Zero real
+violations, one false positive. `references/write-checks.md` had already ruled it out: its giveaway
+sentence cannot be finished for a rule about whether a comment carries information. The backlog now
+carries the measurement so nobody retries it.
+
+**The check was narrowed by counting, not by taste.** A run of `//` above any top-level `const` is
+21 sites in this repo, and one of them sits on a `require` line, so plain values are skipped: the
+rule names a file header, a class or a function, and nothing else. Narrowed that way the repo has 0
+violations today, which is the expected state for a rule already being followed, and `needs: 'added'`
+means the check measures new code rather than the 21.
+
+**The user ruled comment shape minor, 2026-09-10.** Their words: comments are "not a major issue",
+"we shouldn't make the agent deal with it while we have a lot more important things to focus on",
+keep the rules "a little bit loose". Three consequences. `rules/comments.md` opens with a line saying
+none of it is worth stopping work for. The check stays at `measure` permanently rather than earning
+`warn`, which is now written into both `scripts/rule-checks/.info` and `write-checks.md` as a general
+rule: a rule the user has called minor never gets promoted, whatever the scorecard says. And nothing
+in a live `try.sh` run will print a warning, because `rule-check.js` skips `additionalContext` at
+that tier.
+
+**What was actually missing was a trigger, not an instruction.** `references/write-checks.md` beside
+`/file-findings` already said find the giveaway first, collect real examples, never invent one, and
+start every check at `measure`. It was not read, because that file is reached through a skill that
+only runs during a filing pass, and this check was written straight off the backlog.
+`scripts/rule-checks/.info` now carries the requirement, since it is the file an agent opens at the
+moment it decides to add a check.
+
+**The enforcement loop ran live for the first time, 2026-09-10.** A session under
+`bash lab/scripts/try.sh`, the user driving. Asked for a small TypeScript file, the agent wrote two
+`//` lines above `function formatDuration`, `js-and-ts` fired, and `flow scorecard` read the row back
+as 1 broken of 1. **A true positive nobody set up**: the agent was never told anything about comment
+style, and it reached for the line form on a declaration by itself, which is the habit the rule
+exists to catch. Both hooks work: `instructions-loaded.js` recorded 3 `loaded` rows, and the result
+row carried `effort: "high"`, the first time a real effort level has been captured.
+
+**The path-scoped rule really does miss a file being created, and that is the hook's whole
+justification.** `rules/comments.md` is **not** in the session's `loaded` rows. Only the 3
+`CLAUDE.md` files loaded. The session opened no TypeScript file, so the path glob never matched, so
+the comment rules were never in context when the agent wrote TypeScript. `scripts/rule-check.js`
+opens by claiming exactly this hole exists; the run is the first evidence for it rather than an
+argument.
+
+**The hole is new files only, and the documentation says so, 2026-09-10.** The memory page states it
+outright: *Path-scoped rules trigger when Claude reads files matching the pattern, not on every tool
+use.* Editing or overwriting a file that already exists requires reading it first, so the rule loads
+before the edit lands and every edit to existing code is covered. Creating a file is the entire gap.
+Nothing widens it: `InstructionsLoaded` fires after a file loads and cannot change what loads, which
+was researched and closed 2026-09-07. The consequence is now written into
+`skills/tools/file-findings/references/write-checks.md` and `scripts/rule-checks/.info`: **a
+path-scoped rule that matters starts at `warn`**, because that is the tier where the hook injects the
+rule's whole text at the moment it is broken. `rules/comments.md` stays at `measure` anyway, since
+the user ruled comment shape minor, and a minor rule absent on a new file is a coherent outcome.
+
+**The hook costs 31 ms, measured over 10 runs, against a guess of 50 to 100.** Almost all of it is
+Node starting up: the check itself walks a few dozen lines. Nothing here needs optimising.
+
+**What the run could not reach.** At `measure` the agent is told nothing, so it never learned and
+would write the same thing again. That is the trade the user chose for comment shape and it is
+correct for a minor rule. It also means the rule-text injection path, where a warning carries the
+rule's whole text because the rule's file never loaded, has still never run under Claude Code.
+`checks.ruleText` is unit-tested only. The backlog now carries that gap.
 
 **Every scorecard result records the effort level, 2026-09-08.** `PreToolUse` carries `effort` as an
 object with a `level` field, so `scripts/rule-check.js` stores it beside `project`. The model does not

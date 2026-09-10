@@ -60,13 +60,21 @@ A check with no test is a check nobody can change later without guessing at what
 
 ## The 3 tiers
 
-1. **`measure`** counts violations and interrupts nothing. Every check starts here.
+1. **`measure`** counts violations and interrupts nothing. Every check starts here, with one exception named below.
 2. **`warn`** returns the message to the agent before the edit, which then proceeds.
 3. **`block`** refuses the edit.
 
-**Promotion needs evidence, and the evidence is in `flow scorecard`.** Move a check to `warn` once it has applied often enough to mean something and produced no false positives. Move it to `block` only after narrowing `applies` and refining the pattern have cleared the false positives entirely, and only with the user agreeing, because a block rejects real work.
+**Promotion needs evidence, and the evidence is in `flow scorecard`.** Move a check to `warn` once it has applied often enough to mean something and produced no false positives. A check that starts at `warn` under the path-scoped exception below is the one case that skips this, because the evidence it would wait for cannot be collected: the rule is absent from the session that needed it. Move it to `block` only after narrowing `applies` and refining the pattern have cleared the false positives entirely, and only with the user agreeing, because a block rejects real work.
 
 **Most checks stay at `measure` forever, and that is success.** The count is the point.
+
+**A rule the user has called minor stays at `measure` whatever the evidence says.** Promotion buys an interruption, and an interruption is worth it only when the rule matters more than the edit it stops. Comment shape is the standing example.
+
+**A path-scoped rule that matters starts at `warn`, never `measure`.** A rule carrying `paths:` frontmatter loads when Claude reads a matching file, and creating a file is not a read. Edits to a file that already exists are safe, because editing or overwriting one requires reading it first, so the rule is in context before the edit lands. A brand-new file is the whole gap, and it is the moment the rule was written for.
+
+`warn` closes that gap. When a check fires against a rule whose file never loaded this session, the hook injects the rule's entire text beside the message, so the agent reads the rule at the moment it broke it. `measure` stays silent, and a new file gets written with the rule nowhere in context.
+
+The documentation is explicit, checked 2026-09-10: *Path-scoped rules trigger when Claude reads files matching the pattern, not on every tool use.* Nothing widens it. `InstructionsLoaded` fires after a file loads and cannot change what loads, and no other hook reaches instruction loading at all.
 
 ## Reading `flow scorecard`
 

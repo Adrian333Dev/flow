@@ -2,9 +2,10 @@
 /**
  * The enforcement bridge: the check loader, the two hooks, and `flow scorecard`.
  *
- * No real check is exercised here. `scripts/rule-checks/` ships empty, because
- * the first real rule id does not exist yet, so every check below is a fixture
- * written into a scratch folder and pointed at by FLOW_CHECKS.
+ * No real check is exercised here. Every check below is a fixture written into
+ * a scratch folder and pointed at by FLOW_CHECKS, so this file tests the wiring
+ * whatever `scripts/rule-checks/` happens to hold. The shipped checks have
+ * their own tests in rule-checks.test.js.
  *
  * Every test sets FLOW_HOME as well, so the counts land under tmp/ and never in
  * a real ~/.flow/scorecards/.
