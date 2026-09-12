@@ -338,3 +338,342 @@ user had asked for a single section on the model of `## Capture`, holding the wh
 **Why the section read as confusing.** A section covering half a turn has no natural boundary, so
 nothing in it says where it stops. `## The turn` is readable because the unit is: one message in, one
 reply out.
+
+## 2026-09-12: a contribution pipeline explained twice, both times from inside the design
+
+**Model.** Claude Fable 5.1, both messages. Recorded at the user's request, because the entry is
+worthless without the model that wrote it.
+
+**Context.** Designing the management skill, in conversation. The user asked how findings reach a
+shared corpus of stack skills, how the maintainer contributes, how a multi-week design becomes
+reusable knowledge, how private skills work, and what `browser-harness` does that is worth taking.
+The first reply was rejected at its opening paragraph. The user then asked for a rewrite from scratch
+that assumed nothing had been read. The rewrite was rejected section by section.
+
+**Sent, the first message's opening, whole:**
+
+> Every machine reads skills from a **list of trees**. A tree is a folder holding skill folders.
+> There are 3: Flow's clone, the shared corpus, and your own tree. A **contribution is always a new
+> file**, never an edit to a file somebody else reads. The only act that edits a shared body is a
+> **fold**: one writer, one skill, reading every pending finding and rewriting the skill to absorb
+> them. That one rule set covers the small finding, the multi-week security design, the maintainer,
+> the private skill, and the private extension of a public skill.
+
+**Rejected:**
+
+> "I didn't understand a single fucking thing from that, you know, from that first paragraph in the
+> The whole system in one paragraph section! Like, what the fuck is, you know, you said list of
+> trees. What's that list of trees? Where did it come from? You're not fucking clarifying things
+> here. You like, you assume that I already know most of the design, and you, you know, like, you're
+> only pointing out in some other parts. You need to fucking explain the whole fucking picture here.
+> Like, assume that I didn't read your solution at all."
+
+**Faults.**
+
+1. **Five new terms in six sentences, each defined in one clause.** "Tree", "corpus", "contribution",
+   "fold", "extension". A one-clause definition names a thing; it never shows what the thing does,
+   who runs it, or what it reads. `define-from-zero` says build the meaning first, then name it.
+   The paragraph named first and never built.
+2. **Nothing said what exists today.** The reader cannot see what "instead of one" means without
+   first being shown the one: a symlink at `~/.claude/skills/<name>` pointing into one clone.
+3. **The paragraph summarised a design the reader had never seen.** A summary is only readable by
+   someone who already holds the parts. `whole-then-parts` wants the whole first, but a whole made
+   of undefined names is a list of names.
+
+### Second rejection: the rewrite defined every word and still showed no picture
+
+**Sent, the rewrite's Part 1, the part that failed:**
+
+> ```
+> # ~/.flow/sources
+> ~/code/flow/skills
+> ~/code/flow-corpus/skills
+> ~/.flow/private
+> ```
+>
+> How `flow install` uses the list: for each skill name, it looks through the folders in order and
+> links `~/.claude/skills/<name>` to the last folder that has `<name>/SKILL.md`. When two folders
+> both have one, the later wins, and install prints a line saying so.
+
+**Sent, from Part 4:**
+
+> 2. Makes a temporary checkout of the corpus under `~/.flow/tmp/`, so your real corpus clone never
+>    leaves `main`.
+> 3. Copies each file into the matching place, `stack/react/findings/2026-09-11-hydration-suspense.md`.
+>    A new file never conflicts with anyone.
+
+**Sent, the last two paragraphs of the private-skills section:**
+
+> After you publish the basic version in step 4 above, your private `SKILL.md` still shadows the
+> public one, and `flow doctor` says so. You delete your private `SKILL.md` and keep only the private
+> pages. Now the public body keeps improving upstream while your pages stay attached.
+>
+> This is not the machine-wide overlay you refused. An overlay pastes text into a body for one
+> project. An extension is whole pages in your folder, listed at the bottom, with the public body
+> untouched. A restructured body cannot lose them, because the list is printed, never merged.
+
+**Sent, from the `browser-harness` section:**
+
+> - **Lookup by key.** With 100 knowledge files, the body says which one to read for this run, by
+>   hostname or package name, so a run reads 1 or 2.
+
+**Rejected:**
+
+> "I'm right now in the part one, and already it doesn't make sense to me. So, firstly, you need to
+> consider like I don't understand what you're exactly referring to here, but you need to consider
+> that like we have the skill folders in two phases, right? One is in the development phase, in the
+> you know, like clone of the flow repo, right? [...] But once we actually know, like, install them
+> on the machine, they are no longer going to be under you know, like, in under that folder in the
+> groups, but they are will be directly you know, like, at least seem linked directly under the
+> global .claude folder, right? And I'm really confused here. What phase are you referring to here?"
+
+> "I'm looking at those four paths you have listed. And none of them really makes sense. The first
+> one shows ~/.flow/sources! Like when it comes to that path, firstly, like you know, we can only
+> have it in that path after the installation, right? And secondly, that path isn't, you know, like
+> ClaudeCode is not going to pick that path, right? That's completely unrelated path. [...] But
+> where did that, you know, like, third path came from? And what the fuck is that flow-corpus
+> directory is about?"
+
+> "you said, you know, like if we have you know two skills with the same name, the later one wins.
+> Like, what does that exactly mean for us? You're not really clarifying what later one really
+> means."
+
+> "in part 4 I didn't understand "Makes a temporary checkout of the corpus under ~/.flow/tmp/, so
+> your real corpus clone never leaves main." line at all! I also didn't understand the line that
+> comes after."
+
+> "I actually didn't understand the, you know, like last two paragraphs from the Private skills: one
+> rule gives all three cases section at all! So, just another case of shit explanation because you
+> know you're not really You didn't really give me the full picture You only giving me the pieces
+> and you're ex you know like you're talking as if I already have the full picture"
+
+> "that browser-harness: take the lookup, not the separate path Section is you know complete shit as
+> well, like you didn't properly explain it at all. [...] at least fucking explaining me that, you
+> know, look up my key idea that you decided to take from the browser harness. Because I have zero
+> idea what the fuck that means in the first place."
+
+> "you keep making and making and making this mistake again and again and again and again. And I'm
+> really tired at this point."
+
+**Faults.**
+
+1. **The list of folders never said who reads it, or when.** Two things exist on an installed
+   machine: the symlinks Claude Code reads at `~/.claude/skills/`, and the clone they point into.
+   The list changes only where a symlink points, is read only by `flow install`, and Claude Code
+   never sees it. None of that was said, so the reader could not tell which of the 2 phases the
+   list belonged to. `name-the-subject-first`.
+2. **A path was shown before its meaning existed.** `~/code/flow-corpus` appeared in a code block
+   as a fact, and the sentence saying it is a proposed second repository came 4 lines later. The
+   file's own path, `~/.flow/sources`, sat as a comment line above the 3 entries, so the block read
+   as 4 paths with only 3 explained. `show-the-data` wants the data after the reader knows what it
+   is.
+3. **"Later wins" was never defined.** Later means a lower line in the file. Nothing said so, and
+   nothing said why the order matters: the private folder is the last line so a private skill beats
+   a public one of the same name. `define-from-zero`.
+4. **A git mechanism was described by its effect, with no reason.** "A temporary checkout so the
+   clone never leaves `main`" assumes the reader knows a pull request needs a commit on a branch,
+   and that the stable clone must never carry a local commit. Neither was said.
+   `explain-never-label`.
+5. **The private-skills close pointed at 3 mechanisms by name.** "Shadows", "listed at the bottom",
+   "printed, never merged" each point at a definition given in another section. A reader who did
+   not hold those sections got 3 labels. `never-point-at-an-earlier-message`, applied inside one
+   message.
+6. **"Lookup by key" was a label with nothing under it.** Nothing said what a key is here, what does
+   the looking up, or what the reader gains. The one sentence that existed compressed the mechanism
+   into "by hostname or package name".
+7. **Every section explained a piece and none placed it in the whole.** The second message defined
+   its terms, which was the first message's fault, and kept the first message's structure: a
+   sequence of parts, each assuming the others. The user's diagnosis was exact: "talking as if I
+   already have the full picture".
+
+**Rule that failed.** `define-from-zero`, `name-the-subject-first`, `explain-never-label`,
+`show-the-data`, `whole-then-parts`, `never-point-at-an-earlier-message`. All loaded, all in
+`## Explaining` of the repo `CLAUDE.md`.
+
+**Root cause.** The design had been built up across 3 sessions inside the model's own context, and
+both messages were written from that context. Every mechanism already had a name there, so the
+writing named it and moved on. The rewrite treated "define every term" as the fix, and a definition
+is a label with one more clause. What was missing both times was the picture of the machine: what
+Claude Code reads, what points where, what runs when, and only then what each new piece changes in
+that picture.
+
+**Right instead.** Open with the machine as it is today, drawn: the symlinks, where they point, what
+runs at install and what runs when a skill loads. Introduce each change as a change to that drawing.
+Show a file only after saying what reads it. Name a mechanism only after the paragraph that showed it
+working, and name it once.
+
+---
+
+## 2026-09-12: five verdicts and no picture, from Opus 5
+
+**Model.** Opus 5. The two entries above it are Claude Fable 5.1; this one is not, and the user
+corrected the attribution mid-session: *"I fucking told you to record it as Opus 5 because this
+model was fucking Opus 5, not Fable 5.1."*
+
+**Context.** Designing the contribution pipeline, in conversation, the turn after the whole design
+was written to `lab/context/design-domain-skills.md`. The user asked five things in one message:
+whether to use the Vercel skills package, how a shared skill stays usable on a machine with no Flow,
+whether to drop the plan of installing every domain skill and turning most off, whether to build the
+separate repository first, and whether that repository becomes a submodule under `lab/`. The reply
+answered all five and was rejected whole.
+
+**Sent, whole:**
+
+`````markdown
+Read the folder you installed under `tmp/domain-skills/`, Flow's `skills.js` and `commands/skills.js`, and fetched the Claude Code skills page to `tmp/skills-doc.md`, since it is the one page missing from `lab/research/claude-code-docs/`. No file edited.
+
+## 1. The Vercel package: copy its layout, do not build on it
+
+What it is, from what it left in `tmp/domain-skills/`: a CLI that copies a skill folder out of a GitHub repo into `.agents/skills/<name>/`, symlinks `.claude/skills/<name>` at it, and writes `skills-lock.json` recording the source repo, the path inside it, and a hash of the content:
+
+```json
+"ai-elements": {
+  "source": "vercel/ai-elements",
+  "sourceType": "github",
+  "skillPath": "skills/ai-elements/SKILL.md",
+  "computedHash": "6d7ccc65..."
+}
+```
+
+Do not build on it. For our own repo a clone plus `git pull` does everything it does and leaves a history; the lock file's job is to tell a borrowed skill from one you own, and the folder a skill sits in already says that. It adds a second skills folder and a node dependency for what is one `ln -s`.
+
+Take one thing from it: the path it expects. `skills/<name>/SKILL.md` at the repo root. Lay the repo out that way and anyone can install from it with `npx skills add`, with no Flow involved. That is most of your compatibility question answered by a folder name.
+
+Nothing in Flow needs to change to tolerate it either. `flow install` already refuses to replace anything that is not already a symlink, so a skill that CLI put in a project is left alone.
+
+## 2. Outside Flow: one guarded line at the bottom of a body
+
+Verified on the docs page: `` !`cmd` `` in a skill body runs when the skill loads, the `!` has to start a line, and the output is pasted in as plain text.
+
+Today a body carries two Flow lines, `` !`flow overlays <name>` `` and, in the design, `` !`flow extras <name>` ``. Cut it to one:
+
+```
+!`flow extras react 2>/dev/null || true`
+```
+
+Where `flow` is absent the shell prints its complaint to stderr, `2>/dev/null` swallows it, `|| true` keeps the exit clean, and the reader sees a plain skill. `flow extras` prints the project's overlay text first, then one path per file under `~/.flow/skills/react/`. Flow's own phase and tool skills keep `flow overlays` unchanged, so nothing else moves.
+
+One line rather than two because every Flow line in that repo is foreign matter to someone who has never heard of Flow, and the two commands answer one question: what does this machine add to this skill.
+
+The rest of compatibility is the page rules already decided: no path outside the repo, no link to a file the repo does not ship, no `flow` anywhere except that one line. Worth knowing: a reader who sets `disableSkillShellExecution` sees `[shell command execution disabled by policy]` in place of the line, which is harmless.
+
+## 3. Install nothing by default: right call, wrong reason
+
+The obvious argument for it is false, so it is worth replacing before it gets written down. A skill set to `off` costs nothing in context. Flow verified that against Claude Code 2.1.251 on 2026-08-29 and the docs agree. So "off wastes context" does not decide this.
+
+What decides it: `flow install` would have to enumerate the corpus and write one line per skill into `~/.claude/settings.json`, turning a file you maintain by hand into a generated one, and fill `~/.claude/skills/` with hundreds of symlinks for skills nobody is using. On demand needs no list anywhere.
+
+Then go one step further than you said: **install into the project, not the machine.** A skill that is on costs its name and description in every session, and the docs cap the whole listing at 1% of the context window and start dropping descriptions when it overflows. A React skill's description in a Python project is pure cost. Machine wide and off is free but needs a settings edit before it works. Per project is free everywhere else and works the moment it lands.
+
+The mechanism, four pieces:
+
+- `~/.flow/sources` stays, one folder per line, but it is now a lookup path rather than an install list. `flow install` never reads it.
+- `flow skills ls --hidden` gains the corpus. The flag already means "what else exists"; corpus skills list with state `available`. That is how an agent discovers a skill it cannot see.
+- `flow skills add react` symlinks `<project>/.claude/skills/react` at the source folder and prints which source won.
+- `flow skills drop react` removes the symlink.
+
+Two facts that make it work, both from the docs page: Claude Code watches `.claude/skills/` and picks up an added skill inside the running session with no restart, so `flow skills add` is usable mid task; and if the project had no `.claude/skills/` folder at all when the session started, that session has to restart once. And the symlink needs no gitignore work, because `project-template/.gitignore` already ignores links and tracks folders.
+
+Two written positions this overturns, both rewritten in the same pass:
+
+- `scripts/flow/commands/skills.js` opens with "No `add`, `sync`, `new` or `drop`. An external skill used by one project is a folder copied into `<project>/.claude/skills/<name>/` and committed." A copy never receives a fold, so it becomes a symlink and the commands exist.
+- The off by default question is dead. `home/settings.json` loses `"web-pages": "off"`.
+
+`home/CLAUDE.md` gets one line: a domain skill for the tool you are using may exist without being installed, `flow skills ls --hidden` lists them, `flow skills add <name>` installs one.
+
+## 4. Repo first, and it now stands alone
+
+New order, replacing items 7 to 11 in `backlog.md`:
+
+1. `domain-skills`: `web-pages` moved in and reshaped, `CONTRIBUTING.md`, `skills/stack/` removed from Flow, docs and `home/settings.json` updated.
+2. `~/.flow/sources`, plus `flow skills add`, `drop` and `ls --hidden`.
+3. `flow extras`.
+4. `/file-findings` writes finding files.
+5. `/fold`.
+
+Under the old plan the repo needed the sources work first or nothing could install. It no longer does: until item 2 exists, a corpus skill is installed by one `ln -s` into a project. So item 1 is genuinely finishable and testable on its own.
+
+## 5. Submodule under `lab/`, and one rule has to change
+
+Same shape as `lab/util` and `lab/toolbox`: its own repo, checked out here only so development happens in one place, never named by anything that ships. `submodules-commit-twice` becomes three submodules.
+
+One rule in `CLAUDE.md` says otherwise. `no-skill-under-lab` opens "`skills/` is the only place a live skill exists." A submodule at `lab/domain-skills/` breaks that sentence. What the rule protects is two things: `flow install` reads one tree and cannot be fooled, and nothing that ships points into `lab/`. The first is already retired by the sources design. The second still matters. So replace the sentence rather than the rule:
+
+> **`no-skill-under-lab`** Flow's own skills live in `skills/`. A skill from another repo lives in that repo. Never let a `lab/` path leak into a skill, `home/`, or `project-template/`.
+
+The repo has to exist before the submodule can point at it, and both commands are git mutations, so they are yours. Public, since other people's pull requests are the entire point of the pipeline:
+
+```
+gh repo create Adrian333Dev/domain-skills --public
+git submodule add git@github.com:Adrian333Dev/domain-skills.git lab/domain-skills
+```
+
+Say go and I will write the records for all five decisions, then start on the repo.
+`````
+
+**Rejected:**
+
+> "Okay, your explanation is shit. I'm having a hard time understanding what the fuck are you exactly
+> proposing. You'll need to fucking try again and properly explain what the fuck are you proposing.
+> I'll also record this shit in the shit explanations as well. Like, I'm really pissed off by this
+> and I'm really tired of this shit. Like, you keep making and making this mistake again and again
+> and again and I'm already tired at this point. Like, what the fuck are you even explaining here?"
+
+**Faults.**
+
+1. **Five headings, five verdicts, and not one of them the proposal.** The message opens on the
+   Vercel package, a side question, and the first thing the reader meets is a ruling about a tool
+   rather than a statement of what is being built. No sentence anywhere in 89 lines says what the
+   proposal is. `name-the-subject-first` wants that sentence before any sentence arguing about it.
+2. **The load-bearing sentence is buried inside an argument.** "Install into the project, not the
+   machine" is the entire design, and it appears mid-section 3, bolded, after two paragraphs
+   correcting a reason the reader never held. The correction got the opening position and the design
+   got a subordinate clause. `lead-with-what-matters`.
+3. **The argument precedes the thing it argues for.** Section 3 opens by refuting "off wastes
+   context". A refutation is only readable by someone who already knows which design it is clearing
+   the ground for, and that design had not been stated.
+4. **Six mechanisms named as if known.** `~/.flow/sources`, `flow skills ls --hidden`, `flow extras`,
+   "the corpus", "the listing budget", "a fold". Each appears as an established noun. The design
+   record on disk holds all six, and none of them had been put in front of the reader in this
+   conversation. `define-from-zero`, `explain-never-label`.
+5. **The two folders the change is about never appear together.** The whole proposal is the
+   difference between `~/.claude/skills/` and `<project>/.claude/skills/`. Neither path is shown
+   until a bullet list in section 3, and they are never shown side by side.
+6. **No drawing, for a change whose entire content is where files sit.** `ui-is-drawn` sends
+   structure through `visualize`, and `visualize` carries a Tree pattern for exactly this: file
+   layout as an indented text tree. The user had asked for a tree-shaped picture two turns earlier.
+
+**Rule that failed.** `name-the-subject-first`, `whole-then-parts`, `lead-with-what-matters`,
+`define-from-zero`, `explain-never-label`, `ui-is-drawn`. All six sit in `## Explaining` and
+`## Judgment` in the repo `CLAUDE.md`.
+
+**Root cause.** `topic-by-topic` was obeyed and `whole-then-parts` was not. The user asked five
+questions, so the reply was built as five answers in their order, and a list of five verdicts has
+nowhere to put the picture all five depend on. Where the two rules collide, the picture comes first
+and the topics hang off it; the reply treated the user's question order as the structure of the
+whole message rather than the order of its sections.
+
+**Right instead.** One sentence naming what is proposed. Then the tree of what sits where today.
+Then the same tree after the change. Then each of the five questions answered as a change to that
+tree.
+
+### The rewrite, same session: readable, and still carrying three faults
+
+The rewrite opened with the proposal in one sentence and two trees, and the user worked through it
+rather than rejecting it. Three faults survived, all named by the user.
+
+1. **A section of pure argument, unlabelled.** "The load-bearing rule: a domain skill is installed
+   per project" ran a three-way comparison without a first sentence saying it was the case for a
+   line in the proposal above it. *"I'm still not understanding that if that section is a proposal
+   of new system? Or were you just evaluating the old solution? You just dumped your reasoning in
+   that section and you're not fucking clarifying."* An argument section states what it is arguing
+   for before it argues.
+2. **Today's tree used to define a term, with no label saying it was today's.** The folder list
+   named `skills/stack/` as a live group, in a section the reader took for the design after the
+   change, where that folder is deleted. *"Is that correct? I don't think it is accurate because I
+   think we discussed that we're going to move it out completely."*
+3. **A mechanism deleted inside a simplification, without the deletion being named.** Merging
+   `flow overlays` into `flow extras` removed the project overlay from every domain skill body. The
+   message presented the merge as cutting two lines to one and never said which capability went.
+   *"Where did the overlays command go? I think we're supposed to have the overlays command as
+   well, right?"*

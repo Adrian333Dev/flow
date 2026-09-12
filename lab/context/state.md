@@ -17,7 +17,7 @@ owed.
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow doctor`,
 `flow skills`, `flow overlays`, `flow audit`, `flow scorecard`, `util` in full, and the test harness.
-Flow's suite passes 89 tests; `util`'s own suite passes 37.
+Flow's suite passes 89 tests; `util`'s own suite passes 49.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -917,3 +917,12 @@ All under `lab/context/`, and every one is history rather than status.
   `anthropics/claude-code` 2026-09-10 (#93248 `paths:` fires on reads only, #93249 no `exclude:`
   field, #93252 a hook cannot load a rule, a skill or a file), 9 gaps worth filing, 3 ruled out.
   A record of upstream state, so nothing on it is an open Flow item
+- `design-management.md`: the management skill, opened 2026-09-11 and still in conversation. **Nothing in
+  it is approved.** What already exists, 3 faults found in the code, the rulings the user gave, 6 open
+  proposals, what was rejected and why, and the 3 questions still to answer
+- `design-domain-skills.md`: the `domain-skills` repository, domain skills installed per project through
+  `flow domain-skills`, private skills in `~/.flow/private-skills`, the guarded overlay line, `/research`
+  looking locally first, adopting an external skill, one file per finding tagged at filing, `/fold`,
+  `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
+  research, and the build plan in 2 halves. Agreed with the user 2026-09-13, nothing built, and the
+  essential half is `## Next` items 7 to 12

@@ -488,6 +488,12 @@ updating a machine, re-installing over the two personalised files, converting a 
 own workflow, and every migration that follows. **It is far larger than the item written down for it**, which
 is why it stays last.
 
+**The design discussion opened 2026-09-11 and lives in `lab/context/design-management.md`.** Nothing in it is
+approved. It carries what already exists, 3 faults found in the code, the rulings the user gave, 6 open
+proposals, what was rejected and why, and the 3 questions still to answer. The shared corpus question it
+opened with grew into its own record, `design-domain-skills.md`, and its own build, chosen for execution
+2026-09-12.
+
 ## ascii-engine: hand it JSON, get back the drawing
 
 Raised by the user 2026-08-19, at the end of the `visualize` rework. **Nothing is decided and it may never be
