@@ -63,7 +63,8 @@ Read from `code.claude.com/docs/en/skills.md` on 2026-09-12. The page is not in
 FOLDERS THAT HOLD SKILL FILES
 
 ~/code/flow/skills/             Flow's own: phases, tools, dev
-~/code/domain-skills/skills/    one folder per subject: react, web-pages, postgres
+~/code/domain-skills/skills/    one folder per subject: react, postgres
+~/code/domain-skills/drafts/    skills not yet in the shape, installed by nothing: web-pages
 ~/.flow/private-skills/         yours, each with a name no domain skill uses
 
 
@@ -99,6 +100,13 @@ only the example path.
 - **`skills/<name>/SKILL.md` at the root.** This is the path the `skills` CLI from Vercel expects, `npx
   skills add <owner/repo> --skill <name>`, so anyone can install from the repository with no Flow
   involved. No group folders, since the repository holds one kind of skill.
+- **`drafts/<name>/` at the root holds a skill not yet in the shape**, added 2026-09-13 at the user's
+  request. `web-pages` waits there unchanged until its rebuild. A draft ships by moving into `skills/`.
+  The root rather than `skills/drafts/`, because the Vercel CLI walks `skills/` 3 levels deep and would
+  offer `skills/drafts/web-pages/` for install like a finished skill (its README, read 2026-09-13).
+  `flow domain-skills` reads only `skills/`. One gap: with nothing at all in `skills/`, the Vercel CLI
+  falls back to searching the whole repository and finds the draft. It closes when the first finished
+  skill lands.
 - **A submodule at `lab/domain-skills/` during development.** Nothing that ships names that path. The
   user runs both setup commands, since both change git:
 
@@ -336,7 +344,8 @@ Fixed 2026-09-12 from the research below.
   page. `scripts/` for what it runs. `examples/` for what it copies, such as a whole worked component or
   config. `knowledge/` goes.
 - **Every page opens with the same header**: subject, date, and what proved it, as a sentence with a
-  link. Never a path outside the repository.
+  link. Never a path outside the repository. Written as frontmatter with the fields `subject`, `date`
+  and `proved-by`, the same form as the finding header, in `CONTRIBUTING.md` 2026-09-13.
 - **Keyed knowledge is a sub-folder named for the key, with a fixed file set**, such as
   `references/sites/youtube-watch.md` in `web-pages`. The body names the file set once.
 - **A finding in the repository is a queue, never loaded.** The body and the pages never link one. The
@@ -523,18 +532,20 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
 
 **The essential half**, the loop the user runs alone, about 5 sessions, in this order:
 
-1. **The `domain-skills` repository.** The user creates it and adds the submodule. `no-skill-under-lab`
-   is rewritten in the repo `CLAUDE.md`, along with the group list in its `## Authoring a skill`.
-   `web-pages` moves to `lab/domain-skills/skills/web-pages/` in the shape above: `knowledge/` becomes
-   `references/`, `domains/` becomes `references/sites/`, and the body routes twice and ends on the
-   guarded overlay line. `CONTRIBUTING.md` at its root. `skills/stack/` removed from Flow.
-   `write-skills.md`, `docs/dev/skills.md` and `home/settings.json` updated in the same pass.
+1. **The `domain-skills` repository.** Built 2026-09-13. The user created it and added the submodule.
+   `no-skill-under-lab` is rewritten in the repo `CLAUDE.md`, along with the group list in its
+   `## Authoring a skill`. `web-pages` moved unchanged to `lab/domain-skills/drafts/web-pages/`, since
+   the user ruled it gets no edits before its full rebuild. `CONTRIBUTING.md` and `README.md` at its
+   root. `skills/stack/` removed from Flow. `write-skills.md`, `docs/dev/skills.md`, `home/settings.json`
+   and `home/settings.md`, the manual, `README.md`, `docs/dev/layout.md`, `skills.test.js` and the
+   adoption rule in `/research` updated in the same pass.
+   - **Then the toolbox rewrite**, after a compaction and before step 2, ruled by the user 2026-09-13.
 2. **`flow domain-skills ls`, `add` and `drop`**, and the `domainSkills` setting. The header of
    `commands/skills.js` rewritten. Tests in `scripts/`.
 3. **`flow private-skills ls`, `add` and `drop`**, with `--global`. `claude-dir-vs-flow-dir` gains
    `private-skills/`. Tests.
-4. **`/research`**: the search reordered local first, `references/find-a-skill.md`, and the adoption
-   rule.
+4. **`/research`**: the search reordered local first, and `references/find-a-skill.md`. The adoption
+   rule landed with step 1.
 5. **Capture and `/file-findings`**: `home/CLAUDE.md` → `## Capture` writes one file per finding, and
    filing adds the `skill:` header for a domain skill.
 6. **`/fold <skill>`** under `skills/dev/`.

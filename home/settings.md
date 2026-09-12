@@ -162,25 +162,24 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 Installing and being shown are separate questions. Every skill outside `drafts/` installs on every machine, and a skill set to `off` costs nothing, so nothing is gained by leaving one uninstalled.
 
-### The default belongs to the group
+### Every skill Flow installs is on
 
-- **`phases/`, `tools/`, `dev/` → on.** Reached in ordinary work, in any project
-- **`stack/` → off**, turned on by the projects that touch that stack. Ten stack skills would otherwise be ten descriptions in every session, forever, and the one project doing browser work is the only one that needs the browser skill
+`phases/`, `tools/` and `dev/` are reached in ordinary work, in any project, so this file ships `skillOverrides` empty.
 
-Reversed 2026-08-30. Every skill was on by default until then, on the argument that one author wants everything reachable everywhere, which stays true, and is why `off` never stops a skill from installing.
+**A domain skill never installs on the machine, so none needs turning off.** It installs into the one project that uses it, and only that project pays for its description. Until 2026-09-13 Flow carried domain skills in a `stack/` group that installed everywhere and shipped `off`. That group left for the `domain-skills` repository.
 
 ### Two values, keyed by skill name
 
 - **`on`**: the name and the description. What a skill gets when it is named nowhere
 - **`off`**: the model is shown nothing, and `/name` refuses with *disabled via skillOverrides*
 
-**Claude Code accepts two more and Flow uses neither.** `name-only` shows the name and hides the description, so the model keeps the power to fire a skill and loses the only thing it could judge with. `user-invocable-only` hides it from the model and leaves `/name` working, which was proposed for `stack/` on 2026-08-30 and rejected: a stack skill exists to fire during a phase, so a state the model cannot see makes it unfirable. All four verified 2026-08-29.
+**Claude Code accepts two more and Flow uses neither.** `name-only` shows the name and hides the description, so the model keeps the power to fire a skill and loses the only thing it could judge with. `user-invocable-only` hides it from the model and leaves `/name` working, which was rejected on 2026-08-30: a skill that exists to fire during a phase is unfirable once the model cannot see it. All four verified 2026-08-29.
 
-### This file ships the off list, and a project overrides it
+### A project overrides this file key by key
 
-`home/settings.json` names what is off on the machine. A project turns one back on in its own `.claude/settings.json`.
+`home/settings.json` names what is off on the machine, and ships naming nothing. A project turns a skill on or off in its own `.claude/settings.json`.
 
-**The two files merge key by key rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill this file had set to `off`, a project setting `off` hid one this file never named, and an entry only this file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
+**The two files merge rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill this file had set to `off`, a project setting `off` hid one this file never named, and an entry only this file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
 
 **Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill on the machine with its state and which file set it.
 

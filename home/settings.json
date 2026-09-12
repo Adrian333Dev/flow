@@ -92,7 +92,5 @@
       "Agent(isolation:worktree)"
     ]
   },
-  "skillOverrides": {
-    "web-pages": "off"
-  }
+  "skillOverrides": {}
 }

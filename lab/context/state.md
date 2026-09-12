@@ -192,14 +192,26 @@ no mechanism: `InstructionsLoaded` cannot modify loading, `SessionStart` → `re
 re-scans the folder, and `UserPromptExpansion` fires only on a typed `/name`. A skill does take
 `paths:` frontmatter, the same as a rule file, which Flow uses nowhere yet.
 
-**The skill groups are 3, cut from 5 on 2026-09-08.** `phases/`, `tools/` and `stack/`, plus `dev/`
-and `drafts/`. `session/` and `knowledge/` were dissolved into `tools/`, taking `start`, `handoff` and
-`file-findings` with them. The deciding argument is that a group's only function is the on/off switch:
-`stack/` is the only group set differently, `phases/` is the only closed set with a rule behind it, and
+**The skill groups are 2, `phases/` and `tools/`, plus `dev/` and `drafts/`.** They were cut from 5 to 3
+on 2026-09-08: `session/` and `knowledge/` were dissolved into `tools/`, taking `start`, `handoff` and
+`file-findings` with them. The deciding argument was that a group's only function is the on/off switch:
+`stack/` was the only group set differently, `phases/` is the only closed set with a rule behind it, and
 nothing distinguished the other 3 from each other. `knowledge/` held 1 skill and was never going to hold
 more. No code changed, because `flow install` reads the tree. `docs/dev/skills.md`, `docs/dev/layout.md`,
 `references/write-skills.md`, `home/settings.md`, `README.md`, the repo `CLAUDE.md` and one path in
 `skills.test.js` moved with it.
+
+**`stack/` left Flow for the `domain-skills` repository, 2026-09-13.** Step 1 of
+`design-domain-skills.md` → `## The plan`. The user created `Adrian333Dev/domain-skills` as a public
+repository and added it as a submodule at `lab/domain-skills/`. `web-pages` moved there unchanged, into
+`drafts/web-pages/`, because the user ruled it gets no edits before its rebuild. The repository's root
+holds `CONTRIBUTING.md` (the shape of a skill, a page and a finding, the 6 merge rules, drafts) and a
+`README.md` with the install command that needs no Flow. `no-skill-under-lab` in the repo `CLAUDE.md` now
+reads that a skill from another repository lives in that repository. `/research` carries the adoption
+rule. The tests point at `visualize` and `flow-review` where they named `web-pages`, and all 89 pass.
+Nothing installs a domain skill yet: `flow domain-skills` is step 2, which waits for the toolbox rewrite.
+`skills/phases/debug/SKILL.md` still routes a bug inside a page to `/web-pages`, which no machine can
+reach until the rebuild.
 
 **`project-template/CLAUDE.md` is 8 lines and holds no rules, 2026-09-08.** 2 comments, both fill-in
 prompts, both deleted the moment their section is written. The 3 rules that had been sitting in comments
@@ -208,7 +220,7 @@ are gone: section naming and `.claude/rules/<topic>.md` with `paths:` were alrea
 grounds that a machine without the install skill is broken whatever the template says. A rule in a
 comment is broken by construction, since `placeholder-comments-are-deleted` deletes the comment.
 `project-template/.claude/settings.json` now ships too, holding an empty `skillOverrides`, which is what
-a project writes into to turn a `stack/` skill on.
+a project writes into to turn one skill on or off.
 
 **`/groundwork` was rewritten around a pile of input, 2026-09-08.** Phase 1 gained the greenfield
 folder, `groundwork/<slug>/` where you are standing, and the case of a directory that becomes a project
@@ -358,7 +370,8 @@ are about 6% of `home/CLAUDE.md`; deleting a rule beats rewording thirty. It mar
 measured on disk, documented by Anthropic, or derived from how byte-pair tokenizers work, because
 Claude's tokenizer is not published.
 
-**The off list names `web-pages` today**, and nothing else. Which groups are on moved out of
+**The off list names nothing since 2026-09-13**, when `web-pages` left Flow and `home/settings.json`
+shipped `skillOverrides` empty. Which groups are on moved out of
 `CLAUDE.md` on 2026-09-01 and is now in `docs/dev/skills.md` → `## The groups`. Off globally and on
 in one project is verified against Claude Code 2.1.251 and covered by a test.
 
@@ -924,5 +937,5 @@ All under `lab/context/`, and every one is history rather than status.
   `flow domain-skills`, private skills in `~/.flow/private-skills`, the guarded overlay line, `/research`
   looking locally first, adopting an external skill, one file per finding tagged at filing, `/fold`,
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
-  research, and the build plan in 2 halves. Agreed with the user 2026-09-13, nothing built, and the
-  essential half is `## Next` items 7 to 12
+  research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day;
+  the toolbox rewrite comes next, then `## Next` items 8 to 12

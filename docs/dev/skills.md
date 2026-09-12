@@ -28,7 +28,6 @@ A group is a filing decision. Nothing outside `skills/` reads a group name: a sy
 
 - **`phases/`**: what you are doing: groundwork, execute, prototype, debug
 - **`tools/`**: what you reach for around the work: start, handoff, file-findings, research, visualize, cut-from-spec
-- **`stack/`**: what you are touching: web-pages
 - **`dev/`**: building and improving Flow itself: flow-review
 - **`drafts/`**: one still being written
 
@@ -36,7 +35,9 @@ A group is a filing decision. Nothing outside `skills/` reads a group name: a sy
 
 `phases/` is closed at those 4. A skill that looks like a fifth phase belongs somewhere else: `/cut-from-spec` produces tickets and files under `tools/`.
 
-A group also decides whether a session is shown the skill. `phases/`, `tools/` and `dev/` are on. `stack/` is off, and turned on per project. The off list ships in `home/settings.json` as `skillOverrides`, whose values are `on` and `off` with nothing between them.
+Every group that installs is shown in every session. A machine or a project turns one skill off in `skillOverrides`, whose values are `on` and `off` with nothing between them. `home/settings.json` ships the key empty.
+
+A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and installs into the one project that uses it.
 
 ## Frontmatter
 

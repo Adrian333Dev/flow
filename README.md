@@ -137,9 +137,7 @@ ASCII over HTML for diagrams and mockups: a fraction of the tokens, renders inli
 ```
 skills/
 ├─ phases/       groundwork, execute, prototype, debug
-├─ tools/        research, visualize
-├─ commands/     start, handoff, file-findings, cut-from-spec
-├─ stack/        web-pages
+├─ tools/        start, handoff, file-findings, research, visualize, cut-from-spec
 └─ dev/          flow-review
 ```
 

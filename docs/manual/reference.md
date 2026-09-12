@@ -364,7 +364,7 @@ The command only reads. Acting on it means editing a check file, which needs app
 
 ## The skills
 
-A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/name` to run one, or let Claude fire it from its description. The group decides whether a session is shown the skill at all, which [Settings](#settings) covers.
+A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/name` to run one, or let Claude fire it from its description. Every skill is shown in every session until `skillOverrides` turns it off, which [Settings](#settings) covers.
 
 **`phases/`, the four states a piece of work passes through.** Shown in every session.
 
@@ -381,10 +381,6 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/name` t
 - **`/research`**: reads what an external tool actually does, from its own documentation and source
 - **`/visualize`**: draws ASCII diagrams, screen mockups and HTML previews
 - **`/cut-from-spec`**: cuts the next batch of work out of `docs/spec/` into tickets. Typed only
-
-**`stack/`, knowledge about one technology.** Off by default, turned on per project.
-
-- **`/web-pages`**: investigates and experiments on a live web page you do not control
 
 **`dev/`, working on Flow itself.** Shown in every session.
 

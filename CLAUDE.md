@@ -113,7 +113,7 @@ Two rules from it fire here constantly:
 
 ## Authoring a skill
 
-One folder per skill, filed under a group: `skills/phases/`, `tools/`, `stack/`, `dev/` or `drafts/`. To add one, create `<group>/<name>/SKILL.md` with `name` and `description` frontmatter. Every skill outside `drafts/` installs, read off the tree. `flow install` skips `drafts/`, so a skill ships by being moved out of it.
+One folder per skill, filed under a group: `skills/phases/`, `tools/`, `dev/` or `drafts/`. To add one, create `<group>/<name>/SKILL.md` with `name` and `description` frontmatter. Every skill outside `drafts/` installs, read off the tree. `flow install` skips `drafts/`, so a skill ships by being moved out of it.
 
 **`skills-docs-move-together`** `docs/dev/skills.md` is the long form, and `skills/tools/file-findings/references/write-skills.md` says the same for a skill authored inside a project. Edit both in the same pass whenever a rule there changes.
 
@@ -142,7 +142,7 @@ The decisions neither page carries:
 - **`path-commands-are-bare`** `flow next`, `util fs tree docs`. Everything else as `~/.flow/scripts/<file.ext>`.
 - **`bash-or-node-by-job`** Bash where the script wraps another command. Node where there is real logic.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
-- **`no-skill-under-lab`** `skills/` is the only place a live skill exists. Never let a `lab/` path leak into a skill, `home/`, or `project-template/`.
+- **`no-skill-under-lab`** Flow's own skills live in `skills/`. A skill from another repository lives in that repository. Never let a `lab/` path leak into a skill, `home/`, or `project-template/`.
 - **`lab-records-are-history`** Disk wins where a record and the tree disagree. `lab/context/state.md` is the one exception: it is maintained as the work moves, so where it disagrees with disk, the file is the bug.
 - **`context-files-are-flat`** Every context file lives in `lab/context/`, flat.
 - **`read-repos-with-cat`** `repos/` is read with `cat`, never with `Read`. Other people's clones, never edited.

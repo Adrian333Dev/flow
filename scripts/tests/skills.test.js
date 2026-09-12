@@ -24,20 +24,20 @@ const skillsLs = (dir, configDir, args = []) => run('flow/flow.js', ['skills', '
 test('a skill lists with its state, and a project overrides the machine', () => {
   const dir = project('skills-state');
   const configDir = path.join(dir, 'config');
-  write(dir, 'config/settings.json', JSON.stringify({ skillOverrides: { 'web-pages': 'off' } }));
+  write(dir, 'config/settings.json', JSON.stringify({ skillOverrides: { visualize: 'off' } }));
 
   const machineOff = skillsLs(dir, configDir);
   assert.strictEqual(machineOff.code, 0, machineOff.stderr);
-  assert.match(machineOff.stdout, /web-pages\s+stack\s+off\s+machine/);
+  assert.match(machineOff.stdout, /visualize\s+tools\s+off\s+machine/);
   assert.match(machineOff.stdout, /groundwork\s+phases\s+on\s+default/,
     'a skill nobody names is on');
 
   // A project setting `on` restores a skill the machine turned off. The two
-  // objects merge key by key, which is what makes stack-off-by-default usable.
-  write(dir, '.claude/settings.json', JSON.stringify({ skillOverrides: { 'web-pages': 'on' } }));
+  // objects merge key by key, so a machine-wide off never has to be undone there.
+  write(dir, '.claude/settings.json', JSON.stringify({ skillOverrides: { visualize: 'on' } }));
 
   const projectOn = skillsLs(dir, configDir);
-  assert.match(projectOn.stdout, /web-pages\s+stack\s+on\s+project/);
+  assert.match(projectOn.stdout, /visualize\s+tools\s+on\s+project/);
   assert.match(projectOn.stdout, /groundwork\s+phases\s+on\s+default/,
     'a skill the project never names keeps the machine answer');
 });
@@ -45,17 +45,17 @@ test('a skill lists with its state, and a project overrides the machine', () => 
 test('--group and --hidden narrow the list', () => {
   const dir = project('skills-filters');
   const configDir = path.join(dir, 'config');
-  write(dir, 'config/settings.json', JSON.stringify({ skillOverrides: { 'web-pages': 'off' } }));
+  write(dir, 'config/settings.json', JSON.stringify({ skillOverrides: { visualize: 'off' } }));
 
-  const oneGroup = skillsLs(dir, configDir, ['--group', 'stack']);
+  const oneGroup = skillsLs(dir, configDir, ['--group', 'tools']);
   assert.strictEqual(oneGroup.code, 0, oneGroup.stderr);
-  assert.match(oneGroup.stdout, /web-pages\s+stack/);
+  assert.match(oneGroup.stdout, /visualize\s+tools/);
   assert.ok(!/groundwork/.test(oneGroup.stdout), '--group drops every other group');
 
   // A skill the session is already shown needs no listing; --hidden is the
   // question "what else exists", which is the only one worth a command.
   const hidden = skillsLs(dir, configDir, ['--hidden']);
-  assert.match(hidden.stdout, /web-pages\s+stack\s+off\s+machine/);
+  assert.match(hidden.stdout, /visualize\s+tools\s+off\s+machine/);
   assert.ok(!/groundwork/.test(hidden.stdout), '--hidden drops what is on');
 
   // Both together, and the empty result says so rather than printing a header.
@@ -126,9 +126,9 @@ test('install builds a whole config, is idempotent, and prunes a dead link', () 
     'a typed-only skill installs like any other'
   );
   assert.strictEqual(
-    linkTarget(path.join(home, 'skills', 'web-pages')),
-    path.join(REPO, 'skills', 'stack', 'web-pages'),
-    'every skill installs, including the one most projects never show the model'
+    linkTarget(path.join(home, 'skills', 'flow-review')),
+    path.join(REPO, 'skills', 'dev', 'flow-review'),
+    'every group outside drafts/ installs'
   );
   assert.ok(!fs.existsSync(path.join(home, 'commands')), 'nothing links a commands folder any more');
   assert.ok(fs.existsSync(path.join(home, 'CLAUDE.md')), 'the global rules are copied, not linked');
