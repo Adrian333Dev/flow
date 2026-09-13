@@ -209,7 +209,7 @@ holds `CONTRIBUTING.md` (the shape of a skill, a page and a finding, the 6 merge
 `README.md` with the install command that needs no Flow. `no-skill-under-lab` in the repo `CLAUDE.md` now
 reads that a skill from another repository lives in that repository. `/research` carries the adoption
 rule. The tests point at `visualize` and `flow-review` where they named `web-pages`, and all 89 pass.
-Nothing installs a domain skill yet: `flow domain-skills` is step 2, which waits for the toolbox rewrite.
+Nothing installs a domain skill yet: `flow domain-skills` is step 2, next now the toolbox rewrite is built.
 `skills/phases/debug/SKILL.md` still routes a bug inside a page to `/web-pages`, which no machine can
 reach until the rebuild.
 
@@ -554,12 +554,15 @@ nothing**: both hooks, `scripts/rule-checks/` and `flow scorecard` all shipped 2
 folder is empty until a rule has an id to name. `design-knowledge-base.md` → `## Locked decisions:
 the enforcement bridge` carries the design, and `## Build plan` carries what is left.
 
-**`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01.** It holds external tools filed
-by job: MCP servers, plugins, skills, libraries, apps. Nothing loads it and nothing installs from it.
-Its rewrite was agreed with the user 2026-09-13 and nothing is built: the build starts in a fresh
-session. The new layout splits `agent-tools/` from `software/`, gives every tool its own
-`owner_repo.md` file, and fills it through `util github bookmark`. `design-toolbox.md` carries the
-design and the build. `repos/toolbox` is the old plain clone, still on disk and redundant now.
+**`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01, and rebuilt 2026-09-13.** It
+holds 155 outside tools, one `owner_repo.md` file each, under `agent-tools/` for tools made for AI
+agents and `software/` for the rest, then a folder per job. Each file carries `description`, `type`,
+`url`, stars, language and last push at the top, and dated notes below. `README.md` lists folders
+only, in a tree `util fs tree --into` writes. `util github bookmark --to <folder>/` writes a new tool
+file, and `lab/util` gained that folder mode, `--into`, and the `kind` field renamed `type`, with 54
+tests passing. Both submodules wait for the user's commits. Nothing points an agent at the toolbox
+yet: the user suggested the `research` skill, still under discussion. `design-toolbox.md` carries the
+design and the build. `repos/toolbox` and `~/code/toolbox` are old plain clones, redundant now.
 
 **Flow depends on `util`, and 3 scripts left `scripts/` to make that true.** `gsave.sh`, `ptree.js`
 and `fmerge.js` moved on 2026-08-30, becoming `git save`, `fs tree` and `fs merge`. `flow install`'s
@@ -941,8 +944,8 @@ All under `lab/context/`, and every one is history rather than status.
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
   research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day;
   the toolbox rewrite comes next, then `## Next` items 8 to 12
-- `design-toolbox.md`: the toolbox rewrite, agreed with the user 2026-09-13 and not built. The split
-  into `agent-tools/` and `software/`, one `owner_repo.md` file per tool, the groups-only `README.md`,
-  how an agent finds a tool, the build approved for `lab/util`, `lab/toolbox` and Flow, the open
-  `type:` question, what was rejected, and the library idea parked for later with the API facts and
-  the search test behind it
+- `design-toolbox.md`: the toolbox rewrite, agreed with the user and built 2026-09-13. The split into
+  `agent-tools/` and `software/`, one `owner_repo.md` file per tool with a `type:` field, the
+  groups-only `README.md`, how an agent finds a tool, the build in `lab/util`, `lab/toolbox` and Flow
+  with what changed after approval, what the toolbox held before, what was rejected, and the library
+  idea parked for later with the API facts and the search test behind it
