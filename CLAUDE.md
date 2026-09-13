@@ -142,6 +142,7 @@ The decisions neither page carries:
 - **`path-commands-are-bare`** `flow next`, `util fs tree docs`. Everything else as `~/.flow/scripts/<file.ext>`.
 - **`bash-or-node-by-job`** Bash where the script wraps another command. Node where there is real logic.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
+- **`type-never-kind`** A field saying what sort of thing a record is gets called `type`.
 - **`no-skill-under-lab`** Flow's own skills live in `skills/`. A skill from another repository lives in that repository. Never let a `lab/` path leak into a skill, `home/`, or `project-template/`.
 - **`lab-records-are-history`** Disk wins where a record and the tree disagree. `lab/context/state.md` is the one exception: it is maintained as the work moves, so where it disagrees with disk, the file is the bug.
 - **`context-files-are-flat`** Every context file lives in `lab/context/`, flat.

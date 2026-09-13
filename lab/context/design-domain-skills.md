@@ -346,6 +346,11 @@ Fixed 2026-09-12 from the research below.
 - **Every page opens with the same header**: subject, date, and what proved it, as a sentence with a
   link. Never a path outside the repository. Written as frontmatter with the fields `subject`, `date`
   and `proved-by`, the same form as the finding header, in `CONTRIBUTING.md` 2026-09-13.
+  - **Questioned by the user the same day**, never having seen `proved-by`, which was proposed
+    2026-09-11 and drew no objection. Recommended, and waiting on the user: pages get no header, since
+    a link beside each claim names its source and rule 4 already names the version. The finding
+    header keeps only `skill:`. Merge rules 2 and 6 into "proved by a failure: the body says what went
+    wrong and what fixed it". The edit touches `CONTRIBUTING.md` and this file.
 - **Keyed knowledge is a sub-folder named for the key, with a fixed file set**, such as
   `references/sites/youtube-watch.md` in `web-pages`. The body names the file set once.
 - **A finding in the repository is a queue, never loaded.** The body and the pages never link one. The

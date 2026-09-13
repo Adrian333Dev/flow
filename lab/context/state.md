@@ -555,9 +555,11 @@ folder is empty until a rule has an id to name. `design-knowledge-base.md` → `
 the enforcement bridge` carries the design, and `## Build plan` carries what is left.
 
 **`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01.** It holds external tools filed
-by job: MCP servers, plugins, skills, libraries, apps. Nothing loads it, nothing installs from it,
-and the rewrite that earns it a way back has not started. `repos/toolbox` is the old plain clone,
-still on disk and redundant now.
+by job: MCP servers, plugins, skills, libraries, apps. Nothing loads it and nothing installs from it.
+Its rewrite was agreed with the user 2026-09-13 and nothing is built: the build starts in a fresh
+session. The new layout splits `agent-tools/` from `software/`, gives every tool its own
+`owner_repo.md` file, and fills it through `util github bookmark`. `design-toolbox.md` carries the
+design and the build. `repos/toolbox` is the old plain clone, still on disk and redundant now.
 
 **Flow depends on `util`, and 3 scripts left `scripts/` to make that true.** `gsave.sh`, `ptree.js`
 and `fmerge.js` moved on 2026-08-30, becoming `git save`, `fs tree` and `fs merge`. `flow install`'s
@@ -939,3 +941,8 @@ All under `lab/context/`, and every one is history rather than status.
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
   research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day;
   the toolbox rewrite comes next, then `## Next` items 8 to 12
+- `design-toolbox.md`: the toolbox rewrite, agreed with the user 2026-09-13 and not built. The split
+  into `agent-tools/` and `software/`, one `owner_repo.md` file per tool, the groups-only `README.md`,
+  how an agent finds a tool, the build approved for `lab/util`, `lab/toolbox` and Flow, the open
+  `type:` question, what was rejected, and the library idea parked for later with the API facts and
+  the search test behind it
