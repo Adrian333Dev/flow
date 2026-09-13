@@ -14,10 +14,11 @@
  * tool already exists wants neither the whole catalog nor the skills it can
  * already see, and `--hidden` is that question.
  *
- * No `add`, `sync`, `new` or `drop`. An external skill used by one project is a
- * folder copied into `<project>/.claude/skills/<name>/` and committed, which
- * needs no command and no list. Writing a Flow skill is writing a file in the
- * clone, and removing one from a project is `skillOverrides`.
+ * No `add`, `sync`, `new` or `drop`. Writing a Flow skill is writing a file in the
+ * clone, and removing one from a project is `skillOverrides`. A skill about one
+ * field or tool comes from the domain-skills repository through
+ * `flow domain-skills`, and any other outside skill installs with its own
+ * installer.
  */
 
 const { out, resolve } = require('../lib/cli');

@@ -1,9 +1,10 @@
 tmp/
 node_modules
 
-# An external skill lives here as a real folder, copied in and committed. A
-# symlink would be stored as this machine's path and load nothing on the next
-# machine, so these two lines ignore links and track folders.
+# A skill belonging to this project lives here as a real folder, committed. A
+# domain skill is a symlink holding this machine's path, which would load
+# nothing on the next machine, so these two lines ignore links and track
+# folders. flow domain-skills keeps the names in .flow/domain-skills.txt instead.
 .claude/skills/*
 !.claude/skills/*/
 

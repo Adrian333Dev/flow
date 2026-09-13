@@ -37,7 +37,7 @@ A group is a filing decision. Nothing outside `skills/` reads a group name: a sy
 
 Every group that installs is shown in every session. A machine or a project turns one skill off in `skillOverrides`, whose values are `on` and `off` with nothing between them. `home/settings.json` ships the key empty.
 
-A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and installs into the one project that uses it.
+A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and installs into the one project that uses it: `flow domain-skills add <name>`.
 
 ## Frontmatter
 

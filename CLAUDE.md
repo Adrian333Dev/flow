@@ -134,7 +134,7 @@ The decisions neither page carries:
 
 ## Repo rules
 
-- **`claude-dir-vs-flow-dir`** `.claude/` holds what Claude Code reads. `.flow/` holds what Flow owns. Both levels. On the machine, `~/.claude/` carries `CLAUDE.md`, `settings.json`, `skills/`, `agents/` and `rules/`; `~/.flow/` carries `scripts/`, `references/`, `settings.json`, `workflow-notes.md` and `study-cases/`. In a project, `.claude/` carries `settings.json` and any external skill; `.flow/` carries `tickets/`, `groundwork/`, `inbox.md`, `handoff.md` and `overlays/`. `flow install` takes `--home` and `--flow-home`, and refuses one without the other.
+- **`claude-dir-vs-flow-dir`** `.claude/` holds what Claude Code reads. `.flow/` holds what Flow owns. Both levels. On the machine, `~/.claude/` carries `CLAUDE.md`, `settings.json`, `skills/`, `agents/` and `rules/`; `~/.flow/` carries `scripts/`, `references/`, `settings.json`, `workflow-notes.md` and `study-cases/`. In a project, `.claude/` carries `settings.json` and any external skill; `.flow/` carries `tickets/`, `groundwork/`, `inbox.md`, `handoff.md`, `overlays/` and `domain-skills.txt`. `flow install` takes `--home` and `--flow-home`, and refuses one without the other.
 - **`skill-edits-are-live`** A skill edit reaches a session immediately, through the symlink. Adding, renaming or removing a skill is the only case needing `flow install`.
 - **`never-symlink-a-folder`** Never symlink `skills/` or `agents/` whole. Both `~/.claude/` counterparts hold entries Flow doesn't own. `flow install` links per item, and refuses to replace anything not already a symlink.
 - **`scripts-keep-their-extension`** The symlink drops it. `flow.js` on disk, `flow` to type. `commands/fs/tree.js` is `util fs tree`.

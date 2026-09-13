@@ -16,7 +16,7 @@ Read this before creating or restructuring a skill. Style lives in `~/.flow/refe
 - **`dev/`**: building Flow itself
 - **`drafts/`**: a skill being written. `flow install` skips this group, so start every new skill here and graduate it with `mv`
 
-**Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. There is no list of names to keep in step with the tree. A skill about one field or tool, such as React, belongs to the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, in the shape its `CONTRIBUTING.md` sets. Any other skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it.
+**Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. There is no list of names to keep in step with the tree. A skill about one field or tool, such as React, belongs to the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, in the shape its `CONTRIBUTING.md` sets, and `flow domain-skills add <name>` installs it into a project. Any other skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it.
 
 **What a session is shown is decided per skill, in `skillOverrides`.** Every skill is on until a file names it. The machine's list ships empty in `home/settings.json`, and a project overrides it key by key in its own `.claude/settings.json`.
 

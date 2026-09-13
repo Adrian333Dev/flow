@@ -205,11 +205,19 @@ more. No code changed, because `flow install` reads the tree. `docs/dev/skills.m
 `design-domain-skills.md` → `## The plan`. The user created `Adrian333Dev/domain-skills` as a public
 repository and added it as a submodule at `lab/domain-skills/`. `web-pages` moved there unchanged, into
 `drafts/web-pages/`, because the user ruled it gets no edits before its rebuild. The repository's root
-holds `CONTRIBUTING.md` (the shape of a skill, a page and a finding, the 6 merge rules, drafts) and a
-`README.md` with the install command that needs no Flow. `no-skill-under-lab` in the repo `CLAUDE.md` now
+holds `CONTRIBUTING.md` (the shape of a skill, a page and a finding, the 5 merge rules, drafts) and a
+`README.md` with the install command that needs no Flow. Pages carry no header, and a finding's header
+holds `skill:` alone, since 2026-09-14. `no-skill-under-lab` in the repo `CLAUDE.md` now
 reads that a skill from another repository lives in that repository. `/research` carries the adoption
-rule. The tests point at `visualize` and `flow-review` where they named `web-pages`, and all 89 pass.
-Nothing installs a domain skill yet: `flow domain-skills` is step 2, next now the toolbox rewrite is built.
+rule. The tests point at `visualize` and `flow-review` where they named `web-pages`.
+
+**`flow domain-skills ls`, `add` and `drop` are built, 2026-09-14.** Step 2 of the same plan. `add` links
+a skill from the clone named by `domainSkills` in `~/.flow/settings.json` into
+`<project>/.claude/skills/<name>`, and writes the name to `.flow/domain-skills.txt`. Git ignores the link
+and commits the list, so `add` with no name relinks everything listed on another machine or in a new
+worktree. `ls` takes words that filter by name and description, and is the bare group's default. 95
+tests pass, 6 of them new. Nothing uses it on this machine yet: `domainSkills` is unset, and the
+repository holds no finished skill, only `drafts/web-pages`. Step 3, `flow private-skills`, is next.
 `skills/phases/debug/SKILL.md` still routes a bug inside a page to `/web-pages`, which no machine can
 reach until the rebuild.
 
@@ -565,7 +573,7 @@ or a folder, and `refresh` rewrites what GitHub owns, 4 tests passing. `util git
 lines only again, 53 tests passing in `lab/util`. The 2026-09-13 commits are in. The 2026-09-14 build
 waits for the user's commits in `lab/util`, `lab/toolbox` and Flow. `~/code/util`, the clone the typed
 `util` runs, has pulled neither. **`/research` searches the toolbox and covers any subject**,
-built 2026-09-14 with the description the user wrote. Its 2 local steps wait for items 8 and 9.
+built 2026-09-14 with the description the user wrote. Its 2 local steps wait for item 10.
 **skills.sh, Vercel's index of public skills, is searched at once with the toolbox and Flow's own
 tree, and the web only when none of them fits**. skills.sh was added the same day with the
 checks from `find-skills`, which is merged and not adopted. `find-skills` still sits in
@@ -956,7 +964,8 @@ All under `lab/context/`, and every one is history rather than status.
   looking locally first, adopting an external skill, one file per finding tagged at filing, `/fold`,
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
   research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day,
-  and the toolbox rewrite after it, so step 2 is next, then `## Next` items 8 to 12. `/research` beyond
+  the toolbox rewrite after it, and step 2 on 2026-09-14 with the committed list of a project's domain
+  skills, so step 3 is next, then `## Next` items 9 to 12. `/research` beyond
   skills, built 2026-09-14, with the description the user wrote and the rejected drafts before it
 - `design-toolbox.md`: the toolbox rewrite, agreed with the user and built 2026-09-13. The split into
   `agent-tools/` and `software/`, one `owner_repo.md` file per tool with a `type:` field, the

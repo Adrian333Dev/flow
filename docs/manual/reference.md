@@ -66,7 +66,7 @@ flow <command> [id]... [--flags]
 
 The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
-Five groups carry their own actions: `cases`, `skills`, `overlays`, `git`, `audit`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
+Six groups carry their own actions: `cases`, `skills`, `domain-skills`, `overlays`, `git`, `audit`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
 
 Before the first install, the command is typed by path:
 
@@ -271,13 +271,39 @@ Every issue folder with its count, open count, latest date, and the rules that f
 
 ## Skill discovery
 
-Which skills this session is being shown, and where that was decided. [The skills](#the-skills) lists them; [Adding a skill](../dev/skills.md) covers writing one.
+Which skills this session is being shown, where that was decided, and which domain skills a project can add. [The skills](#the-skills) lists them; [Adding a skill](../dev/skills.md) covers writing one.
 
 ### `flow skills ls`
 
 Every skill, its group, its on/off state, and where the state came from (default, machine, or project). A skill nobody names in `skillOverrides` is on by default. This is the default action: `flow skills` runs `ls`.
 
 Two flags narrow it. `--group <group>` keeps one group, and naming a group that does not exist refuses with the list of ones that do. `--hidden` keeps only the skills this session is not being shown, meaning anything `off` or in `drafts/`, because a skill the session can already see is in context with its description and needs no listing.
+
+### `flow domain-skills`
+
+A domain skill carries knowledge about one field or tool, such as React or Postgres. It comes from the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository and installs into one project, never onto the machine, so only the project using it pays for its description.
+
+Flow finds your clone of the repository through one setting in `~/.flow/settings.json`, the path to the clone's `skills/` folder:
+
+```json
+{ "domainSkills": "~/code/domain-skills/skills" }
+```
+
+- **`flow domain-skills ls [words...]`**: every skill in the repository, whether this project has it, and its description. Words keep only the skills whose name or description holds all of them. This is the default action, so `flow domain-skills react` is `flow domain-skills ls react`.
+- **`flow domain-skills add <name...>`**: links each skill into `.claude/skills/<name>` and writes its name to `.flow/domain-skills.txt`. A name missing from the repository is reported, and the others still link.
+- **`flow domain-skills add`** with no name: links every skill `.flow/domain-skills.txt` lists.
+- **`flow domain-skills drop <name...>`**: removes the link and the name. A real folder or a link pointing outside the repository is left alone.
+
+**git ignores the links and commits the list.** A link holds this machine's path, so it would load nothing anywhere else. On another machine, in a fresh clone or in a new worktree, run `flow domain-skills add` with no name to get every skill back.
+
+The first `add` into a project with no `.claude/skills/` folder needs a Claude Code restart, since Claude Code only watches a skills folder that existed when the session started.
+
+`ls` fills its `HERE` column with one of 4 values:
+
+- **`added`**: linked and listed
+- **`not linked`**: listed, with no link on this machine. `flow domain-skills add` fixes it
+- **`not listed`**: linked, with no line in the list. `flow domain-skills add <name>` fixes it
+- **`-`**: neither
 
 ## Overlays
 
@@ -401,7 +427,10 @@ Two files, and Flow contributes to one of them.
 
 [`home/settings.md`](../../home/settings.md) explains every key, every value Flow rejected, and why. A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing.
 
-**`~/.flow/settings.json`** is Flow's own, and only `flow git` writes it. It holds the git write state and nothing else. There is nothing to edit by hand.
+**`~/.flow/settings.json`** is Flow's own. It holds 2 keys:
+
+- **`git`**: the git write state. `flow git` writes it, so there is nothing to edit by hand
+- **`domainSkills`**: the path to your clone's `skills/` folder, which [`flow domain-skills`](#flow-domain-skills) reads. You write this one
 
 ## Files
 
@@ -412,7 +441,7 @@ Two files, and Flow contributes to one of them.
 
 **In a project**, the same pair for the same reason.
 
-- **`.claude/`**: `settings.json`, and any skill belonging to this project alone
-- **`.flow/`**: `tickets/`, `groundwork/`, `inbox.md`, `handoff.md`, `overlays/`, `findings/`
+- **`.claude/`**: `settings.json`, any skill belonging to this project alone, and a link for each domain skill
+- **`.flow/`**: `tickets/`, `groundwork/`, `inbox.md`, `handoff.md`, `overlays/`, `findings/`, `domain-skills.txt`
 
 **Everything else in a project is the project's own.** `docs/spec/` is what the product is, `docs/context/` is durable verified facts about this repository, and `CLAUDE.md` at the root holds rules the conventions do not already imply. Flow writes into all three and owns none of them.

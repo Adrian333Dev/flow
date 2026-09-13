@@ -141,6 +141,13 @@ A symlink rather than a copy, so a fold reaches every project that installed the
 no `.gitignore` change, since `project-template/.gitignore` already ignores links under
 `.claude/skills/`.
 
+**The project keeps a committed list of its domain skills**, `.flow/domain-skills.txt`, one name per
+line. Added 2026-09-14, before the build, on the user's go. Git ignores the links, so a fresh clone on
+the user's second machine had no skills and no record of which to add, and a new worktree relied on
+memory. `add` and `drop` write the list, and `add` with no name links every name on it. Rejected: a key
+in `.claude/settings.json`, which puts Flow's data in Claude Code's file, and no list, which rebuilds the
+names from memory on every machine.
+
 What this retires:
 
 - **`flow install` is unchanged** and installs Flow's own skills alone. It never reads the domain
@@ -157,9 +164,9 @@ default action in every group, as it already is for `flow skills`.
 
 ```
 flow skills ls                    Flow's own skills, and what this project is shown of each   exists today
-flow domain-skills ls [term]      every skill in the repository; a term filters by name and description
-flow domain-skills add <name>     symlink it into this project
-flow domain-skills drop <name>    remove the symlink
+flow domain-skills ls [words]     every skill in the repository; words filter by name and description   built 2026-09-14
+flow domain-skills add [names]    symlink each into this project and list it; no name relinks the list  built 2026-09-14
+flow domain-skills drop <names>   remove the symlink and the line                                        built 2026-09-14
 flow private-skills ls            every skill in ~/.flow/private-skills/
 flow private-skills add <name>    symlink it into this project; --global puts it in ~/.claude/skills/
 flow private-skills drop <name>
@@ -227,7 +234,7 @@ the project. The toolbox, rebuilt 2026-09-13, joins the search: `### /research b
 
 Agreed in the toolbox conversation. **Built 2026-09-14, ahead of item 10**, on the user's go: the
 description, the toolbox step, the 2 starting points and the line on any subject. The 2 local steps
-wait for items 8 and 9, since the commands they name do not exist yet. Until item 10 rewrites the
+wait for item 10, after item 9 builds `flow private-skills`. Until item 10 rewrites the
 order, the search runs the toolbox, skills.sh and Flow's own tree at once, then outward only when none
 of them fits.
 
@@ -348,8 +355,6 @@ rule, a project fact under `docs/context/`, or a ticket.
    ```
    ---
    skill: react
-   date: 2026-09-13
-   proved-by: ticket t045, a Next 15 app on Node 22
    ---
    ```
 
@@ -374,8 +379,8 @@ through a pull request, and arrives on a machine with `git pull`.
   maintainer is the user.
 - **Reads** the body, its pages, the tagged findings in the current project, and every finding merged
   into `skills/<name>/findings/` in the repository.
-- **Applies 6 acceptance rules**: true for anyone, proved, new or a correction, subject named with its
-  version, fits the size budget, written from a failure.
+- **Applies 5 acceptance rules**: true for anyone, proved by a failure, new or a correction, subject named
+  with its version, fits the size budget.
 - **Rewrites rather than appends**, deletes every finding it absorbed, and names the rejected ones in the
   commit.
 - **Runs by hand until trusted**, then headless on a schedule, opening a pull request a person merges.
@@ -435,15 +440,12 @@ Fixed 2026-09-12 from the research below.
 - **3 folders, by what the agent does with the file.** `references/` for what it reads, one subject per
   page. `scripts/` for what it runs. `examples/` for what it copies, such as a whole worked component or
   config. `knowledge/` goes.
-- **Every page opens with the same header**: subject, date, and what proved it, as a sentence with a
-  link. Never a path outside the repository. Written as frontmatter with the fields `subject`, `date`
-  and `proved-by`, the same form as the finding header, in `CONTRIBUTING.md` 2026-09-13.
-  - **Questioned by the user the same day**, never having seen `proved-by`, which was proposed
-    2026-09-11 and drew no objection. **Agreed 2026-09-13**, proposed and not opposed: pages get no
-    header, since a link beside each claim names its source and rule 4 already names the version. The
-    finding header keeps only `skill:`. Merge rules 2 and 6 into "proved by a failure: the body says
-    what went wrong and what fixed it". Not built yet. The edit touches `CONTRIBUTING.md` and this
-    file.
+- **A page has no header.** A link beside each claim names its source, and rule 4 already names the
+  version. Built 2026-09-14 in `CONTRIBUTING.md`, with the finding header cut to `skill:` alone and rules
+  2 and 6 merged into "proved by a failure: the finding says what went wrong and what fixed it".
+  - **Pages had a header until then**: `subject`, `date` and `proved-by`, written 2026-09-13. The user
+    questioned it the same day, never having seen `proved-by`, which was proposed 2026-09-11 and drew no
+    objection.
 - **Keyed knowledge is a sub-folder named for the key, with a fixed file set**, such as
   `references/sites/youtube-watch.md` in `web-pages`. The body names the file set once.
 - **A finding in the repository is a queue, never loaded.** The body and the pages never link one. The
@@ -456,8 +458,8 @@ project goes to `docs/context/`. A whole subject is a page. A whole field is a s
 
 ### The repository's contract and its checks
 
-- **`CONTRIBUTING.md` at the root** carries the body shape, the page header, the 3 folders, the finding
-  header and the fold's 6 rules, so the repository is usable without Flow. `write-skills.md` points at it
+- **`CONTRIBUTING.md` at the root** carries the body shape, the 3 folders, the finding header and the
+  fold's 5 rules, so the repository is usable without Flow. `write-skills.md` points at it
   for domain pages.
 - **CI checks form** on every pull request: frontmatter present, every relative link resolves inside the
   pull request, every page is in the index and every index entry exists, no secrets, body within budget.
@@ -533,7 +535,7 @@ a real folder in the project, and an overlay, change with the branch.
    - `flow new` numbers a ticket as the highest id plus 1, `nextId` in `scripts/flow/lib/store.js`, so
      both branches create the same id.
 5. **2 worktrees.** Everything in case 4, plus the ignored symlinks are missing in the new folder, so
-   `flow domain-skills add` runs again there.
+   `flow domain-skills add` with no name relinks everything `.flow/domain-skills.txt` lists.
 
 The user's ideas for the multi-branch work, 2026-09-13, none decided:
 
@@ -547,15 +549,17 @@ The user's ideas for the multi-branch work, 2026-09-13, none decided:
 - **A page links a finding, a script or a page that was not sent.** The link check in CI fails the pull
   request.
 - **Proof written as a path.** A finding may name `t045` or a project path, since only the fold reads it.
-  A page states its proof in a sentence.
+  A page links a public source beside each claim.
 - **Secrets.** A finding written mid-work can carry a real endpoint. The batch question in filing is the
   last human gate, and CI runs a secret scan.
 - **A private skill named like a domain skill.** `flow private-skills add` refuses it.
 - **A license that forbids republishing.** The skill stays upstream and unchanged. A needed change
   becomes a project rule, or a skill of our own written from scratch, since an external skill carries no
   overlay line.
-- **A new worktree.** The symlinks under `.claude/skills/` are ignored by git and missing there, so `flow
-  domain-skills add` runs again.
+- **A new worktree, a fresh clone, the second machine.** The symlinks under `.claude/skills/` are ignored
+  by git and missing there, so `flow domain-skills add` with no name relinks every listed skill.
+- **A listed skill missing from the clone**, such as one not pulled yet. `add` reports it and links the
+  rest.
 - **A skills folder created mid-session.** Claude Code watches only folders that existed at session
   start, so the first `add` into a project without `.claude/skills/` needs a restart.
 
@@ -636,10 +640,15 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
    the user ruled it gets no edits before its full rebuild. `CONTRIBUTING.md` and `README.md` at its
    root. `skills/stack/` removed from Flow. `write-skills.md`, `docs/dev/skills.md`, `home/settings.json`
    and `home/settings.md`, the manual, `README.md`, `docs/dev/layout.md`, `skills.test.js` and the
-   adoption rule in `/research` updated in the same pass.
+   adoption rule in `/research` updated in the same pass. The page header came out, the finding header
+   cut to `skill:` and 2 of the fold's rules merged on 2026-09-14.
    - **Then the toolbox rewrite**, after a compaction and before step 2, ruled by the user 2026-09-13.
-2. **`flow domain-skills ls`, `add` and `drop`**, and the `domainSkills` setting. The header of
-   `commands/skills.js` rewritten. Tests in `scripts/`.
+2. **`flow domain-skills ls`, `add` and `drop`**, and the `domainSkills` setting. Built 2026-09-14, with
+   `.flow/domain-skills.txt` added before the build. `scripts/flow/commands/domain-skills.js`, 6 tests
+   in `scripts/tests/domain-skills.test.js`, the header of `commands/skills.js` rewritten. A bare group
+   whose default action takes only optional words now runs it, so `flow domain-skills` lists.
+   `references/cli-design.md`, the manual, `docs/dev/skills.md`, `write-skills.md`, `home/settings.md`,
+   the template `.gitignore` comment and `claude-dir-vs-flow-dir` updated in the same pass.
 3. **`flow private-skills ls`, `add` and `drop`**, with `--global`. `claude-dir-vs-flow-dir` gains
    `private-skills/`. Tests.
 4. **`/research`**: the 2 local searches added to the first round, and `references/find-a-skill.md`. The adoption

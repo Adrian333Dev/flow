@@ -166,7 +166,7 @@ Installing and being shown are separate questions. Every skill outside `drafts/`
 
 `phases/`, `tools/` and `dev/` are reached in ordinary work, in any project, so this file ships `skillOverrides` empty.
 
-**A domain skill never installs on the machine, so none needs turning off.** It installs into the one project that uses it, and only that project pays for its description. Until 2026-09-13 Flow carried domain skills in a `stack/` group that installed everywhere and shipped `off`. That group left for the `domain-skills` repository.
+**A domain skill never installs on the machine, so none needs turning off.** `flow domain-skills add <name>` installs it into the one project that uses it, and only that project pays for its description. Until 2026-09-13 Flow carried domain skills in a `stack/` group that installed everywhere and shipped `off`. That group left for the `domain-skills` repository.
 
 ### Two values, keyed by skill name
 

@@ -6,7 +6,7 @@
  * `skills/phases/groundwork/`. The group files it and decides one thing:
  * `drafts/` does not install, and every other group does.
  *
- * There is no list of skill names anywhere. A list is a hand-maintained copy of
+ * Flow's own skills have no list of names. A list is a hand-maintained copy of
  * what the tree already says, and it can only ever be wrong; a group folder is
  * visible on disk, cannot drift, and adding a skill to it is a `mkdir`.
  *
