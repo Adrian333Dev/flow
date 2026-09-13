@@ -79,7 +79,7 @@ Every context file sits in `lab/context/`, flat:
 Everything beside `context/` is a folder:
 
 - **`util/`**: the `util` CLI, a submodule: [Adrian333Dev/util](https://github.com/Adrian333Dev/util). Edited here, committed from inside the folder, and the new pointer committed here afterwards.
-- **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It left the workflow and installs nowhere.
+- **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/research` clones it into `tmp/` to search it.
 - **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, and `try.sh` builds [the scratch session](scratch-session.md).
 - **`research/`**: evidence behind the skills, and cached upstream documentation.
 

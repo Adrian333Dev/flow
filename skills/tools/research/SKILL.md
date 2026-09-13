@@ -1,6 +1,6 @@
 ---
 name: research
-description: Reads what an external tool actually does, from its own docs and source. Finds any skill, plugin or MCP server that already does the job.
+description: Researches any subject. Finds a skill, plugin, library, tool, existing solution or anything else. Reverse engineers tools, investigates source code and more.
 ---
 
 # Research
@@ -11,18 +11,29 @@ description: Reads what an external tool actually does, from its own docs and so
 
 **Research before recommending.** A direction picked first turns every source into evidence for it.
 
-## Look for one that already exists
+**Research any subject.** A question with no tool behind it, such as market research, has no docs or source to read. It uses level 4 and the findings file below.
 
-**Search for a skill, plugin or MCP server for this tool before reading a line of its documentation.** Most of what exists is external. A skill written by the people who build the tool is worth more than the docs it was made from.
+## Look for what already solves it
 
-1. **Search outward first:** the web, GitHub, the plugin marketplaces. Name the tool and the words `skill`, `plugin` and `mcp`.
-2. **Then Flow's own tree.** `flow skills ls --hidden` lists what this session is not being shown, which is the only part worth checking.
-3. **Judge what comes back.** Prefer material carrying knowledge: a reference, a database, a set of conventions. Weigh anything carrying process, because a skill with its own build order competes with `/execute` and nothing arbitrates between them.
-4. **Write down what you found, including finding nothing**, wherever this question's findings go. The next session asking about this tool reads that instead of searching again.
+**Search before building or reading anything.** 2 starting points:
+
+- **A need with no tool yet** → anything that already solves it, fully or partly: a library, CLI, service, app, skill, plugin or MCP server. Name what a partial fit leaves unsolved.
+- **A tool already chosen** → a skill, plugin or MCP server for it, before reading a line of its documentation. A skill written by the people who build the tool is worth more than the docs it was made from.
+
+1. **Search these at once:**
+   - **The toolbox**, a catalog of outside tools with notes from real use: `git clone --depth 1 https://github.com/Adrian333Dev/toolbox tmp/references/toolbox`, or `git -C tmp/references/toolbox pull` when the clone is already there. Read its `README.md`, then search the folders that could hold an answer, the way it says.
+   - **skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill.
+   - **Flow's own tree:** `flow skills ls --hidden` lists what this session is not being shown, which is the only part worth checking.
+2. **When nothing from step 1 fits, search outward:** the web, GitHub, the plugin marketplaces. For a chosen tool, name it with the words `skill`, `plugin` and `mcp`.
+3. **Judge what comes back.** Prefer material carrying knowledge: a reference, a database, a set of conventions. Weigh anything carrying process, because a skill with its own build order competes with `/execute` and nothing arbitrates between them. For a skill:
+   - **Read its `SKILL.md`** before recommending it.
+   - **Rank by publisher first:** the tool's own maker beats anyone else. Then the repo's stars and last push.
+   - **Weigh install counts least.** The CLI reports them anonymously, and nothing verifies them.
+4. **Write down what you found, including finding nothing**, wherever this question's findings go. The next session asking the same question reads that instead of searching again.
 
 **Adopting a skill:**
 
-- Used unchanged → install it into the project with its own installer
+- Used unchanged → install it into the project with its own installer, such as `npx skills add <owner/repo> --skill <name>`
 - Changed at all → copy it into the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository with a note naming its upstream repository, commit and license, then edit the copy. Only when its license allows republishing
 
 ## How deep to go

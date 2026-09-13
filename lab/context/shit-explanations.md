@@ -731,3 +731,68 @@ common word ran against those files instead of against the user.
 
 **Right instead.** "The general text in the group files: warnings, advice and section intros that
 are about no single tool." Rules already cover every fault here, so this entry produces no new rule.
+
+## 2026-09-13: a full picture sent as 117 lines, and a split argued from commit counts
+
+**Model.** Opus 5. **The user named it a major failure.**
+
+**Context.** Designing how tools get added to the toolbox. The user asked 4 things: whether a
+toolbox-only script should split off from `util github bookmark`, a shorter and more generic
+description for `/research`, relative paths in a collection's list, and "the full picture" of the
+commands with their own flow of saving to the inbox and filing later.
+
+**Sent.** 8,361 characters over 117 lines: 4 sections, the last with 5 subsections, 3 code blocks and
+about 40 bullets. The split's opening argument, whole:
+
+> **Why:** the tool file's layout and the code that writes it should change in one commit. Today the
+> writing code lives in `util`. Adding a field to a tool file takes a commit in `lab/util`, a commit in
+> Flow, and a `git pull` in `~/code/util` before the `util` command picks it up. Inside the toolbox
+> it's one commit.
+
+Bullets from the "Updating" subsection:
+
+> - **It writes each file whole before replacing the old one**, so a stopped run never loses notes.
+> - **One run now** gives the 155 current tools their READMEs and the 12 collections their lists.
+>   That's under 1,000 requests to GitHub, and the limit is 5,000 an hour.
+
+The proposed description:
+
+> "Reads what an external tool actually does, from its docs and source. Finds any existing tool that
+> does the job."
+
+**Rejected:**
+
+> "your last response is mostly bloat. Like, you could have explained all this in, you know, like,
+> almost, you know, like, much, you know, like, much shorter response. You came up with a very large
+> response where, you know, like, you just wasted all the wasted so much tokens and, you know, really
+> wasted my time as well."
+
+> "one of your reasons was because it would involve multiple commits. That's very stupid reason. [...]
+> we shouldn't fucking make design decisions Based on how many commits they involve or anything"
+
+> "finding an existing tool that does the job is too vague and it doesn't really explain what that
+> tool actually does."
+
+**Faults.**
+
+1. **The walk's findings went into the reply.** Write order, stopped runs, request counts, rate
+   limits, skipped hand-written files and the proof that type guessing fails were checks run before
+   showing the design. None changed what the user had to decide. About 20 lines carried the 4 answers.
+2. **"The full picture" was read as every detail.** The user wanted the commands and the flow, one
+   line each.
+3. **The split was argued from the number of commits.** Commit count is a cost of where code lives,
+   never a design reason. The real reason, that a command meant for any repo should not carry one
+   repo's file format, was never stated.
+4. **The description swapped concrete words for "any existing tool that does the job"**, which says
+   nothing about what the skill does.
+
+**Rule that failed.** `short-is-the-default` and `size-by-worth` in `## Explaining` of the repo
+`CLAUDE.md`, and `name-the-deciding-argument` in `## Judgment`.
+
+**Root cause.** `attack-before-showing` and `walk-the-awkward-cases` produced many real findings, and
+`show-the-data` read as permission to show them all. The work done set the length, not what the user
+needed to decide.
+
+**Right instead.** One line per answer, the flow as 4 numbered commands, and a finding only where it
+changes the design. **Rule proposed:** a walk's findings stay out of the reply unless one changes
+what the user decides.

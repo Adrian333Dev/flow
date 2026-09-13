@@ -201,25 +201,117 @@ something different from the other two.
 It is the only Flow line in the repository. Flow's own phase and tool skills keep the unguarded `` !`flow
 overlays <name>` ``, since they never run without Flow.
 
-### Finding an existing skill stays in `/research`, local first
+### Finding an existing skill stays in `/research`
 
-`/research` → `## Look for one that already exists` changes in 3 ways. The name `research` stays: the
-description is what fires a skill, and it already says the skill finds any skill, plugin or MCP server
-that does the job.
+`/research` → `## Look for what already solves it`, named `## Look for one that already exists` until
+2026-09-14, changes in 3 ways. The name `research` stays: the description is what fires a skill, and it
+already names skills, plugins, libraries and tools among what the skill finds.
 
-1. **The search runs cheapest first.**
-   1. Your private skills, `flow private-skills ls`. Rare, and usually the user names the skill directly.
-   2. The domain repository, `flow domain-skills ls <term>`.
-   3. Real research outward: GitHub, the registries, the plugin marketplaces, and a level 4 prompt handed
-      to an external LLM, which `/research` already carries. ChatGPT searches GitHub well.
+1. **The search runs in 2 rounds.** It ran cheapest first until 2026-09-14: `### skills.sh joins the
+   search` below.
+   1. At once: your private skills, `flow private-skills ls`, rare since the user usually names the skill
+      directly; the domain repository, `flow domain-skills ls <term>`; the toolbox; and skills.sh.
+   2. Only when nothing from the first round fits, real research outward: GitHub, the registries, the
+      plugin marketplaces, and a level 4 prompt handed to an external LLM, which `/research` already
+      carries. ChatGPT searches GitHub well.
 2. **`references/find-a-skill.md` carries how to search outward.** Its opening says it covers any
    existing tooling: a skill, a plugin, an MCP server, a CLI, a knowledge base. The name stays short on
    purpose.
 3. **"Adopting one is where a Flow `stack/` skill starts" is replaced** by the adoption rule below.
 
-Toolbox is not part of the search. It is being rewritten and is not ready. Until then, what research
-finds is written where `/research` already writes it: `docs/research/<question>.md` in the project. A
-second project asking the same question searches again, and the toolbox rewrite is what fixes that.
+What research finds is written where `/research` already writes it: `docs/research/<question>.md` in
+the project. The toolbox, rebuilt 2026-09-13, joins the search: `### /research beyond skills,
+2026-09-13` below.
+
+### `/research` beyond skills, 2026-09-13
+
+Agreed in the toolbox conversation. **Built 2026-09-14, ahead of item 10**, on the user's go: the
+description, the toolbox step, the 2 starting points and the line on any subject. The 2 local steps
+wait for items 8 and 9, since the commands they name do not exist yet. Until item 10 rewrites the
+order, the search runs the toolbox, skills.sh and Flow's own tree at once, then outward only when none
+of them fits.
+
+- **The toolbox joins the search**, in the first round with the user's private skills, the domain
+  repository and skills.sh. The agent runs `git clone --depth 1
+  https://github.com/Adrian333Dev/toolbox tmp/references/toolbox`, reads its `README.md`, and greps the
+  `description:` lines of the folders it picks. No `lab/` path enters the skill, and nothing installs.
+- **2 starting points.** A need with no tool yet: anything that already solves it, fully or partly, a
+  partial fit named with what it leaves unsolved. A tool already chosen: a skill, plugin or MCP server
+  for it, as before. The section is named "Look for what already solves it".
+- **Research covers any subject**, ruled by the user: "research skill isn't just about researching any
+  software, it's about researching anything", marketing research included. The body is still mostly
+  about software. A question outside software uses only level 4, the prompt for an outside research
+  tool, and the findings file.
+
+**The description, written by the user 2026-09-14**: "Researches any subject. Finds a skill, plugin,
+library, tool, existing solution or anything else. Reverse engineers tools, investigates source code
+and more." "Reverse engineers" and "investigates" took an `s` to match the first 2 verbs. It replaced
+"Reads what an external tool actually does, from its own docs and source. Finds any skill, plugin or
+MCP server that already does the job."
+
+The user's constraints:
+
+- Really compressed.
+- Generic enough for any subject.
+- A list of what it does: "find that, research that".
+- No situation or scenario. Describing one makes it too specific.
+- Still enough detail to say what the skill does. Cutting details each round was the wrong direction.
+- Opens with "Researches any subject", then names the cases it finds, ending in "anything else".
+
+Rejected drafts, each with the user's reason:
+
+1. "Reads what an external tool actually does, from its own docs and source. Finds what already solves
+   a problem, fully or partly: a library, CLI, service, app or project. Finds any skill, plugin or MCP
+   server for a tool already chosen." Not compressed, and too specific.
+2. "Reads what an external tool actually does, from its docs and source. Finds any existing tool that
+   does the job." Too much detail, and "any existing tool that does the job" is too vague: it says
+   nothing of what the skill does.
+3. "Researches outside software: how it really works, and what already exists for a need." "Outside
+   software" means nothing, and research is about anything, not only software.
+4. "Researches any subject: finds what already exists, reads the original sources, compares the options
+   and records the findings." "Researches any subject" is right. The rest says nothing of value: it
+   should name the cases instead, such as find a skill, a plugin, an MCP server, a tool or a solution,
+   then "anything else" so the list stays open.
+5. "Researches any subject. Finds a skill, plugin, MCP server, tool, existing solution or anything
+   else. Reads how something really works, from the original sources." Replaced by the user's own
+   wording, with no reason given.
+
+### skills.sh joins the search, and find-skills is merged, 2026-09-14
+
+Raised by the user, who found skills.sh and asked whether it makes the toolbox obsolete. Agreed and
+built the same day. skills.sh is Vercel's index of every public repository holding a `SKILL.md`, ranked
+by installs. `npx skills` is its CLI. Whether the toolbox stays is argued in `design-toolbox.md` →
+`## skills.sh, 2026-09-14`.
+
+- **skills.sh is searched at once with the toolbox and Flow's own tree**:
+  `npx skills find <the need, or the tool's name>`, with `--owner <maker>` for a tool already chosen.
+  The placeholder names both, because the user searches for any skill, not only one for a chosen tool.
+  Tool makers now ship a skill teaching their own tool, so the search finds tools too: browser-use and
+  browser-harness both appear.
+- **The web only when nothing from that round fits.** The user asked for the local searches in
+  parallel, and for the web, the most expensive, only when they return nothing relevant. First built as
+  4 steps in order. Whether to search the web at all was left to the agent: it stays, because skills.sh
+  lists no plugin, MCP server or library that ships no skill, and 57 of the toolbox's 154 repos are
+  absent from it.
+- **The CLI, never the API.** The documented `/api/v1/` endpoints answer 401 without a Vercel OIDC
+  token. Only the endpoint the CLI calls, `https://skills.sh/api/search?q=<words>&limit=20`, answers
+  without one, and it is undocumented. A result holds a skill name, its repository and an install
+  count. No description, so the agent reads the `SKILL.md` before recommending one.
+- **Install counts rank last.** The CLI reports them anonymously and nothing verifies them.
+  `prime-skills/runcomfy-agent-skills` → `lipsync` showed 356,974, above Supabase's own `supabase`
+  skill at 272,347.
+- **`vercel-labs/skills` → `find-skills` was merged, not adopted.** It is among the most installed
+  skills on skills.sh, and already sits in `~/.claude/skills/` on this machine, linked from `~/.agents/skills/`.
+  Taken into `/research`: the search command, the checks (publisher first, then stars and last push,
+  then installs), and `npx skills add <owner/repo> --skill <name>` in the adoption rule.
+- **Left out of find-skills:**
+  - installing for the whole machine without asking, `npx skills add <package> -g -y`
+  - checking the leaderboard first, which ranks by total installs instead of by the need
+  - 1,000 installs as a quality bar
+  - `npx skills init` offered when nothing is found
+  - its trigger, "how do I do X", which matches almost any question
+- **A report the user generated with ChatGPT**, `tmp/research/skills-sh.md`, read the documented API
+  as needing no key for search. The 401 above disproved it.
 
 ### Adopting an external skill
 
@@ -550,7 +642,7 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
    `commands/skills.js` rewritten. Tests in `scripts/`.
 3. **`flow private-skills ls`, `add` and `drop`**, with `--global`. `claude-dir-vs-flow-dir` gains
    `private-skills/`. Tests.
-4. **`/research`**: the search reordered local first, and `references/find-a-skill.md`. The adoption
+4. **`/research`**: the 2 local searches added to the first round, and `references/find-a-skill.md`. The adoption
    rule landed with step 1.
 5. **Capture and `/file-findings`**: `home/CLAUDE.md` → `## Capture` writes one file per finding, and
    filing adds the `skill:` header for a domain skill.

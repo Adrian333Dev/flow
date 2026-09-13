@@ -1,8 +1,9 @@
 # The toolbox rewrite
 
 The toolbox is a catalog of outside tools that an agent or a project can use. It is a submodule at
-`lab/toolbox/`. The design was agreed with the user on 2026-09-13 and **built the same day**, and it
-waits for the user's commits. This record holds the design as built, the build, what the toolbox held
+`lab/toolbox/`. The design was agreed with the user on 2026-09-13 and **built the same day**. A second
+design for adding tools followed, **built 2026-09-14**. This record holds the design as built, the
+build, the second design and its build, why it stayed once skills.sh was found, what the toolbox held
 before, what the user ruled, what was rejected, and the library idea parked for later.
 
 ## The design, agreed 2026-09-13
@@ -131,6 +132,8 @@ Nothing points an agent at the toolbox yet. See `### Not built`.
 
 ### Adding and filing a tool
 
+Replaced 2026-09-14 by `bin/tool.js`: `## Adding tools, second design, 2026-09-13`.
+
 - **`util github bookmark owner/repo --to inbox/`** writes `inbox/owner_repo.md`.
 - **Filing a tool is filling in `type`, then moving its file** into its group, so notes written before
   filing come along.
@@ -204,16 +207,193 @@ Nothing points an agent at the toolbox yet. See `### Not built`.
 - **"Vendor doc-skills" in `code-quality.md` got no file.** It named no tool, only advice to install a
   vendor's own skill.
 
-### Not built
+### Built later
 
-- **The line telling an agent to read the toolbox.** The user suggested the `research` skill
-  2026-09-13. Under discussion.
+- **The line telling an agent to read the toolbox**: step 1 of `/research` → `## Look for what already
+  solves it`, built 2026-09-14, ahead of domain skills item 10. `design-domain-skills.md` →
+  `### /research beyond skills, 2026-09-13`.
 
 ### After the build
 
-- **Commits are the user's**: inside `lab/util` and `lab/toolbox` first, then Flow.
-- **`util fs tree --into` and bookmark's folder mode reach the typed `util`** after the commit in
-  `lab/util` and a pull in `~/code/util`, the clone `~/.local/bin/util` points at.
+- **All 3 commits are in**: `lab/util`, `lab/toolbox`, then Flow.
+- **`~/code/util` has not pulled them.** It is the clone `~/.local/bin/util` points at, so the typed
+  `util` lacks `fs tree --into` until a `git pull` there.
+
+## Adding tools, second design, 2026-09-13
+
+Designed in conversation after the build. Every point below was proposed and drew no objection, so it
+is agreed. Built 2026-09-14: `### The build, 2026-09-14` closes this section.
+
+### `util github bookmark` goes back to writing lines
+
+- **Keeps**: one line per repo added to a file, `owner/repo` as the link text, skipping a repo already
+  in the file.
+- **Loses**: the folder mode from the build, its 2 tests and its line in `docs/commands.md`.
+- **Stays in `util`**: `fs tree --into` and reading quoted descriptions. Both serve any repo.
+- **Why**: `bookmark` is meant for any repo. The inbox, the README beside each tool file, a
+  collection's list and updates that keep notes are the toolbox's own format, used nowhere else.
+- **Cost**: the new script has no short name. It runs by path, `~/code/flow/lab/toolbox/bin/tool.js`,
+  or `bin/tool.js` inside the toolbox. The GitHub lookup of stars, language and last push exists twice,
+  about 20 lines.
+- **Overturned by** a second repo wanting tool files with READMEs.
+
+### `bin/tool.js add <repo>... [--to <folder>]`
+
+- **Writes 2 files per repo** into the toolbox's `inbox/`, or the folder `--to` names:
+  `owner_repo.readme.md` first, `owner_repo.md` last. A tool file on disk means a finished add, so a
+  stopped run is safe to repeat.
+- **Finds `inbox/` from the script's own location**, so it works from any folder.
+- **Refuses a `--to` folder the toolbox does not already have**, so a typo never creates one.
+- **Skips a repo whose `owner_repo.md` exists anywhere in the toolbox**, whatever the case, and prints
+  where.
+- **Leaves `type: ""`.** Guessing it from a repo's files fails: mem0, a library, holds 56 `SKILL.md`
+  files, Remotion 81 written for its contributors, Supabase 23, and vercel-labs/skills, a CLI, holds 1.
+- **Always downloads the README.** A tool saved without one drops out of word search unnoticed. A repo
+  with no README gets the tool file alone.
+
+### The README beside each tool file
+
+- **`owner_repo.readme.md`**, next to `owner_repo.md`, committed, since `/research` reads a fresh
+  clone of the toolbox.
+- **Cleaned**: badges, images, HTML tags and HTML comments removed. Text and code blocks kept, since
+  install commands sit in code blocks.
+- **Size**: the 69 READMEs downloaded during the build measure a median of 11 KB once cleaned, the
+  largest 160 KB. About 3 MB for 155 tools.
+- **Saved for word search before picking a tool.** GitHub descriptions are often slogans: herdr's is
+  "the runtime your coding agents live on", and a search for "tmux" misses it.
+- **The search for descriptions excludes them**: `grep -r "^description:" --exclude="*.readme.md"`. A
+  skill's README often shows a sample `description:` line.
+
+### `bin/tool.js refresh [<file-or-folder>...]`
+
+- **With no path, runs over the whole toolbox.**
+- **Rewrites what GitHub owns**: `stars`, `language`, `pushed`, `archived` and the README.
+- **Writes `## Contents` for every tool typed `collection`.**
+- **Never touches `description`, `type` or the notes.** 3 descriptions are hand-written.
+- **Skips the 9 hand-written files whose `url:` points inside a repo**, such as
+  `anthropics_code-review.md`.
+- **Writes each file whole before replacing the old one**, so a stopped run never loses notes.
+- **One run fills today's toolbox**: READMEs for the 155 tools and lists for the 12 collections, under
+  1,000 requests against GitHub's limit of 5,000 an hour.
+
+### A collection's list
+
+```markdown
+## Contents
+
+### Skills
+
+- **deploy-to-vercel** `/skills/deploy-to-vercel/`: Deploy applications and websites to Vercel.
+- **vercel-react-best-practices** `/skills/react-best-practices/`: React and Next.js performance optimization guidelines from Vercel Engineering.
+```
+
+- **Written above `## Notes`, only for `type: collection`.** Other repos hold skill files for their
+  contributors or their tests.
+- **3 kinds, a heading each when found**: skills (`SKILL.md`), plugins (the entries in
+  `.claude-plugin/marketplace.json`), subagents (`.md` files in an `agents/` folder).
+- **Each line**: the name, the path inside the repo, and the first sentence of the description. The
+  rest of a description is usually "Use when" text.
+- **A path starts with `/`**, meaning the repo's top folder. A skill or plugin gets its folder, a
+  subagent its file, a plugin kept in another repo its full link. The user asked for paths, and the
+  tool file's `url:` already holds the repo.
+- **The name stays beside the path**: `vercel-react-best-practices` lives in
+  `/skills/react-best-practices/`.
+- **Copies count once**: the same name and description is one item, at its shortest path outside
+  hidden folders. softaworks/agent-toolkit has 86 `SKILL.md` files and 43 skills. impeccable holds 20
+  copies of one skill.
+- **The same name with a different description stays**: `anthropics/claude-plugins-official` has 3
+  skills named `access`, for Discord, iMessage and Telegram.
+- **A list of links gets no list.** VoltAgent/awesome-agent-skills holds 662 GitHub links in its
+  README, and the saved README carries them.
+- **Measured sizes**: vercel-labs/agent-skills 9 skills, anthropics/skills 20, addyosmani/agent-skills
+  25, mattpocock/skills 37, softaworks/agent-toolkit 43, garrytan/gstack 61.
+  `anthropics/claude-plugins-official` lists 295 plugins and is not in the toolbox.
+
+### The user's flow
+
+1. **The user saves tools to `inbox/` as they turn up**, or straight into a folder with `--to`.
+2. **When the inbox grows, an agent files it**, from a new "Filing" section in the toolbox
+   `README.md`:
+   1. `grep -r "^description:" --exclude="*.readme.md" inbox/` lists what waits.
+   2. Each tool gets a folder by "Which folder", reading the saved README when the description is not
+      enough, and gets its `type`.
+   3. `mv inbox/owner_repo.md inbox/owner_repo.readme.md <folder>/`
+   4. A tool set to `collection` gets `bin/tool.js refresh` on its file.
+   5. `grep -rl '^type: ""' agent-tools software` prints nothing, which also catches a tool the user
+      filed directly.
+   6. A new folder means rebuilding the tree.
+3. **`bin/tool.js refresh` runs now and then.**
+
+### What the build touches
+
+- **`lab/toolbox/bin/tool.js`**, and **`bin/tool.test.js`** run with `node --test` against a fake
+  `gh`, the way `lab/util`'s tests do.
+- **`lab/toolbox/README.md`**: "Adding a tool" for `bin/tool.js`, a new "Filing" section, and
+  `--exclude` on the description search.
+- **`lab/util`**: `bookmark.sh` loses the folder mode, with its tests and docs line.
+- **This record and `lab/context/state.md`.**
+
+### The build, 2026-09-14
+
+- **`lab/toolbox/bin/tool.js`**: `add` and `refresh` as designed above.
+- **`lab/toolbox/bin/tool.test.js`**: 4 tests, passing, run with `node --test bin/tool.test.js`. Node 24
+  refuses a folder named on the command line.
+- **`lab/toolbox/README.md`**: "Adding a tool" rewritten for `bin/tool.js`, a new "Filing the inbox"
+  section, `--exclude="*.readme.md"` on the description search, `## Contents` under "A tool file".
+- **`lab/util`**: `bookmark.sh` writes lines only. Its header, usage and `docs/commands.md` line say
+  so. The comment in `lib/describe.js` no longer names bookmark. 53 tests, passing.
+- **Decided during the build**, each small enough to carry no argument:
+  - `--to` and a refresh path are read from the folder you stand in, then from the toolbox. A path
+    outside the toolbox is refused.
+  - README cleaning also turns HTML entities such as `&middot;` into their characters, and removes
+    the lines defining a badge named by reference. The first real run showed both left behind.
+  - `refresh` drops `## Contents` from a tool no longer typed `collection`.
+  - `refresh` prints a renamed repo, and leaves its `url` and file name to the user.
+  - A plugin kept elsewhere gets its GitHub, git or npm link. One whose source is a command gets no
+    path.
+  - The 2 folder-mode tests in `lab/util` became 1 `fs tree` test, since reading a quoted description
+    stays in `util`.
+  - The README's tree command gains `--except bin`, so the script's folder stays out of the tree.
+    `inbox/.info` names `bin/tool.js add`.
+- **The first run of `bin/tool.js refresh`**, over the whole toolbox, with no failures:
+  - 145 READMEs, 3.1 MB. The other 10 files were written by hand and skipped, `n8n-io_n8n-mcp-server.md`
+    among them, which makes 10 where the design above counted 9.
+  - 9 of the 12 tools typed `collection` got a list: vercel-labs/agent-skills 9 items,
+    supabase/agent-skills 4, WorldFlowAI/everything-claude-code 18, anthropics/skills 25,
+    addyosmani/agent-skills 30, mattpocock/skills 38, gupsammy/Claudest 48, garrytan/gstack 61,
+    softaworks/agent-toolkit 105. softaworks ships each of its 43 skills as a plugin too, so both
+    headings list them.
+  - The other 3 hold no skill, plugin or subagent files, and got none: cline/prompts,
+    VoltAgent/awesome-design-md and birobirobiro/awesome-shadcn-ui.
+  - Stars, language, last push or a new list changed 71 tool files.
+
+## skills.sh, 2026-09-14
+
+**The toolbox stays. skills.sh replaced it for finding skills only.** skills.sh is Vercel's index of
+every public repository holding a `SKILL.md`. The user found it and asked whether the toolbox should
+go. `/research` now searches both at once: `design-domain-skills.md` → `### skills.sh
+joins the search, and find-skills is merged, 2026-09-14`.
+
+**What skills.sh holds of the toolbox**, measured by searching it for each of the 154 GitHub repos,
+with the list in `tmp/skills-sh/coverage.tsv`:
+
+- 97 have at least one skill there, all 28 typed `skill` among them.
+- 57 have none. Most are libraries (drizzle-orm, graphiti), MCP servers (sentry-mcp, playwright-mcp),
+  references (OWASP/CheatSheetSeries) and apps (letta).
+- A search result holds a skill name, its repository and an install count. No description, no stars,
+  nothing saying which of 2 tools to take.
+
+**The notes decide it.** For a browser tool for a coding agent, skills.sh returns agent-browser (843k
+installs), browser-act (108k), browser-use (95k) and anti-detect-browser (84k). The toolbox's
+`microsoft_playwright-cli.md` says "Use when: browser work inside a coding session. The default", and
+when to take `microsoft_playwright-mcp.md` instead.
+
+**What would overturn it:** real `/research` runs where the toolbox never adds anything skills.sh and
+the web did not. All 88 notes so far say "from research" and none "from use", so the case is not yet
+made.
+
+**Nothing in the toolbox changed.** `## Contents` stays: it lists plugins and subagents too, with
+descriptions, where skills.sh lists skills alone.
 
 ## What the toolbox held before the build, 2026-09-13
 
@@ -244,7 +424,10 @@ Nothing points an agent at the toolbox yet. See `### Not built`.
 - **A clear split between agent tools and other software**, with names carrying no `for-` prefix.
 - **One file per tool**, so the user and agents can add notes as tools get used.
 - **`util github bookmark` is the one adding command.** `bin/add-repo` is removed, and no toolbox
-  script adds entries.
+  script adds entries. **Reopened by the user 2026-09-13**: a toolbox-only script may split off when a
+  real reason justifies it. `## Adding tools, second design, 2026-09-13` gives the reason.
+- **A design decision is never argued from how many commits it takes**, 2026-09-13.
+- **The inbox stays a folder**, 2026-09-13.
 - **Bookmark writes `owner/repo` as the link text**, since 2 repos can share a name.
 - **The owner is part of every file name**, joined by a single character.
 - **`README.md` lists groups, never tools**, so an agent reads little before searching.
@@ -284,6 +467,20 @@ Nothing points an agent at the toolbox yet. See `### Not built`.
 - **A SQLite file on one machine.**
 - **A public repository of JSON files as the store**, harvested by GitHub Actions, with generated
   browse pages.
+- **Going back to `inbox.md`.** `grep -r "^description:" inbox/` already reads the inbox in one look,
+  and one `mv` files a tool with its README.
+- **`bookmark` dropping its line mode and keeping the folder mode.** It is the command meant for any
+  repo, so the toolbox's format moves out of it instead.
+- **Splitting `bookmark` because a change in `util` takes more commits.** The user rejected commit
+  counts as a design reason.
+- **Guessing `type` from a repo's files.** See `### bin/tool.js add <repo>... [--to <folder>]`.
+- **The README behind an optional flag.** A tool saved without one drops out of word search.
+- **The README inside the tool file.** Opening a tool file would cost about 2,700 tokens instead of
+  200, and an update would rewrite a file holding notes.
+- **A separate `readmes/` folder.** A search hit there does not show the tool's folder, and the check
+  for an existing `owner_repo.md` would find the same name there.
+- **Full GitHub links in a collection's list.** Each repeats the `url:` field, about 55 characters a
+  line.
 
 ## The library, for later
 

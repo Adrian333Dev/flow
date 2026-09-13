@@ -557,12 +557,25 @@ the enforcement bridge` carries the design, and `## Build plan` carries what is 
 **`lab/toolbox/` is a submodule beside `lab/util/`, added 2026-09-01, and rebuilt 2026-09-13.** It
 holds 155 outside tools, one `owner_repo.md` file each, under `agent-tools/` for tools made for AI
 agents and `software/` for the rest, then a folder per job. Each file carries `description`, `type`,
-`url`, stars, language and last push at the top, and dated notes below. `README.md` lists folders
-only, in a tree `util fs tree --into` writes. `util github bookmark --to <folder>/` writes a new tool
-file, and `lab/util` gained that folder mode, `--into`, and the `kind` field renamed `type`, with 54
-tests passing. Both submodules wait for the user's commits. Nothing points an agent at the toolbox
-yet: the user suggested the `research` skill, still under discussion. `design-toolbox.md` carries the
-design and the build. `repos/toolbox` and `~/code/toolbox` are old plain clones, redundant now.
+`url`, stars, language and last push at the top, and dated notes below. The repo's README, cleaned,
+sits beside it as `owner_repo.readme.md`, 145 of them. A tool typed `collection` lists its skills,
+plugins and subagents under `## Contents`. `README.md` lists folders only, in a tree `util fs tree
+--into` writes. **`bin/tool.js`, built 2026-09-14**: `add` saves a tool with its README into `inbox/`
+or a folder, and `refresh` rewrites what GitHub owns, 4 tests passing. `util github bookmark` writes
+lines only again, 53 tests passing in `lab/util`. The 2026-09-13 commits are in. The 2026-09-14 build
+waits for the user's commits in `lab/util`, `lab/toolbox` and Flow. `~/code/util`, the clone the typed
+`util` runs, has pulled neither. **`/research` searches the toolbox and covers any subject**,
+built 2026-09-14 with the description the user wrote. Its 2 local steps wait for items 8 and 9.
+**skills.sh, Vercel's index of public skills, is searched at once with the toolbox and Flow's own
+tree, and the web only when none of them fits**. skills.sh was added the same day with the
+checks from `find-skills`, which is merged and not adopted. `find-skills` still sits in
+`~/.claude/skills/` on this machine, outside Flow. The toolbox stays: 57 of its 154 GitHub repos ship
+no skill on skills.sh. `design-toolbox.md` carries the design, the build, the second design, its build
+and the skills.sh argument.
+`design-domain-skills.md` carries the `/research` side. `repos/toolbox` and
+`~/code/toolbox` are old plain clones, redundant now. The toolbox's `.claude/skills/explain/` is
+deleted on disk and not committed. The old `gsave`, `ptree` and `fmerge` links in `~/.local/bin` wait
+for the user's go to delete.
 
 **Flow depends on `util`, and 3 scripts left `scripts/` to make that true.** `gsave.sh`, `ptree.js`
 and `fmerge.js` moved on 2026-08-30, becoming `git save`, `fs tree` and `fs merge`. `flow install`'s
@@ -942,10 +955,12 @@ All under `lab/context/`, and every one is history rather than status.
   `flow domain-skills`, private skills in `~/.flow/private-skills`, the guarded overlay line, `/research`
   looking locally first, adopting an external skill, one file per finding tagged at filing, `/fold`,
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
-  research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day;
-  the toolbox rewrite comes next, then `## Next` items 8 to 12
+  research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day,
+  and the toolbox rewrite after it, so step 2 is next, then `## Next` items 8 to 12. `/research` beyond
+  skills, built 2026-09-14, with the description the user wrote and the rejected drafts before it
 - `design-toolbox.md`: the toolbox rewrite, agreed with the user and built 2026-09-13. The split into
   `agent-tools/` and `software/`, one `owner_repo.md` file per tool with a `type:` field, the
   groups-only `README.md`, how an agent finds a tool, the build in `lab/util`, `lab/toolbox` and Flow
-  with what changed after approval, what the toolbox held before, what was rejected, and the library
-  idea parked for later with the API facts and the search test behind it
+  with what changed after approval, the second design for adding tools and its build 2026-09-14, what the
+  toolbox held before, what was rejected, and the library idea parked for later with the API facts and
+  the search test behind it
