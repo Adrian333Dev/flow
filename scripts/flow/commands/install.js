@@ -136,7 +136,7 @@ actions.install = {
     out(
       `\nOne step left, by hand: merge ${path.join(clone, 'home', 'settings.json')}\n` +
       `into ${path.join(home, 'settings.json')}. It carries the permission rules, the\n` +
-      `PreToolUse hook and a few feature flags; ${path.join(clone, 'home', 'settings.md')} explains every key.\n` +
+      `PreToolUse hook and a few feature flags; ${path.join(clone, 'docs', 'manual', 'settings.md')} explains every key.\n` +
       `Merged rather than copied, because your settings hold things Flow should not own.\n` +
       `Restart Claude Code afterwards: settings load at startup.`
     );

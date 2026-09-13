@@ -180,7 +180,7 @@ was written about loaded files. The routing through `.flow/inbox.md` and `.flow/
 because a capture is an unreviewed guess and `/file-findings` is the review.
 
 **Auto memory is off and was never a replacement for `## Capture`.** `home/settings.json` sets
-`autoMemoryEnabled: false` and `home/settings.md` gives the reason, being per repository and
+`autoMemoryEnabled: false` and `docs/manual/settings.md` gives the reason, being per repository and
 machine-local. A 2026-09-07 research pass read Anthropic's docs without reading Flow's own settings
 and reported it as live. `claude-code-memory.md` settles 2 things the design did have wrong: editing
 a loaded `CLAUDE.md` mid-session applies nothing and invalidates no cache, and a conduct rule is

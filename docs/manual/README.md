@@ -11,6 +11,7 @@ Flow is a Claude Code workflow for a solo developer: rules that load in every se
 
 - [Reference](reference.md): every command, skill, setting and file in one place, including how to install
 - [Tickets](tickets.md): what a ticket is, the frontmatter, the body, and how one gets made and moved
+- [Settings](settings.md): every key in `~/.claude/settings.json` and `~/.flow/settings.json`, what it does, and why Flow sets it that way
 
 ## Where to start
 

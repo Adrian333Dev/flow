@@ -28,7 +28,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`home/CLAUDE.md`** is the rules that apply in every directory, project or not. It is copied to `~/.claude/CLAUDE.md` on a first install, then personalized there. The copy here is the template: placeholders and rules, never personal content.
 
-**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the machine's off list). `home/settings.md` explains every key. It is merged into `~/.claude/settings.json` by hand, because `flow install` never writes that file.
+**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the machine's off list). [Settings](../manual/settings.md) explains every key. It is merged into `~/.claude/settings.json` by hand, because `flow install` never writes that file.
 
 **`scripts/`** holds the CLI and the hooks:
 
@@ -61,7 +61,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `repos/`, `home/`, and `project-template/` from loading when a file beside one is read.
 
-**`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and holds `reference.md` and `tickets.md` so far. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what `manual/` covers: install, the commands, the skills, the settings and the machine layout all live in `manual/reference.md`. Both folders are authored here and never moved in from `lab/`.
+**`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and holds `reference.md`, `tickets.md` and `settings.md` so far. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what `manual/` covers. Install, the commands, the skills and the machine layout live in `manual/reference.md`. Every settings key lives in `manual/settings.md`. Both folders are authored here and never moved in from `lab/`.
 
 ## The design record under `lab/`
 

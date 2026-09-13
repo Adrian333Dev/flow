@@ -5,8 +5,8 @@
  *   ~/.flow/settings.json          global, and where a session entry lives
  *   <project>/.flow/settings.json  one project
  *
- * Keys sit at the top level. `git` is the only one today; a second setting is a
- * second key, and nothing here is shaped around there being exactly one.
+ * Keys sit at the top level: `git`, and `domainSkills` in the global file alone. A
+ * new setting is a new key, and nothing here is shaped around a fixed set.
  *
  * Reading never throws. `guard.js` calls it before every shell command the
  * agent runs, and a missing, empty or corrupt file has to mean the same thing

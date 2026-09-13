@@ -1,14 +1,34 @@
-# `settings.json`: what every key is for
+# Settings
 
-Reference for `home/settings.json`, which merges into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
+Flow reads 2 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
 
-`settings.json` is strict JSON. No comments, which is why this file exists.
+- **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and you merge them in by hand.
+- **`~/.flow/settings.json`** belongs to Flow. `flow git` writes one key, and you write the other.
+
+Both are strict JSON, so neither can hold a comment. This page holds the explanations instead.
+
+## Table of contents
+
+- [Claude Code's settings file](#claude-codes-settings-file)
+  - [`hooks`](#hooks)
+  - [`permissions`](#permissions)
+  - [`skillOverrides`](#skilloverrides)
+  - [`cleanupPeriodDays`](#cleanupperioddays)
+  - [Feature flags](#feature-flags)
+  - [Deliberately absent](#deliberately-absent)
+- [Flow's settings file](#flows-settings-file)
+  - [`git`](#git)
+  - [`domainSkills`](#domainskills)
+
+## Claude Code's settings file
+
+`home/settings.json` is the template, and its keys merge into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
 
 Settings load at startup. **Restart Claude Code after any change.**
 
 ---
 
-## `hooks`
+### `hooks`
 
 ```json
 "hooks": { "PreToolUse": [ { "matcher": "Bash", "hooks": [
@@ -21,7 +41,7 @@ Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed un
 
 **The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves nothing deciding a shell command: the deny list holds no `Bash` entries at all, because a static list cannot name the open set of what a shell command can be.
 
-### The snapshot pair
+#### The snapshot pair
 
 ```json
 "PreToolUse":  [ { "matcher": "Agent", "hooks": [ { "type": "command",
@@ -43,7 +63,7 @@ Two consequences worth knowing:
 - **The diff covers the window, not the worker.** Everything that changed between the two events lands in it, whoever changed it, so one subagent at a time and a parent that touches nothing meanwhile. `/execute` carries that as an instruction; this is where it comes from.
 - **`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state. It runs as a hook rather than through the Bash tool, so `guard.js` never sees it and the git mode never applies to it.
 
-### The rule-check pair
+#### The rule-check pair
 
 ```json
 "PreToolUse":         [ { "matcher": "Edit|Write", "hooks": [ { "type": "command",
@@ -64,7 +84,7 @@ Two consequences worth knowing:
 
 `InstructionsLoaded` has no decision control at all. Claude Code discards its output and ignores its exit code, so it records or it does not.
 
-### Why worktree isolation is off
+#### Why worktree isolation is off
 
 `EnterWorktree` and `Agent(isolation:worktree)` both move work into a second directory. The snapshot compares one directory against itself, and `snapshot.js` gives up when the directory moves between its two events, so worktree isolation turns the diff off and says nothing.
 
@@ -76,11 +96,11 @@ Two consequences worth knowing:
 
 ---
 
-## `permissions`
+### `permissions`
 
 Rules evaluate **deny → ask → allow**, first match wins. A broad deny beats a narrower allow. Deny rules hold in every permission mode.
 
-### `allow`
+#### `allow`
 
 | Entry | Covers |
 |---|---|
@@ -98,7 +118,7 @@ Not on the list, so still prompts: reads outside the working directory, and writ
 
 **Spawning a subagent never prompts, so `Agent` needs no entry.** Claude Code checks a subagent's own tool calls against these same rules while it works, and that is what governs a worker.
 
-### `deny`: Claude Code surfaces Flow doesn't use
+#### `deny`: Claude Code surfaces Flow doesn't use
 
 These are **bare tool names**, which removes each tool from the model's context entirely rather than blocking it at call time. That also drops its schema from every request: `DesignSync` alone measured ~2,200 tokens.
 
@@ -113,9 +133,9 @@ These are **bare tool names**, which removes each tool from the model's context 
 | `NotebookEdit` | Jupyter notebooks. Not in any workflow here. |
 | `DesignSync` | Design-tool sync. Unused, and absent from the published tool reference, so it was found by logging a real request rather than by reading the docs. |
 
-### `deny`: no git entries, and why
+#### `deny`: no git entries, and why
 
-**No `Bash(git …)` rule appears in this file, and adding one would break the switch.** `guard.js` decides every git command instead.
+**No `Bash(git …)` rule appears in `home/settings.json`, and adding one would break the switch.** `guard.js` decides every git command instead.
 
 A deny rule is read once at session start, and it only ever adds. Nothing in a project, a flag or a settings file can lift a user-level entry, so a rule written here is permanent and no switch can reach past it. `guard.js` runs before every shell command and re-reads its state each time, which is what lets the mode change mid-session.
 
@@ -140,7 +160,7 @@ Three things hold whatever the mode says:
 
 `guard.js` is the only thing between the agent and git now, so an error it cannot recover from denies a git command rather than falling through.
 
-### Modes
+#### Modes
 
 Six of them, cycled with Shift+Tab and overridable for one session with `--permission-mode <name>`. A mode only decides what happens to a call no rule above matched.
 
@@ -156,30 +176,30 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 ---
 
-## `skillOverrides`
+### `skillOverrides`
 
 **What a session is shown of each skill.** A description sits in context from the moment a session starts, whether the skill is ever invoked or not, so every installed skill costs something in every session. This key is where that cost is decided, per skill, per machine and per project.
 
 Installing and being shown are separate questions. Every skill outside `drafts/` installs on every machine, and a skill set to `off` costs nothing, so nothing is gained by leaving one uninstalled.
 
-### Every skill Flow installs is on
+#### Every skill Flow installs is on
 
-`phases/`, `tools/` and `dev/` are reached in ordinary work, in any project, so this file ships `skillOverrides` empty.
+`phases/`, `tools/` and `dev/` are reached in ordinary work, in any project, so `home/settings.json` ships `skillOverrides` empty.
 
 **A domain skill never installs on the machine, so none needs turning off.** `flow domain-skills add <name>` installs it into the one project that uses it, and only that project pays for its description. Until 2026-09-13 Flow carried domain skills in a `stack/` group that installed everywhere and shipped `off`. That group left for the `domain-skills` repository.
 
-### Two values, keyed by skill name
+#### Two values, keyed by skill name
 
 - **`on`**: the name and the description. What a skill gets when it is named nowhere
 - **`off`**: the model is shown nothing, and `/name` refuses with *disabled via skillOverrides*
 
 **Claude Code accepts two more and Flow uses neither.** `name-only` shows the name and hides the description, so the model keeps the power to fire a skill and loses the only thing it could judge with. `user-invocable-only` hides it from the model and leaves `/name` working, which was rejected on 2026-08-30: a skill that exists to fire during a phase is unfirable once the model cannot see it. All four verified 2026-08-29.
 
-### A project overrides this file key by key
+#### A project overrides the machine's file key by key
 
 `home/settings.json` names what is off on the machine, and ships naming nothing. A project turns a skill on or off in its own `.claude/settings.json`.
 
-**The two files merge rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill this file had set to `off`, a project setting `off` hid one this file never named, and an entry only this file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
+**The two files merge rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill the machine's file had set to `off`, a project setting `off` hid one the machine's file never named, and an entry only the machine's file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
 
 **Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill on the machine with its state and which file set it.
 
@@ -187,7 +207,7 @@ Installing and being shown are separate questions. Every skill outside `drafts/`
 
 ---
 
-## `cleanupPeriodDays`
+### `cleanupPeriodDays`
 
 ```json
 "cleanupPeriodDays": 365
@@ -203,7 +223,7 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 
 ---
 
-## Feature flags
+### Feature flags
 
 | Key | Value | Effect |
 |---|---|---|
@@ -217,8 +237,45 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 
 ---
 
-## Deliberately absent
+### Deliberately absent
 
 **The built-in task tools** (`TaskCreate`, `TaskGet`, `TaskList`, `TaskUpdate`) stay allowed rather than joining the deny list. They look like a tracker competing with `flow` and are not: `flow` records work that outlives the session, these are a scratch checklist for the turn in front of you. Denying them costs the checklist and saves nothing.
 
 **`sandbox`.** Claude Code's bubblewrap jail was considered and rejected. It is a genuine OS-level boundary at zero token cost, and it remains the right answer for unattended runs, but it needs `socat` installed, blocks Windows binaries under WSL2, and adds a second boundary to reason about.
+
+## Flow's settings file
+
+`~/.flow/settings.json` holds what Flow reads and Claude Code never does. Every key sits at the top level:
+
+```json
+{
+  "git": { "mode": "allow", "until": "2026-09-14T15:00:00.000Z", "session": "<session id>" },
+  "domainSkills": "~/code/domain-skills/skills"
+}
+```
+
+A change applies on the next command, with nothing to restart.
+
+---
+
+### `git`
+
+Whether the agent may run a git command that writes, and until when. `flow git` writes this key, so never edit it by hand. [`deny`: no git entries, and why](#deny-no-git-entries-and-why) covers the commands, the scopes and what holds whatever the mode says.
+
+- **`mode`**: `allow` or `ask`. No entry means off
+- **`until`**: when the entry expires. `--for never` leaves it out
+- **`session`**: the session the entry belongs to. `--project` and `--global` leave it out
+
+`--project` writes the entry into the project's own `.flow/settings.json`, which the project template gitignores.
+
+---
+
+### `domainSkills`
+
+The path to the `skills/` folder in your clone of the domain-skills repository. A domain skill carries knowledge about one field or tool, such as React, and installs into one project at a time. You write this key, and a leading `~` stands for your home folder:
+
+```json
+"domainSkills": "~/code/domain-skills/skills"
+```
+
+`flow domain-skills` reads it, and nothing else does. Without it, or with a path that does not exist, every action refuses and names the fix. [Reference](reference.md#flow-domain-skills) covers the commands.

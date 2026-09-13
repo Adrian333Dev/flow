@@ -425,12 +425,14 @@ Two files, and Flow contributes to one of them.
 - **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 
-[`home/settings.md`](../../home/settings.md) explains every key, every value Flow rejected, and why. A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing.
+A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing.
 
 **`~/.flow/settings.json`** is Flow's own. It holds 2 keys:
 
 - **`git`**: the git write state. `flow git` writes it, so there is nothing to edit by hand
 - **`domainSkills`**: the path to your clone's `skills/` folder, which [`flow domain-skills`](#flow-domain-skills) reads. You write this one
+
+[Settings](settings.md) explains every key in both files, every value Flow rejected, and why.
 
 ## Files
 
