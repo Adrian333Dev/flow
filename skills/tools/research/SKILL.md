@@ -21,8 +21,8 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 - **A tool already chosen** → a skill, plugin or MCP server for it, before reading a line of its documentation. A skill written by the people who build the tool is worth more than the docs it was made from.
 
 1. **Search these at once:**
-   - **Your private skills:** `flow private-skills ls <word>`. One word per search: both `ls` commands list only a skill matching every word.
-   - **The domain-skills repository:** `flow domain-skills ls <word>`. When it finds no repository on this machine, clone it instead, `git clone --depth 1 https://github.com/Adrian333Dev/domain-skills tmp/references/domain-skills`, and grep the `description:` lines of `skills/*/SKILL.md`.
+   - **Your private skills:** `flow private-skills ls` (rarely relevant)
+   - **The domain-skills repository:** `flow domain-skills ls <word>`, one word per search, since it lists only a skill matching every word. When it finds no repository on this machine, clone it instead, `git clone --depth 1 https://github.com/Adrian333Dev/domain-skills tmp/references/domain-skills`, and grep the `description:` lines of `skills/*/SKILL.md`.
    - **The toolbox**, a catalog of outside tools with notes from real use: `git clone --depth 1 https://github.com/Adrian333Dev/toolbox tmp/references/toolbox`, or `git -C tmp/references/toolbox pull` when the clone is already there. Read its `README.md`, then search the folders that could hold an answer, the way it says.
    - **skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill.
    - **Flow's own tree:** `flow skills ls --hidden` lists what this session is not being shown, which is the only part worth checking.
@@ -41,8 +41,8 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 
 **Adopting a skill:**
 
-- Used unchanged → install it into the project with its own installer, such as `npx skills add <owner/repo> --skill <name>`
-- Changed at all → copy it into the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository with a note naming its upstream repository, commit and license, then edit the copy. Only when its license allows republishing
+- For one project → install it with its own installer, such as `npx skills add <owner/repo> --skill <name>`. A change edits the project's copy
+- A second project needs the change → copy the edited skill into the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository with a note naming its upstream repository, commit and license, then install it in both with `flow domain-skills add <name>`. Only when its license allows republishing
 
 ## How deep to go
 

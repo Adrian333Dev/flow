@@ -231,7 +231,18 @@ item 10. Both run at once with the toolbox, skills.sh and Flow's own tree, one w
 `domainSkills` is unset, the agent clones the public repository into `tmp/references/` instead. A
 private or domain skill that fits goes straight to `add`. The outward round names `gh search code` for
 `SKILL.md` and `marketplace.json`, and the MCP registry. All of it sits in `SKILL.md`: the planned
-`references/find-a-skill.md` was dropped. Step 5, one file per finding, is next as item 11.
+`references/find-a-skill.md` was dropped. The private search lists every private skill, with no words,
+since there are rarely more than a few.
+
+**One file per finding, 2026-09-14.** Step 5 of the same plan, item 11. `home/CLAUDE.md` → `## Capture`
+writes `.flow/findings/<what-was-learned>.md`, and adds `skill: <name>` when the finding is about a skill
+in the session's list, of any type. `/file-findings` writes a tagged finding into its skill, an
+installer's copy in the project included, and edits nothing in 2 places. A skill in the `domain-skills`
+clone goes under one batch question: a yes moves each finding into `.flow/findings/<skill>/`, where filing
+never reads again, and a no writes it into the skill's overlay. One of Flow's own skills gets its overlay,
+or `/flow-review`. An external skill moves into `domain-skills` only when a second project needs its
+change, and `/research` says so. `scorecard.md` stays one appended file. No
+`flow` command writes a finding. Step 6, `/fold`, is next as item 12.
 `skills/phases/debug/SKILL.md` still routes a bug inside a page to `/web-pages`, which no machine can
 reach until the rebuild.
 
@@ -975,12 +986,12 @@ All under `lab/context/`, and every one is history rather than status.
   proposals, what was rejected and why, and the 3 questions still to answer
 - `design-domain-skills.md`: the `domain-skills` repository, domain skills installed per project through
   `flow domain-skills`, private skills in `~/.flow/private-skills`, the guarded overlay line, `/research`
-  looking locally first, adopting an external skill, one file per finding tagged at filing, `/fold`,
+  looking locally first, adopting an external skill, one file per finding tagged at capture, `/fold`,
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
   research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day,
   the toolbox rewrite after it, and step 2 on 2026-09-14 with the committed list of a project's domain
-  skills, and steps 3 and 4, `flow private-skills` and the local searches in `/research`, the same day. Steps 5
-  and 6 are next, as `## Next` items 11 and 12. `/research` beyond
+  skills, and steps 3 to 5, `flow private-skills`, the local searches in `/research` and one file per
+  finding, the same day. Step 6 is next, as `## Next` item 12. `/research` beyond
   skills, built 2026-09-14, with the description the user wrote and the rejected drafts before it
 - `design-toolbox.md`: the toolbox rewrite, agreed with the user and built 2026-09-13. The split into
   `agent-tools/` and `software/`, one `owner_repo.md` file per tool with a `type:` field, the

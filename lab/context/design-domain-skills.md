@@ -234,8 +234,9 @@ already names skills, plugins, libraries and tools among what the skill finds.
       plugin marketplaces, and a level 4 prompt handed to an external LLM, which `/research` already
       carries. ChatGPT searches GitHub well.
 
-   **Built 2026-09-14** as item 10, with 3 additions found by running the commands. Both `ls` commands
-   match every word given, so the search runs one word at a time. `flow domain-skills ls` fails where
+   **Built 2026-09-14** as item 10, with 3 additions found by running the commands. `flow domain-skills ls`
+   matches every word given, so it runs one word at a time. The private search lists every private
+   skill with no words, since there are rarely more than a few. `flow domain-skills ls` fails where
    `domainSkills` is unset, so the agent clones the public repository into `tmp/references/` instead,
    as it does the toolbox. A private or domain skill that fits skips judging and goes straight to `add`.
    The outward round names 3 commands: `gh search code <word> --filename SKILL.md`, the same with
@@ -339,12 +340,15 @@ by installs. `npx skills` is its CLI. Whether the toolbox stays is argued in `de
 
 ### Adopting an external skill
 
-- **Used unchanged, it stays upstream.** It installs into the project with its own installer, such as
-  `npx skills add <owner/repo> --skill <name>`. Nothing is copied into `domain-skills`.
-- **Changed at all, it moves into `domain-skills`.** It is copied into `skills/<name>/` with a note
-  naming the upstream repository, the commit it was copied from, and its license, then edited. From then
-  on it is ours: it carries the overlay line, takes findings, and `/fold` maintains it. The first edit is
-  the trigger, because an edit made inside one project's copy helps no other project.
+- **For one project, it installs with its own installer**, such as `npx skills add <owner/repo> --skill
+  <name>`. A change edits the project's copy, which from then on counts as the project's own skill, and
+  `/file-findings` writes into it. A reinstall would wipe the edit, and a changed skill is rarely
+  reinstalled. The folder is committed, so `git diff` shows a wipe and a revert restores it. Ruled by the
+  user 2026-09-14, replacing "changed at all, it moves into `domain-skills`".
+- **When a second project needs the change, it moves into `domain-skills`.** The edited skill is copied
+  into `skills/<name>/` with a note naming the upstream repository, the commit it was copied from, and its
+  license. From then on it is ours: it carries the overlay line, takes findings, and `/fold` maintains it.
+  What was lost: until the second project, a fix stays in the one project that made it.
 - **2 checks before a copy.** The license has to allow republishing, since the repository is public. A
   skill carrying its own process, such as a build order or a review loop, competes with `/execute`, and
   `/research` already says to weigh that.
@@ -356,18 +360,19 @@ continuing." No command resolves dependencies. A resolver is a package manager, 
 is rare, and a sentence also works on a machine without Flow. Overturned if skills needing 3 or more
 others turn up regularly.
 
-### A finding is one file in the project, and filing only tags it
+### A finding is one file in the project, tagged at capture, sent at filing
 
 A finding is reusable knowledge captured mid-work. Most findings never concern a skill: they become a
-rule, a project fact under `docs/context/`, or a ticket.
+rule, a project fact under `docs/context/`, or a ticket. Built 2026-09-14 as item 11.
 
 1. **Capture writes one file per finding**, `.flow/findings/<what-was-learned>.md`, named in 4 to 8
-   words, in place of one file per subject appended over time. `home/CLAUDE.md` → `## Capture` changes
-   that one line. 2 reasons: a single finding can be sent without cutting a file apart, and 2 branches
-   adding 2 files never conflict.
-2. **`/file-findings` routes each one.** A rule, a project fact, or a skill you own is written there and
-   the finding deleted, as today. A finding whose destination is a skill in `domain-skills` is written
-   nowhere: it gets a header and stays where it is.
+   words, in place of one file per subject appended over time. It holds what went wrong, what fixed it,
+   the rule that follows, and the version, the shape `CONTRIBUTING.md` asks for. 2 reasons: a single
+   finding can be sent without cutting a file apart, and 2 branches adding 2 files never conflict.
+2. **Capture tags a finding about a skill in the session's skill list**, loaded or not, and of any type:
+   Flow's, private, a project's own, or a domain skill. Capture looks nothing up. The tag says what the
+   finding is about, never where it goes. Ruled by the user 2026-09-14, replacing a tag added at filing
+   for domain skills alone.
 
    ```
    ---
@@ -375,17 +380,32 @@ rule, a project fact under `docs/context/`, or a ticket.
    ---
    ```
 
-3. **The batch is asked once** whether its domain findings go to `domain-skills`. A yes adds the headers.
-   A no routes them as a project lesson or into a private skill.
+3. **`/file-findings` routes each one.** A tagged finding goes to its skill. Filing follows the skill's
+   link to its folder, and edits nothing in 2 places. Inside the `domain-skills` clone, the question
+   below applies. Inside Flow's `skills/`, knowledge for the project goes to `.flow/overlays/<skill>.md`,
+   and a flaw in Flow to `/flow-review`. Anywhere else, an installer's copy in the project included, it
+   writes into the skill and deletes the finding. Flow's skills were added 2026-09-14, since filing
+   would otherwise edit Flow from inside some project.
+4. **The batch is asked once** whether its domain findings go to `domain-skills`. A yes moves each into
+   `.flow/findings/<skill>/`, header intact. A no writes them into the skill's overlay, or into a private
+   skill. The overlay replaced a project fact on 2026-09-14, because the knowledge is about the skill and
+   the overlay loads with it. An inbox item bound for a domain skill is written there as a finding on a
+   yes.
 
-**Capture writes the file, and filing makes the call.** The file capture writes is already the report,
-and nothing copies or reshapes it later. What stays in filing is judging that a lesson holds for anyone
-using the subject, not only for this project. Capture was built so that call is never made mid-work, and
-a wrong call sends one project's quirk to a public repository. Overturned if every finding about a domain
-skill turns out universal in practice, in which case capture adds the header.
+**The sub-folder is what a yes leaves behind.** Once capture writes every tag, a tag no longer shows the
+question was answered, and a finding waits for `/fold` for weeks. Filing reads only the top of
+`.flow/findings/`, so it never asks twice. `/fold react` reads `.flow/findings/react/`, the same shape as
+`skills/react/findings/` in the repository.
 
-**A finding file exists only for a skill you cannot edit.** Filing edits a private skill or a Flow skill
-directly.
+**The question stays in filing**, the last human check before a finding can reach a public repository: a
+secret, or one project's quirk.
+
+**`scorecard.md` stays one appended file**, one line per wrong warning from a rule check. Its only cost
+is a merge conflict between 2 parallel branches, and the workflow runs one branch at a time.
+
+**No `flow` command writes a finding.** A `Write` call makes one in a single step. A ticket needs
+commands for its numbered id, its status and its links, and a finding has none of them. Overturned if a
+finding gains an id or a status.
 
 **Nothing writes into the `domain-skills` clone except `/fold`.** A finding reaches the repository
 through a pull request, and arrives on a machine with `git pull`.
@@ -394,7 +414,7 @@ through a pull request, and arrives on a machine with `git pull`.
 
 - **Under `skills/dev/`**, beside `/flow-review`. A contributor never runs it. For `domain-skills` the
   maintainer is the user.
-- **Reads** the body, its pages, the tagged findings in the current project, and every finding merged
+- **Reads** the body, its pages, the findings in the current project's `.flow/findings/<name>/`, and every finding merged
   into `skills/<name>/findings/` in the repository.
 - **Applies 5 acceptance rules**: true for anyone, proved by a failure, new or a correction, subject named
   with its version, fits the size budget.
@@ -404,7 +424,7 @@ through a pull request, and arrives on a machine with `git pull`.
 
 ### `flow contribute` and `flow contribute status`, the second half
 
-- **Contribute** takes every tagged finding in the project and opens one pull request adding each to
+- **Contribute** takes every finding under the project's `.flow/findings/<skill>/` folders and opens one pull request adding each to
   `skills/<skill>/findings/` under its own filename. It works in a throwaway checkout under
   `~/.flow/tmp/`: a pull request needs a commit on a branch, and making that commit in the everyday clone
   would move the clone off `main` and leave a commit in it. Each local file is deleted once sent. A
@@ -430,13 +450,16 @@ from a real run.
 
 ### `/file-findings` changes in 2 places
 
-- **Routing**: a finding for a skill in `domain-skills` gets the header and stays, never a line in the
-  body. A skill built from several `needs skill` flags goes to `~/.flow/private-skills/<name>/`, or into
-  `domain-skills` when it is for everyone.
+- **Routing**: a finding for a skill in `domain-skills` is never a line in the body. A yes moves it into
+  `.flow/findings/<skill>/`, and a no writes it into the skill's overlay. A finding for one of Flow's
+  own skills goes to its overlay, or to `/flow-review`. A skill built from several `needs skill` flags goes to
+  `~/.flow/private-skills/<name>/`, or into `domain-skills` when it is for everyone.
 - **The plan step** lists the domain findings under the skill they are tagged for, with the batch
   question.
 
-Rules, project facts, checks and the clearing step are unchanged.
+Rules, project facts and checks are unchanged. The clearing step deletes each filed finding, and clears
+filed lines from `scorecard.md`. Built 2026-09-14 in `skills/tools/file-findings/SKILL.md` →
+`## A skill filing must not edit`.
 
 ### Phases and tools stay out
 
@@ -501,12 +524,13 @@ project goes to `docs/context/`. A whole subject is a page. A whole field is a s
 ### A finding, from capture to the shared skill
 
 1. Mid-work, the agent learns that a server component formatting a date in the local timezone causes a
-   hydration mismatch. Capture writes `.flow/findings/hydration-mismatch-from-server-date-formatting.md`.
-2. The ticket ends. `/file-findings` routes the finding: true for any React app, so its destination is
-   the `react` domain skill. The plan asks once whether the React findings go to `domain-skills`. A yes
-   adds the header, and the file stays.
-3. The work and the tagged finding are committed together.
-4. The user, as maintainer, runs `/fold react` from `~/work/shop`. It reads the tagged file, rewrites the
+   hydration mismatch. `react` is in the session's skill list, so capture writes
+   `.flow/findings/hydration-mismatch-from-server-date-formatting.md` with `skill: react` at the top.
+2. The ticket ends. `/file-findings` follows the `react` link into the `domain-skills` clone, so nothing
+   is edited. The plan asks once whether the React findings go to `domain-skills`. A yes moves the file
+   to `.flow/findings/react/`.
+3. The work and the finding are committed together.
+4. The user, as maintainer, runs `/fold react` from `~/work/shop`. It reads `.flow/findings/react/`, rewrites the
    body or a page in the `domain-skills` clone, and deletes the finding from the project.
 5. The user commits in the clone and pushes. Every project on this machine that installed `react` has the
    new text at once, through the symlink. Other machines get it with `git pull`.
@@ -518,12 +542,13 @@ maintainer folds from the repository.
 
 1. `/research` finds nothing locally and searches outward. It finds `vercel/ai-elements` and writes the
    result into `docs/research/`.
-2. Used unchanged, it installs into the project with `npx skills add vercel/ai-elements --skill
-   ai-elements`.
-3. Weeks later it needs a correction. Its license allows republishing. It is copied into
-   `domain-skills/skills/ai-elements/` with its upstream repository, commit and license noted, gets the
-   overlay line, and is edited there.
-4. The project's upstream install is removed, and `flow domain-skills add ai-elements` installs ours.
+2. It installs into the project with `npx skills add vercel/ai-elements --skill ai-elements`.
+3. Weeks later it needs a correction. A finding tagged `skill: ai-elements` is filed straight into the
+   project's copy, `.claude/skills/ai-elements/`, and committed with the project.
+4. A second project needs the same correction. Its license allows republishing. The edited copy goes into
+   `domain-skills/skills/ai-elements/` with its upstream repository, commit and license noted, and gets
+   the overlay line.
+5. Both projects remove their own copy, and `flow domain-skills add ai-elements` installs ours.
 
 ## Branches
 
@@ -570,9 +595,9 @@ The user's ideas for the multi-branch work, 2026-09-13, none decided:
 - **Secrets.** A finding written mid-work can carry a real endpoint. The batch question in filing is the
   last human gate, and CI runs a secret scan.
 - **A private skill named like a domain skill or a Flow skill.** `flow private-skills add` refuses it.
-- **A license that forbids republishing.** The skill stays upstream and unchanged. A needed change
-  becomes a project rule, or a skill of our own written from scratch, since an external skill carries no
-  overlay line.
+- **A license that forbids republishing.** The skill never moves into `domain-skills`. A change a second
+  project needs becomes a project rule there, or a skill of our own written from scratch, since an
+  external skill carries no overlay line.
 - **A new worktree, a fresh clone, the second machine.** The symlinks under `.claude/skills/` are ignored
   by git and missing there, so `flow domain-skills add` with no name relinks every listed skill.
 - **A listed skill missing from the clone**, such as one not pulled yet. `add` reports it and links the
@@ -676,8 +701,11 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
 4. **`/research`**: the 2 local searches added to the first round, and the outward commands. Built
    2026-09-14, in `skills/tools/research/SKILL.md` alone, with no page of its own. The adoption rule
    landed with step 1.
-5. **Capture and `/file-findings`**: `home/CLAUDE.md` → `## Capture` writes one file per finding, and
-   filing adds the `skill:` header for a domain skill.
+5. **Capture and `/file-findings`**: `home/CLAUDE.md` → `## Capture` writes one file per finding and
+   tags a skill in the session's list, and filing moves a finding sent to `domain-skills` into
+   `.flow/findings/<skill>/`. Built 2026-09-14, in `home/CLAUDE.md` and
+   `skills/tools/file-findings/SKILL.md`, with the tag moved to capture and the sub-folder decided before
+   the build.
 6. **`/fold <skill>`** under `skills/dev/`.
 
 **The second half**, waiting for the first contributor other than the user: `flow contribute` and

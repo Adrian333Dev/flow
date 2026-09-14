@@ -25,17 +25,16 @@ Everything below has to be true before Flow installs on a machine and gets used.
 5. **The writing pass over `references/`, `docs/` and the 2 script templates**
 6. **Widen the tests** over the ticket commands
 
-**Domain skills, the half the user runs alone.** Chosen for execution 2026-09-12 and reordered 2026-09-13, in this order. Items 7 to 10, the repository, `flow domain-skills`, `flow private-skills` and the local searches in `/research`, were built by 2026-09-14. `design-domain-skills.md` → `## The plan`
+**Domain skills, the half the user runs alone.** Chosen for execution 2026-09-12 and reordered 2026-09-13, in this order. Items 7 to 11, the repository, `flow domain-skills`, `flow private-skills`, the local searches in `/research` and one file per finding, were built by 2026-09-14. `design-domain-skills.md` → `## The plan`
 
-11. **One file per finding**: capture writes each finding to its own file, and `/file-findings` adds a `skill:` header to a finding for a domain skill instead of writing it anywhere
-12. **`/fold <skill>`** under `dev/`, the maintainer's, reading the tagged findings in the current project
+12. **`/fold <skill>`** under `dev/`, the maintainer's, reading the findings in the current project's `.flow/findings/<skill>/`
 
 ## The skill system
 
 Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and rebuilt the same day. Flow keeps Claude Code's skills and adds 3 things: a group folder, which files a skill and decides only whether `drafts/` skips it; one shell line per skill for overlays; and a rule that a skill invoked over and over stays short. Every group is shown, since `stack/` left on 2026-09-13 for the `domain-skills` repository. Every argument is in `design-skills.md`.
 
 - [ ] **`flow install` no longer prunes `~/.claude/commands/`**: a machine carrying an older Flow would keep dead links there beside the new skills. No machine has installed Flow, so nothing is broken; it belongs to the management skill
-- [ ] **External skills**: decided 2026-09-13. Used unchanged, one installs into the project with its own installer. Changed at all, it is copied into `domain-skills` with its upstream repository, commit and license. Written into `/research` 2026-09-13, so the item is finished and waits for its deletion. `design-domain-skills.md`
+- [ ] **External skills**: decided 2026-09-13, changed 2026-09-14. One installs into the project with its own installer, and a change edits the project's copy. When a second project needs the change, it is copied into `domain-skills` with its upstream repository, commit and license. Written into `/research` and `/file-findings` 2026-09-14, so the item is finished and waits for its deletion. `design-domain-skills.md`
 - [ ] **Plugins are a fourth install state Flow does not control**: off by default. `extraKnownMarketplaces` in the committed settings, `enabledPlugins` in `.claude/settings.local.json`, and a flip takes effect next session. `skillOverrides` is not an off switch: it leaves the commands and the hooks running
 - [ ] **Test whether a plugin skill beats a Flow skill of the same name**: 1 run, when a plugin goes in
 - [ ] **How a design plugin gets used**: what fires it, whether design work is its own phase, what happens when 2 of them disagree, the boundary with `/visualize`, what comes back into Flow afterwards. **Decided after the first real run in a project**, never before. Not essential; Flow works without one. **talk first**
@@ -52,7 +51,7 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 - [ ] **Introducing development skills**: skills that help build and improve Flow itself, not skills about writing code. `dev/` is the group, `/flow-review` is the first skill
 - [ ] **`/grill`**: decided and undesigned: a skill you fire at a finished artifact, `disable-model-invocation: true`, never model-invoked. **talk first**
 - [ ] **Cold-reader `/grill`**: hand the stripped mechanism to subagents that never saw the conversation, so neither can defend it. **talk first**. `remaining.md`
-- [ ] **A knowledge base per skill**: designed 2026-09-12 and 2026-09-13 as one file per finding in the project, a `skill:` header added at filing, and the fold, in `design-domain-skills.md`. Closes when items 11 and 12 under `## Next` are built
+- [ ] **A knowledge base per skill**: designed 2026-09-12 and 2026-09-13 as one file per finding in the project, a `skill:` header added at capture, and the fold, in `design-domain-skills.md`. Closes when item 12 under `## Next` is built
 - [ ] **What triggers `organize`**: the `review` status answers part of it; the wiring was never designed. **talk first**
 - [ ] **The skill-creation trigger**: when a recurring pattern becomes a new skill, and who writes it. **talk first**
 - [ ] **A domain skill covers one tool at several versions.** React 17, 18 and 19 differ, and the minors between them do too, and nothing in a skill's shape says where React 19 knowledge sits or how a run picks it. Raised by the user 2026-09-12; a `package.json` lookup was guessed and rejected, and the user has a mechanism in mind. **talk first**. `design-domain-skills.md`

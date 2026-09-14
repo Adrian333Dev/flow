@@ -69,7 +69,8 @@ No background: audio APIs, compilers, ML internals." -->
 - Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
 - How the user wants to work → `~/.claude/CLAUDE.md#preferences`. What they know or don't → `#the-user`. Both inferred from evidence, never announced: the same correction twice, irritation at a habit, a term you had to explain.
 - Durable project fact (a verified command, a path, a settled convention) → `docs/context/<subject>.md`
-- Reusable knowledge (a tool behavior, a library quirk, a pattern that works, a rule worth keeping) → `.flow/findings/<subject>.md`. `/file-findings` promotes it to a skill or a rule later. Skip what the loaded skill already says.
+- Reusable knowledge (a tool behavior, a library quirk, a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. `/file-findings` promotes it to a skill or a rule later. Skip what the loaded skill already says.
+  - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`
 - A warning from a rule check that was wrong → `.flow/findings/scorecard.md`
 - A decision the user confirmed with no open threads → `docs/spec/decisions.md`, or the groundwork map that owns the subject. Batched, never mid-discussion.
 - Flow itself failed (a rule that didn't fire, friction that repeated, output the user rejected) → `/flow-review`
