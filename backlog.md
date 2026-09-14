@@ -25,10 +25,6 @@ Everything below has to be true before Flow installs on a machine and gets used.
 5. **The writing pass over `references/`, `docs/` and the 2 script templates**
 6. **Widen the tests** over the ticket commands
 
-**Domain skills, the half the user runs alone.** Chosen for execution 2026-09-12 and reordered 2026-09-13, in this order. Items 7 to 11, the repository, `flow domain-skills`, `flow private-skills`, the local searches in `/research` and one file per finding, were built by 2026-09-14. `design-domain-skills.md` → `## The plan`
-
-12. **`/fold <skill>`** under `dev/`, the maintainer's, reading the findings in the current project's `.flow/findings/<skill>/`
-
 ## The skill system
 
 Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and rebuilt the same day. Flow keeps Claude Code's skills and adds 3 things: a group folder, which files a skill and decides only whether `drafts/` skips it; one shell line per skill for overlays; and a rule that a skill invoked over and over stays short. Every group is shown, since `stack/` left on 2026-09-13 for the `domain-skills` repository. Every argument is in `design-skills.md`.
@@ -40,7 +36,8 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 - [ ] **How a design plugin gets used**: what fires it, whether design work is its own phase, what happens when 2 of them disagree, the boundary with `/visualize`, what comes back into Flow afterwards. **Decided after the first real run in a project**, never before. Not essential; Flow works without one. **talk first**
 - [ ] **A long skill cannot take arguments, so `/execute t047` is unbuildable.** A skill given arguments renders differently on each invocation, so Claude Code appends the whole file again instead of skipping it. It binds every long skill, not just one: `/groundwork` is 284 lines, `/execute` 191, `/handoff` 153. What arguments would buy: an `open` block loads the ticket and every file it names in one shot, and a user who already knows the phase skips `/start` entirely. `/start` gets away with `argument-hint` at 41 lines. Decide whether a long skill splits into a short front end that takes the id and a long body it invokes, or the re-append is simply paid. **talk first**. `design-skills.md`
 - [ ] **`paths` in skill frontmatter**: loads a skill when the model touches a matching file. Rejected 2026-08-26 for the `standards/` group, since dissolved: a standard loads early, from its description. Still open for domain skills, where it costs nothing until it matches. **parked** until 1 project installs 5 or more domain skills
-- [ ] **The contribution pipeline's second half**: `flow contribute` and `flow contribute status`, the CI checks on `domain-skills`, and `/distill`. The first 2 wait for the first contributor other than the user, and `/distill` for the first distill done by hand on the abuse-prevention case. Later still: a drift agent and skill evals. `design-domain-skills.md`
+- [ ] **The contribution pipeline's second half**: the CI checks on `domain-skills` pull requests, and `/distill`. CI waits for the first contributor other than the user, and `/distill` for the first distill done by hand on the abuse-prevention case. `flow contribute` was built 2026-09-15, and `flow contribute status` dropped. Later still: a drift agent and skill evals. `design-domain-skills.md`
+- [ ] **A Flow command that sends a page or a skill to `domain-skills`**: today it is an ordinary pull request, by the steps in its `CONTRIBUTING.md`. Waits for the first contributed page to show the manual steps hurt. **parked** `design-domain-skills.md`
 - [ ] **`flow install --pin <name>`**: replaces one skill's symlink with a real copy, so clone edits stop reaching it. Designed and deferred 2026-08-30: a pin you must remember to remove freezes a skill silently. **parked** until the copy-into-drafts route annoys. `design-dev-loop.md`
 
 ## Individual skills
@@ -51,7 +48,7 @@ Settled 2026-08-26, built 2026-08-28, reversed on installation 2026-08-30 and re
 - [ ] **Introducing development skills**: skills that help build and improve Flow itself, not skills about writing code. `dev/` is the group, `/flow-review` is the first skill
 - [ ] **`/grill`**: decided and undesigned: a skill you fire at a finished artifact, `disable-model-invocation: true`, never model-invoked. **talk first**
 - [ ] **Cold-reader `/grill`**: hand the stripped mechanism to subagents that never saw the conversation, so neither can defend it. **talk first**. `remaining.md`
-- [ ] **A knowledge base per skill**: designed 2026-09-12 and 2026-09-13 as one file per finding in the project, a `skill:` header added at capture, and the fold, in `design-domain-skills.md`. Closes when item 12 under `## Next` is built
+- [ ] **A knowledge base per skill**: designed 2026-09-12 and 2026-09-13 as one file per finding in the project, a `skill:` header added at capture, and the fold, in `design-domain-skills.md`. `/fold` was built 2026-09-14, so the item is finished and waits for its deletion
 - [ ] **What triggers `organize`**: the `review` status answers part of it; the wiring was never designed. **talk first**
 - [ ] **The skill-creation trigger**: when a recurring pattern becomes a new skill, and who writes it. **talk first**
 - [ ] **A domain skill covers one tool at several versions.** React 17, 18 and 19 differ, and the minors between them do too, and nothing in a skill's shape says where React 19 knowledge sits or how a run picks it. Raised by the user 2026-09-12; a `package.json` lookup was guessed and rejected, and the user has a mechanism in mind. **talk first**. `design-domain-skills.md`

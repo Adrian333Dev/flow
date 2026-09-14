@@ -26,7 +26,7 @@ Move at triage speed. Building a skill is the one slow step, and it fires rarely
 ## Inputs
 
 - **`.flow/inbox.md`**, always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
-- **`.flow/findings/*.md`**: reusable knowledge captured during work, one finding per file, named for what was learned. A `skill:` header names the skill it is about. `scorecard.md` is the exception: one line per wrong warning from a check. Never read a sub-folder: `.flow/findings/<skill>/` holds findings already sent to `domain-skills`, waiting for `/fold`.
+- **`.flow/findings/*.md`**: reusable knowledge captured during work, one finding per file, named for what was learned. A `skill:` header names the skill it is about. `scorecard.md` is the exception: one line per wrong warning from a check. Never read a sub-folder: `.flow/findings/<skill>/` holds findings `flow contribute` has yet to send.
 - **Closed tickets nobody has filed yet.** `flow ls --unfiled` gives the ids, usually several. In each folder read `issues.md` for what the build learned, and everything in `reports/` for what was answered.
 - **The groundwork this session closed.** Sweep its `map.md`: promote reusable lessons into skills, move strays out to where they belong. Never open a map this session did not work.
 - **`flow scorecard`**: how the existing checks are doing. It names the stale ones, the ones ready to move up a tier, and the rules nothing has applied to in a long time.
@@ -66,7 +66,7 @@ Never a "tool-A-with-tool-B" skill. One home per fact, a pointer everywhere else
 Follow the skill's link, `.claude/skills/<name>` in the project or `~/.claude/skills/<name>`, to see where its folder lives. 2 places are never edited here:
 
 - **The `domain-skills` clone.** Only `/fold` writes there. Every item bound for it goes under the plan's batch question:
-  - Yes → move the finding into `.flow/findings/<skill>/`, its `skill:` header intact. An inbox item is written there as a finding, with the header
+  - Yes → move the finding into `.flow/findings/<skill>/`, its `skill:` header intact, then run `flow contribute`. An inbox item is written there as a finding, with the header
   - No → the skill's overlay, `.flow/overlays/<skill>.md`, or a private skill
 - **Flow's own skills**, a link into Flow's `skills/`:
   - Knowledge for this project → `.flow/overlays/<skill>.md`

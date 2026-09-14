@@ -138,7 +138,7 @@ ASCII over HTML for diagrams and mockups: a fraction of the tokens, renders inli
 skills/
 ├─ phases/       groundwork, execute, prototype, debug
 ├─ tools/        start, handoff, file-findings, research, visualize, cut-from-spec
-└─ dev/          flow-review
+└─ dev/          flow-review, fold
 ```
 
 `util fs merge` for loading many files into context in one call. It supports line ranges (`file.md:45-89`), extension filters (`--ext ts,tsx`), and a trailing note after `--` that rides alongside the content. One call is cheaper than separate parallel reads, and the agent gets the content in a single block instead of scattered across tool results:

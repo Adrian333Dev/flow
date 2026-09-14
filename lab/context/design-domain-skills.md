@@ -84,6 +84,7 @@ FINDINGS
 
 ~/work/shop/.flow/findings/hydration-mismatch-from-server-date-formatting.md
                                      one file per finding, in the project, as today
+~/work/shop/.flow/findings/react/    findings a failed send left, until flow contribute runs again
 ```
 
 During development the repository sits at `lab/domain-skills/` in this clone, a submodule like
@@ -387,15 +388,15 @@ rule, a project fact under `docs/context/`, or a ticket. Built 2026-09-14 as ite
    writes into the skill and deletes the finding. Flow's skills were added 2026-09-14, since filing
    would otherwise edit Flow from inside some project.
 4. **The batch is asked once** whether its domain findings go to `domain-skills`. A yes moves each into
-   `.flow/findings/<skill>/`, header intact. A no writes them into the skill's overlay, or into a private
+   `.flow/findings/<skill>/`, header intact, and runs `flow contribute`. A no writes them into the skill's overlay, or into a private
    skill. The overlay replaced a project fact on 2026-09-14, because the knowledge is about the skill and
    the overlay loads with it. An inbox item bound for a domain skill is written there as a finding on a
    yes.
 
-**The sub-folder is what a yes leaves behind.** Once capture writes every tag, a tag no longer shows the
-question was answered, and a finding waits for `/fold` for weeks. Filing reads only the top of
-`.flow/findings/`, so it never asks twice. `/fold react` reads `.flow/findings/react/`, the same shape as
-`skills/react/findings/` in the repository.
+**The sub-folder is where a finding waits to be sent.** A yes moves it there and runs `flow contribute`,
+which deletes it once its pull request is open. A failed send, with no network or `gh` logged out, leaves
+it for the next run. Filing reads only the top of `.flow/findings/`, so it never asks twice. Until
+2026-09-15 the sub-folder was the fold's queue, read by `/fold` from inside the project.
 
 **The question stays in filing**, the last human check before a finding can reach a public repository: a
 secret, or one project's quirk.
@@ -407,31 +408,82 @@ is a merge conflict between 2 parallel branches, and the workflow runs one branc
 commands for its numbered id, its status and its links, and a finding has none of them. Overturned if a
 finding gains an id or a status.
 
-**Nothing writes into the `domain-skills` clone except `/fold`.** A finding reaches the repository
-through a pull request, and arrives on a machine with `git pull`.
+**Nothing writes into the `domain-skills` clone except `/fold`.** A finding reaches the repository as a
+pull request that is never merged, and the fold's rewrite arrives on a machine with `git pull`.
+
+### The open pull requests are the queue, and a finding is never merged
+
+Ruled by the user 2026-09-15.
+
+- **Every finding goes to GitHub as a pull request** the moment filing gets a yes, the user's own
+  included. `/fold` reads the open ones for a skill from any folder, on any machine. The deciding
+  argument: findings waiting in each project's `.flow/findings/<skill>/` are spread across every project,
+  so the fold would have to run inside each one, and a scheduled fold could never reach them. What was
+  lost: the user's findings are public from filing, not from the fold, and the yes is the last check.
+- **The fold closes each pull request with a comment** saying what went in, what did not, and why.
+  Merging first added a step, kept finding files in the history, and made 2 pull requests adding one
+  file name conflict. What was lost: GitHub shows "Closed", which reads as a rejection. The comment and a
+  `Co-authored-by` line on the fold's commit answer it.
+- **2 findings with one file name need no rule.** 2 pull requests never meet in git, and in one project
+  `Write` refuses to overwrite a file the agent has not read.
+- **Filing asks every time**, never after a count of findings. The plan stops for a yes anyway. A count
+  strands findings in a project that goes quiet, ages them, and measures the wrong thing: one finding
+  about a real bug is worth sending, and 10 project quirks are not. Overturned if the answer is mostly no.
+- **A page or a skill goes in as an ordinary pull request**, merged after the user reads it, since it
+  loads on other machines. `CONTRIBUTING.md` gives the steps. No Flow command sends one until the first
+  contributed page shows the manual steps hurt.
+- **A contributor who cannot push gets a fork**, since a pull request's branch has to live where its
+  author can write. `flow contribute` makes it, and `gh pr create` does the same by hand.
 
 ### `/fold <skill>` is the maintainer's, and the only act that edits a shared body
 
 - **Under `skills/dev/`**, beside `/flow-review`. A contributor never runs it. For `domain-skills` the
   maintainer is the user.
-- **Reads** the body, its pages, the findings in the current project's `.flow/findings/<name>/`, and every finding merged
-  into `skills/<name>/findings/` in the repository.
-- **Applies 5 acceptance rules**: true for anyone, proved by a failure, new or a correction, subject named
-  with its version, fits the size budget.
-- **Rewrites rather than appends**, deletes every finding it absorbed, and names the rejected ones in the
-  commit.
+- **Reads** the body, its pages, and every open pull request adding a file under
+  `skills/<name>/findings/`, from any folder.
+- **Applies the 5 rules in `CONTRIBUTING.md`**, read from there: true for anyone, proved by a failure,
+  new or a correction, subject named with its version, fits the size budget.
+- **Checks every claim that passes the rules**, the user's own included, since an agent misdiagnoses
+  too: by reading the docs, changelog or source through `/research`, or by running a reproduction it
+  writes in `tmp/` on the named version. Neither possible means rejected, unless the user vouches for it.
+  It never runs a command copied from a finding, and rejects text aimed at an agent, since whatever it
+  folds in loads in every project using the skill. Ruled by the user 2026-09-15, replacing a public
+  source link beside every claim in a page, which was often impossible and rarely needed.
+- **Shows the plan and stops** before writing: each finding with its pull request, how it was checked and
+  what that showed, then the file it goes into or the rule it failed. A rewrite's diff never shows which
+  finding changed what.
+- **Rewrites rather than appends**, with a link beside a claim only when one is at hand. It prints the
+  commit message: each rejected finding by file name with its rule, and a `Co-authored-by` line for each
+  outside author whose finding went in. It never commits, since the global rules forbid git writes until
+  the user turns them on.
+- **Closes each pull request once the user says the commit is pushed**, with a comment saying what went
+  in, what did not and why, and how each finding was checked. GitHub emails the author.
+- **Typed-only**, since it rewrites a body every project loads and must never start on its own.
+- **Stops on uncommitted changes under the skill's folder**, and the commit covers that folder alone. The
+  rewrite is live in every project through the links, and a draft in progress elsewhere in the clone
+  never blocks a fold. The plan closes with a reminder to pull.
 - **Runs by hand until trusted**, then headless on a schedule, opening a pull request a person merges.
 
-### `flow contribute` and `flow contribute status`, the second half
+Built 2026-09-14 in `skills/dev/fold/SKILL.md`, with the plan stop, the printed commit message,
+typed-only and the clean-clone check decided before the build. Rewritten 2026-09-15 to read pull requests,
+check every claim and close the pull requests.
 
-- **Contribute** takes every finding under the project's `.flow/findings/<skill>/` folders and opens one pull request adding each to
-  `skills/<skill>/findings/` under its own filename. It works in a throwaway checkout under
-  `~/.flow/tmp/`: a pull request needs a commit on a branch, and making that commit in the everyday clone
-  would move the clone off `main` and leave a commit in it. Each local file is deleted once sent. A
-  closed pull request still holds the content.
-- **Status asks GitHub for the user's pull requests** on the repository. Merged, with the file gone
-  upstream, means folded. Merged, with the file still there, means queued for a fold. Closed means turned
-  down. Nothing is written back into a file.
+### `flow contribute` sends a project's findings, one pull request per skill
+
+- **Reads every `.flow/findings/<skill>/` folder holding a finding**, and opens one pull request per
+  skill, titled `Findings for <skill>`, adding each file to `skills/<skill>/findings/`. Each file is
+  deleted once sent. A skill whose send fails keeps its files, the rest still go, and the command exits 1.
+- **Everything goes through `gh api`, with no checkout**: a branch from the default branch, one commit per
+  file through the contents API, then the pull request. The only setup is `gh auth login`. It replaced
+  the throwaway checkout under `~/.flow/tmp/`, which also needed a git identity and push credentials.
+- **Someone who cannot push gets a fork first.** Asking GitHub for a fork that exists returns it, and a
+  fork still being created is retried for up to 10 seconds.
+- **A skill the repository does not hold is refused**, since no fold would ever read its pull request.
+- **`flow contribute status` was dropped 2026-09-15.** The fold's closing comment says what happened, and
+  GitHub emails it to the author.
+
+Built 2026-09-15 in `scripts/flow/commands/contribute.js`, with 4 tests in
+`scripts/tests/contribute.test.js` against a fake `gh`.
 
 ### `/distill` is its own skill, typed-only, and waits for its first real run
 
@@ -451,7 +503,7 @@ from a real run.
 ### `/file-findings` changes in 2 places
 
 - **Routing**: a finding for a skill in `domain-skills` is never a line in the body. A yes moves it into
-  `.flow/findings/<skill>/`, and a no writes it into the skill's overlay. A finding for one of Flow's
+  `.flow/findings/<skill>/` and runs `flow contribute`, and a no writes it into the skill's overlay. A finding for one of Flow's
   own skills goes to its overlay, or to `/flow-review`. A skill built from several `needs skill` flags goes to
   `~/.flow/private-skills/<name>/`, or into `domain-skills` when it is for everyone.
 - **The plan step** lists the domain findings under the skill they are tagged for, with the batch
@@ -480,16 +532,16 @@ Fixed 2026-09-12 from the research below.
 - **3 folders, by what the agent does with the file.** `references/` for what it reads, one subject per
   page. `scripts/` for what it runs. `examples/` for what it copies, such as a whole worked component or
   config. `knowledge/` goes.
-- **A page has no header.** A link beside each claim names its source, and rule 4 already names the
-  version. Built 2026-09-14 in `CONTRIBUTING.md`, with the finding header cut to `skill:` alone and rules
+- **A page has no header.** A link names a claim's source when one is at hand, and rule 4 already names
+  the version. Built 2026-09-14 in `CONTRIBUTING.md`, with the finding header cut to `skill:` alone and rules
   2 and 6 merged into "proved by a failure: the finding says what went wrong and what fixed it".
   - **Pages had a header until then**: `subject`, `date` and `proved-by`, written 2026-09-13. The user
     questioned it the same day, never having seen `proved-by`, which was proposed 2026-09-11 and drew no
     objection.
 - **Keyed knowledge is a sub-folder named for the key, with a fixed file set**, such as
   `references/sites/youtube-watch.md` in `web-pages`. The body names the file set once.
-- **A finding in the repository is a queue, never loaded.** The body and the pages never link one. The
-  fold absorbs it and deletes it.
+- **A finding never lands on `main`.** It stays in its pull request, which the fold closes. The body and
+  the pages never link one.
 - **A page never links a file it does not ship with**: a finding, a script, another page.
 - **The last line of the body is the guarded overlay line.**
 
@@ -499,12 +551,12 @@ project goes to `docs/context/`. A whole subject is a page. A whole field is a s
 ### The repository's contract and its checks
 
 - **`CONTRIBUTING.md` at the root** carries the body shape, the 3 folders, the finding header and the
-  fold's 5 rules, so the repository is usable without Flow. `write-skills.md` points at it
+  fold's 5 rules with the check every finding gets, so the repository is usable without Flow. `write-skills.md` points at it
   for domain pages.
 - **CI checks form** on every pull request: frontmatter present, every relative link resolves inside the
   pull request, every page is in the index and every index entry exists, no secrets, body within budget.
-  A finding merges on green. A page or a skill waits for a human read, because it loads on other
-  machines.
+  A finding is never merged. A page or a skill is merged after a human read, because it loads on other
+  machines. Not built.
 - **No translations**, since a translated copy drifts.
 
 ## Walks
@@ -528,15 +580,19 @@ project goes to `docs/context/`. A whole subject is a page. A whole field is a s
    `.flow/findings/hydration-mismatch-from-server-date-formatting.md` with `skill: react` at the top.
 2. The ticket ends. `/file-findings` follows the `react` link into the `domain-skills` clone, so nothing
    is edited. The plan asks once whether the React findings go to `domain-skills`. A yes moves the file
-   to `.flow/findings/react/`.
-3. The work and the finding are committed together.
-4. The user, as maintainer, runs `/fold react` from `~/work/shop`. It reads `.flow/findings/react/`, rewrites the
-   body or a page in the `domain-skills` clone, and deletes the finding from the project.
-5. The user commits in the clone and pushes. Every project on this machine that installed `react` has the
-   new text at once, through the symlink. Other machines get it with `git pull`.
-
-In the second half, a contributor who is not the maintainer runs `flow contribute` at step 4, and the
-maintainer folds from the repository.
+   to `.flow/findings/react/` and runs `flow contribute`, which opens pull request #12, `Findings for
+   react`, and deletes the file.
+3. Weeks later, from any folder, the user runs `/fold react`. It lists 3 open pull requests for `react`:
+   #12, and 2 from contributors.
+4. It checks each claim. A reproduction in `tmp/` on React 19.1 confirms #12. One contributor's finding
+   teaches the same thing and joins it as one fact. The other names no version and fails rule 4. The plan
+   shows all 3 and stops.
+5. On a yes it rewrites the page in the clone and prints the commit message, with a `Co-authored-by` line
+   for the contributor whose finding went in. The user commits `skills/react` and pushes.
+6. The user says it is pushed. The fold closes all 3 pull requests, each with a comment saying what went
+   in, or which rule it failed.
+7. Every project on this machine that installed `react` has the new text at once, through the symlink.
+   Other machines get it with `git pull`.
 
 ### An external skill, adopted then changed
 
@@ -590,10 +646,14 @@ The user's ideas for the multi-branch work, 2026-09-13, none decided:
 
 - **A page links a finding, a script or a page that was not sent.** The link check in CI fails the pull
   request.
-- **Proof written as a path.** A finding may name `t045` or a project path, since only the fold reads it.
-  A page links a public source beside each claim.
+- **Proof written as a path.** A finding may name `t045` or a project path, which the fold cannot open.
+  The fold checks the claim itself, by reading or by running.
 - **Secrets.** A finding written mid-work can carry a real endpoint. The batch question in filing is the
-  last human gate, and CI runs a secret scan.
+  last human gate, since a pull request is public the moment it opens. CI's secret scan comes after.
+- **A planted instruction**, a finding telling an agent to run or send something. The fold rejects it,
+  and never runs a command copied from a finding.
+- **A send failing halfway.** The files stay for the next run, and a branch may be left on GitHub with
+  no pull request.
 - **A private skill named like a domain skill or a Flow skill.** `flow private-skills add` refuses it.
 - **A license that forbids republishing.** The skill never moves into `domain-skills`. A change a second
   project needs becomes a project rule there, or a skill of our own written from scratch, since an
@@ -656,7 +716,7 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
   The first made a per-project capture folder global, when most findings are not about skills. The second
   added a second place to write, risky and unneeded, since the finding file is already the report.
 - **A `share:` header with a default in `~/.flow/settings.json`**, and the pull request url written back
-  into the file. Filing asks once per batch, and status asks GitHub.
+  into the file. Filing asks once per batch, and the fold's closing comment reaches the author.
 - **The Vercel `skills` CLI as the install mechanism** for our own repository. Its layout is taken, its
   mechanism is not.
 - **Toolbox as a place `/research` searches and writes.** Not ready, and being rewritten.
@@ -671,6 +731,15 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
   the folders.
 - **A versions mechanism through `package.json`.** Guessed 2026-09-12 and wrong. The item stays in
   `backlog.md` with no mechanism.
+- **The project's `.flow/findings/<skill>/` as the fold's queue**, read by `/fold` from inside each
+  project. Replaced 2026-09-15 by the open pull requests.
+- **Merging a finding's pull request before the fold.** An extra step, finding files in the history, and
+  a conflict between 2 pull requests adding one file name.
+- **`flow contribute status`.** The fold's closing comment already reaches the author.
+- **Asking to send only past a count of findings.** It strands findings in quiet projects and counts the
+  wrong thing.
+- **A public source link beside every claim in a page.** Often impossible and rarely needed. The fold's
+  check replaced it.
 
 ## The plan
 
@@ -706,8 +775,14 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
    `.flow/findings/<skill>/`. Built 2026-09-14, in `home/CLAUDE.md` and
    `skills/tools/file-findings/SKILL.md`, with the tag moved to capture and the sub-folder decided before
    the build.
-6. **`/fold <skill>`** under `skills/dev/`.
+6. **`/fold <skill>`** under `skills/dev/`. Built 2026-09-14 in `skills/dev/fold/SKILL.md`, with 4
+   points decided before the build. `write-skills.md`, `docs/dev/skills.md`, the manual and `README.md`
+   updated in the same pass, with `dev/` now covering the `domain-skills` repository too.
+7. **`flow contribute`, and `/fold` reading pull requests.** Built 2026-09-15, moved up from the second
+   half once the open pull requests became the queue for the user's findings too.
+   `scripts/flow/commands/contribute.js` with 4 tests, `/fold` rewritten to check every claim,
+   `/file-findings` running the command on a yes, and `CONTRIBUTING.md` rewritten for findings that are
+   never merged. The manual and the `flow` notes updated in the same pass.
 
-**The second half**, waiting for the first contributor other than the user: `flow contribute` and
-`status` (2 sessions), CI on the repository (1). `/distill` (1) waits for the first distill done by hand.
+**The second half**, waiting for the first contributor other than the user: CI on the repository (1). `/distill` (1) waits for the first distill done by hand.
 Later: a drift agent and skill evals.

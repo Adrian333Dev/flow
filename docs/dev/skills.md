@@ -28,7 +28,7 @@ A group is a filing decision. Nothing outside `skills/` reads a group name: a sy
 
 - **`phases/`**: what you are doing: groundwork, execute, prototype, debug
 - **`tools/`**: what you reach for around the work: start, handoff, file-findings, research, visualize, cut-from-spec
-- **`dev/`**: building and improving Flow itself: flow-review
+- **`dev/`**: maintaining Flow and the `domain-skills` repository: flow-review, fold
 - **`drafts/`**: one still being written
 
 `drafts/` is the only group that changes behavior. `flow install` skips it, so a skill ships by being moved out of it. Until then the skill is reachable only through [the scratch session](scratch-session.md), which passes `--drafts` on every run.

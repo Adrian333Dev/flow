@@ -15,6 +15,7 @@ Every command, skill, setting and file Flow gives you, in one place. Look one up
 - [Git](#git)
 - [Audit](#audit)
 - [Rule checks](#rule-checks)
+- [Sharing findings](#sharing-findings)
 - [The skills](#the-skills)
 - [Settings](#settings)
 - [Files](#files)
@@ -411,6 +412,25 @@ A result recorded before a check's `since` date is dropped, so rewriting a check
 
 The command only reads. Acting on it means editing a check file, which needs approval like any change.
 
+## Sharing findings
+
+A finding about a domain skill goes back to the repository the skill came from, as a pull request.
+
+### `flow contribute`
+
+Sends every finding waiting in `.flow/findings/<skill>/` to the `domain-skills` repository, one pull request per skill, titled `Findings for <skill>`. `/file-findings` moves a finding there and runs this command when you say yes to sending it.
+
+```
+$ flow contribute
+postgres: 1 sent, https://github.com/Adrian333Dev/domain-skills/pull/13
+react: 2 sent, https://github.com/Adrian333Dev/domain-skills/pull/14
+```
+
+- **Only `gh` is needed**, logged in once with `gh auth login`. The command works through GitHub's API, so it needs no checkout and never touches your clone.
+- **Without push access to the repository**, it makes your fork first and opens the pull request from there.
+- **Each file is deleted once sent.** A skill whose send fails keeps its files for the next run, the other skills still go, and the command exits 1. A skill the repository does not hold fails the same way.
+- **The pull request is never merged.** The maintainer checks each finding, folds the true ones into the skill with `/fold`, and closes the pull request with a comment saying what went in and why.
+
 ## The skills
 
 A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/name` to run one, or let Claude fire it from its description. Every skill is shown in every session until `skillOverrides` turns it off, which [Settings](#settings) covers.
@@ -431,9 +451,10 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/name` t
 - **`/visualize`**: draws ASCII diagrams, screen mockups and HTML previews
 - **`/cut-from-spec`**: cuts the next batch of work out of `docs/spec/` into tickets. Typed only
 
-**`dev/`, working on Flow itself.** Shown in every session.
+**`dev/`, maintaining Flow and the `domain-skills` repository.** Shown in every session.
 
 - **`/flow-review`**: finds where Flow's rules failed, where friction repeated, and where the design was wrong
+- **`/fold <skill>`**: checks the findings sent to one domain skill, folds the true ones into its body and pages, and closes their pull requests. Typed only
 
 A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is what ships it.
 

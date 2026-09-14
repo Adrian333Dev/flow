@@ -242,9 +242,25 @@ clone goes under one batch question: a yes moves each finding into `.flow/findin
 never reads again, and a no writes it into the skill's overlay. One of Flow's own skills gets its overlay,
 or `/flow-review`. An external skill moves into `domain-skills` only when a second project needs its
 change, and `/research` says so. `scorecard.md` stays one appended file. No
-`flow` command writes a finding. Step 6, `/fold`, is next as item 12.
+`flow` command writes a finding. Step 6 followed the same day.
 `skills/phases/debug/SKILL.md` still routes a bug inside a page to `/web-pages`, which no machine can
 reach until the rebuild.
+
+**`/fold` is built, 2026-09-14.** Step 6 of the same plan. `skills/dev/fold/SKILL.md` is typed-only, and
+`dev/` now covers the `domain-skills` repository too. Rewritten 2026-09-15, below.
+
+**`flow contribute` is built, and the open pull requests are the queue, 2026-09-15.** Step 7 of the same
+plan. A yes at `/file-findings` moves each finding into `.flow/findings/<skill>/` and runs `flow contribute`,
+which opens one pull request per skill through `gh api`, forking first where the user cannot push, and
+deletes each file once sent. 4 tests in `scripts/tests/contribute.test.js` run it against a fake `gh`. No
+pull request is ever merged. `/fold` lists the open ones for a skill from any folder, judges each finding
+against the 5 rules, checks every claim that passes by reading or by a reproduction in `tmp/`, and stops
+at the plan. It rewrites, prints the commit message with `Co-authored-by` lines, and closes each pull
+request with a comment once the user has pushed. The clean check and the commit cover the skill's folder
+alone. `lab/domain-skills/CONTRIBUTING.md` says findings are never merged, drops the source link beside
+every claim, and gives the steps for sending a page or a skill, which is merged after a read. Neither the
+command nor the fold has run against GitHub yet, and the submodule change needs its own commit.
+`flow contribute status` was dropped.
 
 **`project-template/CLAUDE.md` is 8 lines and holds no rules, 2026-09-08.** 2 comments, both fill-in
 prompts, both deleted the moment their section is written. The 3 rules that had been sitting in comments
@@ -990,8 +1006,9 @@ All under `lab/context/`, and every one is history rather than status.
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
   research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day,
   the toolbox rewrite after it, and step 2 on 2026-09-14 with the committed list of a project's domain
-  skills, and steps 3 to 5, `flow private-skills`, the local searches in `/research` and one file per
-  finding, the same day. Step 6 is next, as `## Next` item 12. `/research` beyond
+  skills, and steps 3 to 6, `flow private-skills`, the local searches in `/research`, one file per
+  finding and `/fold`, the same day. Step 7, `flow contribute` with the pull requests as the queue, on
+  2026-09-15. The second half, CI and `/distill`, waits. `/research` beyond
   skills, built 2026-09-14, with the description the user wrote and the rejected drafts before it
 - `design-toolbox.md`: the toolbox rewrite, agreed with the user and built 2026-09-13. The split into
   `agent-tools/` and `software/`, one `owner_repo.md` file per tool with a `type:` field, the

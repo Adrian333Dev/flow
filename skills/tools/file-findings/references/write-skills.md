@@ -13,7 +13,7 @@ Read this before creating or restructuring a skill. Style lives in `~/.flow/refe
 
 - **`phases/`**: what you are doing, one at a time
 - **`tools/`**: what you reach for around the work. It starts, produces something, finishes
-- **`dev/`**: building Flow itself
+- **`dev/`**: maintaining Flow and the `domain-skills` repository
 - **`drafts/`**: a skill being written. `flow install` skips this group, so start every new skill here and graduate it with `mv`
 
 **Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. There is no list of names to keep in step with the tree. A skill about one field or tool, such as React, belongs to the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, in the shape its `CONTRIBUTING.md` sets, and `flow domain-skills add <name>` installs it into a project. Any other skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it. A skill of your own that no repository should carry goes in `~/.flow/private-skills/<name>/`, under a name no Flow or domain skill uses. `flow private-skills add <name>` installs it into a project, and `--global` installs it onto the machine.

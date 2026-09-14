@@ -26,6 +26,7 @@ const install = require('./commands/install');
 const doctor = require('./commands/doctor');
 const audit = require('./commands/audit');
 const scorecard = require('./commands/scorecard');
+const contribute = require('./commands/contribute');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -45,7 +46,7 @@ const TITLE = 'flow: tickets, computed from .flow/tickets/';
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...scorecard };
+const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...scorecard, ...contribute };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
@@ -53,6 +54,7 @@ const SECTIONS = [
   { key: 'status', title: 'status, the move is the command' },
   { key: 'setup', title: 'setup, this machine' },
   { key: 'rules', title: 'rules, whether the checks are catching anything' },
+  { key: 'share', title: 'sharing, what this project learned' },
 ];
 
 const NOTES = `shape   flow <command> [id] [--flags]. A word naming no command is read as a
@@ -117,6 +119,11 @@ overlay a project adds to a skill without editing it, because one copy of that
         .flow/overlays/<name>.md and every session in that project reads it as
         part of the skill. The line runs at the bottom of the skill, so a
         project with no overlay file prints nothing
+share   a finding for a domain skill waits in .flow/findings/<skill>/, where
+        /file-findings moves it on a yes. flow contribute opens one pull
+        request per skill through gh api, forking first where you cannot
+        push, and deletes each file once sent. A pull request is never
+        merged: /fold rewrites the skill from it and closes it with what went in
 default cases and overlays each read a bare word as an argument to their
         most used action: flow overlays groundwork is flow overlays get
         groundwork. skills, domain-skills and private-skills default to ls,
