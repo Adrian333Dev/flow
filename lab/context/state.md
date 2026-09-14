@@ -224,8 +224,14 @@ skill lives in `~/.flow/private-skills/<name>/`. `add` links it into the project
 `.flow/private-skills.txt`, or with `--global` links it into `~/.claude/skills/` and lists it in
 `global.txt` inside the private folder. `add` refuses a name a Flow skill or a domain skill uses. Both
 commands now replace only their own link or a broken one, and share `scripts/flow/lib/skill-links.js`.
-100 tests pass, 5 of them new. `~/.flow/private-skills/` does not exist on this machine. Step 4, the 2
-local searches in `/research`, is next as item 10.
+100 tests pass, 5 of them new. `~/.flow/private-skills/` does not exist on this machine.
+
+**`/research` searches private skills and the domain repository, 2026-09-14.** Step 4 of the same plan,
+item 10. Both run at once with the toolbox, skills.sh and Flow's own tree, one word per search. Where
+`domainSkills` is unset, the agent clones the public repository into `tmp/references/` instead. A
+private or domain skill that fits goes straight to `add`. The outward round names `gh search code` for
+`SKILL.md` and `marketplace.json`, and the MCP registry. All of it sits in `SKILL.md`: the planned
+`references/find-a-skill.md` was dropped. Step 5, one file per finding, is next as item 11.
 `skills/phases/debug/SKILL.md` still routes a bug inside a page to `/web-pages`, which no machine can
 reach until the rebuild.
 
@@ -581,7 +587,7 @@ or a folder, and `refresh` rewrites what GitHub owns, 4 tests passing. `util git
 lines only again, 53 tests passing in `lab/util`. The 2026-09-13 commits are in. The 2026-09-14 build
 waits for the user's commits in `lab/util`, `lab/toolbox` and Flow. `~/code/util`, the clone the typed
 `util` runs, has pulled neither. **`/research` searches the toolbox and covers any subject**,
-built 2026-09-14 with the description the user wrote. Its 2 local steps wait for item 10.
+built 2026-09-14 with the description the user wrote. Its 2 local steps followed the same day, as item 10.
 **skills.sh, Vercel's index of public skills, is searched at once with the toolbox and Flow's own
 tree, and the web only when none of them fits**. skills.sh was added the same day with the
 checks from `find-skills`, which is merged and not adopted. `find-skills` still sits in
@@ -973,7 +979,8 @@ All under `lab/context/`, and every one is history rather than status.
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
   research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day,
   the toolbox rewrite after it, and step 2 on 2026-09-14 with the committed list of a project's domain
-  skills, and step 3, `flow private-skills`, the same day. Step 4 is next, as `## Next` items 10 to 12. `/research` beyond
+  skills, and steps 3 and 4, `flow private-skills` and the local searches in `/research`, the same day. Steps 5
+  and 6 are next, as `## Next` items 11 and 12. `/research` beyond
   skills, built 2026-09-14, with the description the user wrote and the rejected drafts before it
 - `design-toolbox.md`: the toolbox rewrite, agreed with the user and built 2026-09-13. The split into
   `agent-tools/` and `software/`, one `owner_repo.md` file per tool with a `type:` field, the

@@ -21,15 +21,23 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 - **A tool already chosen** → a skill, plugin or MCP server for it, before reading a line of its documentation. A skill written by the people who build the tool is worth more than the docs it was made from.
 
 1. **Search these at once:**
+   - **Your private skills:** `flow private-skills ls <word>`. One word per search: both `ls` commands list only a skill matching every word.
+   - **The domain-skills repository:** `flow domain-skills ls <word>`. When it finds no repository on this machine, clone it instead, `git clone --depth 1 https://github.com/Adrian333Dev/domain-skills tmp/references/domain-skills`, and grep the `description:` lines of `skills/*/SKILL.md`.
    - **The toolbox**, a catalog of outside tools with notes from real use: `git clone --depth 1 https://github.com/Adrian333Dev/toolbox tmp/references/toolbox`, or `git -C tmp/references/toolbox pull` when the clone is already there. Read its `README.md`, then search the folders that could hold an answer, the way it says.
    - **skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill.
    - **Flow's own tree:** `flow skills ls --hidden` lists what this session is not being shown, which is the only part worth checking.
-2. **When nothing from step 1 fits, search outward:** the web, GitHub, the plugin marketplaces. For a chosen tool, name it with the words `skill`, `plugin` and `mcp`.
-3. **Judge what comes back.** Prefer material carrying knowledge: a reference, a database, a set of conventions. Weigh anything carrying process, because a skill with its own build order competes with `/execute` and nothing arbitrates between them. For a skill:
+2. **A private or domain skill that fits needs no judging.** Add it: `flow private-skills add <name>` or `flow domain-skills add <name>`.
+3. **When nothing from step 1 fits, search outward:**
+   - **Skills on GitHub:** `gh search code <word> --filename SKILL.md`
+   - **Plugin marketplaces:** `gh search code <word> --filename marketplace.json`
+   - **MCP servers:** `curl 'https://registry.modelcontextprotocol.io/v0/servers?search=<word>'`
+   - **The web.** For a chosen tool, name it with the words `skill`, `plugin` and `mcp`.
+   - **Still nothing:** write a level 4 prompt, below, and name ChatGPT for it. It searches GitHub well.
+4. **Judge what comes back.** Prefer material carrying knowledge: a reference, a database, a set of conventions. Weigh anything carrying process, because a skill with its own build order competes with `/execute` and nothing arbitrates between them. For a skill:
    - **Read its `SKILL.md`** before recommending it.
    - **Rank by publisher first:** the tool's own maker beats anyone else. Then the repo's stars and last push.
    - **Weigh install counts least.** The CLI reports them anonymously, and nothing verifies them.
-4. **Write down what you found, including finding nothing**, wherever this question's findings go. The next session asking the same question reads that instead of searching again.
+5. **Write down what you found, including finding nothing**, wherever this question's findings go. The next session asking the same question reads that instead of searching again.
 
 **Adopting a skill:**
 

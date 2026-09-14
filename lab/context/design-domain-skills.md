@@ -233,9 +233,16 @@ already names skills, plugins, libraries and tools among what the skill finds.
    2. Only when nothing from the first round fits, real research outward: GitHub, the registries, the
       plugin marketplaces, and a level 4 prompt handed to an external LLM, which `/research` already
       carries. ChatGPT searches GitHub well.
-2. **`references/find-a-skill.md` carries how to search outward.** Its opening says it covers any
-   existing tooling: a skill, a plugin, an MCP server, a CLI, a knowledge base. The name stays short on
-   purpose.
+
+   **Built 2026-09-14** as item 10, with 3 additions found by running the commands. Both `ls` commands
+   match every word given, so the search runs one word at a time. `flow domain-skills ls` fails where
+   `domainSkills` is unset, so the agent clones the public repository into `tmp/references/` instead,
+   as it does the toolbox. A private or domain skill that fits skips judging and goes straight to `add`.
+   The outward round names 3 commands: `gh search code <word> --filename SKILL.md`, the same with
+   `marketplace.json`, and the MCP registry's `v0/servers?search=`.
+2. **How to search outward stays in `SKILL.md`, 2026-09-14.** It was to be
+   `references/find-a-skill.md`. Every research run starts with the search, so a page would load every
+   time and save nothing, and the outward half is 5 lines. Ruled by the user at the build.
 3. **"Adopting one is where a Flow `stack/` skill starts" is replaced** by the adoption rule below.
 
 What research finds is written where `/research` already writes it: `docs/research/<question>.md` in
@@ -245,10 +252,8 @@ the project. The toolbox, rebuilt 2026-09-13, joins the search: `### /research b
 ### `/research` beyond skills, 2026-09-13
 
 Agreed in the toolbox conversation. **Built 2026-09-14, ahead of item 10**, on the user's go: the
-description, the toolbox step, the 2 starting points and the line on any subject. The 2 local steps
-wait for item 10, now that item 9 built `flow private-skills` on 2026-09-14. Until item 10 rewrites the
-order, the search runs the toolbox, skills.sh and Flow's own tree at once, then outward only when none
-of them fits.
+description, the toolbox step, the 2 starting points and the line on any subject. Item 10 added the 2
+local steps the same day: `### Finding an existing skill stays in /research` above.
 
 - **The toolbox joins the search**, in the first round with the user's private skills, the domain
   repository and skills.sh. The agent runs `git clone --depth 1
@@ -630,8 +635,8 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
 - **The Vercel `skills` CLI as the install mechanism** for our own repository. Its layout is taken, its
   mechanism is not.
 - **Toolbox as a place `/research` searches and writes.** Not ready, and being rewritten.
-- **`find-what-already-exists.md` as the page name.** Too long. `find-a-skill.md` stays, with an opening
-  that says it covers any tooling.
+- **`find-what-already-exists.md` as the page name.** Too long. `find-a-skill.md` was kept, then dropped
+  2026-09-14 with the page itself: the outward search stays in `SKILL.md`.
 - **A dependency resolver in `flow domain-skills add`.** A package manager for a rare case.
 - **A per-user fork of a skill folder as the main path.** Guarantees divergence.
 - **A machine-wide overlay.** An overlay appends to the end of a body, useless to somebody who rewrote
@@ -668,8 +673,9 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
    `domain-skills.test.js` for the link rule. `claude-dir-vs-flow-dir`, the manual, `docs/dev/skills.md`,
    `write-skills.md`, `docs/manual/settings.md`, the template `.gitignore` comment and the `flow` notes
    updated in the same pass.
-4. **`/research`**: the 2 local searches added to the first round, and `references/find-a-skill.md`. The adoption
-   rule landed with step 1.
+4. **`/research`**: the 2 local searches added to the first round, and the outward commands. Built
+   2026-09-14, in `skills/tools/research/SKILL.md` alone, with no page of its own. The adoption rule
+   landed with step 1.
 5. **Capture and `/file-findings`**: `home/CLAUDE.md` → `## Capture` writes one file per finding, and
    filing adds the `skill:` header for a domain skill.
 6. **`/fold <skill>`** under `skills/dev/`.
