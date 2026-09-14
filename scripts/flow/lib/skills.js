@@ -124,4 +124,4 @@ function states(root) {
   };
 }
 
-module.exports = { DRAFTS, catalog, find, installable, states, subdirs };
+module.exports = { DRAFTS, catalog, configDir, find, installable, states, subdirs };

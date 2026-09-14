@@ -17,8 +17,9 @@
  * No `add`, `sync`, `new` or `drop`. Writing a Flow skill is writing a file in the
  * clone, and removing one from a project is `skillOverrides`. A skill about one
  * field or tool comes from the domain-skills repository through
- * `flow domain-skills`, and any other outside skill installs with its own
- * installer.
+ * `flow domain-skills`, a skill of your own comes from `~/.flow/private-skills/`
+ * through `flow private-skills`, and any other outside skill installs with its
+ * own installer.
  */
 
 const { out, resolve } = require('../lib/cli');

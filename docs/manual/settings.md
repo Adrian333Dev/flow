@@ -278,4 +278,4 @@ The path to the `skills/` folder in your clone of the domain-skills repository. 
 "domainSkills": "~/code/domain-skills/skills"
 ```
 
-`flow domain-skills` reads it, and nothing else does. Without it, or with a path that does not exist, every action refuses and names the fix. [Reference](reference.md#flow-domain-skills) covers the commands.
+`flow domain-skills` reads it. `flow private-skills` reads it too, to refuse a private skill named like a domain skill. Without it, or with a path that does not exist, every action refuses and names the fix. [Reference](reference.md#flow-domain-skills) covers the commands.

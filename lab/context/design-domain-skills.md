@@ -167,9 +167,9 @@ flow skills ls                    Flow's own skills, and what this project is sh
 flow domain-skills ls [words]     every skill in the repository; words filter by name and description   built 2026-09-14
 flow domain-skills add [names]    symlink each into this project and list it; no name relinks the list  built 2026-09-14
 flow domain-skills drop <names>   remove the symlink and the line                                        built 2026-09-14
-flow private-skills ls            every skill in ~/.flow/private-skills/
-flow private-skills add <name>    symlink it into this project; --global puts it in ~/.claude/skills/
-flow private-skills drop <name>
+flow private-skills ls [words]    every skill in ~/.flow/private-skills/, here and on the machine          built 2026-09-14
+flow private-skills add [names]   symlink each into this project and list it; --global uses ~/.claude/skills/  built 2026-09-14
+flow private-skills drop <names>  remove the symlink and the line; --global on the machine                   built 2026-09-14
 ```
 
 The filter exists because the repository can reach hundreds of skills, and listing all of them into
@@ -185,12 +185,24 @@ context to find one is its own cost.
 ### Your own skills live in `~/.flow/private-skills/`
 
 - **A private skill has a name of its own.** No private skill ever shares a name with a domain skill, so
-  nothing shadows anything. `flow private-skills add` refuses a name the domain repository already uses.
+  nothing shadows anything. `flow private-skills add` refuses a name the domain repository already uses,
+  checked only where `domainSkills` is set, and since 2026-09-14 a name one of Flow's own skills uses.
+  Without that, `add --global` would replace Flow's link in `~/.claude/skills/`, and the next
+  `flow install` would replace it back.
 - **It installs globally or per project**, and `--global` is the only difference.
 - **A skill that belongs to one repository and its collaborators needs no command**: a real folder
   committed at `<project>/.claude/skills/<name>/`, which the template already tracks.
 - **The rule `claude-dir-vs-flow-dir` gains `private-skills/`** in its list of what `~/.flow/` carries.
 - **2 machines share the folder** by making it a private git repository.
+- **Each place keeps a list, added 2026-09-14.** A project keeps `.flow/private-skills.txt`, committed,
+  the same as `.flow/domain-skills.txt`. The machine keeps `global.txt` inside the private folder, so it
+  travels with that folder's repository. A bare `add`, with or without `--global`, relinks its list.
+  Without a list, a skill missing on the second machine goes unnoticed until it fails to load. The list
+  commits only names, never a skill's content. It would move into the private folder if a name alone
+  ever proved too private to commit.
+- **`add` replaces only a link it could have made, in both commands, 2026-09-14.** That means a link into
+  its own source, or a broken link, which is what a moved clone leaves. A working link another installer
+  made is left alone, as `drop` already did. `flow domain-skills add` replaced any link until then.
 
 The folder was `~/.flow/skills/` until 2026-09-13, and read as a third folder called skills meaning
 something different from the other two.
@@ -234,7 +246,7 @@ the project. The toolbox, rebuilt 2026-09-13, joins the search: `### /research b
 
 Agreed in the toolbox conversation. **Built 2026-09-14, ahead of item 10**, on the user's go: the
 description, the toolbox step, the 2 starting points and the line on any subject. The 2 local steps
-wait for item 10, after item 9 builds `flow private-skills`. Until item 10 rewrites the
+wait for item 10, now that item 9 built `flow private-skills` on 2026-09-14. Until item 10 rewrites the
 order, the search runs the toolbox, skills.sh and Flow's own tree at once, then outward only when none
 of them fits.
 
@@ -552,7 +564,7 @@ The user's ideas for the multi-branch work, 2026-09-13, none decided:
   A page links a public source beside each claim.
 - **Secrets.** A finding written mid-work can carry a real endpoint. The batch question in filing is the
   last human gate, and CI runs a secret scan.
-- **A private skill named like a domain skill.** `flow private-skills add` refuses it.
+- **A private skill named like a domain skill or a Flow skill.** `flow private-skills add` refuses it.
 - **A license that forbids republishing.** The skill stays upstream and unchanged. A needed change
   becomes a project rule, or a skill of our own written from scratch, since an external skill carries no
   overlay line.
@@ -649,8 +661,13 @@ automation for after the fold runs headless. Vercel's dated citation registry, t
    whose default action takes only optional words now runs it, so `flow domain-skills` lists.
    `references/cli-design.md`, the manual, `docs/dev/skills.md`, `write-skills.md`, `home/settings.md`,
    the template `.gitignore` comment and `claude-dir-vs-flow-dir` updated in the same pass.
-3. **`flow private-skills ls`, `add` and `drop`**, with `--global`. `claude-dir-vs-flow-dir` gains
-   `private-skills/`. Tests.
+3. **`flow private-skills ls`, `add` and `drop`**, with `--global`. Built 2026-09-14, with the 2 lists,
+   the Flow-name refusal and the link rule for both commands decided before the build.
+   `scripts/flow/commands/private-skills.js`, with the linking shared with `domain-skills.js` in
+   `scripts/flow/lib/skill-links.js`. 4 tests in `scripts/tests/private-skills.test.js`, and 1 more in
+   `domain-skills.test.js` for the link rule. `claude-dir-vs-flow-dir`, the manual, `docs/dev/skills.md`,
+   `write-skills.md`, `docs/manual/settings.md`, the template `.gitignore` comment and the `flow` notes
+   updated in the same pass.
 4. **`/research`**: the 2 local searches added to the first round, and `references/find-a-skill.md`. The adoption
    rule landed with step 1.
 5. **Capture and `/file-findings`**: `home/CLAUDE.md` → `## Capture` writes one file per finding, and

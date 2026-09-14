@@ -2,9 +2,9 @@ tmp/
 node_modules
 
 # A skill belonging to this project lives here as a real folder, committed. A
-# domain skill is a symlink holding this machine's path, which would load
-# nothing on the next machine, so these two lines ignore links and track
-# folders. flow domain-skills keeps the names in .flow/domain-skills.txt instead.
+# domain or private skill is a symlink holding this machine's path, which would
+# load nothing on the next machine, so these two lines ignore links and track
+# folders. The names live in .flow/domain-skills.txt and .flow/private-skills.txt.
 .claude/skills/*
 !.claude/skills/*/
 

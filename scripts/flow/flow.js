@@ -20,6 +20,7 @@ const cases = require('./commands/cases');
 const overlays = require('./commands/overlays');
 const skills = require('./commands/skills');
 const domainSkills = require('./commands/domain-skills');
+const privateSkills = require('./commands/private-skills');
 const git = require('./commands/git');
 const install = require('./commands/install');
 const doctor = require('./commands/doctor');
@@ -105,6 +106,12 @@ domain  a skill from the domain-skills repository installs into one project,
         new worktree a bare flow domain-skills add links everything listed.
         The repository is domainSkills in ~/.flow/settings.json, the path to
         the clone's skills folder
+private a skill you write yourself lives in ~/.flow/private-skills/<name>/
+        and takes a name no Flow or domain skill uses. flow private-skills add
+        links it into this project and lists it in .flow/private-skills.txt;
+        --global links it into ~/.claude/skills/ and lists it in global.txt
+        inside the private folder. A bare add relinks a list. Share the
+        folder between machines by making it a private git repository
 overlay a project adds to a skill without editing it, because one copy of that
         skill is shared by every project on the machine. Write
         .flow/overlays/<name>.md and every session in that project reads it as
@@ -112,8 +119,8 @@ overlay a project adds to a skill without editing it, because one copy of that
         project with no overlay file prints nothing
 default cases and overlays each read a bare word as an argument to their
         most used action: flow overlays groundwork is flow overlays get
-        groundwork. skills and domain-skills default to ls, so
-        flow domain-skills react lists the skills naming react
+        groundwork. skills, domain-skills and private-skills default to ls,
+        so flow domain-skills react lists the skills naming react
 audit   what Claude Code did, read back afterwards. It reads the transcripts
         Claude Code already writes at ~/.claude/projects/ and derives an index
         at ~/.flow/audit/audit.db; nothing is recorded and nothing is
@@ -144,7 +151,7 @@ git     off everywhere by default: the agent names a git command that writes
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, skills, 'domain-skills': domainSkills, overlays, git, audit },
+    groups: { cases, skills, 'domain-skills': domainSkills, 'private-skills': privateSkills, overlays, git, audit },
     fallback: tickets.fallback,
     sections: SECTIONS,
     title: TITLE,

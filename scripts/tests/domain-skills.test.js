@@ -148,3 +148,22 @@ test('in a project made from the template, git ignores the link and sees the lis
   assert.match(status.stdout, /\.flow\/domain-skills\.txt/);
   assert.ok(!/\.claude\/skills\/react/.test(status.stdout), status.stdout);
 });
+
+// A moved clone leaves dead links, which add has to fix. A live link elsewhere
+// came from another installer.
+test('add replaces its own link or a dead one, and leaves a live link elsewhere', () => {
+  const { dir, repo, root, flow } = setup('domain-replace');
+  write(dir, 'elsewhere/react/SKILL.md', '---\nname: react\n---\n');
+  fs.mkdirSync(path.join(root, '.claude/skills'), { recursive: true });
+  fs.symlinkSync(path.join(dir, 'elsewhere/react'), path.join(root, '.claude/skills/react'));
+  fs.symlinkSync(path.join(dir, 'old-clone/skills/postgres'), path.join(root, '.claude/skills/postgres'));
+
+  const result = flow(['add', 'react', 'postgres']);
+  assert.strictEqual(result.code, 1);
+  assert.match(result.stderr, /\.claude\/skills\/react links to .*elsewhere\/react, which flow domain-skills never made/);
+  assert.strictEqual(fs.readlinkSync(path.join(root, '.claude/skills/react')), path.join(dir, 'elsewhere/react'));
+  assert.strictEqual(fs.readlinkSync(path.join(root, '.claude/skills/postgres')), path.join(repo, 'postgres'));
+  assert.strictEqual(list(root), 'postgres\n');
+
+  assert.strictEqual(flow(['add', 'postgres']).code, 0, 'relinking its own link is a no-op that succeeds');
+});

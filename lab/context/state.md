@@ -217,7 +217,15 @@ a skill from the clone named by `domainSkills` in `~/.flow/settings.json` into
 and commits the list, so `add` with no name relinks everything listed on another machine or in a new
 worktree. `ls` takes words that filter by name and description, and is the bare group's default. 95
 tests pass, 6 of them new. Nothing uses it on this machine yet: `domainSkills` is unset, and the
-repository holds no finished skill, only `drafts/web-pages`. Step 3, `flow private-skills`, is next.
+repository holds no finished skill, only `drafts/web-pages`.
+
+**`flow private-skills ls`, `add` and `drop` are built, 2026-09-14.** Step 3 of the same plan. A private
+skill lives in `~/.flow/private-skills/<name>/`. `add` links it into the project and lists it in
+`.flow/private-skills.txt`, or with `--global` links it into `~/.claude/skills/` and lists it in
+`global.txt` inside the private folder. `add` refuses a name a Flow skill or a domain skill uses. Both
+commands now replace only their own link or a broken one, and share `scripts/flow/lib/skill-links.js`.
+100 tests pass, 5 of them new. `~/.flow/private-skills/` does not exist on this machine. Step 4, the 2
+local searches in `/research`, is next as item 10.
 `skills/phases/debug/SKILL.md` still routes a bug inside a page to `/web-pages`, which no machine can
 reach until the rebuild.
 
@@ -965,7 +973,7 @@ All under `lab/context/`, and every one is history rather than status.
   `flow contribute`, `/distill`, the fixed shape of a domain skill, the branch walk, the 2026-09-12
   research, and the build plan in 2 halves. Agreed with the user 2026-09-13. Step 1 built the same day,
   the toolbox rewrite after it, and step 2 on 2026-09-14 with the committed list of a project's domain
-  skills, so step 3 is next, then `## Next` items 9 to 12. `/research` beyond
+  skills, and step 3, `flow private-skills`, the same day. Step 4 is next, as `## Next` items 10 to 12. `/research` beyond
   skills, built 2026-09-14, with the description the user wrote and the rejected drafts before it
 - `design-toolbox.md`: the toolbox rewrite, agreed with the user and built 2026-09-13. The split into
   `agent-tools/` and `software/`, one `owner_repo.md` file per tool with a `type:` field, the

@@ -66,7 +66,7 @@ flow <command> [id]... [--flags]
 
 The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
-Six groups carry their own actions: `cases`, `skills`, `domain-skills`, `overlays`, `git`, `audit`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
+Seven groups carry their own actions: `cases`, `skills`, `domain-skills`, `private-skills`, `overlays`, `git`, `audit`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
 
 Before the first install, the command is typed by path:
 
@@ -271,7 +271,7 @@ Every issue folder with its count, open count, latest date, and the rules that f
 
 ## Skill discovery
 
-Which skills this session is being shown, where that was decided, and which domain skills a project can add. [The skills](#the-skills) lists them; [Adding a skill](../dev/skills.md) covers writing one.
+Which skills this session is being shown, where that was decided, and which domain and private skills can be added. [The skills](#the-skills) lists them; [Adding a skill](../dev/skills.md) covers writing one.
 
 ### `flow skills ls`
 
@@ -290,7 +290,7 @@ Flow finds your clone of the repository through one setting in `~/.flow/settings
 ```
 
 - **`flow domain-skills ls [words...]`**: every skill in the repository, whether this project has it, and its description. Words keep only the skills whose name or description holds all of them. This is the default action, so `flow domain-skills react` is `flow domain-skills ls react`.
-- **`flow domain-skills add <name...>`**: links each skill into `.claude/skills/<name>` and writes its name to `.flow/domain-skills.txt`. A name missing from the repository is reported, and the others still link.
+- **`flow domain-skills add <name...>`**: links each skill into `.claude/skills/<name>` and writes its name to `.flow/domain-skills.txt`. A name missing from the repository is reported, and the others still link. A broken link, left by a clone that moved, is replaced. A real folder, or a working link another installer made, is left alone.
 - **`flow domain-skills add`** with no name: links every skill `.flow/domain-skills.txt` lists.
 - **`flow domain-skills drop <name...>`**: removes the link and the name. A real folder or a link pointing outside the repository is left alone.
 
@@ -304,6 +304,29 @@ The first `add` into a project with no `.claude/skills/` folder needs a Claude C
 - **`not linked`**: listed, with no link on this machine. `flow domain-skills add` fixes it
 - **`not listed`**: linked, with no line in the list. `flow domain-skills add <name>` fixes it
 - **`-`**: neither
+
+### `flow private-skills`
+
+A private skill is a skill you write yourself. It lives in `~/.flow/private-skills/<name>/`, outside every repository, and installs into one project or onto the whole machine. A skill that belongs to one repository and the people working on it needs no command: commit it as a real folder in that repository's `.claude/skills/<name>/`.
+
+```
+~/.flow/private-skills/
+├── billing/SKILL.md
+├── deploy/SKILL.md
+└── global.txt        the skills added to this machine, one name per line
+```
+
+- **`flow private-skills ls [words...]`**: every private skill, whether this project has it (`HERE`), whether the machine has it (`GLOBAL`), and its description. Both columns take the 4 values `flow domain-skills ls` uses, and words filter the same way. This is the default action.
+- **`flow private-skills add <name...>`**: links each skill into `.claude/skills/<name>` and writes its name to `.flow/private-skills.txt`, which git commits.
+- **`flow private-skills add <name...> --global`**: links each skill into `~/.claude/skills/<name>`, where every session on the machine sees it, and writes its name to `global.txt`.
+- **`flow private-skills add`** with no name: links every skill the project's list names. With `--global`, it links every skill `global.txt` names.
+- **`flow private-skills drop <name...>`**: removes the link and the name. With `--global`, it removes them from the machine.
+
+**A private skill takes a name of its own.** `add` refuses a name one of Flow's skills uses. It also refuses a name the domain-skills repository uses, whenever `domainSkills` is set. Two skills with one name would share one link path, and the second link would replace the first.
+
+**Share the folder between machines by making it a private git repository.** `global.txt` travels with it. On the second machine, `flow private-skills add --global` links every skill `global.txt` names, and a bare `add` inside each project links what that project lists.
+
+Links, restarts and folders work as in `flow domain-skills`: git ignores the links, the first `add` into a new skills folder needs a restart, and a real folder or another installer's link is left alone.
 
 ## Overlays
 
@@ -439,11 +462,11 @@ A project overrides any of them in its own `.claude/settings.json`, and the two 
 **On the machine**, two directories, split by who reads them.
 
 - **`~/.claude/`**: `CLAUDE.md` (the rules), `settings.json`, `skills/` (one symlink per skill), `agents/` (one symlink per agent), `rules/` (one symlink per rules file)
-- **`~/.flow/`**: `scripts/` (the CLI and the hooks), `references/` (the house style and the workflow map), `settings.json`, `workflow-notes.md`, `study-cases/`, `scorecards/`, `audit/`
+- **`~/.flow/`**: `scripts/` (the CLI and the hooks), `references/` (the house style and the workflow map), `settings.json`, `workflow-notes.md`, `study-cases/`, `scorecards/`, `audit/`, `private-skills/` (the skills you write yourself)
 
 **In a project**, the same pair for the same reason.
 
-- **`.claude/`**: `settings.json`, any skill belonging to this project alone, and a link for each domain skill
-- **`.flow/`**: `tickets/`, `groundwork/`, `inbox.md`, `handoff.md`, `overlays/`, `findings/`, `domain-skills.txt`
+- **`.claude/`**: `settings.json`, any skill belonging to this project alone, and a link for each domain or private skill added here
+- **`.flow/`**: `tickets/`, `groundwork/`, `inbox.md`, `handoff.md`, `overlays/`, `findings/`, `domain-skills.txt`, `private-skills.txt`
 
 **Everything else in a project is the project's own.** `docs/spec/` is what the product is, `docs/context/` is durable verified facts about this repository, and `CLAUDE.md` at the root holds rules the conventions do not already imply. Flow writes into all three and owns none of them.

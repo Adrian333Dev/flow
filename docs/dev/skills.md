@@ -39,6 +39,8 @@ Every group that installs is shown in every session. A machine or a project turn
 
 A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and installs into the one project that uses it: `flow domain-skills add <name>`.
 
+A skill of your own that no repository should carry lives in `~/.flow/private-skills/<name>/`. `flow private-skills add <name>` installs it into a project, and `--global` installs it onto the machine. Its name must differ from every Flow skill and every domain skill.
+
 ## Frontmatter
 
 ```yaml
