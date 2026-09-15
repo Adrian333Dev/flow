@@ -1,6 +1,6 @@
 # Handoff
 
-The lab cleanup and the backlog split are finished, built on 2026-09-16 after the user approved everything proposed over the 2 sessions before it. Nothing is committed: this build sits on top of the uncommitted 2026-09-15 build, and `state.md` lists both.
+The lab cleanup and the backlog split are finished, built on 2026-09-16 after the user approved everything proposed over the 2 sessions before it. It went in with the 2026-09-15 build, and both are committed.
 
 ## What changed
 
@@ -9,7 +9,7 @@ The lab cleanup and the backlog split are finished, built on 2026-09-16 after th
 - **`lab/context/` went from 20 files to 9**: `claude-code.md`, `drawing.md`, `handoff.md`, `management.md`, `manual.md`, `models.md`, `rules.md`, `skills.md`, `state.md`. `state.md` → `## Which record covers what` says what each holds.
 - **Deleted**: `threads.md`, `design-subagents.md` and `design-project-docs.md`, each after its live content moved. `threads.md` gave its install questions to `management.md`, its caveman pointer to the output-contract backlog line, and its `claude-code.md` pointers to `docs/manual/settings.md` and `docs/dev/agents.md`.
 - **`backlog.md` split.** `## V1` went from 7 items to 39, `## After V1` down to 20. V1 now opens with `### The spine`, the 7 original items in build order, and files the other 32 by area. 3 items left the file: `haiku-worker` is built and live, `docs/dev/claude-code.md` is written, and the 3 old workbench commands are gone.
-- **`gsave`, `ptree` and `fmerge` are gone**, removed by the user from `~/.local/bin`. `CLAUDE.md` → `no-git-mutations` now names `util git save`, and `never-offer-gsave` is `never-offer-to-commit`.
+- **`gsave`, `ptree` and `fmerge` are gone**, removed by the user from `~/.local/bin`. `CLAUDE.md` → `no-git-mutations` was rewritten whole on 2026-09-16: never run, print or offer a git command that writes, unless the user asks for one.
 - **A study case**: `lab/study-cases/undefined-terms/2026-09-16-three-labels-and-no-explanation.md`, on 3 sentences that named a thing and never explained it.
 
 ## Checks run
@@ -18,7 +18,6 @@ The lab cleanup and the backlog split are finished, built on 2026-09-16 after th
 
 ## What is still open
 
-- **The commit.** Both builds go in one commit, printed in the reply of 2026-09-16 and never run here.
 - **`## Explaining` needs its own rework**, now `backlog.md` → `## V1` → `### Rules and always-loaded files`. The section holds 20 rules in 42 lines, and the 2 that bind hardest are buried. The study case above is the evidence.
 - **The 4 `docs/context/` conditions are in `/file-findings` alone.** `references/workflow.md` still carries only the one compressed line about that folder, and nothing has decided whether the conditions belong there too.
 

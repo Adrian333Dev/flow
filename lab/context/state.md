@@ -8,20 +8,8 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 
 - **`~/.flow/`**: absent.
 - **`~/.claude/`**: Claude Code's own folder. `CLAUDE.md` is empty. `skills/` holds 3 skills from outside Flow: `find-skills`, `improve-codebase-architecture` and `write-a-skill`. 6 plugins are installed beside them: frontend-design, playwright, typescript-lsp, greptile, superpowers and supabase. **None of the 9 is touched.** The user keeps them as the test material for the management skill, which takes over handling them once Flow runs on this machine. Set 2026-09-15.
-- **`~/.local/bin`**: `flow` and `fw` link to `scripts/flow/flow.js` in this clone. `util` and `u` link to `~/code/util/util.js`, a second clone at the same commit as `lab/util`. `gsave`, `ptree` and `fmerge` were removed by the user on 2026-09-16, having linked into the old `~/code/projects/agentic-setup/`. `util git save`, `util fs tree` and `util fs merge` replace them, and `util git save` is now the commit-and-push command in daily use.
+- **`~/.local/bin`**: `flow` and `fw` link to `scripts/flow/flow.js` in this clone. `util` and `u` link to `~/code/util/util.js`, a second clone at the same commit as `lab/util`. `gsave`, `ptree` and `fmerge` were removed by the user on 2026-09-16, having linked into the old `~/code/projects/agentic-setup/`. `util`'s own `git save`, `fs tree` and `fs merge` replace them.
 - **`tmp/try/`**: where `bash lab/scripts/try.sh` builds a throwaway install. It copies the credentials, the account and the theme from `~/.claude/`, so the session starts signed in.
-
-## The 2026-09-15 build is uncommitted
-
-Everything before it is committed, in Flow through `cf63643` and in all 3 submodules. The uncommitted build holds:
-
-- the reminder hook
-- `model:` and `effort:` on every new study case
-- the backlog split into `## V1` and `## After V1`, plus a `backlog.md` in each submodule, untracked there
-- 8 study cases converted from `lab/context/shit-explanations.md`, which is deleted
-- the lab cleanup of 2026-09-15: 14 design records deleted, `lab/framework-build/` deleted, 10 records cut to what open items need, `design-audit.md` rewritten as `docs/dev/audit.md`, and the 3 Chrome extension guides moved to `lab/domain-skills/drafts/chrome-extension/`
-- the merge of 2026-09-16: 20 context records down to 9, `docs/dev/claude-code.md` written from 2 of them, the routing test and the `docs/context/` rules added to `/file-findings`, and `threads.md`, `design-subagents.md` and `design-project-docs.md` deleted
-- the backlog split of 2026-09-16: `## V1` from 7 items to 39, `## After V1` down to 20
 
 ## The rule files
 

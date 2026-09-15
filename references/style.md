@@ -214,7 +214,7 @@ A page in a published documentation set. Nobody loads it into a session: a reade
 Every rule in a loaded file carries an id, so a check can name it and a reply can cite it. An id is lowercase, its words joined by dashes, in a bold code span at the start of the rule:
 
 ```
-- **`no-git-mutations`** No `add`, `commit`, `push`, `checkout`.
+- **`no-git-mutations`** Never run a git command that writes.
 ```
 
 **The id states the rule. The body says only what the id cannot.**

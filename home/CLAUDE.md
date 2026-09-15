@@ -62,7 +62,7 @@ No background: audio APIs, compilers, ML internals." -->
 
 ## Preferences
 
-<!-- e.g. "Wants the exact git command at the end of a work session, not silence." -->
+<!-- e.g. "Wants one recommendation, not a list of options." -->
 
 ## Capture
 

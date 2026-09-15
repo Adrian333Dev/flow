@@ -13,7 +13,7 @@
  *
  * A rule id lives inline in the bold slot where a label used to sit:
  *
- *     - **`no-git-mutations`** No `add`, `commit`, `push`, `checkout`.
+ *     - **`no-git-mutations`** Never run a git command that writes.
  *
  * The id states the rule and the body says only what the id cannot, so nothing
  * is paid twice. A rule is also written as a numbered step or as a plain
