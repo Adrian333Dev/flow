@@ -390,6 +390,9 @@ resumable with `SendMessage`, keeping its full history.
 
 ### Running several subagents at once
 
+**Superseded 2026-09-15 by `design-subagents.md`.** Worktrees left the backlog, and each change is
+recorded under the id of the agent that made it, so parallel workers need no second checkout.
+
 **Raised by the user 2026-08-14, on approving the `Agent(isolation:worktree)` deny.** That deny is a hold so
 nothing breaks quietly. This is the topic it holds open, and the user asked for it in writing before it gets
 lost.

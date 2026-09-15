@@ -87,17 +87,20 @@ Stop fixing. 3 failed fixes means the hypothesis was never the problem: the shap
 
 ## Handing it back
 
-**Hunt here.** The fix lands in code this session already knows, and a fresh session re-derives all of that first.
+**Hunt here.** The fix lands in code this session already knows, and anyone new re-derives all of that first.
 
-3 things end the hunt here: **the fix needs a decision nobody gave**, **the hypotheses ran out**, or **3 fixes have failed**. All 3 go the same way, a ticket, then the user.
+3 things end the hunt here:
 
-**Write the report first, then cut a thin ticket at it.** The report already carries the error, every hypothesis and how it died. Copying that into a ticket body hands the next session 2 versions of one hunt.
+- **The fix needs a decision nobody gave**, and 3 failed fixes always mean one → ask the user, here, and carry on with the answer.
+- **The hypotheses ran out** → a fresh subagent takes the hunt. This session keeps reaching for the hypotheses it already killed. The subagent reads the evidence without them.
+
+**Write the report first, then cut a thin ticket at it.** The report already carries the error, every hypothesis and how it died. Copying that into a ticket body hands the subagent 2 versions of one hunt.
 
 **The body carries 3 things and never the conversation:**
 
 - **What failed**, in one line: the step, the command, or what the user did
 - **The report**, by its path from the repo root. It sits in *this* ticket's folder, and `flow get --files` resolves a path against the new ticket first, so a bare `reports/<failure>.md` points at an empty folder
-- **What would settle it**: the decision needed, or the evidence still missing
+- **What would settle it**: the evidence still missing
 
 ```bash
 flow new "<what failed>" --type issue --parent t047 --body - <<'EOF'
@@ -107,9 +110,9 @@ EOF
 
 **The ticket is what makes this safe:** it carries a status, and the parent refuses to close around it while it is open, which a file nobody marks finished could never do.
 
-**No ticket system here** → the report is already beside the work, and `/handoff` writes the pickup beside it. The report is the evidence; the handoff is what the next session does with it.
+**No ticket system here** → the report is already beside the work, and the subagent gets its path instead of an id.
 
-Then stop. The user opens it in a fresh session, and works the hunt there directly with whoever picks it up. When a fix comes back, re-run the failing check yourself: someone else's verification output is their claim, not yours.
+Then start a subagent with `Run /debug on <id>`. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. When a fix comes back, re-run the failing check yourself: someone else's verification output is their claim, not yours. A session that ends first leaves the ticket in `building`, and `/start <id>` picks it up.
 
 ## Hard rules
 

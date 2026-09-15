@@ -17,7 +17,7 @@ owed.
 
 `home/CLAUDE.md`, the `flow` tool, `project-template/`, every skill, `flow install`, `flow doctor`,
 `flow skills`, `flow overlays`, `flow audit`, `flow scorecard`, `util` in full, and the test harness.
-Flow's suite passes 89 tests; `util`'s own suite passes 49.
+Flow's suite passes 112 tests; `util`'s own suite passes 54.
 
 A large batch was decided on 2026-08-30 and two thirds of it was built the same day. The two records
 behind it are `design-util.md` and `design-dev-loop.md`.
@@ -261,6 +261,8 @@ alone. `lab/domain-skills/CONTRIBUTING.md` says findings are never merged, drops
 every claim, and gives the steps for sending a page or a skill, which is merged after a read. Neither the
 command nor the fold has run against GitHub yet, and the submodule change needs its own commit.
 `flow contribute status` was dropped.
+
+**The change record replaced `snapshot.js`, 2026-09-15.** `scripts/changes.js` files every change under the id of the agent that made it and hands the parent a diff per file, verified live with 2 parallel workers. `/prototype` and `/debug` hand work to a subagent, `SendMessage` is allowed and `Agent(fork)` denied. `docs/dev/agents.md` and `docs/manual/where-everything-lives.md` are new, and Reference's `## Files` now points at the second. `util git work drop` fetches first, and `/flow-review` checks that a rule loaded before blaming it. `design-subagents.md` → `## Build status, 2026-09-15` lists what was verified live and the 2 paths never run live. `util git save` with no message now names what changed and counts the lines, `design-util.md` → `### Second proposal, 2026-09-15`. Nothing is committed: `lab/util` first, then Flow.
 
 **`project-template/CLAUDE.md` is 8 lines and holds no rules, 2026-09-08.** 2 comments, both fill-in
 prompts, both deleted the moment their section is written. The 3 rules that had been sitting in comments
@@ -694,10 +696,9 @@ comments and strips trailing ones, so the shape parses as a real file.
 override path exists and never that it is a repository, so `FLOW_PROJECT=$HOME flow new "…"` runs
 outside git today and writes to `~/.flow/tickets/` on its own id sequence. **The user ruled 2026-09-09
 that nothing global reaches `docs/`**, because there is no product to hold a spec: every `docs/` route
-in a global run lands under `~/.flow/` instead, and the rest lands in the ticket. One defect survives.
-`store.js:282` moves a groundwork folder in with `fs.renameSync` under a comment reading "Same
-filesystem by construction", which a global-to-project move breaks: `EXDEV`, after the ticket folder
-has already been created.
+in a global run lands under `~/.flow/` instead, and the rest lands in the ticket. A global-to-project move
+can cross filesystems, and `moveFolder` in `store.js` copies then deletes when the rename fails with
+`EXDEV`, since 2026-09-15.
 
 **The audit's fixes landed 2026-09-09, on the user's go-ahead**, across 9 files. The rule that binds
 everything else: **the artifact decides the phase, and the status is corrected to match.** It is in
@@ -919,8 +920,8 @@ and grew the 3 lists it was missing: the skills by group, the settings keys Flow
 files on a machine and in a project. The install sections came out of `docs/dev/README.md` and into
 Reference's `## Installing`, so 4 of that page's 5 sections were user-facing and are now gone from it.
 Both folders carry a `README.md` indexing their own pages; `manual/` had none. `docs/` is 4 pages in
-`manual/` terms and 6 in `dev/`, and no page restates another. **`## Next` item 4 is most of the way
-done by this**: Reference exists, and what is left of the manual is `Use Flow` plus the 4 sections
+`manual/` terms and 6 in `dev/`, and no page restates another. **`## Next`'s documentation item is most of the
+way done by this**: Reference exists, and what is left of the manual is `Use Flow` plus the 4 sections
 outside v1.
 
 **`context-cost.md` is the one page nobody placed.** It reads as a design finding rather than a page
@@ -1010,6 +1011,11 @@ All under `lab/context/`, and every one is history rather than status.
   finding and `/fold`, the same day. Step 7, `flow contribute` with the pull requests as the queue, on
   2026-09-15. The second half, CI and `/distill`, waits. `/research` beyond
   skills, built 2026-09-14, with the description the user wrote and the rejected drafts before it
+- `design-subagents.md`: opened and built 2026-09-15. The user's rulings: no fork ever, worktrees
+  out of the backlog, `/execute` never encouraging parallel dispatch. The agents Claude Code runs, from
+  the docs. `/prototype` and `/debug` handing work to a subagent. Proving what each worker changed by
+  recording every change under the id of the agent that made it, with the cases walked and a power cut
+  mid-run. The 2 settings changes, and the build status
 - `design-toolbox.md`: the toolbox rewrite, agreed with the user and built 2026-09-13. The split into
   `agent-tools/` and `software/`, one `owner_repo.md` file per tool with a `type:` field, the
   groups-only `README.md`, how an agent finds a tool, the build in `lab/util`, `lab/toolbox` and Flow

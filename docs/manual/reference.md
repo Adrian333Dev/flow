@@ -464,7 +464,7 @@ Two files, and Flow contributes to one of them.
 
 **`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. It prints what to merge and stops. Flow contributes four keys:
 
-- **`hooks`**: two pairs. The snapshot pair records the tree either side of a subagent dispatch. The rule-check pair runs Flow's rule checks on every edit and records which instruction files entered context
+- **`hooks`**: 3 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context
 - **`permissions`**: an allow list, a deny list for Claude Code surfaces Flow does not use, and no git entries at all, because `flow git` owns git
 - **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
@@ -480,14 +480,4 @@ A project overrides any of them in its own `.claude/settings.json`, and the two 
 
 ## Files
 
-**On the machine**, two directories, split by who reads them.
-
-- **`~/.claude/`**: `CLAUDE.md` (the rules), `settings.json`, `skills/` (one symlink per skill), `agents/` (one symlink per agent), `rules/` (one symlink per rules file)
-- **`~/.flow/`**: `scripts/` (the CLI and the hooks), `references/` (the house style and the workflow map), `settings.json`, `workflow-notes.md`, `study-cases/`, `scorecards/`, `audit/`, `private-skills/` (the skills you write yourself)
-
-**In a project**, the same pair for the same reason.
-
-- **`.claude/`**: `settings.json`, any skill belonging to this project alone, and a link for each domain or private skill added here
-- **`.flow/`**: `tickets/`, `groundwork/`, `inbox.md`, `handoff.md`, `overlays/`, `findings/`, `domain-skills.txt`, `private-skills.txt`
-
-**Everything else in a project is the project's own.** `docs/spec/` is what the product is, `docs/context/` is durable verified facts about this repository, and `CLAUDE.md` at the root holds rules the conventions do not already imply. Flow writes into all three and owns none of them.
+Flow keeps what Claude Code reads in `~/.claude/` and what only Flow reads in `~/.flow/`, and a project splits the same way into `.claude/` and `.flow/`. [Where everything lives](where-everything-lives.md) shows every folder in one tree and says what writes each entry.

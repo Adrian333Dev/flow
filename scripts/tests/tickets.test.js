@@ -80,6 +80,26 @@ test('flow new with --from-groundwork moves the folder', () => {
   assert.match(fs.readFileSync(mapFile, 'utf8'), /open questions/);
 });
 
+test('a groundwork folder on another disk is copied in, then deleted', () => {
+  const store = require('../flow/lib/store');
+  const dir = project('tickets-from-gw-other-disk');
+  const gwDir = write(dir, 'elsewhere/groundwork/map.md', '# Map\nsettled here\n');
+
+  // A real second filesystem is not available to a test, so the rename fails
+  // the way it does across disks.
+  const rename = fs.renameSync;
+  fs.renameSync = () => { throw Object.assign(new Error('cross-device link'), { code: 'EXDEV' }); };
+  let t;
+  try {
+    t = store.createTicket(dir, { title: 'Moved across disks', fromGroundwork: path.dirname(gwDir) });
+  } finally {
+    fs.renameSync = rename;
+  }
+
+  assert.ok(!fs.existsSync(path.dirname(gwDir)), 'the original folder is gone');
+  assert.match(fs.readFileSync(path.join(t.dir, 'groundwork', 'map.md'), 'utf8'), /settled here/);
+});
+
 test('flow edit changes title, type, priority, and label', () => {
   const dir = project('tickets-edit');
 

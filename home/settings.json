@@ -12,11 +12,11 @@
         ]
       },
       {
-        "matcher": "Agent",
+        "matcher": "^(Edit|Write|Bash)$|^mcp__",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/snapshot.js\" --before"
+            "command": "node \"$HOME/.flow/scripts/changes.js\""
           }
         ]
       },
@@ -30,23 +30,65 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "^(Edit|Write|Bash)$|^mcp__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/changes.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|SendMessage",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/changes.js\" --wait",
+            "asyncRewake": true,
+            "timeout": 86400
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "^(Edit|Write|Bash)$|^mcp__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/changes.js\""
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/changes.js\""
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/changes.js\""
+          }
+        ]
+      }
+    ],
     "InstructionsLoaded": [
       {
         "hooks": [
           {
             "type": "command",
             "command": "node \"$HOME/.flow/scripts/instructions-loaded.js\""
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Agent",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.flow/scripts/snapshot.js\" --after"
           }
         ]
       }
@@ -76,7 +118,6 @@
       "ExitPlanMode",
       "DesignSync",
       "NotebookEdit",
-      "SendMessage",
       "ListAgents",
       "PushNotification",
       "SendUserFile",
@@ -89,7 +130,8 @@
       "CronDelete",
       "CronList",
       "EnterWorktree",
-      "Agent(isolation:worktree)"
+      "Agent(isolation:worktree)",
+      "Agent(fork)"
     ]
   },
   "skillOverrides": {}

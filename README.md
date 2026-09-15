@@ -41,7 +41,7 @@ Flow can start from any point. If you already have a design, start at `/execute`
 
 The mapping is where the depth is. The agent breaks the subject into independent parts and systematically generates options the user did not bring. It names contradictions in your input, challenges whether the stated approach is even right, runs a pre-mortem (imagine it shipped and went badly, name the 3 most likely causes), and checks prior art. When a branch is genuinely stuck, the skill reformulates the problem, names the underlying contradiction, forces analogues from unrelated fields, and builds structurally different solution families before judging any.
 
-Groundwork reaches for other skills when conversation alone cannot settle a branch. It invokes `/research` to fetch docs, read source, or survey a landscape the user barely knows. When only running code can answer, it cuts a prototype ticket and hands it to a fresh session, then resumes from the findings. When the shape of something is itself the question, it invokes `/visualize` and draws it instead of describing it.
+Groundwork reaches for other skills when conversation alone cannot settle a branch. It invokes `/research` to fetch docs, read source, or survey a landscape the user barely knows. When only running code can answer, it cuts a prototype ticket and hands it to a fresh subagent that sees only the ticket, then resumes from the findings. When the shape of something is itself the question, it invokes `/visualize` and draws it instead of describing it.
 
 What comes out is a design: the decisions, the structure, the tradeoffs, the bets. That design routes to tickets for committed work, a spec for anything that outlives the build, and context files for durable facts. "Nothing" is a legitimate outcome. Groundwork that resolves to "not worth doing" did its job.
 
@@ -51,7 +51,7 @@ It works for any scope from simple feature to full project brainstorming and des
 
 [`/execute`](skills/phases/execute/SKILL.md) picks up a ticket and writes a plan that sequences the design groundwork produced. The plan does not reinvent what was already decided. It reads the code first, then writes numbered steps, each with a named check that proves it.
 
-Building runs one step at a time. Mechanical steps (5+ files, or 10+ near-identical edits) delegate to a subagent on a cheaper model, verified through the [snapshot system](#subagent-verification-via-snapshots).
+Building runs one step at a time. Mechanical steps (5+ files, or 10+ near-identical edits) delegate to a subagent on a cheaper model, verified through the [change record](#subagent-verification-by-change-record-scriptschangesjs).
 
 Review runs two passes over the same diff: against the plan (every step delivered, nothing extra), then against the code (see [`references/review-code.md`](skills/phases/execute/references/review-code.md)). When the built thing turns out wrong, the ticket goes back to groundwork on the same ticket, keeping its full history.
 
@@ -108,9 +108,9 @@ A `PreToolUse` hook that runs before every shell command the agent executes. It 
 
 Git is locked by default. `flow git allow` unlocks writes for the current session with a timer that locks them again when it expires. Scope narrows from global to project to session, and the narrowest wins. The agent cannot unlock git for itself: the guard denies `flow git allow` from inside a session, so the user types it in the input box.
 
-### Subagent verification via snapshots ([`scripts/snapshot.js`](scripts/snapshot.js))
+### Subagent verification by change record ([`scripts/changes.js`](scripts/changes.js))
 
-A pair of hooks (PreToolUse and PostToolUse on the Agent tool) capture the full working tree before a subagent dispatch and again after it returns. Each snapshot is a git tree object written to a throwaway index, so it records the entire working tree (dirty parts included) while the real index, the working files, and HEAD stay untouched. Comparing the two snapshots cancels out whatever was already dirty and isolates exactly what the subagent changed. The parent session reads the diff, not the worker's summary. Once git worktrees land, this mechanism unlocks parallel dispatch to multiple subagents, each working in its own copy of the repo.
+A set of hooks records every change as it happens, under the id of the agent that made it. An edit is recorded as the file before and after. A shell command is recorded as a git snapshot of the whole working tree either side of it, taken against a throwaway index, so uncommitted work is included and the real index, the files and HEAD stay untouched. When a subagent finishes, the parent receives one diff per file that subagent changed, plus the commands that changed files. The parent judges the work by that record, never by the worker's summary. Several subagents can run at once in the same working copy, and each record holds only its own subagent's changes.
 
 ### Skill overlays
 
@@ -147,7 +147,7 @@ skills/
 util fs merge src/auth.ts src/db.ts:1-50 lib/helpers/ -- focus on the auth flow
 ```
 
-Research levels that stop at the shallowest depth that answers the question. Delegating heavy research to external LLMs (including free ones) keeps cost at zero for broad surveys. A cheaper model for delegated mechanical steps. Prototypes in their own session so throwaway code does not consume the main context.
+Research levels that stop at the shallowest depth that answers the question. Delegating heavy research to external LLMs (including free ones) keeps cost at zero for broad surveys. A cheaper model for delegated mechanical steps. Prototypes built by a subagent, so throwaway code does not consume the main context.
 
 ## How it compares
 
@@ -163,7 +163,7 @@ Other differentiators:
 - **Enforcement is at the tool level.** The guard intercepts commands before they execute. Permission denials block tools at the settings level. The alternatives rely on the agent following instructions in the prompt.
 - **State survives between sessions.** The ticket CLI, the handoff, and pre-loaded files carry context forward. The alternatives start fresh every session (mattpocock/skills integrates with issue trackers, but does not pre-load context or carry handoff state).
 - **One global install serves every project.** Skills, rules, preferences, and accumulated knowledge are shared. A project extends the base with overlays and local rules. The alternatives install per project or require copying files.
-- **Subagent work is verified by diffs, not by trust.** The snapshot system proves what a subagent changed. The alternatives delegate work and trust the report.
+- **Subagent work is verified by diffs, not by trust.** The change record proves what a subagent changed. The alternatives delegate work and trust the report.
 - **Cost optimization is a design principle.** ASCII over HTML, research levels, delegation to cheaper models, merge over parallel reads. The alternatives do not optimize for token cost.
 - **Structured decision-making goes deeper.** Groundwork's systematic widening, contradiction naming, distant analogues, and pre-mortem go further than any brainstorming skill in the alternatives.
 - **Session history is queryable.** The audit system indexes past transcripts and answers queries against them. No alternative ships anything like it.
@@ -175,7 +175,7 @@ Other differentiators:
 | Cross-session state | Ticket CLI, handoffs, pre-loaded files | No built-in state management | No built-in state management | Issue tracker integration |
 | Self-improving | Capture and file-findings loop | No | No | No |
 | Enforcement | Hook-level guard, git locking, permissions | SessionStart hook | No | No |
-| Subagent verification | Snapshot diffs | No | No | No |
+| Subagent verification | A diff per subagent, recorded by hooks | No | No | No |
 | Global install | One symlinked clone | Per-project or global config | Plugin or CLI | Plugin or copied files |
 | Cost optimization | Built-in (ASCII, merge, research levels, delegation) | No | No | No |
 | Session audit | Transcript indexing and queries | No | No | No |
@@ -192,7 +192,7 @@ Flow coexists with skill set plugins. The rules and the guard apply regardless o
 The [backlog](backlog.md) tracks every open item. The next priorities:
 
 1. **Splitting the global rules**: the always-loaded rules file only grows, and rules that fire in one situation belong in the skill that owns that situation
-2. **Git worktrees**: parallel dispatch to subagents working in isolated copies of the repo
+2. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it and compressing every skill
 3. **End-to-end testing**: widening the two test suites past the unit tests they hold now
 4. **The management skill**: installing, updating, migrating a project, converting the personalized files on re-install
 5. **Multi-model portability**: the rules, the ticket system, and the phases are agent-agnostic. The hooks, permissions, and audit are tied to Claude Code. Naming that split is the first step
@@ -201,12 +201,12 @@ The [backlog](backlog.md) tracks every open item. The next priorities:
 
 What works today: every rule, every skill, the CLI, the permission guard, the project scaffold, and two test suites.
 
-What is unfinished: the user manual, the management skill, git worktree support, multi-agent portability, and the ASCII rendering engine.
+What is unfinished: the user manual, the management skill, multi-agent portability, and the ASCII rendering engine.
 
 Flow currently runs on Claude Code. The core workflow is designed to be portable.
 
 ## Documentation
 
-- **[The manual](docs/manual/README.md)**: how to use Flow. Reference is every command, skill, setting and file in one place, and Tickets is the shape of the only thing Flow builds.
-- **[Developing Flow](docs/dev/README.md)**: how to change Flow. The repository layout, the two checkouts, the scratch session, the tests, and adding a skill.
+- **[The manual](docs/manual/README.md)**: how to use Flow. Reference is every command, skill and setting in one place, Where everything lives is every folder Flow uses, and Tickets is the shape of the only thing Flow builds.
+- **[Developing Flow](docs/dev/README.md)**: how to change Flow. The repository layout, the two checkouts, the scratch session, the tests, adding a skill, and the agents Claude Code runs.
 - **[Backlog](backlog.md)**: every open item and the reasoning behind each.

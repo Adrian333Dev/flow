@@ -106,18 +106,18 @@ The worker spends its own context on the repetition instead of yours. A step nee
 ### Dispatching a step
 
 1. **Paste the step's text into the prompt**, with the check it must pass. Never paste the files it names: reading them here spends the context the dispatch exists to save. Never point at a line range either: `plan.md` gets rewritten in place mid-build and the range goes stale.
-2. **Dispatch one worker.**
+2. **Dispatch the worker.**
 
    ```
    Agent(subagent_type="haiku-worker", prompt="<the step's text, then its check>")
    ```
 
-3. **Stop there and say it is running.** Its result arrives on a later turn. **Edit nothing meanwhile**: a hook hands you the working tree's difference either side of the dispatch, so anything you write in that window cannot be told from the worker's own work.
-4. **Read the diff.** It arrives with the report. A patch too large to inline arrives as a file list plus a path; read the patch.
-5. **No diff means verify the step yourself before marking it.** A worker that stopped early and a broken hook look identical from here. A worker that names files it edited and still produces no diff is running without the hooks: say so, and read those files.
-6. **A file in the diff that no step named is the finding.** Tell the user before continuing.
+3. **Say it is running.** Its report arrives on a later turn, and the change record with its finished notice.
+4. **Read the change record.** A diff too long to show arrives as line counts plus the path of the whole patch: read the patch.
+5. **No record means verify the step yourself before marking it.** A worker that stopped early and a missing hook look identical from here. A worker that names files it edited and brings no record is running without the hooks: say so, and read those files.
+6. **A file in the record that no step named is the finding.** Tell the user before continuing. A file marked as changed by no tool call a hook saw may not be the worker's: check it before blaming the worker.
 
-**A worker reporting success is not evidence. The diff is.**
+**A worker reporting success is not evidence. The change record is.**
 
 Then the status decides:
 

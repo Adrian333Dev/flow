@@ -41,27 +41,47 @@ Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed un
 
 **The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves nothing deciding a shell command: the deny list holds no `Bash` entries at all, because a static list cannot name the open set of what a shell command can be.
 
-#### The snapshot pair
+#### The change record
 
 ```json
-"PreToolUse":  [ { "matcher": "Agent", "hooks": [ { "type": "command",
-  "command": "node \"$HOME/.flow/scripts/snapshot.js\" --before" } ] } ],
-"PostToolUse": [ { "matcher": "Agent", "hooks": [ { "type": "command",
-  "command": "node \"$HOME/.flow/scripts/snapshot.js\" --after" } ] } ]
+"PreToolUse":         [ { "matcher": "^(Edit|Write|Bash)$|^mcp__", "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/changes.js\"" } ] } ],
+"PostToolUse":        [ { "matcher": "^(Edit|Write|Bash)$|^mcp__", "hooks": [ "…the same" ] },
+                        { "matcher": "Agent|SendMessage", "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/changes.js\" --wait", "asyncRewake": true, "timeout": 86400 } ] } ],
+"PostToolUseFailure": [ { "matcher": "^(Edit|Write|Bash)$|^mcp__", "hooks": [ "…the same" ] } ],
+"SubagentStart":      [ { "hooks": [ "…the same" ] } ],
+"SubagentStop":       [ { "hooks": [ "…the same" ] } ]
 ```
 
-**⚠️ Never run, on this machine or any other.** Written 2026-08-14 against the hooks reference, installed nowhere. One live dispatch confirms it or does not.
+Records what each subagent changed, and hands the parent a diff per file when the subagent finishes. A subagent's own report can leave things out. A plain `git diff` cannot separate its work from a tree that has been dirty for weeks, or from a second subagent editing at the same time.
 
-Records the working tree before a subagent runs and again after, then hands the parent a diff of the two. That diff is the only honest account of what a subagent touched: its own report can leave things out, and a plain `git diff` cannot separate its work from a tree that has been dirty for weeks.
+**Every change is filed under the agent that made it.** A hook that fires inside a subagent carries the subagent's `agent_id`, and a hook in the main conversation carries none. So 3 workers editing at once each get only their own files:
 
-`Agent` is the tool that spawns a subagent, so both hooks match on it. They pair by `tool_use_id`, which both events carry, so two overlapping dispatches never read each other's stored snapshot. That is bookkeeping, not isolation: the diffs still overlap.
+- **`Edit` and `Write`**: the file is stored just before the call and just after it
+- **`Bash` and every MCP tool**: the whole project is snapshotted just before the call and just after it. A snapshot is `git write-tree` against a throwaway index: every file at one moment, uncommitted work included, with the real index, the files and HEAD untouched. The record lists the command beside the files it changed, so a deleted file shows next to the `rm` that deleted it
+- **A worker's whole run**: one snapshot at `SubagentStart` and one at `SubagentStop`. A change no tool call explains comes back under the note "Changed while this subagent ran, by no tool call a hook saw". A command left running in the background causes one, and so do an edit in your editor and a tool nothing hooks
+- **The main conversation**: recorded only while a worker runs, so an edit the parent makes is never handed to a worker
 
-**Fires for every subagent, not only the ones that build.** A research agent that was supposed to read and quietly wrote something is worth catching, and a dispatch that changed nothing prints nothing.
+**A waiter delivers the record.** A background subagent's `Agent` call returns the moment it launches, long before any change, so the `PostToolUse` hook on `Agent` starts a waiter in the background. When the subagent finishes, `SubagentStop` builds the record and gives the waiter up to 2 seconds to take it. The waiter exits with code 2, which `asyncRewake` turns into a message that wakes the parent even when it sits idle. The record lands just before the subagent's finished notice. A subagent that changed nothing sends none.
 
-Two consequences worth knowing:
+**Claude Code labels the message "Stop hook blocking error".** Nothing failed. The rule `change-record` in `home/CLAUDE.md` tells every session so: without it, a parent in a test run read a record as a possible prompt injection.
 
-- **The diff covers the window, not the worker.** Everything that changed between the two events lands in it, whoever changed it, so one subagent at a time and a parent that touches nothing meanwhile. `/execute` carries that as an instruction; this is where it comes from.
-- **`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state. It runs as a hook rather than through the Bash tool, so `guard.js` never sees it and the git mode never applies to it.
+**`SendMessage` starts a new waiter**, for a subagent the parent resumes. A subagent you resume by typing into its row has no waiter, so its record arrives with the parent's next `Edit`, `Write` or `Bash` call instead.
+
+**The size stays bounded.** A deleted file shows its header, never its content. Past 9,000 characters the longest diffs shrink to line counts, such as `big.txt: +2000 -0`, and the record names a file holding the whole patch. Claude Code cuts hook output at 10,000.
+
+**Records live under `~/.flow/changes/<session>/`**, never a temporary folder, so a subagent resumed after a crash hands over what it changed before the crash too. File contents go into git's own object store, so a record holds hashes. A session folder untouched for 7 days is deleted when the next subagent starts.
+
+3 things it cannot see:
+
+- **Anything outside a git repository.** Nothing is recorded there
+- **A command's changes inside a submodule.** A snapshot holds a submodule as one commit. `Edit` and `Write` inside one are still recorded
+- **A command's changes to a gitignored file.** `Edit` and `Write` on one are still recorded
+
+**`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state. It runs as a hook rather than through the Bash tool, so `guard.js` never sees it and the git mode never applies to it.
+
+[The agents Claude Code runs](../dev/agents.md#what-a-subagent-changed) shows a real record.
 
 #### The rule-check pair
 
@@ -86,9 +106,7 @@ Two consequences worth knowing:
 
 #### Why worktree isolation is off
 
-`EnterWorktree` and `Agent(isolation:worktree)` both move work into a second directory. The snapshot compares one directory against itself, and `snapshot.js` gives up when the directory moves between its two events, so worktree isolation turns the diff off and says nothing.
-
-**A hold, not a verdict.** Separate directories are the obvious road to running several subagents at once, which the one-at-a-time rule above rules out today. Lift this once the snapshot handles a per-subagent working directory.
+`EnterWorktree` and `Agent(isolation:worktree)` both move an agent's edits into a worktree: a second checkout of the repository in its own folder, on its own branch. The change record already keeps parallel workers apart inside one folder. A worktree starts from a commit, so all it would add is a worker that cannot see your uncommitted work.
 
 `Agent(isolation:worktree)` is a scoped rule rather than a bare name, so the Agent tool stays available and only that one parameter value is blocked.
 
@@ -126,12 +144,16 @@ These are **bare tool names**, which removes each tool from the model's context 
 |---|---|
 | `EnterPlanMode`, `ExitPlanMode` | Flow owns planning: `/groundwork` → tickets → the ticket's `plan.md`. Built-in plan mode also blocks the file writes those phases depend on. |
 | `AskUserQuestion` | Presents a canned multiple-choice list. Flow's rule is the inverse: the agent commits to a recommendation and the user reacts. |
-| `SendMessage`, `ListAgents` | Agent-to-agent messaging, and the tool that finds agents to message. `/execute` dispatches subagents with self-contained assignments; there is no back-channel to keep open. |
+| `ListAgents` | Finds other Claude Code sessions to message. Flow messages its own subagents by id, and nothing else. |
 | `PushNotification`, `ScheduleWakeup`, `RemoteTrigger`, `ReportFindings` | Out-of-band and unattended operation. One author, one terminal, every session watched. |
 | `SendUserFile`, `ShareOnboardingGuide` | Send a file off the machine, to a device or behind a public link. Same reason, plus the work is not the agent's to publish. |
 | `CronCreate`, `CronDelete`, `CronList` | Scheduled background jobs. Same reason. |
 | `NotebookEdit` | Jupyter notebooks. Not in any workflow here. |
 | `DesignSync` | Design-tool sync. Unused, and absent from the published tool reference, so it was found by logging a real request rather than by reading the docs. |
+
+**`SendMessage` stays allowed.** A parent resumes a finished subagent with it, after a crash too.
+
+**`Agent(fork)` is a scoped rule**, like `Agent(isolation:worktree)` above, so it blocks one subagent type and leaves the Agent tool alone. A fork is a subagent that starts with a copy of the whole conversation, and Claude Code starts one on its own in an interactive session. Flow never uses one: every agent Flow starts sees only what its prompt gives it.
 
 #### `deny`: no git entries, and why
 

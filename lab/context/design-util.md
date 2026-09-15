@@ -338,3 +338,57 @@ before the first link lands, for the same reason.
 **The one flag is read by hand.** `lib/args.js` covers a builtin taking nothing and a builtin taking
 one path, and a general parser for a single name is noise. `## Decided against` rules out declared
 flags for *dispatched* commands, which a builtin is not.
+
+## The generated commit message, 2026-09-15
+
+**`util git save` with no message writes `wip: 6 file(s) in backlog.md,home/CLAUDE.md lab/context`.**
+It lands on every commit made without a message, in every repository, and the user called it the
+worst message possible. 2 faults: `wip:` says nothing, and `paste -sd', '` cycles through its 2
+delimiters, so the folder list alternates a comma and a space.
+
+**Ruled by the user: a plain script, and no model writes the message.** Proposed first and rejected:
+`claude -p --model haiku` writing it from the staged diff.
+
+**The shape proposed, not yet approved.** One subject line built from
+`git diff --cached --name-status`, with no body:
+
+- **The verb** comes from each file's status: `A` → Add, `M` → Update, `D` → Delete, `R` → Rename
+- **1 file** → the verb and its path
+- **2 files with the same verb** → both paths
+- **Anything else** → each verb with its count, in the order add, update, delete, rename, then where
+- **Where**: the deepest folder every file shares. With none, the top-level folders holding the most
+  files, up to 3. A file at the root adds nothing
+- **Over 72 characters** → drop where, then fall back to counts
+
+```
+Update backlog.md
+Add skills/dev/fold/SKILL.md
+Rename docs/a.md to docs/b.md
+Update backlog.md and README.md
+Update 4 files in skills/dev/fold
+Add 3 files, update 9 in scripts, skills, docs
+```
+
+A generated message says what changed and never why. A typed message still carries the why.
+
+### Second proposal, 2026-09-15, built
+
+The user asked for something shorter than the verb form above, carrying the lines added and removed, and never long. No verb, since every save is the same act: what changed, then its size from `git diff --cached --numstat`.
+
+Each line below is a whole message for a different commit, never one message.
+
+- 1 file: `backlog.md +12 -3`
+- 2 files: `backlog.md, README.md +15 -4`
+- 1 new file: `skills/dev/fold/SKILL.md (new) +80`
+- 1 deleted file: `docs/old.md (deleted) -120`
+- 1 renamed file: `docs/a.md → docs/b.md`
+- 4 files in one folder: `skills/dev/fold: 4 files +120 -30`
+- 12 files across the tree: `docs/dev, backlog.md, README.md: 12 files +310 -95`
+- only a submodule pointer: `lab/domain-skills (submodule)`
+
+- 1 or 2 files → their paths.
+- 3 or more → the deepest folder holding all of them, else up to 3 top-level names by file count, then the file count.
+- `(new)` or `(deleted)` only when it holds for every file.
+- Over 72 characters → the names drop to top-level folders, then to the count alone.
+
+The user approved this format 2026-09-15, and it was built the same day in `generated_message` in `lab/util/commands/git/save.sh`, with a test in `tests/commands.test.js`. Two choices the proposal left open. A group of 3 or more files with no shared folder is named by the deepest folder inside each top-level name, which is how `docs/dev` appears in the example. With nothing staged, as in `--dry-run`, the message reads `no changes staged`.

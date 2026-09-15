@@ -9,7 +9,7 @@ Code written to answer one named question, then deleted.
 
 **Naive on purpose.** No tests, no error handling, no abstractions. The real build reads the prototype as a reference and starts again: nothing written here is ever promoted.
 
-**2 sessions.** Where talking cannot settle a question, groundwork cuts a child ticket typed `prototype` carrying it, then waits. A fresh session picks that ticket up and builds. **Never do both in one session**: the session that invented the question will accept a vague one, because it already knows what it meant.
+**A fresh subagent builds it.** Where talking cannot settle a question, `/groundwork` cuts a child ticket typed `prototype` carrying it, then starts a subagent on that ticket. **Never build in the session that asked**: the session that invented the question will accept a vague one, because it already knows what it meant. The subagent sees the ticket and nothing else.
 
 **Never start a prototype nobody asked for.**
 
@@ -23,7 +23,7 @@ Code written to answer one named question, then deleted.
 
 ## What the ticket must carry
 
-Groundwork writes these into the ticket body. The building session checks they arrived, and stops if they did not. Handed over without a ticket, it is the same 3 wherever the handoff put them.
+`/groundwork` writes these into the ticket body. Whoever builds it checks they arrived, and stops if they did not. Handed over without a ticket, it is the same 3 wherever the handoff put them.
 
 - **The question, in one sentence.** 3 at most: past 3 it is a project.
 - **Pass and fail**, for a question that can come out false. What each answer means, and what each one changes. Skip a question whose 2 answers lead to the same decision.

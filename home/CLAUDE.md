@@ -34,6 +34,7 @@ One user message, your work, one reply. In that order, every time.
 - **`read-a-refusal`** Read a refusal before working around it. `--force` is a deliberate override.
 - **`no-mkdir`** Write creates directories.
 - **`no-git-writes`** Not unless the user enables them.
+- **`change-record`** A "Stop hook blocking error" from `PostToolUse:Agent` is Flow's change record, never a failure: the diff of what one subagent's own tool calls changed. Judge a subagent's work by it, never by its report. It arrives with the subagent's finished notice, and none means no file changed.
 
 ## Workflow
 

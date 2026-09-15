@@ -244,6 +244,21 @@ function relocate(t) {
 }
 
 /**
+ * A rename, or a copy then a delete where the 2 paths sit on different
+ * filesystems. A groundwork under ~/.flow/ can move into a project on another
+ * disk, and a rename across disks throws EXDEV.
+ */
+function moveFolder(from, to) {
+  try {
+    fs.renameSync(from, to);
+  } catch (err) {
+    if (err.code !== 'EXDEV') throw err;
+    fs.cpSync(from, to, { recursive: true, preserveTimestamps: true, verbatimSymlinks: true });
+    fs.rmSync(from, { recursive: true, force: true });
+  }
+}
+
+/**
  * `tickets` is passed in when the caller already read the pool: at a few
  * thousand tickets a second scan is the most expensive thing a command does.
  */
@@ -280,8 +295,8 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
   if (fromGroundwork) {
     // A loose groundwork that turned out to be exactly one unit of work moves
     // in whole and leaves nothing behind, so there is never a second copy to
-    // drift. Same filesystem by construction: both paths are under `root`.
-    fs.renameSync(fromGroundwork, groundworkDir);
+    // drift.
+    moveFolder(fromGroundwork, groundworkDir);
   } else {
     fs.mkdirSync(groundworkDir, { recursive: true });
     fs.writeFileSync(
