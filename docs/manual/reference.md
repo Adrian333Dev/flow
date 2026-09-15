@@ -254,13 +254,26 @@ A near-match (edit distance 2 or substring) refuses and suggests the existing is
 
 Flags: `--rule "<rule>"` (the rule that failed), `--body "<text>"` or `--body -` (the case content).
 
+The frontmatter records which model failed, read and never guessed. `model` is the model of the session's last reply, read from the session's own transcript, which `CLAUDE_CODE_SESSION_ID` names. A `/model` switch mid-session cannot mislabel a case. `effort` comes from `CLAUDE_EFFORT`. Outside Claude Code, both are left out.
+
+```
+---
+date: 2026-09-15
+project: flow
+model: claude-opus-5
+effort: xhigh
+rule: short-is-the-default
+status: open
+---
+```
+
 ### `flow cases ls`
 
 List cases. Flags: `--issue <name>`, `--status <open|fixed>`.
 
 ### `flow cases get <ref>`
 
-Show one case in full: issue, date, project, rule, fix, status, and the body.
+Show one case in full: issue, date, project, model, effort, rule, fix, status, and the body.
 
 ### `flow cases edit <ref>`
 
@@ -365,6 +378,8 @@ Destructive commands (`push --force`, `reset --hard`, `clean -f`, `rebase`, `bra
 
 Session history, read back from the transcripts Claude Code writes at `~/.claude/projects/`. Nothing is recorded and nothing is intercepted: the audit reads what Claude Code already wrote.
 
+**Every file count is a floor.** A transcript records the command a session ran, never the files that command opened. `node build.js` reading a hundred files shows up as one command and no file.
+
 ### `flow audit index`
 
 Walk the transcripts and build the SQLite index at `~/.flow/audit/audit.db`. Resumes from a byte offset, so a second run over an unchanged file opens nothing. `--rebuild` deletes the index and starts over, which is how a schema change lands. `--quiet` suppresses progress output.
@@ -464,7 +479,7 @@ Two files, and Flow contributes to one of them.
 
 **`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. It prints what to merge and stops. Flow contributes four keys:
 
-- **`hooks`**: 3 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context
+- **`hooks`**: 4 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. The `UserPromptSubmit` hook prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply
 - **`permissions`**: an allow list, a deny list for Claude Code surfaces Flow does not use, and no git entries at all, because `flow git` owns git
 - **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read

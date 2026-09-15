@@ -40,10 +40,11 @@ Twelve shapes worth naming, each as what it is and what to do about it. Match th
 - **The project overrides.** A convention named in `## References` or in `CLAUDE.md` wins. Where it endorses what the baseline would flag, drop the flag.
 - **Every one is a judgement call.** Report "possible feature envy", never a violation. Skip anything a linter already catches.
 
-## 2 conditional checks
+## 3 conditional checks
 
 - **Input, auth, secrets or data from outside → check the boundary.** Is the input validated where it arrives, is the query parameterized, is the secret out of the file. Running this on every ticket is ceremony, and ceremony gets skipped.
 - **A loop over a collection that grows → check the cost.** A query per item, an unbounded fetch, a list endpoint with no limit.
+- **A small diff into an already large file → check the file's size.** Past a healthy size, flag it for a split. Every line of the diff looks harmless, so nothing else flags the growth.
 
 ## Dead code
 

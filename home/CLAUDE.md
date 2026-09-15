@@ -19,6 +19,7 @@ One user message, your work, one reply. In that order, every time.
 - **`tree-for-structure`** Every look at structure goes through `util fs tree`, never `ls`, `find` or `cd`.
 - **`merge-for-bulk-reads`** Every read above 4 files goes through `util fs merge`, and every grep-then-read.
 - **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
+- **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
 - **`handoff-read-once`** A handoff file is read once, then left alone. A ticket is the opposite: whoever works it keeps it true.
 
 ## Writing files

@@ -104,6 +104,25 @@ Records what each subagent changed, and hands the parent a diff per file when th
 
 `InstructionsLoaded` has no decision control at all. Claude Code discards its output and ignores its exit code, so it records or it does not.
 
+#### The reminder
+
+```json
+"UserPromptSubmit":   [ { "hooks": [ { "type": "command",
+  "command": "cat \"$HOME/.flow/references/reminder.md\"" } ] } ]
+```
+
+Prints one line beside every message you send:
+
+```
+Before replying, follow `~/.claude/CLAUDE.md`, above all `## Explaining`.
+```
+
+The rules for writing a reply sit in the middle of a long file, loaded once at the start of a session. By turn 15 they are far behind the conversation, and the reply drifts back to long, compressed and undefined. A line arriving with the message puts them back in front of the agent.
+
+**It points at the rules, never repeats them.** A reminder listing rules grows with every rule and drifts from the file it copies.
+
+**Plain text, no script.** Claude Code adds whatever a `UserPromptSubmit` hook prints to standard output beside the message. The hook cannot change the message itself. Edit `references/reminder.md` to change the line.
+
 #### Why worktree isolation is off
 
 `EnterWorktree` and `Agent(isolation:worktree)` both move an agent's edits into a worktree: a second checkout of the repository in its own folder, on its own branch. The change record already keeps parallel workers apart inside one folder. A worktree starts from a commit, so all it would add is a worker that cannot see your uncommitted work.

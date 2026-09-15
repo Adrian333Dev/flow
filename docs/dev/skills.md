@@ -2,6 +2,8 @@
 
 A skill is a folder holding a `SKILL.md`. Create the folder and the skill exists: there is no list to add a name to, because `flow install` reads the tree.
 
+This page is how Flow files and writes a skill. What Claude Code itself does with one, tested rather than assumed, is in [What Claude Code does](claude-code.md): where a skill is found, what it costs before it runs, how arguments reach it, and what `skillOverrides` does and does not switch off.
+
 ## Table of contents
 
 - [The folder](#the-folder)

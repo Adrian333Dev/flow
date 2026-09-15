@@ -69,6 +69,7 @@ actions.new = {
     out(`created ${c.issue}/${c.name}`);
     out(`        ${c.file}`);
     if (c.data.project) out(`        project: ${c.data.project}`);
+    if (c.data.model) out(`        model: ${c.data.model}${c.data.effort ? `, effort ${c.data.effort}` : ''}`);
     if (c.data.rule) out(`        rule: ${c.data.rule}`);
     if (body == null) out('\nPaste the artifact in now, verbatim. The analysis waits.');
     return 0;
@@ -106,6 +107,8 @@ actions.get = {
     out(`  ${c.file}`);
     if (c.data.rule) out(`  rule: ${c.data.rule}`);
     if (c.data.project) out(`  project: ${c.data.project}`);
+    if (c.data.model) out(`  model: ${c.data.model}`);
+    if (c.data.effort) out(`  effort: ${c.data.effort}`);
     if (c.data.fix) out(`  fix: ${c.data.fix}`);
     out('');
     out(c.body.trim());

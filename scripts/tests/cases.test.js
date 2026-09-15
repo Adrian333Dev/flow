@@ -7,14 +7,59 @@ const path = require('path');
 const { project, run } = require('./helpers/scratch');
 const frontmatter = require('../flow/lib/frontmatter');
 
-function setup(name) {
+/**
+ * A scratch Flow home and a scratch Claude Code home. The session variables are
+ * dropped, so a suite run inside a live session never reads that session's transcript.
+ */
+function setup(name, session = {}) {
   const dir = project(name);
   const home = path.join(dir, 'flow-home');
+  const claude = path.join(dir, 'claude-home');
   fs.mkdirSync(home, { recursive: true });
-  const env = { ...process.env, FLOW_HOME: home, FLOW_PROJECT: dir };
+  const env = { ...process.env, FLOW_HOME: home, FLOW_PROJECT: dir, CLAUDE_CONFIG_DIR: claude, ...session };
+  if (!session.CLAUDE_CODE_SESSION_ID) delete env.CLAUDE_CODE_SESSION_ID;
+  if (!session.CLAUDE_EFFORT) delete env.CLAUDE_EFFORT;
   const cases = (...args) => run('flow/flow.js', ['cases', ...args], { cwd: dir, env });
-  return { dir, home, env, cases };
+  return { dir, home, claude, env, cases };
 }
+
+const readOneCase = (issueDir) =>
+  frontmatter.parse(fs.readFileSync(path.join(issueDir, fs.readdirSync(issueDir).find((f) => f.endsWith('.md'))), 'utf8'));
+
+test('a case records the model of the last reply and the effort level', () => {
+  const id = 'aaaa-1111';
+  const { cases, home, claude } = setup('cases-model', { CLAUDE_CODE_SESSION_ID: id, CLAUDE_EFFORT: 'high' });
+
+  // A /model switch mid-session: the last real reply wins, and a synthetic one is skipped.
+  const lines = [
+    { type: 'assistant', message: { model: 'claude-sonnet-5' } },
+    { type: 'user', message: { content: 'switch' } },
+    { type: 'assistant', message: { model: 'claude-opus-5' } },
+    { type: 'assistant', message: { model: '<synthetic>' } },
+  ];
+  const transcripts = path.join(claude, 'projects', '-scratch');
+  fs.mkdirSync(transcripts, { recursive: true });
+  fs.writeFileSync(path.join(transcripts, `${id}.jsonl`), lines.map((l) => JSON.stringify(l)).join('\n') + '\n');
+
+  const r = cases('new', 'Wrote a wall of text', '--issue', 'too-long');
+  assert.strictEqual(r.code, 0, r.stderr);
+  assert.match(r.stdout, /model: claude-opus-5, effort high/);
+
+  const { data } = readOneCase(path.join(home, 'study-cases', 'too-long'));
+  assert.strictEqual(data.model, 'claude-opus-5');
+  assert.strictEqual(data.effort, 'high');
+});
+
+test('outside a Claude Code session, model and effort stay empty', () => {
+  const { cases, home } = setup('cases-no-session');
+
+  const r = cases('new', 'Recorded by hand', '--issue', 'by-hand');
+  assert.strictEqual(r.code, 0, r.stderr);
+
+  const { data } = readOneCase(path.join(home, 'study-cases', 'by-hand'));
+  assert.strictEqual(data.model || '', '');
+  assert.strictEqual(data.effort || '', '');
+});
 
 test('a case is created, listed, shown, and marked fixed', () => {
   const { cases, home } = setup('cases-lifecycle');

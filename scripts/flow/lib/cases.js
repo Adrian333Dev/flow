@@ -20,7 +20,7 @@ const { FlowError } = require('./error');
 const { projectRoot } = require('./root');
 const { slugify, renderTemplate, today } = require('./store');
 
-const CASE_KEYS = ['date', 'project', 'rule', 'status', 'fix'];
+const CASE_KEYS = ['date', 'project', 'model', 'effort', 'rule', 'status', 'fix'];
 const CASE_STATUSES = ['open', 'fixed'];
 
 /**
@@ -29,6 +29,7 @@ const CASE_STATUSES = ['open', 'fixed'];
  */
 const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.flow');
 const casesDir = () => path.join(flowHome(), 'study-cases');
+const claudeHome = () => process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
 
 const NAME_RE = /^(\d{4}-\d{2}-\d{2})-(.+)$/;
 
@@ -39,6 +40,56 @@ function currentProject() {
     return path.basename(projectRoot());
   } catch {
     return '';
+  }
+}
+
+/**
+ * The model that wrote the last reply in this session, read from its transcript.
+ * Never guessed: a `/model` switch mid-session changes the line and nothing
+ * else, and outside Claude Code there is no session, so the answer is empty.
+ */
+function sessionModel() {
+  const id = process.env.CLAUDE_CODE_SESSION_ID;
+  const projects = path.join(claudeHome(), 'projects');
+  if (!id || !fs.existsSync(projects)) return '';
+
+  for (const dir of fs.readdirSync(projects)) {
+    const file = path.join(projects, dir, `${id}.jsonl`);
+    if (fs.existsSync(file)) return lastModel(file);
+  }
+  return '';
+}
+
+/** Reads backwards in chunks: a transcript runs to tens of megabytes, and the answer is near the end. */
+function lastModel(file) {
+  const CHUNK = 256 * 1024;
+  const fd = fs.openSync(file, 'r');
+  try {
+    let end = fs.fstatSync(fd).size;
+    let tail = '';
+    while (end > 0) {
+      const start = Math.max(0, end - CHUNK);
+      const buf = Buffer.alloc(end - start);
+      fs.readSync(fd, buf, 0, buf.length, start);
+      tail = buf.toString('utf8') + tail;
+      end = start;
+
+      // The first line may be cut by the chunk boundary, so it waits for the next read.
+      const lines = tail.split('\n');
+      const whole = end > 0 ? lines.slice(1) : lines;
+      for (let i = whole.length - 1; i >= 0; i--) {
+        if (!whole[i].includes('"assistant"')) continue;
+        try {
+          const model = JSON.parse(whole[i]).message?.model;
+          // `<synthetic>` marks a reply Claude Code wrote itself, such as an API error.
+          if (model && model !== '<synthetic>') return model;
+        } catch { /* a line still being written */ }
+      }
+      tail = end > 0 ? lines[0] : '';
+    }
+    return '';
+  } finally {
+    fs.closeSync(fd);
   }
 }
 
@@ -69,6 +120,8 @@ function readCases() {
       data.date = data.date ? String(data.date).trim() : (m ? m[1] : '');
       data.status = CASE_STATUSES.includes(data.status) ? data.status : 'open';
       data.project = data.project ? String(data.project).trim() : '';
+      data.model = data.model ? String(data.model).trim() : '';
+      data.effort = data.effort ? String(data.effort).trim() : '';
       data.rule = data.rule ? String(data.rule).trim() : '';
       data.fix = data.fix ? String(data.fix).trim() : '';
 
@@ -169,7 +222,15 @@ function createCase({ issue, title, rule, body: given }) {
   const file = path.join(dir, `${name}.md`);
   if (fs.existsSync(file)) throw new FlowError(`${file} already exists.`);
 
-  const data = { date, project: currentProject(), rule: rule || '', status: 'open', fix: '' };
+  const data = {
+    date,
+    project: currentProject(),
+    model: sessionModel(),
+    effort: process.env.CLAUDE_EFFORT || '',
+    rule: rule || '',
+    status: 'open',
+    fix: '',
+  };
   const body = given != null
     ? String(given).trim() + '\n'
     : renderTemplate('study-case.md', { title: String(title).trim(), issue, date });
@@ -185,6 +246,6 @@ function writeCase(c) {
 
 module.exports = {
   CASE_KEYS, CASE_STATUSES,
-  flowHome, casesDir, today, currentProject,
+  flowHome, casesDir, today, currentProject, sessionModel,
   readCases, readIssues, nearMatches, findCase, createCase, writeCase,
 };

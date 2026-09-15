@@ -82,7 +82,7 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 ### `~/.flow/`, what only Flow reads
 
 - **`scripts`**: a symlink to the clone's `scripts/`: the CLI and every hook. `flow install` makes it.
-- **`references`**: a symlink to the clone's `references/`: the house style and the workflow map. `flow install` makes it.
+- **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, and the line the reminder hook prints. `flow install` makes it.
 - **`settings.json`**: 2 keys. `git` is the git write state, which `flow git` writes. `domainSkills` is the path to your domain-skills clone, which you write.
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering. Sessions append to it.
 - **`study-cases/<issue>/<date>-<slug>.md`**: one file per recorded failure, filed under the name of the failure. Sessions write them through `flow cases new`.

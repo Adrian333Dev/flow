@@ -41,7 +41,7 @@ When you first open the repository, the split that matters has four parts:
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
-**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, `workflow.md` describes how the pieces fit, `study-cases.md` says how to record a failure, and `cli-design.md` carries the rules the `flow` command surface follows. Symlinked as `~/.flow/references`.
+**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, `workflow.md` describes how the pieces fit, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, and `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message. Symlinked as `~/.flow/references`.
 
 **`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. A symlink in `~/.claude/skills/` is flat and named for the skill, so nothing outside this tree ever reads a group name.
 
@@ -57,7 +57,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`README.md`** introduces Flow and links to everything else.
 
-**`backlog.md`** holds every open item, one line each. The only place an open item lives. `lab/context/` holds the reasoning behind them.
+**`backlog.md`** holds every open item in Flow, one line each: `## V1` in build order, then `## After V1` by area. The only place an open item lives. `lab/context/` holds the reasoning behind them. Each submodule under `lab/` keeps its own `backlog.md` in the same shape.
 
 **`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `repos/`, `home/`, and `project-template/` from loading when a file beside one is read.
 
@@ -71,15 +71,16 @@ When you first open the repository, the split that matters has four parts:
 
 Every context file sits in `lab/context/`, flat:
 
-- **`state.md`**: what is built, where each piece stands, and which design record covers what. The only status file.
-- **`remaining.md`**: decisions locked in the 2026-08-08 and 2026-08-09 conversations.
-- **`threads.md`**: the open discussion threads.
-- **`design-*.md`**: the reasoning behind one locked decision each. `state.md` says which one covers what.
+- **`state.md`**: what is built, where each piece stands, and which record covers what. The only status file.
+- **`handoff.md`**: the latest handoff between sessions, rewritten whole each time.
+- **Every other file**: the reasoning behind one subject, such as `management.md`. There are 7, and `state.md` says which one covers what.
 
 Everything beside `context/` is a folder:
 
 - **`util/`**: the `util` CLI, a submodule: [Adrian333Dev/util](https://github.com/Adrian333Dev/util). Edited here, committed from inside the folder, and the new pointer committed here afterwards.
 - **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/research` clones it into `tmp/` to search it.
+- **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
+- **`study-cases/`**: failures from sessions on this repository, one file each, filed under the name of the failure. The same shape `flow cases new` writes to `~/.flow/study-cases/`.
 - **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, and `try.sh` builds [the scratch session](scratch-session.md).
 - **`research/`**: evidence behind the skills, and cached upstream documentation.
 
@@ -93,10 +94,10 @@ Neither survives a fresh clone, and nothing at runtime reads either one.
 ## Where a new file goes
 
 - A note about why something was decided → `lab/context/`, flat, one file per decision
-- An open item → `backlog.md`, one line, with a pointer to the argument
+- An open item → `backlog.md`, one line, with a pointer to the argument. An item about a submodule alone → that submodule's `backlog.md`
 - A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`
 - A rule check → `scripts/rule-checks/<rule-id>.js`, named after the rule it enforces. Nothing registers it
 - A scratch file → `tmp/`, never the repository root
 - A skill → `skills/<group>/<name>/SKILL.md`. [Adding a skill](skills.md) covers the rest.
 
-Two rules bind the design record. Nothing under `lab/` is a Flow skill, even if a folder there contains a `SKILL.md`: `skills/` is the only place a live skill exists. And no path inside `lab/` may appear in a skill, in `home/`, or in `project-template/`, because none of those can see `lab/` once installed.
+Two rules bind the design record. Nothing under `lab/` is a Flow skill, even where a folder there holds a `SKILL.md`: Flow's own skills live in `skills/` alone, and `domain-skills/` is another repository's. And no path inside `lab/` may appear in a skill, in `home/`, or in `project-template/`, because none of those can see `lab/` once installed.

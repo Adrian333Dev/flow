@@ -28,17 +28,18 @@ One user message, your work, one reply. In that order, every time.
 
 **`design-rules-can-be-overturned`** Paths, types, file shapes, what a skill owns: a better idea wins. Never drop a proposal because a rule forbids it. Say what the rule was protecting, whether that still holds, and recommend. The conduct rules are the exception: `## The turn`, git, installing, deletes and forks hold regardless.
 
-- **`no-git-mutations`** No `add`, `commit`, `push`, `checkout`, `reset`, `rebase`, `merge`, `stash`. Print the exact command for the user. `gsave` is the user's own commit-and-push command: name it, never invoke it. Reads (`status`, `log`, `diff`, `ls-files`) are fine. Applies to the submodules `lab/util` and `lab/toolbox`.
+- **`no-git-mutations`** No `add`, `commit`, `push`, `checkout`, `reset`, `rebase`, `merge`, `stash`. Print the exact command for the user. `util git save` is the user's own commit-and-push command: name it, never invoke it. Reads (`status`, `log`, `diff`, `ls-files`) are fine. Applies to the submodules `lab/util` and `lab/toolbox`.
 - **`deletes-need-confirmation`** A delete needs its own explicit confirmation, even inside an approved plan. Moving is not deleting. Two pre-approved exceptions, done without asking: something this session superseded (converted, replaced, rewritten under a new name), and cleanup of what a change left behind (an orphaned file, an emptied folder, a dead reference).
 - **`never-install`** Never install anything, never propose installing. Flow goes on this machine once the workflow is finished. Settled by the user, re-raised three times since. Covers `~/.claude/CLAUDE.md`, every symlink, `~/.local/bin`, `flow install`, `settings.json`. A skill being untypeable is never a reason: read the file and follow it, or run `bash lab/scripts/try.sh`.
 - **`design-in-conversation`** Design this workflow in plain conversation. Never invoke a brainstorming skill for it, neither `superpowers:brainstorming` nor Flow's own.
 - **`no-fork-subagent`** Flow never uses a fork, the subagent that starts with a copy of the whole conversation. Never propose one as an option, never write one into a skill. Set by the user 2026-09-15.
 - **`scratch-in-tmp`** Scratch files go in `tmp/`, gitignored. Never `/tmp`, never the repo root.
 - **`tracked-never-means-git`** "Tracked" from the user means the agent maintaining a file as the work moves. A handoff is untracked: read once, left alone, rewritten whole next time. Handoff files are committed like everything else.
-- **`never-offer-gsave`** An uncommitted tree is never a problem. `lab/context/state.md` says whether a hold is on.
+- **`never-offer-to-commit`** An uncommitted tree is never a problem. `lab/context/state.md` says whether a hold is on.
 - **`one-sentence-where-one-works`** Skill content can be detailed; a trigger or routing line in a `CLAUDE.md` cannot.
 - **`writing-pass`** Every markdown file gets it, inside the edit that touched it. Read `references/style.md`, plan the whole file's sections, then test every sentence you wrote. Editing one section still means planning the whole file. Never leave a file for a later pass.
 - **`docs-before-experiment`** Never run an experiment to answer what the documentation answers. `lab/research/claude-code-docs/` holds pages on disk, its `llms.md` indexes every page Anthropic publishes, and `WebFetch` reaches the rest. A probe decides only what the docs leave open.
+- **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found. A question the tree answers is never handed back as a decision.
 - **`write-locked-decisions`** User-confirmed with no open threads, batched.
 
 ## Judgment

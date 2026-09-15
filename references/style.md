@@ -130,7 +130,7 @@ The description is in context from the moment a session starts, whether the skil
 
 ## 9. Transformations
 
-Each pair is verbatim from a real rewrite. The first eight are from one pass over a global rules file, 187 lines / 2941 words down to 96 / 1324, no rule lost. The last is from the direct pass of 2026-09-07, which `lab/context/writing-feedback.md` records.
+Each pair is verbatim from a real rewrite. The first eight are from one pass over a global rules file, 187 lines / 2941 words down to 96 / 1324, no rule lost. The last is from the direct pass of 2026-09-07, which `lab/context/rules.md` records.
 
 ### State the test, delete the illustrations
 

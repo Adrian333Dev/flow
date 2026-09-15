@@ -92,6 +92,16 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat \"$HOME/.flow/references/reminder.md\""
+          }
+        ]
+      }
     ]
   },
   "disableBundledSkills": true,

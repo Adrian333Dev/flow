@@ -108,9 +108,12 @@ const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 /** `$HOME` and a leading `~` are what a settings file writes instead of a path. */
 const expandHome = (p) => p.replace(/^~(?=\/|$)/, os.homedir()).split('$HOME').join(os.homedir());
 
-/** The script a hook runs: the first path in the command line ending in .js or .mjs. */
+/**
+ * The file a hook depends on: the first path in the command line ending in .js
+ * or .mjs, or in .md for a hook that prints a file instead of running a script.
+ */
 function scriptOf(command) {
-  const found = /([^\s"']+\.(?:js|mjs))/.exec(command || '');
+  const found = /([^\s"']+\.(?:js|mjs|md))/.exec(command || '');
   return found ? found[1] : null;
 }
 
@@ -304,7 +307,7 @@ function checkSettings(clone, home, catalog) {
     }
   }
 
-  return { name: 'settings.json', problems, summary: `${count(wanted.length, 'hook', 'hooks')} registered, every script on disk` };
+  return { name: 'settings.json', problems, summary: `${count(wanted.length, 'hook', 'hooks')} registered, every file they name on disk` };
 }
 
 /** What only Flow reads. Claude Code never opens either of these. */

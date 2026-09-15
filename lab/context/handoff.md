@@ -1,106 +1,28 @@
 # Handoff
 
-## Where the work is
+The lab cleanup and the backlog split are finished, built on 2026-09-16 after the user approved everything proposed over the 2 sessions before it. Nothing is committed: this build sits on top of the uncommitted 2026-09-15 build, and `state.md` lists both.
 
-**Two features left Flow for `util` on 2026-09-09, and util grew its first shared library on
-2026-09-10.** 76 of 76 Flow tests pass, 36 of 36 util tests pass, `rule-check.js` is silent, and
-nothing is installed, so none of it has run in a live session. `lab/context/state.md` carries the
-reasoning; this file says what to do next.
+## What changed
 
-## Uncommitted, and waiting on the user
+- **`docs/dev/claude-code.md`, new.** What Claude Code does, tested rather than assumed: sessions and compaction, the 3 request layers, how an instruction file loads, where a skill is found and what it does when it runs, arguments, `skillOverrides`, plugins, what a hook can load and see, and what a hook sees inside a subagent. Written out of 2 lab records plus `design-subagents.md`'s live findings. Listed in `docs/dev/README.md`, and `docs/dev/skills.md` points at it.
+- **`skills/tools/file-findings/SKILL.md` → `## Routing`** gained the routing test, *would this sentence be true in a different project?*, and the 4 conditions for what may go in a project's `docs/context/`. Neither had ever shipped anywhere an agent reads.
+- **`lab/context/` went from 20 files to 9**: `claude-code.md`, `drawing.md`, `handoff.md`, `management.md`, `manual.md`, `models.md`, `rules.md`, `skills.md`, `state.md`. `state.md` → `## Which record covers what` says what each holds.
+- **Deleted**: `threads.md`, `design-subagents.md` and `design-project-docs.md`, each after its live content moved. `threads.md` gave its install questions to `management.md`, its caveman pointer to the output-contract backlog line, and its `claude-code.md` pointers to `docs/manual/settings.md` and `docs/dev/agents.md`.
+- **`backlog.md` split.** `## V1` went from 7 items to 39, `## After V1` down to 20. V1 now opens with `### The spine`, the 7 original items in build order, and files the other 32 by area. 3 items left the file: `haiku-worker` is built and live, `docs/dev/claude-code.md` is written, and the 3 old workbench commands are gone.
+- **`gsave`, `ptree` and `fmerge` are gone**, removed by the user from `~/.local/bin`. `CLAUDE.md` → `no-git-mutations` now names `util git save`, and `never-offer-gsave` is `never-offer-to-commit`.
+- **A study case**: `lab/study-cases/undefined-terms/2026-09-16-three-labels-and-no-explanation.md`, on 3 sentences that named a thing and never explained it.
 
-**Two commits, because `lab/util/` is a submodule.** The submodule first, then this repo. Nothing else
-is blocked on them.
+## Checks run
 
-```
-cd /home/me/code/flow/lab/util && gsave "add git work and claude proxy, and the shared help reader"
-cd /home/me/code/flow && gsave "move work and proxy to util, and link the open block by URL"
-```
-
-## What moved, and the line that decides the next one
-
-**A Flow command belongs in `util` when it never touches `.flow/` or `~/.flow/`.** Applied across the
-whole surface it caught one command and stopped. Re-run the line before proposing a third move.
-
-- **`flow work` is `util git work`**, at `lab/util/commands/git/work.js`. Four actions: `send`, `get`,
-  `ls`, `drop`. It carries uncommitted files between two machines, as a commit filed under
-  `refs/unfinished/<machine>/<branch>`.
-- **`lab/scripts/proxy.mjs` is `util claude proxy`**, in a new `claude` namespace.
-- **The move renamed three things.** `git config --global util.machine <name>` replaces
-  `flow.machine`, `UTIL_MACHINE` replaces `FLOW_MACHINE`, `.work-include` replaces `.flow-include`.
-  **`util.machine` has to be set again on both machines** or `send` refuses. `refs/unfinished/` was
-  not renamed, so copies stored before the move still read.
-- **`flow audit` stays.** It reads `~/.claude/projects/` with no ticket involved, so it passes the
-  letter of the line, and writes `~/.flow/audit/audit.db`, so it fails it.
-- **The four hooks cannot move.** They read a tool call on stdin and print a verdict. Nothing to type.
-
-## util's shared library, built 2026-09-10
-
-**`lab/util/lib/command.js`**: `usage(file)`, `wantsHelp(argv)`, `helpOrRun(file, argv)`. A command's
-`--help` prints that command's own header comment, so help and documentation are one text.
-
-- **It exists because `--help` was broken**, not because of duplication. `fs tree --help` used to print
-  a directory tree. Four of six commands got it wrong.
-- **Optional forever.** A command in a private source cannot reach `lib/`, and `git save` is bash and
-  keeps its awk reader. util still runs any executable in any language and never reads its arguments.
-- Adding a command? One line: `require('../../lib/command').helpOrRun(__filename, process.argv.slice(2));`
-
-## The user's open question: what was in the context
-
-**Rejected on 2026-09-10: `/context` and `util claude proxy` both.** The bar is an agent checking on
-its own, without the user, about any past session including one already compacted or cleared.
-`/context` is user-typed and live-only. The proxy must be started in advance.
-
-**What already meets most of the bar**: `scripts/instructions-loaded.js`, the `InstructionsLoaded`
-hook. Claude Code fires it whenever a `CLAUDE.md` or `.claude/rules/*.md` enters context, and again
-with `load_reason: "compact"` after a compaction. It appends to `~/.flow/scorecards/<session-id>.jsonl`,
-permanently, and `rule-check.js` reads it back. **The gap**: it records instruction files only, not
-skills, tool definitions, subagent definitions or message sizes. Widening that record is the next
-move, and it is undesigned.
+`npm test` in `scripts/`: 114 pass, 0 fail. No em dash in any file touched. Every pointer to a merged or deleted record was swept, and the only surviving mentions of an old filename are historical sentences saying where something moved.
 
 ## What is still open
 
-- **A rule that the user is always short on time.** Ruled 2026-09-10 after a bloated reply.
-  `size-by-worth` did not fire because it reads as permission to be long. In `backlog.md` under
-  `## Rules and always-loaded files`, marked **v1**.
-- **`util git work drop` does not fetch.** `ls` and `get` do, so `drop <machine>` on a clone that has
-  never listed reports no copy. Inherited, preserved on purpose. `backlog.md` → `## Testing`.
-- **Splitting `## Commands` out of util's README into `docs/commands.md`.** Recommended and not done:
-  the dispatcher half is finished, the command prose grows one section per command. `## Commands` is
-  contiguous so the split is a lift-out. It moves the 4 links below to `.../blob/main/docs/commands.md`.
-- **A flag parser and a column printer in `lib/`.** Deliberately not extracted: 4 of 5 commands parse
-  1 to 6 lines of arguments, and the column printer has one user. Wait for a third caller.
-- **`/flow-review` assumes a rule was loaded.** Step 3 of `## Suspected flaw` compares behavior against
-  loaded rules without checking that they loaded. Ties to the context question above.
-- **`util` has never been swept for em dashes**: 20 sites, 6 reaching the user, one asserted in
-  `tests/util.test.js:158`. `backlog.md` → `## util, the utility CLI`.
-- **A brute-force guard in `transition()`**, `scripts/flow/commands/tickets.js:76`: refuse a move out
-  of `groundwork` while `map.md` has an unticked `[ ]`. `store.mapQuestions` does the counting.
-  Additive, undesigned.
-- **`~/.flow/` as a git repository**, and **one state path across harnesses**. Both **talk first**.
-- **`store.js:282`** moves a groundwork folder with `fs.renameSync` under a comment reading "Same
-  filesystem by construction". A global-to-project move breaks that with `EXDEV`.
-- The 2 deletes: 3 of the 4 entries in `lab/context/shit-explanations.md`, and `repos/toolbox`.
-- v1 queue in `backlog.md` → `## Next`, item 1 not started: the harvest of Delapse and lumacraft_v2.
+- **The commit.** Both builds go in one commit, printed in the reply of 2026-09-16 and never run here.
+- **`## Explaining` needs its own rework**, now `backlog.md` → `## V1` → `### Rules and always-loaded files`. The section holds 20 rules in 42 lines, and the 2 that bind hardest are buried. The study case above is the evidence.
+- **The 4 `docs/context/` conditions are in `/file-findings` alone.** `references/workflow.md` still carries only the one compressed line about that folder, and nothing has decided whether the conditions belong there too.
 
-## Easy to get wrong
+## Designed later, never before its turn
 
-- **Answers must be short.** The user is always short on time and has now ruled on it twice.
-- **`util` is not on this machine's `PATH`.** `flow get --files` prints `unread: util fs open failed`
-  and carries on. Both chains were verified against a scratch `UTIL_HOME`.
-- **`util claude proxy` writes into the working directory**, not beside itself. `PROXY_LOGS` moves it.
-- **Tool search goes off under the proxy** because `ANTHROPIC_BASE_URL` points at a **non-first-party
-  host**, which localhost is. Corrected 2026-09-10: an earlier note claiming *any* custom base URL did
-  it was wrong. `ENABLE_TOOL_SEARCH=true` overrides, and survives a proxy forwarding bodies unmodified.
-- **Four Flow files link util's README by URL**, not by path: `docs/manual/tickets.md`,
-  `docs/dev/cli.md`, the root `README.md`, `references/workflow.md`, all at
-  https://github.com/Adrian333Dev/util#the-open-block.
-- **A commented-out checkbox is not a checkbox.** `countBoxes` strips comments first.
-- **`FLOW_PROJECT=$HOME flow new "…"` works today.** `projectRoot()` never checks it is a repository.
-- **Nothing global reaches `docs/`.** A global run's `docs/` routes land under `~/.flow/`.
-- **`/groundwork t042` does not work.** A long skill taking arguments makes Claude Code re-append it.
-- **Nothing in `tmp/planned-projects/` is a decision.** The user's own material, read-only.
-- **`--body` replaces the ticket template outright**, so `## Done when` exists only where written.
-- **`parked` has `satisfies: false`.** A parked ticket blocks its dependents until it revives.
-- Nothing is installed and nothing in `skills/` loads. `bash lab/scripts/try.sh`.
-- The repo `CLAUDE.md` is not `home/CLAUDE.md`. Never write personal content into this repo.
+- **Phase skills take a ticket id**, `backlog.md` → `### The spine`. A second run whose rendered text differs appends the whole skill again. Lifting `short-skill-no-arguments` for the 4 phase skills was proposed and never approved.
+- **The management skill's 3 open questions**, plus the 3 the install thread left, all in `management.md`.

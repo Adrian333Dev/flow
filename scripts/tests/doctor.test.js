@@ -32,7 +32,7 @@ function machine(name) {
   const template = fs.readFileSync(path.join(REPO, 'home', 'settings.json'), 'utf8');
   fs.writeFileSync(
     path.join(home, 'settings.json'),
-    template.split('$HOME/.flow/scripts').join(path.join(flowHome, 'scripts'))
+    template.split('$HOME/.flow').join(flowHome)
   );
 
   return { dir, home, flowHome };
@@ -66,7 +66,7 @@ test('a fresh install passes every check', () => {
   assert.strictEqual(report.code, 0, report.stdout + report.stderr);
   assert.match(report.stdout, /nothing to fix\./);
   assert.match(report.stdout, /util: fs tree, fs merge, fs open all run/);
-  assert.match(report.stdout, /9 hooks registered, every script on disk/);
+  assert.match(report.stdout, /10 hooks registered, every file they name on disk/);
 });
 
 test('a machine with nothing installed says so once, rather than failing every check', () => {

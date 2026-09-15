@@ -16,6 +16,8 @@ Flow is a Claude Code workflow for a solo developer: rules that load in every se
 - [Adding a skill](skills.md): one folder, one group, no list to update
 - [What costs context](context-cost.md): which shortenings buy tokens and which only look like they do
 - [The agents Claude Code runs](agents.md): every way one session starts another agent, and which of them Flow uses
+- [How the audit index works](audit.md): what a transcript holds, the unit the index groups by, and every table
+- [What Claude Code does](claude-code.md): sessions, instruction files, skills, plugins and hooks, tested rather than assumed
 
 Install, the commands, the skills and the settings are in [Reference](../manual/reference.md), and the file layout on a machine is in [Where everything lives](../manual/where-everything-lives.md). Nothing here restates them.
 

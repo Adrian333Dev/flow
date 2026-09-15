@@ -46,6 +46,15 @@ Move at triage speed. Building a skill is the one slow step, and it fires rarely
 - **Work item** → ticket or stays in inbox
 - **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`
 
+**Skill or project context: would this sentence be true in a different project?** Yes → a skill. No → `docs/context/`. Content that is both splits, and is never assigned to one side: *a generated file is never hand-edited, regenerate it* goes to that tool's skill, while the script name and the output path go to context. Genuinely cannot tell → leave it in `.flow/inbox.md` until there are enough instances to see the pattern.
+
+**What may go in `docs/context/<subject>.md`**, 4 conditions, all aimed at bloat rather than absence:
+
+- **It answers what a fresh session would get wrong without it.** Nothing else earns a line.
+- **A fact, never a process.** A file describing how to work is a skill in the wrong repo.
+- **Verified.** An unverified command is worse than none: the agent runs it, it fails, and the read and the failure are both wasted.
+- **Rewritten when it changes, never appended to.** Git holds the old text.
+
 **Defer to what exists.** No `docs/spec/` means a locked decision goes to the groundwork that owns the subject, whose `map.md` is the decision log. Never invent a parallel doc bucket.
 
 **An inbox item somebody has committed to build becomes a ticket**, with `flow new`.
@@ -60,6 +69,8 @@ Match the note's scope to the skill's scope:
 - seam between 2 tools → the **source** tool's skill, plus a one-line pointer from the other
 
 Never a "tool-A-with-tool-B" skill. One home per fact, a pointer everywhere else.
+
+The group in a `needs skill:` flag: `tools/`, or `dev/` for a skill maintaining Flow or `domain-skills`. `phases/` is closed.
 
 ## A skill filing must not edit
 

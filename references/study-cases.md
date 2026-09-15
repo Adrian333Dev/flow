@@ -13,7 +13,7 @@ A study case when **an artifact exists that will be gone tomorrow**: output the 
     flow cases issues
     flow cases new "<title>" --issue <issue> [--rule "<the rule that did not fire>"]
 
-`flow` owns the path, the date and the frontmatter, and fills the project in from wherever you are. You write the body.
+`flow` owns the path, the date and the frontmatter. It fills in the project from where you stand, and the model and effort level from the running session. You write the body.
 
 **Run `flow cases issues` first, every time.** The issue is a folder and it is the whole mechanism: three instances of one failure only add up while they share a name. Name the **kind of failure**, never this instance of it, `premature-implementation`, not `rewrote-the-rules-early`. A near-miss on an existing issue refuses; `--force` means it really is a new kind.
 

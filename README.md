@@ -189,13 +189,14 @@ Flow coexists with skill set plugins. The rules and the guard apply regardless o
 
 ## What is next
 
-The [backlog](backlog.md) tracks every open item. The next priorities:
+The [backlog](backlog.md) tracks every open item. What the first release still needs, in order:
 
-1. **Splitting the global rules**: the always-loaded rules file only grows, and rules that fire in one situation belong in the skill that owns that situation
-2. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it and compressing every skill
-3. **End-to-end testing**: widening the two test suites past the unit tests they hold now
-4. **The management skill**: installing, updating, migrating a project, converting the personalized files on re-install
-5. **Multi-model portability**: the rules, the ticket system, and the phases are agent-agnostic. The hooks, permissions, and audit are tied to Claude Code. Naming that split is the first step
+1. **Phase skills take a ticket id**: `/execute t047` loads the skill and the ticket in one step
+2. **The management skill**: installing, verifying and re-installing Flow on a machine
+3. **A profile of the user**, filled by an interview at install and kept current as the agent learns
+4. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it, compressing every skill, and rewriting every file
+5. **The manual**, with a real captured example on every page
+6. **Tests over the ticket commands**
 
 ## Status
 
