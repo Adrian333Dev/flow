@@ -35,7 +35,7 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 - **setup**: `install`, `doctor`
 - **rules**: `scorecard`
 - **sharing**: `contribute`, which opens one pull request per skill on `domain-skills`
-- **cases**: `new`, `ls`, `get`, `edit`, `issues`
+- **cases**: `new`, `ls`, `get`, `edit`, `issues`. `new` fills in `model:` from the session's transcript and `effort:` from `CLAUDE_EFFORT`. This repo's own 14 cases were deleted on 2026-09-16, condensed into `lab/context/rejected-replies.md`.
 - **skills**: `ls`, with `--group` and `--hidden`
 - **domain-skills**: `ls`, `add`, `drop`, per project
 - **private-skills**: `ls`, `add`, `drop`, per project or with `--global`
@@ -54,10 +54,6 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 ## 1 rule check, and it only measures
 
 `scripts/rule-checks/js-and-ts.js` counts a run of `//` lines above a function, a class or an arrow function. It records and never warns, since the user ruled comment shape minor. It fired correctly in a live session on 2026-09-10.
-
-## 14 study cases in 8 folders
-
-All under `lab/study-cases/`. `flow cases new` fills in `model:` from the session's transcript and `effort:` from `CLAUDE_EFFORT`, since 2026-09-15. The 8 cases converted that day were given their model by searching the transcripts for the user's rejection.
 
 ## The 3 submodules
 

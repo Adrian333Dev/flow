@@ -98,7 +98,7 @@ Locked 2026-09-05.
 
 **Output rules** say what a file must contain: comment density, naming, no em dashes. They attach to a file, a path often selects them, and a function can usually check them. The bridge above was built for them.
 
-**Conduct rules** say how the agent behaves in the conversation: when it edits, when it asks, when it speaks, how much it explains. They attach to no file. No path selects them and no function checks them. Every study case under `lab/study-cases/` is a conduct failure, so conduct is where the observed damage is.
+**Conduct rules** say how the agent behaves in the conversation: when it edits, when it asks, when it speaks, how much it explains. They attach to no file. No path selects them and no function checks them. Every rejected reply in `rejected-replies.md` is a conduct failure, so conduct is where the observed damage is.
 
 #### A rule written only as a prohibition amplifies whatever the model already does
 
@@ -146,7 +146,7 @@ Source: `repos/superpowers/skills/writing-skills`, read 2026-08-18. `bash lab/sc
 
 ## The user's feedback on how a rule file is written
 
-Kept verbatim, with the change each piece produced. `references/style.md` §6, §7 and §9 were written from it, and the next rewrite of any loaded file reads it first. This section covers files an agent loads; a rejected message to the user is a study case under `lab/study-cases/` instead.
+Kept verbatim, with the change each piece produced. `references/style.md` §6, §7 and §9 were written from it, and the next rewrite of any loaded file reads it first. This section covers files an agent loads; a rejected message to the user goes in `rejected-replies.md` instead.
 
 **Entries stay.** Unlike a rejected message, feedback on writing style is the evidence a future rewrite is checked against.
 
