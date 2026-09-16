@@ -10,7 +10,7 @@ The scorecard records the effort level on every result, and `flow cases new` fil
 
 ### Every rule binds each model differently
 
-Sonnet 4.6 puts the report before the edits without being told. Opus 5 never does, and fails plain-language explanation even with `## Explaining` loaded and `/visualize` available. A rule written to fix one model can do nothing on another.
+Sonnet 4.6 puts the report before the edits without being told. Opus 5 never does, and fails plain-language explanation even with the reply rules loaded and `/visualize` available. A rule written to fix one model can do nothing on another.
 
 - **A finding is worthless without the model that produced it.** Without the model, no study case can be checked against a second model later.
 - **A rule's violation rate is a number per model, never one number.** Without the split, a rule that binds Sonnet and fails on Opus reads as a rule with a mediocre rate.
@@ -199,6 +199,10 @@ direct rather than through `claude-code-router`.
   provider selected, which implies the classifier travels the gateway path otherwise. So the model
   deciding whether a tool call is safe would be GLM rather than Claude. **Unverified, and worth one
   run**, because Flow sessions run in auto mode.
+- **`## The reply` needs thinking.** Its 3 steps and 5 tests run on a draft that exists only in the
+  thinking before the reply. A model with thinking off, or one whose upstream rejected `thinking`
+  and had it disabled for the conversation, still reads the section, and the tests never run on
+  anything. Set 2026-09-16.
 - **Instruction adherence.** No configuration touches it. Flow's rule set is dense and was tuned
   against Claude models, and whether GLM or Qwen holds a hard rule across a long session is the real
   question. Only a paid plan and a real session answer it.

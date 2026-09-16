@@ -114,10 +114,10 @@ Records what each subagent changed, and hands the parent a diff per file when th
 Prints one line beside every message you send:
 
 ```
-Before replying, follow `~/.claude/CLAUDE.md`, above all `## Explaining`.
+Before replying, follow `~/.claude/CLAUDE.md`, above all `## The reply` and its `### Before sending` tests.
 ```
 
-The rules for writing a reply sit in the middle of a long file, loaded once at the start of a session. By turn 15 they are far behind the conversation, and the reply drifts back to long, compressed and undefined. A line arriving with the message puts them back in front of the agent.
+The rules for writing a reply sit at the end of a long file, loaded once at the start of a session. By turn 15 they are far behind the conversation, and the reply drifts back to long, compressed and undefined. A line arriving with the message puts them back in front of the agent.
 
 **It points at the rules, never repeats them.** A reminder listing rules grows with every rule and drifts from the file it copies.
 

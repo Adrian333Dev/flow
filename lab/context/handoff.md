@@ -18,7 +18,7 @@ The lab cleanup and the backlog split are finished, built on 2026-09-16 after th
 
 ## What is still open
 
-- **`## Explaining` needs its own rework**, now `backlog.md` → `## V1` → `### Rules and always-loaded files`. The section holds 20 rules in 42 lines, and the 2 that bind hardest are buried. The study case above is the evidence.
+- **`## Explaining` was reworked into `## The reply`** later the same day, in both `CLAUDE.md` files. The study case above is part of the evidence, now condensed into `lab/context/rejected-replies.md`.
 - **The 4 `docs/context/` conditions are in `/file-findings` alone.** `references/workflow.md` still carries only the one compressed line about that folder, and nothing has decided whether the conditions belong there too.
 
 ## Designed later, never before its turn

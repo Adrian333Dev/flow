@@ -1,1 +1,1 @@
-Before replying, follow `~/.claude/CLAUDE.md`, above all `## Explaining`.
+Before replying, follow `~/.claude/CLAUDE.md`, above all `## The reply` and its `### Before sending` tests.

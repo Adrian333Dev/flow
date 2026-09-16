@@ -13,8 +13,8 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 
 ## The rule files
 
-- **`home/CLAUDE.md`**: 152 lines, the template for `~/.claude/CLAUDE.md`. Sections in order: `## The turn`, `## Reading`, `## Writing files`, `## Tools`, `## Workflow`, `## The user`, `## Preferences`, `## Capture`, `## Scripts`, `## Judgment`, `## Explaining`. Every rule carries an id.
-- **`CLAUDE.md`**: 156 lines, the rules for working on this repo. It only has to align roughly with the template, ruled by the user 2026-09-07.
+- **`home/CLAUDE.md`**: 146 lines, the template for `~/.claude/CLAUDE.md`. Sections in order: `## The turn`, `## Reading`, `## Writing files`, `## Tools`, `## Workflow`, `## The user`, `## Preferences`, `## Capture`, `## Scripts`, `## Judgment`, `## The reply`. Every rule carries an id.
+- **`CLAUDE.md`**: 145 lines, the rules for working on this repo. It only has to align roughly with the template, ruled by the user 2026-09-07.
 - **`project-template/CLAUDE.md`**: 8 lines. 2 fill-in comments and no rules.
 - **`rules/comments.md`**: the one rule file. 11 rules, loaded only for JS, TS, Python, shell, SQL and CSS files. The user ruled comment shape minor.
 - **`references/reminder.md`**: the one line the reminder hook prints beside every message the user sends.
@@ -84,7 +84,7 @@ All under `lab/study-cases/`. `flow cases new` fills in `model:` from the sessio
 
 ## Which record covers what
 
-All in `lab/context/`, flat. 20 files were merged into these 9 on 2026-09-16. Every one is history except this file.
+All in `lab/context/`, flat. 20 files were merged into 9 on 2026-09-16, and `rejected-replies.md` was added the same day. Every one is history except this file.
 
 - **`claude-code.md`**: what Claude Code cannot do that Flow needs. 3 issues filed 2026-09-10. What it *can* do moved to `docs/dev/claude-code.md`.
 - **`drawing.md`**: the settled `/visualize` rulings, what `canvas.js` measured, and the engine that may never be built.
@@ -92,6 +92,7 @@ All in `lab/context/`, flat. 20 files were merged into these 9 on 2026-09-16. Ev
 - **`management.md`**: the management skill. Nothing approved, 3 open questions, plus where the idea came from.
 - **`manual.md`**: what `docs/manual/` is, and the manual pages still planned.
 - **`models.md`**: telling which model produced a piece of work, and running Flow on another harness. Nothing locked.
+- **`rejected-replies.md`**: every reply the user rejected, one line each with their words. The test set `## The reply` was built against.
 - **`rules.md`**: the enforcement bridge, the conduct rules, the negation split, and the user's feedback on how a loaded file is written.
 - **`skills.md`**: why a long skill takes no arguments, how a plugin is switched on per project, the `domain-skills` pipeline, browser tooling and the toolbox.
 - **`state.md`**: this file.

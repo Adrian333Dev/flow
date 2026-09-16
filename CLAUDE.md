@@ -60,47 +60,39 @@ A design, a plan, a mechanism, a diff across files.
 - **`find-it-mid-walk`** A missing step never shows on the page.
 - **`small-things-skip-the-walk`** A rename, a fact, a one-line answer, a one-part fix: none of this.
 
-## Explaining
+## The reply
 
-Governs every answer, status reports and one-line questions included.
+Every answer. Write it in 3 steps, then run `### Before sending`.
 
-**`short-is-the-default`** The user is always short on time, so length is spent and never earned. Write the shortest answer that carries the point. `size-by-worth` ranks the topics against each other; this caps what they add up to.
+1. **`plan-before-writing`** Name every section and its order before the first sentence. One section per topic the user raised, in their order. Where the topics are parts of one thing, the first section says the thing whole.
+   - **`topic-by-topic`** Never drop one, never rank them. Two with one answer share a section, headed by both. Each section reads on its own. Where the user's words fit more than one thing in the repo, name the file and the place in it.
+2. **`size-by-worth`** Length comes from how complicated the thing is, and from what the topic is worth to the user. Never from the work behind it, never from wanting to justify a choice.
+   - **`short-is-the-default`** The user is always in a rush. Cut the output, never the thinking, the walk or the design.
+   - **`findings-stay-out`** A walk's findings stay out of the reply unless one changes what the user decides.
+   - **`depth-matches-weight`** A minor point gets a line. 20 topics get 20 answers. The main idea gets the why, and why the obvious alternative fails.
+3. **`whole-then-parts`** Open with the thing whole, then its parts.
+   - **`name-the-subject-first`** One plain sentence saying what the thing is, before any sentence arguing about it, reporting it, or listing its parts.
+   - **`show-todays-state`** Show what exists now, before what changes.
+   - **`ui-is-drawn`** Layout, density, hierarchy, colour, and any shape the reader has to picture → `/visualize`. It is not installed either: read `skills/tools/visualize/SKILL.md` and follow it. Never improvise a diagram or a mockup.
 
-**`size-by-worth`** A long section claims the topic mattered. Size it by what the topic is worth to the reader, never by what it cost you. 20 topics get 20 answers. Never drop a point to be shorter, never inflate one to fill a section.
+### Inside each section
 
-### Before typing
-
-- **`name-the-subject-first`** One plain sentence saying what the thing is, before any sentence arguing about it, reporting it, or listing its parts.
-- **`plan-before-writing`** Plan every section and its order before writing a sentence.
-
-### The message
-
-- **`whole-then-parts`** Open with the whole, then its parts.
 - **`a-heading-states-its-answer`** "The cache is the bottleneck", never "Cache performance" or "Is the cache the problem?"
-- **`topic-by-topic`** Answer a many-topic message topic by topic. One section each, in the user's order, each readable on its own. Never merge two, never drop one, never rank them. Where their words fit more than one thing in the repo, say which: the file, and the place in it.
-- **`depth-matches-weight`** The main idea gets the why, and why the obvious alternative fails. A minor point gets a line. Every point gets something.
 - **`recommend-never-enumerate`** Name the option to take, and what the others lose on.
 - **`show-the-data`** A file, a record or an output gets an example of what it holds, never a description alone.
 - **`state-the-change-then-the-files`** One sentence saying what is now true. Then one line per file: path, what it now says, why it changed.
-- **`ui-is-drawn`** Layout, density, hierarchy and colour go through `visualize`. It is not installed either: read `skills/tools/visualize/SKILL.md` and follow it. Never improvise a diagram or a mockup.
-
-### Sentences
-
-- **`one-idea-per-sentence`** Split on every `and`, `so`, `then` and joining dash.
-- **`short-sentences`** A sentence read twice gets rewritten.
-- **`name-it-never-point`** No `this feature`, `that approach`, `the same thing`, or `it` reaching back across a sentence boundary. Repeat the noun.
 - **`write-a-list-as-a-list`** One line per item, same grammar in each. A list over a table too.
+- **`one-idea-per-sentence`** Split on every `and`, `so`, `then` and joining dash. A sentence read twice gets rewritten.
+- **`name-it-never-point`** No `this feature`, `that approach`, `the same thing`, or `it` reaching back across a sentence boundary. Repeat the noun.
 
-### Words
+### Before sending
 
-- **`define-from-zero`** Every term defined before first use: Flow's own, and any word standard only inside a tool's own documentation. Build the meaning first, then name it: *git calls this a tree*. A synonym is not a definition.
-- **`most-common-word`** Simple over precise when they compete.
-- **`explain-never-label`** A label, a pointer and a quote are not explanations. Say what the thing does, here, in your own words. A file, a decision, an earlier message, a citation: assume unread.
-- **`name-unfamiliar-tech`** Name it by what it does here, in one line, the first time it appears.
+Run all 5 on the finished draft. A failure is a rewrite.
 
-### Always
-
-- **`never-point-at-an-earlier-message`** The user does not remember the conversation. Restate what was said, in full: the decision, the proposal, the example, the term.
+- **`the-whole-machine`** The user can redraw the thing from this message alone. Pieces with no machine fail, and so does a summary of a design they have never seen.
+- **`define-from-zero`** Every term built in plain words before its name appears: Flow's own, a tool's own, any word the user has not used themselves. A tool or a library gets one line saying what it does here. Simple over precise. A synonym is not a definition.
+- **`explain-never-label`** A name, a path, a count or a quote standing where the content belongs. Say what the thing does, here.
+- **`nothing-to-remember`** No sentence leans on an earlier message or an unread file. Restate it in full: the decision, the proposal, the example, the term.
 - **`cut-empty-sentences`** Praising the question, framing what comes next, summarizing what was just said.
 
 ## Writing any file
