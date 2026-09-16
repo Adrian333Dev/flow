@@ -19,19 +19,23 @@
 # __dirname, so a second checkout at ~/code/flow-dev builds a session against
 # that checkout and leaves the stable one alone.
 #
-#   bash lab/scripts/try.sh            rebuild the config, then start a session
-#   bash lab/scripts/try.sh --fresh    delete tmp/try first, scratch project included
-#   bash lab/scripts/try.sh --print    rebuild, then print the command instead
+#   bash lab/scripts/try.sh                rebuild the config, then start a session
+#   bash lab/scripts/try.sh --seed guards  build the scratch project from another seed
+#   bash lab/scripts/try.sh --fresh        delete tmp/try first, scratch project included
+#   bash lab/scripts/try.sh --print        rebuild, then print the command instead
 set -euo pipefail
 
 fresh=0
 start=1
-for arg in "$@"; do
-  case "$arg" in
+seed=app
+while [ $# -gt 0 ]; do
+  case "$1" in
     --fresh) fresh=1 ;;
     --print) start=0 ;;
-    *) echo "try.sh: unknown argument \"$arg\", takes --fresh and --print" >&2; exit 2 ;;
+    --seed) seed="${2:-}"; shift ;;
+    *) echo "try.sh: unknown argument \"$1\", takes --fresh, --print and --seed <name>" >&2; exit 2 ;;
   esac
+  shift
 done
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -129,10 +133,22 @@ NODE
 # Built once and kept. flow finds the project root through git, and tmp/ sits
 # inside the Flow repo, without a repo of its own here, every ticket would
 # land in Flow itself.
+# A seed is a folder under lab/scripts/seeds/: files/ is copied into the
+# project, then seed.sh runs with FLOW_JS and PROJ set and builds the board.
+# The default, app, is a small real program with tickets that fit it, so the
+# phase skills run against code. The manual's captured examples come from it.
+seeds="$root/lab/scripts/seeds"
+if [ ! -e "$seeds/$seed/seed.sh" ]; then
+  echo "try.sh: no seed named \"$seed\", the seeds are: $(ls "$seeds" | tr '\n' ' ')" >&2
+  exit 2
+fi
+
 if [ ! -e "$proj/.git" ]; then
   cp -r "$root/project-template/." "$proj/"
   git -C "$proj" init --quiet
-  echo "built the scratch project at $proj"
+  [ -d "$seeds/$seed/files" ] && cp -r "$seeds/$seed/files/." "$proj/"
+  FLOW_JS="$root/scripts/flow/flow.js" FLOW_PROJECT="$proj" PROJ="$proj" bash "$seeds/$seed/seed.sh"
+  echo "built the scratch project at $proj from the $seed seed"
 fi
 
 # ---- start it ---------------------------------------------------------------

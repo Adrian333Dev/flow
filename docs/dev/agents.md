@@ -59,7 +59,7 @@ Left to its defaults, it moves into its own worktree before its first edit: a se
 
 It writes the question as its last message and stops. The message reaches the parent like any report, and the parent passes it on in one line:
 
-```
+```text
 t052 asks: Should the importer skip rows with no date, or stop? Answer in its row below the prompt.
 ```
 
@@ -82,7 +82,7 @@ A subagent saying "done", or listing the files it edited, proves nothing. Flow r
 
 This is a real record, from 2 subagents running at once in a scratch session. It reached the parent just before the first one's finished notice:
 
-```
+```text
 Stop hook blocking error from command "PostToolUse:Agent": Flow's change record for subagent acde662e8feb7ed27 (general-purpose). The changes.js hook built it from what the subagent's own tool calls did to the files, not from its report.
 
 2 files changed.
@@ -109,7 +109,7 @@ index e5c5c55..7b363c9 100644
 
 The other subagent ran a command, and its record listed the command beside the file it created:
 
-```
+```text
 1 file changed.
 
 Commands that changed files:

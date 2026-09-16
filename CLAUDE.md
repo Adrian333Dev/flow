@@ -84,6 +84,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 - **`write-a-list-as-a-list`** One line per item, same grammar in each. A list over a table too.
 - **`one-idea-per-sentence`** Split on every `and`, `so`, `then` and joining dash. A sentence read twice gets rewritten.
 - **`name-it-never-point`** No `this feature`, `that approach`, `the same thing`, or `it` reaching back across a sentence boundary. Repeat the noun.
+- **`most-common-word`** Every word is the plainest one that says it. A verb or a noun the user has not used, and would not, gets swapped for the common one.
 
 ### Before sending
 
@@ -114,7 +115,7 @@ The decisions neither page carries:
 
 - **`phases-closed-at-4`** `groundwork`, `execute`, `prototype` and `debug`. Set by the user and not reopenable.
 - **`no-code-review-skill`** Review runs in the same session, never a subagent, and the criteria live beside the skill that produced the artifact: `skills/phases/execute/references/review-code.md` for code.
-- **`short-skill-no-arguments`** A skill invoked over and over stays short, and a long skill takes no arguments. An argument makes the render differ, and a differing render is appended whole. `/handoff` must never grow one. Binds Flow's own skills only.
+- **`short-skill-no-arguments`** A skill invoked over and over stays short. A long skill takes an argument only where the argument names what the skill opens, and a bare run renders the same text every time: the 4 phase skills take a ticket id, `/handoff` takes nothing. A differing render is appended whole. Binds Flow's own skills only.
 - **`file-findings-density`** `file-findings` is the density to aim for. Style, including the `description`, lives in `references/style.md`.
 - **`plain-words-in-skills`** Plain, common words, with no invented or rare terms. Binds what a skill produces as hard as what it says.
 - **`no-versions-no-manifest`** `flow install` only ever builds symlinks.

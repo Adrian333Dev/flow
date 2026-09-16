@@ -14,7 +14,7 @@ This page is how Flow files and writes a skill. What Claude Code itself does wit
 
 ## The folder
 
-```
+```text
 skills/<group>/<name>/SKILL.md
 ```
 

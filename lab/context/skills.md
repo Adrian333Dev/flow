@@ -10,7 +10,7 @@ Designed 2026-08-26 and built 2026-08-28: group folders, overlays, descriptions 
 
 ### Arguments
 
-**A long skill takes no arguments.** `short-skill-no-arguments` in the repo `CLAUDE.md` carries the rule today. `backlog.md` → `## V1` → "Phase skills take a ticket id" proposes lifting it for the 4 phase skills.
+**A long skill takes an argument only where the argument names what it opens.** `short-skill-no-arguments` in the repo `CLAUDE.md` carries the rule. Set 2026-09-16, when the 4 phase skills gained a ticket id: `/execute t047` loads the ticket and its files in the skill's first line, and a bare `/execute` prints nothing there, so its text stays identical to every earlier bare run. The user accepted the one cost: a phase opened bare and then with an id in one session holds its body twice, which the id appended by Claude Code already caused before the change. A split into a 10-line typed skill opening a hidden method skill was rejected the same day as overhead that rebuilt `/start` 4 times. The skill's first line runs `flow get` only when the first word typed is shaped like an id, and `$ARGUMENTS` on its own line keeps any text typed after the name. `scripts/check-ticket.js`, a `UserPromptExpansion` hook, blocks the skill before it loads when the id matches nothing, since a misspelt id is the common miss. Shaped like an id means `t` then a digit, in the hook and in the skill alike, so the folder name `t047-parser-split` is checked too.
 
 - **An argument breaks the duplicate check.** Claude Code skips a skill body already loaded when the rendered text matches. An argument changes the text, so the whole body loads a second time.
 - **Whoever supplies an argument is at the keyboard.** A typed skill can take one. A skill the model invokes reads context instead.
@@ -19,7 +19,7 @@ Designed 2026-08-26 and built 2026-08-28: group folders, overlays, descriptions 
 
 **The rule does not enforce itself.** Claude Code appends `ARGUMENTS: t099` even to a skill with no placeholder, and the model volunteers an argument nothing asked for. A `PreToolUse` hook could strip it, since that event accepts `updatedInput`. The user rejected that hook 2026-08-26: new machinery against a rare cost. The cost is 1 duplicate skill body, accepted.
 
-- **No `argument-hint` on a Flow skill**, and no ticket id in a description. Both invite what the rule bans.
+- **No `argument-hint` on a Flow skill outside the 4 phase skills**, and no ticket id in a description. Both invite what the rule bans.
 
 ### External skills and plugins
 

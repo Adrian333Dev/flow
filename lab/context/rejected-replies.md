@@ -1,6 +1,6 @@
 # Rejected replies: every recorded failure, one line each
 
-What `## The reply` was built against. 14 study cases, 2026-08-10 to 2026-09-16, across Sonnet 4.6, Opus 4.6, Opus 5 and Fable 5.1. Each line holds the date, the fault, and the user's own words. The full cases were deleted once this file existed; `git log -p -- lab/study-cases/` restores any of them.
+What `## The reply` was built against. 14 study cases, 2026-08-10 to 2026-09-16, across Sonnet 4.6, Opus 4.6, Opus 5 and Fable 5.1. Each line holds the date, the fault, and the user's own words. The full cases were deleted once this file existed; `git log -p -- lab/study-cases/` restores any of them. 4 more were added straight into this file on 2026-09-16, all Fable 5.1 under `## The reply`: 2 in the first section, 1 in the second, 1 in the last section before the summary.
 
 **This file is the test set for the next rewrite of `## The reply`.** A new shape is checked by walking these 14 and asking which the shape would have caught.
 
@@ -10,6 +10,8 @@ What `## The reply` was built against. 14 study cases, 2026-08-10 to 2026-09-16,
 - **2026-09-12, the contribution pipeline, rejected twice.** 5 new terms in 6 sentences, each defined in one clause, and no picture of the machine either time. *"You didn't really give me the full picture. You only giving me the pieces and you're talking as if I already have the full picture."* The rewrite failed too, which produced the sharpest finding on record: a definition is a label with one more clause, and defining every term does not build a picture.
 - **2026-09-12, 5 verdicts and no picture.** 5 questions got 5 answers in the user's order, and no sentence in 89 lines said what the proposal was. *"I'm having a hard time understanding what the fuck are you exactly proposing."* `topic-by-topic` was obeyed and `whole-then-parts` was not.
 - **2026-09-16, 3 labels and no explanation.** "The 4 rules for `docs/context/`", "the routing test" and "how a plugin is switched on per project", each named and none explained. *"I literally didn't understand a single fucking thing from that line."*
+- **2026-09-16, a proposal with no walk of the case it was for. Fable 5.1, the first rejected reply under `## The reply`.** Phase skills taking a ticket id: the reply gave a shell line, a rule rewrite, a cost and a file list, and never said what happens when the user types `/groundwork` and later `/groundwork t047`, which is the case the backlog item names. *"I didn't really understand your proposal... I don't think you are actually solving the problem."* The proposal also did not solve it: the duplicate load it was meant to remove stayed.
+- **2026-09-16, the rewrite of the same proposal, rejected again. Fable 5.1.** The 3 options were drawn as columns of line counts, and the recommended one rested on 2 words, "entry" and "body", that were never defined: what each file holds, what the user types, how the first opens the second. *"what the fuck is entry like you didn't fucking explain how the fuck that shit works"* and *"record this shit as a whole fucking failure"*. `define-from-zero` and `the-whole-machine` name both faults, and neither test fired on either reply.
 
 ## Words the user had never met
 
@@ -17,6 +19,7 @@ What `## The reply` was built against. 14 study cases, 2026-08-10 to 2026-09-16,
 - **2026-09-13, "prose" in a heading.** The plain words were already one line below it, in the body. *"What the fuck do you mean by pros? I told you 20, 50, 100 fucking times to follow the explained rules."*
 - **2026-08-30, 5 git terms in an answer about 2 shell scripts.** Gitlink, `HEAD`'s tree, `.gitmodules`, and 2 submodule commands.
 - **2026-09-07, on a reply about rule files.** *"Your whole response is a complete jargon as well."* Words named: load-bearing, §7, dissolves, tally sheet, bound.
+- **2026-09-16, a shell line explained word by word and never by purpose. Fable 5.1.** `test -z "$ARGUMENTS" || flow get ...` was explained as "succeeds when the text between the quotes is empty" and "`||` means if the command before me failed, run the next one": each word defined, and no sentence saying what the line is for, which is to run `flow get` only when an id was typed. *"What's the fucking purpose of it? You didn't fucking explain what the fuck is the purpose."* and *"the explanation was absolute shit garbage."* The user worked it out from the command itself, and worked it out wrong, which is the measure of the explanation.
 
 ## Length set by the wrong thing
 
@@ -40,6 +43,10 @@ What `## The reply` was built against. 14 study cases, 2026-08-10 to 2026-09-16,
 ## Writing a rule file, not a reply
 
 - **2026-09-05, a section built out of 2 questions, rejected 3 times.** Both headings asked instead of answering, and "a change named with its target is one" made the reader carry the heading into the next sentence. It belongs to `references/style.md` and to `rules.md`, which holds the user's feedback on how a loaded file is written.
+
+## The wrong proposal, not the wrong words
+
+- **2026-09-16, the split: `/start` rebuilt 4 times under the phase names. Fable 5.1, the third reply on one item.** Phase skills taking a ticket id. The recommended design was a 10-line skill per phase that loads the ticket and then opens a second, hidden skill holding the method: 4 new skill folders, and one skill opening another, to save the user typing `/start t047` instead of `/groundwork t047`. `/start` already does that for all 4 phases in one 41-line file. The item's own reason, skipping `/start`, was never tested against the proposal, and the case the item names was never walked before the first reply. *"why come up with a solution that has such overhead? ... one skill that kind of triggers another skill ... plain stupid, unnecessary overhead"* and *"the solution you came up with doesn't make a single fucking sense."* `attack-before-showing` and `walk-a-real-case` were loaded. The user's own answer: take the argument, accept that a phase opened twice in one session loads its body twice, and close the item.
 
 ## What the 14 have in common
 

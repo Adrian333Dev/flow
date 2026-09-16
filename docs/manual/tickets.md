@@ -30,7 +30,7 @@ Three things at once:
 
 ## Where a ticket lives
 
-```
+```text
 .flow/tickets/t047-parser-split/
 ├─ ticket.md          what to do, why, and where it stands
 ├─ groundwork/

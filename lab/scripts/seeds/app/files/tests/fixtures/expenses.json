@@ -1,0 +1,6 @@
+[
+  { "id": 1, "date": "2026-01-14", "amount": 12.5, "category": "food", "note": "lunch" },
+  { "id": 2, "date": "2026-01-20", "amount": 40, "category": "travel", "note": "train" },
+  { "id": 3, "date": "2026-03-02", "amount": 8, "category": "food", "note": "coffee" },
+  { "id": 4, "date": "2026-10-05", "amount": 60, "category": "travel", "note": "bus pass" }
+]

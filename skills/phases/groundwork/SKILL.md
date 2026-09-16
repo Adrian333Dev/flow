@@ -1,7 +1,12 @@
 ---
 name: groundwork
 description: Refines the idea and designs the solution. Every open decision, including ones nobody raised, walked to a written answer.
+argument-hint: '[ticket-id]'
 ---
+
+!`case "$0" in t[0-9]*) flow get $0 --files 2>&1 || true;; esac`
+
+$ARGUMENTS
 
 # Groundwork
 

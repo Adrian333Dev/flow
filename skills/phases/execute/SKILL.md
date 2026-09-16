@@ -1,7 +1,12 @@
 ---
 name: execute
 description: Builds one ticket, plan through review.
+argument-hint: '[ticket-id]'
 ---
+
+!`case "$0" in t[0-9]*) flow get $0 --files 2>&1 || true;; esac`
+
+$ARGUMENTS
 
 # Execute
 

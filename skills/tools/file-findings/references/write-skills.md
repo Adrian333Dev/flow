@@ -71,7 +71,7 @@ disable-model-invocation: true                  # typed-only skills
 
 **Under-explaining is the failure to avoid.** `/visualize` names its media, because a reader cannot otherwise tell what it draws. No word count overrides that.
 
-**A skill invoked over and over stays short, and a long skill takes no arguments.** Claude Code skips a re-invocation whose rendered body is identical to the copy already in context, and appends the whole body again when it differs. An argument is 1 of the 2 ways to make it differ, the other being a shell line whose output changed. A 10-line skill re-appending costs nothing; a 150-line skill must never grow an argument however natural one looks.
+**A skill invoked over and over stays short, and a long skill takes an argument only where the argument names what the skill opens.** Claude Code skips a re-invocation whose rendered body is identical to the copy already in context, and appends the whole body again when it differs. An argument is 1 of the 2 ways to make it differ, the other being a shell line whose output changed. A 10-line skill re-appending costs nothing. A 150-line skill takes an argument only when what it loads is worth more than its own body, a ticket and its files for a phase skill, and its bare run must render the same text every time. Never grow one for anything less, however natural it looks.
 
 **`disable-model-invocation: true` takes the skill out of the list a session is handed.** Nothing shows it to the model, so a typed-only skill named nowhere else is one the model reports as missing when the user asks for it by name. `flow skills ls --hidden` is the only way back to it, so write the line only where the user typing it is the whole point.
 

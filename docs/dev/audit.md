@@ -50,7 +50,7 @@ The index has 4 levels:
 
 A real session from this machine, compacted by hand 4 times in a row:
 
-```
+```sh
 $ flow audit sql "SELECT substr(session_id,1,8) AS session, ordinal, ended_by, trigger, pre_tokens, post_tokens, turns FROM segment WHERE session_id = ... ORDER BY ordinal LIMIT 4"
 SESSION   ORDINAL  ENDED_BY  TRIGGER  PRE_TOKENS  POST_TOKENS  TURNS
 51032a79  1        compact   manual   214793      16640        16
@@ -81,7 +81,7 @@ Every row is derived. Deleting `audit.db` loses nothing: `flow audit index --reb
 
 Every count is a floor. A script that opens files itself leaves one command in the transcript and no file. The same machine's touches, by how they were learnt:
 
-```
+```sh
 $ flow audit sql "SELECT via, confidence, count(*) AS touches FROM file_touch GROUP BY via, confidence ORDER BY touches DESC LIMIT 8"
 VIA                                CONFIDENCE  TOUCHES
 Edit                               exact       3435

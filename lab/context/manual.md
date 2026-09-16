@@ -14,7 +14,7 @@ Designed 2026-08-29, and renamed from `design-public-docs.md` on 2026-09-16. 4 p
 
 Grouped by **why you are reading**, never by which part of the machine a page touches. Grouping by component was rejected outright: *"that's absolute worst way to teach strangers."*
 
-- **Use Flow**: concepts first (what Flow is, tickets, phases, the approval discipline), then running work. The one page left before V1.
+- **Use Flow**: concepts first (what Flow is, tickets, phases, the approval discipline), then running work. Running work shipped 2026-09-16 as `docs/manual/use/`, one page per chunk, written now so the details are not forgotten; the user ruled that the management skill blocks only the pages it touches, and kept the option of a whole rewrite if the split reads badly. The concepts are still unwritten.
 - **Configure Flow**: settings, `skillOverrides`, overlays, the project template, **precedence and resolution order**, and **why didn't my skill fire**.
 - **Extend Flow**: write a skill, add a domain skill, adopt an external one.
 - **Why it works this way**: the decisions.

@@ -208,6 +208,7 @@ A page in a published documentation set. Nobody loads it into a session: a reade
 - **Open with a table of contents** under a `## Table of contents` heading, one line per heading, in order.
 - **Plan what the reader knows on arrival, what they know on leaving, and the path between.** The arrival state decides the first section. Skip it and the page opens in the middle.
 - **A link names the page it points at.** Never a position. No *the next page*, no *as shown above*, no numbered filenames. Order lives in the index alone, so inserting a page breaks nothing.
+- **Every code fence names a language**, so the reader can tell a file from a command from what a command printed: `md`, `sh`, `json`, `text` for output and trees. A guess beats a bare fence. Ruled by the user 2026-09-16.
 
 ## 11. Rule ids
 

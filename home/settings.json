@@ -93,6 +93,17 @@
         ]
       }
     ],
+    "UserPromptExpansion": [
+      {
+        "matcher": "^(groundwork|execute|prototype|debug|start)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/check-ticket.js\""
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [

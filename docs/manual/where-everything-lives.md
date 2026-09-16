@@ -14,7 +14,7 @@ Flow puts files in 4 places on a machine, reads 2 clones, and keeps a working st
 
 `→` marks a symlink and where it points. `<clone>` is wherever you cloned Flow.
 
-```
+```text
 ~/
 ├─ .claude/                       what Claude Code reads
 │  ├─ CLAUDE.md

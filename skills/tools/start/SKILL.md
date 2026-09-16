@@ -21,7 +21,7 @@ disable-model-invocation: true
 
 **No such line means nothing has moved.** The skill you route to writes the status, after it opens the phase's own artifact.
 
-Its `type:` line picks the skill, and `feature` and `chore` read `status:` too. Read nothing else first, then invoke: the skill loads here, in this session.
+Its `type:` line picks the skill, and `feature` and `chore` read `status:` too. Read nothing else first, then invoke it with no argument: the skill loads here, in this session, and the ticket is already above.
 
 - `issue` → `/debug`
 - `prototype` → `/prototype`

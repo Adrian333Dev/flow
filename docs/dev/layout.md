@@ -37,6 +37,7 @@ When you first open the repository, the split that matters has four parts:
 - `changes.js` records what each subagent changed, under its agent id, and hands the parent a diff per file when the subagent finishes. `flow/lib/changes.js` holds the logic.
 - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
 - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
+- `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill whose ticket id matches nothing, before the skill loads.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and its `.info` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
@@ -61,7 +62,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `repos/`, `home/`, and `project-template/` from loading when a file beside one is read.
 
-**`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and holds `reference.md`, `tickets.md`, `settings.md` and `where-everything-lives.md` so far. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what `manual/` covers. Install, the commands and the skills live in `manual/reference.md`, and every folder Flow puts on a machine lives in `manual/where-everything-lives.md`. Every settings key lives in `manual/settings.md`. Both folders are authored here and never moved in from `lab/`.
+**`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and holds `reference.md`, `tickets.md`, `settings.md`, `where-everything-lives.md` and `use/`, 4 pages following one ticket from `/start` to the handoff. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what `manual/` covers. Install, the commands and the skills live in `manual/reference.md`, and every folder Flow puts on a machine lives in `manual/where-everything-lives.md`. Every settings key lives in `manual/settings.md`. Both folders are authored here and never moved in from `lab/`.
 
 ## The design record under `lab/`
 
@@ -94,7 +95,7 @@ Neither survives a fresh clone, and nothing at runtime reads either one.
 
 - A note about why something was decided → `lab/context/`, flat, one file per decision
 - An open item → `backlog.md`, one line, with a pointer to the argument. An item about a submodule alone → that submodule's `backlog.md`
-- A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`
+- A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`. `lab/scripts/seeds/<name>/` is a board for the scratch project, `files/` copied in and `seed.sh` run, picked with `try.sh --seed <name>`
 - A rule check → `scripts/rule-checks/<rule-id>.js`, named after the rule it enforces. Nothing registers it
 - A scratch file → `tmp/`, never the repository root
 - A skill → `skills/<group>/<name>/SKILL.md`. [Adding a skill](skills.md) covers the rest.

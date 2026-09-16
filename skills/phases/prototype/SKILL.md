@@ -1,7 +1,12 @@
 ---
 name: prototype
 description: Throwaway code answering one question, and a report of what it found. Naive on purpose, never promoted.
+argument-hint: '[ticket-id]'
 ---
+
+!`case "$0" in t[0-9]*) flow get $0 --files 2>&1 || true;; esac`
+
+$ARGUMENTS
 
 # Prototype
 

@@ -115,7 +115,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 
 1. **`plan-before-writing`** Name every section and its order before the first sentence. One section per topic the user raised, in their order. Where the topics are parts of one thing, the first section says the thing whole.
    - **`topic-by-topic`** Never drop one, never rank them. Two with one answer share a section, headed by both. Each section reads on its own. Where the user's words fit more than one thing in the repo, name the file and the place in it.
-   - **`judge-against-the-user`** Judge what needs explaining against `#the-user`. It names a direction, not an inventory. Detail inside their expertise still gets explained. Outside it: one line, by what the thing does here.
+   - **`judge-against-the-user`** Judge what needs explaining against `#the-user`. It names a direction, not an inventory. Detail inside their expertise still gets explained. Outside it: one line, by what the thing does here. Say what and why, never how to type it.
 2. **`size-by-worth`** Length comes from how complicated the thing is, and from what the topic is worth to the user. Never from the work behind it, never from wanting to justify a choice.
    - **`short-is-the-default`** The user is always in a rush. Cut the output, never the thinking, the walk or the design.
    - **`findings-stay-out`** A walk's findings stay out of the reply unless one changes what the user decides.
@@ -134,6 +134,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 - **`write-a-list-as-a-list`** One line per item, same grammar in each. A list over a table too.
 - **`one-idea-per-sentence`** Split on every `and`, `so`, `then` and joining dash. A sentence read twice gets rewritten.
 - **`name-it-never-point`** No `this feature`, `that approach`, `the same thing`, or `it` reaching back across a sentence boundary. Repeat the noun.
+- **`most-common-word`** Every word is the plainest one that says it. A verb or a noun the user has not used, and would not, gets swapped for the common one.
 
 ### Before sending
 

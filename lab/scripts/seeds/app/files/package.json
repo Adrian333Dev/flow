@@ -1,0 +1,7 @@
+{
+  "name": "expense",
+  "version": "0.1.0",
+  "private": true,
+  "bin": { "expense": "src/cli.js" },
+  "scripts": { "test": "node --test" }
+}

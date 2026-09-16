@@ -24,7 +24,7 @@ Flow is installed globally, once per machine, by symlinking skills, scripts, and
 
 The workflow handles a full project from the initial idea through to a finished, reviewed build. Each phase produces what the next one consumes:
 
-```
+```text
 /groundwork      idea → researched design, every decision locked
 /start           the board, or one ticket with its context loaded
 /execute         ticket → planned, built, and reviewed
@@ -59,11 +59,11 @@ Review runs two passes over the same diff: against the plan (every step delivere
 
 `flow` is a full CLI that manages work across sessions. It tracks status, dependencies, parent/child hierarchy, and five ticket types (feature, issue, chore, topic, prototype). Each type walks a subsequence of the same status line (`todo → groundwork → planning → building → review → done`). The system refuses what would break the graph: picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents.
 
-[`/start`](skills/tools/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/groundwork`, a feature at `planning` goes to `/execute`, an issue goes to `/debug`, a prototype goes to `/prototype`.
+[`/start`](skills/tools/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/groundwork`, a feature at `planning` goes to `/execute`, an issue goes to `/debug`, a prototype goes to `/prototype`. When you already know the phase, type it with the id instead, `/execute t047`: the skill loads the ticket and its files itself.
 
 Key commands:
 
-```
+```text
 flow get [id]           the board, or a ticket with its context (--files)
 flow next               rank what is workable
 flow new "title"        create a ticket (--type, --deps, --parent, --body -)
@@ -134,7 +134,7 @@ ASCII over HTML for diagrams and mockups: a fraction of the tokens, renders inli
 
 `util fs tree` for reading directory structure without noise:
 
-```
+```text
 skills/
 ├─ phases/       groundwork, execute, prototype, debug
 ├─ tools/        start, handoff, file-findings, research, visualize, cut-from-spec
@@ -143,7 +143,7 @@ skills/
 
 `util fs merge` for loading many files into context in one call. It supports line ranges (`file.md:45-89`), extension filters (`--ext ts,tsx`), and a trailing note after `--` that rides alongside the content. One call is cheaper than separate parallel reads, and the agent gets the content in a single block instead of scattered across tool results:
 
-```
+```sh
 util fs merge src/auth.ts src/db.ts:1-50 lib/helpers/ -- focus on the auth flow
 ```
 
@@ -191,12 +191,11 @@ Flow coexists with skill set plugins. The rules and the guard apply regardless o
 
 The [backlog](backlog.md) tracks every open item. What the first release still needs, in order:
 
-1. **Phase skills take a ticket id**: `/execute t047` loads the skill and the ticket in one step
-2. **The management skill**: installing, verifying and re-installing Flow on a machine
-3. **A profile of the user**, filled by an interview at install and kept current as the agent learns
-4. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it, compressing every skill, and rewriting every file
-5. **The manual**, with a real captured example on every page
-6. **Tests over the ticket commands**
+1. **The management skill**: installing, verifying and re-installing Flow on a machine
+2. **A profile of the user**, filled by an interview at install and kept current as the agent learns
+3. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it, compressing every skill, and rewriting every file
+4. **The manual**, with a real captured example on every page
+5. **Tests over the ticket commands**
 
 ## Status
 

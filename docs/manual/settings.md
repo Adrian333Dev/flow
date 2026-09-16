@@ -104,6 +104,17 @@ Records what each subagent changed, and hands the parent a diff per file when th
 
 `InstructionsLoaded` has no decision control at all. Claude Code discards its output and ignores its exit code, so it records or it does not.
 
+#### The ticket check
+
+```json
+"UserPromptExpansion": [ { "matcher": "^(groundwork|execute|prototype|debug|start)$", "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/check-ticket.js\"" } ] } ]
+```
+
+Runs `scripts/check-ticket.js` when one of the 5 skills that take a ticket id is typed, before the skill's text is built. The script reads the first word typed. A word shaped like a ticket id, which is `t` then a digit, so `t047`, `t47` or the folder name `t047-parser-split`, is checked with `flow get`; when nothing matches, the command is blocked and `flow`'s own message is shown, so a typo costs one line instead of the whole skill. Any other first word passes untouched, which is what lets instructions be typed after the skill name.
+
+It fires only on what the user types. A skill the agent invokes, as `/start` does when it routes, carries no id and never reaches it.
+
 #### The reminder
 
 ```json
@@ -113,7 +124,7 @@ Records what each subagent changed, and hands the parent a diff per file when th
 
 Prints one line beside every message you send:
 
-```
+```text
 Before replying, follow `~/.claude/CLAUDE.md`, above all `## The reply` and its `### Before sending` tests.
 ```
 
@@ -182,7 +193,7 @@ A deny rule is read once at session start, and it only ever adds. Nothing in a p
 
 `flow git` writes that state, into `~/.flow/settings.json`:
 
-```
+```text
 flow git                    what the mode is, and when it runs out
 flow git allow [--for 2h]   the agent may write with git
 flow git ask                the same, confirming every one

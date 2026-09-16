@@ -17,6 +17,7 @@
 bash lab/scripts/try.sh
 bash lab/scripts/try.sh --print     # rebuild, then print the command instead of starting
 bash lab/scripts/try.sh --fresh     # delete tmp/try/ first, scratch project included
+bash lab/scripts/try.sh --seed guards   # build the scratch project from another seed
 ```
 
 The bare form ends in `exec claude`, which takes over the terminal and never returns. That is what you want from a terminal. From inside another session it is useless, so `--print` hands you the command to run yourself.
@@ -25,7 +26,7 @@ The bare form ends in `exec claude`, which takes over the terminal and never ret
 
 It runs the same command a real install runs, with both roots redirected:
 
-```
+```sh
 flow install --home tmp/try/home --flow-home tmp/try/flow --no-bin --drafts
 ```
 
@@ -60,6 +61,28 @@ Skills and agents are symlinked into the scratch configuration, so `SKILL.md` th
 ## The scratch project
 
 `tmp/try/project/` is where the session works, and it survives between runs. Its tickets, handoffs, and inbox entries accumulate into something worth testing against. Wiping it every run destroyed that, so the project persists by default. `--fresh` is how you wipe it deliberately.
+
+**A seed fills it the first time it is built.** A seed is a folder under `lab/scripts/seeds/`: a `files/` folder copied into the project, then a `seed.sh` that creates tickets with `flow new` and moves them with the verbs, so every status is `flow`'s own. `--seed <name>` picks one, and `--fresh` with it rebuilds the board. A new scenario is a new folder, and `try.sh` never changes.
+
+- **`app`**, the default: a small expense tracker with tests, and 9 tickets that fit it. A parent at groundwork with one question left open, a child mid-build whose plan names real files with 2 of 4 steps in the code, a child blocked by it, an issue with a real bug one command reproduces, a topic half walked with the prototype it cut, a parked feature, a chore at review, a feature done. `docs/spec/expense.md` holds 2 features not yet cut. Every phase skill runs against code here, and the captured examples in `docs/manual/use/` come from this board.
+- **`guards`**: every refusal has a ticket to hit, and `flow check` finds 2 faults written by hand. `GUARDS.md` in the project lists the commands that refuse.
+- **`resume`**: a ticket at every status a handoff can leave, each with a `## State` and an `open` block, and a loose `notes/handoff.md` beside a draft.
+- **`empty`**: the template and nothing else.
+
+The `app` board, as `flow tree` prints it:
+
+```text
+t001  Budgets per category                                                           groundwork  -  0/2 done
+├── t002  Store budgets and set them                                                 building    -
+└── t003  Show what is left in the report                                            todo        -  blocked by t002
+t004  Report merges January to September into one month                              building    -
+t005  Move the store from JSON to SQLite                                             groundwork  -  0/1 done
+└── t006  Does node:sqlite ship in the installed Node, and does it survive 10k rows  building    -
+t007  Recurring expenses                                                             parked      -  waits on the store decision in t005: a rule is a row in SQLite and a second file in JSON
+t008  Test that add refuses a negative amount                                        review      -
+
+8 tickets, 1 done or dropped hidden: flow tree --all
+```
 
 It is a git repository of its own, and it has to be: `flow` finds a project root through `git rev-parse`, so without one, every ticket the scratch session filed would land in Flow itself.
 
