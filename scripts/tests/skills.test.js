@@ -87,13 +87,13 @@ test('a skill in drafts/ neither installs nor reports as installed', () => {
     assert.match(listed.stdout, /test-only-draft\s+drafts\s+not installed/);
 
     flow(dir, ['install', '--home', home, '--flow-home', flowHome, '--no-bin']);
-    assert.ok(!fs.existsSync(path.join(home, 'skills', 'test-only-draft')),
+    assert.ok(!fs.existsSync(path.join(home, 'skills', 'flow', 'skills', 'test-only-draft')),
       'a draft is skipped by the linker');
-    assert.ok(fs.existsSync(path.join(home, 'skills', 'groundwork')),
+    assert.ok(fs.existsSync(path.join(home, 'skills', 'flow', 'skills', 'groundwork')),
       'every other group still links');
 
     flow(dir, ['install', '--home', home, '--flow-home', flowHome, '--no-bin', '--drafts']);
-    assert.ok(fs.existsSync(path.join(home, 'skills', 'test-only-draft')),
+    assert.ok(fs.existsSync(path.join(home, 'skills', 'flow', 'skills', 'test-only-draft')),
       '--drafts links it, which is what the scratch session passes');
   } finally {
     fs.rmSync(draft, { recursive: true, force: true });
@@ -109,7 +109,7 @@ test('install builds a whole config, is idempotent, and prunes a dead link', () 
   assert.strictEqual(first.code, 0, first.stderr);
 
   assert.strictEqual(
-    linkTarget(path.join(home, 'skills', 'groundwork')),
+    linkTarget(path.join(home, 'skills', 'flow', 'skills', 'groundwork')),
     path.join(REPO, 'skills', 'phases', 'groundwork')
   );
   // scripts and references live under the second root: Claude Code reads
@@ -121,13 +121,13 @@ test('install builds a whole config, is idempotent, and prunes a dead link', () 
   );
   assert.ok(!fs.existsSync(path.join(home, 'scripts')), 'scripts no longer land under ~/.claude');
   assert.strictEqual(
-    linkTarget(path.join(home, 'skills', 'start')),
+    linkTarget(path.join(home, 'skills', 'flow', 'skills', 'start')),
     path.join(REPO, 'skills', 'tools', 'start'),
     'a typed-only skill installs like any other'
   );
   assert.strictEqual(
-    linkTarget(path.join(home, 'skills', 'flow-review')),
-    path.join(REPO, 'skills', 'dev', 'flow-review'),
+    linkTarget(path.join(home, 'skills', 'flow', 'skills', 'review')),
+    path.join(REPO, 'skills', 'dev', 'review'),
     'every group outside drafts/ installs'
   );
   assert.ok(!fs.existsSync(path.join(home, 'commands')), 'nothing links a commands folder any more');
@@ -136,12 +136,13 @@ test('install builds a whole config, is idempotent, and prunes a dead link', () 
 
   // A skill renamed in the clone leaves a link pointing at nothing.
   fs.symlinkSync(path.join(REPO, 'skills', 'phases', 'write-tickets'),
-    path.join(home, 'skills', 'write-tickets'));
+    path.join(home, 'skills', 'flow', 'skills', 'write-tickets'));
 
   const second = flow(dir, ['install', '--home', home, '--flow-home', flowHome, '--no-bin']);
   assert.strictEqual(second.code, 0, second.stderr);
-  assert.match(second.stdout, /unlinked \(gone\): skills\/write-tickets/);
-  assert.ok(fs.existsSync(path.join(home, 'skills', 'groundwork')), 'still linked after a re-run');
+  assert.match(second.stdout, /unlinked \(gone\): skills\/flow\/skills\/write-tickets/);
+  assert.ok(fs.existsSync(path.join(home, 'skills', 'flow', 'skills', 'groundwork')),
+    'still linked after a re-run');
   assert.match(second.stdout, /kept: CLAUDE.md/, 'a CLAUDE.md already there is never overwritten');
 });
 

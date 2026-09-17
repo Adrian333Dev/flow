@@ -98,9 +98,9 @@ cases   ~/.flow/study-cases/<issue>/<date>-<slug>.md: global, filed by issue
         times. Override with FLOW_HOME
 skills  one real copy of each lives in the clone, filed under a group folder.
         Every group but drafts installs on every machine, as one symlink named
-        for the skill, so there is no list to keep in step. What a session is
-        shown of each is skillOverrides in settings.json; flow skills ls
-        prints that state and says which file set it
+        for the skill, so there is no list to keep in step. The links sit
+        inside ~/.claude/skills/flow/, beside the manifest that makes each one
+        typed as /flow:groundwork; flow skills ls prints the catalog
 domain  a skill from the domain-skills repository installs into one project,
         never the machine: flow domain-skills add links it into
         .claude/skills/ and writes its name to .flow/domain-skills.txt. git
@@ -120,10 +120,10 @@ overlay a project adds to a skill without editing it, because one copy of that
         part of the skill. The line runs at the bottom of the skill, so a
         project with no overlay file prints nothing
 share   a finding for a domain skill waits in .flow/findings/<skill>/, where
-        /file-findings moves it on a yes. flow contribute opens one pull
+        /flow:file-findings moves it on a yes. flow contribute opens one pull
         request per skill through gh api, forking first where you cannot
         push, and deletes each file once sent. A pull request is never
-        merged: /fold rewrites the skill from it and closes it with what went in
+        merged: /flow:fold rewrites the skill from it and closes it with what went in
 default cases and overlays each read a bare word as an argument to their
         most used action: flow overlays groundwork is flow overlays get
         groundwork. skills, domain-skills and private-skills default to ls,

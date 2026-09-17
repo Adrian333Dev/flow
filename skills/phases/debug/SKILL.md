@@ -18,7 +18,7 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 **On a ticket** → read `## State` before step 1. It is where the hunt is written, so it says how far this one got: resume at the first hypothesis nothing killed, and never restart the loop. Nothing written there → step 1.
 
-Then `flow build <id>`, unless a `→ building` line above shows `/start` already made the move. An `issue` has no phase before building.
+Then `flow build <id>`, unless a `→ building` line above shows `/flow:start` already made the move. An `issue` has no phase before building.
 
 ## The loop
 
@@ -44,7 +44,7 @@ Then `flow build <id>`, unless a `→ building` line above shows `/start` alread
 
 4. **Fix the cause, then re-run the failing check.** Nothing else verifies it. A fix checked against a different command, a manual click, or your own reading of the diff is unverified.
 
-**Write the hunt down as it runs**: the failing check, every hypothesis and how it died, what survived. Inside a ticket that is `## State`; without one, `/handoff` writes a file. Nothing else records any of it, which makes an interrupted hunt the most expensive thing in Flow to lose.
+**Write the hunt down as it runs**: the failing check, every hypothesis and how it died, what survived. Inside a ticket that is `## State`; without one, `/flow:handoff` writes a file. Nothing else records any of it, which makes an interrupted hunt the most expensive thing in Flow to lose.
 
 **When the hunt ends, write the report**: `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the failing check, which hypotheses died and how, the cause, the fix, and the output that proves it. No ticket → `REPORT-<failure>.md` beside the work. `## State` is deleted when the ticket closes and this is not, a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely, a verified command, a settled convention, goes to `docs/context/<subject>.md` as well.
 
@@ -117,7 +117,7 @@ EOF
 
 **No ticket system here** → the report is already beside the work, and the subagent gets its path instead of an id.
 
-Then start a subagent with `Run /debug on <id>`. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. When a fix comes back, re-run the failing check yourself: someone else's verification output is their claim, not yours. A session that ends first leaves the ticket in `building`, and `/start <id>` picks it up.
+Then start a subagent with `Run /flow:debug on <id>`. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. When a fix comes back, re-run the failing check yourself: someone else's verification output is their claim, not yours. A session that ends first leaves the ticket in `building`, and `/flow:start <id>` picks it up.
 
 ## Hard rules
 

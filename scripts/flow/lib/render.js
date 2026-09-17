@@ -166,7 +166,7 @@ const reviveVerb = (t) =>
 /**
  * The one command this ticket is waiting for: printed, never run.
  *
- * `flow start` used to compute this status and write it, and `/start` ran that
+ * `flow start` used to compute this status and write it, and `/flow:start` ran that
  * through an injected shell line, so a ticket moved before the model had read a
  * word of it. The move now belongs to whichever skill picks the ticket up,
  * after it opens the phase's own artifact. This line is what that skill copies.
@@ -194,7 +194,7 @@ function pickupLine(ticket) {
  * The map, and how many of its questions are answered.
  *
  * Here for the reason the plan count is here: it is the artifact deciding
- * whether a phase finished, and every skill that is not `/groundwork` needs the
+ * whether a phase finished, and every skill that is not `/flow:groundwork` needs the
  * count rather than the file. One printed line spares them the read, and the
  * one that does need the file opens it anyway.
  */

@@ -33,7 +33,7 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
    - **MCP servers:** `curl 'https://registry.modelcontextprotocol.io/v0/servers?search=<word>'`
    - **The web.** For a chosen tool, name it with the words `skill`, `plugin` and `mcp`.
    - **Still nothing:** write a level 4 prompt, below, and name ChatGPT for it. It searches GitHub well.
-4. **Judge what comes back.** Prefer material carrying knowledge: a reference, a database, a set of conventions. Weigh anything carrying process, because a skill with its own build order competes with `/execute` and nothing arbitrates between them. For a skill:
+4. **Judge what comes back.** Prefer material carrying knowledge: a reference, a database, a set of conventions. Weigh anything carrying process, because a skill with its own build order competes with `/flow:execute` and nothing arbitrates between them. For a skill:
    - **Read its `SKILL.md`** before recommending it.
    - **Rank by publisher first:** the tool's own maker beats anyone else. Then the repo's stars and last push.
    - **Weigh install counts least.** The CLI reports them anonymously, and nothing verifies them.
@@ -81,7 +81,7 @@ Using what came back:
 
 **Dispatch on how much there is to read.** The level never decides it. A cloned codebase, megabytes of cached docs, a question that means opening 20 files: that much reading buries the session it lands in. Send it out and read the findings. A page or two, one grep for a signature, a file whose name you already have: read it here. A dispatch costs a brief, a wait, and everything the subagent saw but never wrote down.
 
-**The brief is a handoff**: `/handoff` writes it, delivered in the subagent's prompt rather than as a file. 3 things it carries that belong to reading specifically:
+**The brief is a handoff**: `/flow:handoff` writes it, delivered in the subagent's prompt rather than as a file. 3 things it carries that belong to reading specifically:
 
 - **The sources**: cache paths under `tmp/references/<tool>/`, the clone path, or URLs to fetch.
 - **The question**, precisely stated, with the constraints that shape the answer: stack, versions, decisions already locked.
@@ -114,7 +114,7 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 `docs/research/<question>.md`: **flat, and shared by the whole project.** Never inside a ticket or a groundwork folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds.
 
-**A question reading can answer never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a `prototype` ticket, and `/groundwork` cuts it.
+**A question reading can answer never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a `prototype` ticket, and `/flow:groundwork` cuts it.
 
 Level 1 answers inline, no file. Level 2 and up always writes one: the synthesis has to survive compaction.
 

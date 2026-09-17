@@ -73,7 +73,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 3. **`whole-then-parts`** Open with the thing whole, then its parts.
    - **`name-the-subject-first`** One plain sentence saying what the thing is, before any sentence arguing about it, reporting it, or listing its parts.
    - **`show-todays-state`** Show what exists now, before what changes.
-   - **`ui-is-drawn`** Layout, density, hierarchy, colour, and any shape the reader has to picture → `/visualize`. It is not installed either: read `skills/tools/visualize/SKILL.md` and follow it. Never improvise a diagram or a mockup.
+   - **`ui-is-drawn`** Layout, density, hierarchy, colour, and any shape the reader has to picture → `/flow:visualize`. It is not installed either: read `skills/tools/visualize/SKILL.md` and follow it. Never improvise a diagram or a mockup.
 
 ### Inside each section
 
@@ -115,10 +115,10 @@ The decisions neither page carries:
 
 - **`phases-closed-at-4`** `groundwork`, `execute`, `prototype` and `debug`. Set by the user and not reopenable.
 - **`no-code-review-skill`** Review runs in the same session, never a subagent, and the criteria live beside the skill that produced the artifact: `skills/phases/execute/references/review-code.md` for code.
-- **`short-skill-no-arguments`** A skill invoked over and over stays short. A long skill takes an argument only where the argument names what the skill opens, and a bare run renders the same text every time: the 4 phase skills take a ticket id, `/handoff` takes nothing. A differing render is appended whole. Binds Flow's own skills only.
+- **`short-skill-no-arguments`** A skill invoked over and over stays short. A long skill takes an argument only where the argument names what the skill opens, and a bare run renders the same text every time: the 4 phase skills take a ticket id, `/flow:handoff` takes nothing. A differing render is appended whole. Binds Flow's own skills only.
 - **`file-findings-density`** `file-findings` is the density to aim for. Style, including the `description`, lives in `references/style.md`.
 - **`plain-words-in-skills`** Plain, common words, with no invented or rare terms. Binds what a skill produces as hard as what it says.
-- **`no-versions-no-manifest`** `flow install` only ever builds symlinks.
+- **`no-versions-no-manifest`** `flow install` builds symlinks and one real file, `.claude-plugin/plugin.json`, which holds the plugin's name and lists no skill. No version number, and no record of what installed.
 
 ## Trying a change
 
@@ -130,6 +130,7 @@ The decisions neither page carries:
 
 - **`claude-dir-vs-flow-dir`** `.claude/` holds what Claude Code reads. `.flow/` holds what Flow owns. Both levels. On the machine, `~/.claude/` carries `CLAUDE.md`, `settings.json`, `skills/`, `agents/` and `rules/`; `~/.flow/` carries `scripts/`, `references/`, `settings.json`, `workflow-notes.md`, `study-cases/` and `private-skills/`. In a project, `.claude/` carries `settings.json` and any external skill; `.flow/` carries `tickets/`, `groundwork/`, `inbox.md`, `handoff.md`, `overlays/`, `domain-skills.txt` and `private-skills.txt`. `flow install` takes `--home` and `--flow-home`, and refuses one without the other.
 - **`skill-edits-are-live`** A skill edit reaches a session immediately, through the symlink. Adding, renaming or removing a skill is the only case needing `flow install`.
+- **`prefix-comes-from-the-manifest`** Every skill is typed `/flow:<name>`, and no folder, path or frontmatter `name` in this repo carries the prefix. `flow install` links the set into `~/.claude/skills/flow/` beside `.claude-plugin/plugin.json`, and both Claude Code and Codex read that file. Prose names a skill the way it is typed; a path names it bare.
 - **`never-symlink-a-folder`** Never symlink `skills/` or `agents/` whole. Both `~/.claude/` counterparts hold entries Flow doesn't own. `flow install` links per item, and refuses to replace anything not already a symlink.
 - **`scripts-keep-their-extension`** The symlink drops it. `flow.js` on disk, `flow` to type. `commands/fs/tree.js` is `util fs tree`.
 - **`one-source-two-ways`** Every shipped script lives once, in `scripts/`; `lab/scripts/` holds the ones that serve this repo alone. `~/.flow/scripts` is a symlink to that folder, for files named by path. `~/.local/bin/<name>` are per-file symlinks: `flow` and `fw` to `flow.js`, every other name `util`'s. No file is ever copied.

@@ -25,9 +25,9 @@ The line of statuses runs `todo → groundwork → planning → building → rev
 
 The agent runs the verb as part of the phase, never at the end of a session:
 
-- **`/groundwork`** runs `flow groundwork t001` when it opens the map, `flow plan t001` when the map closes and the ticket goes to `/execute`, and `flow done t005` on a topic, where the map was the deliverable.
-- **`/execute`** runs `flow plan t002` when it starts writing the plan, `flow build t002` once you approve the steps, `flow review t002` once every step is checked and the suite passes, and `flow done t002` once you say it is done.
-- **`/debug`** and **`/prototype`** run `flow build` on arrival. An issue and a prototype have no phase before building.
+- **`/flow:groundwork`** runs `flow groundwork t001` when it opens the map, `flow plan t001` when the map closes and the ticket goes to `/flow:execute`, and `flow done t005` on a topic, where the map was the deliverable.
+- **`/flow:execute`** runs `flow plan t002` when it starts writing the plan, `flow build t002` once you approve the steps, `flow review t002` once every step is checked and the suite passes, and `flow done t002` once you say it is done.
+- **`/flow:debug`** and **`/flow:prototype`** run `flow build` on arrival. An issue and a prototype have no phase before building.
 
 The agent reads the ticket first and moves it second. A ticket already at the right status gets no command.
 

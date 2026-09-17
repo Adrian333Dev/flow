@@ -99,9 +99,9 @@ Cut what lengthens a sentence without clarifying it. Readability first; the toke
 ### Anywhere
 
 - Digits, not words: `5`, not `five`.
-- Name a skill with its slash: `/groundwork`, never `groundwork`. The slash is what the user types, and it tells the skill from the ordinary word.
+- Name a skill with its slash: `/flow:groundwork`, never `groundwork`. The slash is what the user types, and it tells the skill from the ordinary word.
 - Symbols only where genuinely clearer than the word. Usually they are not. They also save nothing: `→` and `·` are each their own token, as are invented abbreviations like `cfg`.
-- Never use em dashes. Use a period, a comma, a colon, or parentheses. The repo was swept 2026-09-08. The only ones left are the character itself, listed as a drawing glyph in `/visualize` and as the example check in `write-checks.md`.
+- Never use em dashes. Use a period, a comma, a colon, or parentheses. The repo was swept 2026-09-08. The only ones left are the character itself, listed as a drawing glyph in `/flow:visualize` and as the example check in `write-checks.md`.
 
 ### Only in a loaded file
 
@@ -125,7 +125,7 @@ The description is in context from the moment a session starts, whether the skil
 
 - **What it is and what it covers. Never the steps.** A description that summarizes the workflow gets followed instead of the file. An agent given "code review between tasks" did one review where the skill specified two.
 - **Never when to invoke it.** A trigger written here is loaded by every session that never fires it. Write one only where it is wanted; `write-skills.md` names the 4 homes.
-- **Under-explaining is the failure to avoid.** Cover the subject in enough detail that a reader can tell what the skill reaches. `/visualize` names its media, because nothing else says what it draws. No word count overrides that.
+- **Under-explaining is the failure to avoid.** Cover the subject in enough detail that a reader can tell what the skill reaches. `/flow:visualize` names its media, because nothing else says what it draws. No word count overrides that.
 - **Typed-only (`disable-model-invocation: true`) → one short line.** The user already decided.
 
 ## 9. Transformations

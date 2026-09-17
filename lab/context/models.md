@@ -10,7 +10,7 @@ The scorecard records the effort level on every result, and `flow cases new` fil
 
 ### Every rule binds each model differently
 
-Sonnet 4.6 puts the report before the edits without being told. Opus 5 never does, and fails plain-language explanation even with the reply rules loaded and `/visualize` available. A rule written to fix one model can do nothing on another.
+Sonnet 4.6 puts the report before the edits without being told. Opus 5 never does, and fails plain-language explanation even with the reply rules loaded and `/flow:visualize` available. A rule written to fix one model can do nothing on another.
 
 - **A finding is worthless without the model that produced it.** Without the model, no study case can be checked against a second model later.
 - **A rule's violation rate is a number per model, never one number.** Without the split, a rule that binds Sonnet and fails on Opus reads as a rule with a mediocre rate.
@@ -270,6 +270,54 @@ duplication.
 carrying `name`, `description`, `nickname_candidates`, `developer_instructions`, `model` and
 `sandbox_mode`, with `default`, `worker` and `explorer` built in. Claude Code's are markdown with
 frontmatter.
+
+### Codex namespaces plugin skills, and reads Claude Code's manifest
+
+Found 2026-09-18 in the Codex source, now cloned at `repos/codex`. It decides how Flow's skills are
+named on both harnesses.
+
+**A plugin is a folder holding a manifest, and every skill below it is named `<plugin>:<skill>`.**
+`codex-rs/ext/skills/src/loader/namespace.rs` builds the name with `format!("{namespace}:{base_name}")`,
+and its doc comment says "a skill named `search` beneath a plugin named `sample` is exposed as
+`sample:search`". The namespace is the `name` field of the nearest manifest above the `SKILL.md`.
+
+**Codex reads Claude Code's manifest file.** `codex-rs/exec-server-protocol/src/protocol.rs:49`:
+
+```rust
+pub const DISCOVERABLE_PLUGIN_MANIFEST_PATHS: &[&str] = &[
+    ".codex-plugin/plugin.json",
+    ".claude-plugin/plugin.json",
+    ".cursor-plugin/plugin.json",
+];
+```
+
+So one `.claude-plugin/plugin.json` gives `/flow:groundwork` in Claude Code and `$flow:groundwork` in
+Codex, with no second manifest and no per-harness generation. Underneath both is the open standard at
+`agent-plugins.org`, the way `SKILL.md` sits on `agentskills.io`.
+
+**Three constraints the source sets.**
+
+- **The manifest and its folder must be real, never symlinks.** `codex-rs/utils/plugins/src/plugin_namespace.rs`,
+  in `find_plugin_manifest_path`, calls `symlink_metadata` and returns nothing the moment
+  `.claude-plugin/` is not a directory or `plugin.json` is not a file. `flow install` therefore copies
+  that one file rather than linking it.
+- **Symlinked skill folders are followed.** `codex-rs/ext/skills/src/loader/host.rs:164` picks
+  `DirectorySymlinkPolicy::Follow` for `User`, `Repo` and `Admin` scope. `~/.agents/skills/` is `User`.
+- **Depth 6, scanned recursively.** `codex-rs/ext/skills/src/loader/mod.rs:31` and `host.rs:107`. A
+  plugin folder holding `skills/<name>/SKILL.md` sits at depth 3.
+
+**A skill's own name comes from the frontmatter `name`**, not the folder. This is the reverse of a
+plain Claude Code skill, where the folder is the command and `name` is only a display label. Keeping
+folder and `name` identical is what lets one tree serve both harnesses.
+
+**Invocation is `$name`, not `/name`.** `/skills` lists them, `$` mentions one, and Codex fires one on
+its own from the `description` the same way Claude Code does. A skill body that writes `/flow:handoff` is
+therefore writing a Claude Code detail into a file Codex reads unchanged.
+
+**Two per-skill switches Codex has that the design assumed missing.** `[[skills.config]]` with `path`
+and `enabled = false` in `~/.codex/config.toml` turns one skill off without deleting it, and
+`agents/openai.yaml` beside a `SKILL.md`, carrying `policy: allow_implicit_invocation: false`, is the
+twin of `disable-model-invocation: true`.
 
 ### The `.agents/` layout
 

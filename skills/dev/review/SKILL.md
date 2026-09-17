@@ -1,5 +1,5 @@
 ---
-name: flow-review
+name: review
 description: Reviews how Flow performed. Finds where rules failed, where friction repeated, and where the design has a gap. Records findings as study cases or workflow notes, globally.
 ---
 

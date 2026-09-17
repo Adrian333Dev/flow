@@ -50,8 +50,8 @@ Everything about an installed machine a function can decide. It writes nothing, 
 
 - **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, `~/.local/bin` is on your `PATH`, and `node`, `git` and `claude` are reachable.
 - **The 3 util commands Flow calls**: `util fs tree`, `util fs merge` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all.
-- **`~/.claude/`**: one link per skill, agent and rule, each pointing into this clone, and `CLAUDE.md` present.
-- **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a skill that no longer exists.
+- **`~/.claude/`**: one link per skill, agent and rule, each pointing into this clone; the plugin manifest under `skills/flow/` present and naming `flow`; and `CLAUDE.md` present.
+- **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a Flow skill, which would do nothing because Flow's skills load as a plugin.
 - **`~/.flow/`**: `scripts` and `references` resolve into this clone.
 - **Both test suites**, Flow's and util's. They are the only slow part, and `--no-tests` drops them.
 
@@ -133,7 +133,7 @@ Three shapes:
 
 An id is a number and a label: `t047-parser-split`. The number is the identity. Any unambiguous part resolves it: `t047`, `47`, `parser`, or the whole thing.
 
-`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/start` passes `--files` explicitly, and so does each phase skill when typed with a ticket id.
+`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/flow:start` passes `--files` explicitly, and so does each phase skill when typed with a ticket id.
 
 **The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
 
@@ -289,9 +289,11 @@ Which skills this session is being shown, where that was decided, and which doma
 
 ### `flow skills ls`
 
-Every skill, its group, its on/off state, and where the state came from (default, machine, or project). A skill nobody names in `skillOverrides` is on by default. This is the default action: `flow skills` runs `ls`.
+Every skill and its group. This is the default action: `flow skills` runs `ls`.
 
-Two flags narrow it. `--group <group>` keeps one group, and naming a group that does not exist refuses with the list of ones that do. `--hidden` keeps only the skills this session is not being shown, meaning anything `off` or in `drafts/`, because a skill the session can already see is in context with its description and needs no listing.
+The `STATE` and `SET BY` columns read `skillOverrides`, which stopped reaching Flow's skills when they became a plugin, so both columns now say the same thing on every row. They go when the command is next opened.
+
+Two flags narrow it. `--group <group>` keeps one group, and naming a group that does not exist refuses with the list of ones that do. `--hidden` keeps only `drafts/`, which is the one group that does not install.
 
 ### `flow domain-skills`
 
@@ -433,7 +435,7 @@ A finding about a domain skill goes back to the repository the skill came from, 
 
 ### `flow contribute`
 
-Sends every finding waiting in `.flow/findings/<skill>/` to the `domain-skills` repository, one pull request per skill, titled `Findings for <skill>`. `/file-findings` moves a finding there and runs this command when you say yes to sending it.
+Sends every finding waiting in `.flow/findings/<skill>/` to the `domain-skills` repository, one pull request per skill, titled `Findings for <skill>`. `/flow:file-findings` moves a finding there and runs this command when you say yes to sending it.
 
 ```sh
 $ flow contribute
@@ -444,32 +446,34 @@ react: 2 sent, https://github.com/Adrian333Dev/domain-skills/pull/14
 - **Only `gh` is needed**, logged in once with `gh auth login`. The command works through GitHub's API, so it needs no checkout and never touches your clone.
 - **Without push access to the repository**, it makes your fork first and opens the pull request from there.
 - **Each file is deleted once sent.** A skill whose send fails keeps its files for the next run, the other skills still go, and the command exits 1. A skill the repository does not hold fails the same way.
-- **The pull request is never merged.** The maintainer checks each finding, folds the true ones into the skill with `/fold`, and closes the pull request with a comment saying what went in and why.
+- **The pull request is never merged.** The maintainer checks each finding, folds the true ones into the skill with `/flow:fold`, and closes the pull request with a comment saying what went in and why.
 
 ## The skills
 
-A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/name` to run one, or let Claude fire it from its description. Every skill is shown in every session until `skillOverrides` turns it off, which [Settings](#settings) covers.
+A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:name` to run one, or let Claude fire it from its description.
 
-**`phases/`, the four states a piece of work passes through.** Shown in every session. Each takes a ticket id, `/execute t047`, and loads the ticket and its files itself. Typed bare, it loads nothing.
+**The `flow:` in front of every one comes from a single file.** `flow install` links the whole set into `~/.claude/skills/flow/`, beside a manifest, `.claude-plugin/plugin.json`, holding the one word `flow`. Both Claude Code and Codex read that file and offer every skill below it as `flow:<name>`, so no folder and no `SKILL.md` in the clone carries a prefix. Codex spells the same command `$flow:groundwork`. Changing the word in the manifest renames every command at once, and `claude plugin disable flow@skills-dir` takes the whole set out of a session.
 
-- **`/groundwork`**: refines the idea and designs the solution, walking every open decision including the ones nobody raised
-- **`/execute`**: builds one ticket, plan through review
-- **`/prototype`**: throwaway code answering one question, and a report of what it found. Naive on purpose
-- **`/debug`**: finds the cause by evidence, proves it, fixes it
+**`phases/`, the four states a piece of work passes through.** Shown in every session. Each takes a ticket id, `/flow:execute t047`, and loads the ticket and its files itself. Typed bare, it loads nothing.
+
+- **`/flow:groundwork`**: refines the idea and designs the solution, walking every open decision including the ones nobody raised
+- **`/flow:execute`**: builds one ticket, plan through review
+- **`/flow:prototype`**: throwaway code answering one question, and a report of what it found. Naive on purpose
+- **`/flow:debug`**: finds the cause by evidence, proves it, fixes it
 
 **`tools/`, the jobs that fit no phase.** Shown in every session.
 
-- **`/start`**: opens a session on the board, one ticket, or a loose file. Typed only
-- **`/handoff`**: writes what a session that was not here needs, the state itself rather than a reading list
-- **`/file-findings`**: files what a session learned into the skills, rules and checks that will hold it next time
-- **`/research`**: reads what an external tool actually does, from its own documentation and source
-- **`/visualize`**: draws ASCII diagrams, screen mockups and HTML previews
-- **`/cut-from-spec`**: cuts the next batch of work out of `docs/spec/` into tickets. Typed only
+- **`/flow:start`**: opens a session on the board, one ticket, or a loose file. Typed only
+- **`/flow:handoff`**: writes what a session that was not here needs, the state itself rather than a reading list
+- **`/flow:file-findings`**: files what a session learned into the skills, rules and checks that will hold it next time
+- **`/flow:research`**: reads what an external tool actually does, from its own documentation and source
+- **`/flow:visualize`**: draws ASCII diagrams, screen mockups and HTML previews
+- **`/flow:cut-from-spec`**: cuts the next batch of work out of `docs/spec/` into tickets. Typed only
 
 **`dev/`, maintaining Flow and the `domain-skills` repository.** Shown in every session.
 
-- **`/flow-review`**: finds where Flow's rules failed, where friction repeated, and where the design was wrong
-- **`/fold <skill>`**: checks the findings sent to one domain skill, folds the true ones into its body and pages, and closes their pull requests. Typed only
+- **`/flow:review`**: finds where Flow's rules failed, where friction repeated, and where the design was wrong
+- **`/flow:fold <skill>`**: checks the findings sent to one domain skill, folds the true ones into its body and pages, and closes their pull requests. Typed only
 
 A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is what ships it.
 
@@ -481,7 +485,7 @@ Two files, and Flow contributes to one of them.
 
 - **`hooks`**: 5 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. The `UserPromptSubmit` hook prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply
 - **`permissions`**: an allow list, a deny list for Claude Code surfaces Flow does not use, and no git entries at all, because `flow git` owns git
-- **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses
+- **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses. It reaches outside skills only: Flow's own are a plugin, which this key cannot touch
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 
 A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing.

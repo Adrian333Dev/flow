@@ -8,9 +8,10 @@
  *   node <clone>/scripts/flow/flow.js install
  *
  * Everything after that is `flow install`, and re-running it is how a new
- * skill, a renamed command or a moved clone reaches this machine. Nothing is
- * ever copied except the global `CLAUDE.md`, which is yours to edit and so is
- * written only when absent.
+ * skill, a renamed command or a moved clone reaches this machine. Two files
+ * are copied and everything else is linked: the global `CLAUDE.md`, which is
+ * yours to edit and so is written only when absent, and the plugin manifest
+ * below, which is Flow's and is rewritten every run.
  *
  * It stops short of `settings.json`. Merging Flow's keys into a file already
  * holding your model, your effort level and your plugins is a judgment call,
@@ -27,6 +28,12 @@
  * Which skills link is read off the tree: every group except `drafts/`, which
  * `--drafts` adds back for the scratch session. There is no list to keep in
  * step, so a skill is typeable the moment its folder exists.
+ *
+ * The skills land inside one folder, `skills/flow/`, beside a small file that
+ * names it: `.claude-plugin/plugin.json`. That file is what makes every skill
+ * typed as `/flow:groundwork` rather than `/groundwork`, and it is the only
+ * thing this command writes that is not a symlink. Both harnesses read it,
+ * which is why the clone itself carries no prefix anywhere.
  */
 
 const fs = require('fs');
@@ -88,9 +95,22 @@ actions.install = {
       }
     }
 
+    // Flow's skills are a plugin, so they link one level down, under a folder
+    // holding the manifest that names them. The manifest is copied rather than
+    // linked: Codex checks it with `symlink_metadata` and ignores a link.
+    const linkDir = skills.linkDir(home);
+    const manifest = skills.manifestFile(home);
+    fs.mkdirSync(path.dirname(manifest), { recursive: true });
+    fs.copyFileSync(path.join(clone, 'home', 'plugin.json'), manifest);
+    done.push(`wrote: skills/${skills.PLUGIN}/.claude-plugin/plugin.json`);
+
+    fs.mkdirSync(linkDir, { recursive: true });
+    for (const gone of pruneDead(linkDir, clone)) {
+      done.push(`unlinked (gone): skills/${skills.PLUGIN}/skills/${gone}`);
+    }
     for (const skill of skills.installable({ drafts: flags.drafts })) {
-      link(skill.dir, path.join(home, 'skills', skill.name));
-      done.push(`linked: skills/${skill.name}`);
+      link(skill.dir, path.join(linkDir, skill.name));
+      done.push(`linked: skills/${skills.PLUGIN}/skills/${skill.name}`);
     }
 
     for (const file of markdownFiles(path.join(clone, 'agents'))) {
@@ -139,6 +159,11 @@ actions.install = {
       `PreToolUse hook and a few feature flags; ${path.join(clone, 'docs', 'manual', 'settings.md')} explains every key.\n` +
       `Merged rather than copied, because your settings hold things Flow should not own.\n` +
       `Restart Claude Code afterwards: settings load at startup.`
+    );
+
+    out(
+      `\nEvery skill is typed under the plugin name: /${skills.PLUGIN}:groundwork, /${skills.PLUGIN}:start.\n` +
+      `Both names are read at startup, so a new skill needs a restart too.`
     );
 
     if (!flags['no-bin']) {

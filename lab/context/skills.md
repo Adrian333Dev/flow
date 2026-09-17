@@ -10,7 +10,7 @@ Designed 2026-08-26 and built 2026-08-28: group folders, overlays, descriptions 
 
 ### Arguments
 
-**A long skill takes an argument only where the argument names what it opens.** `short-skill-no-arguments` in the repo `CLAUDE.md` carries the rule. Set 2026-09-16, when the 4 phase skills gained a ticket id: `/execute t047` loads the ticket and its files in the skill's first line, and a bare `/execute` prints nothing there, so its text stays identical to every earlier bare run. The user accepted the one cost: a phase opened bare and then with an id in one session holds its body twice, which the id appended by Claude Code already caused before the change. A split into a 10-line typed skill opening a hidden method skill was rejected the same day as overhead that rebuilt `/start` 4 times. The skill's first line runs `flow get` only when the first word typed is shaped like an id, and `$ARGUMENTS` on its own line keeps any text typed after the name. `scripts/check-ticket.js`, a `UserPromptExpansion` hook, blocks the skill before it loads when the id matches nothing, since a misspelt id is the common miss. Shaped like an id means `t` then a digit, in the hook and in the skill alike, so the folder name `t047-parser-split` is checked too.
+**A long skill takes an argument only where the argument names what it opens.** `short-skill-no-arguments` in the repo `CLAUDE.md` carries the rule. Set 2026-09-16, when the 4 phase skills gained a ticket id: `/flow:execute t047` loads the ticket and its files in the skill's first line, and a bare `/flow:execute` prints nothing there, so its text stays identical to every earlier bare run. The user accepted the one cost: a phase opened bare and then with an id in one session holds its body twice, which the id appended by Claude Code already caused before the change. A split into a 10-line typed skill opening a hidden method skill was rejected the same day as overhead that rebuilt `/flow:start` 4 times. The skill's first line runs `flow get` only when the first word typed is shaped like an id, and `$ARGUMENTS` on its own line keeps any text typed after the name. `scripts/check-ticket.js`, a `UserPromptExpansion` hook, blocks the skill before it loads when the id matches nothing, since a misspelt id is the common miss. Shaped like an id means `t` then a digit, in the hook and in the skill alike, so the folder name `t047-parser-split` is checked too.
 
 - **An argument breaks the duplicate check.** Claude Code skips a skill body already loaded when the rendered text matches. An argument changes the text, so the whole body loads a second time.
 - **Whoever supplies an argument is at the keyboard.** A typed skill can take one. A skill the model invokes reads context instead.
@@ -29,7 +29,7 @@ Designed 2026-08-26 and built 2026-08-28: group folders, overlays, descriptions 
 
 impeccable ships 1 skill, 4 subagents, 23 commands and 2 hooks. Enabling it adds a small system.
 
-**Prefer external material that carries knowledge. Weigh anything carrying process.** Flow is a process workflow, so a plugin with its own build order competes with `/execute` and nothing arbitrates. Of the 3 surveyed, `ui-ux-pro-max` is mostly knowledge: a searchable database of styles, palettes and font pairings. `impeccable` is mostly process. `taste-skill` sits between.
+**Prefer external material that carries knowledge. Weigh anything carrying process.** Flow is a process workflow, so a plugin with its own build order competes with `/flow:execute` and nothing arbitrates. Of the 3 surveyed, `ui-ux-pro-max` is mostly knowledge: a searchable database of styles, palettes and font pairings. `impeccable` is mostly process. `taste-skill` sits between.
 
 #### Off by default, enabled per project
 
@@ -38,13 +38,29 @@ impeccable ships 1 skill, 4 subagents, 23 commands and 2 hooks. Enabling it adds
 The reasoning that picked that shape:
 
 - **Recording the permission and flipping the switch are different acts.** Committing `extraKnownMarketplaces` says this project may use the plugin, which is a decision worth a diff. Enabling it is a preference, so it goes in a gitignored file and nobody else is forced into the state.
-- **`"skillOverrides": { "<name>": "user-invocable-only" }` is the middle setting**, for a plugin wanted reachable but never self-firing. It controls the trigger and never the cost, because the hooks keep running.
+- **There is no middle setting for a plugin.** `skillOverrides` looked like one, and it is not: Claude Code's settings page rules it out for plugin skills outright, so `user-invocable-only` on `impeccable:review` does nothing. A plugin is on or off, and its hooks run for as long as it is on.
+
+### Flow is a plugin too, and that is where the `flow:` prefix comes from
+
+**Decided 2026-09-18, built the same day.** Every Flow skill is typed `/flow:groundwork`, and the prefix is not written anywhere in the clone.
+
+The problem it solves is 3 skills the management build adds: `setup`, `help` and `migrate`. Bare, those words claim ground no workflow should claim on a machine that has other skills on it. The user rejected the 2 obvious fixes: a prefix in the folder name, `flow:groundwork/` or `flow-groundwork/`, which was tried on 2026-09-17 and reverted, because the objection was the renamed folders themselves in any form.
+
+**What a plugin is, here: a folder holding one extra file.** `.claude-plugin/plugin.json` names it, and every skill below that file is offered as `<plugin name>:<skill name>`. No marketplace, nothing installed. `flow install` links the 12 skills into `~/.claude/skills/flow/skills/` and copies the manifest to `~/.claude/skills/flow/.claude-plugin/plugin.json`. The clone keeps bare folders and bare frontmatter names.
+
+**Codex reads the same file**, which is what decided it over every alternative. `repos/codex/codex-rs/exec-server-protocol/src/protocol.rs` lists 3 manifests it accepts and Claude Code's is the second, and `ext/skills/src/loader/namespace.rs` builds the name with `format!("{namespace}:{base_name}")`. So one manifest gives `/flow:groundwork` in Claude Code and `$flow:groundwork` in Codex. `lab/context/models.md` holds the Codex findings, with the file behind each one.
+
+Two constraints the source set, both now honored by `flow install`: the manifest is copied rather than linked, because `utils/plugins/src/plugin_namespace.rs` calls `symlink_metadata` and ignores a link; and the skills themselves may be links, because `ext/skills/src/loader/host.rs` follows directory symlinks at user scope.
+
+**What it cost:** `skillOverrides` no longer reaches any Flow skill, so there is no per-skill off switch, only `claude plugin disable flow@skills-dir`. Flow shipped the key empty and never used a value, so nothing broke. Domain skills and private skills land in `.claude/skills/` as plain skills and answer to the key as before.
+
+**Proven live on 2026-09-18.** A scratch session built by `lab/scripts/try.sh` reported `flow@skills-dir` loaded, and asked to name its skills it answered `flow:groundwork`, `flow:handoff`, `flow:visualize`.
 
 ## The `domain-skills` repository: what is left to build
 
-The `domain-skills` repository and its pipeline were agreed with the user by 2026-09-13 and built by 2026-09-15: the repository at `lab/domain-skills/`, `flow domain-skills`, `flow private-skills`, `/research`'s local searches, one file per finding, `/fold` and `flow contribute`. `lab/domain-skills/CONTRIBUTING.md` and `docs/dev/skills.md` describe what was built, and git holds the design conversation. Cut on 2026-09-15 to the 3 parts not built.
+The `domain-skills` repository and its pipeline were agreed with the user by 2026-09-13 and built by 2026-09-15: the repository at `lab/domain-skills/`, `flow domain-skills`, `flow private-skills`, `/flow:research`'s local searches, one file per finding, `/flow:fold` and `flow contribute`. `lab/domain-skills/CONTRIBUTING.md` and `docs/dev/skills.md` describe what was built, and git holds the design conversation. Cut on 2026-09-15 to the 3 parts not built.
 
-A **domain skill** holds knowledge about a subject: a framework, a library, a service, or a field such as abuse prevention. A **finding** is one fact learned mid-work, saved as a file in the project and sent to the repository as a pull request that is never merged. **`/fold`** is the maintainer's skill that reads those pull requests and rewrites the skill.
+A **domain skill** holds knowledge about a subject: a framework, a library, a service, or a field such as abuse prevention. A **finding** is one fact learned mid-work, saved as a file in the project and sent to the repository as a pull request that is never merged. **`/flow:fold`** is the maintainer's skill that reads those pull requests and rewrites the skill.
 
 ### CI on the repository
 
@@ -69,7 +85,7 @@ The user names a subject and points at sources: ticket ids, folders, another pro
 
 Several pipelines under one subject are several pages.
 
-**Separate from `/file-findings`**, because typed-only is a frontmatter line set per skill. The model may offer `/file-findings` once the inbox passes 200 lines, and must never start hours of distilling on its own. Named nowhere in `~/.claude/CLAUDE.md`, since a rare typed command is learned from the README.
+**Separate from `/flow:file-findings`**, because typed-only is a frontmatter line set per skill. The model may offer `/flow:file-findings` once the inbox passes 200 lines, and must never start hours of distilling on its own. Named nowhere in `~/.claude/CLAUDE.md`, since a rare typed command is learned from the README.
 
 **Written after the first distill done by hand** with `write-skills.md`, on the abuse-prevention case, so the skill comes from a real run.
 
@@ -155,7 +171,7 @@ The toolbox is a catalog of outside tools an agent or a project can use, one fil
 
 ### skills.sh, 2026-09-14
 
-**The toolbox stays. skills.sh replaced it for finding skills only.** skills.sh is Vercel's index of every public repository holding a `SKILL.md`. The user found it and asked whether the toolbox should go. `/research` now searches both at once.
+**The toolbox stays. skills.sh replaced it for finding skills only.** skills.sh is Vercel's index of every public repository holding a `SKILL.md`. The user found it and asked whether the toolbox should go. `/flow:research` now searches both at once.
 
 **What skills.sh holds of the toolbox**, measured by searching it for each of the 154 GitHub repositories:
 
@@ -165,7 +181,7 @@ The toolbox is a catalog of outside tools an agent or a project can use, one fil
 
 **The notes decide it.** For a browser tool for a coding agent, skills.sh returns agent-browser (843k installs), browser-act (108k), browser-use (95k) and anti-detect-browser (84k). The toolbox's `microsoft_playwright-cli.md` says "Use when: browser work inside a coding session. The default", and when to take `microsoft_playwright-mcp.md` instead.
 
-**What would overturn it:** real `/research` runs where the toolbox never adds anything skills.sh and the web did not. All 88 notes so far say "from research" and none "from use", so the case is not yet made.
+**What would overturn it:** real `/flow:research` runs where the toolbox never adds anything skills.sh and the web did not. All 88 notes so far say "from research" and none "from use", so the case is not yet made.
 
 **Install counts rank last.** The CLI reports them anonymously and nothing verifies them: `prime-skills/runcomfy-agent-skills` → `lipsync` showed 356,974, above Supabase's own `supabase` skill at 272,347.
 

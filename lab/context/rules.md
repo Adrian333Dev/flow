@@ -6,7 +6,7 @@ Everything behind Flow's rule files: `home/CLAUDE.md`, this repository's `CLAUDE
 
 ## Enforcement: the bridge, the conduct rules, and how a rule file loads
 
-Locked across 5 sessions ending 2026-09-05, and built 2026-09-04 to 2026-09-07: capture into `.flow/findings/`, promotion through `/file-findings`, `scripts/rule-check.js`, `scripts/instructions-loaded.js`, `flow scorecard` and a rule id on every rule. `home/CLAUDE.md` → `## Capture`, `/file-findings` and `/file-findings`' `references/write-checks.md` carry what was built, and git holds the research inventory and the build log. Cut on 2026-09-15 to what 4 open items in `backlog.md` still need.
+Locked across 5 sessions ending 2026-09-05, and built 2026-09-04 to 2026-09-07: capture into `.flow/findings/`, promotion through `/flow:file-findings`, `scripts/rule-check.js`, `scripts/instructions-loaded.js`, `flow scorecard` and a rule id on every rule. `home/CLAUDE.md` → `## Capture`, `/flow:file-findings` and `/flow:file-findings`' `references/write-checks.md` carry what was built, and git holds the research inventory and the build log. Cut on 2026-09-15 to what 4 open items in `backlog.md` still need.
 
 ### Locked decisions: the enforcement bridge
 
@@ -70,7 +70,7 @@ Thresholds start at 5 violations and a 60% rate. Both are guesses until real dat
 - **Append one line per result.** Never read, modify and write back: 2 hooks firing close together overwrite each other's counts.
 - **Each session file records its project.** That answers "violated in one project and nowhere else", the signal a global rule should have been project-scoped. Free now, impossible to backfill.
 - **A session with no edits writes no file**, so the reader handles a missing one.
-- **A wrong warning goes to `.flow/findings/scorecard.md`**, which `/file-findings` already drains. Block only after path scoping and pattern refinement clear the false positives.
+- **A wrong warning goes to `.flow/findings/scorecard.md`**, which `/flow:file-findings` already drains. Block only after path scoping and pattern refinement clear the false positives.
 
 #### What counts as a dead rule
 
@@ -86,7 +86,7 @@ The scorecard reads the current session's transcript at `~/.claude/projects/<pro
 
 Checks live at `scripts/rule-checks/`, global to the machine. A project check would live at `.flow/checks/<id>.js`, with the scorecard loading both folders. **Only the global half is built**: no project needs one yet, and a mechanism built ahead of its first case gets built wrong.
 
-#### Who writes the checks: `/file-findings`
+#### Who writes the checks: `/flow:file-findings`
 
 Set by the user 2026-09-05. **A rule and its check are written at the same moment.** A check starts at `measure`, which interrupts nothing, so one built from a single example costs nothing when it turns out wrong. Waiting for more examples leaves the rule unmeasured for exactly as long as you wait.
 
@@ -201,7 +201,7 @@ The skill frontmatter note was already in `references/style.md` §8 and in the r
 
 > "in the workflow section "Five fire on a situation, not a phase, in any phase or none:" line is very confusing! We either need to remove it or reword it better. Also, in that workload section, I think we have a lot of unnecessary stuff. For example, the line where we mentioned the debug skill. I think it's unnecessary, right? Because we already mentioned that skill in the execute skill, and the same goes for the prototype and even research as well. We already defined them in proper places, including the skills that they actually needed, right? And also, you need to consider that they are already listed in the agent's context anyway. So, the agent is aware of those tools with their descriptions as well."
 
-`/execute` routes to `/debug`, `/groundwork` routes to `/research` and `/visualize`. No skill routes to `/prototype`; its description in the skill listing is its only trigger now, and the `/research` description beside it already separates reading from running.
+`/flow:execute` routes to `/flow:debug`, `/flow:groundwork` routes to `/flow:research` and `/flow:visualize`. No skill routes to `/flow:prototype`; its description in the skill listing is its only trigger now, and the `/flow:research` description beside it already separates reading from running.
 
 **The pointer to `workflow.md`.**
 
@@ -217,7 +217,7 @@ The skill frontmatter note was already in `references/style.md` §8 and in the r
 
 > "you're saying, you know, like, rude about the code to the rule section. You know, you mentioned your preferences section. You mentioned, you know, like, you know, the user section and stuff. You're not clarifying what in what file, right? Because we kind of have two, two global, you know, two CLAUDE.md files. One will be the global one, the other one will be the project specific one, right? We need to really clarify in what path agent is going to, you know, like, make what edits. Also, I think it's kind of outdated considering the new rule mechanism [...] it's actually the capture mechanism that captures them. And then file findings, you know, promotes them to rule or something."
 
-Every route now names its file. A rule noticed during work goes to `.flow/findings/<subject>.md`, and `/file-findings` decides between a skill, `rules/`, `.claude/rules/` and the project `CLAUDE.md`. A warning from a wrong rule check goes to `.flow/findings/scorecard.md`, which the enforcement bridge above had locked and `## Capture` never carried.
+Every route now names its file. A rule noticed during work goes to `.flow/findings/<subject>.md`, and `/flow:file-findings` decides between a skill, `rules/`, `.claude/rules/` and the project `CLAUDE.md`. A warning from a wrong rule check goes to `.flow/findings/scorecard.md`, which the enforcement bridge above had locked and `## Capture` never carried.
 
 **The heading example.**
 
@@ -249,8 +249,8 @@ Both `## Capture` routes are anchors now, and so is the pointer inside *Judge wh
 
 Four models rewrote the same sections of `home/CLAUDE.md` against the same list of faults. `state.md` carries the verdict. Three lines were cut by more than one model and looked at one by one:
 
-- `/debug` fires on "wrong but running" behavior too. Kept, as *including wrong-but-running behavior*, until the trigger itself was cut on the user's call above.
-- `/prototype` fires "where reading could not". Dropped with the trigger. The `/prototype` and `/research` descriptions already say running versus reading.
+- `/flow:debug` fires on "wrong but running" behavior too. Kept, as *including wrong-but-running behavior*, until the trigger itself was cut on the user's call above.
+- `/flow:prototype` fires "where reading could not". Dropped with the trigger. The `/flow:prototype` and `/flow:research` descriptions already say running versus reading.
 - "Most faults found late were in the thing already written, because nobody ever ran it." Cut on the direct-writing ruling. The rule *Walk what already exists too* stands alone.
 
 ### What the earlier sessions got wrong

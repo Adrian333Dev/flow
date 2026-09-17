@@ -33,7 +33,7 @@ Anything starts a run: one line, 10 paragraphs, a folder of research reports, a 
 - **Any question still `[ ]`** → Phase 2, from the first one
 - **Every question `[x]`** → Phase 4 routes what the map decided
 
-**Then write the status the map just proved**, in one command, saying what the map holds wherever it disagreed with the status: `flow groundwork <id>` while the map is live, `flow plan <id>` at the end of Phase 4 to hand the ticket to `/execute`, `flow done <id>` on a `topic`, where the map was the deliverable. Already matching → no command, and a line like `todo → groundwork` above means `/start` ran it.
+**Then write the status the map just proved**, in one command, saying what the map holds wherever it disagreed with the status: `flow groundwork <id>` while the map is live, `flow plan <id>` at the end of Phase 4 to hand the ticket to `/flow:execute`, `flow done <id>` on a `topic`, where the map was the deliverable. Already matching → no command, and a line like `todo → groundwork` above means `/flow:start` ran it.
 
 **A map that reads both ways stops the run.** Questions ticked with nothing written under them, a section abandoned mid-sentence, a map about another subject: say what you found and ask.
 
@@ -93,7 +93,7 @@ Sharpen vague input: what was tried already, and what forced this now.
    - **what happens when it fails**
    - **what you refuse to do**, and why
 4. **Imagine it failed.** It shipped and went badly. Name the 3 most likely causes. Each cause is an open decision.
-5. **Check prior art.** What do existing solutions do that nobody here raised? A landscape you don't already know → **invoke `/research`**, never guess at it.
+5. **Check prior art.** What do existing solutions do that nobody here raised? A landscape you don't already know → **invoke `/flow:research`**, never guess at it.
 6. **Challenge the premise.** Is the stated approach right at all? A better path goes on the table _before_ a map gets built around the stated one.
 7. **Cut for relevance.** Drop anything with no plausible win for this goal. Never pad to a number: options the user reads and rejects cost more than they're worth.
 
@@ -143,11 +143,11 @@ A feature rarely spawns one. A whole product usually spawns several, because its
 **Find the fact yourself.** Say what you'll find, find it, come back with it, then propose. The branch stays `[ ]` until the finding lands, and only branches downstream of it wait. Never stall the whole round on a lookup.
 
 - **What already exists here** → read it. Never burn a branch on what it already says.
-- **Something documented elsewhere** → **invoke `/research`**, levels 1–2.
-- **Past what the documentation says** → **invoke `/research`**, level 3: get the source and read it. **This is the case that sinks plans**, committing to a tool's internals unread produces a design that dies 4 steps into the build.
-- **Nothing written can answer it** → run something. A cheap check (one command, a 10-second script) runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail. Make it a child of this work where there is one: `flow new "<question>" --type prototype --parent <id>`. **Never build it here.** Start a subagent with `Run /prototype on <id>`, and carry on with the walk. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. This groundwork resumes from the finding in the ticket's `reports/`. When nothing else on the map can move, say it waits on that ticket and stop. A session that ends first leaves the ticket in `building`, and `/start <id>` picks it up.
+- **Something documented elsewhere** → **invoke `/flow:research`**, levels 1–2.
+- **Past what the documentation says** → **invoke `/flow:research`**, level 3: get the source and read it. **This is the case that sinks plans**, committing to a tool's internals unread produces a design that dies 4 steps into the build.
+- **Nothing written can answer it** → run something. A cheap check (one command, a 10-second script) runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail. Make it a child of this work where there is one: `flow new "<question>" --type prototype --parent <id>`. **Never build it here.** Start a subagent with `Run /flow:prototype on <id>`, and carry on with the walk. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. This groundwork resumes from the finding in the ticket's `reports/`. When nothing else on the map can move, say it waits on that ticket and stop. A session that ends first leaves the ticket in `building`, and `/flow:start <id>` picks it up.
 
-**A landscape too big to read here goes to a subagent**, never a ticket: reading asks no questions back, so nothing needs to watch it. `/research` owns the brief. The branch stays `[ ]` until the report lands in `docs/research/`, and the walk carries on meanwhile. A whole product is where this fires.
+**A landscape too big to read here goes to a subagent**, never a ticket: reading asks no questions back, so nothing needs to watch it. `/flow:research` owns the brief. The branch stays `[ ]` until the report lands in `docs/research/`, and the walk carries on meanwhile. A whole product is where this fires.
 
 **Never send the user's own material to a subagent.** A summary drops the detail Phase 1 needs, and their files are where the contradictions hide.
 
@@ -166,7 +166,7 @@ Then recommend one, say what would overturn it, and where a check is cheap, **ru
 
 Layout, density, how something feels, and equally a system whose shape is itself the question. Rephrasing these grows the scope to fill the uncertainty. "I don't know" twice on one branch is the signal.
 
-**Invoke `/visualize` and draw it. Never describe it.** Draw inline, in the message, unless the drawing is going into a document being written. ASCII frame first until the structure is agreed; colour only when colour is the open branch.
+**Invoke `/flow:visualize` and draw it. Never describe it.** Draw inline, in the message, unless the drawing is going into a document being written. ASCII frame first until the structure is agreed; colour only when colour is the open branch.
 
 Same whenever a proposal, an architecture or a mechanism goes in front of the user for the first time. A shape stated in sentences was not communicated.
 
@@ -212,9 +212,9 @@ Run at 3 moments, not at every close:
 
 Confirm every branch is resolved or deliberately deferred, then send each decision to the file that owns it. **Every route is conditional**: most runs use 1 or 2, several at once is normal.
 
-- **Work committed to here** → a ticket per unit of work, `flow new "…"`, each carrying what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list**: `/execute` reads every one of them, and a ticket pointed at everything is pointed at nothing. **Record order that matters as `deps`**; the order you walked the branches in carries none. **Create and fill in one command**: `--body -` takes the body on stdin. Never create, then edit.
+- **Work committed to here** → a ticket per unit of work, `flow new "…"`, each carrying what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list**: `/flow:execute` reads every one of them, and a ticket pointed at everything is pointed at nothing. **Record order that matters as `deps`**; the order you walked the branches in carries none. **Create and fill in one command**: `--body -` takes the body on stdin. Never create, then edit.
 - **A branch that is its own subject** → `flow new "…" --type topic --parent <id>`, one per subject. Phase 2 carries the split rule and what the body holds.
-- **Work already written into `docs/spec/product.md`** → **invoke `/cut-from-spec`**. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
+- **Work already written into `docs/spec/product.md`** → **invoke `/flow:cut-from-spec`**. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
 - **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `references/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
 - **A durable fact about this project** → `docs/context/<subject>.md`.
 - **Settled and dying with the build**, this build's non-goals included → already written in `map.md`. Leave it there.
@@ -228,7 +228,7 @@ Confirm every branch is resolved or deliberately deferred, then send each decisi
 - Several units, each useful alone → **it stays**, and becomes the design record the tickets link back to.
 - Several units, useless shipped apart → one parent ticket with children, created with the same flag so the folder lands on the parent. **The parent keeps only what no child holds**: the wiring, the integration test, the final suite.
 
-**Then say what happens next.** `flow next` lists what is workable, and **`/execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `/execute`, against the code as it stands that day.
+**Then say what happens next.** `flow next` lists what is workable, and **`/flow:execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `/flow:execute`, against the code as it stands that day.
 
 ## Asking questions
 
@@ -283,7 +283,7 @@ One line each: the path, then what it says, in a few words. A bare path makes th
 - `docs/context/contracts.md`: DTOs live in `packages/contracts`, never duplicated in the app
 - `docs/research/ai-elements-streaming.md`: how `<Conversation>` handles a streaming response
 - `tmp/references/ai-elements/llms.txt`: cached docs, fetched 2026-08-12
-- `/visualize`: invoke before proposing the panel's layout
+- `/flow:visualize`: invoke before proposing the panel's layout
 ```
 
 Nothing read this run → no section. Phase 4 splits the list across the tickets it cuts.

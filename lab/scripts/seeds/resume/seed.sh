@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # resume: a ticket at every status a handoff can leave, each with a ## State
 # and an open block, plus a loose file with a handoff beside it. For testing
-# /handoff, /start and the pickup in every phase skill.
+# /flow:handoff, /flow:start and the pickup in every phase skill.
 set -euo pipefail
 flow() { node "$FLOW_JS" "$@" >/dev/null; }
 folder() { ls -d "$PROJ"/.flow/tickets/"$1"-*; }

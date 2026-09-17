@@ -85,13 +85,14 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
 
   // Named off the tree rather than written in: a skill gets renamed, and a test
   // naming one by hand starts passing for the wrong reason on the day it does.
-  const [skill] = fs.readdirSync(path.join(m.home, 'skills')).sort();
-  fs.unlinkSync(path.join(m.home, 'skills', skill));
+  const linked = path.join(m.home, 'skills', 'flow', 'skills');
+  const [skill] = fs.readdirSync(linked).sort();
+  fs.unlinkSync(path.join(linked, skill));
 
   const settingsFile = path.join(m.home, 'settings.json');
   const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
   delete settings.hooks.InstructionsLoaded;
-  settings.skillOverrides['no-such-skill'] = 'off';
+  settings.skillOverrides[skill] = 'off';
   fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
 
   const references = path.join(m.flowHome, 'references');
@@ -103,7 +104,7 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, new RegExp(`skills/${skill} is in the tree and not linked`));
   assert.match(report.stdout, /no InstructionsLoaded hook running instructions-loaded\.js/);
-  assert.match(report.stdout, /skillOverrides names "no-such-skill"/);
+  assert.match(report.stdout, new RegExp(`skillOverrides names "${skill}", a Flow skill, and does nothing`));
   assert.match(report.stdout, /references points at .*gone, which is gone/);
 });
 

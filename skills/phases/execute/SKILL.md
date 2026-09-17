@@ -27,7 +27,7 @@ Never build a child's work in its parent. `flow ls --parent t047` lists them; th
 
 **The status says where the work stopped; the artifact says whether that phase finished.** Read the artifact, then move the ticket.
 
-**`/start` already moved it only where the user named the status**, and a line like `planning → building` above says so. Take the row for where it landed.
+**`/flow:start` already moved it only where the user named the status**, and a line like `planning → building` above says so. Take the row for where it landed.
 
 - **`todo`**: the ticket arrived decided, cut from a spec → `flow plan t047`, then Phase 2
 - **`planning`**: open `plan.md`. Written and approved → `flow build t047`, then Phase 3. Otherwise finish writing it
@@ -36,7 +36,7 @@ Never build a child's work in its parent. `flow ls --parent t047` lists them; th
 
 Then read the ticket body and its `## State` where one exists.
 
-**A `map:` count short of its own total is groundwork that never closed.** Say which questions are open, run `flow groundwork t047`, and hand it to `/groundwork`. No `map:` line is normal: a ticket cut from a spec never had a map.
+**A `map:` count short of its own total is groundwork that never closed.** Say which questions are open, run `flow groundwork t047`, and hand it to `/flow:groundwork`. No `map:` line is normal: a ticket cut from a spec never had a map.
 
 **A ticket born in conversation often has no `## Done when`**: `--body` replaces the template outright, so whether the section exists depends on who wrote it. No check → write it here and show it with the plan. A ticket cut from a spec arrived with one.
 
@@ -87,7 +87,7 @@ One step at a time, in order. **Write the step's detail, then build it.**
 
 **Never mark a step without the output that proves it.** The full suite runs once, in Phase 4.
 
-**Keep `## State` current as you build**, so `/handoff` checks a record instead of rebuilding one with no context left to rebuild it from.
+**Keep `## State` current as you build**, so `/flow:handoff` checks a record instead of rebuilding one with no context left to rebuild it from.
 
 What the build turns up, by where it goes:
 
@@ -106,7 +106,7 @@ The worker spends its own context on the repetition instead of yours. A step nee
 
 **A step may touch several files and still be one step.** Step boundaries come from finishable-and-checkable; the file count only decides who types it.
 
-**A job a separate session picks up is a child ticket instead**: `/handoff` writes it with `--parent t047`. Several run at once, and closing this ticket refuses while any is open. A worker dispatched for a step never needs one.
+**A job a separate session picks up is a child ticket instead**: `/flow:handoff` writes it with `--parent t047`. Several run at once, and closing this ticket refuses while any is open. A worker dispatched for a step never needs one.
 
 ### Dispatching a step
 
@@ -142,7 +142,7 @@ Whether you ran it or a worker did.
 
 **Stop after one attempt where the code runs and the answer is wrong.** Nothing about that failure is mechanical, and the second guess costs what the first did.
 
-**Then `/debug`.** It hunts here, and it owns what happens when the hunt runs out.
+**Then `/flow:debug`.** It hunts here, and it owns what happens when the hunt runs out.
 
 ### When the plan turns out wrong
 
@@ -178,7 +178,7 @@ Check each note against the code. A note that would break something gets said so
 
 Then `flow done t047`, once the user says it is done.
 
-**Then offer `/file-findings`, and wait for a yes.** It is what turns this ticket into a skill, a rule or a check, and nothing else drains the inbox. Offering is the whole job here: never invoke it unasked.
+**Then offer `/flow:file-findings`, and wait for a yes.** It is what turns this ticket into a skill, a rule or a check, and nothing else drains the inbox. Offering is the whole job here: never invoke it unasked.
 
 ### When the built thing is wrong
 
@@ -188,16 +188,16 @@ They tested it and it is not what they wanted, not a list of corrections, a diff
 
 1. **Write what building it taught into `issues.md`**, before anything moves. The reopened map runs on it, and left in the conversation it is gone by the next session.
 2. **Ask what happens to the code**: kept as reference, or reverted. Print the git command; the user runs it. A rejected implementation left in the tree is what the next build starts from.
-3. **`flow groundwork t047`**, then `/groundwork`. Read what it prints: leaving `review` stops satisfying other tickets' `deps`, so work that was ready stops being ready.
+3. **`flow groundwork t047`**, then `/flow:groundwork`. Read what it prints: leaving `review` stops satisfying other tickets' `deps`, so work that was ready stops being ready.
 4. **`plan.md` is replaced, never extended.** Every step is `[x]` and all of them describe the old shape. Phase 1 writes the new one against the code as it stands that day.
 
 ## The ticket folder
 
 5 files, 5 owners. Never write a file another skill owns.
 
-- **`ticket.md`**: frontmatter (`flow`), the body, `## References` and `## Done when` (whoever created it), `## State` (`/handoff` owns its shape, whoever works the ticket writes it). `## State` holds work in flight and dies at review; `## References` stays.
+- **`ticket.md`**: frontmatter (`flow`), the body, `## References` and `## Done when` (whoever created it), `## State` (`/flow:handoff` owns its shape, whoever works the ticket writes it). `## State` holds work in flight and dies at review; `## References` stays.
 - **`plan.md`**: this skill. What the code looks like now, then the steps, then whatever the build adds under them.
-- **`groundwork/map.md`**: `/groundwork`. Every decision and its reasoning.
+- **`groundwork/map.md`**: `/flow:groundwork`. Every decision and its reasoning.
 - **`issues.md`**: whoever builds. What the build taught, and it stays true after the ticket closes. Created the first time there is something; absent from every ticket that produces none.
 - **`reports/`**: whichever skill answered something. Absent where nothing was answered.
 

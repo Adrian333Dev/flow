@@ -11,9 +11,9 @@
  * visible on disk, cannot drift, and adding a skill to it is a `mkdir`.
  *
  * Installing and being shown are separate questions. Every skill outside
- * `drafts/` installs, and `skillOverrides` decides what a session pays for it.
- * A skill set to `off` costs nothing in context, so there is no case for
- * leaving one uninstalled.
+ * `drafts/` installs, and every one of them is shown in every session. There
+ * is no per-skill off switch: `skillOverrides` does not reach a plugin's
+ * skills, and `claude plugin disable flow@skills-dir` takes the whole set.
  */
 
 const fs = require('fs');
@@ -24,6 +24,28 @@ const { skillsRoot } = require('./clone');
 
 /** The one group `flow install` skips. A skill starts here and graduates by `mv`. */
 const DRAFTS = 'drafts';
+
+/**
+ * The name every Flow skill is typed under: `/flow:groundwork`.
+ *
+ * It comes from one file rather than from any folder in this clone. A folder
+ * holding `.claude-plugin/plugin.json` is a plugin, and every skill below that
+ * file is offered as `<plugin name>:<skill name>`. Claude Code reads the file
+ * because the format is its own; Codex reads the same file, which is why one
+ * tree serves both. So `flow install` links the skills one level deeper, into
+ * that folder, and every folder and every frontmatter `name` in this clone
+ * stays bare.
+ */
+const PLUGIN = 'flow';
+
+/** The plugin folder itself, inside whichever skills root install was given. */
+const pluginDir = (home) => path.join(home, 'skills', PLUGIN);
+
+/** Where the per-skill links go. `skills/` is where a plugin keeps its skills. */
+const linkDir = (home) => path.join(pluginDir(home), 'skills');
+
+/** The manifest, copied rather than linked: Codex ignores a symlinked one. */
+const manifestFile = (home) => path.join(pluginDir(home), '.claude-plugin', 'plugin.json');
 
 const subdirs = (dir) => {
   try {
@@ -124,4 +146,6 @@ function states(root) {
   };
 }
 
-module.exports = { DRAFTS, catalog, configDir, find, installable, states, subdirs };
+module.exports = {
+  DRAFTS, PLUGIN, catalog, configDir, find, installable, linkDir, manifestFile, pluginDir, states, subdirs,
+};

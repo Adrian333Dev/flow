@@ -17,7 +17,7 @@ One run usually writes 2 of these. Create `docs/spec/` where there is none.
 
 A subject gets its own file beside them only when all 3 hold: no fact appears in 2 files, the boundary is statable in one sentence, and it isn't a section of an existing file. Past 3 files, add an index naming each and what it holds.
 
-**Not this file's job:** how a library ended up bent out of shape, written after the build so the next person can change it. That's a durable project fact: `docs/context/<subject>.md`, written by `/execute`.
+**Not this file's job:** how a library ended up bent out of shape, written after the build so the next person can change it. That's a durable project fact: `docs/context/<subject>.md`, written by `/flow:execute`.
 
 ## 2. Before writing
 
@@ -35,7 +35,7 @@ One pass, after the map closes. The decisions were agreed while walking the map,
 
 **Write every requirement concrete and checkable.** "Fast", "robust", "user-friendly" are not requirements.
 
-**Draw wherever a drawing carries the point: invoke `/visualize`.** One place or 5, in whichever sections are spatial, and **every spec carries at least one**. Never head a section "architecture" and leave no picture under it.
+**Draw wherever a drawing carries the point: invoke `/flow:visualize`.** One place or 5, in whichever sections are spatial, and **every spec carries at least one**. Never head a section "architecture" and leave no picture under it.
 
 Markdown only. No frontmatter, no copied artifacts.
 
@@ -116,7 +116,7 @@ Give the paths. The user reads and approves before anything is created from it.
 
 **An objection is not new groundwork.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
 
-Approved and there's work to cut → **invoke `/cut-from-spec`**. **Never create a ticket from here.**
+Approved and there's work to cut → **invoke `/flow:cut-from-spec`**. **Never create a ticket from here.**
 
 ## Editing a spec that already exists
 

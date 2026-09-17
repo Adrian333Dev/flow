@@ -98,7 +98,8 @@ From `code.claude.com/docs/en/memory`.
 Tested against Claude Code 2.1.246 in a throwaway config, unless a line names another version.
 
 - **Exactly 2 folders are read**: `<project>/.claude/skills/*/SKILL.md` and `~/.claude/skills/*/SKILL.md`. No setting adds a third.
-- **Discovery is 1 level deep.** A skill filed inside a grouping folder, such as `~/.claude/skills/tools/visualize/SKILL.md`, never loads. This is why Flow's own groups exist in the repository and disappear at install: `flow install` links each skill folder straight into `~/.claude/skills/`.
+- **Discovery is 1 level deep for a plain skill.** A skill filed inside a grouping folder, such as `~/.claude/skills/tools/visualize/SKILL.md`, never loads. This is why Flow's own groups exist in the repository and disappear at install: the group name reaches nothing outside this tree.
+- **A plugin is the one thing that goes deeper.** A folder in a skills directory holding `.claude-plugin/plugin.json` is read as a plugin, and its own `skills/<name>/SKILL.md` load from there. That is where Flow's 12 skills sit: `~/.claude/skills/flow/skills/groundwork/`, loaded and named `flow:groundwork`. Verified 2026-09-18 with `claude plugin list`, which reported `flow@skills-dir` loaded.
 - **A global skill beats a project skill of the same name, silently.** With a skill named `dupname` in both folders, the listing showed 1 entry carrying the global description, and invoking it loaded the global body. No warning, no error. Run twice to confirm.
 - **Every installed skill's full description is in context from the start.** The name and the description are always loaded; only the body is deferred until the skill runs. A description is therefore a permanent cost and a body is not.
 
@@ -128,13 +129,17 @@ Put together with the deduplication rule above: a skill that takes arguments is 
 - **`user-invocable-only`** removes the skill from the model's view entirely, and typing `/pingtest` still loads it.
 - **A project's `.claude/settings.json` overrides the machine's copy key by key.** The 2 objects merge rather than replace, so a project can hide 1 skill without restating the rest.
 
-**None of these values stop anything but the skill itself.** For a plugin, the commands, subagents and hooks all keep running. `skillOverrides` controls the trigger and never the cost.
+**None of these values stop anything but the skill itself.** A plugin's commands, subagents and hooks all keep running. `skillOverrides` controls the trigger and never the cost.
+
+**It does not reach a plugin's skills at all.** `lab/research/claude-code-docs/settings.md` says so in one line: "Does not apply to plugin skills, which are managed through `/plugin`." Flow's own skills load as a plugin, so no `skillOverrides` value hides one. `claude plugin disable flow@skills-dir` switches the whole set off, and that is the only switch there is.
 
 ## A plugin is a bundle, not a skill
 
-A plugin installs from a marketplace and can carry skills, subagents, slash commands and hooks at once. Enabling one adds a small system, not a file: the surveyed `impeccable` plugin ships 1 skill, 4 subagents, 23 commands and 2 hooks.
+A plugin is a folder carrying a manifest, `.claude-plugin/plugin.json`, which names it. It can hold skills, subagents, slash commands and hooks at once. Enabling one adds a small system, not a file: the surveyed `impeccable` plugin ships 1 skill, 4 subagents, 23 commands and 2 hooks.
 
-- **Plugin skills are namespaced `plugin:skill`**, such as `superpowers:brainstorming`. A `skillOverrides` key for a plugin skill almost certainly needs the prefix.
+**A marketplace is one way in, not the only one.** Any folder under a skills directory that holds `.claude-plugin/plugin.json` is loaded as a plugin on the next session, named `<plugin>@skills-dir`, with nothing installed and nothing copied. `lab/research/claude-code-docs/plugins-reference.md` documents it. That is the route Flow takes: `flow install` writes the manifest beside the links it already builds, and the whole set becomes `flow:<skill>`.
+
+- **Plugin skills are namespaced `plugin:skill`**, such as `superpowers:brainstorming`. The name comes from the manifest, so changing one word there renames every command in the set. Typing the bare name still works when nothing else claims it.
 - **`enabledPlugins` is the real off switch.** Off means no skill, no commands, no subagents and no hooks.
 - **A plugin's hooks run for as long as the plugin is enabled.** `impeccable` registers `PostToolUse` on `Edit|Write`, and `Stop` with a 30-second budget on every single turn. Hooks from several plugins accumulate, and nothing reports the total.
 - **A flip takes effect in the next session.** Skills, commands, subagents and hooks are all read once at session start.

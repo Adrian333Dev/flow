@@ -69,12 +69,12 @@ Each question costs the parent one turn, which is how the question reaches you.
 
 ## What Flow uses, and where
 
-- **`/execute` → a worker per mechanical step**: `haiku-worker`, when every edit is already decided and the step spans roughly 5 or more files or 10 or more near-identical edits. Several may run at once where the agent decides it helps; the skill never pushes it.
-- **`/groundwork` → `/prototype`**: a question only running code can answer gets a `prototype` ticket, then a `general-purpose` subagent told `Run /prototype on t052`. The session that asked the question never builds the answer, because it would accept a vague question it already understands.
-- **`/debug` → a fresh hunt**: when the hypotheses run out, a subagent takes the hunt from the report, free of the hypotheses this session already killed.
-- **`/research` and `/groundwork` → readers**: a landscape too big to read in the session goes to a subagent, which writes its report to `docs/research/`.
+- **`/flow:execute` → a worker per mechanical step**: `haiku-worker`, when every edit is already decided and the step spans roughly 5 or more files or 10 or more near-identical edits. Several may run at once where the agent decides it helps; the skill never pushes it.
+- **`/flow:groundwork` → `/flow:prototype`**: a question only running code can answer gets a `prototype` ticket, then a `general-purpose` subagent told `Run /flow:prototype on t052`. The session that asked the question never builds the answer, because it would accept a vague question it already understands.
+- **`/flow:debug` → a fresh hunt**: when the hypotheses run out, a subagent takes the hunt from the report, free of the hypotheses this session already killed.
+- **`/flow:research` and `/flow:groundwork` → readers**: a landscape too big to read in the session goes to a subagent, which writes its report to `docs/research/`.
 
-A prototype or a hunt keeps its place in its ticket: the status stays `building`, and `## State` in `ticket.md` says where the work stopped. A session that ends mid-run loses the subagent and keeps the ticket, and `/start t052` picks it up.
+A prototype or a hunt keeps its place in its ticket: the status stays `building`, and `## State` in `ticket.md` says where the work stopped. A session that ends mid-run loses the subagent and keeps the ticket, and `/flow:start t052` picks it up.
 
 ## What a subagent changed
 

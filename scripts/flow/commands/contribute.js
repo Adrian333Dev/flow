@@ -3,11 +3,11 @@
  * `flow contribute`: sends this project's waiting findings to the
  * `domain-skills` repository, one pull request per skill.
  *
- * A finding waits in `.flow/findings/<skill>/`. `/file-findings` moves it there
+ * A finding waits in `.flow/findings/<skill>/`. `/flow:file-findings` moves it there
  * on a yes and runs this command, which deletes each file once its pull request
  * is open. A failed send leaves the files where they are for the next run.
  *
- * The pull request is never merged. `/fold` reads every open one for a skill,
+ * The pull request is never merged. `/flow:fold` reads every open one for a skill,
  * rewrites the skill, and closes each with a comment saying what went in. So
  * the open pull requests are the queue, readable from any machine, and 2
  * findings sharing a file name never meet in git.

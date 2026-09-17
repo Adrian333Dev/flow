@@ -1,6 +1,6 @@
 # Opening a session
 
-Every session opens with `/start`. It is a skill you type, and it does one of 3 things depending on what follows it: shows the board, loads one ticket, or opens a loose file. Whichever it did, it ends by handing the work to the right phase skill.
+Every session opens with `/flow:start`. It is a skill you type, and it does one of 3 things depending on what follows it: shows the board, loads one ticket, or opens a loose file. Whichever it did, it ends by handing the work to the right phase skill.
 
 This page assumes a project with tickets in it. [Tickets](../tickets.md) says what a ticket is and how one gets made.
 
@@ -9,12 +9,12 @@ This page assumes a project with tickets in it. [Tickets](../tickets.md) says wh
 - [With nothing: the board](#with-nothing-the-board)
 - [With a ticket id: one ticket, then its phase](#with-a-ticket-id-one-ticket-then-its-phase)
 - [With a path: loose work](#with-a-path-loose-work)
-- [Skipping `/start`](#skipping-start)
+- [Skipping `/flow:start`](#skipping-start)
 - [A misspelt id costs one line](#a-misspelt-id-costs-one-line)
 
 ## With nothing: the board
 
-`/start` alone prints the board, which is what `flow next` prints: the tickets in flight, then the ones ready to pick up, then the ones blocked and why.
+`/flow:start` alone prints the board, which is what `flow next` prints: the tickets in flight, then the ones ready to pick up, then the ones blocked and why.
 
 ```text
 in flight (6), finish these before starting more:
@@ -31,11 +31,11 @@ nothing ready. 1 todo ticket blocked:
         t002 is building
 ```
 
-The agent recommends one ticket and says what decided it. The order is fixed: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then it waits. You pick, by typing `/start` again with the id.
+The agent recommends one ticket and says what decided it. The order is fixed: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then it waits. You pick, by typing `/flow:start` again with the id.
 
 ## With a ticket id: one ticket, then its phase
 
-`/start t002` loads the ticket in full, and every file its `open` block names. The `open` block is the list of files a handoff left for the next session, and [Stopping and picking up](resume.md) says how it gets written.
+`/flow:start t002` loads the ticket in full, and every file its `open` block names. The `open` block is the list of files a handoff left for the next session, and [Stopping and picking up](resume.md) says how it gets written.
 
 ````md
 t002  Store budgets and set them
@@ -85,13 +85,13 @@ function setBudget(category, amount) {
 
 Then the `type:` line picks the phase skill, and for a feature or a chore the `status:` line does:
 
-- `issue` → `/debug`
-- `prototype` → `/prototype`
-- `topic` → `/groundwork`
-- `feature` or `chore` at `todo` or `groundwork` → `/groundwork`
-- `feature` or `chore` at `planning`, `building` or `review` → `/execute`
+- `issue` → `/flow:debug`
+- `prototype` → `/flow:prototype`
+- `topic` → `/flow:groundwork`
+- `feature` or `chore` at `todo` or `groundwork` → `/flow:groundwork`
+- `feature` or `chore` at `planning`, `building` or `review` → `/flow:execute`
 
-`/start` invokes that skill in the same session, with no argument, since the ticket is already on screen. `/start` moves nothing: the phase skill writes the status once it has read the ticket, and [Who moves the status](status.md) says when.
+`/flow:start` invokes that skill in the same session, with no argument, since the ticket is already on screen. `/flow:start` moves nothing: the phase skill writes the status once it has read the ticket, and [Who moves the status](status.md) says when.
 
 A parked ticket routes on its `resumes at:` line, which names the status it left. A ticket at `done` or `dropped` stops here: reopening is your call, never the agent's.
 
@@ -99,15 +99,15 @@ The id takes 3 forms, and all 3 resolve to the same ticket: `t002`, `t2`, or the
 
 ## With a path: loose work
 
-`/start docs/notes/pricing.md` opens work that has no ticket: a file beside the thing being worked on. The agent reads it and carries on from whatever the file says comes next.
+`/flow:start docs/notes/pricing.md` opens work that has no ticket: a file beside the thing being worked on. The agent reads it and carries on from whatever the file says comes next.
 
-## Skipping `/start`
+## Skipping `/flow:start`
 
-The 4 phase skills take the same id. `/execute t002` loads the ticket exactly as `/start t002` does, and opens the phase without the routing step. Use it when you already know which phase the ticket is in. [The 4 phase skills](phases.md) says what each accepts.
+The 4 phase skills take the same id. `/flow:execute t002` loads the ticket exactly as `/flow:start t002` does, and opens the phase without the routing step. Use it when you already know which phase the ticket is in. [The 4 phase skills](phases.md) says what each accepts.
 
 ## A misspelt id costs one line
 
-`/start t047` with no such ticket prints `flow`'s refusal and loads nothing:
+`/flow:start t047` with no such ticket prints `flow`'s refusal and loads nothing:
 
 ```text
 flow: no ticket t047.

@@ -43,14 +43,14 @@ One user message, your work, one reply. In that order, every time.
 One phase at a time:
 
 ```
-/groundwork      → decisions written, and the tickets they commit to
-/execute         → one ticket built and reviewed
-/file-findings   → the lessons taken out of it
+/flow:groundwork      → decisions written, and the tickets they commit to
+/flow:execute         → one ticket built and reviewed
+/flow:file-findings   → the lessons taken out of it
 ```
 
 - **`invoke-the-skill`** Invoke the skill that fits, never improvise its job. A small obvious task takes none.
-  - Anything drawn: structure, architecture, layout, density, hierarchy, colour → `/visualize`
-  - Context filling, a stretch of work closing, or a job needing its own session → `/handoff`
+  - Anything drawn: structure, architecture, layout, density, hierarchy, colour → `/flow:visualize`
+  - Context filling, a stretch of work closing, or a job needing its own session → `/flow:handoff`
 - **`skip-a-step`** Skip a Flow step that makes the work worse. Name the step and the reason. Never ask first.
 - **`read-workflow-md`** `~/.flow/references/workflow.md` says how the pieces fit. Read it only when more context needed.
 
@@ -72,12 +72,12 @@ No background: audio APIs, compilers, ML internals." -->
 - Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
 - How the user wants to work → `~/.claude/CLAUDE.md#preferences`. What they know or don't → `#the-user`. Both inferred from evidence, never announced: the same correction twice, irritation at a habit, a term you had to explain.
 - Durable project fact (a verified command, a path, a settled convention) → `docs/context/<subject>.md`
-- Reusable knowledge (a tool behavior, a library quirk, a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. `/file-findings` promotes it to a skill or a rule later. Skip what the loaded skill already says.
+- Reusable knowledge (a tool behavior, a library quirk, a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. `/flow:file-findings` promotes it to a skill or a rule later. Skip what the loaded skill already says.
   - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`
 - A warning from a rule check that was wrong → `.flow/findings/scorecard.md`
 - A decision the user confirmed with no open threads → `docs/spec/decisions.md`, or the groundwork map that owns the subject. Batched, never mid-discussion.
-- Flow itself failed (a rule that didn't fire, friction that repeated, output the user rejected) → `/flow-review`
-- Everything else → `.flow/inbox.md`, raw. Never shape it. Past 200 lines, offer `/file-findings`.
+- Flow itself failed (a rule that didn't fire, friction that repeated, output the user rejected) → `/flow:review`
+- Everything else → `.flow/inbox.md`, raw. Never shape it. Past 200 lines, offer `/flow:file-findings`.
 
 **`docs-context-holds-verified-facts`** One question per file, facts and never process, rewritten rather than appended.
 
@@ -123,7 +123,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 3. **`whole-then-parts`** Open with the thing whole, then its parts.
    - **`name-the-subject-first`** One plain sentence saying what the thing is, before any sentence arguing about it, reporting it, or listing its parts.
    - **`show-todays-state`** Show what exists now, before what changes.
-   - **`ui-is-drawn`** Layout, density, hierarchy, colour, and any shape the reader has to picture → `/visualize`. Never improvise a diagram.
+   - **`ui-is-drawn`** Layout, density, hierarchy, colour, and any shape the reader has to picture → `/flow:visualize`. Never improvise a diagram.
 
 ### Inside each section
 

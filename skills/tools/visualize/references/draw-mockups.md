@@ -32,7 +32,7 @@ A screen mockup is a **model of the real screen**, not a parts list. That is whe
 
 For colour, shade, density, elevation, type weight: the dimensions ASCII has no way to express. Budget several internal rounds: this one cannot happen in a minute, and rushing it produces a broken picture. One self-contained file in `tmp/`, opened from disk in a browser. **Not** the Artifact tool, **not** published, no server, no build step.
 
-**Needs the running stack**: real components, real data at volume, motion → build a `/prototype`.
+**Needs the running stack**: real components, real data at volume, motion → build a `/flow:prototype`.
 
 **Never show one variant.** A lone theme gets approved by default. Show 2 or 3, same page, same content.
 

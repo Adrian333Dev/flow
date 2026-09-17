@@ -36,8 +36,8 @@ There are no modes. Any run, any size, routes what it decided, often to more tha
 **Every type uses a subsequence of that order, never a different order**, which is why one set covers all five, and why `flow ls --status building` means the same thing whatever it lists:
 
 - **`feature`**: all of them.
-- **`chore`**: the same, usually skipping `/groundwork`; upkeep rarely has a decision in it.
-- **`issue`**: `todo → building → review → done`. `/debug` hunts the cause and writes the fix as one act.
+- **`chore`**: the same, usually skipping `/flow:groundwork`; upkeep rarely has a decision in it.
+- **`issue`**: `todo → building → review → done`. `/flow:debug` hunts the cause and writes the fix as one act.
 - **`topic`**: `todo → groundwork → done`. The map is the deliverable, and it was agreed decision by decision as it was written.
 - **`prototype`**: `todo → building → review → done`. The question arrived with the ticket, and the code is thrown away.
 
@@ -45,11 +45,11 @@ There are no modes. Any run, any size, routes what it decided, often to more tha
 
 **A ticket is named by its id, never a path.** `t047`, `47`, `parser` and `t047-parser-split` all resolve, because the number is the identity and the label is decoration.
 
-Pickup is where a ticket's shape gets decided, and it is the one real decision in the system. `/start` walks it: it routes on `type:` and `status:`, and nothing else happens there. **The ticket does not move at pickup**, the skill that takes it writes the status, after opening the phase's own artifact. `/groundwork` settles what the ticket is; `/execute` plans, builds and reviews it.
+Pickup is where a ticket's shape gets decided, and it is the one real decision in the system. `/flow:start` walks it: it routes on `type:` and `status:`, and nothing else happens there. **The ticket does not move at pickup**, the skill that takes it writes the status, after opening the phase's own artifact. `/flow:groundwork` settles what the ticket is; `/flow:execute` plans, builds and reviews it.
 
 **The artifact decides the phase, and the status is corrected to match.** A status is a claim a command wrote. `map.md`, `plan.md` and the hunt in `## State` are what the work left behind, so the artifact wins wherever the two disagree. Every phase skill opens its own artifact first, says the disagreement out loud, and writes the correcting command. Evidence that reads both ways is a question for the user, never a guess.
 
-**An `open` block loads a ticket's files before the session's first turn.** `/handoff` writes it, fenced, inside `## State`, or near the top of a loose `handoff.md`; `flow get --files` reads it, and `/start` runs that command. **It is content, not a reading list**, which is why arriving at a resumed ticket costs no tool calls. A ticket nobody has worked carries no block, so its artifact gets opened by hand. The format is `util fs open`'s, not Flow's, and works on any document, ticket or not. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it.
+**An `open` block loads a ticket's files before the session's first turn.** `/flow:handoff` writes it, fenced, inside `## State`, or near the top of a loose `handoff.md`; `flow get --files` reads it, and `/flow:start` runs that command. **It is content, not a reading list**, which is why arriving at a resumed ticket costs no tool calls. A ticket nobody has worked carries no block, so its artifact gets opened by hand. The format is `util fs open`'s, not Flow's, and works on any document, ticket or not. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it.
 
 **`## References` is not that block.** It is durable: whoever cut the ticket wrote what the build has to respect, and it survives to `done`. `## State` holds work in flight, and both it and its block are deleted at review.
 
@@ -62,9 +62,9 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 - **`docs/spec/`.** `product.md`: every behavior, every version, each marked V1 / next / later / never. `tech.md`: stack, repo layout, components, the decisions that constrain implementation. `decisions.md`: why each call was made, what was refused, what the whole thing bets on, what is still open. Markdown only. More files as the project needs them, and an index once there are more than three.
 - **`protos/`**: at repo root, never under `docs/`; a prototype is runnable code, and `docs/` stops being documentation once code lives in it. Flat, one folder each, named by what it proves. A prototype born in loose groundwork sits in that folder instead, linked from it.
 - **`docs/research/`**: fetched external docs and research writeups. Flat, subject-named, one set for the whole project.
-- **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/groundwork` reads it through `references/read-intake.md`.
+- **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.
 - **`docs/context/<subject>.md`**: durable project facts, one file per subject: a verified command, a path, a settled convention.
-- **`.flow/inbox.md`**: raw capture, unshaped, drained by `/file-findings`.
+- **`.flow/inbox.md`**: raw capture, unshaped, drained by `/flow:file-findings`.
 - **`.flow/handoff.md`**: session state when nothing narrower is live. State belongs to the most specific thing being worked: a ticket → its `## State`; loose groundwork → `handoff.md` in that folder; neither → here.
 
 ## Departing

@@ -6,16 +6,17 @@
  * for the skill. Nothing is copied, so every project shares one file and an
  * edit is live everywhere at once.
  *
- * `ls` is the only way to find a skill a session is not being shown. Nothing
- * announces a hidden skill and nothing should: the announcement would land in
- * every project, including the ones that turned the skill off.
+ * `ls` is the only way to find a skill a session is not being shown, which is
+ * now only a draft or a typed-only skill: `skillOverrides` stopped reaching
+ * Flow's skills when they became the `flow` plugin, so the STATE and SET BY
+ * columns say the same thing on every row and are waiting to be taken out.
  *
  * `--group` and `--hidden` narrow it. A session asking whether a skill for some
  * tool already exists wants neither the whole catalog nor the skills it can
  * already see, and `--hidden` is that question.
  *
  * No `add`, `sync`, `new` or `drop`. Writing a Flow skill is writing a file in the
- * clone, and removing one from a project is `skillOverrides`. A skill about one
+ * clone, and a Flow skill cannot be removed from one project on its own. A skill about one
  * field or tool comes from the domain-skills repository through
  * `flow domain-skills`, a skill of your own comes from `~/.flow/private-skills/`
  * through `flow private-skills`, and any other outside skill installs with its

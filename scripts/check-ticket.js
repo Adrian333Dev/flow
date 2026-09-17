@@ -5,7 +5,7 @@
  * whose ticket id matches nothing.
  *
  * Claude Code fires this when the user types a slash command, before the
- * skill's text is built. It is registered for the 4 phase skills and /start,
+ * skill's text is built. It is registered for the 4 phase skills and /flow:start,
  * the ones that take a ticket id. A phase skill loads the ticket through its
  * own first line, so a bad id would otherwise print a refusal and then load
  * the whole skill on top of it, hundreds of lines spent on a typo.

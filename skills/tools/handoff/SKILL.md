@@ -39,7 +39,7 @@ Nothing here runs by default. Pick what the next session will trip over.
 
 ### The `open` block
 
-`/start` runs `flow get --files`, which finds this block and loads every file it names **before the session's first turn**. A path here is not a reading list. It is content, already in context when the reader wakes up.
+`/flow:start` runs `flow get --files`, which finds this block and loads every file it names **before the session's first turn**. A path here is not a reading list. It is content, already in context when the reader wakes up.
 
 Write it fenced, inside `## State` on a ticket and near the top of a `handoff.md`:
 
@@ -55,7 +55,7 @@ src/parser.js:40-120   # where step 4 stopped
 - **Nothing is truncated**, so naming a folder loads the whole folder.
 - **Verify every path.** One that moved prints as missing, and the session starts a file short.
 
-A subagent gets no block. It reads its prompt and never runs `/start`.
+A subagent gets no block. It reads its prompt and never runs `/flow:start`.
 
 ### In a ticket: `## State`
 
@@ -77,7 +77,7 @@ What is left is what nobody wrote down, under 4 labels:
 
 **`Found` and `Open` are added to, never regenerated.** Both outlive the session that wrote them. A line goes in the moment you learn it, and comes out when it stops being true: a decision closes, or a fact moves to `docs/context/`. Rewriting these two from context is how something learned 3 hours ago disappears.
 
-**How many fill depends entirely on the work, and most of the time it is 2.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. Groundwork fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all 4 and runs long**, because `/debug` writes nothing durable while it hunts.
+**How many fill depends entirely on the work, and most of the time it is 2.** A build fills *Now* and *Found*, because the plan carries the shape and names its own files. Groundwork fills *Now* and *Open*, because `map.md` holds the decisions. **A bug fills all 4 and runs long**, because `/flow:debug` writes nothing durable while it hunts.
 
 A fat state section on a build ticket means the plan carries too little.
 
@@ -102,7 +102,7 @@ Every section above, written into the ticket body instead of a file, plus 4 that
 - **What to produce**: the artifact and its shape: the questions it answers, in order.
 - **What to say back**: the 2 or 3 sentences this session needs to carry on.
 
-**A bug has no finished check yet.** Nobody has built the failing check, and `/debug` refuses to name a cause before one fails in front of it. Write the observable instead: the failure as seen, and what not seeing it would look like.
+**A bug has no finished check yet.** Nobody has built the failing check, and `/flow:debug` refuses to name a cause before one fails in front of it. Write the observable instead: the failure as seen, and what not seeing it would look like.
 
 **A subagent starting now gets the same content in its prompt**, never a file and never a ticket. It reads the prompt and nothing else.
 
@@ -123,7 +123,7 @@ Durable knowledge goes to its own home the moment it surfaces: `## Capture` in t
 
 **In a ticket**: `## State` at the bottom of `ticket.md`, plus a line in `## References` for anything this session read that the build will need. While `map.md` is still open its own `## References` holds those, and Phase 4 splits them into the tickets it cuts.
 
-Everything else has an owner: `flow` the frontmatter, `/execute` `plan.md`, `/debug` and `/prototype` `reports/`, and whoever created the ticket the body paragraph. `## Done when` moves only when a skill re-decides what the ticket is.
+Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`, `/flow:debug` and `/flow:prototype` `reports/`, and whoever created the ticket the body paragraph. `## Done when` moves only when a skill re-decides what the ticket is.
 
 **At `review`, empty `Found` before deleting the section.** Anything in it still true goes to `docs/context/<subject>.md`, or into `## References` as a line. Then the section goes: "step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
 
@@ -139,7 +139,7 @@ Everything else has an owner: `flow` the frontmatter, `/execute` `plan.md`, `/de
 
 A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, `docs/research/<question>.md` for a question. `## State` carries the job's progress, never its answer.
 
-**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `/start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top what the first action is.
+**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `/flow:start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top what the first action is.
 
 ## Hard rules
 

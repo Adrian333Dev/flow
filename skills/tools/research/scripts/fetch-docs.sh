@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # fetch-docs.sh: download current docs for a tool into the local research cache.
-# Part of the `/research` skill. Run from the project root.
+# Part of the `/flow:research` skill. Run from the project root.
 #
 # Usage:
 #   fetch-docs.sh <tool> <domain> [url...]

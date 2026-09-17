@@ -94,4 +94,4 @@ Staleness runs in both directions and both are caught the same way, by matching 
 - A rule renamed or deleted leaves a check pointing at nothing.
 - A rule reworded enough to change what counts as a violation leaves a check measuring the old wording. Bump `since` when that happens, so the old counts drop out.
 
-**A false positive gets written to `.flow/findings/scorecard.md`** the moment it is noticed, which is the same folder `/file-findings` drains. If the check is wrong, fix the check. If the rule is too vague for any check to be right, the rule is what needs rewriting.
+**A false positive gets written to `.flow/findings/scorecard.md`** the moment it is noticed, which is the same folder `/flow:file-findings` drains. If the check is wrong, fix the check. If the rule is too vague for any check to be right, the rule is what needs rewriting.

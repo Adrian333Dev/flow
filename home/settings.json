@@ -95,7 +95,7 @@
     ],
     "UserPromptExpansion": [
       {
-        "matcher": "^(groundwork|execute|prototype|debug|start)$",
+        "matcher": "^(flow:)?(groundwork|execute|prototype|debug|start)$",
         "hooks": [
           {
             "type": "command",

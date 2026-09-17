@@ -232,8 +232,9 @@ function checkClaudeHome(clone, home, catalog) {
   if (catalog.error) problems.push(catalog.error.message.split('\n')[0]);
   const installable = catalog.skills.filter((s) => s.group !== skills.DRAFTS);
 
+  const linkDir = skills.linkDir(home);
   const wanted = [
-    ...installable.map((s) => ({ at: path.join(home, 'skills', s.name), target: s.dir, what: `skills/${s.name}` })),
+    ...installable.map((s) => ({ at: path.join(linkDir, s.name), target: s.dir, what: `skills/${s.name}` })),
     ...markdownFiles(path.join(clone, 'agents'))
       .map((f) => ({ at: path.join(home, 'agents', f), target: path.join(clone, 'agents', f), what: `agents/${f}` })),
     ...markdownFiles(path.join(clone, 'rules'))
@@ -246,6 +247,21 @@ function checkClaudeHome(clone, home, catalog) {
     else if (found.state === 'real') problems.push(`${item.what} is a real file, not a link: Flow never wrote it`);
     else if (found.state === 'broken') problems.push(`${item.what} points at ${found.raw}, which is gone: run flow install`);
     else if (found.target !== fs.realpathSync(item.target)) problems.push(`${item.what} points at ${found.target}, not this clone: run flow install`);
+  }
+
+  // The one file that gives every skill its name. Without it the skills still
+  // load, under bare names, and every command in every doc is wrong by one word.
+  const manifest = skills.manifestFile(home);
+  let manifestName = null;
+  try {
+    manifestName = JSON.parse(fs.readFileSync(manifest, 'utf8')).name;
+  } catch (e) {
+    problems.push(e.code === 'ENOENT'
+      ? `skills/${skills.PLUGIN}/.claude-plugin/plugin.json is missing, so the skills load unprefixed: run flow install`
+      : `skills/${skills.PLUGIN}/.claude-plugin/plugin.json is not valid JSON: ${e.message}`);
+  }
+  if (manifestName && manifestName !== skills.PLUGIN) {
+    problems.push(`the plugin manifest names "${manifestName}", so the skills are typed /${manifestName}:groundwork: run flow install`);
   }
 
   const rules = path.join(home, 'CLAUDE.md');
@@ -263,7 +279,7 @@ function checkClaudeHome(clone, home, catalog) {
     count(markdownFiles(path.join(clone, 'agents')).length, 'agent', 'agents'),
     count(markdownFiles(path.join(clone, 'rules')).length, 'rule', 'rules'),
   ].join(', ');
-  return { name: shorten(home), problems, notes, summary: `${counted} linked, CLAUDE.md present` };
+  return { name: shorten(home), problems, notes, summary: `${counted} linked under ${skills.PLUGIN}/, CLAUDE.md present` };
 }
 
 /**
@@ -299,11 +315,13 @@ function checkSettings(clone, home, catalog) {
     if (!fs.existsSync(resolved)) problems.push(`the ${label(row)} hook names ${match.script}, which is not on disk`);
   }
 
-  // An override outlives the skill it names, and nothing reports it: the key is
-  // read against a catalog that no longer has that entry and simply does nothing.
+  // `skillOverrides` cannot reach a plugin's skills, and Flow's are a plugin,
+  // so a key naming one is read by nothing and nothing reports it. Every other
+  // key names a skill from outside this clone, which Flow has no business judging.
   for (const name of Object.keys(live.skillOverrides || {})) {
-    if (!catalog.error && !catalog.names.has(name)) {
-      problems.push(`skillOverrides names "${name}", which is not a skill in this clone`);
+    if (!catalog.error && catalog.names.has(name)) {
+      problems.push(`skillOverrides names "${name}", a Flow skill, and does nothing: ` +
+        `Flow's skills load as the ${skills.PLUGIN} plugin, and skillOverrides does not reach a plugin`);
     }
   }
 
@@ -428,17 +446,18 @@ function readCatalog() {
   }
 }
 
-/** True when ~/.claude/skills holds even one link into this clone. */
+/** True when the plugin folder holds even one link into this clone. */
 function anyFlowSkillLinked(home) {
   const clone = cloneRoot();
+  const linkDir = skills.linkDir(home);
   let entries = [];
   try {
-    entries = fs.readdirSync(path.join(home, 'skills'));
+    entries = fs.readdirSync(linkDir);
   } catch {
     return false;
   }
   return entries.some((name) => {
-    const found = inspect(path.join(home, 'skills', name));
+    const found = inspect(path.join(linkDir, name));
     return found.state === 'ok' && found.target.startsWith(clone + path.sep);
   });
 }

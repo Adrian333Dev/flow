@@ -14,7 +14,7 @@ Code written to answer one named question, then deleted.
 
 **Naive on purpose.** No tests, no error handling, no abstractions. The real build reads the prototype as a reference and starts again: nothing written here is ever promoted.
 
-**A fresh subagent builds it.** Where talking cannot settle a question, `/groundwork` cuts a child ticket typed `prototype` carrying it, then starts a subagent on that ticket. **Never build in the session that asked**: the session that invented the question will accept a vague one, because it already knows what it meant. The subagent sees the ticket and nothing else.
+**A fresh subagent builds it.** Where talking cannot settle a question, `/flow:groundwork` cuts a child ticket typed `prototype` carrying it, then starts a subagent on that ticket. **Never build in the session that asked**: the session that invented the question will accept a vague one, because it already knows what it meant. The subagent sees the ticket and nothing else.
 
 **Never start a prototype nobody asked for.**
 
@@ -22,23 +22,23 @@ Code written to answer one named question, then deleted.
 
 **Talking failed and reading failed: that is the entry condition.** A page of documentation costs less than code, so where reading would settle the question, reading settles it and nothing gets built.
 
-**Colour, density and type weight cost one round in `/visualize`**: one HTML file, opened from disk, no session split. Build a prototype only where the running stack answers it: real components, real data at volume, motion, a device.
+**Colour, density and type weight cost one round in `/flow:visualize`**: one HTML file, opened from disk, no session split. Build a prototype only where the running stack answers it: real components, real data at volume, motion, a device.
 
-**Lock the layout in `/visualize` first.** ASCII carries layout, so the rounds happen there and cost little: several frames side by side, one chosen. Everything after works on a frozen frame. Reverse the order and every expensive round redraws boxes that were never wrong.
+**Lock the layout in `/flow:visualize` first.** ASCII carries layout, so the rounds happen there and cost little: several frames side by side, one chosen. Everything after works on a frozen frame. Reverse the order and every expensive round redraws boxes that were never wrong.
 
 ## What the ticket must carry
 
-`/groundwork` writes these into the ticket body. Whoever builds it checks they arrived, and stops if they did not. Handed over without a ticket, it is the same 3 wherever the handoff put them.
+`/flow:groundwork` writes these into the ticket body. Whoever builds it checks they arrived, and stops if they did not. Handed over without a ticket, it is the same 3 wherever the handoff put them.
 
 - **The question, in one sentence.** 3 at most: past 3 it is a project.
 - **Pass and fail**, for a question that can come out false. What each answer means, and what each one changes. Skip a question whose 2 answers lead to the same decision.
 - **The comparison plan**, for a question only the user can judge. What is being compared, and how many variants: **never one**, which gets approved by default. Pass and fail do not exist here; the user's reaction is the result.
 
-`/handoff` covers everything else a picked-up job needs: what turns on the answer, what is already set up, what was found, what to say back. Never restate any of that here.
+`/flow:handoff` covers everything else a picked-up job needs: what turns on the answer, what is already set up, what was found, what to say back. Never restate any of that here.
 
 **Missing pass and fail → stop and ask.** Criteria written after the run match whatever came out.
 
-**Everything arrived → `flow build <id>`**, then stand it up. Skip the move where a `→ building` line above shows `/start` already made it. A prototype has no phase before building.
+**Everything arrived → `flow build <id>`**, then stand it up. Skip the move where a `→ building` line above shows `/flow:start` already made it. A prototype has no phase before building.
 
 ## 1. Stand it up before testing anything
 

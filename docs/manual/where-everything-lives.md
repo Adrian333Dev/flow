@@ -19,7 +19,9 @@ Flow puts files in 4 places on a machine, reads 2 clones, and keeps a working st
 ├─ .claude/                       what Claude Code reads
 │  ├─ CLAUDE.md
 │  ├─ settings.json
-│  ├─ skills/<name>               → <clone>/skills/<group>/<name>
+│  ├─ skills/flow/
+│  │  ├─ .claude-plugin/          the manifest, a real file, naming the set flow
+│  │  └─ skills/<name>            → <clone>/skills/<group>/<name>
 │  ├─ agents/<file>.md            → <clone>/agents/<file>.md
 │  ├─ rules/<file>.md             → <clone>/rules/<file>.md
 │  └─ projects/                   session transcripts
@@ -72,7 +74,7 @@ Flow puts files in 4 places on a machine, reads 2 clones, and keeps a working st
 
 - **`CLAUDE.md`**: the rules every session loads. `flow install` copies `home/CLAUDE.md` here once, when no file exists, and from then on the file is yours.
 - **`settings.json`**: Claude Code's settings. `flow install` never writes it. It prints the hooks and permissions to merge, and you merge them by hand. [Settings](settings.md) explains every key.
-- **`skills/<name>`**: one symlink per Flow skill, named for the skill with no group folder. `flow install` makes them.
+- **`skills/flow/`**: every Flow skill, one symlink each, named for the skill with no group folder. They sit inside a folder of their own because of the file beside them, `.claude-plugin/plugin.json`, which holds the one word `flow`: both Claude Code and Codex read it and offer each skill as `flow:<name>`, so `/flow:groundwork` is what you type. `flow install` writes the manifest and makes the links.
 - **`agents/<file>.md`**: one symlink per subagent definition, such as `haiku-worker.md`. `flow install` makes them.
 - **`rules/<file>.md`**: one symlink per rules file. `flow install` makes them.
 - **`projects/`**: every session's transcript. Claude Code writes it, and `flow audit` reads it.
@@ -90,7 +92,7 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 - **`audit/`**: `audit.db`, the index of every transcript. `flow audit index` builds it, and it can be rebuilt from `~/.claude/projects/` at any time.
 - **`changes/<session>/`**: what each subagent changed, filed under its agent id. `changes.js` writes it, and deletes a session's folder once nothing has touched it for 7 days.
 - **`private-skills/<name>/`**: skills you write for yourself and never share. You write them. `flow private-skills` links one into a project.
-- **`groundwork/<slug>/`**: groundwork run outside any project. `/groundwork` writes it.
+- **`groundwork/<slug>/`**: groundwork run outside any project. `/flow:groundwork` writes it.
 - **`tickets/`**: tickets made outside any project, with `FLOW_PROJECT=$HOME flow new "<title>"`. Same shape as a project's.
 
 ### `~/.util/` and `~/.local/bin/`
@@ -121,9 +123,9 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 
 - **`tickets/<id>-<slug>/`**: one folder per ticket, holding `ticket.md`, `groundwork/`, and whatever the work writes. `flow new` makes it, and sessions fill it. [Tickets](tickets.md) shows the shape.
 - **`tickets/archive/`**: finished tickets, moved whole. Nothing is deleted.
-- **`groundwork/<slug>/`**: groundwork that is not a ticket yet, holding `map.md` and a `handoff.md` when a session stopped halfway. `/groundwork` writes it, and `flow new --from-groundwork` moves it into a ticket.
-- **`inbox.md`**: raw notes with no obvious home yet. Sessions append to it, and `/file-findings` drains it.
-- **`findings/`**: one file per lesson a session learned. `/file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for `flow contribute`.
+- **`groundwork/<slug>/`**: groundwork that is not a ticket yet, holding `map.md` and a `handoff.md` when a session stopped halfway. `/flow:groundwork` writes it, and `flow new --from-groundwork` moves it into a ticket.
+- **`inbox.md`**: raw notes with no obvious home yet. Sessions append to it, and `/flow:file-findings` drains it.
+- **`findings/`**: one file per lesson a session learned. `/flow:file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for `flow contribute`.
 - **`overlays/<skill>.md`**: text this project adds to the end of a global skill when it loads. You or a session write it.
 - **`domain-skills.txt`** and **`private-skills.txt`**: the names of the skills added to this project, committed, so a second machine can relink them. `flow domain-skills` and `flow private-skills` write them.
 - **`settings.json`**: a git unlock for this project alone, with its expiry time. `flow git allow --project` writes it, and the guard removes the entry once it expires. Gitignored.
@@ -134,7 +136,7 @@ Flow sessions write into these and own none of them.
 
 - **`spec/`**: what the product is.
 - **`context/`**: verified facts about this repository that outlive any ticket.
-- **`research/<question>.md`**: `/research` reports, flat, shared by the whole project.
+- **`research/<question>.md`**: `/flow:research` reports, flat, shared by the whole project.
 
 ## What stays on one machine
 

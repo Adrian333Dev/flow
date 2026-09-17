@@ -107,13 +107,15 @@ Records what each subagent changed, and hands the parent a diff per file when th
 #### The ticket check
 
 ```json
-"UserPromptExpansion": [ { "matcher": "^(groundwork|execute|prototype|debug|start)$", "hooks": [ { "type": "command",
+"UserPromptExpansion": [ { "matcher": "^(flow:)?(groundwork|execute|prototype|debug|start)$", "hooks": [ { "type": "command",
   "command": "node \"$HOME/.flow/scripts/check-ticket.js\"" } ] } ]
 ```
 
 Runs `scripts/check-ticket.js` when one of the 5 skills that take a ticket id is typed, before the skill's text is built. The script reads the first word typed. A word shaped like a ticket id, which is `t` then a digit, so `t047`, `t47` or the folder name `t047-parser-split`, is checked with `flow get`; when nothing matches, the command is blocked and `flow`'s own message is shown, so a typo costs one line instead of the whole skill. Any other first word passes untouched, which is what lets instructions be typed after the skill name.
 
-It fires only on what the user types. A skill the agent invokes, as `/start` does when it routes, carries no id and never reaches it.
+The matcher accepts the name with or without the prefix. Flow's skills load as a plugin named `flow`, so the command reads `/flow:execute`, and the hook is handed the bare name `execute`. The optional `flow:` group means the hook still fires if a future Claude Code version passes the full name instead.
+
+It fires only on what the user types. A skill the agent invokes, as `/flow:start` does when it routes, carries no id and never reaches it.
 
 #### The reminder
 
@@ -172,7 +174,7 @@ These are **bare tool names**, which removes each tool from the model's context 
 
 | Entry | Why |
 |---|---|
-| `EnterPlanMode`, `ExitPlanMode` | Flow owns planning: `/groundwork` → tickets → the ticket's `plan.md`. Built-in plan mode also blocks the file writes those phases depend on. |
+| `EnterPlanMode`, `ExitPlanMode` | Flow owns planning: `/flow:groundwork` → tickets → the ticket's `plan.md`. Built-in plan mode also blocks the file writes those phases depend on. |
 | `AskUserQuestion` | Presents a canned multiple-choice list. Flow's rule is the inverse: the agent commits to a recommendation and the user reacts. |
 | `ListAgents` | Finds other Claude Code sessions to message. Flow messages its own subagents by id, and nothing else. |
 | `PushNotification`, `ScheduleWakeup`, `RemoteTrigger`, `ReportFindings` | Out-of-band and unattended operation. One author, one terminal, every session watched. |
@@ -232,13 +234,17 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 **What a session is shown of each skill.** A description sits in context from the moment a session starts, whether the skill is ever invoked or not, so every installed skill costs something in every session. This key is where that cost is decided, per skill, per machine and per project.
 
-Installing and being shown are separate questions. Every skill outside `drafts/` installs on every machine, and a skill set to `off` costs nothing, so nothing is gained by leaving one uninstalled.
+#### It does not reach Flow's own skills
 
-#### Every skill Flow installs is on
+Flow's skills install as a plugin. `flow install` writes one small file, `~/.claude/skills/flow/.claude-plugin/plugin.json`, and every skill below it is a plugin skill: `flow:groundwork`, `flow:start`, `flow:execute`. Claude Code's settings page rules the key out for exactly those: *Does not apply to plugin skills, which are managed through `/plugin`*. No value here hides `/flow:execute`.
 
-`phases/`, `tools/` and `dev/` are reached in ordinary work, in any project, so `home/settings.json` ships `skillOverrides` empty.
+**The switch that does reach them is all or nothing.** `claude plugin disable flow@skills-dir` takes the whole set, and the next session has none of it. Flow's skills are reached in ordinary work in any project, which is why the set ships on and `home/settings.json` ships `skillOverrides` empty.
 
-**A domain skill never installs on the machine, so none needs turning off.** `flow domain-skills add <name>` installs it into the one project that uses it, and only that project pays for its description. Until 2026-09-13 Flow carried domain skills in a `stack/` group that installed everywhere and shipped `off`. That group left for the `domain-skills` repository.
+#### What it does reach is every skill from outside the clone
+
+A domain skill that `flow domain-skills add <name>` put in one project, a private skill from `~/.flow/private-skills/`, a skill another tool wrote into `.claude/skills/`. Each is a plain skill named by its folder, and each answers to this key.
+
+Installing and being shown are separate questions for those. A skill set to `off` costs nothing in context, so nothing is gained by leaving one uninstalled.
 
 #### Two values, keyed by skill name
 
@@ -253,9 +259,9 @@ Installing and being shown are separate questions. Every skill outside `drafts/`
 
 **The two files merge rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill the machine's file had set to `off`, a project setting `off` hid one the machine's file never named, and an entry only the machine's file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
 
-**Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill on the machine with its state and which file set it.
+**Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill in the clone. Its `STATE` and `SET BY` columns read this key, so since the move to a plugin they say `on` and `default` on every row, and they go when the command is next opened.
 
-**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/start` and `/cut-from-spec` carry it because *never* is true of them. Everything else is decided here.
+**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/flow:start` and `/flow:cut-from-spec` carry it because *never* is true of them. Everything else is decided here.
 
 ---
 
@@ -283,7 +289,7 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 | `disableWorkflows` | `true` | Built-in workflows off: Flow's skills are the workflow. |
 | `disableRemoteControl` | `true` | No driving the session from claude.ai or mobile. |
 | `disableClaudeAiConnectors` | `true` | No claude.ai connectors. |
-| `disableArtifact` | `true` | No artifact tool. `/visualize` renders inline. |
+| `disableArtifact` | `true` | No artifact tool. `/flow:visualize` renders inline. |
 | `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo: `CLAUDE.md`, `docs/`, or a skill. |
 | `respondToBashCommands` | `false` | A command you type behind `!` in the input box puts its output in context and stops there, instead of spending a turn reacting to it. `! flow git allow` and `! ls` should cost nothing. When you want a reaction, the next message asks for one, and it carries your instructions, which an automatic reply cannot. |
 
