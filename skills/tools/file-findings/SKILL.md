@@ -37,14 +37,14 @@ Move at triage speed. Building a skill is the one slow step, and it fires rarely
 
 - **A finding with a `skill:` header** → that skill, by `## A skill filing must not edit` below
 - **Knowledge tied to a tool, library or framework** → the skill that covers it, by **altitude** below
-- **Rule true everywhere, and always relevant** → the section of `~/.claude/CLAUDE.md` that owns the subject. A rule file with no `paths:` loads every session too, and buys nothing over the file already loaded
+- **Rule true everywhere, and always relevant** → the section of `~/.agents/AGENTS.md` that owns the subject. A rule file with no `paths:` loads every session too, and buys nothing over the file already loaded
 - **Rule true everywhere, relevant to one stack or file type** → `rules/<topic>.md` with `paths:` frontmatter
-- **Rule for this project, always relevant** → the project `CLAUDE.md`, in the section that owns the subject
+- **Rule for this project, always relevant** → the project's `AGENTS.md`, in the section that owns the subject. A project with only a `CLAUDE.md` gets it there
 - **Rule for this project, relevant to one stack or file type** → `.claude/rules/<topic>.md` with `paths:` frontmatter
 - **Project-specific fact** → `docs/context/<subject>.md`
 - **Reusable, no matching skill** → flag in `.flow/inbox.md` as `needs skill: <group>/<subject> (<note>)`. Several flags on one subject earn a skill; one flag is not evidence
 - **Work item** → ticket or stays in inbox
-- **Everything else** → the homes under `## Capture` in the global `CLAUDE.md`
+- **Everything else** → the homes under `## Capture` in `~/.agents/AGENTS.md`
 
 **Skill or project context: would this sentence be true in a different project?** Yes → a skill. No → `docs/context/`. Content that is both splits, and is never assigned to one side: *a generated file is never hand-edited, regenerate it* goes to that tool's skill, while the script name and the output path go to context. Genuinely cannot tell → leave it in `.flow/inbox.md` until there are enough instances to see the pattern.
 
@@ -74,7 +74,7 @@ The group in a `needs skill:` flag: `tools/`, or `dev/` for a skill maintaining 
 
 ## A skill filing must not edit
 
-Follow the skill's link to see where its folder lives: `.claude/skills/<name>` in the project, `~/.claude/skills/<name>` on the machine, or `~/.claude/skills/flow/skills/<name>` for one of Flow's own. 2 places are never edited here:
+Follow the skill's link to see where its folder lives: `.claude/skills/<name>` in the project, `~/.claude/skills/<name>` on the machine, or `~/.agents/skills/flow/skills/<name>` for one of Flow's own. 2 places are never edited here:
 
 - **The `domain-skills` clone.** Only `/flow:fold` writes there. Every item bound for it goes under the plan's batch question:
   - Yes → move the finding into `.flow/findings/<skill>/`, its `skill:` header intact, then run `flow contribute`. An inbox item is written there as a finding, with the header

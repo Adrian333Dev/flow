@@ -26,11 +26,9 @@ When you first open the repository, the split that matters has four parts:
 
 ## What installs on a machine
 
-**`home/CLAUDE.md`** is the rules that apply in every directory, project or not. It is copied to `~/.claude/CLAUDE.md` on a first install, then personalized there. The copy here is the template: placeholders and rules, never personal content.
+**`home/AGENTS.md`** is the rules that apply in every directory, project or not, in Claude Code and in Codex. It is copied to `~/.agents/AGENTS.md` on a first install, then personalized there. `~/.claude/CLAUDE.md` holds one line importing that copy, and `~/.codex/AGENTS.md` is a link to it. The copy here is the template: placeholders and rules, never personal content.
 
 **`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../manual/settings.md) explains every key. It is merged into `~/.claude/settings.json` by hand, because `flow install` never writes that file.
-
-**`home/plugin.json`** is 2 lines naming Flow and describing it. `flow install` copies it to `~/.claude/skills/flow/.claude-plugin/plugin.json`, and that copy is what makes every skill typed `/flow:groundwork` instead of `/groundwork`. Copied rather than linked, because Codex ignores a symlinked manifest. It is the only file `flow install` writes that is not a symlink, apart from the first `CLAUDE.md`.
 
 **`scripts/`** holds the CLI and the hooks:
 
@@ -46,13 +44,15 @@ When you first open the repository, the split that matters has four parts:
 
 **`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, `workflow.md` describes how the pieces fit, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, and `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message. Symlinked as `~/.flow/references`.
 
-**`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.claude/skills/flow/skills/`, so nothing outside this tree ever reads a group name.
+**`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.agents/skills/flow/skills/`, so nothing outside this tree ever reads a group name.
+
+**`skills/.claude-plugin/plugin.json`** is 2 lines naming Flow and describing it, and it is what makes every skill typed `/flow:groundwork` instead of `/groundwork`. Codex reads it here, because it follows each skill's link into this tree and looks above the real folder. `flow install` copies it into `~/.agents/skills/flow/.claude-plugin/`, where Claude Code reads it. Copied rather than linked, because Codex ignores a symlinked manifest. That copy and the 2 rule files are the only things `flow install` writes that are not symlinks.
 
 **`agents/`** holds subagent definitions, one markdown file each: a system prompt, a tool allowlist, and a model. Symlinked into `~/.claude/agents/`.
 
 **`rules/`** holds prescriptive rules, one markdown file per topic. Each file is symlinked into `~/.claude/rules/` by `flow install`. Rules without `paths:` frontmatter load every session; rules with `paths:` load only when the agent reads a matching file. Populated by `/flow:file-findings` when knowledge is promoted from `.flow/findings/`.
 
-**`project-template/`** is what a new project starts with: a `CLAUDE.md` with a `## Project` section, a `.gitignore`, a `.work-include`, and `.flow/overlays/` with an `.info` that explains what overlays are. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.work-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git work send`.
+**`project-template/`** is what a new project starts with: an `AGENTS.md` with a `## Project` section, a `CLAUDE.md` holding the one line `@AGENTS.md`, a `.gitignore`, a `.work-include`, and `.flow/overlays/` with an `.info` that explains what overlays are. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.work-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git work send`.
 
 ## What belongs to the repository
 
@@ -62,7 +62,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`backlog.md`** holds every open item in Flow, one line each: `## V1` in build order, then `## After V1` by area. The only place an open item lives. `lab/context/` holds the reasoning behind them. Each submodule under `lab/` keeps its own `backlog.md` in the same shape.
 
-**`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `repos/`, `home/`, and `project-template/` from loading when a file beside one is read.
+**`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `lab/`, `repos/`, and `project-template/` from loading when a file beside one is read.
 
 **`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and holds `reference.md`, `tickets.md`, `settings.md`, `where-everything-lives.md` and `use/`, 4 pages following one ticket from `/flow:start` to the handoff. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what `manual/` covers. Install, the commands and the skills live in `manual/reference.md`, and every folder Flow puts on a machine lives in `manual/where-everything-lives.md`. Every settings key lives in `manual/settings.md`. Both folders are authored here and never moved in from `lab/`.
 

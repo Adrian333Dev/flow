@@ -1,6 +1,6 @@
 # What costs context
 
-Every rule Flow writes into `CLAUDE.md` is paid for on every session, so it is worth knowing which shortenings buy something and which only look like they do. Most of the obvious ones buy nothing. This page says which, and how confident each answer is.
+Every rule Flow writes into an always-loaded rule file is paid for on every session, so it is worth knowing which shortenings buy something and which only look like they do. Most of the obvious ones buy nothing. This page says which, and how confident each answer is.
 
 A **token** is the unit the model is billed and budgeted in. It is not a character and not a word: common English words are usually one token each, and rarer strings split into several.
 
@@ -21,7 +21,7 @@ It cannot compare two phrasings of one sentence. For that you need per-string co
 - **A rough estimate from the file itself**, which is enough for every decision on this page:
 
 ```bash
-f=home/CLAUDE.md
+f=home/AGENTS.md
 echo "chars/4 = $(( $(wc -c < $f) / 4 ))   words*4/3 = $(( $(wc -w < $f) * 4 / 3 ))"
 ```
 
@@ -35,11 +35,11 @@ The two estimates bracket the real number. Markdown full of backticked paths tok
 
 **Abbreviations usually cost more, not less.** A common word is a single token because it is in the vocabulary; an invented short form is not, so it splits. `config` is one token and `cfg` is likely two. Shortening a word you made up is the one compression that reliably backfires, and it costs readability at the same time.
 
-**Em dashes are a style rule, not a token rule.** `home/CLAUDE.md` carried 31 of them and removing all 31 saved about 31 tokens, under 1% of the file. Strip them because `style.md` §6 says to and because they hide two ideas inside one sentence, never because of the budget.
+**Em dashes are a style rule, not a token rule.** `home/AGENTS.md`, then named `home/CLAUDE.md`, carried 31 of them and removing all 31 saved about 31 tokens, under 1% of the file. Strip them because `style.md` §6 says to and because they hide two ideas inside one sentence, never because of the budget.
 
 ## What does save tokens
 
-**Articles and filler cost one token each, and there are hundreds of them.** In `home/CLAUDE.md` on 2026-09-06: 116 `the` and 111 `a`, so 227 tokens in articles alone against roughly 3,600 for the file. Around 6%. Adding `it`, `is`, `to`, `of` and `that` gets to roughly 440, of which perhaps half can go without losing meaning.
+**Articles and filler cost one token each, and there are hundreds of them.** In the same file on 2026-09-06: 116 `the` and 111 `a`, so 227 tokens in articles alone against roughly 3,600 for the file. Around 6%. Adding `it`, `is`, `to`, `of` and `that` gets to roughly 440, of which perhaps half can go without losing meaning.
 
 That is real, and it is also the least durable saving on this page, because the words grow back with the next rule written. Cut them inside the writing pass on a section already being rewritten. A sweep of its own is not worth the churn.
 

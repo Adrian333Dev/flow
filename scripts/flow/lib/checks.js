@@ -142,7 +142,7 @@ const ids = (file) => scan(file).found.map((f) => f.id);
  * Every id one file defines more than once.
  *
  * Only ever within one file. Two files defining the same id is normal: a rule
- * shipped in `home/CLAUDE.md` is restated in a project's own rules, and both
+ * shipped in `home/AGENTS.md` is restated in a project's own rules, and both
  * are the same rule. Twice in one file is a rule nothing can name.
  */
 function duplicateIds(file) {
@@ -192,7 +192,7 @@ function ruleText(file, id) {
 
 /**
  * Resolve a check's `rule` path. Relative paths are read from the Flow clone,
- * so a check written here names `home/CLAUDE.md` rather than an absolute path
+ * so a check written here names `home/AGENTS.md` rather than an absolute path
  * that only exists on one machine.
  */
 function rulePath(rule) {

@@ -32,20 +32,38 @@ const DRAFTS = 'drafts';
  * holding `.claude-plugin/plugin.json` is a plugin, and every skill below that
  * file is offered as `<plugin name>:<skill name>`. Claude Code reads the file
  * because the format is its own; Codex reads the same file, which is why one
- * tree serves both. So `flow install` links the skills one level deeper, into
- * that folder, and every folder and every frontmatter `name` in this clone
+ * tree serves both. So every folder and every frontmatter `name` in this clone
  * stays bare.
+ *
+ * The harnesses look for it in different places, so it sits in 2:
+ *
+ *   skills/.claude-plugin/plugin.json   the one in this clone. Codex follows a
+ *                                       skill's link to its real folder, then
+ *                                       looks above that folder, so it finds
+ *                                       this one
+ *   <plugin folder>/.claude-plugin/     a copy `flow install` writes every run.
+ *                                       Claude Code looks above the link
  */
 const PLUGIN = 'flow';
 
-/** The plugin folder itself, inside whichever skills root install was given. */
-const pluginDir = (home) => path.join(home, 'skills', PLUGIN);
+/**
+ * The plugin folder, a real folder in `~/.agents/skills/`. Codex reads that
+ * skills folder and Claude Code does not, so Claude Code reaches the plugin
+ * through `pluginLink`, and there is still one copy of the folder.
+ */
+const pluginDir = (agents) => path.join(agents, 'skills', PLUGIN);
 
 /** Where the per-skill links go. `skills/` is where a plugin keeps its skills. */
-const linkDir = (home) => path.join(pluginDir(home), 'skills');
+const linkDir = (agents) => path.join(pluginDir(agents), 'skills');
 
-/** The manifest, copied rather than linked: Codex ignores a symlinked one. */
-const manifestFile = (home) => path.join(pluginDir(home), '.claude-plugin', 'plugin.json');
+/** The manifest in the clone, above every skill's real folder. */
+const manifestSource = () => path.join(skillsRoot(), '.claude-plugin', 'plugin.json');
+
+/** Its copy in the plugin folder, copied rather than linked: Codex ignores a symlinked one. */
+const manifestFile = (agents) => path.join(pluginDir(agents), '.claude-plugin', 'plugin.json');
+
+/** The link in `~/.claude/skills/` that shows Claude Code the plugin folder. */
+const pluginLink = (claude) => path.join(claude, 'skills', PLUGIN);
 
 const subdirs = (dir) => {
   try {
@@ -101,7 +119,7 @@ function find(name) {
   if (hit) return hit;
   throw new FlowError(
     `no skill named "${name}" in ${skillsRoot()}.\n` +
-    `  See them all: flow skills ls`
+    `  The skills: ${[...all.keys()].sort().join(', ')}`
   );
 }
 
@@ -113,39 +131,6 @@ function installable({ drafts = false } = {}) {
 /** Where Claude Code keeps this machine's config. The scratch session moves it. */
 const configDir = () => process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
 
-function readOverrides(file) {
-  let text;
-  try {
-    text = fs.readFileSync(file, 'utf8');
-  } catch (e) {
-    if (e.code === 'ENOENT') return {};
-    throw new FlowError(`${file} could not be read: ${e.message}`);
-  }
-  try {
-    return JSON.parse(text).skillOverrides || {};
-  } catch (e) {
-    throw new FlowError(`${file} is not valid JSON: ${e.message}`);
-  }
-}
-
-/**
- * What each skill is set to here, and which file set it.
- *
- * A name nobody mentions is `on`: Claude Code shows a skill it was told nothing
- * about. The project's file beats the machine's key by key rather than
- * replacing the object, so a project `on` restores a skill the machine turned
- * off: verified against Claude Code 2.1.251 on 2026-08-29.
- */
-function states(root) {
-  const machine = readOverrides(path.join(configDir(), 'settings.json'));
-  const project = root ? readOverrides(path.join(root, '.claude', 'settings.json')) : {};
-  return (name) => {
-    if (name in project) return { state: project[name], setBy: 'project' };
-    if (name in machine) return { state: machine[name], setBy: 'machine' };
-    return { state: 'on', setBy: 'default' };
-  };
-}
-
 module.exports = {
-  DRAFTS, PLUGIN, catalog, configDir, find, installable, linkDir, manifestFile, pluginDir, states, subdirs,
+  DRAFTS, PLUGIN, catalog, configDir, find, installable, linkDir, manifestFile, manifestSource, pluginDir, pluginLink, subdirs,
 };

@@ -28,7 +28,7 @@ Each test gets a fresh folder, wiped before it runs. A test inheriting another t
 
 Both tools write to real directories in normal use, so both suites move those directories to keep the real machine untouched.
 
-Flow's install has a flag per root: `--home` and `--flow-home`: and refuses one without the other.
+Flow's install takes one flag, `--root <dir>`, which stands in for the home folder, so `.agents`, `.claude`, `.codex`, `.flow` and `.local/bin` all land under `<dir>`. `flow doctor` takes the same flag to check what landed there.
 
 Flow's own environment variables do the same job for the stores each command owns:
 

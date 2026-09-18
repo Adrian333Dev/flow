@@ -37,7 +37,7 @@ Twelve shapes worth naming, each as what it is and what to do about it. Match th
 
 2 rules bind the list:
 
-- **The project overrides.** A convention named in `## References` or in `CLAUDE.md` wins. Where it endorses what the baseline would flag, drop the flag.
+- **The project overrides.** A convention named in `## References` or in the project's rule file wins. Where it endorses what the baseline would flag, drop the flag.
 - **Every one is a judgement call.** Report "possible feature envy", never a violation. Skip anything a linter already catches.
 
 ## 3 conditional checks

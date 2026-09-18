@@ -8,41 +8,46 @@
  *   node <clone>/scripts/flow/flow.js install
  *
  * Everything after that is `flow install`, and re-running it is how a new
- * skill, a renamed command or a moved clone reaches this machine. Two files
- * are copied and everything else is linked: the global `CLAUDE.md`, which is
- * yours to edit and so is written only when absent, and the plugin manifest
- * below, which is Flow's and is rewritten every run.
+ * skill, a renamed command or a moved clone reaches this machine.
+ *
+ * Almost everything is a link into the clone. What is not has one real copy,
+ * in `~/.agents/`, and each harness reaches that copy the way it can:
+ *
+ *   ~/.agents/AGENTS.md         the rule file, copied from home/AGENTS.md only
+ *                               when there is none, because it is yours to edit
+ *   ~/.claude/CLAUDE.md         one line importing it, written only when absent
+ *   ~/.codex/AGENTS.md          a link to it: Codex has no import
+ *   ~/.agents/skills/flow/      the plugin folder: a copy of the manifest in
+ *                               skills/.claude-plugin/, rewritten every run,
+ *                               and one link per skill
+ *   ~/.claude/skills/flow       a link to that folder: Claude Code never reads
+ *                               ~/.agents/skills/, and Codex reads nothing else
+ *
+ * `lib/machine.js` says which folder holds what.
  *
  * It stops short of `settings.json`. Merging Flow's keys into a file already
  * holding your model, your effort level and your plugins is a judgment call,
  * so this prints the file to merge and leaves it alone.
  *
- * Two roots, and a flag each. `--home` is what Claude Code reads: CLAUDE.md,
- * settings.json, skills/, agents/ and rules/. `--flow-home` is what only Flow reads:
- * scripts/ and references/, which the hooks and the skills name by path.
- * Both matter to the scratch session in lab/scripts/try.sh, which redirects
- * the whole install into tmp/ and would otherwise write half of it into the
- * real ~/.flow. Passing one alone is refused for that reason: a redirect that
- * covers half the install is the accident, never the intent.
+ * `--root <dir>` puts the whole install under `<dir>` in place of the home
+ * folder, `~/.local/bin` included. The tests and lab/scripts/try.sh use it to
+ * build a machine inside tmp/.
  *
  * Which skills link is read off the tree: every group except `drafts/`, which
  * `--drafts` adds back for the scratch session. There is no list to keep in
  * step, so a skill is typeable the moment its folder exists.
  *
- * The skills land inside one folder, `skills/flow/`, beside a small file that
- * names it: `.claude-plugin/plugin.json`. That file is what makes every skill
- * typed as `/flow:groundwork` rather than `/groundwork`, and it is the only
- * thing this command writes that is not a symlink. Both harnesses read it,
- * which is why the clone itself carries no prefix anywhere.
+ * The plugin manifest is what makes every skill typed as `/flow:groundwork`
+ * rather than `/groundwork`. Both harnesses read it, which is why the clone
+ * itself carries no prefix anywhere.
  */
 
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const { out } = require('../lib/cli');
 const { cloneRoot } = require('../lib/clone');
-const { FlowError } = require('../lib/error');
 const { link, pruneDead, markdownFiles } = require('../lib/links');
+const machine = require('../lib/machine');
 const skills = require('../lib/skills');
 
 /**
@@ -61,109 +66,93 @@ const actions = {};
 
 actions.install = {
   section: 'setup',
-  summary: 'link Flow into ~/.claude, ~/.flow and ~/.local/bin',
+  summary: 'link Flow into ~/.agents, ~/.claude, ~/.codex, ~/.flow and ~/.local/bin',
   flags: {
-    home: { arg: '<path>' },
-    'flow-home': { arg: '<path>' },
+    root: { arg: '<dir>' },
     'no-bin': { bool: true },
     drafts: { bool: true },
   },
   run({ flags }) {
-    // Redirect both roots or neither. One flag on its own leaves the other
-    // root at the real machine, which is how a scratch run installs Flow for
-    // real without saying so.
-    const ROOTS = { home: '~/.claude', 'flow-home': '~/.flow' };
-    const given = Object.keys(ROOTS).filter((f) => flags[f]);
-    if (given.length === 1) {
-      const [missing] = Object.keys(ROOTS).filter((f) => !flags[f]);
-      throw new FlowError(
-        `--${given[0]} was passed without --${missing}, so ${ROOTS[missing]} would be written for real.\n` +
-        'Pass both, or neither.'
-      );
-    }
-
     const clone = cloneRoot();
-    const home = path.resolve(flags.home || path.join(os.homedir(), '.claude'));
-    const flowHome = path.resolve(flags['flow-home'] || path.join(os.homedir(), '.flow'));
+    const at = machine.folders(flags.root);
+    const show = machine.shorten;
     const done = [];
 
     // Per item, never per folder: all three hold entries Flow does not own.
     for (const dir of ['skills', 'agents', 'rules']) {
-      fs.mkdirSync(path.join(home, dir), { recursive: true });
-      for (const gone of pruneDead(path.join(home, dir), clone)) {
-        done.push(`unlinked (gone): ${dir}/${gone}`);
+      fs.mkdirSync(path.join(at.claude, dir), { recursive: true });
+      for (const gone of pruneDead(path.join(at.claude, dir), clone)) {
+        done.push(`unlinked (gone): ${show(path.join(at.claude, dir, gone))}`);
       }
     }
 
     // Flow's skills are a plugin, so they link one level down, under a folder
     // holding the manifest that names them. The manifest is copied rather than
     // linked: Codex checks it with `symlink_metadata` and ignores a link.
-    const linkDir = skills.linkDir(home);
-    const manifest = skills.manifestFile(home);
+    const linkDir = skills.linkDir(at.agents);
+    const manifest = skills.manifestFile(at.agents);
     fs.mkdirSync(path.dirname(manifest), { recursive: true });
-    fs.copyFileSync(path.join(clone, 'home', 'plugin.json'), manifest);
-    done.push(`wrote: skills/${skills.PLUGIN}/.claude-plugin/plugin.json`);
+    fs.copyFileSync(skills.manifestSource(), manifest);
+    done.push(`wrote: ${show(manifest)}`);
 
     fs.mkdirSync(linkDir, { recursive: true });
     for (const gone of pruneDead(linkDir, clone)) {
-      done.push(`unlinked (gone): skills/${skills.PLUGIN}/skills/${gone}`);
+      done.push(`unlinked (gone): ${show(path.join(linkDir, gone))}`);
     }
     for (const skill of skills.installable({ drafts: flags.drafts })) {
       link(skill.dir, path.join(linkDir, skill.name));
-      done.push(`linked: skills/${skills.PLUGIN}/skills/${skill.name}`);
+      done.push(`linked: ${show(path.join(linkDir, skill.name))}`);
     }
 
+    // The one folder link Flow makes. It is safe where a link to skills/ would
+    // not be: this folder holds Flow's skills alone, and skills/ beside it
+    // keeps every other tool's.
+    const pluginLink = skills.pluginLink(at.claude);
+    link(skills.pluginDir(at.agents), pluginLink);
+    done.push(`linked: ${show(pluginLink)}`);
+
     for (const file of markdownFiles(path.join(clone, 'agents'))) {
-      link(path.join(clone, 'agents', file), path.join(home, 'agents', file));
-      done.push(`linked: agents/${file}`);
+      link(path.join(clone, 'agents', file), path.join(at.claude, 'agents', file));
+      done.push(`linked: ${show(path.join(at.claude, 'agents', file))}`);
     }
 
     for (const file of markdownFiles(path.join(clone, 'rules'))) {
-      link(path.join(clone, 'rules', file), path.join(home, 'rules', file));
-      done.push(`linked: rules/${file}`);
+      link(path.join(clone, 'rules', file), path.join(at.claude, 'rules', file));
+      done.push(`linked: ${show(path.join(at.claude, 'rules', file))}`);
     }
 
     // Named by path rather than typed: settings.json points hooks at
     // ~/.flow/scripts, and a skill reads ~/.flow/references. Claude Code reads
     // neither, which is why they sit outside ~/.claude.
-    fs.mkdirSync(flowHome, { recursive: true });
-    link(path.join(clone, 'scripts'), path.join(flowHome, 'scripts'));
-    done.push(`linked: ${path.join(flowHome, 'scripts')}`);
-    link(path.join(clone, 'references'), path.join(flowHome, 'references'));
-    done.push(`linked: ${path.join(flowHome, 'references')}`);
+    fs.mkdirSync(at.flow, { recursive: true });
+    for (const name of ['scripts', 'references']) {
+      link(path.join(clone, name), path.join(at.flow, name));
+      done.push(`linked: ${show(path.join(at.flow, name))}`);
+    }
 
     if (!flags['no-bin']) {
-      const bin = path.join(os.homedir(), '.local', 'bin');
+      const bin = path.join(at.base, '.local', 'bin');
       for (const [name, file] of Object.entries(BIN)) {
         link(path.join(clone, 'scripts', file), path.join(bin, name));
-        done.push(`linked: ~/.local/bin/${name}`);
+        done.push(`linked: ${show(path.join(bin, name))}`);
       }
     }
 
-    // The template and the copy at ~/.claude drift apart on purpose: one is
-    // public and holds placeholders, the other is yours and holds your
-    // profile. Overwriting would take the second one away.
-    const rules = path.join(home, 'CLAUDE.md');
-    if (fs.existsSync(rules)) {
-      done.push(`kept: CLAUDE.md, yours, already here`);
-    } else {
-      fs.copyFileSync(path.join(clone, 'home', 'CLAUDE.md'), rules);
-      done.push('copied: CLAUDE.md');
-    }
+    done.push(...installRules(clone, at));
 
     out(done.join('\n'));
 
     out(
       `\nOne step left, by hand: merge ${path.join(clone, 'home', 'settings.json')}\n` +
-      `into ${path.join(home, 'settings.json')}. It carries the permission rules, the\n` +
+      `into ${path.join(at.claude, 'settings.json')}. It carries the permission rules, the\n` +
       `PreToolUse hook and a few feature flags; ${path.join(clone, 'docs', 'manual', 'settings.md')} explains every key.\n` +
       `Merged rather than copied, because your settings hold things Flow should not own.\n` +
       `Restart Claude Code afterwards: settings load at startup.`
     );
 
     out(
-      `\nEvery skill is typed under the plugin name: /${skills.PLUGIN}:groundwork, /${skills.PLUGIN}:start.\n` +
-      `Both names are read at startup, so a new skill needs a restart too.`
+      `\nEvery skill is typed under the plugin name: /${skills.PLUGIN}:groundwork in Claude Code,\n` +
+      `$${skills.PLUGIN}:groundwork in Codex. Both read the skills at startup, so a new skill needs a restart too.`
     );
 
     if (!flags['no-bin']) {
@@ -172,5 +161,64 @@ actions.install = {
     return 0;
   },
 };
+
+/** True when a file exists and holds only whitespace. */
+const blank = (file) => fs.readFileSync(file, 'utf8').trim() === '';
+
+/**
+ * The rule file, and the 2 ways in to it.
+ *
+ * The template and the copy in ~/.agents drift apart on purpose: one is public
+ * and holds placeholders, the other is yours and holds your profile. So each
+ * of the 3 is written only where nothing is there yet, or where an empty file
+ * is, and never over anything you wrote. An empty file counts as nothing,
+ * because a fresh Claude Code install can leave an empty CLAUDE.md behind.
+ */
+function installRules(clone, at) {
+  const done = [];
+  const show = machine.shorten;
+  const rules = path.join(at.agents, 'AGENTS.md');
+  const claudeRules = path.join(at.claude, 'CLAUDE.md');
+  const codexRules = path.join(at.codex, 'AGENTS.md');
+  const line = machine.importLine(at.base);
+
+  if (fs.existsSync(rules) && !blank(rules)) {
+    done.push(`kept: ${show(rules)}, yours, already here`);
+  } else {
+    fs.mkdirSync(at.agents, { recursive: true });
+    fs.copyFileSync(path.join(clone, 'home', 'AGENTS.md'), rules);
+    done.push(`copied: ${show(rules)}`);
+  }
+
+  if (!fs.existsSync(claudeRules) || blank(claudeRules)) {
+    fs.writeFileSync(claudeRules, `${line}\n`);
+    done.push(`wrote: ${show(claudeRules)}, one line importing ${show(rules)}`);
+  } else if (fs.readFileSync(claudeRules, 'utf8').split('\n').some((l) => l.trim() === line)) {
+    done.push(`kept: ${show(claudeRules)}, already importing ${show(rules)}`);
+  } else {
+    done.push(
+      `kept: ${show(claudeRules)}, yours, and it does not import ${show(rules)}.\n` +
+      `  Move what it holds into ${show(rules)}, then make its first line: ${line}`
+    );
+  }
+
+  let existing = null;
+  try {
+    existing = fs.lstatSync(codexRules);
+  } catch {
+    // Nothing there, so the link goes in.
+  }
+  if (existing && !existing.isSymbolicLink() && !blank(codexRules)) {
+    done.push(
+      `kept: ${show(codexRules)}, yours, so Codex reads it instead of ${show(rules)}.\n` +
+      `  Move what it holds into ${show(rules)}, delete it, and run flow install again.`
+    );
+  } else {
+    if (existing && !existing.isSymbolicLink()) fs.unlinkSync(codexRules);
+    link(rules, codexRules);
+    done.push(`linked: ${show(codexRules)}`);
+  }
+  return done;
+}
 
 module.exports = actions;

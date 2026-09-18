@@ -22,13 +22,11 @@ Read this before creating or restructuring a skill. Style lives in `~/.flow/refe
 
 **Name the folder bare and write the same bare word as `name` in the frontmatter.** A folder called `groundwork` holding `name: groundwork` is typed `/flow:groundwork`. Never write the prefix into either one.
 
-The `flow:` is added when the skill loads. `flow install` links every skill into `~/.claude/skills/flow/skills/`, beside one file that names the set, `.claude-plugin/plugin.json` holding `"name": "flow"`. Claude Code and Codex both read that file and offer every skill below it as `flow:<name>`. Codex spells the typed form `$flow:groundwork`.
+The `flow:` is added when the skill loads. `flow install` links every skill into `~/.agents/skills/flow/skills/`, beside one file that names the set, `.claude-plugin/plugin.json` holding `"name": "flow"`. Codex reads that folder, and Claude Code reaches it through the link `~/.claude/skills/flow`. Both offer every skill below the file as `flow:<name>`. Codex spells the typed form `$flow:groundwork`.
 
 Both names are needed because the two harnesses read opposite halves: Claude Code names the command after the folder, Codex after the frontmatter `name`. Keeping them identical is what makes one folder serve both.
 
 **Every skill outside `drafts/` is shown in every session, and nothing turns one off.** `skillOverrides`, the settings key that hides a skill, does not reach a plugin's skills. `claude plugin disable flow@skills-dir` takes the whole set and is the only switch there is. It reaches outside skills normally: a domain skill, a private skill, anything another tool put in `.claude/skills/`.
-
-**A typed-only skill is the case nothing announces.** `disable-model-invocation: true` keeps a skill out of the list a session is handed, so `flow skills ls` is what finds it, and only a skill the user always fires deliberately should carry the line.
 
 ## Shape
 
@@ -50,7 +48,7 @@ Later runs trust these files without re-checking them, so a project fact filed h
 
 ## Frontmatter
 
-```
+```yaml
 name: <short, lowercase and hyphens, the same word as the folder, never a prefix>
 description: <what it is and what it covers>
 argument-hint: <what to type after the name>    # only where it takes one
@@ -61,16 +59,16 @@ disable-model-invocation: true                  # typed-only skills
 
 **Write a trigger only where one is wanted**, in exactly 1 of these:
 
-- **`~/.claude/CLAUDE.md`**: the few that must fire with nothing else loaded
+- **`~/.agents/AGENTS.md`**: the few that must fire with nothing else loaded
 - **A phase's body**, where that phase is what needs it. A comment standard is named by `/flow:execute`
-- **A phase's project overlay**, where 1 project wants it. A project `CLAUDE.md` would load it into groundwork and debugging sessions too
-- **A project `CLAUDE.md`**, where it is project-wide and belongs to no phase
+- **A phase's project overlay**, where 1 project wants it. The project's `AGENTS.md` would load it into groundwork and debugging sessions too
+- **The project's `AGENTS.md`**, where it is project-wide and belongs to no phase
 
 **Under-explaining is the failure to avoid.** `/flow:visualize` names its media, because a reader cannot otherwise tell what it draws. No word count overrides that.
 
 **A skill invoked over and over stays short, and a long skill takes an argument only where the argument names what the skill opens.** Claude Code skips a re-invocation whose rendered body is identical to the copy already in context, and appends the whole body again when it differs. An argument is 1 of the 2 ways to make it differ, the other being a shell line whose output changed. A 10-line skill re-appending costs nothing. A 150-line skill takes an argument only when what it loads is worth more than its own body, a ticket and its files for a phase skill, and its bare run must render the same text every time. Never grow one for anything less, however natural it looks.
 
-**`disable-model-invocation: true` takes the skill out of the list a session is handed.** Nothing shows it to the model, so a typed-only skill named nowhere else is one the model reports as missing when the user asks for it by name. `flow skills ls` is the only way back to it, so write the line only where the user typing it is the whole point.
+**`disable-model-invocation: true` takes the skill out of the list a session is handed.** The user still finds it in the `/` menu. The model meets it only where a file names it, so a typed-only skill named nowhere else is one the model reports as missing when the user asks for it by name. Write the line only where the user typing it is the whole point.
 
 **Write it only where never firing is true everywhere.** There is one copy of a skill on the machine, and no setting narrows this one to a single project: `skillOverrides` cannot reach a plugin's skills, and Flow's are a plugin.
 

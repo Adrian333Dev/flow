@@ -17,7 +17,7 @@ Two working copies of one repository solve this.
 
 **Dev is `~/code/flow-dev`.** A second working copy of the same repository, on a branch. Nothing points at it, so nothing in it reaches a project until you merge.
 
-**The unit of change is the workflow, not a skill.** Changing one skill usually means changing four more, and often `home/CLAUDE.md` and `home/settings.json` with them. A mechanism that held back a single skill would answer nothing. That is why what gets two versions is the whole clone.
+**The unit of change is the workflow, not a skill.** Changing one skill usually means changing four more, and often `home/AGENTS.md` and `home/settings.json` with them. A mechanism that held back a single skill would answer nothing. That is why what gets two versions is the whole clone.
 
 ## Making the dev checkout
 

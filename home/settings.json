@@ -126,6 +126,7 @@
     "bgIsolation": "none"
   },
   "permissions": {
+    "defaultMode": "default",
     "disableBypassPermissionsMode": "disable",
     "allow": [
       "Bash",

@@ -197,9 +197,9 @@ test('an id defined twice in one file is reported, and twice across files is not
   assert.deepStrictEqual(checks.duplicateIds(other), []);
 });
 
-test('every id in the two CLAUDE.md files is defined once in its file', () => {
+test('every id in the two always-loaded rule files is defined once in its file', () => {
   const clone = path.join(SCRIPTS, '..');
-  for (const file of [path.join(clone, 'home', 'CLAUDE.md'), path.join(clone, 'CLAUDE.md')]) {
+  for (const file of [path.join(clone, 'home', 'AGENTS.md'), path.join(clone, 'CLAUDE.md')]) {
     const ids = checks.ids(file);
     assert.ok(ids.length > 30, `${file}: only ${ids.length} ids`);
     assert.deepStrictEqual(checks.duplicateIds(file), [], `${file}: an id is used twice`);

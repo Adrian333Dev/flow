@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow doctor`: a real install, verified, then broken 4 ways.
+ * `flow doctor`: a real install, verified, then broken in every way it checks.
  *
  * Every check runs against a scratch machine built by `flow install` itself,
  * rather than a second arrangement assembled here. A test that builds its own
@@ -18,13 +18,14 @@ const fs = require('fs');
 const path = require('path');
 const { REPO, project, run } = require('./helpers/scratch');
 
-/** A scratch machine: both roots installed into tmp/, settings merged by hand. */
+/** A scratch machine: installed under one root in tmp/, settings merged by hand. */
 function machine(name) {
   const dir = project(name);
-  const home = path.join(dir, 'home');
-  const flowHome = path.join(dir, 'flow');
+  const root = path.join(dir, 'root');
+  const home = path.join(root, '.claude');
+  const flowHome = path.join(root, '.flow');
 
-  const installed = run('flow/flow.js', ['install', '--home', home, '--flow-home', flowHome, '--no-bin']);
+  const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin']);
   assert.strictEqual(installed.code, 0, installed.stderr);
 
   // `flow install` stops short of settings.json on purpose, so the merge a real
@@ -35,7 +36,7 @@ function machine(name) {
     template.split('$HOME/.flow').join(flowHome)
   );
 
-  return { dir, home, flowHome };
+  return { dir, root, home, flowHome };
 }
 
 /** A util on PATH answering the 3 commands Flow calls, or refusing every one. */
@@ -55,7 +56,7 @@ function doctor(m, { bin, utilHome } = {}) {
   const env = { ...process.env };
   if (bin) env.PATH = `${bin}${path.delimiter}${process.env.PATH}`;
   if (utilHome) env.UTIL_HOME = utilHome;
-  const args = ['doctor', '--home', m.home, '--flow-home', m.flowHome, '--no-bin', '--no-tests'];
+  const args = ['doctor', '--root', m.root, '--no-bin', '--no-tests'];
   return run('flow/flow.js', args, { env });
 }
 
@@ -71,9 +72,7 @@ test('a fresh install passes every check', () => {
 
 test('a machine with nothing installed says so once, rather than failing every check', () => {
   const dir = project('doctor-bare');
-  const report = run('flow/flow.js', [
-    'doctor', '--home', path.join(dir, 'home'), '--flow-home', path.join(dir, 'flow'), '--no-bin',
-  ]);
+  const report = run('flow/flow.js', ['doctor', '--root', path.join(dir, 'root'), '--no-bin']);
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /Flow is not installed here/);
@@ -85,7 +84,7 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
 
   // Named off the tree rather than written in: a skill gets renamed, and a test
   // naming one by hand starts passing for the wrong reason on the day it does.
-  const linked = path.join(m.home, 'skills', 'flow', 'skills');
+  const linked = path.join(m.root, '.agents', 'skills', 'flow', 'skills');
   const [skill] = fs.readdirSync(linked).sort();
   fs.unlinkSync(path.join(linked, skill));
 
@@ -102,7 +101,7 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   const report = doctor(m, { bin: utilStub(m.dir) });
 
   assert.strictEqual(report.code, 1);
-  assert.match(report.stdout, new RegExp(`skills/${skill} is in the tree and not linked`));
+  assert.match(report.stdout, new RegExp(`skills/${skill} is not linked: run flow install`));
   assert.match(report.stdout, /no InstructionsLoaded hook running instructions-loaded\.js/);
   assert.match(report.stdout, new RegExp(`skillOverrides names "${skill}", a Flow skill, and does nothing`));
   assert.match(report.stdout, /references points at .*gone, which is gone/);
@@ -120,10 +119,30 @@ test('a util that does not run is diagnosed against its source registry', () => 
   assert.match(report.stdout, /no source is registered: run util install/);
 });
 
-test('one root without the other refuses, rather than reading half a real machine', () => {
-  const dir = project('doctor-one-root');
-  const report = run('flow/flow.js', ['doctor', '--home', path.join(dir, 'home')]);
+test('a CLAUDE.md with no import, a missing Codex link and an override file are each named', () => {
+  const m = machine('doctor-rules');
+
+  fs.writeFileSync(path.join(m.home, 'CLAUDE.md'), 'My own rules.\n');
+  fs.unlinkSync(path.join(m.root, '.codex', 'AGENTS.md'));
+  fs.writeFileSync(path.join(m.root, '.codex', 'AGENTS.override.md'), 'Other rules.\n');
+
+  const report = doctor(m, { bin: utilStub(m.dir) });
 
   assert.strictEqual(report.code, 1);
-  assert.match(report.stderr, /--home was passed without --flow-home/);
+  assert.match(report.stdout, /CLAUDE\.md does not import the rules/);
+  assert.match(report.stdout, /AGENTS\.md is not linked: run flow install/);
+  assert.match(report.stdout, /AGENTS\.override\.md exists, and Codex reads it in place of AGENTS\.md/);
+});
+
+test('a plugin folder reached through a broken link is named', () => {
+  const m = machine('doctor-plugin-link');
+
+  const pluginLink = path.join(m.home, 'skills', 'flow');
+  fs.unlinkSync(pluginLink);
+  fs.symlinkSync(path.join(m.dir, 'gone'), pluginLink);
+
+  const report = doctor(m, { bin: utilStub(m.dir) });
+
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /skills\/flow points at .*gone, which is gone/);
 });

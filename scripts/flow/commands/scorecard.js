@@ -39,7 +39,7 @@ const clone = () => path.join(__dirname, '..', '..', '..');
  */
 function ruleFiles() {
   const root = clone();
-  const files = [path.join(root, 'home', 'CLAUDE.md'), path.join(root, 'CLAUDE.md')];
+  const files = [path.join(root, 'home', 'AGENTS.md'), path.join(root, 'CLAUDE.md')];
   const dir = path.join(root, 'rules');
   if (fs.existsSync(dir)) {
     for (const name of fs.readdirSync(dir).sort()) {

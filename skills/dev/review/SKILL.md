@@ -28,7 +28,7 @@ Friction hit twice, a rule fought the work, or a pattern looks wrong without a c
 
 ## Whether a rule loaded
 
-`grep '"loaded"' ~/.flow/scorecards/<session-id>.jsonl` prints one line per `CLAUDE.md` or `.claude/rules/*.md` file that entered the session's context. A path-scoped rule loads only after a matching file is read, so its line can be missing. The current session's id is `$CLAUDE_CODE_SESSION_ID`, and `flow audit sessions` lists past ones. A skill leaves no line: find its invocation in the transcript.
+`grep '"loaded"' ~/.flow/scorecards/<session-id>.jsonl` prints one line per `CLAUDE.md`, file it imports, or `.claude/rules/*.md` file that entered the session's context. A path-scoped rule loads only after a matching file is read, so its line can be missing. The current session's id is `$CLAUDE_CODE_SESSION_ID`, and `flow audit sessions` lists past ones. A skill leaves no line: find its invocation in the transcript.
 
 ## Recording
 

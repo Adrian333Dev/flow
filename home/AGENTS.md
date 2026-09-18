@@ -25,7 +25,7 @@ One user message, your work, one reply. In that order, every time.
 
 ## Writing files
 
-- **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a `CLAUDE.md`, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. Never defer a file to a later pass.
+- **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a rule file, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. Never defer a file to a later pass.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
 - **`describe-an-opaque-name`** A file whose name doesn't hint what it holds gets a `description:` line at the top, in a comment or frontmatter, below any shebang. A folder gets `.info`, description in the first paragraph. A few words saying what it holds. Longer notes go below it, in the same header comment or a second `.info` paragraph. Most files and folders need none.
 - **`never-hand-write-generated`** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
@@ -42,7 +42,7 @@ One user message, your work, one reply. In that order, every time.
 
 One phase at a time:
 
-```
+```text
 /flow:groundwork      → decisions written, and the tickets they commit to
 /flow:execute         → one ticket built and reviewed
 /flow:file-findings   → the lessons taken out of it
@@ -70,7 +70,7 @@ No background: audio APIs, compilers, ML internals." -->
 **`capture-on-sight`** Write anything worth keeping the moment it surfaces. A background reflex, not every turn. On request ("note that"), immediately. Unsure: write it.
 
 - Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
-- How the user wants to work → `~/.claude/CLAUDE.md#preferences`. What they know or don't → `#the-user`. Both inferred from evidence, never announced: the same correction twice, irritation at a habit, a term you had to explain.
+- How the user wants to work → `~/.agents/AGENTS.md#preferences`. What they know or don't → `#the-user`. Both inferred from evidence, never announced: the same correction twice, irritation at a habit, a term you had to explain.
 - Durable project fact (a verified command, a path, a settled convention) → `docs/context/<subject>.md`
 - Reusable knowledge (a tool behavior, a library quirk, a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. `/flow:file-findings` promotes it to a skill or a rule later. Skip what the loaded skill already says.
   - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`

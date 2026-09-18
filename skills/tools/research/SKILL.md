@@ -25,7 +25,6 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
    - **The domain-skills repository:** `flow domain-skills ls <word>`, one word per search, since it lists only a skill matching every word. When it finds no repository on this machine, clone it instead, `git clone --depth 1 https://github.com/Adrian333Dev/domain-skills tmp/references/domain-skills`, and grep the `description:` lines of `skills/*/SKILL.md`.
    - **The toolbox**, a catalog of outside tools with notes from real use: `git clone --depth 1 https://github.com/Adrian333Dev/toolbox tmp/references/toolbox`, or `git -C tmp/references/toolbox pull` when the clone is already there. Read its `README.md`, then search the folders that could hold an answer, the way it says.
    - **skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill.
-   - **Flow's own tree:** `flow skills ls --hidden` lists what this session is not being shown, which is the only part worth checking.
 2. **A private or domain skill that fits needs no judging.** Add it: `flow private-skills add <name>` or `flow domain-skills add <name>`.
 3. **When nothing from step 1 fits, search outward:**
    - **Skills on GitHub:** `gh search code <word> --filename SKILL.md`
@@ -60,8 +59,8 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 Fetch with the bundled script, run from the project root:
 
 ```bash
-bash ~/.claude/skills/research/scripts/fetch-docs.sh <tool> <domain> [extra-urls...]
-# e.g.  bash ~/.claude/skills/research/scripts/fetch-docs.sh inngest inngest.com
+bash ~/.agents/skills/flow/skills/research/scripts/fetch-docs.sh <tool> <domain> [extra-urls...]
+# e.g.  bash ~/.agents/skills/flow/skills/research/scripts/fetch-docs.sh inngest inngest.com
 ```
 
 It chains every candidate URL, keeps real hits only, grabs **both** variants where both exist, and saves to `tmp/references/<tool>/` with source URL and fetch date in `_sources.md`. **Add a newly discovered URL pattern to the script, never to this file.**

@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# try.sh: a throwaway Claude Code config, so a real session can run against
-# this repo while nothing is installed.
+# try.sh: a throwaway install of Flow, so a real Claude Code or Codex session
+# can run against this repo while nothing is installed.
 #
 # A development script. It ships nowhere, and `flow install` never links it.
 #
-# Everything is built under tmp/, which is gitignored. Three files outside it
-# are read and none is written: the credentials, ~/.claude.json and
-# ~/.claude/settings.json. Between them they carry the login and every answer
-# onboarding asks for, so a scratch session starts signed in. ~/.flow is neither
-# read nor written.
+# Everything is built under tmp/try/root/, which stands in for the home folder:
+# .agents, .claude, .codex and .flow, the same 4 folders a real install fills.
+# Files outside it are read and none is written: Claude Code's credentials,
+# ~/.claude.json and ~/.claude/settings.json, and for --codex ~/.codex/auth.json.
+# Between them they carry the login and every answer onboarding asks for, so a
+# scratch session starts signed in. ~/.flow and ~/.agents are neither read nor
+# written.
 #
 # Skills and agents are symlinked rather than copied, so editing one in the
 # repo is live inside the running session: write, save, invoke. That is the
@@ -20,6 +22,7 @@
 # that checkout and leaves the stable one alone.
 #
 #   bash lab/scripts/try.sh                rebuild the config, then start a session
+#   bash lab/scripts/try.sh --codex        the same install, in a Codex session
 #   bash lab/scripts/try.sh --seed guards  build the scratch project from another seed
 #   bash lab/scripts/try.sh --fresh        delete tmp/try first, scratch project included
 #   bash lab/scripts/try.sh --print        rebuild, then print the command instead
@@ -27,29 +30,32 @@ set -euo pipefail
 
 fresh=0
 start=1
+codex=0
 seed=app
 while [ $# -gt 0 ]; do
   case "$1" in
     --fresh) fresh=1 ;;
     --print) start=0 ;;
+    --codex) codex=1 ;;
     --seed) seed="${2:-}"; shift ;;
-    *) echo "try.sh: unknown argument \"$1\", takes --fresh, --print and --seed <name>" >&2; exit 2 ;;
+    *) echo "try.sh: unknown argument \"$1\", takes --fresh, --print, --codex and --seed <name>" >&2; exit 2 ;;
   esac
   shift
 done
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 try="$root/tmp/try"
-home="$try/home"
-flowhome="$try/flow"
+scratch="$try/root"
+home="$scratch/.claude"
+flowhome="$scratch/.flow"
 proj="$try/project"
 
 # The config is rebuilt every run. The scratch project is not, and this is the
 # fix: it accumulates the tickets, handoffs and inbox entries a real test needs,
 # and wiping it every run left nothing to test against. --fresh takes it out.
 [ "$fresh" = 1 ] && rm -rf "$try"
-rm -rf "$home" "$flowhome"
-mkdir -p "$home" "$flowhome" "$proj"
+rm -rf "$scratch"
+mkdir -p "$scratch" "$proj"
 
 # ---- the throwaway config ---------------------------------------------------
 
@@ -57,18 +63,18 @@ mkdir -p "$home" "$flowhome" "$proj"
 # ~/.local/bin alone. The scratch session then runs the arrangement a real
 # install produces, rather than a second one built by hand here.
 #
-# Both roots are redirected. --home is what Claude Code reads and --flow-home
-# is what only Flow reads; without the second one, scripts/ and references/
-# would install into the real ~/.flow.
+# --root stands in for the home folder, so all 4 folders land under it and
+# none in the real one.
 #
 # --drafts always, because a draft that cannot be tested is the one thing this
 # script exists to make testable.
 node "$root/scripts/flow/flow.js" install \
-  --home "$home" --flow-home "$flowhome" --no-bin --drafts >/dev/null
+  --root "$scratch" --no-bin --drafts >/dev/null
 
-# The hooks name $HOME/.flow/scripts, which is where Flow installs and where
-# nothing sits yet. Point them at this config's own scripts symlink instead.
-sed "s|\$HOME/.flow/scripts|$flowhome/scripts|g" "$root/home/settings.json" > "$home/settings.json"
+# The hooks name $HOME/.flow/scripts and $HOME/.flow/references, which is
+# where Flow installs and where nothing sits yet. Point them at this config's
+# own links instead.
+sed "s|\$HOME/.flow/|$flowhome/|g" "$root/home/settings.json" > "$home/settings.json"
 
 creds="$HOME/.claude/.credentials.json"
 if [ -e "$creds" ]; then
@@ -128,6 +134,35 @@ if (theme) {
 }
 NODE
 
+# Codex keeps its login in auth.json, and renews it by rewriting that file
+# when the access token is 5 minutes from expiring. Renewal uses up the old
+# refresh token, so a scratch copy renewing would sign the real ~/.codex out.
+# A copy whose token has a day left cannot renew during a session, and one
+# closer than that is refused: running codex once, anywhere, renews the real
+# file, and the next copy is fresh.
+if [ "$codex" = 1 ]; then
+  auth="$HOME/.codex/auth.json"
+  if [ ! -e "$auth" ]; then
+    echo "try.sh: no Codex login at $auth, run codex once and sign in" >&2
+    exit 2
+  fi
+  node - "$auth" <<'NODE'
+const fs = require('fs');
+const auth = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const token = auth.tokens && auth.tokens.access_token;
+if (!token) process.exit(0);
+const { exp } = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+if (exp * 1000 < Date.now() + 24 * 3600 * 1000) {
+  console.error('try.sh: the Codex login renews within a day, and a scratch copy renewing it would');
+  console.error('sign out the real one. Run codex once from anywhere, then run this again.');
+  process.exit(2);
+}
+NODE
+  mkdir -p "$scratch/.codex"
+  cp "$auth" "$scratch/.codex/auth.json"
+  chmod 600 "$scratch/.codex/auth.json"
+fi
+
 # ---- the scratch project ----------------------------------------------------
 
 # Built once and kept. flow finds the project root through git, and tmp/ sits
@@ -155,25 +190,36 @@ fi
 
 # FLOW_HOME sends `flow cases new` into tmp/ as well. Without it a scratch
 # session writes study cases into the real ones.
-export CLAUDE_CONFIG_DIR="$home"
-export FLOW_HOME="$flowhome"
+#
+# Claude Code moves with CLAUDE_CONFIG_DIR alone. Codex finds its skills under
+# $HOME/.agents, so its session gets the scratch root as HOME, and CODEX_HOME
+# is set as well so the two can never disagree.
+if [ "$codex" = 1 ]; then
+  env_line="HOME=$scratch CODEX_HOME=$scratch/.codex FLOW_HOME=$flowhome"
+  program=codex
+else
+  env_line="CLAUDE_CONFIG_DIR=$home FLOW_HOME=$flowhome"
+  program=claude
+fi
 
 if [ "$start" = 1 ]; then
   cd "$proj"
   # exec, so the session replaces this script rather than starting under it.
-  exec claude
+  exec env $env_line $program
 fi
 
 cat <<EOF
 
 built $try
-  home/     what Claude Code reads: skills and agents linked live
-  flow/     what only Flow reads: scripts and references
-  project/  a git repo carrying the project template, kept between runs
+  root/.agents  the plugin folder and the rule file, the one real copy of each
+  root/.claude  what Claude Code reads: a link to the plugin, agents, CLAUDE.md
+  root/.codex   what Codex reads: a link to the rule file$([ "$codex" = 1 ] && echo ", and a copy of the login")
+  root/.flow    what only Flow reads: scripts and references
+  project/      a git repo carrying the project template, kept between runs
 
 start the session from the project:
 
   cd $proj
-  CLAUDE_CONFIG_DIR=$home FLOW_HOME=$flowhome claude
+  $env_line $program
 
 EOF

@@ -87,7 +87,7 @@ the format it answers in, because "point Claude Code at this URL" is how the pla
 
 The working configuration is 3 variables plus 2 that stop errors:
 
-```
+```sh
 ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
 ANTHROPIC_AUTH_TOKEN=<key>
 ANTHROPIC_MODEL=glm-5.3
@@ -198,7 +198,7 @@ direct rather than through `claude-code-router`.
   on classifier requests only when the requests go to `api.anthropic.com` with no third-party
   provider selected, which implies the classifier travels the gateway path otherwise. So the model
   deciding whether a tool call is safe would be GLM rather than Claude. **Unverified, and worth one
-  run**, because Flow sessions run in auto mode.
+  run** before a session is switched to auto mode. Flow sessions start in Manual since 2026-09-18.
 - **`## The reply` needs thinking.** Its 3 steps and 5 tests run on a draft that exists only in the
   thinking before the reply. A model with thinking off, or one whose upstream rejected `thinking`
   and had it disabled for the conversation, still reads the section, and the tests never run on
@@ -264,7 +264,8 @@ and to the per-model measurement above.
 
 **Does not port, and should not: `guard.js`.** It sits on Claude Code's permission system. Codex has
 its own sandbox modes and a `PermissionRequest` hook. Write each one separately and accept the
-duplication.
+duplication. **Overturned 2026-09-18:** Codex runs `guard.js` and honors its deny, and only its ask
+needs Codex's own mechanism. `### The hooks on Codex, walked 2026-09-18` has the design.
 
 **Different shape, nothing shared: subagents.** Codex subagents are TOML files in `.codex/agents/`
 carrying `name`, `description`, `nickname_candidates`, `developer_instructions`, `model` and
@@ -357,6 +358,121 @@ turned off on 2026-09-07, so the rules stay in one file, which is the shape Code
 
 **Claude Code's own limits, for comparison:** it loads a `CLAUDE.md` up to 4 MiB and skips a larger
 one, with documented advice to stay under 200 lines for adherence.
+
+**Decided 2026-09-18: one real copy, in `~/.agents/`, reached 2 ways.** The user approved it the
+same day. The rule file is `~/.agents/AGENTS.md`. `~/.claude/CLAUDE.md` is the one line
+`@~/.agents/AGENTS.md`, and `~/.codex/AGENTS.md` is a symlink to the real file. On the Claude Code
+side the import beats a link, because no editor can break an import. Codex has no import, and it reads
+`~/.codex/AGENTS.md` through a link: `codex-rs/codex-home/src/instructions/mod.rs` calls
+`tokio::fs::metadata`, which follows links. The skills get the same treatment. `~/.agents/skills/flow/`
+is the real folder, holding the manifest and the 12 links into the clone, and `~/.claude/skills/flow`
+links to it. Whether Claude Code loads a skills-dir plugin through a linked folder is unproven. If it
+does not, both roots hold a real folder, and install rewrites both manifests every run.
+
+### Codex's importer copies once, so Flow cannot use it
+
+Found 2026-09-18 in `codex-rs/external-agent-migration/`. The first time Codex runs, it offers to
+copy a Claude Code setup across: settings, skills, `CLAUDE.md`, plugins, MCP servers, subagents, hooks,
+commands, memory and session logs. The item types are the enum in `src/model.rs`.
+
+**3 things rule it out for Flow.**
+
+- **It copies once.** `import_skills` in `src/service.rs` copies each folder with `copy_dir_recursive`,
+  and skips any target that already exists. The first edit to a Flow skill or rule leaves Codex on the
+  old text.
+- **It rewrites words in what it copies.** `src/rewrite.rs` turns `CLAUDE.md` into `AGENTS.md`, and
+  every "claude" bounded by a non-word character into "Codex", so `~/.claude/skills` in a rule arrives
+  as `~/.Codex/skills`. It rewrites a `SKILL.md` and the imported `AGENTS.md` this way.
+- **It skips symlinks.** `copy_dir_recursive` in `src/utils.rs` copies only real folders and real files.
+  Flow's linked skills would arrive as an empty folder.
+
+**2 uses remain.** It is Codex's own mapping from Claude Code's formats to its own, so the hooks port
+reads `src/hooks_cla.rs` and the subagents port reads `import_subagents` in `src/source/cla.rs` before
+anything is designed. And `/flow:setup` has to look for what it left behind, on a machine where the
+user accepted its offer. It leaves a symlinked `~/.codex/AGENTS.md` alone, since
+`is_missing_or_empty_text_file` reads a link as neither missing nor empty.
+
+Claude Code has the mirror of it. `/import` appends a one-time copy of `AGENTS.md` to the matching
+`CLAUDE.md`, according to the memory page. It fails Flow for the same first reason.
+
+### The hooks on Codex, walked 2026-09-18
+
+**The user deferred the Codex port the same day: Flow releases on Claude Code alone first.** Each
+harness may get its own mechanisms rather than one mechanism bent to fit both, since the walk below
+found 7 of Flow's 11 hooks needing a change or having no Codex moment. What stays built is what any
+harness needs: the rules in `~/.agents/AGENTS.md` with `~/.claude/CLAUDE.md` importing them, the
+link `~/.codex/AGENTS.md`, and the skills in `~/.agents/skills/flow/`. Codex finds those skills on
+its own, so dropping the link would not keep Flow out of Codex. The port starts from this section.
+Every path below is under `repos/codex/codex-rs/`.
+
+**How Codex runs a hook.**
+
+- **2 files, read together.** `~/.codex/hooks.json` and a `[hooks]` table in `~/.codex/config.toml`,
+  and the same pair in a project's `.codex/`. Both load, with a warning at start
+  (`hooks/src/engine/discovery.rs`).
+- **12 events** (`HOOK_EVENT_NAMES` in `hooks/src/lib.rs`): `PreToolUse`, `PermissionRequest`,
+  `PostToolUse`, `PreCompact`, `PostCompact`, `SessionStart`, `SessionEnd`, `UserPromptSubmit`,
+  `SubagentStart`, `SubagentStop`, `Stop`, `Interrupt`. No `PostToolUseFailure`, no
+  `InstructionsLoaded`, no `UserPromptExpansion`, and no background hook like `asyncRewake`.
+- **Every hook needs the user's approval once.** A hook runs only when a hash of its entry sits in
+  `config.toml` as `trusted_hash`. The hash covers the event, the matcher and the command, never the
+  script, so an edit to a script in the clone never asks again (`hook_hash` in `discovery.rs`). At
+  start the terminal app offers "Review hooks", "Trust all and continue" and "Continue without
+  trusting" (`tui/src/startup_hooks_review.rs`). `codex exec` skips an unapproved hook silently, and
+  `--dangerously-bypass-hook-trust` runs it anyway. **Flow writing the hashes itself was rejected**:
+  it copies a private method, and a Codex update that changes it breaks with no warning.
+- **The payload uses Claude Code's field names.** `session_id` is the root thread's id, shared by
+  every worker (`core/src/agent/control.rs`). A worker's calls add `agent_id` and `agent_type`. Every
+  tool call also carries `turn_id` and `model`, so `rule-check.js` could record the model per result,
+  which Claude Code hands a hook at session start alone.
+- **Tool names** (`core/src/tools/hook_names.rs`). A shell command is `Bash` with
+  `tool_input.command`. Every edit is `apply_patch`, whose whole input is the patch text in
+  `tool_input.command`, and a matcher naming `Edit` or `Write` selects it. `spawn_agent` answers to
+  `Agent`. An MCP tool is `mcp__<server>__<tool>`.
+- **`PostToolUse` fires only when a call succeeds** (`core/src/tools/registry.rs`).
+- **A `UserPromptSubmit` hook's plain output becomes context**, as in Claude Code.
+- **A hook cannot answer "ask".** `PreToolUse` accepts `deny`. It rejects `ask` as unsupported, marks
+  the hook run failed, and runs the call (`unsupported_pre_tool_use_hook_specific_output` in
+  `hooks/src/engine/output_parser.rs`).
+
+**Flow's 11 hooks, one by one.**
+
+- **4 carry over as they are.** The reminder. `changes.js` after each call, and at a worker's start
+  and stop.
+- **`guard.js` needs the git switch rebuilt**, below. It also needs Codex's own bypass flags,
+  `--dangerously-bypass-approvals-and-sandbox` and `--yolo`, on its list of what is always denied.
+- **`changes.js` before each call reads the file names out of the patch.** Unchanged, it treats the
+  patch as a shell command and snapshots the whole project around every edit: correct, and slow.
+- **`rule-check.js` reads the patch.** Unchanged, it returns at once for any tool not named `Edit` or
+  `Write`, so it checks nothing on Codex. A patch gives each file's added lines, which is what
+  `needs: 'added'` wants. A check needing the whole file after the edit would have to apply the patch.
+- **The waiter becomes a plain `PostToolUse` hook on `wait_agent`.** A Codex parent sees a worker's
+  result only through that tool, which returns once the worker has finished, so no background hook
+  is needed.
+- **`check-ticket.js` moves to `UserPromptSubmit`.** It reads `$flow:<skill> <id>` out of the
+  `prompt` field, runs `flow get`, and blocks the message on a miss.
+- **The failed-call hook is dropped.** The snapshot at a worker's end still catches what a failed
+  call changed, listed as a change no call explains.
+- **`instructions-loaded.js` is dropped.** Codex reports no loads, so `rule-check.js` finds the list
+  empty and a warning carries the rule's whole text.
+
+**The git switch on Codex takes 3 pieces**, since only Codex itself can ask the user:
+
+1. **A rules file in `~/.codex/rules/`** (`core/src/exec_policy.rs`, format in
+   `execpolicy/README.md`) makes every git write ask. It never changes while Codex runs, so it
+   cannot follow the switch alone.
+
+   ```starlark
+   prefix_rule(pattern = ["git", "push"], decision = "prompt")
+   ```
+
+2. **`guard.js` denies git writes when the switch is off**, as it does in Claude Code.
+3. **A `PermissionRequest` hook answers yes when the switch is on allow.** Codex fires it just before
+   it asks the user. **Unverified**: whether it fires for a prompt a rules file causes.
+
+**Rejected 2026-09-18: turning every "ask" into "deny" on Codex.** The user: "there is a big
+difference between ask and deny. And there is a reason we made all of those, some of the commands as
+ask first."
 
 ### Two harnesses on one project
 

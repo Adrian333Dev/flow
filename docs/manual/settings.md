@@ -65,7 +65,7 @@ Records what each subagent changed, and hands the parent a diff per file when th
 
 **A waiter delivers the record.** A background subagent's `Agent` call returns the moment it launches, long before any change, so the `PostToolUse` hook on `Agent` starts a waiter in the background. When the subagent finishes, `SubagentStop` builds the record and gives the waiter up to 2 seconds to take it. The waiter exits with code 2, which `asyncRewake` turns into a message that wakes the parent even when it sits idle. The record lands just before the subagent's finished notice. A subagent that changed nothing sends none.
 
-**Claude Code labels the message "Stop hook blocking error".** Nothing failed. The rule `change-record` in `home/CLAUDE.md` tells every session so: without it, a parent in a test run read a record as a possible prompt injection.
+**Claude Code labels the message "Stop hook blocking error".** Nothing failed. The rule `change-record` in `home/AGENTS.md` tells every session so: without it, a parent in a test run read a record as a possible prompt injection.
 
 **`SendMessage` starts a new waiter**, for a subagent the parent resumes. A subagent you resume by typing into its row has no waiter, so its record arrives with the parent's next `Edit`, `Write` or `Bash` call instead.
 
@@ -92,11 +92,11 @@ Records what each subagent changed, and hands the parent a diff per file when th
   "command": "node \"$HOME/.flow/scripts/instructions-loaded.js\"" } ] } ]
 ```
 
-**Nothing fires yet.** `scripts/rule-checks/` ships empty, so both hooks return immediately. They come alive one check file at a time.
+**One check exists, and it only measures.** `scripts/rule-checks/js-and-ts.js` counts a run of `//` lines above a function, and records the count without ever warning. More arrive one check file at a time.
 
 `rule-check.js` runs every check in that folder against the pending edit and appends one line per result to `~/.flow/scorecards/<session>.jsonl`. Each check carries its own tier: `measure` records silently, `warn` returns a line in `additionalContext`, `block` returns a `deny`. `flow scorecard` adds the counts up.
 
-`instructions-loaded.js` records which `CLAUDE.md` and rule files entered context. That is what decides the shape of a warning: the rule id alone when the rule's file is loaded, and the rule's whole text injected when it is not. Telling the agent to go read the file costs a turn and can be skipped.
+`instructions-loaded.js` records which `CLAUDE.md` files, the files they import, and rule files entered context. That is what decides the shape of a warning: the rule id alone when the rule's file is loaded, and the rule's whole text injected when it is not. Telling the agent to go read the file costs a turn and can be skipped.
 
 **The hole this fills is file creation.** A `paths:`-scoped rule triggers when Claude *reads* a matching file, so writing `src/foo.ts` in a session that opened no `.ts` file leaves the TypeScript rules out of context entirely. `PreToolUse` fires on `Write` whatever loaded.
 
@@ -127,7 +127,7 @@ It fires only on what the user types. A skill the agent invokes, as `/flow:start
 Prints one line beside every message you send:
 
 ```text
-Before replying, follow `~/.claude/CLAUDE.md`, above all `## The reply` and its `### Before sending` tests.
+Before replying, follow `~/.agents/AGENTS.md`, above all `## The reply` and its `### Before sending` tests.
 ```
 
 The rules for writing a reply sit at the end of a long file, loaded once at the start of a session. By turn 15 they are far behind the conversation, and the reply drifts back to long, compressed and undefined. A line arriving with the message puts them back in front of the agent.
@@ -216,17 +216,27 @@ Three things hold whatever the mode says:
 
 #### Modes
 
+```json
+"permissions": { "defaultMode": "default" }
+```
+
 Six of them, cycled with Shift+Tab and overridable for one session with `--permission-mode <name>`. A mode only decides what happens to a call no rule above matched.
 
-**Stay on `default`**, labelled Manual. There is no `defaultMode` key here because `default` is already the default, and the allow list covers everything routine, so the prompts left over are the ones worth seeing.
+**Every session starts in `default`, labelled Manual.** The allow list covers everything routine, so the prompts left over are the ones worth seeing. The key has to be there. Since Claude Code 2.1.228, a terminal session on a Pro, Max or Team plan starts in `auto` unless a settings file names another mode.
 
-**`dontAsk` is the unattended mode.** It auto-denies whatever the allow list does not cover and never interrupts, so a long run finishes and every denial shows up in the transcript. Reach for it with Shift+Tab, never by setting it here.
+**`auto` is not where a session starts.** In auto mode a second model, the classifier, reviews a call before it runs and blocks what looks beyond your request. 3 things decided against it:
+
+- **It pulls against Flow's first rule.** Anthropic's permission modes page says auto mode nudges the model to "keep working without stopping for clarifying questions". `instruction-or-thinking` in `home/AGENTS.md` says a message that is not an instruction gets a reply and no edit.
+- **It reviews nearly every shell command.** Entering auto mode drops a blanket `Bash` allow, so every shell command that is not a plain read goes to the classifier. Reads, edits inside the project and the narrower allow entries skip it.
+- **Its cost on a subscription is unconfirmed.** The same page says classifier calls count toward usage on Enterprise plans and API accounts, and says nothing about Pro or Max.
+
+**The guard works in either mode.** A hook's `ask` still forces a prompt in auto mode, and a hook's `deny` always holds. The classifier can add a block and never remove one.
+
+**`auto` and `dontAsk` are the 2 unattended modes.** Reach for either with Shift+Tab, never by setting it here. `auto` lets the classifier approve what the allow list does not cover, and catches what the guard never looks for, such as a command sending data off the machine. `dontAsk` denies whatever the allow list does not cover, with no second model, so a long run finishes and every denial shows up in the transcript.
 
 **`acceptEdits` buys almost nothing.** With `Bash` and `Edit` blanket-allowed above, it is not the looser mode it looks like.
 
-**`bypassPermissions` is locked out**, by `permissions.disableBypassPermissionsMode: "disable"`. Its one addition over `acceptEdits` is silent writes into `.claude` and `.git`, and Flow's entire content *is* `.claude`. The same key disables the `--dangerously-skip-permissions` flag that `guard.js` already denies as a Bash command, and makes Claude Code ignore `permissionMode: bypassPermissions` in any agent definition.
-
-**`auto` was rejected, not locked out.** It routes every shell command and network call through a classifier model carrying a slice of the transcript: a per-command token cost on a workflow that is mostly shell. Rejecting it needs no key: its cost is tokens rather than damage, and nothing reaches it by accident the way `--dangerously-skip-permissions` reaches bypass.
+**`bypassPermissions` is locked out**, by `permissions.disableBypassPermissionsMode: "disable"`. Its one addition over `acceptEdits` is silent writes into `.claude` and `.git`, and Flow's settings, subagents and links all sit in `.claude`. The same key disables the `--dangerously-skip-permissions` flag that `guard.js` already denies as a Bash command, and makes Claude Code ignore `permissionMode: bypassPermissions` in any agent definition.
 
 ---
 
@@ -236,7 +246,7 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 #### It does not reach Flow's own skills
 
-Flow's skills install as a plugin. `flow install` writes one small file, `~/.claude/skills/flow/.claude-plugin/plugin.json`, and every skill below it is a plugin skill: `flow:groundwork`, `flow:start`, `flow:execute`. Claude Code's settings page rules the key out for exactly those: *Does not apply to plugin skills, which are managed through `/plugin`*. No value here hides `/flow:execute`.
+Flow's skills install as a plugin. `flow install` writes one small file, `~/.agents/skills/flow/.claude-plugin/plugin.json`, which Claude Code reaches through the link `~/.claude/skills/flow`. Every skill below it is a plugin skill: `flow:groundwork`, `flow:start`, `flow:execute`. Claude Code's settings page rules the key out for exactly those: *Does not apply to plugin skills, which are managed through `/plugin`*. No value here hides `/flow:execute`.
 
 **The switch that does reach them is all or nothing.** `claude plugin disable flow@skills-dir` takes the whole set, and the next session has none of it. Flow's skills are reached in ordinary work in any project, which is why the set ships on and `home/settings.json` ships `skillOverrides` empty.
 
@@ -259,7 +269,7 @@ Installing and being shown are separate questions for those. A skill set to `off
 
 **The two files merge rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill the machine's file had set to `off`, a project setting `off` hid one the machine's file never named, and an entry only the machine's file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
 
-**Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove. `flow skills ls` is the discovery path: it prints every skill in the clone. Its `STATE` and `SET BY` columns read this key, so since the move to a plugin they say `on` and `default` on every row, and they go when the command is next opened.
+**Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove.
 
 **This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/flow:start` and `/flow:cut-from-spec` carry it because *never* is true of them. Everything else is decided here.
 
@@ -290,7 +300,7 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 | `disableRemoteControl` | `true` | No driving the session from claude.ai or mobile. |
 | `disableClaudeAiConnectors` | `true` | No claude.ai connectors. |
 | `disableArtifact` | `true` | No artifact tool. `/flow:visualize` renders inline. |
-| `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo: `CLAUDE.md`, `docs/`, or a skill. |
+| `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo: `AGENTS.md`, `docs/`, or a skill. |
 | `respondToBashCommands` | `false` | A command you type behind `!` in the input box puts its output in context and stops there, instead of spending a turn reacting to it. `! flow git allow` and `! ls` should cost nothing. When you want a reaction, the next message asks for one, and it carries your instructions, which an automatic reply cannot. |
 
 ---

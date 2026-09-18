@@ -2,7 +2,7 @@
 
 A skill is a folder holding a `SKILL.md`. Create the folder and the skill exists: there is no list to add a name to, because `flow install` reads the tree.
 
-**Name the folder bare, and type the skill with a prefix.** A folder called `groundwork` is typed `/flow:groundwork`. The `flow:` is added when the skill loads, by a manifest `flow install` writes, and nothing in this clone spells it out. [What Claude Code does](claude-code.md#a-plugin-is-a-bundle-not-a-skill) has the mechanism.
+**Name the folder bare, and type the skill with a prefix.** A folder called `groundwork` is typed `/flow:groundwork` in Claude Code and `$flow:groundwork` in Codex. The `flow:` is added when the skill loads, from one file, `skills/.claude-plugin/plugin.json`, which holds the name `flow`. No folder and no `name` in this clone carries it. [What Claude Code does](claude-code.md#a-plugin-is-a-bundle-not-a-skill) has the mechanism.
 
 This page is how Flow files and writes a skill. What Claude Code itself does with one, tested rather than assumed, is in [What Claude Code does](claude-code.md): where a skill is found, what it costs before it runs, how arguments reach it, and what `skillOverrides` does and does not switch off.
 
@@ -12,6 +12,7 @@ This page is how Flow files and writes a skill. What Claude Code itself does wit
 - [The groups](#the-groups)
 - [Frontmatter](#frontmatter)
 - [Everything below SKILL.md](#everything-below-skillmd)
+- [Where the skills land](#where-the-skills-land)
 - [When an install is needed](#when-an-install-is-needed)
 
 ## The folder
@@ -60,7 +61,7 @@ The description says what the skill is and what it covers. Never the steps, and 
 
 Under-explaining is the failure to avoid. Cover the subject in enough detail that a reader can tell what the skill reaches. No word count overrides that. A description that summarizes the workflow gets followed in place of the file itself.
 
-`disable-model-invocation: true` makes a skill reachable only when the user types `/<name>`. It also removes the skill from the list a session is handed, so something else has to say the skill exists: otherwise nothing does.
+`disable-model-invocation: true` makes a skill reachable only when the user types `/<name>`. It also removes the skill from the list a session is handed. The user still finds it in the `/` menu. The model meets it only where a file names it, so a typed-only skill named nowhere else is one the model reports as missing.
 
 ## Everything below SKILL.md
 
@@ -72,12 +73,30 @@ Length is not a reason to split a skill into multiple files. Split only where a 
 
 Findings a skill accumulates go in the skill, not a changelog. Dated entries in a `knowledge/` file are read when the skill runs. A changelog never is.
 
+## Where the skills land
+
+`flow install` builds one plugin folder, in `~/.agents/`, and both harnesses read it:
+
+```text
+~/.agents/skills/flow/                    a real folder
+├─ .claude-plugin/plugin.json             a copy of skills/.claude-plugin/plugin.json
+└─ skills/
+   ├─ groundwork -> <clone>/skills/phases/groundwork
+   └─ …                                   one link per skill outside drafts/
+~/.claude/skills/flow -> ~/.agents/skills/flow
+```
+
+- **Codex** reads skills from `~/.agents/skills/` and nowhere under `~/.claude/`. It follows each skill's link to the real folder in the clone, then looks for the manifest above that folder. It finds `skills/.claude-plugin/plugin.json` in the clone, which is why the clone carries one.
+- **Claude Code** reads `~/.claude/skills/`, and never `~/.agents/`. It follows the link `flow` to the plugin folder, then reads the copied manifest beside the skills. It loads the set as the plugin `flow@skills-dir`.
+
+The plugin folder is the one folder Flow links whole. A link to `~/.claude/skills/` itself would hide every other tool's skills there. `flow/` holds Flow's alone.
+
 ## When an install is needed
 
 ```bash
 flow install
 ```
 
-Only when a skill was **added, renamed, or removed**. Editing a skill never needs it: `~/.claude/skills/flow/skills/<name>` is a symlink into your clone, so the file you saved is the file the next session reads.
+Only when a skill was **added, renamed, or removed**. Editing a skill never needs it: `~/.agents/skills/flow/skills/<name>` is a symlink into your clone, so the file you saved is the file the next session reads.
 
 Re-running is safe at any time. It relinks what it owns, drops links into the clone that no longer resolve, and refuses to replace anything that is not already a symlink.

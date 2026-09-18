@@ -77,7 +77,7 @@ From `code.claude.com/docs/en/prompt-caching`. Every request Claude Code sends i
 > Claude keeps working with the version that was loaded at session start. The new content loads on
 > the next `/clear`, `/compact`, or restart.
 
-So a rule written into `~/.claude/CLAUDE.md` in the middle of a session is silently inert, and the agent carries on breaking it. The one real cost arrives at the next compaction: `/compact` "reloads project context from disk, which cache-hits only if CLAUDE.md and memory are unchanged since the session started".
+So a rule written into `~/.agents/AGENTS.md`, or any file `~/.claude/CLAUDE.md` imports, in the middle of a session is silently inert, and the agent carries on breaking it. The one real cost arrives at the next compaction: `/compact` "reloads project context from disk, which cache-hits only if CLAUDE.md and memory are unchanged since the session started".
 
 **Two file types behave differently.** A nested `CLAUDE.md` in a subdirectory, and a rule file carrying `paths:`, both load the first time Claude reads a file they match. An edit made before that moment does take effect in the same session.
 
@@ -99,7 +99,7 @@ Tested against Claude Code 2.1.246 in a throwaway config, unless a line names an
 
 - **Exactly 2 folders are read**: `<project>/.claude/skills/*/SKILL.md` and `~/.claude/skills/*/SKILL.md`. No setting adds a third.
 - **Discovery is 1 level deep for a plain skill.** A skill filed inside a grouping folder, such as `~/.claude/skills/tools/visualize/SKILL.md`, never loads. This is why Flow's own groups exist in the repository and disappear at install: the group name reaches nothing outside this tree.
-- **A plugin is the one thing that goes deeper.** A folder in a skills directory holding `.claude-plugin/plugin.json` is read as a plugin, and its own `skills/<name>/SKILL.md` load from there. That is where Flow's 12 skills sit: `~/.claude/skills/flow/skills/groundwork/`, loaded and named `flow:groundwork`. Verified 2026-09-18 with `claude plugin list`, which reported `flow@skills-dir` loaded.
+- **A plugin is the one thing that goes deeper.** A folder in a skills directory holding `.claude-plugin/plugin.json` is read as a plugin, and its own `skills/<name>/SKILL.md` load from there. That is where Flow's 12 skills sit: `~/.claude/skills/flow/skills/groundwork/`, loaded and named `flow:groundwork`. Verified 2026-09-18 with `claude plugin list`, which reported `flow@skills-dir` loaded. The same day it loaded with `~/.claude/skills/flow` a symlink to `~/.agents/skills/flow/`, so the plugin folder itself may be a link.
 - **A global skill beats a project skill of the same name, silently.** With a skill named `dupname` in both folders, the listing showed 1 entry carrying the global description, and invoking it loaded the global body. No warning, no error. Run twice to confirm.
 - **Every installed skill's full description is in context from the start.** The name and the description are always loaded; only the body is deferred until the skill runs. A description is therefore a permanent cost and a body is not.
 

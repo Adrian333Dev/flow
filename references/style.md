@@ -2,7 +2,7 @@
 
 Three scopes, and every section below belongs to one.
 
-**Everything Flow writes**: a skill, a `CLAUDE.md`, a workflow doc, a message to the user, a documentation page a stranger reads that no session ever loads. §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
+**Everything Flow writes**: a skill, a rule file, a workflow doc, a message to the user, a documentation page a stranger reads that no session ever loads. §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
 
 **Only a file that enters an agent's context.** §1's Step / Reference mark, §2 section shapes, §3 one home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatter, §9 transformations, §11 rule ids.
 
@@ -37,7 +37,7 @@ Put the highest-stakes rules first or last. Material in the middle of a long fil
 
 - A rule that fires in one situation lives in the file that loads in that situation, and drops the clause saying when it applies.
 - Every fact in exactly one place, a pointer everywhere else. Two copies drift and the reader cannot tell which is current.
-- Never restate what is already loaded: the global `CLAUDE.md`, the project `CLAUDE.md`, or any skill's own description.
+- Never restate what is already loaded: the global rule file, the project's rule file, or any skill's own description.
 - Never rule against a behavior nothing here instructs. A ban on something the workflow never sets up invents the problem it forbids.
 - Never forbid reaching for another skill. Naming which skill owns a *job* is routing and belongs; writing that a kind of work (reading, drawing, hunting a bug) is another skill's reads as a ban, and strands whoever needs it mid-task. Any skill may invoke any other.
 
@@ -51,7 +51,7 @@ A step whose content changes with the situation. 4 kinds, each with its own shap
 
 **Never branch for examples alone.** A case that only swaps the nouns is not a case. Write the instruction in domain-free words, then give examples from more than one domain. Branching for examples doubles the file and adds no instruction.
 
-- **Pick one target, then the step ends** → a `→` list, one line per case, every case covered. `## Capture` in `home/CLAUDE.md` is the model.
+- **Pick one target, then the step ends** → a `→` list, one line per case, every case covered. `## Capture` in `home/AGENTS.md` is the model.
 - **Extra material some runs need** → `### When <situation>` below the base. These add to the base and to each other, so one run hits none and the next hits 4. Name the situation that fires each.
 - **A condition that holds for the whole run** → state it once at the top, never per step. Asked in 5 places, one question gets 5 different answers. Every reader also reads every path, on every run.
 - **How the run started, before any step runs** → an entrance list at the top of the file. The reader already knows their case, so a label is recognition and never a test. Name what they can see: the words they typed, the command that ran, what is on disk. A label naming a state they would have to work out matches nothing. Put what every entrance shares above the list, and leave only the difference on each line.
@@ -214,7 +214,7 @@ A page in a published documentation set. Nobody loads it into a session: a reade
 
 Every rule in a loaded file carries an id, so a check can name it and a reply can cite it. An id is lowercase, its words joined by dashes, in a bold code span at the start of the rule:
 
-```
+```md
 - **`no-git-mutations`** Never run a git command that writes.
 ```
 

@@ -105,7 +105,7 @@ index e5c5c55..7b363c9 100644
  line two
 ```
 
-"Stop hook blocking error" is how Claude Code labels any message a background hook wakes the parent with. Nothing failed. The rule `change-record` in `home/CLAUDE.md` tells every session so, because a parent with no such instruction read a record as a possible prompt injection.
+"Stop hook blocking error" is how Claude Code labels any message a background hook wakes the parent with. Nothing failed. The rule `change-record` in `home/AGENTS.md` tells every session so, because a parent with no such instruction read a record as a possible prompt injection.
 
 The other subagent ran a command, and its record listed the command beside the file it created:
 

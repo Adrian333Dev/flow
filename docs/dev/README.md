@@ -23,7 +23,7 @@ Install, the commands, the skills and the settings are in [Reference](../manual/
 
 ## An edit in the clone is live everywhere
 
-Flow installs by symlink, so one clone holds every file and your machine holds names pointing into it. Saving a skill file changes the installed workflow at once, in every project and in every session already open. Nothing is copied except `~/.claude/CLAUDE.md` and `~/.claude/settings.json`, which become yours on a first install.
+Flow installs by symlink, so one clone holds every file and your machine holds names pointing into it. Saving a skill file changes the installed workflow at once, in every project and in every session already open. Nothing is copied except the rule file `~/.agents/AGENTS.md` and `~/.claude/settings.json`, which become yours on a first install, and the plugin manifest, which every install rewrites.
 
 That immediacy is what the next two pages exist for. [The two checkouts](checkout.md) is how to rework several files at once without a half-finished state reaching a real project. [The scratch session](scratch-session.md) is how to run a change against a throwaway config instead, leaving the installed workflow alone.
 

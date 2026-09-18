@@ -1,11 +1,12 @@
 # The scratch session
 
-`lab/scripts/try.sh` builds a throwaway Claude Code configuration under `tmp/`, then starts a real session against it. A change to Flow is usually five skills, a rule in `home/CLAUDE.md`, and a settings key together. The scratch session is the way to test all of them at once without touching what your projects use.
+`lab/scripts/try.sh` builds a throwaway install of Flow under `tmp/`, then starts a real Claude Code or Codex session against it. A change to Flow is usually five skills, a rule in `home/AGENTS.md`, and a settings key together. The scratch session is the way to test all of them at once without touching what your projects use.
 
 ## Table of contents
 
 - [Running it](#running-it)
 - [What it builds](#what-it-builds)
+- [The Codex session](#the-codex-session)
 - [Why it is not an install](#why-it-is-not-an-install)
 - [Editing during a run](#editing-during-a-run)
 - [The scratch project](#the-scratch-project)
@@ -15,32 +16,43 @@
 
 ```bash
 bash lab/scripts/try.sh
+bash lab/scripts/try.sh --codex     # the same install, in a Codex session
 bash lab/scripts/try.sh --print     # rebuild, then print the command instead of starting
 bash lab/scripts/try.sh --fresh     # delete tmp/try/ first, scratch project included
 bash lab/scripts/try.sh --seed guards   # build the scratch project from another seed
 ```
 
-The bare form ends in `exec claude`, which takes over the terminal and never returns. That is what you want from a terminal. From inside another session it is useless, so `--print` hands you the command to run yourself.
+The bare form ends by starting `claude`, or `codex` with `--codex`, which takes over the terminal and never returns. That is what you want from a terminal. From inside another session it is useless, so `--print` hands you the command to run yourself.
 
 ## What it builds
 
-It runs the same command a real install runs, with both roots redirected:
+It runs the same command a real install runs, pointed at a folder that stands in for your home folder:
 
 ```sh
-flow install --home tmp/try/home --flow-home tmp/try/flow --no-bin --drafts
+flow install --root tmp/try/root --no-bin --drafts
 ```
 
-The scratch session therefore tests the arrangement an install produces, rather than a second arrangement the script assembled by hand. Both roots move together because `flow install` refuses one flag without the other.
+The scratch session therefore tests the arrangement an install produces, rather than a second arrangement the script assembled by hand. `.agents`, `.claude`, `.codex` and `.flow` all land under `tmp/try/root/`, and none of them in your real home folder.
 
 `--drafts` links the skills in `skills/drafts/`, which a real install skips. A draft is unreachable anywhere else, so the scratch session passes the flag on every run.
 
-`FLOW_HOME` is exported into the session, so `flow cases new` writes a study case into `tmp/try/flow/` rather than into your real ones.
+`FLOW_HOME` is set for the session, so `flow cases new` writes a study case into `tmp/try/root/.flow/` rather than into your real ones.
 
-`CLAUDE_CONFIG_DIR` is exported too, and `flow audit` reads transcripts from underneath it. A scratch session therefore sees only the scratch sessions before it, never your real history.
+`CLAUDE_CONFIG_DIR` is set too, to `tmp/try/root/.claude`, and `flow audit` reads transcripts from underneath it. A scratch session therefore sees only the scratch sessions before it, never your real history.
+
+## The Codex session
+
+`--codex` starts Codex instead of Claude Code, against the same install. Codex looks for skills in `~/.agents/skills/` under whatever `HOME` says, so the session gets `HOME=tmp/try/root`, and `CODEX_HOME=tmp/try/root/.codex` beside it. It sees Flow's skills as `$flow:groundwork` and the rules through the link `tmp/try/root/.codex/AGENTS.md`.
+
+It starts signed in because `try.sh` copies `~/.codex/auth.json` into the scratch `.codex/`. A copy rather than a link, so nothing the session does can write your real login.
+
+**It refuses when your Codex login is a day from renewing.** Codex renews the login by rewriting `auth.json` when the access token is 5 minutes from expiring, and a renewal uses up the old token. A scratch copy that renewed would sign your real Codex out. Run `codex` once anywhere, which renews the real file, and the next copy is fresh.
+
+Codex has no Flow hooks yet, and the scratch `.codex/` carries none of your own settings.
 
 ## Why it is not an install
 
-Everything lands under `tmp/`. Nothing outside it is ever written, and no name goes on your `PATH`: that is what `--no-bin` is for. `~/.flow` is neither read nor written.
+Everything lands under `tmp/`. Nothing outside it is ever written, and no name goes on your `PATH`: that is what `--no-bin` is for. `~/.flow` and `~/.agents` are neither read nor written, and `~/.codex/auth.json` is read only for `--codex`.
 
 Three files under `~/.claude/` are read. Each one answers a question the session would otherwise ask you:
 
@@ -56,7 +68,7 @@ The configuration is rebuilt on every run, so without them you answer all three 
 
 Skills and agents are symlinked into the scratch configuration, so `SKILL.md` there is the file in your clone. Write, save, invoke: the running session reads what you just wrote.
 
-`CLAUDE.md` and `settings.json` are copies. Those two are the only reason to rebuild.
+The rule file `tmp/try/root/.agents/AGENTS.md` and `settings.json` are copies. Those two are the only reason to rebuild.
 
 ## The scratch project
 

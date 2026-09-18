@@ -17,8 +17,9 @@
  * anywhere, install day included.
  *
  * The flags exist so the tests can run a real install and then verify it.
- * `--home` and `--flow-home` point the two roots at a scratch tree, `--no-bin`
- * matches `flow install --no-bin` (a scratch install writes no names into
+ * `--root` reads the whole install under a scratch folder in place of the home
+ * folder, the same as `flow install --root`. `--no-bin` matches
+ * `flow install --no-bin` (a scratch install writes no names into
  * ~/.local/bin, so there are none to check), and `--no-tests` drops the 2
  * suites, which are the only slow part of this.
  */
@@ -29,8 +30,8 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { out } = require('../lib/cli');
 const { cloneRoot } = require('../lib/clone');
-const { FlowError } = require('../lib/error');
 const { markdownFiles } = require('../lib/links');
+const machine = require('../lib/machine');
 const render = require('../lib/render');
 const skills = require('../lib/skills');
 
@@ -43,8 +44,8 @@ const skills = require('../lib/skills');
  * caller beside each entry says what stops working when it fails.
  */
 const UTIL_COMMANDS = [
-  { name: 'fs tree', callers: 'home/CLAUDE.md, overlays.js, audit/files.js' },
-  { name: 'fs merge', callers: 'home/CLAUDE.md, audit/files.js, audit/store.js' },
+  { name: 'fs tree', callers: 'home/AGENTS.md, overlays.js, audit/files.js' },
+  { name: 'fs merge', callers: 'home/AGENTS.md, audit/files.js, audit/store.js' },
   { name: 'fs open', callers: 'flow get --files, through tickets.js' },
 ];
 
@@ -77,6 +78,31 @@ function inspect(p) {
 }
 
 /**
+ * Each wanted link, checked against its target: `{ at, target, what }`.
+ *
+ * The target is compared after resolving both sides, so a clone reached
+ * through a linked folder still counts as this clone.
+ */
+function checkLinks(wanted) {
+  const problems = [];
+  const real = (p) => {
+    try {
+      return fs.realpathSync(p);
+    } catch {
+      return p;
+    }
+  };
+  for (const item of wanted) {
+    const found = inspect(item.at);
+    if (found.state === 'missing') problems.push(`${item.what} is not linked: run flow install`);
+    else if (found.state === 'real') problems.push(`${item.what} is a real file, not a link: Flow never wrote it`);
+    else if (found.state === 'broken') problems.push(`${item.what} points at ${found.raw}, which is gone: run flow install`);
+    else if (found.target !== real(item.target)) problems.push(`${item.what} points at ${found.target}, not ${shorten(item.target)}: run flow install`);
+  }
+  return problems;
+}
+
+/**
  * Where a name resolves on PATH, or null.
  *
  * A PATH walk rather than spawning `which`: a broken symlink fails the execute
@@ -97,10 +123,7 @@ function onPath(name) {
   return null;
 }
 
-/** A path under the home directory, written the way every page writes it. */
-const shorten = (p) => (p === os.homedir() || p.startsWith(os.homedir() + path.sep)
-  ? '~' + p.slice(os.homedir().length)
-  : p);
+const { shorten } = machine;
 
 /** One or many, so a count never reads "1 rules". */
 const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
@@ -221,8 +244,11 @@ function registryDiagnosis() {
   return [`${file} names ${paths.length} live source(s), so the command itself is missing from util's clone`];
 }
 
-/** What Claude Code reads: one link per skill, agent and rule, and CLAUDE.md. */
-function checkClaudeHome(clone, home, catalog) {
+/**
+ * The one real copy of everything Flow keeps outside the clone: the plugin
+ * folder with its manifest and a link per skill, and the rule file.
+ */
+function checkAgents(at, catalog) {
   const problems = [];
   const notes = [];
 
@@ -232,54 +258,100 @@ function checkClaudeHome(clone, home, catalog) {
   if (catalog.error) problems.push(catalog.error.message.split('\n')[0]);
   const installable = catalog.skills.filter((s) => s.group !== skills.DRAFTS);
 
-  const linkDir = skills.linkDir(home);
-  const wanted = [
-    ...installable.map((s) => ({ at: path.join(linkDir, s.name), target: s.dir, what: `skills/${s.name}` })),
-    ...markdownFiles(path.join(clone, 'agents'))
-      .map((f) => ({ at: path.join(home, 'agents', f), target: path.join(clone, 'agents', f), what: `agents/${f}` })),
-    ...markdownFiles(path.join(clone, 'rules'))
-      .map((f) => ({ at: path.join(home, 'rules', f), target: path.join(clone, 'rules', f), what: `rules/${f}` })),
-  ];
-
-  for (const item of wanted) {
-    const found = inspect(item.at);
-    if (found.state === 'missing') problems.push(`${item.what} is in the tree and not linked: run flow install`);
-    else if (found.state === 'real') problems.push(`${item.what} is a real file, not a link: Flow never wrote it`);
-    else if (found.state === 'broken') problems.push(`${item.what} points at ${found.raw}, which is gone: run flow install`);
-    else if (found.target !== fs.realpathSync(item.target)) problems.push(`${item.what} points at ${found.target}, not this clone: run flow install`);
+  const plugin = skills.pluginDir(at.agents);
+  const found = inspect(plugin);
+  if (found.state !== 'missing' && found.state !== 'real') {
+    problems.push(`${shorten(plugin)} is a link: it has to be the real folder, and ~/.claude/skills/flow the link to it`);
   }
+
+  const linkDir = skills.linkDir(at.agents);
+  problems.push(...checkLinks(installable.map((s) => ({
+    at: path.join(linkDir, s.name), target: s.dir, what: `skills/${s.name}`,
+  }))));
 
   // The one file that gives every skill its name. Without it the skills still
   // load, under bare names, and every command in every doc is wrong by one word.
-  const manifest = skills.manifestFile(home);
+  const manifest = skills.manifestFile(at.agents);
   let manifestName = null;
   try {
     manifestName = JSON.parse(fs.readFileSync(manifest, 'utf8')).name;
   } catch (e) {
     problems.push(e.code === 'ENOENT'
-      ? `skills/${skills.PLUGIN}/.claude-plugin/plugin.json is missing, so the skills load unprefixed: run flow install`
-      : `skills/${skills.PLUGIN}/.claude-plugin/plugin.json is not valid JSON: ${e.message}`);
+      ? `${shorten(manifest)} is missing, so the skills load unprefixed: run flow install`
+      : `${shorten(manifest)} is not valid JSON: ${e.message}`);
   }
   if (manifestName && manifestName !== skills.PLUGIN) {
     problems.push(`the plugin manifest names "${manifestName}", so the skills are typed /${manifestName}:groundwork: run flow install`);
   }
 
-  const rules = path.join(home, 'CLAUDE.md');
+  const rules = path.join(at.agents, 'AGENTS.md');
   if (!fs.existsSync(rules)) {
-    problems.push('CLAUDE.md is missing: run flow install, which copies the template when there is none');
+    problems.push(`${shorten(rules)} is missing: run flow install, which copies the template when there is none`);
   } else if (fs.readFileSync(rules, 'utf8').includes('<!-- e.g.')) {
     // A note rather than a problem. The file is a copy and is meant to diverge,
     // so a placeholder left in it means one section was never filled, which is
     // a thing to finish rather than a thing that is broken.
-    notes.push('CLAUDE.md still carries its template placeholders, so ## The user and ## Preferences were never filled in');
+    notes.push('AGENTS.md still carries its template placeholders, so ## The user and ## Preferences were never filled in');
+  }
+
+  return {
+    name: shorten(at.agents),
+    problems,
+    notes,
+    summary: `${count(installable.length, 'skill', 'skills')} linked under skills/${skills.PLUGIN}/, AGENTS.md present`,
+  };
+}
+
+/**
+ * What Claude Code reads: the link to the plugin folder, one link per agent
+ * and rule, and a CLAUDE.md importing the rule file.
+ */
+function checkClaude(clone, at) {
+  const agents = markdownFiles(path.join(clone, 'agents'));
+  const rules = markdownFiles(path.join(clone, 'rules'));
+  const problems = checkLinks([
+    { at: skills.pluginLink(at.claude), target: skills.pluginDir(at.agents), what: `skills/${skills.PLUGIN}` },
+    ...agents.map((f) => ({ at: path.join(at.claude, 'agents', f), target: path.join(clone, 'agents', f), what: `agents/${f}` })),
+    ...rules.map((f) => ({ at: path.join(at.claude, 'rules', f), target: path.join(clone, 'rules', f), what: `rules/${f}` })),
+  ]);
+
+  // An import rather than a link, so the check reads the line. Without it
+  // Claude Code starts every session with none of the rules.
+  const file = path.join(at.claude, 'CLAUDE.md');
+  const line = machine.importLine(at.base);
+  let text = null;
+  try {
+    text = fs.readFileSync(file, 'utf8');
+  } catch {
+    problems.push(`CLAUDE.md is missing, so Claude Code loads no rules: run flow install`);
+  }
+  if (text !== null && !text.split('\n').some((l) => l.trim() === line)) {
+    problems.push(`CLAUDE.md does not import the rules, so Claude Code never reads them: add the line ${line}`);
   }
 
   const counted = [
-    count(installable.length, 'skill', 'skills'),
-    count(markdownFiles(path.join(clone, 'agents')).length, 'agent', 'agents'),
-    count(markdownFiles(path.join(clone, 'rules')).length, 'rule', 'rules'),
+    `skills/${skills.PLUGIN}`,
+    count(agents.length, 'agent', 'agents'),
+    count(rules.length, 'rule', 'rules'),
   ].join(', ');
-  return { name: shorten(home), problems, notes, summary: `${counted} linked under ${skills.PLUGIN}/, CLAUDE.md present` };
+  return { name: shorten(at.claude), problems, summary: `${counted} linked, CLAUDE.md imports the rules` };
+}
+
+/**
+ * What Codex reads: AGENTS.md, a link to the rule file.
+ *
+ * Codex reads AGENTS.override.md first when one exists, so a leftover one
+ * hides the rules as surely as a missing link.
+ */
+function checkCodex(at) {
+  const problems = checkLinks([
+    { at: path.join(at.codex, 'AGENTS.md'), target: path.join(at.agents, 'AGENTS.md'), what: 'AGENTS.md' },
+  ]);
+  const override = path.join(at.codex, 'AGENTS.override.md');
+  if (fs.existsSync(override) && fs.readFileSync(override, 'utf8').trim() !== '') {
+    problems.push(`${shorten(override)} exists, and Codex reads it in place of AGENTS.md: move what it holds into ${shorten(path.join(at.agents, 'AGENTS.md'))}`);
+  }
+  return { name: shorten(at.codex), problems, summary: 'AGENTS.md links to the rules' };
 }
 
 /**
@@ -289,9 +361,9 @@ function checkClaudeHome(clone, home, catalog) {
  * and your effort level, so a half-finished merge is the likeliest state on
  * this whole page.
  */
-function checkSettings(clone, home, catalog) {
+function checkSettings(clone, claude, catalog) {
   const problems = [];
-  const file = path.join(home, 'settings.json');
+  const file = path.join(claude, 'settings.json');
   let live;
   try {
     live = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -330,15 +402,9 @@ function checkSettings(clone, home, catalog) {
 
 /** What only Flow reads. Claude Code never opens either of these. */
 function checkFlowHome(clone, flowHome) {
-  const problems = [];
-  for (const name of ['scripts', 'references']) {
-    const found = inspect(path.join(flowHome, name));
-    const wanted = path.join(clone, name);
-    if (found.state === 'missing') problems.push(`${name} is not linked: run flow install`);
-    else if (found.state === 'real') problems.push(`${name} is a real directory, not a link`);
-    else if (found.state === 'broken') problems.push(`${name} points at ${found.raw}, which is gone: run flow install`);
-    else if (found.target !== wanted) problems.push(`${name} points at ${found.target}, not this clone: run flow install`);
-  }
+  const problems = checkLinks(['scripts', 'references'].map((name) => ({
+    at: path.join(flowHome, name), target: path.join(clone, name), what: name,
+  })));
   return { name: shorten(flowHome), problems, summary: 'scripts and references resolve into this clone' };
 }
 
@@ -378,36 +444,21 @@ actions.doctor = {
   section: 'setup',
   summary: 'verify this machine: links, PATH, util, hooks, both suites',
   flags: {
-    home: { arg: '<path>' },
-    'flow-home': { arg: '<path>' },
+    root: { arg: '<dir>' },
     'no-bin': { bool: true },
     'no-tests': { bool: true },
   },
   run({ flags }) {
-    // The same both-or-neither rule `flow install` follows, for a different
-    // reason: there it stops half an install landing on the real machine, and
-    // here it stops a report that read one scratch root and one real one.
-    const ROOTS = { home: '~/.claude', 'flow-home': '~/.flow' };
-    const given = Object.keys(ROOTS).filter((f) => flags[f]);
-    if (given.length === 1) {
-      const [missing] = Object.keys(ROOTS).filter((f) => !flags[f]);
-      throw new FlowError(
-        `--${given[0]} was passed without --${missing}, so ${ROOTS[missing]} would be read for real.\n` +
-        'Pass both, or neither.'
-      );
-    }
-
     const clone = cloneRoot();
-    const home = path.resolve(flags.home || path.join(os.homedir(), '.claude'));
-    const flowHome = path.resolve(flags['flow-home'] || path.join(os.homedir(), '.flow'));
-    const bin = flags['no-bin'] ? null : path.join(os.homedir(), '.local', 'bin');
+    const at = machine.folders(flags.root);
+    const bin = flags['no-bin'] ? null : path.join(at.base, '.local', 'bin');
 
     // The empty case, and it is the one this machine is in until install day.
     // Without it a fresh machine reads as 20 separate failures, all of them the
     // same failure said again.
-    if (inspect(path.join(flowHome, 'scripts')).state === 'missing' && !anyFlowSkillLinked(home)) {
+    if (inspect(path.join(at.flow, 'scripts')).state === 'missing' && !anyFlowSkillLinked(at.agents)) {
       out(
-        `Flow is not installed here. ${shorten(flowHome)} has no scripts link and ${shorten(home)} holds no Flow skill.\n\n` +
+        `Flow is not installed here. ${shorten(at.flow)} has no scripts link and ${shorten(at.agents)} holds no Flow skill.\n\n` +
         `Install it, then run this again:\n\n  node ${path.join(clone, 'scripts', 'flow', 'flow.js')} install\n`
       );
       return 1;
@@ -418,9 +469,11 @@ actions.doctor = {
     const checks = [
       checkNames(clone, { bin }),
       checkUtil(),
-      checkClaudeHome(clone, home, catalog),
-      checkSettings(clone, home, catalog),
-      checkFlowHome(clone, flowHome),
+      checkAgents(at, catalog),
+      checkClaude(clone, at),
+      checkCodex(at),
+      checkSettings(clone, at.claude, catalog),
+      checkFlowHome(clone, at.flow),
       flags['no-tests']
         ? { name: 'tests', skipped: '--no-tests' }
         : checkTests(clone, { bin }),
@@ -447,9 +500,9 @@ function readCatalog() {
 }
 
 /** True when the plugin folder holds even one link into this clone. */
-function anyFlowSkillLinked(home) {
+function anyFlowSkillLinked(agents) {
   const clone = cloneRoot();
-  const linkDir = skills.linkDir(home);
+  const linkDir = skills.linkDir(agents);
   let entries = [];
   try {
     entries = fs.readdirSync(linkDir);

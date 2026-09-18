@@ -117,7 +117,7 @@ You pay once, in a context that is ending. The reader pays out of the context it
 - **A file whose content you already wrote out here.** The reader reads both and cannot tell which one is current.
 - **A file the session must not act on.** Where a path exists only to stop the reader doing something, write that sentence and drop the path.
 
-Durable knowledge goes to its own home the moment it surfaces: `## Capture` in the global `CLAUDE.md` names the file. This is disposable.
+Durable knowledge goes to its own home the moment it surfaces: `## Capture` in `~/.agents/AGENTS.md` names the file. This is disposable.
 
 ## 4. Land it
 

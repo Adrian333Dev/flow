@@ -30,11 +30,18 @@ node <clone>/scripts/flow/flow.js install
 
 Run it by path the first time, because `flow` is not a command until that run has made it one. After that, the command is `flow install`.
 
-The run links every skill and agent into `~/.claude/`, links `scripts/` and `references/` into `~/.flow/`, and puts `flow` and `fw` on your `PATH` in `~/.local/bin/`. Skills are linked one at a time and agents the same way: both `~/.claude/` directories can hold entries Flow did not create, and a folder-level symlink would replace all of them.
+What one run puts on the machine:
 
-`--home <path>` moves where the Claude Code files go, and `--flow-home <path>` moves where the Flow files go. Passing one without the other is refused, because redirecting half the install writes the other half to the real machine.
+- **`~/.agents/skills/flow/`**: a real folder holding a copy of the manifest that names every skill `flow:`, and one link per skill into the clone. Codex reads skills from this folder.
+- **`~/.claude/skills/flow`**: a link to that folder, which is how Claude Code finds the same skills.
+- **`~/.claude/agents/` and `~/.claude/rules/`**: one link per file into the clone. Both folders can hold entries Flow did not create, and a link to the whole folder would replace all of them.
+- **`~/.flow/scripts` and `~/.flow/references`**: links into the clone.
+- **`~/.local/bin/flow` and `fw`**: links to `flow.js`, so both are on your `PATH`.
+- **The rules**: `~/.agents/AGENTS.md` copied from the template, `~/.claude/CLAUDE.md` holding the one line `@~/.agents/AGENTS.md`, and `~/.codex/AGENTS.md` linking to the copy. Each is written only where no file exists or the one there is empty.
 
-**Two files become yours and stop tracking the repository.** `~/.claude/CLAUDE.md` is copied from the template on a first install and never rewritten, so your name, your machine and your preferences survive a re-run, and a rule added to the template later has to be carried across by hand. `~/.claude/settings.json` is never written at all: `flow install` prints the file to merge and stops, because merging Flow's hooks and permission rules into your own model and plugin settings is a judgment call.
+`--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.codex`, `<dir>/.flow` and `<dir>/.local/bin`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
+
+**Two files become yours and stop tracking the repository.** `~/.agents/AGENTS.md` is copied from the template on a first install and never rewritten, so your name, your machine and your preferences survive a re-run, and a rule added to the template later has to be carried across by hand. A `CLAUDE.md` or a Codex `AGENTS.md` you wrote yourself is kept too, and the run says what to move into `~/.agents/AGENTS.md`. `~/.claude/settings.json` is never written at all: `flow install` prints the file to merge and stops, because merging Flow's hooks and permission rules into your own model and plugin settings is a judgment call.
 
 **Install `util` first.** `util` is a separate command-line tool holding Flow's general-purpose commands, its own repository, included here as a submodule at `lab/util/`.
 
@@ -50,12 +57,14 @@ Everything about an installed machine a function can decide. It writes nothing, 
 
 - **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, `~/.local/bin` is on your `PATH`, and `node`, `git` and `claude` are reachable.
 - **The 3 util commands Flow calls**: `util fs tree`, `util fs merge` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all.
-- **`~/.claude/`**: one link per skill, agent and rule, each pointing into this clone; the plugin manifest under `skills/flow/` present and naming `flow`; and `CLAUDE.md` present.
+- **`~/.agents/`**: `skills/flow/` is a real folder, it holds one link per skill pointing into this clone, and its manifest names `flow`. `AGENTS.md` is present. A template placeholder still in it is a note, not a failure.
+- **`~/.claude/`**: `skills/flow` links to the plugin folder, one link per agent and rule points into this clone, and `CLAUDE.md` holds the line importing `~/.agents/AGENTS.md`.
+- **`~/.codex/`**: `AGENTS.md` links to `~/.agents/AGENTS.md`, and no `AGENTS.override.md` hides it. Codex reads an override file in place of `AGENTS.md`.
 - **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a Flow skill, which would do nothing because Flow's skills load as a plugin.
 - **`~/.flow/`**: `scripts` and `references` resolve into this clone.
 - **Both test suites**, Flow's and util's. They are the only slow part, and `--no-tests` drops them.
 
-`--home`, `--flow-home` and `--no-bin` mirror `flow install`, so an install redirected into a scratch tree can be verified where it sits. A machine with nothing installed gets a single message saying so, instead of every check failing separately.
+`--root` and `--no-bin` mirror `flow install`, so an install redirected into a scratch tree can be verified where it sits. A machine with nothing installed gets a single message saying so, instead of every check failing separately.
 
 `flow check` is the other verification command and answers a different question: the ticket graph in the project you are standing in.
 
@@ -285,15 +294,7 @@ Every issue folder with its count, open count, latest date, and the rules that f
 
 ## Skill discovery
 
-Which skills this session is being shown, where that was decided, and which domain and private skills can be added. [The skills](#the-skills) lists them; [Adding a skill](../dev/skills.md) covers writing one.
-
-### `flow skills ls`
-
-Every skill and its group. This is the default action: `flow skills` runs `ls`.
-
-The `STATE` and `SET BY` columns read `skillOverrides`, which stopped reaching Flow's skills when they became a plugin, so both columns now say the same thing on every row. They go when the command is next opened.
-
-Two flags narrow it. `--group <group>` keeps one group, and naming a group that does not exist refuses with the list of ones that do. `--hidden` keeps only `drafts/`, which is the one group that does not install.
+Which domain and private skills exist, and adding them to a project or to the machine. [The skills](#the-skills) lists Flow's own; [Adding a skill](../dev/skills.md) covers writing one.
 
 ### `flow domain-skills`
 
@@ -452,7 +453,7 @@ react: 2 sent, https://github.com/Adrian333Dev/domain-skills/pull/14
 
 A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:name` to run one, or let Claude fire it from its description.
 
-**The `flow:` in front of every one comes from a single file.** `flow install` links the whole set into `~/.claude/skills/flow/`, beside a manifest, `.claude-plugin/plugin.json`, holding the one word `flow`. Both Claude Code and Codex read that file and offer every skill below it as `flow:<name>`, so no folder and no `SKILL.md` in the clone carries a prefix. Codex spells the same command `$flow:groundwork`. Changing the word in the manifest renames every command at once, and `claude plugin disable flow@skills-dir` takes the whole set out of a session.
+**The `flow:` in front of every one comes from a single file.** `skills/.claude-plugin/plugin.json` in the clone holds the one word `flow`. `flow install` links the whole set into `~/.agents/skills/flow/`, beside a copy of that file, and links `~/.claude/skills/flow` to the same folder. Both Claude Code and Codex read the file and offer every skill below it as `flow:<name>`, so no folder and no `SKILL.md` in the clone carries a prefix. Codex spells the same command `$flow:groundwork`. Changing the word in the manifest renames every command at once, and `claude plugin disable flow@skills-dir` takes the whole set out of a session.
 
 **`phases/`, the four states a piece of work passes through.** Shown in every session. Each takes a ticket id, `/flow:execute t047`, and loads the ticket and its files itself. Typed bare, it loads nothing.
 
@@ -499,4 +500,4 @@ A project overrides any of them in its own `.claude/settings.json`, and the two 
 
 ## Files
 
-Flow keeps what Claude Code reads in `~/.claude/` and what only Flow reads in `~/.flow/`, and a project splits the same way into `.claude/` and `.flow/`. [Where everything lives](where-everything-lives.md) shows every folder in one tree and says what writes each entry.
+Flow keeps the one real copy of its rules and its plugin folder in `~/.agents/`, what Claude Code reads in `~/.claude/`, what Codex reads in `~/.codex/`, and what only Flow reads in `~/.flow/`. A project splits into `.claude/` and `.flow/`. [Where everything lives](where-everything-lives.md) shows every folder in one tree and says what writes each entry.

@@ -18,7 +18,6 @@ const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
 const overlays = require('./commands/overlays');
-const skills = require('./commands/skills');
 const domainSkills = require('./commands/domain-skills');
 const privateSkills = require('./commands/private-skills');
 const git = require('./commands/git');
@@ -99,8 +98,9 @@ cases   ~/.flow/study-cases/<issue>/<date>-<slug>.md: global, filed by issue
 skills  one real copy of each lives in the clone, filed under a group folder.
         Every group but drafts installs on every machine, as one symlink named
         for the skill, so there is no list to keep in step. The links sit
-        inside ~/.claude/skills/flow/, beside the manifest that makes each one
-        typed as /flow:groundwork; flow skills ls prints the catalog
+        inside ~/.agents/skills/flow/, beside the manifest that makes each one
+        typed as /flow:groundwork. Codex reads that folder, and Claude Code
+        reaches it through the link ~/.claude/skills/flow
 domain  a skill from the domain-skills repository installs into one project,
         never the machine: flow domain-skills add links it into
         .claude/skills/ and writes its name to .flow/domain-skills.txt. git
@@ -126,7 +126,7 @@ share   a finding for a domain skill waits in .flow/findings/<skill>/, where
         merged: /flow:fold rewrites the skill from it and closes it with what went in
 default cases and overlays each read a bare word as an argument to their
         most used action: flow overlays groundwork is flow overlays get
-        groundwork. skills, domain-skills and private-skills default to ls,
+        groundwork. domain-skills and private-skills default to ls,
         so flow domain-skills react lists the skills naming react
 audit   what Claude Code did, read back afterwards. It reads the transcripts
         Claude Code already writes at ~/.claude/projects/ and derives an index
@@ -158,7 +158,7 @@ git     off everywhere by default: the agent names a git command that writes
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, skills, 'domain-skills': domainSkills, 'private-skills': privateSkills, overlays, git, audit },
+    groups: { cases, 'domain-skills': domainSkills, 'private-skills': privateSkills, overlays, git, audit },
     fallback: tickets.fallback,
     sections: SECTIONS,
     title: TITLE,
