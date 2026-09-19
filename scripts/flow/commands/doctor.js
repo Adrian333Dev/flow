@@ -318,7 +318,7 @@ function checkClaude(clone, at) {
   // An import rather than a link, so the check reads the line. Without it
   // Claude Code starts every session with none of the rules.
   const file = path.join(at.claude, 'CLAUDE.md');
-  const line = machine.importLine(at.base);
+  const line = machine.importLine(clone, at.base);
   let text = null;
   try {
     text = fs.readFileSync(file, 'utf8');
@@ -397,7 +397,23 @@ function checkSettings(clone, claude, catalog) {
     }
   }
 
-  return { name: 'settings.json', problems, summary: `${count(wanted.length, 'hook', 'hooks')} registered, every file they name on disk` };
+  // With no mode set, Claude Code starts a session on a Pro, Max or Team plan
+  // in auto mode, and nothing on screen says so. A missing key is a merge that
+  // went wrong, so it fails. A different mode is somebody's choice, so it is a
+  // note: docs/manual/settings.md argues the case, and this only reports it.
+  const notes = [];
+  const wantedMode = (template.permissions || {}).defaultMode;
+  const liveMode = (live.permissions || {}).defaultMode;
+  if (wantedMode && !liveMode) {
+    problems.push(`permissions.defaultMode is not set, so a session on a Pro, Max or Team plan starts in auto mode: ` +
+      `merge "defaultMode": "${wantedMode}" from the template`);
+  } else if (wantedMode && liveMode !== wantedMode) {
+    notes.push(`permissions.defaultMode is "${liveMode}", and Flow's template starts every session in "${wantedMode}"`);
+  }
+
+  const summary = `${count(wanted.length, 'hook', 'hooks')} registered, every file they name on disk` +
+    (wantedMode ? `, sessions start in "${liveMode}" mode` : '');
+  return { name: 'settings.json', problems, notes, summary };
 }
 
 /** What only Flow reads. Claude Code never opens either of these. */

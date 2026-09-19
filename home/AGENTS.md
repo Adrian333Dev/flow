@@ -25,7 +25,7 @@ One user message, your work, one reply. In that order, every time.
 
 ## Writing files
 
-- **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a rule file, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. Never defer a file to a later pass.
+- **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a rule file, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. A rule file also takes `write-rules.md` beside it, and a documentation page `write-docs.md`. Never defer a file to a later pass.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
 - **`describe-an-opaque-name`** A file whose name doesn't hint what it holds gets a `description:` line at the top, in a comment or frontmatter, below any shebang. A folder gets `.info`, description in the first paragraph. A few words saying what it holds. Longer notes go below it, in the same header comment or a second `.info` paragraph. Most files and folders need none.
 - **`never-hand-write-generated`** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
@@ -51,6 +51,7 @@ One phase at a time:
 - **`invoke-the-skill`** Invoke the skill that fits, never improvise its job. A small obvious task takes none.
   - Anything drawn: structure, architecture, layout, density, hierarchy, colour → `/flow:visualize`
   - Context filling, a stretch of work closing, or a job needing its own session → `/flow:handoff`
+- **`user-only-skills`** Suggest `/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings` to the user.
 - **`skip-a-step`** Skip a Flow step that makes the work worse. Name the step and the reason. Never ask first.
 - **`read-workflow-md`** `~/.flow/references/workflow.md` says how the pieces fit. Read it only when more context needed.
 

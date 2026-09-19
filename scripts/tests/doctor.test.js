@@ -67,7 +67,7 @@ test('a fresh install passes every check', () => {
   assert.strictEqual(report.code, 0, report.stdout + report.stderr);
   assert.match(report.stdout, /nothing to fix\./);
   assert.match(report.stdout, /util: fs tree, fs merge, fs open all run/);
-  assert.match(report.stdout, /11 hooks registered, every file they name on disk/);
+  assert.match(report.stdout, /11 hooks registered, every file they name on disk, sessions start in "default" mode/);
 });
 
 test('a machine with nothing installed says so once, rather than failing every check', () => {
@@ -105,6 +105,27 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   assert.match(report.stdout, /no InstructionsLoaded hook running instructions-loaded\.js/);
   assert.match(report.stdout, new RegExp(`skillOverrides names "${skill}", a Flow skill, and does nothing`));
   assert.match(report.stdout, /references points at .*gone, which is gone/);
+});
+
+test('a settings.json with no starting mode fails, and one starting in another mode gets a note', () => {
+  const m = machine('doctor-mode');
+  const settingsFile = path.join(m.home, 'settings.json');
+  const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+  const bin = utilStub(m.dir);
+
+  delete settings.permissions.defaultMode;
+  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+  const missing = doctor(m, { bin });
+
+  assert.strictEqual(missing.code, 1);
+  assert.match(missing.stdout, /permissions\.defaultMode is not set, so a session on a Pro, Max or Team plan starts in auto mode/);
+
+  settings.permissions.defaultMode = 'auto';
+  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+  const chosen = doctor(m, { bin });
+
+  assert.strictEqual(chosen.code, 0, chosen.stdout + chosen.stderr);
+  assert.match(chosen.stdout, /note  settings\.json: permissions\.defaultMode is "auto", and Flow's template starts every session in "default"/);
 });
 
 test('a util that does not run is diagnosed against its source registry', () => {

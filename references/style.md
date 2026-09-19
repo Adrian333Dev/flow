@@ -1,14 +1,15 @@
 # Style
 
-Three scopes, and every section below belongs to one.
+Two scopes, and every section below belongs to one.
 
 **Everything Flow writes**: a skill, a rule file, a workflow doc, a message to the user, a documentation page a stranger reads that no session ever loads. §1 planning, §2's markdown defaults, §5 sentences, §6 → `### Anywhere`, §7 what may never be cut.
 
-**Only a file that enters an agent's context.** §1's Step / Reference mark, §2 section shapes, §3 one home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatter, §9 transformations, §11 rule ids.
+**Only a file that enters an agent's context.** §1's Step / Reference mark, §2 section shapes, §3 one home per fact, §4 branching, §6 → `### Only in a loaded file`, §8 frontmatter, §9 transformations.
 
-**A documentation page**, on top of the first scope: §10.
+2 jobs read a second file, beside this one:
 
-§3 is the one rule that reverses between them. A second copy of a fact drifts and costs a loaded file tokens on every run. It costs a page reached from a search nothing, and saves the reader a hop.
+- **A rule file** → `write-rules.md`: the id every rule carries.
+- **A documentation page** → `write-docs.md`: what changes for a page no session loads, §3 included.
 
 ## 1. Plan the shape first
 
@@ -109,6 +110,7 @@ Cut what lengthens a sentence without clarifying it. Readability first; the toke
 - Grammar bends where meaning survives. A fragment beats a padded sentence.
 - Delete a whole sentence when it changes no behavior. Never trim it.
 - **Assume an intelligent reader.** Never write the consequence of a rule, the mechanism behind it, or the case it plainly covers. A command is one executable line, then what it prints. A rule is the rule, then nothing.
+- **Mark a skill only the user can start (`disable-model-invocation: true`) as `(user only)` once**, where the agent reads it before any bare mention: `/flow:apply-domain-findings` (user only). Read first, a bare name looks like a skill the agent can run. One listed in `home/AGENTS.md` → `user-only-skills` needs no other mark, since every session loads that file.
 
 ## 7. Never cut these
 
@@ -126,7 +128,7 @@ The description is in context from the moment a session starts, whether the skil
 - **What it is and what it covers. Never the steps.** A description that summarizes the workflow gets followed instead of the file. An agent given "code review between tasks" did one review where the skill specified two.
 - **Never when to invoke it.** A trigger written here is loaded by every session that never fires it. Write one only where it is wanted; `write-skills.md` names the 4 homes.
 - **Under-explaining is the failure to avoid.** Cover the subject in enough detail that a reader can tell what the skill reaches. `/flow:visualize` names its media, because nothing else says what it draws. No word count overrides that.
-- **Typed-only (`disable-model-invocation: true`) → one short line.** The user already decided.
+- **User only (`disable-model-invocation: true`) → one short line.** The user already decided.
 
 ## 9. Transformations
 
@@ -198,47 +200,3 @@ A rule followed by the case for it, the mechanism behind it, or a consequence th
 
 - **Before:** "**`docs/` and `.flow/` both always exist**, project or not, repo or not. Paths are created on first write. `docs/` is the project's own: the spec, durable facts, fetched research, anything there before Flow. `.flow/` is Flow's working store: tickets, groundwork, the inbox, the handoff."
 - **After:** deleted. Every route under it names its own path, and `references/workflow.md` maps the folders.
-
-## 10. A documentation page
-
-A page in a published documentation set. Nobody loads it into a session: a reader arrives from a search or an index, reads it once, and closes it. Every rule in the first scope holds. Five things change.
-
-- **Never send the reader away for a definition.** State it in one sentence, then link for the full account. §3 routes a fact to one home and a pointer everywhere else, which costs a loaded file nothing and costs this reader the page.
-- **No length limit.** §6 → `### Only in a loaded file` and §9 do not apply. Cut a sentence for carrying no information, never for costing space.
-- **Open with a table of contents** under a `## Table of contents` heading, one line per heading, in order.
-- **Plan what the reader knows on arrival, what they know on leaving, and the path between.** The arrival state decides the first section. Skip it and the page opens in the middle.
-- **A link names the page it points at.** Never a position. No *the next page*, no *as shown above*, no numbered filenames. Order lives in the index alone, so inserting a page breaks nothing.
-- **Every code fence names a language**, so the reader can tell a file from a command from what a command printed: `md`, `sh`, `json`, `text` for output and trees. A guess beats a bare fence. Ruled by the user 2026-09-16.
-
-## 11. Rule ids
-
-Every rule in a loaded file carries an id, so a check can name it and a reply can cite it. An id is lowercase, its words joined by dashes, in a bold code span at the start of the rule:
-
-```md
-- **`no-git-mutations`** Never run a git command that writes.
-```
-
-**The id states the rule. The body says only what the id cannot.**
-
-### What gets one
-
-3 questions, in order.
-
-- **Does it group other rules?** It is a section, and its id is the slug of its heading text: `## The turn` is `the-turn`. Never write a rule that restates its own heading.
-- **Does it instruct?** It is a rule. It gets an id.
-- **Does it only frame what follows?** It gets none. "One user message, your work, one reply" sets up the 5 steps under `## The turn` and instructs nothing.
-
-### The shapes that carry one
-
-- A bullet.
-- A numbered step, where the rules run in order.
-- A paragraph, where one rule governs the section under it.
-
-A sub-bullet under any of the 3 is a rule of its own and takes its own id. Nest as deep as the material needs. A rule ends where the next rule at its own depth or shallower begins.
-
-A `→` branch list takes no ids. Its lines are the cases of one rule, and the rule above them owns the id.
-
-### The constraints
-
-- **Unique inside its file.** Section ids and rule ids share one namespace. Two files defining the same id is normal, since a shipped rule gets restated where it applies. The same id twice in one file names two rules and reaches neither. `flow scorecard` prints every one it finds.
-- **Every heading slugs cleanly.** Rename a heading whose text makes an unreadable id. Never invent syntax to avoid it. `### When it has parts: a design, a plan, a mechanism, a diff across files` became `### When it has parts`, with the list on the line below.

@@ -74,7 +74,7 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
 
   assert.strictEqual(linkTarget(at.skill('groundwork')), path.join(REPO, 'skills', 'phases', 'groundwork'));
   assert.strictEqual(linkTarget(at.skill('start')), path.join(REPO, 'skills', 'tools', 'start'),
-    'a typed-only skill installs like any other');
+    'a user-only skill installs like any other');
   assert.strictEqual(linkTarget(at.skill('review')), path.join(REPO, 'skills', 'dev', 'review'),
     'every group outside drafts/ installs');
 
@@ -104,6 +104,14 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.match(second.stdout, /kept: .*\.agents\/AGENTS\.md, yours/);
   assert.match(fs.readFileSync(rules, 'utf8'), /Writes by voice/, 'the rule file is never overwritten');
   assert.match(second.stdout, /kept: .*\.claude\/CLAUDE\.md, already importing/);
+});
+
+test('the import line comes from home/CLAUDE.md, with ~ kept only for the real home folder', () => {
+  const os = require('os');
+  const machine = require('../flow/lib/machine');
+  assert.strictEqual(fs.readFileSync(path.join(REPO, 'home', 'CLAUDE.md'), 'utf8'), '@~/.agents/AGENTS.md\n');
+  assert.strictEqual(machine.importLine(REPO, os.homedir()), '@~/.agents/AGENTS.md');
+  assert.strictEqual(machine.importLine(REPO, '/scratch/root'), '@/scratch/root/.agents/AGENTS.md');
 });
 
 test('install fills an empty CLAUDE.md and leaves a written one alone', () => {

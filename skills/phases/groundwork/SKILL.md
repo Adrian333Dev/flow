@@ -214,7 +214,7 @@ Confirm every branch is resolved or deliberately deferred, then send each decisi
 
 - **Work committed to here** → a ticket per unit of work, `flow new "…"`, each carrying what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list**: `/flow:execute` reads every one of them, and a ticket pointed at everything is pointed at nothing. **Record order that matters as `deps`**; the order you walked the branches in carries none. **Create and fill in one command**: `--body -` takes the body on stdin. Never create, then edit.
 - **A branch that is its own subject** → `flow new "…" --type topic --parent <id>`, one per subject. Phase 2 carries the split rule and what the body holds.
-- **Work already written into `docs/spec/product.md`** → **invoke `/flow:cut-from-spec`**. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
+- **Work already written into `docs/spec/product.md`** → `/flow:tickets-from-spec`. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
 - **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `references/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
 - **A durable fact about this project** → `docs/context/<subject>.md`.
 - **Settled and dying with the build**, this build's non-goals included → already written in `map.md`. Leave it there.

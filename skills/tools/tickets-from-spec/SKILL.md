@@ -1,10 +1,10 @@
 ---
-name: cut-from-spec
+name: tickets-from-spec
 description: Cuts the next batch of work out of `docs/spec/` into tickets.
 disable-model-invocation: true
 ---
 
-# Cut from spec
+# Tickets from spec
 
 **Work from `docs/spec/` and this file alone.** Months pass between runs, and the groundwork that produced the spec is long gone from context.
 
@@ -54,4 +54,4 @@ Report the ids, the titles, and which spec sections are now covered. Then `flow 
 
 Never annotate the spec with ticket ids. That mapping goes stale the first time a ticket is dropped, and `flow` already holds it.
 
-!`flow overlays cut-from-spec`
+!`flow overlays tickets-from-spec`

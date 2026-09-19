@@ -20,19 +20,20 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 
 ## The rule files
 
-- **`home/AGENTS.md`**: 147 lines, the template for `~/.agents/AGENTS.md`, the one rule file both harnesses read. `~/.claude/CLAUDE.md` holds one line importing it, and `~/.codex/AGENTS.md` links to it. Moved from `home/CLAUDE.md` on 2026-09-18. Sections in order: `## The turn`, `## Reading`, `## Writing files`, `## Tools`, `## Workflow`, `## The user`, `## Preferences`, `## Capture`, `## Scripts`, `## Judgment`, `## The reply`. Every rule carries an id.
+- **`home/AGENTS.md`**: 148 lines, the template for `~/.agents/AGENTS.md`, the one rule file both harnesses read. `home/CLAUDE.md` beside it is the one line `@~/.agents/AGENTS.md`, which `flow install` copies to `~/.claude/CLAUDE.md`, writing the full path in place of `~` under `--root`. `~/.codex/AGENTS.md` links to the rule file. The rules moved from `home/CLAUDE.md` to `home/AGENTS.md` on 2026-09-18, and the one-line file took the old name the same day, so `home/` and `project-template/` now hold the same pair. Sections in order: `## The turn`, `## Reading`, `## Writing files`, `## Tools`, `## Workflow`, `## The user`, `## Preferences`, `## Capture`, `## Scripts`, `## Judgment`, `## The reply`. Every rule carries an id.
 - **`CLAUDE.md`**: 147 lines, the rules for working on this repo. It only has to align roughly with the template, ruled by the user 2026-09-07.
 - **`project-template/AGENTS.md`**: 8 lines. 2 fill-in comments and no rules. `project-template/CLAUDE.md` beside it is the one line `@AGENTS.md`.
 - **`rules/comments.md`**: the one rule file. 11 rules, loaded only for JS, TS, Python, shell, SQL and CSS files. The user ruled comment shape minor.
 - **`references/reminder.md`**: the one line the reminder hook prints beside every message the user sends.
+- **`references/style.md`**: the house style, 202 lines, read before writing any file. Split 3 ways on 2026-09-18: a rule file also reads `references/write-rules.md`, the rule ids, and a documentation page also reads `references/write-docs.md`, which adds that a page added, renamed or dropped updates its folder's `README.md` in the same edit.
 
 ## 12 skills, typed `/flow:<name>`, every one always on
 
 `skills/drafts/` is empty.
 
 - **`phases/`**: `groundwork`, `execute`, `prototype`, `debug`
-- **`tools/`**: `start`, `handoff`, `file-findings`, `research`, `cut-from-spec`, `visualize`
-- **`dev/`**: `review`, `fold`
+- **`tools/`**: `start`, `handoff`, `file-findings`, `research`, `tickets-from-spec`, `visualize`
+- **`dev/`**: `review`, `apply-domain-findings`
 
 **Every folder and every frontmatter `name` is bare, and the `flow:` is added at load time.** `skills/.claude-plugin/plugin.json` holds the one word `flow`. `flow install` links the set into `~/.agents/skills/flow/skills/`, copies that file to `~/.agents/skills/flow/.claude-plugin/plugin.json`, and links `~/.claude/skills/flow` to the folder. `lab/context/skills.md` → `### Flow is a plugin too` holds the argument.
 
@@ -40,14 +41,14 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 
 **There is no per-skill off switch any more.** `skillOverrides` does not reach a plugin's skills, so `home/settings.json` ships it empty and it now governs domain, private and other outside skills alone. `claude plugin disable flow@skills-dir` takes the whole set.
 
-`/flow:start`, `/flow:cut-from-spec` and `/flow:fold` are typed-only. The 4 phase skills take a ticket id and load it with its files on their first line, since 2026-09-16. `/flow:debug` still sends a bug inside a web page to `/web-pages`, which left for `domain-skills` and waits on its rebuild there.
+`/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings` are user only. `user-only-skills` in `home/AGENTS.md` names them, so every other file names them bare. A user-only skill missing from that list is marked `(user only)` where the agent first meets it, by `references/style.md` → `### Only in a loaded file`. `/flow:tickets-from-spec` was `/flow:cut-from-spec` until 2026-09-18. The 4 phase skills take a ticket id and load it with its files on their first line, since 2026-09-16. `/flow:debug` still sends a bug inside a web page to `/web-pages`, which left for `domain-skills` and waits on its rebuild there.
 
-## `flow` has 10 command groups, and all 116 tests pass
+## `flow` has 11 command groups, and all 123 tests pass
 
 One of them, *a worker hands the parent its diff and the command that deleted a file*, fails about one run in five when the machine is busy. It is a race in the test, not a bug in `changes.js`, and it has a line in `backlog.md`.
 
 - **tickets**: `next`, `check`, `ls`, `tree`, `get`, `new`, `edit`, `dep`, `file`, `drop`, and one command per status move
-- **setup**: `install`, which links everything, copies the plugin manifest and writes the 2 rule files where none exist, and `doctor`, which checks all of it. Both take one `--root <dir>` standing in for the home folder
+- **setup**: `install`, which links everything, copies the plugin manifest and writes the 2 rule files where none exist, and `doctor`, which checks all of it, `permissions.defaultMode` in `~/.claude/settings.json` included. Both take one `--root <dir>` standing in for the home folder
 - **rules**: `scorecard`
 - **sharing**: `contribute`, which opens one pull request per skill on `domain-skills`
 - **cases**: `new`, `ls`, `get`, `edit`, `issues`. `new` fills in `model:` from the session's transcript and `effort:` from `CLAUDE_EFFORT`. This repo's own 14 cases were deleted on 2026-09-16, condensed into `lab/context/rejected-replies.md`.
@@ -56,6 +57,7 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 - **overlays**: `get`
 - **git**: `get`, `allow`, `ask`, `off`, the switch deciding whether the agent may run git commands that write
 - **audit**: an index of Claude Code's transcripts, with queries over it
+- **snapshot**: `ls` and `restore`, over `~/.flow/snapshots/<machine or project>/<date-time>/`. A migration is carried out by `scripts/apply-migration.js`, never a `flow` command: the agent writes `migration.md` and `files/` under `~/.flow/migrations/`, and after the yes the skill runs the script, which copies each path into a new snapshot the moment before changing it, and refuses when a file it would write or delete changed after the migration was written. `restore` puts every path back and snapshots first. Built 2026-09-18, and split into 2 folders the same evening. `docs/manual/reference.md` → `## Migrations and snapshots` documents all 3
 
 ## 11 hooks, all in `home/settings.json`
 
@@ -83,10 +85,11 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 
 ## Built and never run for real
 
-- `flow contribute` and `/flow:fold` against GitHub
+- `flow contribute` and `/flow:apply-domain-findings` against GitHub
 - 2 change-record paths, named in `backlog.md` → `## After V1` → `### Subagents and dispatch`
 - a warning carrying a rule's whole text because the rule's file never loaded
 - `flow install` on this machine, by decision
+- `apply-migration.js` and `flow snapshot restore` against a real machine or project, since no setup or migration skill exists to write a migration
 
 ## Rulings and measurements with no other home
 
@@ -99,7 +102,8 @@ All in `lab/context/`, flat. 20 files were merged into 9 on 2026-09-16, and `rej
 - **`claude-code.md`**: what Claude Code cannot do that Flow needs. 3 issues filed 2026-09-10. What it *can* do moved to `docs/dev/claude-code.md`.
 - **`drawing.md`**: the settled `/flow:visualize` rulings, what `canvas.js` measured, and the engine that may never be built.
 - **`handoff.md`**: the latest handoff, rewritten whole each time.
-- **`management.md`**: the management skill's groundwork map, opened 2026-09-16: 8 branches, the user's rulings, and every earlier proposal filed under the branch it feeds. Walked to the end 2026-09-17, every branch closed, with a dated section per locked decision. The attack ran the same day against this machine and found 6 faults, all fixed in place. Routed the same day into `backlog.md` → `## V1` → `### The management skill, in build order`, 14 lines run in the order written, so the map is history like every other record here and the open work is on those lines.
+- **`knowledge-base.md`**: how `/flow:research` reaches outside tools and where Flow keeps what it learns about them: Context7 through a script, one folder per tool under `~/.flow/wiki/`, where a research report goes, and capture feeding a harvest into the tool's skill. Opened 2026-09-18. The design is agreed, and the file ends in a step-by-step build plan that waits for the management skills. The one record here that is not history yet. `context7-report.md` and `context-7-alternatives.md` beside it are the 2 reports the user supplied as input.
+- **`management.md`**: the management skill's groundwork map, opened 2026-09-16: 8 branches, the user's rulings, and every earlier proposal filed under the branch it feeds. Walked to the end 2026-09-17, every branch closed, with a dated section per locked decision. The attack ran the same day against this machine and found 6 faults, all fixed in place. Routed the same day into `backlog.md` → `## V1` → `### The management skill, in build order`, 14 lines run in the order written, so the map is history like every other record here and the open work is on those lines. On 2026-09-18 `## Snapshot and restore` was rebuilt around 2 folders, a migration and the snapshot taken as it runs, and project setup split into its own skill, so the management skill is now 4 skills: `/flow:setup-machine`, `/flow:setup-project`, `/flow:migrate` and `/flow:help`.
 - **`manual.md`**: what `docs/manual/` is, and the manual pages still planned.
 - **`models.md`**: telling which model produced a piece of work, and running Flow on another harness. The port costs per component are locked; `### Codex namespaces plugin skills, and reads Claude Code's manifest` was added 2026-09-18 and decides how skills are named on both harnesses. `### The hooks on Codex, walked 2026-09-18` records the user deferring Codex until Flow ships on Claude Code, and holds the hook-by-hook design the port starts from.
 - **`rejected-replies.md`**: every reply the user rejected, one line each with their words. The test set `## The reply` was built against.

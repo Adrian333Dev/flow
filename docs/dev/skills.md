@@ -32,13 +32,13 @@ There is one copy of every skill on the machine, so an edit is live in every pro
 A group is a filing decision. Nothing outside `skills/` reads a group name: the symlinks `flow install` builds are flat, each named for the skill, so moving a skill to a different group later is a `mv`.
 
 - **`phases/`**: what you are doing: groundwork, execute, prototype, debug
-- **`tools/`**: what you reach for around the work: start, handoff, file-findings, research, visualize, cut-from-spec
-- **`dev/`**: maintaining Flow and the `domain-skills` repository: review, fold
+- **`tools/`**: what you reach for around the work: start, handoff, file-findings, research, visualize, tickets-from-spec
+- **`dev/`**: maintaining Flow and the `domain-skills` repository: review, apply-domain-findings
 - **`drafts/`**: one still being written
 
 `drafts/` is the only group that changes behavior. `flow install` skips it, so a skill ships by being moved out of it. Until then the skill is reachable only through [the scratch session](scratch-session.md), which passes `--drafts` on every run.
 
-`phases/` is closed at those 4. A skill that looks like a fifth phase belongs somewhere else: `/flow:cut-from-spec` produces tickets and files under `tools/`.
+`phases/` is closed at those 4. A skill that looks like a fifth phase belongs somewhere else: `/flow:tickets-from-spec` produces tickets and files under `tools/`.
 
 Every group that installs is shown in every session, and no setting hides one of them. `skillOverrides` is the key that hides a skill, and it skips a plugin's skills; Flow's are a plugin. The only switch is `claude plugin disable flow@skills-dir`, which takes the whole set.
 
@@ -61,7 +61,7 @@ The description says what the skill is and what it covers. Never the steps, and 
 
 Under-explaining is the failure to avoid. Cover the subject in enough detail that a reader can tell what the skill reaches. No word count overrides that. A description that summarizes the workflow gets followed in place of the file itself.
 
-`disable-model-invocation: true` makes a skill reachable only when the user types `/<name>`. It also removes the skill from the list a session is handed. The user still finds it in the `/` menu. The model meets it only where a file names it, so a typed-only skill named nowhere else is one the model reports as missing.
+`disable-model-invocation: true` makes a skill reachable only when the user types `/<name>`. It also removes the skill from the list a session is handed. The user still finds it in the `/` menu. The model meets it only where a file names it, so a user-only skill named nowhere else is one the model reports as missing. It is marked `(user only)` once, where the model reads it before any bare mention, as `references/style.md` → `### Only in a loaded file` says. Read first, a bare name looks like a skill the model can run.
 
 ## Everything below SKILL.md
 

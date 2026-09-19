@@ -1,13 +1,13 @@
 ---
-name: fold
-description: Checks the findings sent to one domain skill and folds the true ones into it.
+name: apply-domain-findings
+description: Checks the findings sent to one domain skill and writes the true ones into it.
 argument-hint: '<skill>'
 disable-model-invocation: true
 ---
 
-# Fold
+# Apply domain findings
 
-The skill to fold is `$ARGUMENTS`. Its findings are the open pull requests on `Adrian333Dev/domain-skills` adding files under `skills/<skill>/findings/`, and none is ever merged. The clone is the parent of the folder `domainSkills` names in `~/.flow/settings.json`.
+The domain skill to update is `$ARGUMENTS`. Its findings are the open pull requests on `Adrian333Dev/domain-skills` adding files under `skills/<skill>/findings/`, and none is ever merged. The clone is the parent of the folder `domainSkills` names in `~/.flow/settings.json`.
 
 ## Method
 

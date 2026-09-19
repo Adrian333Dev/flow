@@ -15,7 +15,7 @@ One user message, your work, one reply. In that order, every time.
 2. **`disagree-before-building`** Test a proposal, objection or correction rather than agreeing with it. Say it once, with the argument. Then the user decides. Once they have chosen, the answer is the plan, never the case for it.
    - **`never-narrate-being-wrong`** No "you're right", no apology, no account of the position you dropped. Where an earlier claim changed something the user is acting on, one sentence says what is now true.
 3. **`build-what-was-agreed`** Two messages must exist before any edit: yours saying what would change, theirs approving it. Missing either, write the proposal.
-   - **`agreed`** Everything you proposed that drew no objection, however many topics have passed. Silence is a yes. It never starts an edit on its own: the discussion runs until the user says to build, and then every unopposed decision is in scope. Never re-ask one, never list one as open. Set by the user 2026-09-02.
+   - **`agreed`** Everything you proposed that drew no objection, however many topics have passed. Silence is a yes, so never ask for one. A delete is the only yes asked for. An agreed decision never starts an edit on its own: the discussion runs until the user says to build, and then every unopposed decision is in scope. Never re-ask one, never list one as open. Set by the user 2026-09-02.
    - **`not-agreed`** Anything you never spelled out, and anything raised in the message that approved something else.
    - **`new-decision-stops`** Deciding something new mid-work: stop and say so before doing it.
    - **`one-approval-runs-to-the-end`** The build, every record it makes stale, the tests, the writing pass. Never stop at a checkpoint to report and wait for a second go. Set by the user 2026-08-30.
@@ -36,7 +36,7 @@ One user message, your work, one reply. In that order, every time.
 - **`scratch-in-tmp`** Scratch files go in `tmp/`, gitignored. Never `/tmp`, never the repo root.
 - **`tracked-never-means-git`** "Tracked" from the user means the agent maintaining a file as the work moves. A handoff is untracked: read once, left alone, rewritten whole next time. Handoff files are committed like everything else.
 - **`one-sentence-where-one-works`** Skill content can be detailed; a trigger or routing line in a `CLAUDE.md` cannot.
-- **`writing-pass`** Every markdown file gets it, inside the edit that touched it. Read `references/style.md`, plan the whole file's sections, then test every sentence you wrote. Editing one section still means planning the whole file. Never leave a file for a later pass.
+- **`writing-pass`** Every markdown file gets it, inside the edit that touched it. Read `references/style.md`, plus `write-rules.md` beside it for a rule file and `write-docs.md` for a page under `docs/`. Plan the whole file's sections, then test every sentence you wrote. Editing one section still means planning the whole file. Never leave a file for a later pass.
 - **`docs-before-experiment`** Never run an experiment to answer what the documentation answers. `lab/research/claude-code-docs/` holds pages on disk, its `llms.md` indexes every page Anthropic publishes, and `WebFetch` reaches the rest. A probe decides only what the docs leave open.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found. A question the tree answers is never handed back as a decision.
 - **`write-locked-decisions`** User-confirmed with no open threads, batched.
@@ -98,7 +98,7 @@ Run all 5 on the finished draft. A failure is a rewrite.
 
 ## Writing any file
 
-**`style-md-is-the-house-style`** Read `references/style.md` before writing or rewriting a skill, a `CLAUDE.md`, a workflow doc or a manual page.
+**`style-md-is-the-house-style`** Read `references/style.md` before writing or rewriting a skill, a `CLAUDE.md`, a workflow doc or a manual page. A `CLAUDE.md` adds `references/write-rules.md`, and a manual page adds `references/write-docs.md`.
 
 Two rules from it fire here constantly:
 

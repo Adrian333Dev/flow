@@ -5,6 +5,7 @@ Every command, skill, setting and file Flow gives you, in one place. Look one up
 ## Table of contents
 
 - [Installing](#installing)
+- [Migrations and snapshots](#migrations-and-snapshots)
 - [Typing a command](#typing-a-command)
 - [The board](#the-board)
 - [One ticket](#one-ticket)
@@ -37,7 +38,7 @@ What one run puts on the machine:
 - **`~/.claude/agents/` and `~/.claude/rules/`**: one link per file into the clone. Both folders can hold entries Flow did not create, and a link to the whole folder would replace all of them.
 - **`~/.flow/scripts` and `~/.flow/references`**: links into the clone.
 - **`~/.local/bin/flow` and `fw`**: links to `flow.js`, so both are on your `PATH`.
-- **The rules**: `~/.agents/AGENTS.md` copied from the template, `~/.claude/CLAUDE.md` holding the one line `@~/.agents/AGENTS.md`, and `~/.codex/AGENTS.md` linking to the copy. Each is written only where no file exists or the one there is empty.
+- **The rules**: `~/.agents/AGENTS.md` copied from the template, `~/.claude/CLAUDE.md` copied from the template, holding the one line `@~/.agents/AGENTS.md`, and `~/.codex/AGENTS.md` linking to the copy. Each is written only where no file exists or the one there is empty.
 
 `--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.codex`, `<dir>/.flow` and `<dir>/.local/bin`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
 
@@ -60,13 +61,99 @@ Everything about an installed machine a function can decide. It writes nothing, 
 - **`~/.agents/`**: `skills/flow/` is a real folder, it holds one link per skill pointing into this clone, and its manifest names `flow`. `AGENTS.md` is present. A template placeholder still in it is a note, not a failure.
 - **`~/.claude/`**: `skills/flow` links to the plugin folder, one link per agent and rule points into this clone, and `CLAUDE.md` holds the line importing `~/.agents/AGENTS.md`.
 - **`~/.codex/`**: `AGENTS.md` links to `~/.agents/AGENTS.md`, and no `AGENTS.override.md` hides it. Codex reads an override file in place of `AGENTS.md`.
-- **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a Flow skill, which would do nothing because Flow's skills load as a plugin.
+- **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a Flow skill, which would do nothing because Flow's skills load as a plugin. `permissions.defaultMode` must be set, since without it a session on a Pro, Max or Team plan starts in auto mode. A mode other than the template's `default` is a note, not a failure.
 - **`~/.flow/`**: `scripts` and `references` resolve into this clone.
 - **Both test suites**, Flow's and util's. They are the only slow part, and `--no-tests` drops them.
 
 `--root` and `--no-bin` mirror `flow install`, so an install redirected into a scratch tree can be verified where it sits. A machine with nothing installed gets a single message saying so, instead of every check failing separately.
 
 `flow check` is the other verification command and answers a different question: the ticket graph in the project you are standing in.
+
+## Migrations and snapshots
+
+A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 skills write one: `/flow:setup-machine` moves your machine onto Flow, `/flow:setup-project` moves a project, and `/flow:migrate` moves either one to a newer Flow. A snapshot is a copy of every path a migration changes, taken the moment before each change, so that one command puts everything back.
+
+A migration is not a ticket. A ticket is your project's own work, and git undoes it. A migration changes files git never sees, such as `~/.claude/`, so a snapshot undoes it.
+
+Each migration and each snapshot gets its own folder:
+
+```text
+~/.flow/migrations/home-me-code-projects-delapse/2026-09-20T10-12-40/
+├─ migration.md     one line per change: write, delete, move or run
+└─ files/           the new version of each file it writes, at files/<full path>
+
+~/.flow/snapshots/home-me-code-projects-delapse/2026-09-20T10-15-02/
+├─ manifest.json    the paths copied, how far the run got, and the migration it was taken for
+└─ files/           each path as it was before, at files/<full path>
+```
+
+A migration of the machine goes in `machine/`. A project's goes in a folder named for the project's full path, with every character that is not a letter or a digit turned into `-`, so `/home/me/code/projects/delapse` becomes `home-me-code-projects-delapse`. Inside, each folder is named for the time it was written. An id is the folder's path below `migrations/` or `snapshots/`, such as `machine/2026-09-18T21-30-05`.
+
+Claude writes the migration, then stops for your yes. You read `migration.md`, delete any line you refuse, and say go. Claude never writes a real path itself. The skill runs `apply-migration.js`, which carries out `migration.md` one line at a time, so a path the migration leaves out is never touched.
+
+`migration.md` opens with 2 frontmatter fields. `type` names the skill that wrote it: `setup-machine`, `setup-project` or `migrate`. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
+
+- **`- write <path>: <why>`**: the copy at `files/<full path>` replaces it, a file or a whole folder.
+- **`- delete <path>: <why>`**: removes a file or a whole folder.
+- **`- move <path> -> <path>: <why>`**: the second path must not exist yet.
+- **`- run <command>: writes <path>, <path>`**: runs the command from the project, or from your home folder for the machine. The line names every path the command writes, or says `writes nothing`, because only a named path is copied first.
+
+`~` is your home folder. A path starting with neither `~` nor `/` sits inside the project.
+
+```md
+---
+type: setup-project
+project: ~/code/projects/delapse
+---
+
+# Delapse into Flow
+
+- write CLAUDE.md: one line importing AGENTS.md
+- delete ~/.claude/projects/-home-me-code-projects-delapse/memory/: 24 files, carried into docs/
+- move docs/work/ -> .flow/tickets/: the old work, as tickets
+```
+
+### `~/.flow/scripts/apply-migration.js <id>`
+
+Carries out a migration, and takes its snapshot. The skill that wrote the migration runs it after your yes, and you never type it. It is not a `flow` command and not on your `PATH`, so it cannot run by accident.
+
+Before each line runs, every path that line changes is copied into a new snapshot, once per path. The snapshot goes in the folder named for the migration's project, or in `machine/`. A path that does not exist yet is recorded as missing, along with any folder made to hold it, so a restore deletes them. A symlink is recorded with the path it points at, never copied.
+
+Every line is checked before the first one runs. Any of these refuses the whole migration and changes nothing:
+
+- a folder not named for a time, such as `2026-09-20T10-12-40`
+- no `type` in the frontmatter
+- a relative path in a migration with no `project`
+- a `write` line whose file `files/` does not hold
+- a `run` line that names no path and does not say `writes nothing`
+- a path inside `~/.flow/migrations/` or `~/.flow/snapshots/`, or a folder holding either
+- a migration already applied
+- a file named by a `write` or `delete` line, or any file inside a folder one names, that changed after the time the migration's folder is named for
+
+The last check catches a migration run long after it was written, or in the middle of your work. It lists every changed file, and Claude writes the migration again from what is there now. `run` and `move` lines are left out of it, since a command acts on the file as it finds it, and a move takes whatever is there with it.
+
+A line that fails stops the run there. `flow snapshot restore <snapshot id>` undoes the lines already done. Or fix what failed, and the skill runs the script again, which carries on from the line that stopped, in the same snapshot. A migration edited in between refuses to carry on, because the lines already done no longer match it. A migration whose stopped run was restored starts over from its first line, in a new snapshot.
+
+### `flow snapshot ls`
+
+Every snapshot, newest first: its id, its type, the project or `machine`, and what it was taken for. A migration's snapshot names the migration and how far it got. A restore's snapshot names the snapshot it undid.
+
+```text
+home-me-code-projects-delapse/2026-09-20T10-15-02  setup-project  ~/code/projects/delapse  migration home-me-code-projects-delapse/2026-09-20T10-12-40, applied
+machine/2026-09-19T18-40-02                        migrate        machine                  migration machine/2026-09-19T18-31-50, stopped after line 3 of 7
+machine/2026-09-18T22-02-11                        restore        machine                  undoes machine/2026-09-18T21-30-05
+machine/2026-09-18T21-30-05                        setup-machine  machine                  migration machine/2026-09-18T21-12-44, applied, restored by machine/2026-09-18T22-02-11
+```
+
+Run inside a project, it lists that project's snapshots alone, and `--all` lists every one. `flow snapshot` with nothing after it is the same list.
+
+### `flow snapshot restore <id>`
+
+Puts back every path the migration changed, the newest change first, and deletes what the migration created. Each file comes back with its old time too. It needs no agent and no session, so it works from a plain shell after a migration that broke Claude Code itself.
+
+A restore takes a snapshot of its own first, in a folder beside the one it restores, and prints that folder's id. `flow snapshot restore <that id>` undoes the restore.
+
+`--root <dir>` on the script and both commands stands in for your home folder, as it does for `flow install`.
 
 ## Typing a command
 
@@ -76,7 +163,7 @@ flow <command> [id]... [--flags]
 
 The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
-Seven groups carry their own actions: `cases`, `skills`, `domain-skills`, `private-skills`, `overlays`, `git`, `audit`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
+Seven groups carry their own actions: `cases`, `domain-skills`, `private-skills`, `overlays`, `git`, `audit`, `snapshot`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
 
 Before the first install, the command is typed by path:
 
@@ -447,11 +534,13 @@ react: 2 sent, https://github.com/Adrian333Dev/domain-skills/pull/14
 - **Only `gh` is needed**, logged in once with `gh auth login`. The command works through GitHub's API, so it needs no checkout and never touches your clone.
 - **Without push access to the repository**, it makes your fork first and opens the pull request from there.
 - **Each file is deleted once sent.** A skill whose send fails keeps its files for the next run, the other skills still go, and the command exits 1. A skill the repository does not hold fails the same way.
-- **The pull request is never merged.** The maintainer checks each finding, folds the true ones into the skill with `/flow:fold`, and closes the pull request with a comment saying what went in and why.
+- **The pull request is never merged.** The maintainer checks each finding, writes the true ones into the skill with `/flow:apply-domain-findings`, and closes the pull request with a comment saying what went in and why.
 
 ## The skills
 
 A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:name` to run one, or let Claude fire it from its description.
+
+**`(user only)` marks a skill only you can start.** Claude never sees its description, so it never fires one on its own. When one is the next step, Claude suggests it to you.
 
 **The `flow:` in front of every one comes from a single file.** `skills/.claude-plugin/plugin.json` in the clone holds the one word `flow`. `flow install` links the whole set into `~/.agents/skills/flow/`, beside a copy of that file, and links `~/.claude/skills/flow` to the same folder. Both Claude Code and Codex read the file and offer every skill below it as `flow:<name>`, so no folder and no `SKILL.md` in the clone carries a prefix. Codex spells the same command `$flow:groundwork`. Changing the word in the manifest renames every command at once, and `claude plugin disable flow@skills-dir` takes the whole set out of a session.
 
@@ -464,17 +553,17 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 
 **`tools/`, the jobs that fit no phase.** Shown in every session.
 
-- **`/flow:start`**: opens a session on the board, one ticket, or a loose file. Typed only
+- **`/flow:start`** (user only): opens a session on the board, one ticket, or a loose file
 - **`/flow:handoff`**: writes what a session that was not here needs, the state itself rather than a reading list
 - **`/flow:file-findings`**: files what a session learned into the skills, rules and checks that will hold it next time
 - **`/flow:research`**: reads what an external tool actually does, from its own documentation and source
 - **`/flow:visualize`**: draws ASCII diagrams, screen mockups and HTML previews
-- **`/flow:cut-from-spec`**: cuts the next batch of work out of `docs/spec/` into tickets. Typed only
+- **`/flow:tickets-from-spec`** (user only): cuts the next batch of work out of `docs/spec/` into tickets
 
 **`dev/`, maintaining Flow and the `domain-skills` repository.** Shown in every session.
 
 - **`/flow:review`**: finds where Flow's rules failed, where friction repeated, and where the design was wrong
-- **`/flow:fold <skill>`**: checks the findings sent to one domain skill, folds the true ones into its body and pages, and closes their pull requests. Typed only
+- **`/flow:apply-domain-findings <skill>`** (user only): checks the findings sent to one domain skill, writes the true ones into its body and pages, and closes their pull requests
 
 A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is what ships it.
 

@@ -76,7 +76,7 @@ The group in a `needs skill:` flag: `tools/`, or `dev/` for a skill maintaining 
 
 Follow the skill's link to see where its folder lives: `.claude/skills/<name>` in the project, `~/.claude/skills/<name>` on the machine, or `~/.agents/skills/flow/skills/<name>` for one of Flow's own. 2 places are never edited here:
 
-- **The `domain-skills` clone.** Only `/flow:fold` writes there. Every item bound for it goes under the plan's batch question:
+- **The `domain-skills` clone.** Only `/flow:apply-domain-findings` writes there. Every item bound for it goes under the plan's batch question:
   - Yes → move the finding into `.flow/findings/<skill>/`, its `skill:` header intact, then run `flow contribute`. An inbox item is written there as a finding, with the header
   - No → the skill's overlay, `.flow/overlays/<skill>.md`, or a private skill
 - **Flow's own skills**, a link into Flow's `skills/`:

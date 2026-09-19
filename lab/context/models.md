@@ -388,7 +388,7 @@ commands, memory and session logs. The item types are the enum in `src/model.rs`
 
 **2 uses remain.** It is Codex's own mapping from Claude Code's formats to its own, so the hooks port
 reads `src/hooks_cla.rs` and the subagents port reads `import_subagents` in `src/source/cla.rs` before
-anything is designed. And `/flow:setup` has to look for what it left behind, on a machine where the
+anything is designed. And `/flow:setup-machine` has to look for what it left behind, on a machine where the
 user accepted its offer. It leaves a symlinked `~/.codex/AGENTS.md` alone, since
 `is_missing_or_empty_text_file` reads a link as neither missing nor empty.
 

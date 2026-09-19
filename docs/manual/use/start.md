@@ -1,6 +1,6 @@
 # Opening a session
 
-Every session opens with `/flow:start`. It is a skill you type, and it does one of 3 things depending on what follows it: shows the board, loads one ticket, or opens a loose file. Whichever it did, it ends by handing the work to the right phase skill.
+Every session opens with `/flow:start`. It is a skill only you can start, and it does one of 3 things depending on what follows it: shows the board, loads one ticket, or opens a loose file. Whichever it did, it ends by handing the work to the right phase skill.
 
 This page assumes a project with tickets in it. [Tickets](../tickets.md) says what a ticket is and how one gets made.
 

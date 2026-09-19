@@ -41,6 +41,8 @@ Flow puts files in 6 places on a machine, reads 2 clones, and keeps a working st
 │  ├─ audit/
 │  ├─ changes/<session>/
 │  ├─ private-skills/<name>/
+│  ├─ migrations/<place>/<time>/
+│  ├─ snapshots/<place>/<time>/
 │  ├─ groundwork/<slug>/
 │  └─ tickets/
 ├─ .util/sources
@@ -88,7 +90,7 @@ Claude Code and Codex each keep a folder of their own, and each reaches this one
 
 ### `~/.claude/`, what Claude Code reads
 
-- **`CLAUDE.md`**: one line, `@~/.agents/AGENTS.md`. Claude Code reads `CLAUDE.md` and never `AGENTS.md`, and the `@` line pulls the rules in. `flow install` writes it when no file exists or the one there is empty. A `CLAUDE.md` you wrote yourself is left alone, and `flow install` prints the line to add to it.
+- **`CLAUDE.md`**: one line, `@~/.agents/AGENTS.md`. Claude Code reads `CLAUDE.md` and never `AGENTS.md`, and the `@` line pulls the rules in. `flow install` copies it from `home/CLAUDE.md` in the clone when no file exists or the one there is empty. A `CLAUDE.md` you wrote yourself is left alone, and `flow install` prints the line to add to it.
 - **`settings.json`**: Claude Code's settings. `flow install` never writes it. It prints the hooks and permissions to merge, and you merge them by hand. [Settings](settings.md) explains every key.
 - **`skills/flow`**: a symlink to `~/.agents/skills/flow/`. Claude Code never reads `~/.agents/`, so this link is how it finds the same skills. `flow install` makes it.
 - **`agents/<file>.md`**: one symlink per subagent definition, such as `haiku-worker.md`. `flow install` makes them.
@@ -108,7 +110,7 @@ The rest of `~/.codex/` is Codex's own: its settings, its login, its subagents. 
 
 ### `~/.flow/`, what only Flow reads
 
-- **`scripts`**: a symlink to the clone's `scripts/`: the CLI and every hook. `flow install` makes it.
+- **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, and `apply-migration.js`, which carries out a migration. `flow install` makes it.
 - **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, and the line the reminder hook prints. `flow install` makes it.
 - **`settings.json`**: 2 keys. `git` is the git write state, which `flow git` writes. `domainSkills` is the path to your domain-skills clone, which you write.
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering. Sessions append to it.
@@ -117,6 +119,8 @@ The rest of `~/.codex/` is Codex's own: its settings, its login, its subagents. 
 - **`audit/`**: `audit.db`, the index of every transcript. `flow audit index` builds it, and it can be rebuilt from `~/.claude/projects/` at any time.
 - **`changes/<session>/`**: what each subagent changed, filed under its agent id. `changes.js` writes it, and deletes a session's folder once nothing has touched it for 7 days.
 - **`private-skills/<name>/`**: skills you write for yourself and never share. You write them. `flow private-skills` links one into a project.
+- **`migrations/<place>/<time>/`**: one folder per migration, a change to where Flow, Claude Code and Codex keep their files. It holds `migration.md`, one line per change, and `files/`, the new version of each file it writes. `/flow:setup-machine`, `/flow:setup-project` and `/flow:migrate` write it. `<place>` is `machine`, or the project's full path with every character that is not a letter or a digit turned into `-`, and `<time>` is when it was written. [Migrations and snapshots](reference.md#migrations-and-snapshots) has the whole of it.
+- **`snapshots/<place>/<time>/`**: a copy of every path one migration changed, taken just before it changed, filed the same way. `apply-migration.js` writes it, and `flow snapshot restore` puts every path back from it.
 - **`groundwork/<slug>/`**: groundwork run outside any project. `/flow:groundwork` writes it.
 - **`tickets/`**: tickets made outside any project, with `FLOW_PROJECT=$HOME flow new "<title>"`. Same shape as a project's.
 
@@ -166,4 +170,4 @@ Flow sessions write into these and own none of them.
 
 ## What stays on one machine
 
-These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.codex/sessions/`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, and each project's `.flow/settings.json`. Everything in a project's `.flow/` except that one file is committed, so it travels with the repository.
+These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.codex/sessions/`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/study-cases/`, `~/.flow/migrations/`, `~/.flow/snapshots/`, `~/.flow/workflow-notes.md`, and each project's `.flow/settings.json`. Everything in a project's `.flow/` except that one file is committed, so it travels with the repository.

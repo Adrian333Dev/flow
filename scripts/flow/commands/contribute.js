@@ -7,10 +7,10 @@
  * on a yes and runs this command, which deletes each file once its pull request
  * is open. A failed send leaves the files where they are for the next run.
  *
- * The pull request is never merged. `/flow:fold` reads every open one for a skill,
- * rewrites the skill, and closes each with a comment saying what went in. So
- * the open pull requests are the queue, readable from any machine, and 2
- * findings sharing a file name never meet in git.
+ * The pull request is never merged. `/flow:apply-domain-findings` reads every
+ * open one for a skill, rewrites the skill, and closes each with a comment
+ * saying what went in. So the open pull requests are the queue, readable from
+ * any machine, and 2 findings sharing a file name never meet in git.
  *
  * Everything goes through `gh api`, with no checkout, so the only setup is
  * `gh auth login`: no git identity, no push credentials, and the everyday clone
@@ -117,7 +117,7 @@ function send(batch, to) {
       '',
       ...files.map((f) => `- \`${f}\``),
       '',
-      'A finding is never merged. The maintainer checks it, folds it into the skill, and closes this pull request with what went in.',
+      'A finding is never merged. The maintainer checks it, writes it into the skill, and closes this pull request with what went in.',
     ].join('\n'),
   });
   return pull.html_url;

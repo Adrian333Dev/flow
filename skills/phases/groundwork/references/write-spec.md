@@ -116,7 +116,7 @@ Give the paths. The user reads and approves before anything is created from it.
 
 **An objection is not new groundwork.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
 
-Approved and there's work to cut → **invoke `/flow:cut-from-spec`**. **Never create a ticket from here.**
+Approved, with work to cut → `/flow:tickets-from-spec`. **Never create a ticket from here.**
 
 ## Editing a spec that already exists
 

@@ -58,9 +58,9 @@ Two constraints the source set, both now honored by `flow install`: the manifest
 
 ## The `domain-skills` repository: what is left to build
 
-The `domain-skills` repository and its pipeline were agreed with the user by 2026-09-13 and built by 2026-09-15: the repository at `lab/domain-skills/`, `flow domain-skills`, `flow private-skills`, `/flow:research`'s local searches, one file per finding, `/flow:fold` and `flow contribute`. `lab/domain-skills/CONTRIBUTING.md` and `docs/dev/skills.md` describe what was built, and git holds the design conversation. Cut on 2026-09-15 to the 3 parts not built.
+The `domain-skills` repository and its pipeline were agreed with the user by 2026-09-13 and built by 2026-09-15: the repository at `lab/domain-skills/`, `flow domain-skills`, `flow private-skills`, `/flow:research`'s local searches, one file per finding, `/flow:apply-domain-findings` and `flow contribute`. `lab/domain-skills/CONTRIBUTING.md` and `docs/dev/skills.md` describe what was built, and git holds the design conversation. Cut on 2026-09-15 to the 3 parts not built.
 
-A **domain skill** holds knowledge about a subject: a framework, a library, a service, or a field such as abuse prevention. A **finding** is one fact learned mid-work, saved as a file in the project and sent to the repository as a pull request that is never merged. **`/flow:fold`** is the maintainer's skill that reads those pull requests and rewrites the skill.
+A **domain skill** holds knowledge about a subject: a framework, a library, a service, or a field such as abuse prevention. A **finding** is one fact learned mid-work, saved as a file in the project and sent to the repository as a pull request that is never merged. **`/flow:apply-domain-findings`** is the maintainer's skill that reads those pull requests and rewrites the skill.
 
 ### CI on the repository
 
@@ -76,7 +76,7 @@ Waits for the first contributor other than the user. `lab/domain-skills/backlog.
 
 A finding is never merged, so CI only reports on it. A page or a whole skill is merged after the user reads it, because it loads on other machines. CI's secret scan comes after the filing question, which stays the last human check before a finding goes public.
 
-### `/distill`: its own skill, typed-only, and waits for its first real run
+### `/flow:write-skill`: its own skill, user only, and waits for its first real run
 
 The user names a subject and points at sources: ticket ids, folders, another project, months apart. The skill reads them whole, separates what is true for anyone from what belongs to one project, picks the shape, shows the plan and stops.
 
@@ -85,9 +85,9 @@ The user names a subject and points at sources: ticket ids, folders, another pro
 
 Several pipelines under one subject are several pages.
 
-**Separate from `/flow:file-findings`**, because typed-only is a frontmatter line set per skill. The model may offer `/flow:file-findings` once the inbox passes 200 lines, and must never start hours of distilling on its own. Named nowhere in `~/.claude/CLAUDE.md`, since a rare typed command is learned from the README.
+**Separate from `/flow:file-findings`**, because `disable-model-invocation` is a frontmatter line set per skill. The model may offer `/flow:file-findings` once the inbox passes 200 lines, and must never start hours of skill writing on its own. Named nowhere in `~/.claude/CLAUDE.md`, since a rare typed command is learned from the README.
 
-**Written after the first distill done by hand** with `write-skills.md`, on the abuse-prevention case, so the skill comes from a real run.
+**Built after a first run done by hand** with `write-skills.md`, on the abuse-prevention case, so the skill comes from a real run.
 
 ### Branches
 

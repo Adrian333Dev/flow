@@ -52,7 +52,7 @@ Later runs trust these files without re-checking them, so a project fact filed h
 name: <short, lowercase and hyphens, the same word as the folder, never a prefix>
 description: <what it is and what it covers>
 argument-hint: <what to type after the name>    # only where it takes one
-disable-model-invocation: true                  # typed-only skills
+disable-model-invocation: true                  # user-only skills
 ```
 
 **A description says what the skill is and what it covers. It says nothing about when to invoke it.** Every installed skill's description sits in context from the moment a session starts, so a trigger written into one is loaded on every session that never fires it.
@@ -68,7 +68,7 @@ disable-model-invocation: true                  # typed-only skills
 
 **A skill invoked over and over stays short, and a long skill takes an argument only where the argument names what the skill opens.** Claude Code skips a re-invocation whose rendered body is identical to the copy already in context, and appends the whole body again when it differs. An argument is 1 of the 2 ways to make it differ, the other being a shell line whose output changed. A 10-line skill re-appending costs nothing. A 150-line skill takes an argument only when what it loads is worth more than its own body, a ticket and its files for a phase skill, and its bare run must render the same text every time. Never grow one for anything less, however natural it looks.
 
-**`disable-model-invocation: true` takes the skill out of the list a session is handed.** The user still finds it in the `/` menu. The model meets it only where a file names it, so a typed-only skill named nowhere else is one the model reports as missing when the user asks for it by name. Write the line only where the user typing it is the whole point.
+**`disable-model-invocation: true` takes the skill out of the list a session is handed.** The user still finds it in the `/` menu. The model meets it only where a file names it, so a user-only skill named nowhere else is one the model reports as missing when the user asks for it by name. Write the line only where the user typing it is the whole point. Mark the skill `(user only)` once, where the model reads it before any bare mention. Read first, a bare name looks like a skill the model can run.
 
 **Write it only where never firing is true everywhere.** There is one copy of a skill on the machine, and no setting narrows this one to a single project: `skillOverrides` cannot reach a plugin's skills, and Flow's are a plugin.
 

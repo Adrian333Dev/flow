@@ -15,7 +15,8 @@
  *
  *   ~/.agents/AGENTS.md         the rule file, copied from home/AGENTS.md only
  *                               when there is none, because it is yours to edit
- *   ~/.claude/CLAUDE.md         one line importing it, written only when absent
+ *   ~/.claude/CLAUDE.md         one line importing it, from home/CLAUDE.md,
+ *                               written only when absent
  *   ~/.codex/AGENTS.md          a link to it: Codex has no import
  *   ~/.agents/skills/flow/      the plugin folder: a copy of the manifest in
  *                               skills/.claude-plugin/, rewritten every run,
@@ -180,7 +181,7 @@ function installRules(clone, at) {
   const rules = path.join(at.agents, 'AGENTS.md');
   const claudeRules = path.join(at.claude, 'CLAUDE.md');
   const codexRules = path.join(at.codex, 'AGENTS.md');
-  const line = machine.importLine(at.base);
+  const line = machine.importLine(clone, at.base);
 
   if (fs.existsSync(rules) && !blank(rules)) {
     done.push(`kept: ${show(rules)}, yours, already here`);

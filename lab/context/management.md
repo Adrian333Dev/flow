@@ -2,7 +2,7 @@
 
 Opened as a map on 2026-09-16, by the groundwork method run in conversation. **Every question in it is closed**, each by a dated section below holding the argument. The record it replaces was opened 2026-09-11 and held proposals with no yes; those proposals sit below under the branch each one feeds. What the map produced is a list of things to build in one order: `backlog.md` → `## V1` → `### The management skill, in build order`.
 
-**What it is.** Flow's assistant on a machine, for the life of the install. Four jobs on one spine. The spine: look at what is on the machine, compare it with what Flow expects today, write the gap down as a plan, get a yes, do it, then prove it worked. The jobs: prerequisites, setup, migrate, answer. The shape, the walk order and this file as the landing place were approved by the user 2026-09-16.
+**What it is.** Flow's assistant on a machine, for the life of the install. Four jobs on one spine. The spine: look at what is on the machine, compare it with what Flow expects today, write the gap down as a migration, get a yes, do it, then prove it worked. The jobs: prerequisites, setup, migrate, answer. The shape, the walk order and this file as the landing place were approved by the user 2026-09-16.
 
 ## The map
 
@@ -62,7 +62,7 @@ The last phase of the method, after the walk closed all 8 branches and the attac
 
 - **A second harness.** `.codex/` and `.agents/` are not v1, said by the user, so `~/.codex/AGENTS.md` is not generated and `## The user` and `## Preferences` exist in one copy. Two harnesses would mean two inline copies and a capture reaching only one. `backlog.md` → **Flow on another harness and on another model** carries it.
 - **Converting a project that already has its own workflow.** Set by the user 2026-09-08: it waits for such a project, because nothing here can be walked against a real one until one exists.
-- **The interview's question list.** Written when `/flow:setup` is written, against the harvest it follows, never before it.
+- **The interview's question list.** Written when `/flow:setup-machine` is written, against the harvest it follows, never before it.
 
 ## The version, locked 2026-09-16
 
@@ -89,30 +89,51 @@ What follows from the file:
 
 Fixed order, each step naming the file it reads or writes.
 
-1. **Snapshot.** Copy what the run may touch into `~/.flow/snapshots/<date-time>/` before anything else. Branch 1 says what is copied.
+1. **Open the migration's folder**: `~/.flow/migrations/<machine or project>/<date-time>/`, named for the time now, and `~/.flow/run.json` naming it. Nothing is copied yet. `apply-migration.js` copies each path at step 5, the moment before it changes, changed 2026-09-18 under `## Snapshot and restore`.
 2. **Read what changed.** `~/.flow/version`, then every changelog entry newer than that date.
-3. **Diff the 3 things Flow owns.** `home/settings.json` against `~/.claude/settings.json` for hooks and permission rules. `home/CLAUDE.md` against `~/.claude/CLAUDE.md`, skipping `## The user` and `## Preferences`. `flow skills ls` against the links under `~/.claude/skills/`.
-4. **Write the plan.** One line per change from steps 2 and 3: the file and what happens to it. When it is approved is 0.6.
-5. **Apply.** `flow install` for the links. Write the settings file and the rule file. Run whatever an entry asked for, such as rebuilding the audit index.
+3. **Diff the 3 things Flow owns.** `home/settings.json` against `~/.claude/settings.json` for hooks and permission rules. `home/AGENTS.md` against `~/.agents/AGENTS.md`, skipping `## The user` and `## Preferences`. `flow skills ls` against the links under `~/.claude/skills/`.
+4. **Write `migration.md` and every new file.** One line per path from steps 2 and 3, in the 4 verbs `## Snapshot and restore` lists, and each file it writes, whole, under `files/`. When it is approved is 0.6.
+5. **Apply**: the skill runs `~/.flow/scripts/apply-migration.js <id>`. `flow install` for the links, and whatever an entry asked for, such as rebuilding the audit index, are `run` lines naming the paths they write.
 6. **Prove and stamp.** `flow doctor`. On a pass, the newest entry's date goes into `~/.flow/version`.
 
 The project half runs the same 6 inside the project when its `.flow/version` is behind the machine's, over `.claude/settings.json`, `.claude/settings.local.json` and `.flow/`.
 
-## Snapshot and restore, locked 2026-09-17
+## Snapshot and restore, locked 2026-09-17, rebuilt 2026-09-18
 
-**A snapshot is a copy of every file a run may change, taken before the run, one folder per run**, at `~/.flow/snapshots/<date-time>/`, with a manifest listing what was copied and what the run intended. Every run takes one, so 1.1 closes with 1.0.
+**A migration is what the agent proposes, and a snapshot is the copies taken as it runs. They are 2 folders.** A migration is the list of changes and the new version of every file it writes. A snapshot is only what each path held before, and a list of those paths. Every run takes one, so 1.1 closes with 1.0. Rebuilt on the user's ask of 2026-09-18 that it hold every path a run could replace or remove, memory files and deletes included. Split the same day, the user's call: one folder holding the plan, `new/` and `old/` together left "apply a snapshot" meaning either side.
 
-- **What is copied**: only what the run may touch, never `~/.claude/` whole, which carries the session transcripts, 329 MB on this machine on 2026-09-17. A migration copies the list under `## What a migration may touch`. Setup adds the plugins folder, the skills folder, `~/.claude/settings.json` and `~/.claude.json`, which holds the MCP servers and plugin state setup may delete.
-- **Restore is one command and no agent**: `flow snapshot restore <date-time>` copies the manifest's files back and deletes what the run created. It runs from a plain shell with no session open. The manifest is what makes it mechanical.
-- **Projects snapshot into the same global folder**, never inside the project: a copy there would need ignoring in git and would vanish with the `.flow/` folder it restores. A project migration is its own run, so its own folder, and the manifest names the project's path for restore to put the files back.
-- **Anything a run has to put back is read out of the snapshot.** Replacing `~/.claude/CLAUDE.md` whole means writing the new file, then copying `## The user` and `## Preferences` back out of the snapshot's copy of the old one. Nothing is stashed a second time anywhere else.
+```text
+~/.flow/migrations/home-me-code-projects-delapse/2026-09-20T10-12-40/
+├─ migration.md     one line per change: write, delete, move or run
+└─ files/           the new version of each file it writes, at files/<full path>
+
+~/.flow/snapshots/home-me-code-projects-delapse/2026-09-20T10-15-02/
+├─ manifest.json    the paths copied, how far the run got, and the migration it was taken for
+└─ files/           each path as it was before, at files/<full path>
+```
+
+- **"Plan" means only a ticket's plan**, the user's call 2026-09-18. The setup side is a migration everywhere: `migration.md`, `~/.flow/migrations/`, `apply-migration.js`. All 3 skills write one. `references/workflow.md` → `## The pieces` defines it beside Ticket, with the rule where they meet: real project work a project setup finds becomes tickets, since a migration does only what one yes covers.
+- **`migration.md` is the list, and `apply-migration.js` is the only writer.** The agent writes `migration.md` and `files/`, then stops for the yes. The skill then runs `~/.flow/scripts/apply-migration.js <id>`, which goes line by line, copying each path into a new snapshot the moment before changing it. A path the migration leaves out is never touched, and a path it names never changes without a copy. The design of 2026-09-17 had the agent type the paths into `flow snapshot new` first, and a path it forgot changed with no copy.
+- **The script is off PATH and outside the `flow` command**, the user's call 2026-09-18. `flow apply <id>` read as a ticket command, since bare `flow <verb> <id>` is the ticket grammar, and a command on PATH can be typed weeks later or mid-work. Rejected on the way, never to return: `flow setup ls|apply|undo`, `undo` as a name, a top-level `flow apply`, and merging migrations into tickets. The machine has no tickets, project setup is what creates `.flow/tickets/`, and git cannot undo `~/.claude/` or an ignored file.
+- **4 verbs make a line an action**: `- write <path>: <why>`, `- delete <path>: <why>`, `- move <path> -> <path>: <why>`, `- run <command>: writes <path>, <path>`. Everything else in `migration.md` is prose for the user, and a line the user deletes is a change that never happens. The frontmatter holds `type`, the skill that wrote it, and `project`, the project's full path, absent for the machine. A relative path sits in the project.
+- **An out-of-date migration refuses**, the user's worry of 2026-09-18 about a run typed long after or mid-work. The script refuses when a file a `write` or `delete` line names, or any file inside a folder one names, changed after the time in the migration's folder name, and lists the files. `run` and `move` lines are exempt: a command acts on the file as it finds it, and a move takes whatever is there with it. Links are exempt, holding no content a new version was built from. Step 1 names the folder before anything is read, so a file changed while the agent reads is caught too. A snapshot and a restore keep each file's time, so a restored file never reads as changed. A `write` takes the time it happens.
+- **The copies are taken at step 5, after the yes, never first.** A project's list exists only once the whole project has been read. A copy taken days before the yes would also restore a stale file.
+- **A run may delete.** A file or a folder is copied whole before it goes, so a delete is as safe as a write. This reverses `Nothing is deleted at harvest` under `## Harvesting an existing setup`.
+- **What is copied**: only what the migration names, never `~/.claude/` whole, which carries the session transcripts, 343 MB on this machine on 2026-09-18. A project's run names its own memory folder under `~/.claude/projects/`, since a line can name any path.
+- **A path that does not exist is recorded as missing, at its highest missing folder**, so a restore deletes it and the folders made to hold it.
 - **A symlink is recorded as a row, never copied.** The manifest holds the link's path and what it pointed at, and `flow snapshot restore` re-points it. Copying would follow the link and copy the target. `~/.local/bin` and `~/.claude/scripts` are in scope for setup on this machine, and both are links.
-- **The run's plan lives in the same folder**, as `plan.md` beside the snapshot and the manifest, so one folder holds everything one run produced.
-- The commands are `flow snapshot new`, `ls` and `restore`, code in `flow`, since none of it is judgment.
+- **A file built from the old one is built before anything changes.** `files/` gets `~/.agents/AGENTS.md` whole, with `## The user` and `## Preferences` copied in from the live file, which stays untouched until step 5.
+- **A run that stops part-way carries on in the same snapshot.** Running the script again finds the snapshot whose manifest names the migration, unfinished and never restored, and carries on from the line that stopped. An edited migration refuses, since the lines already done no longer match it. A migration whose stopped run was restored starts over in a new snapshot. An applied one refuses a second apply, and points at `flow snapshot restore`.
+- **Restore is one command and no agent**: `flow snapshot restore <id>` puts the entries back newest first. It runs from a plain shell with no session open. It takes its own snapshot first, in a folder beside the one it restores, so a restore is undone the same way. `flow snapshot ls` shows the migration each snapshot was taken for, or the snapshot a restore undid.
+- **A migration is blind to which harness a path belongs to**, walked 2026-09-18 on the user's question about 2 harnesses holding different context. One migration can name paths under `~/.claude/`, `~/.codex/` and `~/.agents/`, and one restore undoes them all. Context split between harnesses is merged into the files both read, `~/.agents/AGENTS.md` and the project's `AGENTS.md`, and the harness-only copy is deleted after its snapshot. It stays merged because Claude Code's memory is off in `home/settings.json` and Codex's is off by default. `backlog.md` holds the 2 things that could block it: one file per harness saying where it keeps things, and Codex's sandbox.
+- **Projects snapshot into the same global folder**, never inside the project: a copy there would need ignoring in git and would vanish with the `.flow/` folder it restores. Copies rather than git, because git cannot restore an ignored file: Delapse ignores `.claude/settings.local.json`, and `media-reply` its whole `.claude/`. `flow snapshot ls` inside a project lists that project's alone, and `--all` lists every one.
+- **One thing still rests on the agent**: a `run` line naming every path its command writes, such as `~/.claude.json` for `claude plugin uninstall`. A file a harness rewrites by itself, `~/.claude.json` again, changes through a `run` line, never a `write`, or the out-of-date check refuses it every time. If a live run shows the agent writing a real path itself, the next step is a `PreToolUse` hook refusing `Write` and `Edit` outside the migration's folder while `~/.flow/run.json` exists.
+- **One folder for the machine, one per project, keyed by the project's full path. Locked 2026-09-18, the user's call.** Both trees share the layout. Machine runs go in `machine/<date-time>/`. A project's go in a folder named the way Claude Code names `~/.claude/projects/-home-me-code-projects-delapse/`, every character that is not a letter or a digit turned into `-`, with the leading dash dropped: `home-me-code-projects-delapse/`. flow reads a word starting with `-` as a flag, so `flow snapshot restore -home-me-code-app/2026-09-20T10-12-40` failed with `flags take two dashes`, tried 2026-09-18. 2 projects sharing a folder name never share runs. 2 paths can meet in one name, and the manifest's `project` field keeps them apart. The code reads no layout: an id is the folder's path below `migrations/` or `snapshots/`.
+- **Built 2026-09-18**: `scripts/apply-migration.js`, and `flow snapshot ls` and `restore` in `scripts/flow/commands/snapshot.js`, over `scripts/flow/lib/migrations.js` and `snapshots.js`, tested in `scripts/tests/snapshot.test.js`. `flow snapshot new` was dropped, and `flow apply` removed the same day.
 
-## The plan is always shown, locked 2026-09-17
+## The migration is always shown, locked 2026-09-17
 
-Every migration shows its plan and runs on one yes, with no size threshold. The plan is a file the user edits, `~/.flow/snapshots/<date-time>/plan.md`, described under `## A run stops once, at the plan`. A threshold makes the agent judge which migration is small, and a hook change reads as one line while rewiring every session. What overturns it: the yes becoming noise in the first weeks, and then the one exception is a plan touching symlinks only, which `flow install` already does alone.
+Every migration is shown whole and runs on one yes, with no size threshold. It is a file the user edits, `migration.md`, described under `## A run stops once, at the migration`. A threshold makes the agent judge which migration is small, and a hook change reads as one line while rewiring every session. What overturns it: the yes becoming noise in the first weeks, and then the one exception is a migration touching symlinks only, which `flow install` already does alone.
 
 ## Setup and migration are two flows, locked 2026-09-17
 
@@ -120,17 +141,18 @@ Every migration shows its plan and runs on one yes, with no size threshold. The 
 
 - Setup looks at what is already on the machine, asks the user about the skills, plugins and settings it finds, and interviews the user for `## The user` and `## Preferences` in `~/.claude/CLAUDE.md`. Branch 3 walks it.
 - Migration reads `~/.flow/version`, then every changelog entry newer than that date, and plans from those. No survey, no interview. Branch 0 walks it.
-- Both take a snapshot first. Both end with `flow doctor` and the version stamp. Nothing else is shared.
+- Both apply through `apply-migration.js`, which takes the snapshot. Both end with `flow doctor` and the version stamp. Nothing else is shared.
+- **Setup is 2 skills, split 2026-09-18**: `/flow:setup-machine` once per machine, and `/flow:setup-project` once per project. The argument that keeps setup and migration apart holds between the two setups too: what they share is the migration, its apply and its snapshot, and those are code in `apply-migration.js` now. They read different things, write different things and run at different moments. Migration stays one skill, because the machine and a project run the same steps against a different folder.
 - **The words are "setup" and "migration".** `flow install` already names the command that builds the symlinks, so "install" said of the whole first day reads two ways.
-- **A third state exists: Flow's own leftovers with no version file**, found on this machine 2026-09-17. Setup's survey looks for it first, before the competitor test, because what it finds is Flow rather than a competitor. It reads `~/.local/bin`, `~/.claude/skills`, `agents`, `rules` and `scripts` for any link whose target is a Flow clone, this one or an older one, and writes each into `plan.md` as adopt or remove with the clone path shown.
+- **A third state exists: Flow's own leftovers with no version file**, found on this machine 2026-09-17. Setup's survey looks for it first, before the competitor test, because what it finds is Flow rather than a competitor. It reads `~/.local/bin`, `~/.claude/skills`, `agents`, `rules` and `scripts` for any link whose target is a Flow clone, this one or an older one, and writes each into `migration.md` as adopt or remove with the clone path shown.
 - A whole-workflow replacement is a migration, the largest one, never setup. Flow is already on the machine, and `~/.flow/version` says which version it is on. `## A whole-workflow replacement` walks it.
 
 ## An unfinished run is a file on disk, locked 2026-09-17
 
-**Before step 1 of any run, the management skill writes `~/.flow/run.json`.** It holds the date and time, the type (`setup` or `migration`), the snapshot folder, the plan, and the last step finished. Every step rewrites the last field. Step 6 deletes the file and writes the date into `~/.flow/version`.
+**Before step 1 of any run, the management skill writes `~/.flow/run.json`.** It holds the date and time, the type (`setup-machine`, `setup-project` or `migrate`), the migration's folder, and the last step finished. Every step rewrites the last field. Step 6 deletes the file and writes the date into `~/.flow/version`.
 
 - No `run.json` on disk and a current `~/.flow/version` means the run finished. `run.json` on disk means it did not, and the file names the step it stopped at.
-- `flow doctor` reports it before anything else, names the step reached, and prints the 2 ways out: `flow snapshot restore <date-time>` to go back, or re-open the skill to carry on from that step.
+- `flow doctor` reports it before anything else, names the step reached, and prints the 2 ways out: `flow snapshot restore <id>` to go back, or re-open the skill to carry on from that step.
 - Reading it needs no agent and no session, which is the point.
 
 ## The check that runs by itself is a hook, locked 2026-09-17
@@ -146,7 +168,7 @@ Every migration shows its plan and runs on one yes, with no size threshold. The 
 
 **Flow stays a git clone the user reads and edits, and updating becomes one command.**
 
-- **npm was rejected.** Flow's content is files the user opens: `skills/`, `references/`, `home/CLAUDE.md`. npm puts them under `node_modules`, which nobody edits, and `npm install` overwrites it.
+- **npm was rejected.** Flow's content is files the user opens: `skills/`, `references/`, `home/AGENTS.md`. npm puts them under `node_modules`, which nobody edits, and `npm install` overwrites it.
 - **A Claude Code plugin was rejected.** A plugin ships skills and hooks. It cannot write `~/.claude/CLAUDE.md` or `~/.local/bin`, and those are half of Flow.
 - **The clone is what the tools already need.** `flow doctor` and every migration compare the live files against the clone's templates. With no clone they have nothing to compare against.
 - **`flow up`** on the machine does the whole update in one word: fetch, check what is newer, update the submodules, run the migration, run `flow doctor`. Inside a project it does the same against `.flow/version`.
@@ -180,7 +202,7 @@ Every migration shows its plan and runs on one yes, with no size threshold. The 
 - `flow doctor --updates` compares the clone against the newest tag, never against `main`'s tip.
 - **The user keeps pushing to `main`.** Branches buy code review and there is nobody here to review. A branch is for a change that leaves `main` unusable for longer than one session, such as replacing the whole workflow.
 - The user types the tag command. Flow never runs it.
-- **`flow install` builds symlinks and nothing else.** Writing `~/.claude/CLAUDE.md` moves to `/flow:setup`, after the interview that fills `## The user` and `## Preferences`. Two reasons: `install.js:125` asks `fs.existsSync`, and the file on this machine exists at 0 bytes, so install keeps it and the template never lands; and install otherwise writes a rule file before the user has answered a question.
+- **`flow install` builds symlinks and nothing else.** Writing `~/.claude/CLAUDE.md` moves to `/flow:setup-machine`, after the interview that fills `## The user` and `## Preferences`. Two reasons: `install.js:125` asks `fs.existsSync`, and the file on this machine exists at 0 bytes, so install keeps it and the template never lands; and install otherwise writes a rule file before the user has answered a question.
 
 ## Domain skills, locked 2026-09-17
 
@@ -194,11 +216,11 @@ Every migration shows its plan and runs on one yes, with no size threshold. The 
 - **The cost is said out loud at add time, never forbidden.** A skill installed globally has its description loaded in every session on the machine, React inside a Python project included. `add --global` says so and links it anyway. Until 2026-09-17 the code refused this outright, for that reason.
 - The SSH remote on `domain-skills` is a repo chore rather than skill design. `backlog.md` -> `## V1` -> `### Install and migration` holds it.
 
-## A run stops once, at the plan, locked 2026-09-17
+## A run stops once, at the migration, locked 2026-09-17
 
-**Everything needing a decision goes into one document before anything is touched, and the run never comes back for a second yes.** The management skill writes it to `~/.flow/snapshots/<date-time>/plan.md`, beside that run's snapshot and manifest.
+**Everything needing a decision goes into one document before anything is touched, and the run never comes back for a second yes.** The management skill writes it to `migration.md`, with every file it writes under `files/` beside it, so the user can open the new files before the yes.
 
-- The plan answers every question as a proposal rather than asking it: each plugin with its verdict, each settings toggle with Flow's choice and the reason, each harvested line with where it lands.
+- `migration.md` answers every question as a proposal rather than asking it: each plugin with its verdict, each settings toggle with Flow's choice and the reason, each harvested line with where it lands.
 - The user edits the lines they disagree with, then says go. After that the run goes to the end.
 - The only thing that stops it part-way is something unexpected, such as a pull that will not fast-forward. Then it stops and `~/.flow/run.json` holds the step it reached. That closes 3.0.
 
@@ -209,40 +231,41 @@ Every migration shows its plan and runs on one yes, with no size threshold. The 
 - **Overlap: it goes.** `superpowers` says to invoke a skill before any response and to brainstorm before creative work. Flow's `## The turn` and `design-in-conversation` rule the same ground, so the two fight and one wins.
 - **Behavior with no overlap: it stays.** A skill saying "always run migrations inside a transaction" is behavior, and Flow says nothing about database migrations, so nothing competes.
 - **Domain knowledge: it stays**, and moves into the projects needing it.
-- **A third outcome beside keep and delete: cannot be removed.** The account-synced tree at `~/.claude/skills/synced/<uuid>_<uuid>/` is pushed from the user's Claude account, so deleting the folder brings it back on the next sync. 9 skills sit there on this machine, 2 of them, `grill-me` and `skill-creator`, on ground Flow rules on. They go into `plan.md` with the overlap named and the decision handed to the user, since the only real switch is in the account.
-- **Removing a marketplace plugin is a settings edit.** A plugin is on because `enabledPlugins` in `~/.claude/settings.json` says so, such as `superpowers@claude-plugins-official: true`. The removal sets that entry to `false` and needs a restart. There is no folder to delete, and `plan.md` shows it as the key edit it is.
+- **A third outcome beside keep and delete: cannot be removed.** The account-synced tree at `~/.claude/skills/synced/<uuid>_<uuid>/` is pushed from the user's Claude account, so deleting the folder brings it back on the next sync. 9 skills sit there on this machine, 2 of them, `grill-me` and `skill-creator`, on ground Flow rules on. They go into `migration.md` with the overlap named and the decision handed to the user, since the only real switch is in the account.
+- **Removing a marketplace plugin is a settings edit.** A plugin is on because `enabledPlugins` in `~/.claude/settings.json` says so, such as `superpowers@claude-plugins-official: true`. The removal sets that entry to `false` and needs a restart. There is no folder to delete, and `migration.md` shows it as the key edit it is.
 - **Skills reach a machine by 4 routes, and the survey reads all 4**: a plain folder in `~/.claude/skills/`, the synced tree under it, `enabledPlugins` in `~/.claude/settings.json`, and `~/.claude/plugins/installed_plugins.json`.
-- **How the overlap is found.** The skill reads the candidate's instructions and the rule headings in `home/CLAUDE.md`, then writes each collision into `plan.md` with both texts side by side. The user overrules any of them by editing the line. That closes 3.1.
+- **How the overlap is found.** The skill reads the candidate's instructions and the rule headings in `home/AGENTS.md`, then writes each collision into `migration.md` with both texts side by side. The user overrules any of them by editing the line. That closes 3.1.
 
 ## Harvesting an existing setup, locked 2026-09-17
 
-**A line is dropped only when the plan can name the Flow rule replacing it.** The plan shows it as a pair, `dropped: "always show a diff before editing" -> replaced by ## The turn`. A line with no named replacement is never dropped.
+**A line is dropped only when the migration can name the Flow rule replacing it.** `migration.md` shows it as a pair, `dropped: "always show a diff before editing" -> replaced by ## The turn`. A line with no named replacement is never dropped.
 
 - The trap this closes, named by the user 2026-09-17: most of what a user wrote before Flow existed was a workaround for not having Flow, and harvesting it would carry the problem across. The named-replacement check catches exactly that, without letting the agent throw away what it merely failed to understand.
-- **Three buckets, not two.** Replaced by a Flow rule, so named in the plan and dropped. A fact about the user or the project, so it becomes `## The user` and `## Preferences` on the machine, or a document inside the project. Everything else stays where it is.
-- **The auto-memory files live on the machine, not in the projects.** Claude Code writes them to `~/.claude/projects/<project>/memory/`, keyed by project path, so setup reads them all without opening a single project. Checked 2026-09-17: 5 such folders out of 13 project folders here, 212 KB in all. Each file carries `name` and `description` frontmatter, so the agent sorts them without reading the bodies. `user_background.md` and the user lines of `MEMORY.md` become `## The user` and `## Preferences`; `project_*.md` waits for its own project's run; nothing is deleted and the snapshot copies the folders first. One found here was `feedback_naming_kind_vs_type.md`, holding the `type` over `kind` rule the user has been enforcing by hand.
-- **Nothing is deleted at harvest**, and the snapshot holds the original, so `flow snapshot restore <date-time>` puts back a file the user decides was harvested wrongly. That closes 3.2.
+- **Three buckets, not two.** Replaced by a Flow rule, so named in the migration and dropped. A fact about the user or the project, so it becomes `## The user` and `## Preferences` on the machine, or a document inside the project. Everything else stays where it is.
+- **The auto-memory files live on the machine, not in the projects.** Claude Code writes them to `~/.claude/projects/<project>/memory/`, keyed by project path, so setup reads them all without opening a single project. Checked 2026-09-17: 5 such folders out of 13 project folders here, 212 KB in all. Each file carries `name` and `description` frontmatter, so the agent sorts them without reading the bodies. `user_background.md` and the user lines of `MEMORY.md` become `## The user` and `## Preferences`; `project_*.md` waits for its own project's run, and `apply-migration.js` copies the folders before anything goes. One found here was `feedback_naming_kind_vs_type.md`, holding the `type` over `kind` rule the user has been enforcing by hand.
+- **A run may delete what it harvested**, reversed 2026-09-18 from "nothing is deleted at harvest". `apply-migration.js` copies each file before it goes, so `flow snapshot restore <id>` puts back a file the user decides was harvested wrongly. That closes 3.2.
 
 ## What setup does to settings.json and to a project, locked 2026-09-17
 
 **`~/.claude/settings.json` splits into 3 groups, and Flow's template carries 12 keys.**
 
 - `hooks` replaces wholesale, because Flow's 11 hooks are the workflow itself.
-- `permissions` merges, and every rule that conflicts is asked once in `plan.md`.
-- **A key Flow's template does not carry is left exactly as it is**, and never appears in `plan.md`. This machine holds 12 of them on 2026-09-17, among them `model`, `statusLine`, `theme`, `voice` and `effortLevel`. Asking about them would mean asking the user about their own theme.
+- `permissions` merges, and every rule that conflicts is asked once in `migration.md`.
+- **A key Flow's template does not carry is left exactly as it is**, and never appears in `migration.md`. This machine holds 12 of them on 2026-09-17, among them `model`, `statusLine`, `theme`, `voice` and `effortLevel`. Asking about them would mean asking the user about their own theme.
 - The 7 opinion keys are each shown with Flow's choice and the reason: `disableBundledSkills`, `disableWorkflows`, `disableRemoteControl`, `disableClaudeAiConnectors`, `disableArtifact`, `autoMemoryEnabled`, `respondToBashCommands`. That closes 3.3.
 
-**Setting up a project is setup's second half, run the first time the user opens that project.** Setup only ever sees `~/.claude/CLAUDE.md`, because a project's own `CLAUDE.md` lives inside the project, so nothing is gathered ahead of time.
+**Setting up a project is its own skill, `/flow:setup-project`, run the first time the user opens that project.** Split from machine setup 2026-09-18, under `## Setup and migration are two flows`. Setup only ever sees `~/.claude/CLAUDE.md`, because a project's own `CLAUDE.md` lives inside the project, so nothing is gathered ahead of time.
 
-- It builds `.flow/` from the template, writes `.claude/settings.json`, harvests the project's `CLAUDE.md` by the same 3 buckets, links the domain skills named in `.flow/domain-skills.txt`, and stamps `.flow/version`.
-- It is a run like any other, so it takes a snapshot and writes a plan first. That closes 3.4.
+- It builds `.flow/` from the template, writes `.claude/settings.json`, links the domain skills named in `.flow/domain-skills.txt`, and stamps `.flow/version`. An empty new project gets `project-template/` and nothing more.
+- **It reads the whole project, not only `CLAUDE.md`**, widened by the user 2026-09-18: `AGENTS.md`, `.claude/`, `.agents/`, `.codex/`, `docs/` and the project's memory folder, sorted by the same 3 buckets into the project's context files, tickets and state. Delapse is the test case, with 182 files under `docs/` and 44 under `.agents/`. What it reads and in what order is its own design pass.
+- It is a run like any other: a migration, then `apply-migration.js`. Its migration is also its snapshot's list. That closes 3.4.
 
 ## The 2 personalised files, locked 2026-09-17
 
 **Two sections, not one, and an interview that asks only what the harvest left blank.**
 
-- **Why two.** `home/CLAUDE.md` already routes a new fact to one or the other: how the user wants to work goes to `## Preferences`, what they know or do not goes to `## The user`. One merged section leaves the agent picking a spot in a blob, and two named sections give it an address. That closes 4.1.
-- **When the interview runs.** During setup, after the harvest, before the file is written, with its answers landing in `plan.md` like every other decision. On a machine with an existing rule file it is short, because the harvest already answered most of it. On a bare machine it is the only source.
+- **Why two.** `home/AGENTS.md` already routes a new fact to one or the other: how the user wants to work goes to `## Preferences`, what they know or do not goes to `## The user`. One merged section leaves the agent picking a spot in a blob, and two named sections give it an address. That closes 4.1.
+- **When the interview runs.** During setup, after the harvest, before the file is written, with its answers landing in `migration.md` like every other decision. On a machine with an existing rule file it is short, because the harvest already answered most of it. On a bare machine it is the only source.
 - **What it asks**: what the user builds, which languages and tools, what they know well and what they do not, how long they want answers, whether terms get defined, how they work. The question list is its own design pass when the skill gets built. That closes 4.2.
 
 ## The 2 personal sections stay inline, locked 2026-09-17
@@ -252,7 +275,7 @@ Every migration shows its plan and runs on one yes, with no size threshold. The 
 - **Why the separate file lost.** Capture writes a new fact into the profile during ordinary sessions. Claude Code imports, so it would see the change at once. Codex has no import, so `~/.codex/AGENTS.md` is a generated copy and would need rebuilding after every capture. A design needing a rebuild after every write is worse than the carve it replaces.
 - **The carve is not dangerous.** The 2 sections are named headings, so taking each from its heading to the next `##` is deterministic, and the snapshot holds the original file anyway. Calling it the one destructive step in the migration was an overstatement.
 - **`install.js:125` still has to be fixed.** It leaves an existing `~/.claude/CLAUDE.md` untouched rather than rewriting it around the 2 sections, so no migration can ship a new template until it changes.
-- **Flow proposes every change to the 2 sections and never edits them silently.** Step 3 of a migration compares them against what the changelog entries removed. A line naming a removed feature becomes a line in `plan.md`, such as `stale: "always run the scorecard before closing" -> the scorecard was removed on 2026-08-14`, with a replacement proposed. Raised by the user 2026-09-17.
+- **Flow proposes every change to the 2 sections and never edits them silently.** Step 3 of a migration compares them against what the changelog entries removed. A line naming a removed feature becomes a line in `migration.md`, such as `stale: "always run the scorecard before closing" -> the scorecard was removed on 2026-08-14`, with a replacement proposed. Raised by the user 2026-09-17.
 - **Open, and deferred to the Codex work.** Two harnesses means 2 inline copies, and a capture in one does not reach the other. Nothing is built for it while Claude Code is the only harness. `backlog.md` -> **Flow on another harness and on another model** carries it.
 
 That closes 4.0.
@@ -271,14 +294,15 @@ That closes 4.0.
 
 ## Name, group and entry points, locked 2026-09-17
 
-**The management skill is 3 skills, filed in `skills/tools/`, every one of them typed by the user.**
+**The management skill is 4 skills, filed in `skills/tools/`, every one of them typed by the user.** 3 until 2026-09-18, when project setup split from machine setup.
 
-- **`/flow:setup`** puts Flow on a machine that never had it, or has somebody else's setup on it. Branch 3 is its body.
+- **`/flow:setup-machine`** puts Flow on a machine that never had it, or has somebody else's setup on it. Branch 3 is its body. Named `/flow:setup` until 2026-09-18.
+- **`/flow:setup-project`** brings one project into Flow, the first time the user opens it: it reads the whole project and writes its context files, tickets and state. `## What setup does to settings.json and to a project` holds it.
 - **`/flow:migrate`** moves the machine forward, then a project, when Flow itself changed. Branch 0 is its body.
 - **`/flow:help`** answers a question about Flow out of the manual, and answers "what do I do now". Branch 5 is its body.
-- **Prerequisites is not a skill.** It is `references/prerequisites.md`, read by `/flow:setup` and `/flow:migrate` as step 0, because 6.0 said it runs before any job and never on its own.
+- **Prerequisites is not a skill.** It is `references/prerequisites.md`, read by both setup skills and `/flow:migrate` as step 0, because 6.0 said it runs before any job and never on its own.
 
-**One skill could not hold all 3 jobs.** A skill has one description and one `disable-model-invocation` line, and the jobs want different answers to both.
+**One skill could not hold all 4 jobs.** A skill has one description and one `disable-model-invocation` line, and the jobs want different answers to both.
 
 ### The group is `tools/`
 
@@ -294,27 +318,27 @@ Said by the user 2026-09-17. `skills/dev/` holds what a maintainer runs, and bot
 - The one cost is native Windows, where a colon is illegal in a filename, so the clone would not check out. Windows outside WSL is already excluded under `## Which operating systems`, and the item to lift it sits in `backlog.md` -> `## After V1`.
 - Undocumented behavior, so `flow doctor`'s existing check that every skill name resolves is what catches a version that takes it away.
 
-### All 3 are typed, never model-invoked
+### All 4 are typed, never model-invoked
 
-`disable-model-invocation: true` on all 3. A model that decides by itself to snapshot the machine and rewrite `~/.claude/CLAUDE.md` is the worst thing this design can do, and the same line on `/flow:help` keeps the set consistent.
+`disable-model-invocation: true` on all 4. A model that decides by itself to snapshot the machine and rewrite `~/.claude/CLAUDE.md` is the worst thing this design can do, and the same line on `/flow:help` keeps the set consistent.
 
 That line also takes a skill's description out of the session's context, so nothing shows the model the skill exists. Three things name them instead:
 
 - The `SessionStart` hook from 7.2, printing `Flow is behind: /flow:migrate` when `~/.flow/version` is older than the newest changelog entry.
 - `flow doctor`, whose note says the same when the user runs it.
-- One line in `home/CLAUDE.md` under `## Workflow`, beside `invoke-the-skill`, listing the typed-only skills and saying to name the one that fits rather than invoke it.
+- `user-only-skills` in `home/AGENTS.md` under `## Workflow`, beside `invoke-the-skill`, listing the user-only skills and saying to suggest them to the user.
 
 ### Setup opens in a terminal, not a session
 
-`/flow:setup` cannot be typed on a machine that never had Flow, because a skill becomes typeable only once `flow install` links it into `~/.claude/skills/`. So the first step is a shell command: clone, then `node <clone>/scripts/flow/flow.js install`. Its closing message, `scripts/flow/commands/install.js:136-141`, today tells the user to merge `home/settings.json` by hand; it becomes "restart Claude Code and type `/flow:setup`", and the skill does that merge key by key under 3.3.
+`/flow:setup-machine` cannot be typed on a machine that never had Flow, because a skill becomes typeable only once `flow install` links it into `~/.claude/skills/`. So the first step is a shell command: clone, then `node <clone>/scripts/flow/flow.js install`. Its closing message, `scripts/flow/commands/install.js:136-141`, today tells the user to merge `home/settings.json` by hand; it becomes "restart Claude Code and type `/flow:setup-machine`", and the skill does that merge key by key under 3.3.
 
 **That first install snapshots itself.** When `~/.flow/snapshots/` is empty, `flow install` writes the manifest of what it is about to create before creating it, so `flow snapshot restore` reaches the bootstrap links too.
 
-### A typed-only skill is marked `(user invoked)`
+### A user-only skill is marked `(user only)` once
 
-Prose is the only place the model meets a typed-only skill, and prose reads like something it can run. First mention in any file the agent reads carries the mark: `/flow:cut-from-spec` `(user invoked)`. Word chosen by the user 2026-09-17, over `(the user types it)`, which was too long.
+Prose is the only place the model meets a user-only skill, and a bare name read first looks like something it can run. The mark goes once, where the agent reads it before any bare mention, and every other mention stays bare. `user-only-skills` in `home/AGENTS.md` is that place for the skills it lists, since every session loads it. A skill later dropped from that list gets the mark where the agent first meets it. Set by the user 2026-09-18, replacing the mark in every file set the day before, and the word `(user invoked)` with it.
 
-The live fault it fixes: `skills/phases/groundwork/references/write-spec.md` line 119 says **invoke `/flow:cut-from-spec`**, which the agent cannot do. Today's typed-only set is `/flow:start`, `/flow:cut-from-spec` and `/flow:fold`, and the 3 new skills join it.
+The fault it fixed: `skills/phases/groundwork/references/write-spec.md` told the agent to invoke `/flow:tickets-from-spec`, which the agent cannot do. Today's set is `/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings`, and the 4 new skills join it.
 
 ## When a migration changes the management skill itself, locked 2026-09-17
 
@@ -332,11 +356,11 @@ The case, in the user's words on 2026-09-08: a migration can be as large as repl
 
 ### No size threshold, and no second mode
 
-Every migration already shows its `plan.md` and runs on one yes. A replacement mode would make the agent judge which migration is large enough to deserve it, and the judgment buys nothing, because the steps do not change. `## Setup and migration are two flows` already refused a threshold for the same reason.
+Every migration already shows its `migration.md` and runs on one yes. A replacement mode would make the agent judge which migration is large enough to deserve it, and the judgment buys nothing, because the steps do not change. `## Setup and migration are two flows` already refused a threshold for the same reason.
 
 ### Step 5 writes whole files, at every size
 
-- **`~/.claude/CLAUDE.md`**: write `home/CLAUDE.md` whole, then copy `## The user` and `## Preferences` back out of the snapshot's copy of the old file. Never a line-by-line patch, however small the change. The live file is Flow's file, so the template is the truth for everything outside those 2 sections.
+- **`~/.agents/AGENTS.md`**: `files/` gets `home/AGENTS.md` whole, with `## The user` and `## Preferences` copied in from the live file, and `apply-migration.js` puts it in place. Never a line-by-line patch, however small the change. The live file is Flow's file, so the template is the truth for everything outside those 2 sections.
 - **`~/.claude/settings.json`**: `hooks` replaced whole from the template, `permissions` merged, an opinion key asked only where the template's value changed. Set under `## What setup does to settings.json and to a project`.
 - **The links**: `flow install`. `pruneDead` at `scripts/flow/lib/links.js:43` already deletes a link that points into the clone at something gone, so a renamed skill's old link goes by itself.
 - **Whatever the entry names**, such as a command that rewrites every ticket's frontmatter. Nothing else in the run can know about it, which is what the changelog entry is for.
@@ -345,11 +369,11 @@ Writing whole is also what makes a re-run harmless: the second run writes the sa
 
 ### The one thing a whole write can destroy
 
-A line the user added to `~/.claude/CLAUDE.md` by hand, outside the 2 personal sections. Step 3's diff against the template is what finds it, and it goes into `plan.md` on its own line: `yours, not in the template: "<line>" -> keep or drop`. Keep means the run copies it back after the write, beside the 2 sections.
+A line the user added to `~/.claude/CLAUDE.md` by hand, outside the 2 personal sections. Step 3's diff against the template is what finds it, and it goes into `migration.md` on its own line: `yours, not in the template: "<line>" -> keep or drop`. Keep means the agent carries it into the new file under `files/`, beside the 2 sections.
 
-### The plan is one line per file, not one per entry
+### A migration is one line per file, not one per entry
 
-A machine 3 months behind carries 40 entries, and 20 of them touching hooks are still one line in the plan: hooks replaced. The entries are the input to step 2; the plan is the output of step 4, and its unit is the file.
+A machine 3 months behind carries 40 entries, and 20 of them touching hooks are still one line in `migration.md`: hooks replaced. The entries are the input to step 2; the migration is the output of step 4, and its unit is the file.
 
 ### The session that applied it is stale
 
@@ -361,7 +385,7 @@ Rules load when a session launches, so after step 5 the session doing the work s
 
 ### A clone older than the machine
 
-`~/.flow/version` newer than the newest changelog entry means the clone was moved back, by a checkout or a bad pull. `flow doctor` calls that a problem and exits non-zero, rather than a note. No migration ever runs backwards: the way out is `flow snapshot restore <date-time>`, or moving the clone forward again.
+`~/.flow/version` newer than the newest changelog entry means the clone was moved back, by a checkout or a bad pull. `flow doctor` calls that a problem and exits non-zero, rather than a note. No migration ever runs backwards: the way out is `flow snapshot restore <id>`, or moving the clone forward again.
 
 ## Settled by the user
 
@@ -393,7 +417,7 @@ Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.
 
 None approved. Each is a position to argue in the walk, never the answer.
 
-**The migration spine.** Two sources, because neither is enough alone. The diff: `home/settings.json` and `home/CLAUDE.md` are the target state, the live files the current one, so hooks, scripts and the rule file outside the personal sections diff exactly. The changelog: the file suspended until v1 becomes the migration log, one entry per change saying what a machine or a project must do that no diff shows. Where the version comes from is open: the changelog carries no version numbers by rule, so the candidates are the date of the newest entry or the clone's commit. A migration has two halves, the machine and each project, and the project half runs when that project is opened. Earlier proposals folded here: migration reads git rather than a second clone, `git show <commit>:home/CLAUDE.md` giving the version installed from, and resolution across 3 documents done by an agent reading them, never `git merge`. One global changelog rather than one per skill, because order across skills is where a migration matters.
+**The migration spine.** Two sources, because neither is enough alone. The diff: `home/settings.json` and `home/AGENTS.md` are the target state, the live files the current one, so hooks, scripts and the rule file outside the personal sections diff exactly. The changelog: the file suspended until v1 becomes the migration log, one entry per change saying what a machine or a project must do that no diff shows. Where the version comes from is open: the changelog carries no version numbers by rule, so the candidates are the date of the newest entry or the clone's commit. A migration has two halves, the machine and each project, and the project half runs when that project is opened. Earlier proposals folded here: migration reads git rather than a second clone, `git show <commit>:home/AGENTS.md` giving the version installed from, and resolution across 3 documents done by an agent reading them, never `git merge`. One global changelog rather than one per skill, because order across skills is where a migration matters.
 
 **Snapshot and restore.** Copy `~/.claude/` and `~/.flow/` whole into `~/.flow/snapshots/<timestamp>/`, with a manifest of what was found and what the run intends. Restoring puts the tree back, which is the uninstall Flow does not have. The user widened it 2026-09-16 to `.codex/` and to what plugins and MCP servers a run removes or isolates.
 
@@ -489,7 +513,7 @@ Raised by the user 2026-08-15, as one skill instead of two. The plan had been `s
 
 - `scripts/flow/commands/install.js` and `doctor.js`: what the 2 setup commands do today, and the fault at `install.js:125`
 - `home/settings.json`: the 11 hooks, every one a `$HOME` shell line, the target state a machine diffs against
-- `home/CLAUDE.md`: the template, `## The user` and `## Preferences` at lines 57 and 64
+- `home/AGENTS.md`: the template, `## The user` and `## Preferences` at lines 58 and 65
 - `docs/dev/checkout.md`: stable and dev checkouts, shipping by pull
 - `docs/manual/reference.md` → `## Installing`: what the manual promises about the 2 personalised files today
 - `lab/research/claude-code-docs/memory.md` and `settings.md`: imports, scopes, plugins

@@ -18,6 +18,7 @@
  * and write the rest into the real home folder.
  */
 
+const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
@@ -34,15 +35,16 @@ function folders(root) {
 }
 
 /**
- * The one line `~/.claude/CLAUDE.md` holds, pulling in the real rule file.
+ * The one line `~/.claude/CLAUDE.md` holds, pulling in the real rule file,
+ * read from its template, home/CLAUDE.md.
  *
  * `~` only where the base is the home folder. A scratch base sits somewhere
  * else, and Claude Code reads `~` as the real home folder whatever the config
  * folder is, so there the line names the file by its full path.
  */
-function importLine(base) {
-  const file = path.join(base, '.agents', 'AGENTS.md');
-  return `@${base === os.homedir() ? '~/.agents/AGENTS.md' : file}`;
+function importLine(clone, base) {
+  const line = fs.readFileSync(path.join(clone, 'home', 'CLAUDE.md'), 'utf8').trim();
+  return base === os.homedir() ? line : line.replace('@~/', `@${base}${path.sep}`);
 }
 
 /** A path under the home folder, written with `~`, for output. */

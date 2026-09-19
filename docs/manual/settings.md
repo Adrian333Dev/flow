@@ -222,7 +222,7 @@ Three things hold whatever the mode says:
 
 Six of them, cycled with Shift+Tab and overridable for one session with `--permission-mode <name>`. A mode only decides what happens to a call no rule above matched.
 
-**Every session starts in `default`, labelled Manual.** The allow list covers everything routine, so the prompts left over are the ones worth seeing. The key has to be there. Since Claude Code 2.1.228, a terminal session on a Pro, Max or Team plan starts in `auto` unless a settings file names another mode.
+**Every session starts in `default`, labelled Manual.** The allow list covers everything routine, so the prompts left over are the ones worth seeing. The key has to be there. Since Claude Code 2.1.228, a terminal session on a Pro, Max or Team plan starts in `auto` unless a settings file names another mode. `flow doctor` fails when the key is missing, and prints a note when it names another mode.
 
 **`auto` is not where a session starts.** In auto mode a second model, the classifier, reviews a call before it runs and blocks what looks beyond your request. 3 things decided against it:
 
@@ -271,7 +271,7 @@ Installing and being shown are separate questions for those. A skill set to `off
 
 **Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove.
 
-**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/flow:start` and `/flow:cut-from-spec` carry it because *never* is true of them. Everything else is decided here.
+**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings` carry it because *never* is true of them. Everything else is decided here.
 
 ---
 

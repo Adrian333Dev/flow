@@ -31,7 +31,7 @@ The workflow handles a full project from the initial idea through to a finished,
 /flow:file-findings   lessons filed back into skills and rules
 ```
 
-Groundwork produces the design and cuts it into tickets. For large projects with an existing spec, `/flow:cut-from-spec` cuts the next batch of tickets from `docs/spec/` instead, but most of the time groundwork handles ticket creation directly.
+Groundwork produces the design and cuts it into tickets. For large projects with an existing spec, `/flow:tickets-from-spec` cuts the next batch of tickets from `docs/spec/` instead, but most of the time groundwork handles ticket creation directly.
 
 Flow can start from any point. If you already have a design, start at `/flow:execute`. If you already have tickets, pick one up with `/flow:start`. If you are mid-build and something breaks, `/flow:debug` takes over. If you need to research before deciding, `/flow:research` runs on its own.
 
@@ -137,8 +137,8 @@ ASCII over HTML for diagrams and mockups: a fraction of the tokens, renders inli
 ```text
 skills/
 ├─ phases/       groundwork, execute, prototype, debug
-├─ tools/        start, handoff, file-findings, research, visualize, cut-from-spec
-└─ dev/          review, fold
+├─ tools/        start, handoff, file-findings, research, visualize, tickets-from-spec
+└─ dev/          review, apply-domain-findings
 ```
 
 `util fs merge` for loading many files into context in one call. It supports line ranges (`file.md:45-89`), extension filters (`--ext ts,tsx`), and a trailing note after `--` that rides alongside the content. One call is cheaper than separate parallel reads, and the agent gets the content in a single block instead of scattered across tool results:
