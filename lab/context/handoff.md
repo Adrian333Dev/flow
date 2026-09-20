@@ -2,7 +2,7 @@
 
 Written 2026-09-20. Read it once, then rewrite it whole next time.
 
-**Next: a `SessionStart` hook prints one line when the machine or the project needs attention**, which `backlog.md` → `### The management skill, in build order` now opens on. Nothing from 2026-09-20 is open. `CHANGELOG.md` came back holding entry `1`, an entry is a sentence, and `upgrades/<number>.md` beside it holds every path a machine has to move. `flow doctor` gained the version checks the same day. The reminder became `scripts/reminder.js`, so `"reminder": false` in `~/.flow/settings.json` silences it and every line Flow prints by itself gets a key like it. `lab/context/management.md` → `## The changelog comes back`, `## The version` and `## The check that runs by itself is a hook` hold the 3 decisions. 138 tests pass and every record is written.
+**Next: the domain-skills clone pulls itself, and one of its skills may go global**, which `backlog.md` → `### The management skill, in build order` now opens on. It hangs off the `SessionStart` hook built below. Nothing from 2026-09-20 is open. `CHANGELOG.md` came back holding entry `1`, an entry is a sentence, and `upgrades/<number>.md` beside it holds every path a machine has to move. `flow doctor` gained the version checks the same day. The reminder became `scripts/reminder.js` and a session now opens with `scripts/session-check.js`, both behind a key in `~/.flow/settings.json`. `lab/context/management.md` → `## The changelog comes back`, `## The version` and `## The check that runs by itself is a hook` hold the 3 decisions. 142 tests pass and every record is written.
 
 ## The build order, all 4 done
 
@@ -110,6 +110,23 @@ The `UserPromptSubmit` hook ran `cat "$HOME/.flow/references/reminder.md"` until
 - **`settings.prints(name)` in `scripts/flow/lib/settings.js` is the switch**, one top-level key per line, on unless the key says `false`. A machine with no settings file at all gets every line.
 - **The hook never exits non-zero.** Exit 2 on `UserPromptSubmit` rejects the prompt and erases what the user typed, so a missing file prints nothing instead.
 - `scripts/tests/reminder.test.js` holds 2 tests: on, off, the local settings file winning, and a missing file still exiting 0.
+
+### A session opens with one line when something needs attention
+
+`scripts/session-check.js` is the `SessionStart` hook, and `home/settings.json` had no `SessionStart` entry before it. It reads 3 files and runs nothing: `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`.
+
+```text
+Flow: this machine is at changelog entry 0, and 1 is the newest. Type /flow:migrate to catch up.
+Flow: delapse carries no version stamp, so /flow:setup-project never reached its last step. Type /flow:setup-project.
+Flow: a migrate run stopped after step 4, so this machine is part way through a change. Type /flow:migrate to carry on, or run flow doctor for the way back.
+```
+
+- **All 3 fine prints nothing at all**, which is what makes a line worth reading.
+- **A stopped run prints alone.** Every other line reads a version stamp that the stopped run was in the middle of moving.
+- **It is the only thing that names `/flow:migrate`.** That skill is typed and never model-invoked, so its description stays out of every session.
+- **It finds the project by walking up for a `.flow/`**, rather than through `lib/root.js`, which asks git and refuses outside a project. A hook fires wherever the session was opened.
+- **The clone is found through `cloneRoot()`**, which resolves `__dirname` past the `~/.flow/scripts` symlink, so the changelog is read with no setting involved.
+- `scripts/tests/session-check.test.js` holds 4 tests, and `doctor.test.js` now counts 12 hooks.
 
 ## What the user ruled on 2026-09-20
 

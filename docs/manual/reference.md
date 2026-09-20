@@ -629,19 +629,20 @@ Two files, and Flow contributes to one of them.
 
 **`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `/flow:setup-machine` merges Flow's keys into it, key by key. Flow contributes four keys:
 
-- **`hooks`**: 5 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply
+- **`hooks`**: 6 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does
 - **`permissions`**: an allow list, a deny list, and no git entries at all, because `flow git` owns git. The deny list covers the Claude Code surfaces Flow does not use, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses. It reaches outside skills only: Flow's own are a plugin, which this key cannot touch
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 
 A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing.
 
-**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Every setting holding a path goes in it. Together they hold 4 keys:
+**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Every setting holding a path goes in it. Together they hold 5 keys:
 
 - **`git`**: the git write state, in the shared file. `flow git` writes it, so there is nothing to edit by hand
 - **`domainSkills`**: the path to your clone's `skills/` folder, in the local file, which [`flow domain-skills`](#flow-domain-skills) reads. You write this one
 - **`clone`**: the path to your Flow clone, in the local file. `flow install` writes it on every run
 - **`reminder`**: whether the reminder prints beside every message, in the shared file. `false` silences it, and every line Flow prints by itself gets a key like it
+- **`sessionCheck`**: whether the line naming what needs attention prints when a session opens, in the shared file. `false` silences it
 
 [Settings](settings.md) explains every key in both files, every value Flow rejected, and why.
 

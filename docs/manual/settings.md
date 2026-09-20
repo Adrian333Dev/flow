@@ -24,6 +24,7 @@ All 3 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`domainSkills`](#domainskills)
   - [`clone`](#clone)
   - [`reminder`](#reminder)
+  - [`sessionCheck`](#sessioncheck)
 
 ## Claude Code's settings file
 
@@ -142,6 +143,29 @@ The rules for writing a reply sit at the end of a long file, loaded once at the 
 **The text is a file, and the script only prints it.** Claude Code adds whatever a `UserPromptSubmit` hook prints to standard output beside the message. The hook cannot change the message itself. Edit `references/reminder.md` to change the line.
 
 **`scripts/reminder.js` runs it, so it can be switched off.** `"reminder": false` in `~/.flow/settings.json` silences it, and [`reminder`](#reminder) covers the switch. The hook was a bare `cat` of the file until 2026-09-20, and `cat` reads no setting.
+
+#### The session check
+
+```json
+"SessionStart":       [ { "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/session-check.js\"" } ] } ]
+```
+
+Prints one line when this machine or this project needs attention, and nothing at all when neither does:
+
+```text
+Flow: this machine is at changelog entry 3, and 5 is the newest. Type /flow:migrate to catch up.
+Flow: delapse is at changelog entry 3, and this machine is at 5. Type /flow:migrate here.
+Flow: a migrate run stopped after step 4, so this machine is part way through a change. Type /flow:migrate to carry on, or run flow doctor for the way back.
+```
+
+It reads 3 files and runs nothing: `~/.flow/run.json`, which a setup or a migration leaves behind only when it never finished, `~/.flow/version`, and the project's `.flow/version`. [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
+
+**A stopped run prints alone.** Every other line reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying.
+
+**It is also the only thing that names `/flow:migrate`.** You type that skill and the agent can never start it, which keeps its description out of every session, so nothing else would tell either of you the command exists.
+
+`"sessionCheck": false` in `~/.flow/settings.json` silences it, and [`sessionCheck`](#sessioncheck) covers the switch.
 
 #### Why worktree isolation is off
 
@@ -398,3 +422,15 @@ Whether the line pointing at the reply rules prints beside every message you sen
 **Every line Flow prints on its own carries a key like this one**, read by the script that prints it. A line is on unless its key says `false`, so a machine with no settings file at all gets all of them. `scripts/reminder.js` reads this one.
 
 [The reminder](#the-reminder) shows the line and says why it exists.
+
+---
+
+### `sessionCheck`
+
+Whether the line naming what needs attention prints when a session opens. Write `false` to silence it:
+
+```json
+"sessionCheck": false
+```
+
+[The session check](#the-session-check) shows every line it can print and says which files it reads.

@@ -43,7 +43,7 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 
 `/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings` are user only. `user-only-skills` in `home/AGENTS.md` names them, so every other file names them bare. A user-only skill missing from that list is marked `(user only)` where the agent first meets it, by `references/style.md` → `### Only in a loaded file`. `/flow:tickets-from-spec` was `/flow:cut-from-spec` until 2026-09-18. The 4 phase skills take a ticket id and load it with its files on their first line, since 2026-09-16. `/flow:debug` still sends a bug inside a web page to `/web-pages`, which left for `domain-skills` and waits on its rebuild there.
 
-## `flow` has 11 command groups, and all 138 tests pass
+## `flow` has 11 command groups, and all 142 tests pass
 
 One of them, *a worker hands the parent its diff and the command that deleted a file*, fails about one run in five when the machine is busy. It is a race in the test, not a bug in `changes.js`, and it has a line in `backlog.md`.
 
@@ -59,7 +59,7 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 - **audit**: an index of Claude Code's transcripts, with queries over it
 - **restore**: `ls`, `machine` and `project`, over `~/.flow/originals/<machine or project>/`, one folder per place holding every path as it was before Flow first touched it. The folder is written in one window and never added to: `flow install` opens the machine's, and the first `/flow:setup-machine` or `/flow:setup-project` closes it. A migration is carried out by `scripts/apply-migration.js`, never a `flow` command: the agent writes `migration.md` and `files/` under `~/.flow/migrations/`, and after the yes the skill runs the script, which records each path into the open window the moment before changing it, and refuses when a file it would write or delete changed after the migration was written. 4 locks keep `flow restore machine`, `flow restore project` and `flow uninstall` away from the agent: no session open, a word typed at `/dev/tty`, no flag that skips the prompt, and `deny` rules in `home/settings.json`. Built 2026-09-18 as snapshots, rebuilt 2026-09-20 as the original. `docs/manual/reference.md` → `## Migrations and the original` documents all 3
 
-## 11 hooks, all in `home/settings.json`
+## 12 hooks, all in `home/settings.json`
 
 - **`guard.js`**, before every shell command: enforces the git switch.
 - **`changes.js`**, around every edit, write, shell and MCP call, and at subagent start and stop: records each change under the id of the agent that made it.
@@ -67,6 +67,7 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 - **`instructions-loaded.js`**: records which rule files entered context.
 - **`check-ticket.js`**, when a phase skill or `/flow:start` is typed with a ticket id: blocks the skill when the id matches nothing, so a typo loads nothing.
 - **`reminder.js`**, on every message the user sends: prints `references/reminder.md`, unless `"reminder": false` says not to. It was a bare `cat` until 2026-09-20, and a `cat` reads no setting. Every line Flow prints by itself gets a key like it, read through `settings.prints(name)`.
+- **`session-check.js`**, when a session opens: one line when `~/.flow/run.json`, `~/.flow/version` or the project's `.flow/version` needs attention, and nothing when all 3 are fine. A stopped run prints alone. It is also the only thing that names `/flow:migrate`, a skill the agent can never start. `"sessionCheck": false` silences it.
 
 ## 1 rule check, and it only measures
 

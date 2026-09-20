@@ -108,13 +108,13 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 
 The rest of `~/.codex/` is Codex's own: its settings, its login, its subagents. `flow install` touches none of it.
 
-**Flow does not support Codex yet.** Codex reads Flow's rules and skills, and none of Flow's hooks run there, so the git switch, the change record and the reminder are missing from a Codex session.
+**Flow does not support Codex yet.** Codex reads Flow's rules and skills, and none of Flow's hooks run there, so the git switch, the change record, the reminder and the session check are missing from a Codex session.
 
 ### `~/.flow/`, what only Flow reads
 
 - **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, and `apply-migration.js`, which carries out a migration. `flow install` makes it.
 - **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, and the line the reminder hook prints. `flow install` makes it.
-- **`settings.json`**: the settings both your machines share. `git` is the git write state, written by `flow git`. `reminder` is whether the reminder prints beside every message, one of a key per line Flow prints by itself.
+- **`settings.json`**: the settings both your machines share. `git` is the git write state, written by `flow git`. `reminder` is whether the reminder prints beside every message, and `sessionCheck` whether a session opens with a line about what needs attention: one key per line Flow prints by itself.
 - **`settings.local.json`**: the settings this machine keeps to itself, which git ignores. `clone` is the path to your Flow clone, written by `flow install`. `domainSkills` is the path to your domain-skills clone, which you write.
 - **`version`**: one line, the number of the newest `CHANGELOG.md` entry this machine has applied. A `flow` command refuses while it is missing, since that means `/flow:setup-machine` never finished.
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering. Sessions append to it.

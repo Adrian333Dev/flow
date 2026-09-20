@@ -169,7 +169,7 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 - **Everything Flow prints gets a switch in `~/.flow/settings.json`**, read by the script that prints it. The reminder is first: `"reminder": false` silences it.
 - The reminder runs on `UserPromptSubmit`, so it prints on every prompt. Its hook line becomes `node "$HOME/.flow/scripts/reminder.js"`, because a bare `cat` cannot read a setting. The version line goes on `SessionStart` instead, or it would repeat on every prompt.
 - A VS Code startup task was rejected: it fires when the editor opens rather than when a session opens, and it helps only inside VS Code.
-- **Built 2026-09-20, the reminder half.** `scripts/reminder.js` is the hook, `prints(name)` in `scripts/flow/lib/settings.js` is how any script asks whether its line is switched on, and `"reminder": false` in `~/.flow/settings.json` silences this one. The `SessionStart` hook is still open, and `backlog.md` → `### The management skill, in build order` now opens on it.
+- **Built 2026-09-20, both halves.** `scripts/reminder.js` is the `UserPromptSubmit` hook and `scripts/session-check.js` the `SessionStart` one. `prints(name)` in `scripts/flow/lib/settings.js` is how either asks whether its line is switched on, and `"reminder": false` and `"sessionCheck": false` silence them. The session line reads the 3 files this section names, prints a stopped run alone, and stays silent when all 3 are fine.
 
 ## How Flow ships, locked 2026-09-17
 

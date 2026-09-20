@@ -113,6 +113,16 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/session-check.js\""
+          }
+        ]
+      }
     ]
   },
   "disableBundledSkills": true,
