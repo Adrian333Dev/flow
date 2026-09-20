@@ -104,6 +104,7 @@ Two rules fire here constantly, the first of them style.md's:
 
 - **`never-rule-against-uninstructed`** Never rule against a behavior nothing in Flow instructs.
 - **`no-changelog-entry-yet`** Never add a `CHANGELOG.md` entry until Flow is installed on a machine, since a migration is the only reader an entry has. From that install on: one entry per change of behavior, a rule added, removed or reversed, a mode added, a mechanism replaced. Never renames, path fixes or reference sweeps. Entries count up from 1 and carry the date, `## 2, 2026-11-02`, newest first. `~/.flow/version` holds the number a machine last applied. Never loaded into context.
+  - **`a-machine-change-gets-a-guide`** An entry that moves a path on an installed machine names its guide, `upgrades/12.md`, written in the same edit. The entry stays a sentence, and the guide holds every path and how. `upgrades/README.md` holds the shape.
 
 ## Authoring a skill
 

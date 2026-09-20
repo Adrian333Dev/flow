@@ -33,10 +33,12 @@ const { cloneRoot } = require('../lib/clone');
 const installed = require('../lib/installed');
 const { markdownFiles } = require('../lib/links');
 const machine = require('../lib/machine');
+const migrations = require('../lib/migrations');
 const originals = require('../lib/originals');
 const render = require('../lib/render');
 const { projectRoot } = require('../lib/root');
 const skills = require('../lib/skills');
+const version = require('../lib/version');
 
 /**
  * The util commands Flow calls, and the only hand-maintained list in this file.
@@ -542,6 +544,150 @@ function checkProjectSkills() {
   };
 }
 
+/**
+ * A run that stopped part-way, reported before anything else.
+ *
+ * Each of the 3 management skills writes ~/.flow/run.json before its first
+ * step and deletes it at its last, so the file on disk means a run never
+ * finished. Every check below it is then reading a machine half way through a
+ * change, and reads it wrong.
+ */
+function checkRun(at) {
+  const found = migrations.run(at);
+  const file = shorten(migrations.runFile(at));
+  if (!found) return { name: 'run.json', problems: [], summary: 'no run stopped part-way' };
+  if (found.error) {
+    return { name: 'run.json', problems: [`${file} does not parse, and a run wrote it: ${found.error}`] };
+  }
+
+  const started = found.started ? `, started ${found.started}` : '';
+  const step = found.step ? `after step ${found.step}` : 'before its first step';
+  const skill = migrations.TYPES.includes(found.type) ? `/flow:${found.type}` : 'the skill that wrote it';
+  const back = found.project ? `flow restore project ${found.project}` : 'flow restore machine';
+
+  return {
+    name: 'run.json',
+    problems: [
+      `a ${found.type || 'Flow'} run stopped ${step}${started}, so this machine is part way through a change`,
+      `carry on: open a session and type ${skill}, which reads ${file} and starts at that step`,
+      `go back: type ${back} in a shell with no session open, which puts the place back to how it was before Flow`,
+    ],
+  };
+}
+
+/**
+ * How far behind the changelog this machine is, and the project standing in.
+ *
+ * Behind is a note: the machine works, and one command answers it either way.
+ * Ahead is a problem, because the only thing that puts a machine above the
+ * newest entry is a clone that moved backwards, and then every migration
+ * between the two numbers counts as applied and never runs.
+ */
+function checkVersion(clone, at) {
+  const problems = [];
+  const notes = [];
+
+  const newest = version.newest(clone);
+  if (newest === null) {
+    return {
+      name: 'version',
+      problems: [`${path.join(clone, 'CHANGELOG.md')} names no entry, so nothing here can say how current this machine is`],
+    };
+  }
+
+  const file = path.join(at.flow, 'version');
+  const mine = version.applied(file);
+  if (mine.state === 'missing') {
+    notes.push(`${shorten(file)} is missing, and the last step of /flow:setup-machine is what stamps it`);
+  } else if (mine.state === 'unreadable') {
+    problems.push(`${shorten(file)} holds "${mine.text}", and it holds one changelog entry number and nothing else`);
+  } else if (mine.number > newest) {
+    problems.push(`this machine is at entry ${mine.number} and the changelog stops at ${newest}, so the clone moved backwards: ` +
+      'every entry between the two counts as applied and never runs');
+  } else if (mine.number < newest) {
+    notes.push(`this machine is at entry ${mine.number}, ${count(newest - mine.number, 'entry', 'entries')} behind the changelog: run flow up`);
+  }
+
+  const parts = [mine.state === 'ok'
+    ? `this machine is at entry ${mine.number}${mine.number === newest ? ', the newest one written' : ''}`
+    : 'this machine carries no entry number'];
+
+  let root = null;
+  try {
+    root = projectRoot();
+  } catch {
+    // Outside a project. The machine's own number is the whole check then.
+  }
+  if (root) {
+    const name = path.basename(root);
+    const theirs = version.applied(path.join(root, '.flow', 'version'));
+    if (theirs.state === 'missing') {
+      notes.push(`${name} has no .flow/version, and the last step of /flow:setup-project is what stamps it`);
+    } else if (theirs.state === 'unreadable') {
+      problems.push(`${name}/.flow/version holds "${theirs.text}", and it holds one changelog entry number and nothing else`);
+    } else {
+      parts.push(`${name} is at entry ${theirs.number}`);
+      if (mine.state === 'ok' && theirs.number < mine.number) {
+        notes.push(`${name} is at entry ${theirs.number} and this machine is at ${mine.number}, ` +
+          'so the project half of a migration never ran: run flow up inside it');
+      } else if (mine.state === 'ok' && theirs.number > mine.number) {
+        problems.push(`${name} is at entry ${theirs.number}, above this machine's ${mine.number}, ` +
+          'and a project cannot be ahead of the machine it sits on');
+      }
+    }
+  }
+
+  return { name: 'version', problems, notes, summary: parts.join(', ') };
+}
+
+/**
+ * The clone: where its submodules sit, and with --updates the newest version
+ * tag the remote carries.
+ *
+ * Every line is a note. A submodule off its gitlink is somebody mid-work in
+ * util or the toolbox, and a clone a few entries behind still runs.
+ *
+ * `git ls-remote` rather than a fetch, because it writes nothing at all and
+ * the tag names are the whole of what is wanted. It is the one check on this
+ * page that touches the network, which is why it takes a flag.
+ */
+function checkClone(clone, { updates }) {
+  const notes = [];
+  const parts = [];
+
+  const status = spawnSync('git', ['submodule', 'status'], { cwd: clone, encoding: 'utf8' });
+  const rows = (status.stdout || '').split('\n').filter(Boolean);
+  const said = {
+    '+': (name) => `${name} sits at a commit this clone does not point at, so a fresh clone gets a different one`,
+    '-': (name) => `${name} is not checked out, so nothing under it can be read`,
+    U: (name) => `${name} has a merge conflict`,
+  };
+  let off = 0;
+  for (const row of rows) {
+    const found = /^([-+U ])\S+ (\S+)/.exec(row);
+    if (!found || found[1] === ' ') continue;
+    off++;
+    notes.push(`${said[found[1]](found[2])}: flow up updates the submodules`);
+  }
+  parts.push(`${count(rows.length - off, 'submodule', 'submodules')} on the commit this clone points at`);
+
+  if (!updates) {
+    parts.push('the remote is not read without --updates');
+  } else {
+    const tags = spawnSync('git', ['ls-remote', '--tags', 'origin'], { cwd: clone, encoding: 'utf8' });
+    const said2 = (tags.stderr || '').trim().split('\n')[0];
+    const numbers = [...(tags.stdout || '').matchAll(/refs\/tags\/v(\d+)\b/g)].map((m) => Number(m[1]));
+    const highest = numbers.length ? Math.max(...numbers) : null;
+    const here = version.newest(clone);
+    if (tags.status !== 0) notes.push(`the remote could not be read, so nothing says whether a newer version exists: ${said2}`);
+    else if (highest === null) notes.push('the remote carries no version tag, so there is nothing to compare this clone against');
+    else if (here !== null && highest > here) notes.push(`the remote is tagged v${highest} and this clone stops at entry ${here}: run flow up`);
+    else parts.push(`the remote's newest tag is v${highest}`);
+  }
+
+  return { name: 'clone', problems: [], notes, summary: parts.join(', ') };
+}
+
 // ---- the command ------------------------------------------------------------
 
 const actions = {};
@@ -549,11 +695,12 @@ const actions = {};
 actions.doctor = {
   section: 'setup',
   anywhere: true,
-  summary: 'verify this machine: links, PATH, util, hooks, both suites',
+  summary: 'verify this machine: version, links, PATH, util, hooks, both suites',
   flags: {
     root: { arg: '<dir>' },
     'no-bin': { bool: true },
     'no-tests': { bool: true },
+    updates: { bool: true },
   },
   run({ flags }) {
     const clone = cloneRoot();
@@ -574,6 +721,9 @@ actions.doctor = {
     const catalog = readCatalog();
 
     const checks = [
+      checkRun(at),
+      checkVersion(clone, at),
+      checkClone(clone, { updates: flags.updates }),
       checkNames(clone, { bin }),
       checkUtil(),
       checkAgents(at, catalog),

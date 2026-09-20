@@ -61,6 +61,9 @@ Flow's rules name `util fs tree` for looking at directory structure, and `flow g
 
 Everything about an installed machine a function can decide. It writes nothing, prints one line per area when that area is clean and one line per problem when it is not, and exits 1 if anything failed. Run it after installing, and again whenever something behaves as though it were not installed.
 
+- **A run that stopped part-way**: `~/.flow/run.json` exists only while a setup or a migration is running, so a file left on disk means the machine is half way through a change. It is reported before anything else, naming the step it stopped at and both ways out: carry on in a new session, or put the place back to how it was before Flow.
+- **How current the machine is**: the entry number in `~/.flow/version` against the newest entry in `CHANGELOG.md`, and a project's `.flow/version` against the machine's. Being behind is a note suggesting `flow up`, because the machine still works. A number above the newest entry is a failure, since only a clone that moved backwards produces one.
+- **The clone**: every submodule sits on the commit the clone points at. With `--updates` it also reads the newest `v<number>` tag the remote carries, which is the one check here that touches the network.
 - **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, `~/.local/bin` is on your `PATH`, and `node`, `git` and `claude` are reachable.
 - **The 3 util commands Flow calls**: `util fs tree`, `util fs merge` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all.
 - **`~/.agents/`**: `skills/flow/` is a real folder, it holds one link per skill pointing into this clone, and its manifest names `flow`. `AGENTS.md` is present. A template placeholder still in it is a note, not a failure.
@@ -70,7 +73,7 @@ Everything about an installed machine a function can decide. It writes nothing, 
 - **`~/.flow/`**: `scripts` and `references` resolve into this clone.
 - **Both test suites**, Flow's and util's. They are the only slow part, and `--no-tests` drops them.
 
-`--root` and `--no-bin` mirror `flow install`, so an install redirected into a scratch tree can be verified where it sits. A machine with nothing installed gets a single message saying so, instead of every check failing separately.
+`--root` and `--no-bin` mirror `flow install`, so an install redirected into a scratch tree can be verified where it sits. `--updates` adds the one check that goes to the network, and everything else is a read of this machine. A machine with nothing installed gets a single message saying so, instead of every check failing separately.
 
 `flow check` is the other verification command and answers a different question: the ticket graph in the project you are standing in.
 

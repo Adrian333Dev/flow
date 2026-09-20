@@ -35,7 +35,6 @@ function machine(name) {
   const made = run('flow/flow.js', ['install', '--root', root, '--no-bin']);
   assert.strictEqual(made.code, 0, made.stderr);
   setupMachine(root);
-  fs.writeFileSync(path.join(at.flow, 'version'), '2026-09-20\n');
 
   return { dir, root, at };
 }

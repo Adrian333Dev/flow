@@ -21,6 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const version = require('../../flow/lib/version');
 
 const SCRIPTS = path.resolve(__dirname, '..', '..');
 const REPO = path.resolve(SCRIPTS, '..');
@@ -37,17 +38,20 @@ function project(name) {
 
 /**
  * A ~/.flow/ that a setup finished in: the version stamp is what says so. It
- * holds the number of the newest CHANGELOG.md entry the machine applied.
+ * holds the number of the newest CHANGELOG.md entry the machine applied, read
+ * off the changelog rather than written in, so a new entry never leaves the
+ * suite reporting a machine behind.
  */
 function setUp(home) {
   fs.mkdirSync(home, { recursive: true });
-  fs.writeFileSync(path.join(home, 'version'), '1\n');
+  fs.writeFileSync(path.join(home, 'version'), `${version.newest(REPO)}\n`);
   return home;
 }
 
 /**
  * The half of a machine `/flow:setup-machine` writes: the rule file, the one
- * line importing it, and the link Codex reads.
+ * line importing it, the link Codex reads, and the version stamp its last step
+ * leaves behind.
  *
  * `flow install` stopped writing all 3 on 2026-09-20, because the rule file is
  * written after that skill's interview and a copy made before it holds nothing
@@ -67,6 +71,8 @@ function setupMachine(root) {
   fs.mkdirSync(at.codex, { recursive: true });
   fs.rmSync(path.join(at.codex, 'AGENTS.md'), { force: true });
   fs.symlinkSync(rules, path.join(at.codex, 'AGENTS.md'));
+
+  setUp(at.flow);
   return rules;
 }
 

@@ -17,6 +17,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { REPO, project, run, setupMachine } = require('./helpers/scratch');
+const version = require('../flow/lib/version');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
 function machine(name) {
@@ -56,10 +57,13 @@ function utilStub(dir, { works = true } = {}) {
 }
 
 /** Doctor against a scratch machine, with a stub util in front of the real PATH. */
-function doctor(m, { bin, utilHome } = {}) {
+function doctor(m, { bin, utilHome, inProject } = {}) {
   const env = { ...process.env };
   if (bin) env.PATH = `${bin}${path.delimiter}${process.env.PATH}`;
   if (utilHome) env.UTIL_HOME = utilHome;
+  // Without this, doctor resolves the Flow repo itself, which has no .flow/,
+  // and reports on the machine alone.
+  if (inProject) env.FLOW_PROJECT = inProject;
   const args = ['doctor', '--root', m.root, '--no-bin', '--no-tests'];
   return run('flow/flow.js', args, { env });
 }
@@ -81,6 +85,68 @@ test('a machine with nothing installed says so once, rather than failing every c
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /Flow is not installed here/);
   assert.doesNotMatch(report.stdout, /^fail/m, 'the empty case is one message, not 20 failures');
+});
+
+test('a run that stopped part-way is reported first, and names both ways out', () => {
+  const m = machine('doctor-run');
+
+  // What /flow:migrate leaves behind when it stops: the step it finished, and
+  // the migration folder it opened. Nothing writes this file yet, so the shape
+  // is the one `lib/migrations.js` documents.
+  fs.writeFileSync(path.join(m.flowHome, 'run.json'), JSON.stringify({
+    started: '2026-09-20T10:12:40',
+    type: 'migrate',
+    migration: 'machine/2026-09-20T10-12-40',
+    step: 4,
+  }));
+
+  const report = doctor(m, { bin: utilStub(m.dir) });
+
+  assert.strictEqual(report.code, 1);
+  assert.strictEqual(report.stdout.split('\n')[0], 'fail  run.json:', 'it comes before every other check');
+  assert.match(report.stdout, /a migrate run stopped after step 4, started 2026-09-20T10:12:40/);
+  assert.match(report.stdout, /carry on: open a session and type \/flow:migrate/);
+  assert.match(report.stdout, /go back: type flow restore machine/);
+});
+
+test('a machine behind the changelog is a note, and one above it fails', () => {
+  const m = machine('doctor-version');
+  const bin = utilStub(m.dir);
+  const stamp = path.join(m.flowHome, 'version');
+  const newest = version.newest(REPO);
+
+  fs.writeFileSync(stamp, `${newest - 1}\n`);
+  const behind = doctor(m, { bin });
+  assert.strictEqual(behind.code, 0, 'being behind still leaves a machine that works');
+  assert.match(behind.stdout, new RegExp(`this machine is at entry ${newest - 1}, 1 entry behind the changelog: run flow up`));
+
+  fs.writeFileSync(stamp, `${newest + 5}\n`);
+  const ahead = doctor(m, { bin });
+  assert.strictEqual(ahead.code, 1, 'only a clone that moved backwards puts a machine above the newest entry');
+  assert.match(ahead.stdout, /so the clone moved backwards/);
+
+  // The file held a date until 2026-09-20. A machine stamped then reads as a
+  // file somebody else wrote, rather than as a number to compare.
+  fs.writeFileSync(stamp, '2026-09-20\n');
+  const dated = doctor(m, { bin });
+  assert.strictEqual(dated.code, 1);
+  assert.match(dated.stdout, /holds "2026-09-20", and it holds one changelog entry number and nothing else/);
+});
+
+test('a project behind the machine it sits on is named, and the clone is not fetched by default', () => {
+  const m = machine('doctor-project-version');
+  const newest = version.newest(REPO);
+  fs.writeFileSync(path.join(m.dir, '.flow', 'version'), `${newest - 1}\n`);
+
+  const report = doctor(m, { bin: utilStub(m.dir), inProject: m.dir });
+
+  assert.strictEqual(report.code, 0, 'a project a migration never reached still works');
+  assert.match(report.stdout, new RegExp(`${path.basename(m.dir)} is at entry ${newest - 1} and this machine is at ${newest}`));
+  assert.match(report.stdout, /run flow up inside it/);
+
+  // The tag comparison is the one check that goes to the network, so nothing
+  // here reaches it. --updates is proved by typing it.
+  assert.match(report.stdout, /the remote is not read without --updates/);
 });
 
 test('a missing link, a missing hook, a stale override and a dead path are each named', () => {

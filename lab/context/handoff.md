@@ -2,7 +2,7 @@
 
 Written 2026-09-20. Read it once, then rewrite it whole next time.
 
-**Next: nothing from the 2026-09-20 pass is open.** The user said "I've approved everything, you can proceed" on 2026-09-20, and one approval covers a whole pass, so all 4 steps of the build order below ran. 133 tests pass and every record is written. What comes next is the user's pick from `backlog.md`, whose `### The management skill, in build order` opens on `CHANGELOG.md` coming back, and lifting that suspension is the user's call.
+**Next: `~/.flow/settings.json` gets a switch per thing Flow prints, and the reminder becomes `reminder.js`**, which `backlog.md` → `### The management skill, in build order` now opens on. Nothing from 2026-09-20 is open. `CHANGELOG.md` came back holding entry `1`. An entry is a sentence, and `upgrades/<number>.md` beside it holds every path a machine has to move. `flow doctor` gained the version checks the same day. `lab/context/management.md` → `## The changelog comes back` and `## The version` hold both decisions. 136 tests pass and every record is written.
 
 ## The build order, all 4 done
 
@@ -134,7 +134,7 @@ The command lives in `lab/util/commands/git/work.js`, and nothing about it was b
 - **Hooks**: `SessionEnd` fires on `/clear`, `/resume`, `/logout` and exit, never on `/compact`, and its hooks share 1.5 seconds. `Stop` runs after every answer. `SessionStart` cannot block: exit 2 there prints a notice the session ignores, `hooks.md:853`. `UserPromptSubmit` exit 2 rejects the prompt and erases it, `hooks.md:823`. `UserPromptExpansion` exit 2 blocks the expansion.
 - **This machine**: the hostname is `me`; `~/.claude/` is 433 MB with `projects/` at 351 MB of transcripts; `~/.codex/` is 1.8 GB; `~/.flow/` does not exist; `~/.local/bin/` already holds `flow` and `fw` pointing into this clone, from 2026-09-05; `util` and `u` point at `~/code/util`, a clone outside this one.
 - **`~/.claude.json` holds no login token.** The token is in `~/.claude/.credentials.json`. `~/.claude.json` can hold MCP server keys, which is one reason an original never travels.
-- **`~/.flow/version`** is one line holding the number of the newest changelog entry a machine applied. `CHANGELOG.md` came back on 2026-09-20 holding entry `1`, and `CLAUDE.md` → `no-changelog-entry-yet` says the next entry waits for the first install.
+- **`~/.flow/version`** is one line holding the number of the newest changelog entry a machine applied. `CHANGELOG.md` came back on 2026-09-20 holding entry `1`, and `CLAUDE.md` → `no-changelog-entry-yet` says the next entry waits for the first install. `upgrades/12.md` is that entry's guide, the step from 11 to 12, read out of the clone rather than from `~/.flow/`.
 - **The knowledge base design** is in `lab/context/knowledge-base.md`, agreed, and its folder is `~/.flow/wiki/`.
 
 ## Loose ends nobody has raised

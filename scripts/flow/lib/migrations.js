@@ -43,6 +43,36 @@ const home = (at) => path.join(at.flow, 'migrations');
 
 const folder = (at, id) => originals.inside(home(at), id, 'migration');
 
+/**
+ * ~/.flow/run.json: the run going on right now, or nothing.
+ *
+ * Each of the 3 skills writes it before its first step, rewrites the step it
+ * just finished, and deletes it at the last one. So the file sitting on disk
+ * means a run never finished, and the machine is part way through a change.
+ * It holds when the run started, its `type`, the migration folder it opened,
+ * and the last step that finished.
+ *
+ * Reading it takes no agent and no session, which is the point: `flow doctor`
+ * reports it before anything else.
+ */
+const runFile = (at) => path.join(at.flow, 'run.json');
+
+/** What run.json holds, `{ error }` where it does not parse, or null. */
+function run(at) {
+  const file = runFile(at);
+  let text;
+  try {
+    text = fs.readFileSync(file, 'utf8');
+  } catch {
+    return null;
+  }
+  try {
+    return { file, ...JSON.parse(text) };
+  } catch (e) {
+    return { file, error: e.message };
+  }
+}
+
 function resolvePath(raw, { base, project }) {
   const text = raw.trim().replace(/^`(.*)`$/, '$1');
   if (!text) throw new FlowError('a migration line names no path.');
@@ -141,4 +171,4 @@ function changedSince(migration, actions, done = []) {
   return [...changed];
 }
 
-module.exports = { TYPES, home, folder, read, touched, changedSince };
+module.exports = { TYPES, home, folder, runFile, run, read, touched, changedSince };

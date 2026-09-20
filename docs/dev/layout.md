@@ -18,7 +18,7 @@ Installing creates symlinks from your machine into this clone, so most files are
 When you first open the repository, the split that matters has four parts:
 
 - **Seven folders install**: `home/`, `scripts/`, `references/`, `skills/`, `agents/`, `rules/`, and `project-template/`
-- **Five entries belong to the repository**: `CLAUDE.md`, `README.md`, `backlog.md`, `.claude/settings.json`, and `docs/`
+- **Seven entries belong to the repository**: `CLAUDE.md`, `README.md`, `backlog.md`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
 - **`lab/` is the design record**: installed nowhere, never deleted
 - **`repos/` and `tmp/` are gitignored**: either can be thrown away at any moment
 
@@ -65,6 +65,10 @@ When you first open the repository, the split that matters has four parts:
 
 **`backlog.md`** holds every open item in Flow, one line each: `## V1` in build order, then `## After V1` by area. The only place an open item lives. `lab/context/` holds the reasoning behind them. Each submodule under `lab/` keeps its own `backlog.md` in the same shape.
 
+**`CHANGELOG.md`** holds one entry per change in how Flow behaves, numbered from 1, newest first. An entry's number is Flow's version, and `~/.flow/version` holds the number a machine last applied. Nothing is written into it until Flow is installed on a machine, since a migration is the only reader an entry has.
+
+**`upgrades/`** holds one guide per entry, `12.md` being the step from 11 to 12. `/flow:migrate` reads every guide above the machine's number and writes one migration from them, and `upgrades/README.md` says what a guide holds. Nothing here is symlinked: the skill reads the guides out of this clone, which it finds through `clone` in `~/.flow/settings.local.json`.
+
 **`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `lab/`, `repos/`, and `project-template/` from loading when a file beside one is read.
 
 **`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and holds `reference.md`, `tickets.md`, `settings.md`, `where-everything-lives.md` and `use/`, 4 pages following one ticket from `/flow:start` to the handoff. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what `manual/` covers. Install, the commands and the skills live in `manual/reference.md`, and every folder Flow puts on a machine lives in `manual/where-everything-lives.md`. Every settings key lives in `manual/settings.md`. Both folders are authored here and never moved in from `lab/`.
@@ -102,6 +106,7 @@ Neither survives a fresh clone, and nothing at runtime reads either one.
 - An open item → `backlog.md`, one line, with a pointer to the argument. An item about a submodule alone → that submodule's `backlog.md`
 - A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`. `lab/scripts/seeds/<name>/` is a board for the scratch project, `files/` copied in and `seed.sh` run, picked with `try.sh --seed <name>`
 - A rule check → `scripts/rule-checks/<rule-id>.js`, named after the rule it enforces. Nothing registers it
+- A change in how Flow behaves, once Flow is installed somewhere → one entry in `CHANGELOG.md`, plus `upgrades/<number>.md` where the change moves a path on a machine
 - A scratch file → `tmp/`, never the repository root
 - A skill → `skills/<group>/<name>/SKILL.md`. [Adding a skill](skills.md) covers the rest.
 

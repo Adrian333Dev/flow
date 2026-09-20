@@ -77,6 +77,7 @@ What follows from the file:
 - **Being behind is a note, never a problem.** `doctor.js:227` already builds a `notes` list beside `problems`. The version comparisons go there, doctor suggests `flow up` and exits 0. A `run.json` left on disk is a problem and exits non-zero, because something really is half done.
 - The agent's whole input to a migration is the entries newer than the machine's line, plus the diff of the live settings file and rule file against the templates. That answers 0.0.
 - A date over a commit hash: a project reads it without git, and it names the entry it matches. What overturns it: 2 entries on one day needing separate migrations, and then the line becomes the date plus a counter.
+- **Built 2026-09-20**: `scripts/flow/lib/version.js` reads the newest `CHANGELOG.md` entry and any `version` file, and `flow doctor` gained `checkRun`, `checkVersion` and `checkClone` over it, tested in `scripts/tests/doctor.test.js`. Behind is a note suggesting `flow up`, a number above the newest entry is a problem, and a submodule off its gitlink is a note. `--updates` reads the remote with `git ls-remote --tags`, which writes nothing on either side, rather than fetching.
 
 ## What a migration may touch, locked 2026-09-16
 
@@ -158,6 +159,7 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 - No `run.json` on disk and a current `~/.flow/version` means the run finished. `run.json` on disk means it did not, and the file names the step it stopped at.
 - `flow doctor` reports it before anything else, names the step reached, and prints the 2 ways out: `flow snapshot restore <id>` to go back, or re-open the skill to carry on from that step.
 - Reading it needs no agent and no session, which is the point.
+- **Built 2026-09-20**, as the first check on `flow doctor`'s page. The 2 ways out it prints are the skill named by the file's `type`, which starts again at the step it holds, and `flow restore machine` or `flow restore project <path>`. The `flow snapshot restore <id>` above is history: `## The original replaces the snapshot` took per-run copies away, so going back now means putting the whole place back to before Flow.
 
 ## The check that runs by itself is a hook, locked 2026-09-17
 
@@ -480,6 +482,17 @@ Both commands undo the machine, so the agent may never run either.
 - **The counter is what the date-only line could not do.** `## The version` above ruled a date over a commit hash on 2026-09-16 and named the case that would overturn it: 2 entries on one day. A machine stamps the date, then reads entries newer than it, so the second entry of a day is never seen. A number cannot tie.
 - **A version like `1.4.2` was rejected, the user's question of 2026-09-20.** That shape tells a stranger whether an upgrade is safe to take without looking. Flow is a clone the user pulls, with no registry, nobody pinning a range, and a migration shown whole before it runs. It would also make the agent rule on every change whether it is major, minor or a patch, and that judgment buys nothing here.
 - **The git tag a machine installs from is named for the entry**, `v12`, so the clone's newest tag and the changelog's newest entry are the same fact.
+
+### The entry stays short, and an upgrade guide holds the detail
+
+**An entry is 1 or 2 sentences, for a user reading what changed. The guide beside it, `upgrades/12.md`, is what `/flow:migrate` reads, and it holds every path that moves.** The user ruled this on 2026-09-20, against a first proposal that left the agent to work the change out from step 3's diff. Deriving it is the failure: a diff shows text that differs, never which half is Flow's change and which is the user's own line.
+
+- **The guides live in the clone**, at `upgrades/<number>.md`, beside `CHANGELOG.md`. `/flow:migrate` finds the clone through `clone` in `~/.flow/settings.local.json`. Not `~/.flow/`, which holds what a machine saved rather than what it pulled. Not `references/` either, which `~/.flow/references` links to, giving one file 2 addresses.
+- **One guide per step, named for the entry alone.** `12.md` is the step from 11 to 12. A machine at 8 reads `9.md` through `12.md` in order and writes one `migration.md` from the 4. A file per pair of versions grows by the square, and `8-to-12.md` would have to be written by somebody who already knew a machine would sit at 8.
+- **A guide names the state each path ends in, never a patch.** That is what makes a long gap work: where 2 guides name one path, the later one is the answer. Patches applied in sequence break on any line that moved in between them.
+- **This adds to step 2 of `## The 6 steps of a migration`**: the entries above the machine's number, and the guide each one names. Step 3's 3 diffs still run, and they answer a different question. The guide says what Flow changed. The diff says what the user changed by hand, which no guide can know.
+- **6 fixed headings**, written out in `upgrades/README.md`: what changed and why, how to migrate, every path and the state it ends in, what may be the user's own, can the old skill run it, proof. `How to migrate` is the user's ask of 2026-09-20, and the first proposal had no room for it: a change that is more than a replacement needs its method written down.
+- **`Can the old skill run it` closes 0.10.** `## When a migration changes the management skill itself` needed an entry able to say the old steps cannot carry it out, and it is a heading on every guide now. The run stops at that guide, stamps its number into `~/.flow/version`, and the next session picks up the rest.
 
 ## Settled by the user
 
