@@ -16,7 +16,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { REPO, project, run, setupMachine } = require('./helpers/scratch');
+const { REPO, project, run, setupMachine, utilStub, pathWith } = require('./helpers/scratch');
 const version = require('../flow/lib/version');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
@@ -44,22 +44,10 @@ function machine(name) {
   return { dir, root, home, flowHome };
 }
 
-/** A util on PATH answering the 3 commands Flow calls, or refusing every one. */
-function utilStub(dir, { works = true } = {}) {
-  const bin = path.join(dir, 'bin');
-  fs.mkdirSync(bin, { recursive: true });
-  const file = path.join(bin, 'util');
-  fs.writeFileSync(file, works
-    ? '#!/usr/bin/env bash\ncase "$1 $2" in\n  "fs tree"|"fs merge"|"fs open") exit 0 ;;\nesac\nexit 1\n'
-    : '#!/usr/bin/env bash\nexit 1\n');
-  fs.chmodSync(file, 0o755);
-  return bin;
-}
-
 /** Doctor against a scratch machine, with a stub util in front of the real PATH. */
 function doctor(m, { bin, utilHome, inProject } = {}) {
   const env = { ...process.env };
-  if (bin) env.PATH = `${bin}${path.delimiter}${process.env.PATH}`;
+  if (bin) env.PATH = pathWith(bin);
   if (utilHome) env.UTIL_HOME = utilHome;
   // Without this, doctor resolves the Flow repo itself, which has no .flow/,
   // and reports on the machine alone.
@@ -196,6 +184,28 @@ test('a settings.json with no starting mode fails, and one starting in another m
 
   assert.strictEqual(chosen.code, 0, chosen.stdout + chosen.stderr);
   assert.match(chosen.stdout, /note  settings\.json: permissions\.defaultMode is "auto", and Flow's template starts every session in "default"/);
+});
+
+// Step 0 of a setup or a migration, on a machine Flow is not on yet. The
+// whole report would refuse such a machine, so this flag has to skip it.
+test('--prereq checks what Flow calls and nothing Flow installs', () => {
+  const dir = project('doctor-prereq');
+  const at = (bin, extra = {}) => run('flow/flow.js', ['doctor', '--prereq'], {
+    env: { ...process.env, PATH: pathWith(bin), ...extra },
+  });
+
+  const ok = at(utilStub(dir));
+  assert.strictEqual(ok.code, 0, ok.stderr);
+  assert.match(ok.stdout, /ok {4}programs: node, git, claude all resolve/);
+  assert.match(ok.stdout, /ok {4}util: fs tree, fs merge, fs open all run/);
+  assert.ok(!/skills|hooks|settings|version/.test(ok.stdout), `an install check ran anyway:\n${ok.stdout}`);
+
+  const utilHome = path.join(dir, 'util-home');
+  fs.mkdirSync(utilHome, { recursive: true });
+  const broken = at(utilStub(dir, { works: false }), { UTIL_HOME: utilHome });
+  assert.strictEqual(broken.code, 1, 'a skill reads the exit code and stops');
+  assert.match(broken.stdout, /util fs tree does not run/);
+  assert.match(broken.stdout, /no source is registered: run util install/);
 });
 
 test('a util that does not run is diagnosed against its source registry', () => {

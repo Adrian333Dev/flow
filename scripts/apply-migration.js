@@ -25,8 +25,11 @@
  * migration edited in between refuses rather than guessing which lines ran.
  *
  * It refuses, changing nothing, when a line cannot be read, when files/ lacks
- * a file a write line needs, when the migration is already applied, and when
- * a file a write or delete line names changed after the migration was written.
+ * a file a write line needs, when the migration is already applied, when a
+ * file a write or delete line names changed after the migration was written,
+ * and when a prerequisite of Flow's is not met. The last one is checked here
+ * rather than trusted to a skill's first step, because this is the process
+ * that writes: a machine left between two versions is the thing being avoided.
  */
 
 const fs = require('fs');
@@ -37,6 +40,7 @@ const { FlowError } = require('./flow/lib/error');
 const machine = require('./flow/lib/machine');
 const migrations = require('./flow/lib/migrations');
 const originals = require('./flow/lib/originals');
+const prereq = require('./flow/lib/prereq');
 
 const show = machine.shorten;
 const USAGE = 'apply-migration.js <id> [--root <dir>]';
@@ -137,6 +141,10 @@ function apply(argv) {
       `${names.join('\n')}\n  Write the migration again from the files as they are now.`
     );
   }
+
+  // Last, because the other refusals name the migration and this one names the
+  // machine. lib/prereq.js holds the list and what each failure costs.
+  prereq.demand(nothing);
 
   // The first setup of a place is the one run allowed to open its original.
   // install.js opens the machine's, so this is where a project's begins.

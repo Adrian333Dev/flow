@@ -127,17 +127,20 @@ actions.install = {
     }
 
     // Named by path rather than typed: settings.json points hooks at
-    // ~/.flow/scripts, and a skill reads ~/.flow/references. Claude Code reads
-    // neither, which is why they sit outside ~/.claude.
+    // ~/.flow/scripts, a skill reads ~/.flow/references, and /flow:help reads
+    // ~/.flow/docs. Claude Code reads none of the 3, which is why they sit
+    // outside ~/.claude. A link rather than a copy, so a page edited in the
+    // clone is the page a session reads.
     fs.mkdirSync(at.flow, { recursive: true });
-    for (const name of ['scripts', 'references']) {
+    for (const name of ['scripts', 'references', 'docs']) {
       link(path.join(clone, name), path.join(at.flow, name));
       done.push(`linked: ${show(path.join(at.flow, name))}`);
     }
 
-    // Where the clone sits, for everything that has to name a file in it by
-    // path. /flow:help reads <clone>/docs/manual/README.md from here. It goes
-    // in the local file because the path holds this machine alone: the other
+    // Where the clone sits, for the files no link under ~/.flow reaches:
+    // CHANGELOG.md and upgrades/<number>.md at the clone's root, which
+    // /flow:migrate reads. It goes in the local file because the path holds
+    // this machine alone: the other
     // machine keeps its clone somewhere else, and ~/.flow/settings.json is
     // shared between the two.
     const local = settings.localFile(at.flow);

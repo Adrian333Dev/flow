@@ -35,6 +35,7 @@ Flow puts files in 6 places on a machine, reads 2 clones, and keeps a working st
 ├─ .flow/                         what only Flow reads
 │  ├─ scripts                     → <clone>/scripts
 │  ├─ references                  → <clone>/references
+│  ├─ docs                        → <clone>/docs
 │  ├─ settings.json
 │  ├─ settings.local.json
 │  ├─ version
@@ -116,7 +117,8 @@ The rest of `~/.codex/` is Codex's own: its settings, its login, its subagents. 
 ### `~/.flow/`, what only Flow reads
 
 - **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, `apply-migration.js`, which carries out a migration, and `domain-pull.js`, which updates the domain-skills clone in the background. `flow install` makes it.
-- **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, and the line the reminder hook prints. `flow install` makes it.
+- **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, the line the reminder hook prints, and `harnesses/`, where each harness keeps its own files. `flow install` makes it.
+- **`docs`**: a symlink to the clone's `docs/`: the manual you are reading, under `manual/`, and the pages for whoever changes Flow, under `dev/`. `/flow:help` answers a question by naming a page under `~/.flow/docs/manual/`, which is the same path on every machine whatever your clone is called. `flow install` makes it.
 - **`settings.json`**: the settings both your machines share. `git` is the git write state, written by `flow git`. `reminder` is whether the reminder prints beside every message, and `sessionCheck` whether a session opens with a line about what needs attention: one key per line Flow prints by itself. `domainSkillsAutoUpdate` is whether the domain-skills clone pulls itself when a session opens.
 - **`settings.local.json`**: the settings this machine keeps to itself, which git ignores. `clone` is the path to your Flow clone, written by `flow install`. `domainSkills` is the path to your domain-skills clone, which you write.
 - **`domain-skills.txt`**: the names of the domain skills added to the whole machine, one per line, so a second machine relinks them. `flow domain-skills add --global` writes it.

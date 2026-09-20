@@ -62,6 +62,7 @@ function paths(clone, at, { bin = null } = {}) {
     ...markdownFiles(path.join(clone, 'rules')).map((f) => path.join(at.claude, 'rules', f)),
     path.join(at.flow, 'scripts'),
     path.join(at.flow, 'references'),
+    path.join(at.flow, 'docs'),
     path.join(at.agents, 'AGENTS.md'),
     path.join(at.codex, 'AGENTS.md'),
   ];

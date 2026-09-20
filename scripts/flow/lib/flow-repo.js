@@ -18,7 +18,7 @@
  *   originals/    this machine's disk as it was before Flow. Putting another
  *                 machine's back would write its files over this one's
  *   settings.local.json   every setting holding a path, the clone included
- *   scripts, references   links into this machine's clone, which sits
+ *   scripts, references, docs   links into this machine's clone, which sits
  *                 somewhere else on the other machine
  *   skills-update.*   what this machine's domain-skills clone is behind by,
  *                 and the lock the job that reads it holds
@@ -47,6 +47,7 @@ const IGNORED = [
   'settings.local.json',
   'scripts',
   'references',
+  'docs',
   'skills-update.json',
   'skills-update.lock',
   'wiki/*/downloads/',

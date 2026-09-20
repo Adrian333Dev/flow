@@ -437,7 +437,7 @@ The path to your Flow clone. `flow install` writes it on every run, so a clone y
 "clone": "/home/me/code/flow"
 ```
 
-It exists for everything that has to name a file in the clone rather than run a command from it. `/flow:help` reads `<clone>/docs/manual/README.md` through it. Nothing else records where the clone sits: every other route in is a symlink, and a symlink cannot be read backwards.
+It exists for the files in the clone that no link under `~/.flow/` reaches: `CHANGELOG.md` and `upgrades/<number>.md` sit at the clone's root, and `/flow:migrate` reads both. The manual is not one of them, because `~/.flow/docs` links to the whole `docs/` folder. Nothing else records where the clone sits: every other route in is a symlink, and a symlink cannot be read backwards.
 
 ---
 

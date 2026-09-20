@@ -200,6 +200,11 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 - **`toolbox`**: temporary and replaced whole, so nothing to check. That closes 6.1.
 - The gitlink stays as a record of what was tested together. A difference is a note, never a problem.
 - When a migration needs a newer `util`, its changelog entry says so, and the migration runs the command check before applying. A missing command stops the migration and names `lab/util`.
+- **Built 2026-09-20 as `references/prerequisites.md`, and replaced by code on 2026-09-21, the user's call.** A file of prose telling a skill which shell lines to type is the thing `doctor.js` already warns against: a skill asked to check things by hand gets one wrong and reports success. `flow doctor --prereq` is the check now, `scripts/flow/lib/prereq.js` holds it, and the markdown file is deleted.
+  - **A prerequisite is what Flow calls and never installs**, which is `node`, `git` and `claude` on PATH plus the 3 util commands. Everything Flow puts on a machine stays in the rest of `flow doctor`, where a missing piece is repaired rather than treated as a wall. The 3 programs moved out of doctor's `names` check, which now covers the linked names alone.
+  - **A failure stops the run, the user's rule of 2026-09-21.** `apply-migration.js` runs the same list again before it changes its first path, so the stop holds even where a skill body skipped step 0, and a machine is never left between 2 versions.
+  - **The domain-skills clone left the list**, because Flow never calls it: a machine with no clone sets Flow up like every other one. `/flow:setup-machine`'s interview asks for the path instead. Stopping on it would have blocked a fresh machine over an optional add-on.
+  - Two facts came off the disk rather than this map: nothing in a hook calls `util`, the callers being `tree-for-structure` and `merge-for-bulk-reads` in the rule file plus `flow get --files`; and the setup guard in `scripts/flow/lib/machine.js` refuses every `flow` command but `install`, `doctor`, `restore` and `uninstall` until `~/.flow/version` exists, which is why the check lives on one of the 4.
 
 ## What a machine installs, locked 2026-09-17
 
@@ -308,7 +313,7 @@ That closes 4.0.
 - **`/flow:setup-project`** brings one project into Flow, the first time the user opens it: it reads the whole project and writes its context files, tickets and state. `## What setup does to settings.json and to a project` holds it.
 - **`/flow:migrate`** moves the machine forward, then a project, when Flow itself changed. Branch 0 is its body.
 - **`/flow:help`** answers a question about Flow out of the manual, and answers "what do I do now". Branch 5 is its body.
-- **Prerequisites is not a skill.** It is `references/prerequisites.md`, read by both setup skills and `/flow:migrate` as step 0, because 6.0 said it runs before any job and never on its own.
+- **Prerequisites is not a skill.** It was `references/prerequisites.md`, read by both setup skills and `/flow:migrate` as step 0, because 6.0 said it runs before any job and never on its own. **Replaced 2026-09-21 by `flow doctor --prereq`**, one command with an exit code: see `## Prerequisites are checked by running them`.
 
 **One skill could not hold all 4 jobs.** A skill has one description and one `disable-model-invocation` line, and the jobs want different answers to both.
 
@@ -495,6 +500,25 @@ Both commands undo the machine, so the agent may never run either.
 - **This adds to step 2 of `## The 6 steps of a migration`**: the entries above the machine's number, and the guide each one names. Step 3's 3 diffs still run, and they answer a different question. The guide says what Flow changed. The diff says what the user changed by hand, which no guide can know.
 - **6 fixed headings**, written out in `upgrades/README.md`: what changed and why, how to migrate, every path and the state it ends in, what may be the user's own, can the old skill run it, proof. `How to migrate` is the user's ask of 2026-09-20, and the first proposal had no room for it: a change that is more than a replacement needs its method written down.
 - **`Can the old skill run it` closes 0.10.** `## When a migration changes the management skill itself` needed an entry able to say the old steps cannot carry it out, and it is a heading on every guide now. The run stops at that guide, stamps its number into `~/.flow/version`, and the next session picks up the rest.
+
+## One file per harness, built 2026-09-21
+
+**Where a harness keeps its own files is one file in `references/harnesses/`**, `claude-code.md` being the first. The 3 setup and migration skills read every file in that folder, so a second harness is a file written there and no skill edited. This is the first line of `backlog.md` → `### The management skill, in build order`, and the 3 skill lines under it now name the folder.
+
+- **Claude Code's own paths, never Flow's.** What Flow puts on a machine is `scripts/flow/lib/installed.js` and `flow doctor`'s report, and the file points at both rather than repeating either.
+- **Paths here, behavior in `docs/dev/claude-code.md`.** That page says how a skill loads, what a hook sees and what an edit mid-session does, and it is written for a person. The reference file loads into an agent mid-task and lists where things sit.
+- **4 rules say what a migration may name**, and they are what the 3 skills actually need: never a transcript, a cache or the login; `~/.claude.json` changes through a `run` line, since Claude Code rewrites that file itself; a project's auto memory is a machine path, so a project's migration names a folder outside the project; settings merge key by key, so a migration that moves 1 key leaves the rest of the file alone.
+- **2 facts were written down nowhere before.** Auto memory is `~/.claude/projects/<project>/memory/`, one folder per repository, kept out of the `cleanupPeriodDays` sweep that deletes transcripts. `~/.claude.json` sits beside the config folder by default and inside it once `CLAUDE_CONFIG_DIR` is set, which is how a scratch session starts signed in.
+- **Read from the published pages**, `code.claude.com/docs/en/claude-directory.md` and `memory.md`, on top of `lab/research/claude-code-docs/settings.md` and what `docs/dev/claude-code.md` already held. Nothing was probed: every fact is documented.
+
+## `~/.flow/docs` comes back, ruled by the user 2026-09-21
+
+**`flow install` links `~/.flow/docs` to the clone's `docs/`**, beside `scripts` and `references`. It was dropped on 2026-09-20, and the user reversed that: `/flow:help` names a manual page in its answer, and the address it names has to read the same on both machines, which a clone path does not.
+
+- **One link, no copy.** The same `link()` loop install already ran for 2 names now runs for 3, so a page edited in the clone is the page a session reads.
+- **The case against was 2 addresses for every page**, since a page is also reachable as `<clone>/docs/`. Overruled: what a skill prints has to be stable, and only the link is.
+- **`clone` in `~/.flow/settings.local.json` stays**, for the 2 files no link under `~/.flow` reaches: `CHANGELOG.md` and `upgrades/<number>.md` at the clone's root, which `/flow:migrate` reads. `flow doctor` reads the same key.
+- **Built before `/flow:help` rather than with it.** The install side is one name in a list, one line in `~/.flow/.gitignore` because a link into this clone never travels to the other machine, and one more path in `installed.paths()`, which is what `flow doctor` checks and `flow uninstall` removes. The skill then names a path that already resolves.
 
 ## Settled by the user
 

@@ -76,6 +76,28 @@ function setupMachine(root) {
   return rules;
 }
 
+/**
+ * A util on PATH answering the 3 commands Flow calls, or refusing every one.
+ *
+ * Every script that checks a prerequisite runs the real `util`, and the real
+ * one is a submodule a fresh checkout may not have. What is under test is the
+ * probe Flow makes, never util's own commands, so the probe gets a stub to
+ * answer it. `pathWith` puts it in front of whatever this machine has.
+ */
+function utilStub(dir, { works = true } = {}) {
+  const bin = path.join(dir, works ? 'bin' : 'bin-broken');
+  fs.mkdirSync(bin, { recursive: true });
+  const file = path.join(bin, 'util');
+  fs.writeFileSync(file, works
+    ? '#!/usr/bin/env bash\ncase "$1 $2" in\n  "fs tree"|"fs merge"|"fs open") exit 0 ;;\nesac\nexit 1\n'
+    : '#!/usr/bin/env bash\nexit 1\n');
+  fs.chmodSync(file, 0o755);
+  return bin;
+}
+
+/** PATH with one folder in front of this machine's. */
+const pathWith = (bin) => `${bin}${path.delimiter}${process.env.PATH}`;
+
 /** Write a file inside a scratch project, creating the folders it needs. */
 function write(dir, relative, body) {
   const target = path.join(dir, relative);
@@ -107,4 +129,4 @@ function flow(dir, args) {
   return run('flow/flow.js', args, { cwd: dir, env });
 }
 
-module.exports = { SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, write, run, flow };
+module.exports = { SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, utilStub, pathWith, write, run, flow };

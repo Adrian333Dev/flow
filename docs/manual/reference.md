@@ -36,9 +36,9 @@ What one run puts on the machine:
 - **`~/.agents/skills/flow/`**: a real folder holding a copy of the manifest that names every skill `flow:`, and one link per skill into the clone. Codex reads skills from this folder.
 - **`~/.claude/skills/flow`**: a link to that folder, which is how Claude Code finds the same skills.
 - **`~/.claude/agents/` and `~/.claude/rules/`**: one link per file into the clone. Both folders can hold entries Flow did not create, and a link to the whole folder would replace all of them.
-- **`~/.flow/scripts` and `~/.flow/references`**: links into the clone.
+- **`~/.flow/scripts`, `~/.flow/references` and `~/.flow/docs`**: links into the clone. Every file Flow names by a fixed path sits under one of the 3, so the path is the same on every machine whatever the clone is called.
 - **`~/.local/bin/flow` and `fw`**: links to `flow.js`, so both are on your `PATH`. A name Flow used to ship and has since renamed is unlinked here, since its link still resolves and would still run.
-- **`~/.flow/settings.local.json`**: the path to this clone, under the key `clone`, so a skill can name a file in it. It is the settings file that stays on this machine.
+- **`~/.flow/settings.local.json`**: the path to this clone, under the key `clone`, for the files no link above reaches: `CHANGELOG.md` and `upgrades/<number>.md` at the clone's root. It is the settings file that stays on this machine.
 - **`~/.flow/originals/machine/`**: every path in this list as it was before Flow, copied before anything is created. [Migrations and the original](#migrations-and-the-original) covers it. Only a machine Flow was never on gets one, because on any other the paths are already Flow's own.
 
 `--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.codex`, `<dir>/.flow` and `<dir>/.local/bin`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
@@ -64,16 +64,29 @@ Everything about an installed machine a function can decide. It writes nothing, 
 - **A run that stopped part-way**: `~/.flow/run.json` exists only while a setup or a migration is running, so a file left on disk means the machine is half way through a change. It is reported before anything else, naming the step it stopped at and both ways out: carry on in a new session, or put the place back to how it was before Flow.
 - **How current the machine is**: the entry number in `~/.flow/version` against the newest entry in `CHANGELOG.md`, and a project's `.flow/version` against the machine's. Being behind is a note suggesting `flow up`, because the machine still works. A number above the newest entry is a failure, since only a clone that moved backwards produces one.
 - **The clone**: every submodule sits on the commit the clone points at. With `--updates` it also reads the newest `v<number>` tag the remote carries, which is the one check here that touches the network.
-- **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, `~/.local/bin` is on your `PATH`, and `node`, `git` and `claude` are reachable.
+- **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, and `~/.local/bin` is on your `PATH`.
+- **The programs Flow shells out to**: `node`, `git` and `claude` are on your `PATH`.
 - **The 3 util commands Flow calls**: `util fs tree`, `util fs merge` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all.
 - **`~/.agents/`**: `skills/flow/` is a real folder, it holds one link per skill pointing into this clone, and its manifest names `flow`. `AGENTS.md` is present. A template placeholder still in it is a note, not a failure.
 - **`~/.claude/`**: `skills/flow` links to the plugin folder, one link per agent and rule points into this clone, and `CLAUDE.md` holds the line importing `~/.agents/AGENTS.md`.
 - **`~/.codex/`**: `AGENTS.md` links to `~/.agents/AGENTS.md`, and no `AGENTS.override.md` hides it. Codex reads an override file in place of `AGENTS.md`.
 - **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a Flow skill, which would do nothing because Flow's skills load as a plugin. `permissions.defaultMode` must be set, since without it a session on a Pro, Max or Team plan starts in auto mode. A mode other than the template's `default` is a note, not a failure.
-- **`~/.flow/`**: `scripts` and `references` resolve into this clone.
+- **`~/.flow/`**: `scripts`, `references` and `docs` resolve into this clone.
 - **Both test suites**, Flow's and util's. They are the only slow part, and `--no-tests` drops them.
 
 `--root` and `--no-bin` mirror `flow install`, so an install redirected into a scratch tree can be verified where it sits. `--updates` adds the one check that goes to the network, and everything else is a read of this machine. A machine with nothing installed gets a single message saying so, instead of every check failing separately.
+
+**`--prereq` is the last 2 checks alone**, the programs and the util commands, and it is the only form that runs on a machine Flow has never been installed on. Those 2 are Flow's prerequisites: things Flow calls and never installs. Everything else in the report describes an install, which is why the flag skips it.
+
+```text
+$ flow doctor --prereq
+ok    programs: node, git, claude all resolve
+ok    util: fs tree, fs merge, fs open all run
+
+nothing to fix.
+```
+
+Setting Flow up and migrating it both start here, and both stop when it exits 1. `apply-migration.js` runs the same 2 checks again before it changes its first path, so a migration never begins on a machine that cannot finish it.
 
 `flow check` is the other verification command and answers a different question: the ticket graph in the project you are standing in.
 
@@ -180,8 +193,9 @@ Every line is checked before the first one runs. Any of these refuses the whole 
 - a path inside `~/.flow/migrations/` or `~/.flow/originals/`, or a folder holding either
 - a migration already applied
 - a file named by a `write` or `delete` line, or any file inside a folder one names, that changed after the time the migration's folder is named for
+- a prerequisite of Flow's that is not met, which is the same list [flow doctor](#flow-doctor) checks with `--prereq`
 
-The last check catches a migration run long after it was written, or in the middle of your work. It lists every changed file, and Claude writes the migration again from what is there now. `run` and `move` lines are left out of it, since a command acts on the file as it finds it, and a move takes whatever is there with it.
+The changed-file check catches a migration run long after it was written, or in the middle of your work. It lists every changed file, and Claude writes the migration again from what is there now. `run` and `move` lines are left out of it, since a command acts on the file as it finds it, and a move takes whatever is there with it.
 
 A line that fails stops the run there, and `applied.json` beside `migration.md` holds how far it got. Fix what failed, and the skill runs the script again, which carries on from the line that stopped. A migration edited in between refuses to carry on, because the lines already done no longer match the file.
 

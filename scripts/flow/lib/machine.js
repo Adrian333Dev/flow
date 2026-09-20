@@ -73,9 +73,12 @@ function importLine(clone, base) {
   return base === os.homedir() ? line : line.replace('@~/', `@${base}${path.sep}`);
 }
 
+/** `$HOME` and a leading `~` are what a settings file or a hook line holds instead of a path. */
+const expandHome = (p) => p.replace(/^~(?=\/|$)/, os.homedir()).split('$HOME').join(os.homedir());
+
 /** A path under the home folder, written with `~`, for output. */
 const shorten = (p) => (p === os.homedir() || p.startsWith(os.homedir() + path.sep)
   ? '~' + p.slice(os.homedir().length)
   : p);
 
-module.exports = { folders, importLine, requireSetup, shorten };
+module.exports = { folders, importLine, requireSetup, shorten, expandHome };

@@ -35,24 +35,11 @@ const { markdownFiles } = require('../lib/links');
 const machine = require('../lib/machine');
 const migrations = require('../lib/migrations');
 const originals = require('../lib/originals');
+const prereq = require('../lib/prereq');
 const render = require('../lib/render');
 const { projectRoot } = require('../lib/root');
 const skills = require('../lib/skills');
 const version = require('../lib/version');
-
-/**
- * The util commands Flow calls, and the only hand-maintained list in this file.
- *
- * Everything else checked here is derived and so cannot fall behind: the skills
- * come off the tree, the hooks out of home/settings.json. Nothing anywhere
- * declares Flow's dependency on util, so this list is written by hand, and the
- * caller beside each entry says what stops working when it fails.
- */
-const UTIL_COMMANDS = [
-  { name: 'fs tree', callers: 'home/AGENTS.md, overlays.js, audit/files.js' },
-  { name: 'fs merge', callers: 'home/AGENTS.md, audit/files.js, audit/store.js' },
-  { name: 'fs open', callers: 'flow get --files, through tickets.js' },
-];
 
 /** Typed names util puts there. Their target is util's clone, which Flow never knows. */
 const UTIL_BIN = ['util', 'u'];
@@ -107,34 +94,10 @@ function checkLinks(wanted) {
   return problems;
 }
 
-/**
- * Where a name resolves on PATH, or null.
- *
- * A PATH walk rather than spawning `which`: a broken symlink fails the execute
- * check here for the same reason it fails for the shell, and this costs no
- * process.
- */
-function onPath(name) {
-  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
-    if (!dir) continue;
-    try {
-      const full = path.join(dir, name);
-      fs.accessSync(full, fs.constants.X_OK);
-      return full;
-    } catch {
-      // Not here, or not executable. Either way the next directory decides.
-    }
-  }
-  return null;
-}
-
 const { shorten } = machine;
 
 /** One or many, so a count never reads "1 rules". */
 const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-
-/** `$HOME` and a leading `~` are what a settings file writes instead of a path. */
-const expandHome = (p) => p.replace(/^~(?=\/|$)/, os.homedir()).split('$HOME').join(os.homedir());
 
 /**
  * The file a hook depends on: the first path in the command line ending in .js
@@ -162,7 +125,7 @@ const label = (row) => (row.matcher ? `${row.event} ${row.matcher}` : row.event)
 
 // ---- the checks -------------------------------------------------------------
 
-/** The names you type, and the programs Flow shells out to. */
+/** The names you type, linked into ~/.local/bin. lib/prereq.js has the programs. */
 function checkNames(clone, { bin }) {
   const problems = [];
   const counted = [];
@@ -190,63 +153,7 @@ function checkNames(clone, { bin }) {
     }
   }
 
-  // Every script here is Node, projectRoot() shells out to git rev-parse, and
-  // Flow is a workflow for Claude Code. A machine missing any of the three has
-  // a problem no symlink check would ever show.
-  for (const program of ['node', 'git', 'claude']) {
-    if (onPath(program)) counted.push(program);
-    else problems.push(`${program} is not on PATH`);
-  }
-
   return { name: 'names', problems, summary: `${counted.join(', ')} all resolve` };
-}
-
-/**
- * The util commands Flow calls, proved by running each one.
- *
- * `--help` rather than reading util's registry: it exits 0 only when the
- * command resolved and ran, so it catches a util clone too old to carry the
- * command as well as one that was never registered. Re-deriving util's own
- * resolution rules inside Flow would drift from them instead.
- */
-function checkUtil() {
-  const problems = [];
-  for (const command of UTIL_COMMANDS) {
-    const run = spawnSync('util', [...command.name.split(' '), '--help'], { stdio: 'ignore' });
-    if (run.error && run.error.code === 'ENOENT') {
-      return {
-        name: 'util',
-        problems: ['util is not on PATH at all, so none of the 3 commands Flow calls can run'],
-      };
-    }
-    if (run.status !== 0) problems.push(`util ${command.name} does not run, and it is called by ${command.callers}`);
-  }
-
-  // A failure above is nearly always the registry rather than the command,
-  // because nothing is built into util: it reads ~/.util/sources and every
-  // command comes out of a directory named there.
-  if (problems.length) problems.push(...registryDiagnosis());
-
-  return { name: 'util', problems, summary: `${UTIL_COMMANDS.map((c) => c.name).join(', ')} all run` };
-}
-
-/** Why a util command is missing, read off util's own source registry. */
-function registryDiagnosis() {
-  const file = path.join(process.env.UTIL_HOME || path.join(os.homedir(), '.util'), 'sources');
-  let text;
-  try {
-    text = fs.readFileSync(file, 'utf8');
-  } catch {
-    return [`${file} does not exist, so no source is registered: run util install`];
-  }
-  const paths = text.split('\n')
-    .map((l) => l.replace(/\s+#.*$/, '').trim())
-    .filter((l) => l && !l.startsWith('#'))
-    .map(expandHome);
-  if (!paths.length) return [`${file} is empty, so no source is registered: run util install`];
-  const gone = paths.filter((p) => !fs.existsSync(p));
-  if (gone.length) return gone.map((p) => `${file} names ${p}, which does not exist: util source drop it, or re-run util install`);
-  return [`${file} names ${paths.length} live source(s), so the command itself is missing from util's clone`];
 }
 
 /**
@@ -398,7 +305,7 @@ function checkSettings(clone, claude, catalog) {
       problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: type /flow:setup-machine, which merges it in`);
       continue;
     }
-    const resolved = expandHome(match.script);
+    const resolved = machine.expandHome(match.script);
     if (!fs.existsSync(resolved)) problems.push(`the ${label(row)} hook names ${match.script}, which is not on disk`);
   }
 
@@ -431,12 +338,12 @@ function checkSettings(clone, claude, catalog) {
   return { name: 'settings.json', problems, notes, summary };
 }
 
-/** What only Flow reads. Claude Code never opens either of these. */
+/** What only Flow reads. Claude Code never opens any of the 3. */
 function checkFlowHome(clone, flowHome) {
-  const problems = checkLinks(['scripts', 'references'].map((name) => ({
+  const problems = checkLinks(['scripts', 'references', 'docs'].map((name) => ({
     at: path.join(flowHome, name), target: path.join(clone, name), what: name,
   })));
-  return { name: shorten(flowHome), problems, summary: 'scripts and references resolve into this clone' };
+  return { name: shorten(flowHome), problems, summary: 'scripts, references and docs resolve into this clone' };
 }
 
 /**
@@ -692,6 +599,12 @@ function checkClone(clone, { updates }) {
 
 const actions = {};
 
+/** The report, and the exit code a skill reads instead of the report. */
+function report(checks) {
+  out(render.doctorReport(checks));
+  return checks.some((c) => c.problems && c.problems.length) ? 1 : 0;
+}
+
 actions.doctor = {
   section: 'setup',
   anywhere: true,
@@ -701,8 +614,14 @@ actions.doctor = {
     'no-bin': { bool: true },
     'no-tests': { bool: true },
     updates: { bool: true },
+    prereq: { bool: true },
   },
   run({ flags }) {
+    // Step 0 of a setup or a migration, so it runs on a machine Flow is not on
+    // yet: what Flow calls and never installs, and nothing else. Everything
+    // below this line describes an install and would refuse such a machine.
+    if (flags.prereq) return report(prereq.checks());
+
     const clone = cloneRoot();
     const at = machine.folders(flags.root);
     const bin = flags['no-bin'] ? null : path.join(at.base, '.local', 'bin');
@@ -724,8 +643,9 @@ actions.doctor = {
       checkRun(at),
       checkVersion(clone, at),
       checkClone(clone, { updates: flags.updates }),
-      checkNames(clone, { bin }),
-      checkUtil(),
+      prereq.checkPrograms(),
+      bin ? checkNames(clone, { bin }) : { name: 'names', skipped: '--no-bin' },
+      prereq.checkUtil(),
       checkAgents(at, catalog),
       checkClaude(clone, at),
       checkCodex(at),
@@ -738,8 +658,7 @@ actions.doctor = {
         : checkTests(clone, { bin }),
     ].filter(Boolean);
 
-    out(render.doctorReport(checks));
-    return checks.some((c) => c.problems && c.problems.length) ? 1 : 0;
+    return report(checks);
   },
 };
 

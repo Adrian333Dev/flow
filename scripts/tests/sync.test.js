@@ -41,6 +41,7 @@ test('what belongs to one machine is what the ignore file names', () => {
     'settings.local.json',
     'scripts',
     'references',
+    'docs',
     'skills-update.json',
     'skills-update.lock',
     'wiki/*/downloads/',
