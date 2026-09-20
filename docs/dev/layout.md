@@ -40,6 +40,7 @@ When you first open the repository, the split that matters has four parts:
 - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
 - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
 - `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill whose ticket id matches nothing, before the skill loads.
+- `reminder.js` is the `UserPromptSubmit` hook that prints `references/reminder.md` beside every message, unless `"reminder": false` in `~/.flow/settings.json` silences it.
 - `apply-migration.js` carries out a migration that `/flow:setup-machine`, `/flow:setup-project` or `/flow:migrate` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and its `.info` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.

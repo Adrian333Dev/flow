@@ -14,8 +14,9 @@
  * a machine can override a shared setting without editing the shared file.
  * `readGlobal` and `globalKey` are that pair; `read` is one named file.
  *
- * Keys sit at the top level: `git`, `domainSkills` and `clone`. A new setting
- * is a new key, and nothing here is shaped around a fixed set.
+ * Keys sit at the top level: `git`, `domainSkills`, `clone`, and one per line
+ * Flow prints by itself. A new setting is a new key, and nothing here is
+ * shaped around a fixed set.
  *
  * Reading never throws. `guard.js` calls it before every shell command the
  * agent runs, and a missing, empty or corrupt file has to mean the same thing
@@ -93,6 +94,18 @@ function findProjectFile(from) {
   }
 }
 
+// ------------------------------------------------ what Flow prints by itself
+
+/**
+ * Whether Flow prints one of the lines it puts on screen on its own, rather
+ * than because a command was typed. Each one carries a key of its own,
+ * `"reminder": false`, read by the script that does the printing.
+ *
+ * On unless the key says false, so a machine whose settings file is missing,
+ * empty or corrupt still gets every line.
+ */
+const prints = (name, home) => readGlobal(home)[name] !== false;
+
 // ------------------------------------------------------------- the git entry
 
 const MODES = ['off', 'ask', 'allow'];
@@ -158,5 +171,5 @@ function gitMode(context) {
 
 module.exports = {
   MODES, flowHome, globalFile, localFile, projectFile, findProjectFile,
-  read, readGlobal, globalKey, write, remove, gitScope, gitMode, expired, live,
+  read, readGlobal, globalKey, prints, write, remove, gitScope, gitMode, expired, live,
 };

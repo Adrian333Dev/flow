@@ -109,7 +109,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat \"$HOME/.flow/references/reminder.md\""
+            "command": "node \"$HOME/.flow/scripts/reminder.js\""
           }
         ]
       }

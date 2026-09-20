@@ -114,9 +114,9 @@ The rest of `~/.codex/` is Codex's own: its settings, its login, its subagents. 
 
 - **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, and `apply-migration.js`, which carries out a migration. `flow install` makes it.
 - **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, and the line the reminder hook prints. `flow install` makes it.
-- **`settings.json`**: the settings both your machines share. `git`, the git write state, is the one key in it, and `flow git` writes it.
+- **`settings.json`**: the settings both your machines share. `git` is the git write state, written by `flow git`. `reminder` is whether the reminder prints beside every message, one of a key per line Flow prints by itself.
 - **`settings.local.json`**: the settings this machine keeps to itself, which git ignores. `clone` is the path to your Flow clone, written by `flow install`. `domainSkills` is the path to your domain-skills clone, which you write.
-- **`version`**: one line, the date of the newest change this machine has applied. A `flow` command refuses while it is missing, since that means `/flow:setup-machine` never finished.
+- **`version`**: one line, the number of the newest `CHANGELOG.md` entry this machine has applied. A `flow` command refuses while it is missing, since that means `/flow:setup-machine` never finished.
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering. Sessions append to it.
 - **`study-cases/<issue>/<date>-<slug>.md`**: one file per recorded failure, filed under the name of the failure. Sessions write them through `flow cases new`.
 - **`scorecards/<session>.jsonl`**: one file per session. `rule-check.js` adds a line for every rule check that ran, and `instructions-loaded.js` a line for every instruction file that loaded. `flow scorecard` reads them.

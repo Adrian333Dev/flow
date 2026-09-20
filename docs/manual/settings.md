@@ -23,6 +23,7 @@ All 3 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`git`](#git)
   - [`domainSkills`](#domainskills)
   - [`clone`](#clone)
+  - [`reminder`](#reminder)
 
 ## Claude Code's settings file
 
@@ -125,7 +126,7 @@ It fires only on what the user types. A skill the agent invokes, as `/flow:start
 
 ```json
 "UserPromptSubmit":   [ { "hooks": [ { "type": "command",
-  "command": "cat \"$HOME/.flow/references/reminder.md\"" } ] } ]
+  "command": "node \"$HOME/.flow/scripts/reminder.js\"" } ] } ]
 ```
 
 Prints one line beside every message you send:
@@ -138,7 +139,9 @@ The rules for writing a reply sit at the end of a long file, loaded once at the 
 
 **It points at the rules, never repeats them.** A reminder listing rules grows with every rule and drifts from the file it copies.
 
-**Plain text, no script.** Claude Code adds whatever a `UserPromptSubmit` hook prints to standard output beside the message. The hook cannot change the message itself. Edit `references/reminder.md` to change the line.
+**The text is a file, and the script only prints it.** Claude Code adds whatever a `UserPromptSubmit` hook prints to standard output beside the message. The hook cannot change the message itself. Edit `references/reminder.md` to change the line.
+
+**`scripts/reminder.js` runs it, so it can be switched off.** `"reminder": false` in `~/.flow/settings.json` silences it, and [`reminder`](#reminder) covers the switch. The hook was a bare `cat` of the file until 2026-09-20, and `cat` reads no setting.
 
 #### Why worktree isolation is off
 
@@ -381,3 +384,17 @@ The path to your Flow clone. `flow install` writes it on every run, so a clone y
 ```
 
 It exists for everything that has to name a file in the clone rather than run a command from it. `/flow:help` reads `<clone>/docs/manual/README.md` through it. Nothing else records where the clone sits: every other route in is a symlink, and a symlink cannot be read backwards.
+
+---
+
+### `reminder`
+
+Whether the line pointing at the reply rules prints beside every message you send. Write `false` to silence it:
+
+```json
+"reminder": false
+```
+
+**Every line Flow prints on its own carries a key like this one**, read by the script that prints it. A line is on unless its key says `false`, so a machine with no settings file at all gets all of them. `scripts/reminder.js` reads this one.
+
+[The reminder](#the-reminder) shows the line and says why it exists.

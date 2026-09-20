@@ -2,7 +2,7 @@
 
 Written 2026-09-20. Read it once, then rewrite it whole next time.
 
-**Next: `~/.flow/settings.json` gets a switch per thing Flow prints, and the reminder becomes `reminder.js`**, which `backlog.md` → `### The management skill, in build order` now opens on. Nothing from 2026-09-20 is open. `CHANGELOG.md` came back holding entry `1`. An entry is a sentence, and `upgrades/<number>.md` beside it holds every path a machine has to move. `flow doctor` gained the version checks the same day. `lab/context/management.md` → `## The changelog comes back` and `## The version` hold both decisions. 136 tests pass and every record is written.
+**Next: a `SessionStart` hook prints one line when the machine or the project needs attention**, which `backlog.md` → `### The management skill, in build order` now opens on. Nothing from 2026-09-20 is open. `CHANGELOG.md` came back holding entry `1`, an entry is a sentence, and `upgrades/<number>.md` beside it holds every path a machine has to move. `flow doctor` gained the version checks the same day. The reminder became `scripts/reminder.js`, so `"reminder": false` in `~/.flow/settings.json` silences it and every line Flow prints by itself gets a key like it. `lab/context/management.md` → `## The changelog comes back`, `## The version` and `## The check that runs by itself is a hook` hold the 3 decisions. 138 tests pass and every record is written.
 
 ## The build order, all 4 done
 
@@ -101,6 +101,15 @@ Everything Flow puts on a machine, in one list, read by 2 commands. `flow instal
 - **`scripts/tests/sync.test.js`**, 3 tests: the ignore list, the refusal on a `~/.flow/` that is no repository, and the refusal on a machine where setup never finished.
 - **`scripts/tests/install.test.js`** gained the original written once, and the renamed `~/.local/bin` name being unlinked while another tool's link survives. Its rule-file tests are gone, replaced by install leaving all 3 files alone.
 - **`scratch.setupMachine(root)`** in `tests/helpers/scratch.js` does what `/flow:setup-machine` will do, so a test needing a finished machine can build one. `doctor.test.js` calls it after every install.
+
+### The reminder is a script now, and every line Flow prints by itself has a switch
+
+The `UserPromptSubmit` hook ran `cat "$HOME/.flow/references/reminder.md"` until 2026-09-20. It runs `node "$HOME/.flow/scripts/reminder.js"` instead, because a bare `cat` reads no setting.
+
+- **The text never moved.** `references/reminder.md` still holds the line, reached through the `~/.flow/references` symlink, so changing what the reminder says is one edit and no code.
+- **`settings.prints(name)` in `scripts/flow/lib/settings.js` is the switch**, one top-level key per line, on unless the key says `false`. A machine with no settings file at all gets every line.
+- **The hook never exits non-zero.** Exit 2 on `UserPromptSubmit` rejects the prompt and erases what the user typed, so a missing file prints nothing instead.
+- `scripts/tests/reminder.test.js` holds 2 tests: on, off, the local settings file winning, and a missing file still exiting 0.
 
 ## What the user ruled on 2026-09-20
 

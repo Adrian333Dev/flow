@@ -24,7 +24,7 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 - **`CLAUDE.md`**: 147 lines, the rules for working on this repo. It only has to align roughly with the template, ruled by the user 2026-09-07.
 - **`project-template/AGENTS.md`**: 8 lines. 2 fill-in comments and no rules. `project-template/CLAUDE.md` beside it is the one line `@AGENTS.md`.
 - **`rules/comments.md`**: the one rule file. 11 rules, loaded only for JS, TS, Python, shell, SQL and CSS files. The user ruled comment shape minor.
-- **`references/reminder.md`**: the one line the reminder hook prints beside every message the user sends.
+- **`references/reminder.md`**: the one line `scripts/reminder.js` prints beside every message the user sends, silenced by `"reminder": false` in `~/.flow/settings.json`.
 - **`references/style.md`**: the house style, 202 lines, read before writing any file. Split 3 ways on 2026-09-18: a rule file also reads `references/write-rules.md`, the rule ids, and a documentation page also reads `references/write-docs.md`, which adds that a page added, renamed or dropped updates its folder's `README.md` in the same edit.
 
 ## 12 skills, typed `/flow:<name>`, every one always on
@@ -43,7 +43,7 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 
 `/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings` are user only. `user-only-skills` in `home/AGENTS.md` names them, so every other file names them bare. A user-only skill missing from that list is marked `(user only)` where the agent first meets it, by `references/style.md` → `### Only in a loaded file`. `/flow:tickets-from-spec` was `/flow:cut-from-spec` until 2026-09-18. The 4 phase skills take a ticket id and load it with its files on their first line, since 2026-09-16. `/flow:debug` still sends a bug inside a web page to `/web-pages`, which left for `domain-skills` and waits on its rebuild there.
 
-## `flow` has 11 command groups, and all 133 tests pass
+## `flow` has 11 command groups, and all 138 tests pass
 
 One of them, *a worker hands the parent its diff and the command that deleted a file*, fails about one run in five when the machine is busy. It is a race in the test, not a bug in `changes.js`, and it has a line in `backlog.md`.
 
@@ -66,7 +66,7 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 - **`rule-check.js`**, before every edit and write: runs the rule checks and records the results.
 - **`instructions-loaded.js`**: records which rule files entered context.
 - **`check-ticket.js`**, when a phase skill or `/flow:start` is typed with a ticket id: blocks the skill when the id matches nothing, so a typo loads nothing.
-- **The reminder**, on every message the user sends: `cat` of `references/reminder.md`.
+- **`reminder.js`**, on every message the user sends: prints `references/reminder.md`, unless `"reminder": false` says not to. It was a bare `cat` until 2026-09-20, and a `cat` reads no setting. Every line Flow prints by itself gets a key like it, read through `settings.prints(name)`.
 
 ## 1 rule check, and it only measures
 
