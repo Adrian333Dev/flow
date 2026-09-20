@@ -25,6 +25,7 @@ Flow puts files in 6 places on a machine, reads 2 clones, and keeps a working st
 │  ├─ CLAUDE.md                   one line: @~/.agents/AGENTS.md
 │  ├─ settings.json
 │  ├─ skills/flow                 → ~/.agents/skills/flow
+│  ├─ skills/<name>               → a domain or private skill added with --global
 │  ├─ agents/<file>.md            → <clone>/agents/<file>.md
 │  ├─ rules/<file>.md             → <clone>/rules/<file>.md
 │  └─ projects/                   session transcripts
@@ -37,6 +38,8 @@ Flow puts files in 6 places on a machine, reads 2 clones, and keeps a working st
 │  ├─ settings.json
 │  ├─ settings.local.json
 │  ├─ version
+│  ├─ domain-skills.txt
+│  ├─ skills-update.json
 │  ├─ workflow-notes.md
 │  ├─ study-cases/<issue>/
 │  ├─ scorecards/<session>.jsonl
@@ -108,14 +111,16 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 
 The rest of `~/.codex/` is Codex's own: its settings, its login, its subagents. `flow install` touches none of it.
 
-**Flow does not support Codex yet.** Codex reads Flow's rules and skills, and none of Flow's hooks run there, so the git switch, the change record, the reminder and the session check are missing from a Codex session.
+**Flow does not support Codex yet.** Codex reads Flow's rules and skills, and none of Flow's hooks run there, so the git switch, the change record, the reminder, the session check and the domain-skills pull are all missing from a Codex session.
 
 ### `~/.flow/`, what only Flow reads
 
-- **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, and `apply-migration.js`, which carries out a migration. `flow install` makes it.
+- **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, `apply-migration.js`, which carries out a migration, and `domain-pull.js`, which updates the domain-skills clone in the background. `flow install` makes it.
 - **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, and the line the reminder hook prints. `flow install` makes it.
-- **`settings.json`**: the settings both your machines share. `git` is the git write state, written by `flow git`. `reminder` is whether the reminder prints beside every message, and `sessionCheck` whether a session opens with a line about what needs attention: one key per line Flow prints by itself.
+- **`settings.json`**: the settings both your machines share. `git` is the git write state, written by `flow git`. `reminder` is whether the reminder prints beside every message, and `sessionCheck` whether a session opens with a line about what needs attention: one key per line Flow prints by itself. `domainSkillsAutoUpdate` is whether the domain-skills clone pulls itself when a session opens.
 - **`settings.local.json`**: the settings this machine keeps to itself, which git ignores. `clone` is the path to your Flow clone, written by `flow install`. `domainSkills` is the path to your domain-skills clone, which you write.
+- **`domain-skills.txt`**: the names of the domain skills added to the whole machine, one per line, so a second machine relinks them. `flow domain-skills add --global` writes it.
+- **`skills-update.json`**: what the last background pull of the domain-skills clone found, such as the skills a fetch left waiting. `domain-pull.js` writes it and the session check prints it, and it is gone whenever there is nothing to say.
 - **`version`**: one line, the number of the newest `CHANGELOG.md` entry this machine has applied. A `flow` command refuses while it is missing, since that means `/flow:setup-machine` never finished.
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering. Sessions append to it.
 - **`study-cases/<issue>/<date>-<slug>.md`**: one file per recorded failure, filed under the name of the failure. Sessions write them through `flow cases new`.
@@ -137,7 +142,7 @@ The rest of `~/.codex/` is Codex's own: its settings, its login, its subagents. 
 ## The 2 clones
 
 - **The Flow clone**, anywhere you like: everything Flow installs lives here once, and every path above points into it. `git pull` updates every machine path at once. [The repository layout](../dev/layout.md) maps it.
-- **The domain-skills clone**, anywhere you like: one folder per domain skill under `skills/`. `domainSkills` in `~/.flow/settings.json` names that folder. `flow domain-skills add` links a skill from it into a project, and `flow contribute` sends a project's findings back to its repository as pull requests.
+- **The domain-skills clone**, anywhere you like: one folder per domain skill under `skills/`. `domainSkills` in `~/.flow/settings.local.json` names that folder. `flow domain-skills add` links a skill from it into a project, or onto the machine with `--global`, and `flow contribute` sends a project's findings back to its repository as pull requests. The clone pulls itself when a session opens, so a skill linked anywhere is current.
 
 ## In a project
 
@@ -174,4 +179,4 @@ Flow sessions write into these and own none of them.
 
 ## What stays on one machine
 
-These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.codex/sessions/`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version`, and each project's `.flow/settings.json`. `flow sync` carries everything else under `~/.flow/` to your other machine, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md` and `~/.flow/migrations/` included. Everything in a project's `.flow/` except that one file is committed, so it travels with the repository.
+These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.codex/sessions/`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version`, `~/.flow/skills-update.json`, and each project's `.flow/settings.json`. `flow sync` carries everything else under `~/.flow/` to your other machine, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md` and `~/.flow/migrations/` included. Everything in a project's `.flow/` except that one file is committed, so it travels with the repository.

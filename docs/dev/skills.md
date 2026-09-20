@@ -42,7 +42,7 @@ A group is a filing decision. Nothing outside `skills/` reads a group name: the 
 
 Every group that installs is shown in every session, and no setting hides one of them. `skillOverrides` is the key that hides a skill, and it skips a plugin's skills; Flow's are a plugin. The only switch is `claude plugin disable flow@skills-dir`, which takes the whole set.
 
-A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and installs into the one project that uses it: `flow domain-skills add <name>`.
+A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and installs into the one project that uses it: `flow domain-skills add <name>`. A skill about a tool used in every project goes onto the machine instead, with `--global`, which says what that costs first.
 
 A skill of your own that no repository should carry lives in `~/.flow/private-skills/<name>/`. `flow private-skills add <name>` installs it into a project, and `--global` installs it onto the machine. Its name must differ from every Flow skill and every domain skill.
 

@@ -41,6 +41,8 @@ test('what belongs to one machine is what the ignore file names', () => {
     'settings.local.json',
     'scripts',
     'references',
+    'skills-update.json',
+    'skills-update.lock',
     'wiki/*/downloads/',
   ]);
   assert.strictEqual(repo.isRepo(m.at), false, 'writing the ignore file makes no repository');

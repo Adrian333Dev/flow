@@ -8,9 +8,15 @@
  * SessionStart hook prints into the session's context, so the line reaches the
  * agent and the user at the same moment.
  *
- * It reads 3 files and runs nothing: ~/.flow/run.json, ~/.flow/version and the
- * project's .flow/version. `flow doctor` stays the full check, since it runs
- * both test suites and takes seconds.
+ * It reads 4 files and waits for nothing: ~/.flow/run.json, ~/.flow/version,
+ * the project's .flow/version, and ~/.flow/skills-update.json, which is the
+ * domain-skills clone's own news. `flow doctor` stays the full check, since it
+ * runs both test suites and takes seconds.
+ *
+ * The one thing it starts is scripts/domain-pull.js, detached, which brings
+ * that clone up to date in the background. Starting a process is not waiting
+ * for one: the hook returns before the pull has reached the network, and what
+ * the pull finds is printed by the session after it.
  *
  * It is also how /flow:migrate gets named at all. That skill is typed and
  * never model-invoked, so its description stays out of every session, and
@@ -22,10 +28,12 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 const { cloneRoot } = require('./flow/lib/clone');
 const machine = require('./flow/lib/machine');
 const migrations = require('./flow/lib/migrations');
 const settings = require('./flow/lib/settings');
+const update = require('./flow/lib/skills-update');
 const version = require('./flow/lib/version');
 
 /**
@@ -47,10 +55,11 @@ function projectRoot(from) {
 }
 
 /**
- * The run that never finished, which prints alone.
+ * The run that never finished, which is the only version line printed.
  *
- * Every other line reads a version stamp that the stopped run was in the
- * middle of moving, so finishing the run is the only thing worth saying.
+ * Every other one reads a version stamp that the stopped run was in the middle
+ * of moving, so finishing the run is the only thing worth saying about Flow's
+ * own version. The domain-skills line is a separate record and still prints.
  */
 function stoppedRun(at) {
   const found = migrations.run(at);
@@ -99,7 +108,29 @@ function attention(at, cwd) {
   return out;
 }
 
+/**
+ * Send the domain-skills clone to look for new work, without waiting for it.
+ *
+ * Detached with no output anywhere, so the session is never held by a network
+ * call and never sees what the pull printed. `skills-update.js` decides
+ * whether there is anything to do at all.
+ *
+ * `"sessionCheck": false` silences the lines above and not this: the skills
+ * are what an agent reads in a project, so a quiet machine still wants them
+ * current. `"domainSkillsAutoUpdate": false` is the key that stops the pull.
+ */
+function startPull(at) {
+  if (!update.due(at)) return;
+  const child = spawn(process.execPath, [path.join(__dirname, 'domain-pull.js')], {
+    detached: true,
+    stdio: 'ignore',
+  });
+  child.unref();
+}
+
 try {
+  const at = machine.folders();
+
   if (settings.prints('sessionCheck')) {
     let cwd = process.cwd();
     try {
@@ -107,9 +138,17 @@ try {
     } catch {
       // Run by hand, with no event on stdin. The working folder stands in.
     }
-    const lines = attention(machine.folders(), cwd);
+    const lines = attention(at, cwd);
+
+    // The clone's news is a record of its own: a domain skill being behind is
+    // a pull, where Flow being behind is a migration.
+    const skills = update.line(update.readNote(at));
+    if (skills) lines.push(skills);
+
     if (lines.length) process.stdout.write(lines.map((line) => `Flow: ${line}`).join('\n') + '\n');
   }
+
+  startPull(at);
 } catch {
   // A session opens whatever this finds. Silence is the whole fallback.
 }

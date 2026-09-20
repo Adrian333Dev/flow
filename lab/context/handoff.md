@@ -2,7 +2,7 @@
 
 Written 2026-09-20. Read it once, then rewrite it whole next time.
 
-**Next: the domain-skills clone pulls itself, and one of its skills may go global**, which `backlog.md` → `### The management skill, in build order` now opens on. It hangs off the `SessionStart` hook built below. Nothing from 2026-09-20 is open. `CHANGELOG.md` came back holding entry `1`, an entry is a sentence, and `upgrades/<number>.md` beside it holds every path a machine has to move. `flow doctor` gained the version checks the same day. The reminder became `scripts/reminder.js` and a session now opens with `scripts/session-check.js`, both behind a key in `~/.flow/settings.json`. `lab/context/management.md` → `## The changelog comes back`, `## The version` and `## The check that runs by itself is a hook` hold the 3 decisions. 142 tests pass and every record is written.
+**Next: `references/prerequisites.md`**, step 0 of both setup and migration, which `backlog.md` → `### The management skill, in build order` now opens on. It is read by each skill rather than invoked, and it checks the commands Flow calls by running them. Nothing from 2026-09-20 is open. `CHANGELOG.md` came back holding entry `1`, an entry is a sentence, and `upgrades/<number>.md` beside it holds every path a machine has to move. `flow doctor` gained the version checks the same day. The reminder became `scripts/reminder.js` and a session now opens with `scripts/session-check.js`, both behind a key in `~/.flow/settings.json`. `lab/context/management.md` → `## The changelog comes back`, `## The version` and `## The check that runs by itself is a hook` hold the 3 decisions. The domain-skills clone now pulls itself off that same hook, and a domain skill can go on the whole machine. 149 tests pass and every record is written.
 
 ## The build order, all 4 done
 
@@ -52,7 +52,7 @@ An original is every path as it was before Flow first touched it. One per place,
 
 - **`scripts/flow/lib/flow-repo.js`** holds it: `start`, `load`, `save`, the commit named for the machine, and `IGNORED`.
 - **`scripts/flow/commands/sync.js`** is `flow sync`: `load(at)` then `save(at)`. Down first, because a pull that is not a fast-forward stops everything and a commit made here first would only add a merge.
-- **7 things never travel**, and `~/.flow/.gitignore` names them: `version`, `run.json`, `originals/`, `settings.local.json`, the `scripts` and `references` links, and each wiki tool's `downloads/`. The 2 links were added on 2026-09-20: both point into this machine's clone, which sits somewhere else on the other machine.
+- **9 things never travel**, and `~/.flow/.gitignore` names them: `version`, `run.json`, `originals/`, `settings.local.json`, the `scripts` and `references` links, `skills-update.json` and its lock, and each wiki tool's `downloads/`. The 2 links were added on 2026-09-20: both point into this machine's clone, which sits somewhere else on the other machine.
 - **`lib/settings.js` reads `settings.json` and `settings.local.json` as one**, the local file winning key by key. `readGlobal()` is the merged read and `globalKey(key)` says which file holds a setting, for a message that has to name one. `domainSkills` moved to the local file, since it holds a path.
 
 ### `flow uninstall`
@@ -113,7 +113,7 @@ The `UserPromptSubmit` hook ran `cat "$HOME/.flow/references/reminder.md"` until
 
 ### A session opens with one line when something needs attention
 
-`scripts/session-check.js` is the `SessionStart` hook, and `home/settings.json` had no `SessionStart` entry before it. It reads 3 files and runs nothing: `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`.
+`scripts/session-check.js` is the `SessionStart` hook, and `home/settings.json` had no `SessionStart` entry before it. It reads `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`, and waits for nothing. The section below added a 4th file to that list and one background job.
 
 ```text
 Flow: this machine is at changelog entry 0, and 1 is the newest. Type /flow:migrate to catch up.
@@ -122,11 +122,29 @@ Flow: a migrate run stopped after step 4, so this machine is part way through a 
 ```
 
 - **All 3 fine prints nothing at all**, which is what makes a line worth reading.
-- **A stopped run prints alone.** Every other line reads a version stamp that the stopped run was in the middle of moving.
+- **A stopped run silences the other version lines.** Each of them reads a version stamp that the stopped run was in the middle of moving.
 - **It is the only thing that names `/flow:migrate`.** That skill is typed and never model-invoked, so its description stays out of every session.
 - **It finds the project by walking up for a `.flow/`**, rather than through `lib/root.js`, which asks git and refuses outside a project. A hook fires wherever the session was opened.
 - **The clone is found through `cloneRoot()`**, which resolves `__dirname` past the `~/.flow/scripts` symlink, so the changelog is read with no setting involved.
 - `scripts/tests/session-check.test.js` holds 4 tests, and `doctor.test.js` now counts 12 hooks.
+
+### The domain-skills clone pulls itself, and a skill can go on the whole machine
+
+A domain skill reaches a project as a symlink into a clone of the domain-skills repository, so one pull makes every project holding that skill current. `scripts/domain-pull.js` is that pull, started detached by the session check and never typed, and `scripts/flow/lib/skills-update.js` holds all of it.
+
+```text
+Flow: /home/me/code/domain-skills has 2 uncommitted files, so no domain skill was updated. Commit them, or update the clone by hand.
+Flow: /home/me/code/domain-skills is behind. 2 domain skills changed: react, sql. Update it when you want them, or set "domainSkillsAutoUpdate": true.
+```
+
+- **The session starts the job and returns**, so nothing waits for the network. What the job finds goes into `~/.flow/skills-update.json`, and the next session prints it. A successful pull leaves no note and prints nothing at all.
+- **Two guards, both read before the pull**: uncommitted work in the clone, and a pull that would not be a fast-forward. The second is `git pull --ff-only` refusing by itself, so nothing is compared by hand.
+- **`"domainSkillsAutoUpdate": false` turns the pull into a fetch** that names the skills waiting, every session until the user pulls. The names are the news, never the number of commits.
+- **It looks at most once every 6 hours**, off the clone's `FETCH_HEAD` age, and every session while a note is waiting. That second rule is what makes the line stop the moment the user has pulled by hand.
+- **The clone is found by walking up from `domainSkills`** until a `.git` turns up, and that `.git` may be a file: `lab/domain-skills` is a submodule, whose git folder sits under the parent repository.
+- **`flow domain-skills add <name> --global`** links into `~/.claude/skills/` and lists the name in `~/.flow/domain-skills.txt`, which travels inside `~/.flow/`'s own repository. It prints what that costs, one description loaded in every session on the machine, and links it anyway. The code refused it outright until today.
+- **One lock, `~/.flow/skills-update.lock`**, so 2 sessions opening together do not both reach git and read the second one's lock file as a failure.
+- `scripts/tests/skills-update.test.js` holds 5 tests over 2 real repositories built under `tmp/`: the pull, each guard, the fetch with the update off, and the note being checked again after a pull by hand. `domain-skills.test.js` and `session-check.test.js` gained one each.
 
 ## What the user ruled on 2026-09-20
 
@@ -142,7 +160,7 @@ Flow: a migrate run stopped after step 4, so this machine is part way through a 
 
 ## Where the records now stand
 
-- **`backlog.md`**: the built `flow install` line is deleted, by the file's own rule that a finished item is deleted rather than checked off. The multi-machine item is rewritten around what exists, with 7 parked pieces under it. A new item records that `flow sync` is never proved against a real remote. The 2 setup skill lines gained what they now own: closing the original, and the 4 files `flow install` stopped writing.
+- **`backlog.md`**: the final sweep became 5 passes on 2026-09-20, the 5th being every line Flow prints, to the user and to the agent, rewritten in one go once the features are settled. The built `flow install` line is deleted, by the file's own rule that a finished item is deleted rather than checked off. The multi-machine item is rewritten around what exists, with 7 parked pieces under it. A new item records that `flow sync` is never proved against a real remote. The 2 setup skill lines gained what they now own: closing the original, and the 4 files `flow install` stopped writing.
 - **`lab/util/backlog.md`**: a `### git work` section with the rename to `util git uncommitted` and the `get <machine> --branch` fix.
 - **The manual**: `docs/manual/reference.md` → `## Migrations and the original` replaces `## Migrations and snapshots`, and `## Installing` gained `### flow sync` and `### flow uninstall`. `docs/manual/settings.md` covers the 3 settings files, the new deny rules and `clone`. `docs/manual/where-everything-lives.md` and `docs/dev/layout.md` follow the same change.
 

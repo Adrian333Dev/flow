@@ -22,6 +22,7 @@ All 3 are strict JSON, so none can hold a comment. This page holds the explanati
 - [Flow's settings files](#flows-settings-files)
   - [`git`](#git)
   - [`domainSkills`](#domainskills)
+  - [`domainSkillsAutoUpdate`](#domainskillsautoupdate)
   - [`clone`](#clone)
   - [`reminder`](#reminder)
   - [`sessionCheck`](#sessioncheck)
@@ -157,11 +158,14 @@ Prints one line when this machine or this project needs attention, and nothing a
 Flow: this machine is at changelog entry 3, and 5 is the newest. Type /flow:migrate to catch up.
 Flow: delapse is at changelog entry 3, and this machine is at 5. Type /flow:migrate here.
 Flow: a migrate run stopped after step 4, so this machine is part way through a change. Type /flow:migrate to carry on, or run flow doctor for the way back.
+Flow: /home/me/code/domain-skills is behind. 2 domain skills changed: react, sql. Update it when you want them, or set "domainSkillsAutoUpdate": true.
 ```
 
-It reads 3 files and runs nothing: `~/.flow/run.json`, which a setup or a migration leaves behind only when it never finished, `~/.flow/version`, and the project's `.flow/version`. [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
+It reads 4 files and waits for nothing: `~/.flow/run.json`, which a setup or a migration leaves behind only when it never finished, `~/.flow/version`, the project's `.flow/version`, and `~/.flow/skills-update.json`, which the background pull below writes. [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
 
-**A stopped run prints alone.** Every other line reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying.
+**A stopped run silences the other version lines.** Each of them reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying about Flow's own version. The domain-skills line is a separate record and still prints.
+
+**It also sends the domain-skills clone to update itself**, by starting `~/.flow/scripts/domain-pull.js` in the background and returning at once. A session never waits for the network, and whatever that pull finds is printed by the session after it. [`domainSkillsAutoUpdate`](#domainskillsautoupdate) covers the pull, its 2 guards and the switch.
 
 **It is also the only thing that names `/flow:migrate`.** You type that skill and the agent can never start it, which keeps its description out of every session, so nothing else would tell either of you the command exists.
 
@@ -399,6 +403,32 @@ The path to the `skills/` folder in your clone of the domain-skills repository. 
 
 ---
 
+### `domainSkillsAutoUpdate`
+
+Whether the clone those skills come from updates itself. Write `false` to be asked instead:
+
+```json
+"domainSkillsAutoUpdate": false
+```
+
+**On, which is the default, a session opens and the clone pulls itself in the background.** Every skill reaches a project as a symlink into that clone, so a merge in the repository reaches every project holding the skill the moment the pull lands. Nothing else has to run: Flow being behind means a migration, and a domain skill being behind means a pull.
+
+**Two guards, both read before anything is pulled.** Uncommitted work in the clone, and a pull that would not be a fast-forward. Either one means no pull, and a line at the top of the next session saying which:
+
+```text
+Flow: /home/me/code/domain-skills has 2 uncommitted files, so no domain skill was updated. Commit them, or update the clone by hand.
+```
+
+Without the guards, a pull nobody asked for could wreck work sitting in that clone.
+
+**Off, the session fetches instead and names what is waiting**, every session until you pull. The names are the news: `react changed` is something to read, where `3 commits` is not.
+
+**It costs one network call every 6 hours at most.** The clone's last fetch is what the check reads, so a machine that opens 20 sessions in a morning looks once. A clone with something to report is checked every session instead, which is how the line stops the moment you have pulled by hand.
+
+`"sessionCheck": false` silences the line and not the pull, since the skills are what an agent reads in a project. This key is the one that stops it.
+
+---
+
 ### `clone`
 
 The path to your Flow clone. `flow install` writes it on every run, so a clone you move is corrected by installing again:
@@ -434,3 +464,5 @@ Whether the line naming what needs attention prints when a session opens. Write 
 ```
 
 [The session check](#the-session-check) shows every line it can print and says which files it reads.
+
+It silences the printing alone. The domain-skills clone still updates itself, which [`domainSkillsAutoUpdate`](#domainskillsautoupdate) governs.

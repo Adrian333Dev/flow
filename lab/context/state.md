@@ -43,7 +43,7 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 
 `/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings` are user only. `user-only-skills` in `home/AGENTS.md` names them, so every other file names them bare. A user-only skill missing from that list is marked `(user only)` where the agent first meets it, by `references/style.md` → `### Only in a loaded file`. `/flow:tickets-from-spec` was `/flow:cut-from-spec` until 2026-09-18. The 4 phase skills take a ticket id and load it with its files on their first line, since 2026-09-16. `/flow:debug` still sends a bug inside a web page to `/web-pages`, which left for `domain-skills` and waits on its rebuild there.
 
-## `flow` has 11 command groups, and all 142 tests pass
+## `flow` has 11 command groups, and all 149 tests pass
 
 One of them, *a worker hands the parent its diff and the command that deleted a file*, fails about one run in five when the machine is busy. It is a race in the test, not a bug in `changes.js`, and it has a line in `backlog.md`.
 
@@ -52,7 +52,7 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 - **rules**: `scorecard`
 - **sharing**: `contribute`, which opens one pull request per skill on `domain-skills`
 - **cases**: `new`, `ls`, `get`, `edit`, `issues`. `new` fills in `model:` from the session's transcript and `effort:` from `CLAUDE_EFFORT`. This repo's own 14 cases were deleted on 2026-09-16, condensed into `lab/context/rejected-replies.md`.
-- **domain-skills**: `ls`, `add`, `drop`, per project
+- **domain-skills**: `ls`, `add`, `drop`, per project or with `--global`, which links into `~/.claude/skills/` and lists the name in `~/.flow/domain-skills.txt`. `add --global` prints what a machine-wide skill costs, one description loaded in every session, and links it anyway. The code refused it outright until 2026-09-20.
 - **private-skills**: `ls`, `add`, `drop`, per project or with `--global`
 - **overlays**: `get`
 - **git**: `get`, `allow`, `ask`, `off`, the switch deciding whether the agent may run git commands that write
@@ -67,7 +67,16 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 - **`instructions-loaded.js`**: records which rule files entered context.
 - **`check-ticket.js`**, when a phase skill or `/flow:start` is typed with a ticket id: blocks the skill when the id matches nothing, so a typo loads nothing.
 - **`reminder.js`**, on every message the user sends: prints `references/reminder.md`, unless `"reminder": false` says not to. It was a bare `cat` until 2026-09-20, and a `cat` reads no setting. Every line Flow prints by itself gets a key like it, read through `settings.prints(name)`.
-- **`session-check.js`**, when a session opens: one line when `~/.flow/run.json`, `~/.flow/version` or the project's `.flow/version` needs attention, and nothing when all 3 are fine. A stopped run prints alone. It is also the only thing that names `/flow:migrate`, a skill the agent can never start. `"sessionCheck": false` silences it.
+- **`session-check.js`**, when a session opens: one line when `~/.flow/run.json`, `~/.flow/version` or the project's `.flow/version` needs attention, and nothing when all 3 are fine. A stopped run silences the other version lines. It is also the only thing that names `/flow:migrate`, a skill the agent can never start. `"sessionCheck": false` silences the printing. The same hook starts `scripts/domain-pull.js` detached and returns at once, and prints what that job left in `~/.flow/skills-update.json`.
+
+## The domain-skills clone updates itself, built 2026-09-20
+
+`scripts/domain-pull.js` runs detached from the session check, and `scripts/flow/lib/skills-update.js` holds all of it. Every domain skill is a symlink into that clone, so one pull makes every project holding one current.
+
+- **Two guards, both read before anything is pulled**: uncommitted work in the clone, and a pull that would not be a fast-forward, which `git pull --ff-only` refuses by itself. Either one writes `~/.flow/skills-update.json` and the next session prints it.
+- **`"domainSkillsAutoUpdate": false`** turns the pull into a fetch that names the skills waiting, and the line prints every session until the user pulls.
+- **It looks at most once every 6 hours**, reading the clone's `FETCH_HEAD`, and every session while a note is waiting, which is what makes the line stop once the user has pulled by hand.
+- **`~/.flow/skills-update.json` and its lock stay on this machine**, both named in `flow-repo.js`'s ignore list.
 
 ## 1 rule check, and it only measures
 

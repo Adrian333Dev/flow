@@ -159,9 +159,11 @@ function project(root, listName) {
  * cost that one skill, not every link.
  *
  * `refuse(name)` returns a reason a name may not be linked, or null. `flag`
- * is appended to the commands a message suggests, such as ` --global`.
+ * is appended to the commands a message suggests, such as ` --global`. `note`
+ * is printed once at the end when anything linked, for a cost the user should
+ * hear at the moment they pay it.
  */
-function addSkills({ names, source, known, place, command, flag = '', refuse = () => null }) {
+function addSkills({ names, source, known, place, command, flag = '', note = '', refuse = () => null }) {
   const listed = readList(place.list);
   const wanted = names.length ? names : listed;
 
@@ -200,6 +202,7 @@ function addSkills({ names, source, known, place, command, flag = '', refuse = (
   if (linked.length && !hadFolder) {
     out(`\nRestart Claude Code: it only watches a skills folder that existed when the session started.`);
   }
+  if (linked.length && note) out(`\n${note}`);
   if (problems.length) throw new FlowError(problems.join('\n'));
   return 0;
 }
