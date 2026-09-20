@@ -1,11 +1,14 @@
 'use strict';
 /**
  * `check-ticket`: the UserPromptExpansion hook that refuses a typed phase
- * skill whose ticket id matches nothing.
+ * skill on a machine or a project Flow was never set up in, and one whose
+ * ticket id matches nothing.
  */
 
 const { test } = require('node:test');
 const assert = require('node:assert');
+const fs = require('fs');
+const path = require('path');
 const { project, run, flow } = require('./helpers/scratch');
 
 /** The shape Claude Code hands a UserPromptExpansion hook on stdin. */
@@ -20,11 +23,11 @@ function typed(command_name, command_args, cwd) {
   });
 }
 
-function check(name, args, dir) {
+function check(name, args, dir, env = {}) {
   return run('check-ticket.js', [], {
     input: typed(name, args, dir),
     cwd: dir,
-    env: { ...process.env, FLOW_PROJECT: dir },
+    env: { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: path.join(dir, 'flow-home'), ...env },
   });
 }
 
@@ -50,4 +53,20 @@ test('check-ticket passes a real id, free text, an id followed by text, and noth
     assert.strictEqual(result.code, 0);
     assert.strictEqual(result.stdout.trim(), '', `no verdict for "${args}"`);
   }
+});
+
+test('check-ticket blocks before the ticket check when setup never ran', () => {
+  const dir = project('check-ticket-unset');
+
+  fs.rmSync(path.join(dir, 'flow-home', 'version'));
+  const machine = check('groundwork', '', dir);
+  assert.strictEqual(machine.code, 0);
+  assert.match(machine.stdout, /"decision":"block"/);
+  assert.match(machine.stdout, /not set up on this machine.*\/flow:setup-machine/);
+
+  fs.writeFileSync(path.join(dir, 'flow-home', 'version'), '2026-09-20\n');
+  fs.rmSync(path.join(dir, '.flow'), { recursive: true });
+  const inProject = check('groundwork', 'write the map', dir);
+  assert.strictEqual(inProject.code, 0);
+  assert.match(inProject.stdout, /not a Flow project yet.*\/flow:setup-project/, 'a message with no ticket id still blocks');
 });

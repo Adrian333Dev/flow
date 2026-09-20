@@ -35,6 +35,8 @@ Flow puts files in 6 places on a machine, reads 2 clones, and keeps a working st
 │  ├─ scripts                     → <clone>/scripts
 │  ├─ references                  → <clone>/references
 │  ├─ settings.json
+│  ├─ settings.local.json
+│  ├─ version
 │  ├─ workflow-notes.md
 │  ├─ study-cases/<issue>/
 │  ├─ scorecards/<session>.jsonl
@@ -42,7 +44,7 @@ Flow puts files in 6 places on a machine, reads 2 clones, and keeps a working st
 │  ├─ changes/<session>/
 │  ├─ private-skills/<name>/
 │  ├─ migrations/<place>/<time>/
-│  ├─ snapshots/<place>/<time>/
+│  ├─ originals/<place>/
 │  ├─ groundwork/<slug>/
 │  └─ tickets/
 ├─ .util/sources
@@ -112,15 +114,17 @@ The rest of `~/.codex/` is Codex's own: its settings, its login, its subagents. 
 
 - **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, and `apply-migration.js`, which carries out a migration. `flow install` makes it.
 - **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, and the line the reminder hook prints. `flow install` makes it.
-- **`settings.json`**: 2 keys. `git` is the git write state, which `flow git` writes. `domainSkills` is the path to your domain-skills clone, which you write.
+- **`settings.json`**: the settings both your machines share. `git`, the git write state, is the one key in it, and `flow git` writes it.
+- **`settings.local.json`**: the settings this machine keeps to itself, which git ignores. `clone` is the path to your Flow clone, written by `flow install`. `domainSkills` is the path to your domain-skills clone, which you write.
+- **`version`**: one line, the date of the newest change this machine has applied. A `flow` command refuses while it is missing, since that means `/flow:setup-machine` never finished.
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering. Sessions append to it.
 - **`study-cases/<issue>/<date>-<slug>.md`**: one file per recorded failure, filed under the name of the failure. Sessions write them through `flow cases new`.
 - **`scorecards/<session>.jsonl`**: one file per session. `rule-check.js` adds a line for every rule check that ran, and `instructions-loaded.js` a line for every instruction file that loaded. `flow scorecard` reads them.
 - **`audit/`**: `audit.db`, the index of every transcript. `flow audit index` builds it, and it can be rebuilt from `~/.claude/projects/` at any time.
 - **`changes/<session>/`**: what each subagent changed, filed under its agent id. `changes.js` writes it, and deletes a session's folder once nothing has touched it for 7 days.
 - **`private-skills/<name>/`**: skills you write for yourself and never share. You write them. `flow private-skills` links one into a project.
-- **`migrations/<place>/<time>/`**: one folder per migration, a change to where Flow, Claude Code and Codex keep their files. It holds `migration.md`, one line per change, and `files/`, the new version of each file it writes. `/flow:setup-machine`, `/flow:setup-project` and `/flow:migrate` write it. `<place>` is `machine`, or the project's full path with every character that is not a letter or a digit turned into `-`, and `<time>` is when it was written. [Migrations and snapshots](reference.md#migrations-and-snapshots) has the whole of it.
-- **`snapshots/<place>/<time>/`**: a copy of every path one migration changed, taken just before it changed, filed the same way. `apply-migration.js` writes it, and `flow snapshot restore` puts every path back from it.
+- **`migrations/<place>/<time>/`**: one folder per migration, a change to where Flow, Claude Code and Codex keep their files. It holds `migration.md`, one line per change, and `files/`, the new version of each file it writes. `/flow:setup-machine`, `/flow:setup-project` and `/flow:migrate` write it. `<place>` is `machine`, or the project's full path with every character that is not a letter or a digit turned into `-`, and `<time>` is when it was written. [Migrations and the original](reference.md#migrations-and-the-original) has the whole of it.
+- **`originals/<place>/`**: every path as it was before Flow first touched that place, one folder per place and no date anywhere. `flow install` writes the machine's, the first `/flow:setup-machine` or `/flow:setup-project` finishes it, and nothing is added after that. `flow restore` puts one back.
 - **`groundwork/<slug>/`**: groundwork run outside any project. `/flow:groundwork` writes it.
 - **`tickets/`**: tickets made outside any project, with `FLOW_PROJECT=$HOME flow new "<title>"`. Same shape as a project's.
 
@@ -170,4 +174,4 @@ Flow sessions write into these and own none of them.
 
 ## What stays on one machine
 
-These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.codex/sessions/`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/study-cases/`, `~/.flow/migrations/`, `~/.flow/snapshots/`, `~/.flow/workflow-notes.md`, and each project's `.flow/settings.json`. Everything in a project's `.flow/` except that one file is committed, so it travels with the repository.
+These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.codex/sessions/`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version`, and each project's `.flow/settings.json`. `flow sync` carries everything else under `~/.flow/` to your other machine, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md` and `~/.flow/migrations/` included. Everything in a project's `.flow/` except that one file is committed, so it travels with the repository.

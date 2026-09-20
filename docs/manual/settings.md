@@ -1,11 +1,14 @@
 # Settings
 
-Flow reads 2 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
+Flow reads 3 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
 
-- **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and you merge them in by hand.
-- **`~/.flow/settings.json`** belongs to Flow. `flow git` writes one key, and you write the other.
+- **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `/flow:setup-machine` merges them in.
+- **`~/.flow/settings.json`** belongs to Flow, and travels to your other machine with the rest of `~/.flow/`.
+- **`~/.flow/settings.local.json`** belongs to Flow and to this machine alone. git ignores it, and every setting holding a path goes in it, because your other machine keeps its clones somewhere else.
 
-Both are strict JSON, so neither can hold a comment. This page holds the explanations instead.
+Flow reads its 2 as one file, and the local one wins key by key.
+
+All 3 are strict JSON, so none can hold a comment. This page holds the explanations instead.
 
 ## Table of contents
 
@@ -16,13 +19,14 @@ Both are strict JSON, so neither can hold a comment. This page holds the explana
   - [`cleanupPeriodDays`](#cleanupperioddays)
   - [Feature flags](#feature-flags)
   - [Deliberately absent](#deliberately-absent)
-- [Flow's settings file](#flows-settings-file)
+- [Flow's settings files](#flows-settings-files)
   - [`git`](#git)
   - [`domainSkills`](#domainskills)
+  - [`clone`](#clone)
 
 ## Claude Code's settings file
 
-`home/settings.json` is the template, and its keys merge into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
+`home/settings.json` is the template, and `/flow:setup-machine` merges its keys into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
 
 Settings load at startup. **Restart Claude Code after any change.**
 
@@ -187,6 +191,18 @@ These are **bare tool names**, which removes each tool from the model's context 
 
 **`Agent(fork)` is a scoped rule**, like `Agent(isolation:worktree)` above, so it blocks one subagent type and leaves the Agent tool alone. A fork is a subagent that starts with a copy of the whole conversation, and Claude Code starts one on its own in an interactive session. Flow never uses one: every agent Flow starts sees only what its prompt gives it.
 
+#### `deny`: the 2 commands that undo Flow
+
+```json
+"deny": ["Bash(flow restore machine:*)", "Bash(flow uninstall:*)"]
+```
+
+`flow restore machine`, `flow restore project` and `flow uninstall` put your machine back as it was before Flow, which means deleting files that have no other copy. Each is denied under both typed names, `flow` and `fw`, and under the path form `node ~/.flow/scripts/flow/flow.js`.
+
+This is the 4th of 4 locks, and the weakest: a prefix rule cannot name every way a path can be written. The other 3 do not depend on it. The command refuses while any Claude Code or Codex session is running, it reads its confirming word from `/dev/tty` rather than from its input, and it takes no flag that skips the question. An agent fails the first 2 on its own, `!` inside a session included. [Reference](reference.md#flow-restore-machine-and-flow-restore-project) covers all 4.
+
+`flow restore ls` is left allowed. It prints what has been recorded and changes nothing.
+
 #### `deny`: no git entries, and why
 
 **No `Bash(git …)` rule appears in `home/settings.json`, and adding one would break the switch.** `guard.js` decides every git command instead.
@@ -311,16 +327,22 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 
 **`sandbox`.** Claude Code's bubblewrap jail was considered and rejected. It is a genuine OS-level boundary at zero token cost, and it remains the right answer for unattended runs, but it needs `socat` installed, blocks Windows binaries under WSL2, and adds a second boundary to reason about.
 
-## Flow's settings file
+## Flow's settings files
 
-`~/.flow/settings.json` holds what Flow reads and Claude Code never does. Every key sits at the top level:
+`~/.flow/settings.json` and `~/.flow/settings.local.json` hold what Flow reads and Claude Code never does. Every key sits at the top level, and Flow reads the 2 files as one with the local file winning:
+
+```json
+{ "git": { "mode": "allow", "until": "2026-09-14T15:00:00.000Z", "session": "<session id>" } }
+```
 
 ```json
 {
-  "git": { "mode": "allow", "until": "2026-09-14T15:00:00.000Z", "session": "<session id>" },
-  "domainSkills": "~/code/domain-skills/skills"
+  "domainSkills": "~/code/domain-skills/skills",
+  "clone": "/home/me/code/flow"
 }
 ```
+
+**Which file a key goes in is decided by one question: would the value still be true on your other machine?** `~/.flow/` is one git repository shared between your machines, so `settings.json` travels and `settings.local.json` is the part git ignores. A path is never true on both machines, so every path lives in the local file.
 
 A change applies on the next command, with nothing to restart.
 
@@ -347,3 +369,15 @@ The path to the `skills/` folder in your clone of the domain-skills repository. 
 ```
 
 `flow domain-skills` reads it. `flow private-skills` reads it too, to refuse a private skill named like a domain skill. Without it, or with a path that does not exist, every action refuses and names the fix. [Reference](reference.md#flow-domain-skills) covers the commands.
+
+---
+
+### `clone`
+
+The path to your Flow clone. `flow install` writes it on every run, so a clone you move is corrected by installing again:
+
+```json
+"clone": "/home/me/code/flow"
+```
+
+It exists for everything that has to name a file in the clone rather than run a command from it. `/flow:help` reads `<clone>/docs/manual/README.md` through it. Nothing else records where the clone sits: every other route in is a symlink, and a symlink cannot be read backwards.

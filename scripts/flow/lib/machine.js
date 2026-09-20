@@ -21,17 +21,42 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { FlowError } = require('./error');
 
-/** The 4 folders, under `root` or under the home folder. */
+/**
+ * The 4 folders, under `root` or under the home folder.
+ *
+ * FLOW_HOME moves the last one on its own, the way `lib/settings.js` reads it,
+ * so a test can point Flow's own folder somewhere else without moving the 3
+ * the harnesses read. `--root` wins over it: that flag exists to put a whole
+ * machine in one place.
+ */
 function folders(root) {
   const base = path.resolve(root || os.homedir());
+  const flow = !root && process.env.FLOW_HOME ? path.resolve(process.env.FLOW_HOME) : path.join(base, '.flow');
   return {
     base,
     agents: path.join(base, '.agents'),
     claude: path.join(base, '.claude'),
     codex: path.join(base, '.codex'),
-    flow: path.join(base, '.flow'),
+    flow,
   };
+}
+
+/**
+ * Refuse every command on a machine where /flow:setup-machine never finished.
+ *
+ * `~/.flow/version` is written by the last step of a setup or a migration, so
+ * its absence means the run never reached the end. Nothing else can catch this:
+ * Flow's hooks reach ~/.claude/settings.json only when that skill merges them,
+ * so before it runs there is no hook to fire and no rule file loaded. The
+ * commands that put Flow on a machine or take it off say `anywhere: true` and
+ * skip it.
+ */
+function requireSetup(root) {
+  const at = folders(root);
+  if (fs.existsSync(path.join(at.flow, 'version'))) return;
+  throw new FlowError('Flow is not set up on this machine. Restart Claude Code and type /flow:setup-machine.');
 }
 
 /**
@@ -52,4 +77,4 @@ const shorten = (p) => (p === os.homedir() || p.startsWith(os.homedir() + path.s
   ? '~' + p.slice(os.homedir().length)
   : p);
 
-module.exports = { folders, importLine, shorten };
+module.exports = { folders, importLine, requireSetup, shorten };

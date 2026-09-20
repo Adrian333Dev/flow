@@ -1,7 +1,8 @@
 'use strict';
 /**
- * `apply-migration.js` and `flow snapshot`: a migration changes only what it
- * names, copies each path before changing it, and restores to the byte.
+ * `apply-migration.js` and `flow restore`: a migration changes only what it
+ * names, the first setup of a place records what was there before, and putting
+ * that original back lands on the byte.
  *
  * Every run here targets a scratch root standing in for `~`. A test that
  * reached the real home folder would rewrite this machine.
@@ -13,7 +14,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { project, write, run } = require('./helpers/scratch');
-const { stamp, place } = require('../flow/lib/snapshots');
+const folders = require('../flow/lib/machine').folders;
+const originals = require('../flow/lib/originals');
 
 const read = (p) => fs.readFileSync(p, 'utf8');
 const exists = (p) => {
@@ -32,8 +34,8 @@ function flowAt(dir, root, args, env = {}) {
 
 const applyAt = (dir, root, id) => run('apply-migration.js', [id, '--root', root], { cwd: dir });
 
-/** The snapshot id a run or a restore printed in its restore command. */
-const snapshotIn = (text) => text.match(/flow snapshot restore ([\w/-]+)/)[1];
+/** One place's original, as the manifest on disk. */
+const original = (root, proj = null) => originals.read(folders(root), proj);
 
 /**
  * A migration folder holding migration.md and the files it writes under
@@ -41,7 +43,7 @@ const snapshotIn = (text) => text.match(/flow snapshot restore ([\w/-]+)/)[1];
  * is `machine` or a project's folder name. Returns its id.
  */
 function migration(root, where, text, files = {}, when = new Date()) {
-  const id = `${where}/${stamp(when, '-')}`;
+  const id = `${where}/${originals.stamp(when, '-')}`;
   const dir = path.join(root, '.flow', 'migrations', id);
   write(dir, 'migration.md', text);
   for (const [p, body] of Object.entries(files)) write(dir, path.join('files', p), body);
@@ -59,8 +61,8 @@ function machine(root) {
   fs.symlinkSync('/old/clone/flow.js', path.join(root, '.local', 'bin', 'flow'));
 }
 
-test('a migration changes what it names, and restore puts every path back', () => {
-  const dir = project('snapshot-machine');
+test('the first setup writes the original, and restoring it puts every path back', () => {
+  const dir = project('original-machine');
   const root = path.join(dir, 'root');
   machine(root);
   const bin = path.join(root, '.local', 'bin', 'flow');
@@ -86,6 +88,7 @@ test('a migration changes what it names, and restore puts every path back', () =
 
   const applied = applyAt(dir, root, id);
   assert.strictEqual(applied.code, 0, applied.stderr);
+  assert.match(applied.stdout, /Put this machine back with flow restore machine$/m);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
   assert.strictEqual(read(path.join(root, '.claude/rules/one.md')), 'rule one\n');
   assert.ok(!exists(path.join(root, '.claude/projects/-p/memory')), 'the memory folder is gone');
@@ -93,10 +96,8 @@ test('a migration changes what it names, and restore puts every path back', () =
   assert.strictEqual(read(path.join(root, '.claude/settings.json')), 'new', 'the command ran from the root');
   assert.strictEqual(fs.readlinkSync(bin), '/new/clone/flow.js');
 
-  const snap = snapshotIn(applied.stdout);
-  assert.match(snap, /^machine\//, 'a machine migration snapshots into machine/');
-  const manifest = JSON.parse(read(path.join(root, '.flow', 'snapshots', snap, 'manifest.json')));
-  assert.strictEqual(manifest.migration, id);
+  const manifest = original(root);
+  assert.strictEqual(manifest.closed, true, 'a setup shuts the window on its way out');
   assert.deepStrictEqual(manifest.entries.map((e) => [path.relative(root, e.path), e.type]), [
     ['.agents/AGENTS.md', 'file'],
     ['.claude/rules', 'absent'],
@@ -107,14 +108,20 @@ test('a migration changes what it names, and restore puts every path back', () =
     ['.local/bin/flow', 'link'],
   ]);
   assert.strictEqual(manifest.entries[6].target, '/old/clone/flow.js', 'a link is a row, never a copy');
-  assert.strictEqual(manifest.applied, 6);
-  assert.strictEqual(read(path.join(root, '.flow', 'snapshots', snap, 'files', root, '.agents/AGENTS.md')), 'old rules\n', 'a snapshot holds only the copy from before');
+  const files = path.join(root, '.flow', 'originals', 'machine', 'files');
+  assert.strictEqual(read(path.join(files, root, '.agents/AGENTS.md')), 'old rules\n', 'the original holds only what was there before');
 
   const again = applyAt(dir, root, id);
   assert.match(again.stderr, /is already applied/, 'an applied migration refuses a second apply');
 
-  const restored = flowAt(dir, root, ['snapshot', 'restore', snap]);
-  assert.strictEqual(restored.code, 0, restored.stderr);
+  // Every later migration changes paths and records nothing: the window shut.
+  // A folder name keeps whole seconds, so this one takes the next one along.
+  const later = migration(root, 'machine', '---\ntype: migrate\n---\n- delete ~/.claude/archive/: tidied away\n', {}, new Date(Date.now() + 2000));
+  assert.strictEqual(applyAt(dir, root, later).code, 0);
+  assert.ok(!exists(path.join(root, '.claude/archive')));
+  assert.strictEqual(original(root).entries.length, 7, 'the original never grows after the first setup');
+
+  originals.restore(folders(root), null);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n');
   assert.ok(!exists(path.join(root, '.claude/rules')), 'what the migration created is removed');
   assert.strictEqual(read(path.join(root, '.claude/projects/-p/memory/b.md')), 'memory b\n');
@@ -123,22 +130,14 @@ test('a migration changes what it names, and restore puts every path back', () =
   assert.strictEqual(read(path.join(root, '.claude/settings.json')), '{"old": true}\n');
   assert.strictEqual(fs.readlinkSync(bin), '/old/clone/flow.js');
 
-  // The restore took its own snapshot, so undoing it brings the migration back.
-  const undoId = snapshotIn(restored.stdout);
-  const redo = flowAt(dir, root, ['snapshot', 'restore', undoId]);
-  assert.strictEqual(redo.code, 0, redo.stderr);
-  assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
-  assert.strictEqual(fs.readlinkSync(bin), '/new/clone/flow.js');
-  const redoId = snapshotIn(redo.stdout);
-
-  const listed = flowAt(dir, root, ['snapshot', 'ls', '--all']).stdout.trim().split('\n');
-  assert.deepStrictEqual(listed.map((l) => l.split(' ')[0]), [redoId, undoId, snap], 'newest first');
-  assert.match(listed[2], new RegExp(`^${snap}\\s+setup-machine\\s+machine\\s+migration ${id}, applied, restored by ${undoId}$`));
-  assert.match(listed[1], new RegExp(`^${undoId}\\s+restore\\s+machine\\s+undoes ${snap}, restored by ${redoId}$`));
+  // The original survives a restore, so the same restore runs again.
+  write(root, '.agents/AGENTS.md', 'changed after the restore\n');
+  originals.restore(folders(root), null);
+  assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n', 'a second restore lands in the same state');
 });
 
 test('a migration with one bad line changes nothing', () => {
-  const dir = project('snapshot-refusals');
+  const dir = project('original-refusals');
   const root = path.join(dir, 'root');
   machine(root);
   const attempt = (where, text, files) => applyAt(dir, root, migration(root, where, text, files));
@@ -164,12 +163,12 @@ test('a migration with one bad line changes nothing', () => {
   const untimed = applyAt(dir, root, 'machine/latest');
   assert.match(untimed.stderr, /named for the time it was written/);
 
-  assert.ok(!exists(path.join(root, '.flow/snapshots')), 'no refusal took a snapshot');
+  assert.ok(!exists(path.join(root, '.flow/originals')), 'no refusal opened an original');
   assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n');
 });
 
 test('a file changed after the migration was written refuses the whole migration', () => {
-  const dir = project('snapshot-out-of-date');
+  const dir = project('original-out-of-date');
   const root = path.join(dir, 'root');
   machine(root);
 
@@ -198,17 +197,17 @@ test('a file changed after the migration was written refuses the whole migration
   ], 'every file inside a folder counts; a move, a run and a link do not');
   assert.match(stale.stderr, /^apply-migration: 3 files changed after machine\/\S+ was written, so nothing ran:/);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n');
-  assert.ok(!exists(path.join(root, '.flow/snapshots')));
+  assert.ok(!exists(path.join(root, '.flow/originals')));
 });
 
-test('a migration that stops part-way restores what ran, or carries on after a fix', () => {
-  const dir = project('snapshot-stopped');
+test('a project setup opens its own original, stops part-way, and carries on after a fix', () => {
+  const dir = project('original-stopped');
   const root = path.join(dir, 'root');
   const proj = path.join(root, 'code', 'app');
   write(proj, 'CLAUDE.md', 'old project rules\n');
   write(proj, 'docs/work/one.md', 'one\n');
 
-  const where = place(proj);
+  const where = originals.place(proj);
   assert.match(where, /^[^-].*-root-code-app$/, 'a project folder is its path, with no leading dash');
   const id = migration(root, where, [
     '---', 'type: setup-project', 'project: ~/code/app', '---',
@@ -221,64 +220,80 @@ test('a migration that stops part-way restores what ran, or carries on after a f
   const first = applyAt(dir, root, id);
   assert.notStrictEqual(first.code, 0);
   assert.match(first.stderr, /stopped at line 2 of 3/);
+  assert.match(first.stderr, new RegExp(`Carry on after a fix: apply-migration.js ${id}`));
   assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), '@AGENTS.md\n', 'line 1 ran');
   assert.ok(exists(path.join(proj, 'docs/work/one.md')), 'line 3 did not');
-  const snap = snapshotIn(first.stderr);
-  assert.ok(snap.startsWith(`${where}/`), 'the snapshot sits in the same folder name as the migration');
 
-  const inside = flowAt(dir, root, ['snapshot', 'ls'], { FLOW_PROJECT: proj });
-  assert.match(inside.stdout, new RegExp(`^${snap}\\s+setup-project\\s+\\S*code/app\\s+migration ${id}, stopped after line 1 of 3$`, 'm'));
+  const stopped = original(root, proj);
+  assert.strictEqual(stopped.closed, false, 'a run that stopped leaves the window open');
+  assert.strictEqual(stopped.project, proj);
 
   fs.writeFileSync(path.join(proj, 'ready'), '');
   const second = applyAt(dir, root, id);
   assert.strictEqual(second.code, 0, second.stderr);
-  assert.strictEqual(snapshotIn(second.stdout), snap, 'the rerun carried on in the same snapshot');
   assert.strictEqual(read(path.join(proj, '.flow/tickets/one.md')), 'one\n');
 
-  const back = flowAt(dir, root, ['snapshot', 'restore', snap]);
-  assert.strictEqual(back.code, 0, back.stderr);
+  const done = original(root, proj);
+  assert.strictEqual(done.closed, true);
+  assert.deepStrictEqual(done.entries.map((e) => [path.relative(proj, e.path), e.type]), [
+    ['CLAUDE.md', 'file'],
+    ['docs/work', 'folder'],
+    ['.flow', 'absent'],
+  ]);
+
+  originals.restore(folders(root), proj);
   assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), 'old project rules\n');
   assert.strictEqual(read(path.join(proj, 'docs/work/one.md')), 'one\n');
-  assert.ok(!exists(path.join(proj, '.flow')));
-  assert.ok(snapshotIn(back.stdout).startsWith(`${where}/`), 'the restore sits beside the snapshot it restores');
+  assert.ok(!exists(path.join(proj, '.flow')), "restoring a project's original takes its whole .flow/");
 
   const after = applyAt(dir, root, id);
-  assert.match(after.stderr, /was applied in \S+, then restored by \S+\. Apply it again with flow snapshot restore /);
+  assert.match(after.stderr, /is already applied/);
 });
 
-test('an edited migration refuses to carry on, a restored one starts over, and ls inside a project shows its own', () => {
-  const dir = project('snapshot-edited');
+test('an edited migration refuses to carry on', () => {
+  const dir = project('original-edited');
   const root = path.join(dir, 'root');
   machine(root);
-  const proj = path.join(root, 'code', 'app');
-  write(proj, 'CLAUDE.md', 'rules\n');
 
   const text = '---\ntype: migrate\n---\n- delete ~/.claude/notes.md: x\n- run false: writes nothing\n';
   const id = migration(root, 'machine', text);
   const stopped = applyAt(dir, root, id);
   assert.notStrictEqual(stopped.code, 0);
-  const snap = snapshotIn(stopped.stderr);
+  assert.ok(!exists(path.join(root, '.claude/notes.md')), 'line 1 ran');
 
   const file = path.join(root, '.flow', 'migrations', id, 'migration.md');
   fs.writeFileSync(file, text.replace('- run false: writes nothing\n', ''));
   const edited = applyAt(dir, root, id);
-  assert.match(edited.stderr, /migration.md changed after/);
+  assert.match(edited.stderr, /migration.md changed after line 1 of it ran/);
 
-  // The restore puts notes.md back with its old time, so the migration is
-  // not out of date, and the run starts over in a new snapshot.
-  assert.strictEqual(flowAt(dir, root, ['snapshot', 'restore', snap]).code, 0);
-  const fresh = applyAt(dir, root, id);
-  assert.strictEqual(fresh.code, 0, fresh.stderr);
-  assert.notStrictEqual(snapshotIn(fresh.stdout), snap);
-  assert.ok(!exists(path.join(root, '.claude/notes.md')));
+  fs.writeFileSync(file, text);
+  const carried = applyAt(dir, root, id);
+  assert.match(carried.stderr, /stopped at line 2 of 2/, 'put back as it was, it carries on from where it stopped');
+});
 
-  const projectRun = applyAt(dir, root, migration(root, place(proj), '---\ntype: migrate\nproject: ~/code/app\n---\n- delete CLAUDE.md: x\n'));
-  assert.strictEqual(projectRun.code, 0, projectRun.stderr);
-  const inside = flowAt(dir, root, ['snapshot'], { FLOW_PROJECT: proj });
-  assert.match(inside.stdout, /\s+migrate\s+\S+code\/app\s+migration \S+, applied$/m);
-  assert.doesNotMatch(inside.stdout, /^machine\//m, 'the machine runs are left out');
+test('flow restore lists the originals, and refuses to put one back unasked', () => {
+  const dir = project('original-locks');
+  const root = path.join(dir, 'root');
+  machine(root);
 
-  const all = flowAt(dir, root, ['snapshot', 'ls', '--all'], { FLOW_PROJECT: proj });
-  assert.match(all.stdout, new RegExp(`^${snap}\\s+migrate\\s+machine\\s+migration ${id}, stopped after line 1 of 2, restored by `, 'm'));
-  assert.strictEqual(all.stdout.trim().split('\n').length, 4, '2 machine runs, the restore and the project run');
+  const empty = flowAt(dir, root, ['restore', 'ls']);
+  assert.strictEqual(empty.code, 0, empty.stderr);
+  assert.match(empty.stdout, /^no original\./);
+
+  const id = migration(root, 'machine', '---\ntype: setup-machine\n---\n- delete ~/.claude/notes.md: x\n');
+  assert.strictEqual(applyAt(dir, root, id).code, 0);
+
+  const listed = flowAt(dir, root, ['restore', 'ls']);
+  assert.match(listed.stdout, /^machine {2}1 paths {2}written \d{4}-\d\d-\d\dT\S+ {2}closed$/m);
+
+  // Lock 1 refuses while a session is running, lock 2 where no terminal is
+  // attached. A test process has no terminal, so one of the two always fires,
+  // and neither ever reaches the files.
+  const refused = flowAt(dir, root, ['restore', 'machine']);
+  assert.notStrictEqual(refused.code, 0);
+  assert.match(refused.stderr, /^flow: (Close these sessions first: |Run this in a terminal, and type restore when it asks\.)/);
+  assert.ok(!exists(path.join(root, '.claude/notes.md')), 'nothing was put back');
+
+  const missing = flowAt(dir, root, ['restore', 'project'], { FLOW_PROJECT: path.join(root, 'code', 'app') });
+  assert.notStrictEqual(missing.code, 0);
 });

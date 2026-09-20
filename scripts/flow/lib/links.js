@@ -65,6 +65,38 @@ function pruneDead(dir, clone) {
   return gone;
 }
 
+/**
+ * Drop links into `clone` whose name is not one Flow still uses, left behind by
+ * a renamed or a retired command.
+ *
+ * `pruneDead` cannot catch one of these: the old name still points at a file
+ * that is still there, so it still runs, and it runs whatever the new name now
+ * does. Only a link into `clone` goes, so a name another installer put in the
+ * same folder is left where it is.
+ */
+function pruneUnlisted(dir, clone, keep) {
+  const gone = [];
+  let entries;
+  try {
+    entries = fs.readdirSync(dir);
+  } catch {
+    return gone;
+  }
+  for (const name of entries) {
+    if (keep.includes(name)) continue;
+    const full = path.join(dir, name);
+    try {
+      if (!fs.lstatSync(full).isSymbolicLink()) continue;
+      if (!fs.readlinkSync(full).startsWith(clone + path.sep)) continue;
+    } catch {
+      continue;
+    }
+    fs.unlinkSync(full);
+    gone.push(name);
+  }
+  return gone;
+}
+
 /** Every `*.md` in a folder, sorted: how commands and agents are named. */
 function markdownFiles(dir) {
   try {
@@ -74,4 +106,4 @@ function markdownFiles(dir) {
   }
 }
 
-module.exports = { link, pruneDead, markdownFiles };
+module.exports = { link, pruneDead, pruneUnlisted, markdownFiles };

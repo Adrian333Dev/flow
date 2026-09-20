@@ -79,8 +79,16 @@ function parseArgs(argv, decl = {}) {
 
 function runAction(action, argv, usage, extra) {
   const { positional, flags } = parseArgs(argv, { ...action, usage });
+  if (before) before(action, flags);
   return action.run({ positional, flags, usage, ...extra });
 }
+
+/**
+ * Checked once per run, between the flags and the action, so a check that
+ * needs `--root` sees it. `dispatch` sets it and the tool decides what it
+ * does: flow refuses a machine /flow:setup-machine never finished.
+ */
+let before = null;
 
 /**
  * The first word is the command. Almost every one of them acts on a ticket, so
@@ -93,7 +101,8 @@ function runAction(action, argv, usage, extra) {
  * down: a word naming no action is that action's argument, which is what makes
  * `flow overlays debug` reach `flow overlays get debug`.
  */
-function dispatch(argv, { commands, groups, fallback, sections, title, notes }) {
+function dispatch(argv, { commands, groups, fallback, sections, title, notes, check }) {
+  before = check || null;
   if (!argv.length || HELP_WORDS.includes(argv[0])) {
     out(help({ commands, groups, sections, title, notes }));
     return 0;

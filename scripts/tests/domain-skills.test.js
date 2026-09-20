@@ -24,7 +24,7 @@ function setup(name) {
     '---\nname: postgres\ndescription: Postgres indexes, query plans and migrations.\n---\n');
   write(dir, 'flow-home/settings.json', JSON.stringify({ domainSkills: repo }));
   const root = path.join(dir, 'project');
-  fs.mkdirSync(root);
+  fs.mkdirSync(path.join(root, '.flow'), { recursive: true });
   const flow = (args) => run('flow/flow.js', ['domain-skills', ...args], {
     cwd: root,
     env: { ...process.env, FLOW_PROJECT: root, FLOW_HOME: path.join(dir, 'flow-home') },

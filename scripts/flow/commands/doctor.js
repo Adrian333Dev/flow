@@ -30,9 +30,12 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { out } = require('../lib/cli');
 const { cloneRoot } = require('../lib/clone');
+const installed = require('../lib/installed');
 const { markdownFiles } = require('../lib/links');
 const machine = require('../lib/machine');
+const originals = require('../lib/originals');
 const render = require('../lib/render');
+const { projectRoot } = require('../lib/root');
 const skills = require('../lib/skills');
 
 /**
@@ -48,9 +51,6 @@ const UTIL_COMMANDS = [
   { name: 'fs merge', callers: 'home/AGENTS.md, audit/files.js, audit/store.js' },
   { name: 'fs open', callers: 'flow get --files, through tickets.js' },
 ];
-
-/** Typed names Flow puts in ~/.local/bin, against the file each one points at. */
-const FLOW_BIN = { flow: path.join('scripts', 'flow', 'flow.js'), fw: path.join('scripts', 'flow', 'flow.js') };
 
 /** Typed names util puts there. Their target is util's clone, which Flow never knows. */
 const UTIL_BIN = ['util', 'u'];
@@ -78,10 +78,12 @@ function inspect(p) {
 }
 
 /**
- * Each wanted link, checked against its target: `{ at, target, what }`.
+ * Each wanted link, checked against its target: `{ at, target, what, fix }`.
  *
  * The target is compared after resolving both sides, so a clone reached
- * through a linked folder still counts as this clone.
+ * through a linked folder still counts as this clone. `fix` names the command
+ * that makes the link, and only a link `flow install` does not make has to say
+ * so.
  */
 function checkLinks(wanted) {
   const problems = [];
@@ -94,10 +96,11 @@ function checkLinks(wanted) {
   };
   for (const item of wanted) {
     const found = inspect(item.at);
-    if (found.state === 'missing') problems.push(`${item.what} is not linked: run flow install`);
+    const fix = item.fix || 'run flow install';
+    if (found.state === 'missing') problems.push(`${item.what} is not linked: ${fix}`);
     else if (found.state === 'real') problems.push(`${item.what} is a real file, not a link: Flow never wrote it`);
-    else if (found.state === 'broken') problems.push(`${item.what} points at ${found.raw}, which is gone: run flow install`);
-    else if (found.target !== real(item.target)) problems.push(`${item.what} points at ${found.target}, not ${shorten(item.target)}: run flow install`);
+    else if (found.state === 'broken') problems.push(`${item.what} points at ${found.raw}, which is gone: ${fix}`);
+    else if (found.target !== real(item.target)) problems.push(`${item.what} points at ${found.target}, not ${shorten(item.target)}: ${fix}`);
   }
   return problems;
 }
@@ -167,7 +170,7 @@ function checkNames(clone, { bin }) {
     if (!dirs.includes(path.resolve(bin))) {
       problems.push(`${bin} is not on PATH, so every name below is unreachable however it is linked`);
     }
-    for (const [name, file] of Object.entries(FLOW_BIN)) {
+    for (const [name, file] of Object.entries(installed.BIN)) {
       const found = inspect(path.join(bin, name));
       const wanted = path.join(clone, file);
       if (found.state === 'missing') problems.push(`${name} is not linked: run flow install`);
@@ -286,7 +289,7 @@ function checkAgents(at, catalog) {
 
   const rules = path.join(at.agents, 'AGENTS.md');
   if (!fs.existsSync(rules)) {
-    problems.push(`${shorten(rules)} is missing: run flow install, which copies the template when there is none`);
+    problems.push(`${shorten(rules)} is missing: type /flow:setup-machine, which writes it after the interview`);
   } else if (fs.readFileSync(rules, 'utf8').includes('<!-- e.g.')) {
     // A note rather than a problem. The file is a copy and is meant to diverge,
     // so a placeholder left in it means one section was never filled, which is
@@ -323,7 +326,7 @@ function checkClaude(clone, at) {
   try {
     text = fs.readFileSync(file, 'utf8');
   } catch {
-    problems.push(`CLAUDE.md is missing, so Claude Code loads no rules: run flow install`);
+    problems.push(`CLAUDE.md is missing, so Claude Code loads no rules: type /flow:setup-machine`);
   }
   if (text !== null && !text.split('\n').some((l) => l.trim() === line)) {
     problems.push(`CLAUDE.md does not import the rules, so Claude Code never reads them: add the line ${line}`);
@@ -345,7 +348,12 @@ function checkClaude(clone, at) {
  */
 function checkCodex(at) {
   const problems = checkLinks([
-    { at: path.join(at.codex, 'AGENTS.md'), target: path.join(at.agents, 'AGENTS.md'), what: 'AGENTS.md' },
+    {
+      at: path.join(at.codex, 'AGENTS.md'),
+      target: path.join(at.agents, 'AGENTS.md'),
+      what: 'AGENTS.md',
+      fix: 'type /flow:setup-machine',
+    },
   ]);
   const override = path.join(at.codex, 'AGENTS.override.md');
   if (fs.existsSync(override) && fs.readFileSync(override, 'utf8').trim() !== '') {
@@ -355,11 +363,11 @@ function checkCodex(at) {
 }
 
 /**
- * settings.json: the one install step `flow install` refuses to do for you.
+ * settings.json: the one file Flow shares rather than owns.
  *
- * It is merged by hand, into a file already holding your model, your plugins
- * and your effort level, so a half-finished merge is the likeliest state on
- * this whole page.
+ * `/flow:setup-machine` merges Flow's keys into it, key by key, because it
+ * already holds your model, your plugins and your effort level. A merge that
+ * stopped half way is the likeliest state on this whole page.
  */
 function checkSettings(clone, claude, catalog) {
   const problems = [];
@@ -368,8 +376,13 @@ function checkSettings(clone, claude, catalog) {
   try {
     live = JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch (e) {
-    const why = e.code === 'ENOENT' ? 'does not exist' : `does not parse: ${e.message}`;
-    return { name: 'settings.json', problems: [`${file} ${why}: merge ${path.join(clone, 'home', 'settings.json')} into it`] };
+    const why = e.code === 'ENOENT'
+      ? "does not exist, so none of Flow's hooks run"
+      : `does not parse: ${e.message}`;
+    return {
+      name: 'settings.json',
+      problems: [`${file} ${why}: type /flow:setup-machine, which merges ${path.join(clone, 'home', 'settings.json')} into it`],
+    };
   }
 
   const template = JSON.parse(fs.readFileSync(path.join(clone, 'home', 'settings.json'), 'utf8'));
@@ -380,7 +393,7 @@ function checkSettings(clone, claude, catalog) {
     const match = installed.find((h) => h.event === row.event && h.matcher === row.matcher &&
       h.script && path.basename(h.script) === path.basename(row.script));
     if (!match) {
-      problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: merge it from the template`);
+      problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: type /flow:setup-machine, which merges it in`);
       continue;
     }
     const resolved = expandHome(match.script);
@@ -452,12 +465,90 @@ function checkTests(clone, { bin }) {
   return { name: 'tests', problems, summary: `${ran.join(' and ')} suites pass` };
 }
 
+/**
+ * The record of this machine as it was before Flow, which is the whole of what
+ * `flow restore machine` and `flow uninstall` put back.
+ *
+ * Every line here is a note rather than a problem. A machine with no original
+ * works exactly as well as one with it, and nothing can write the original now:
+ * the paths it would copy are Flow's own. It changes one thing, and that thing
+ * only happens on the way out.
+ */
+function checkOriginals(at) {
+  const notes = [];
+  const mine = originals.read(at);
+  if (!mine) {
+    notes.push('this machine has no original, so flow restore machine has nothing to put back ' +
+      'and flow uninstall removes Flow\'s own paths instead of restoring them');
+  } else if (!mine.closed) {
+    notes.push('the machine\'s original is still open, so /flow:setup-machine has not run to the end. ' +
+      'It closes the original on its way out');
+  }
+
+  const projects = originals.list(at).filter((row) => row.manifest.project);
+  for (const row of projects) {
+    if (!fs.existsSync(row.manifest.project)) {
+      notes.push(`the original of ${shorten(row.manifest.project)} names a folder that is gone, so nothing in it can be put back`);
+    }
+  }
+
+  const summary = mine
+    ? `${count(mine.entries.length, 'path', 'paths')} recorded before Flow, ${mine.closed ? 'closed' : 'still open'}` +
+      (projects.length ? `, and ${count(projects.length, 'project', 'projects')} beside it` : '')
+    : 'nothing recorded';
+  return { name: 'originals', problems: [], notes, summary };
+}
+
+/**
+ * The skills this project lists against the links it has, or null outside a
+ * project.
+ *
+ * git commits the 2 lists and ignores the links, because a link holds this
+ * machine's path. So a fresh clone, a new worktree and a second machine each
+ * start with every name listed and no link at all, and `flow domain-skills
+ * add` with no name puts them back. A note rather than a problem: a project
+ * nobody has run that command in yet is not broken.
+ */
+function checkProjectSkills() {
+  let root;
+  try {
+    root = projectRoot();
+  } catch {
+    return null;
+  }
+
+  const notes = [];
+  const linked = [];
+  for (const [file, command] of [['domain-skills.txt', 'flow domain-skills add'], ['private-skills.txt', 'flow private-skills add']]) {
+    let names = [];
+    try {
+      names = fs.readFileSync(path.join(root, '.flow', file), 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
+    } catch {
+      continue;
+    }
+    for (const name of names) {
+      // existsSync follows the link, so a link into a clone that moved reads
+      // as missing here, which is the same fix.
+      if (fs.existsSync(path.join(root, '.claude', 'skills', name))) linked.push(name);
+      else notes.push(`.flow/${file} names ${name}, which is not linked in this project: run ${command}`);
+    }
+  }
+
+  return {
+    name: `${path.basename(root)}, the skills it lists`,
+    problems: [],
+    notes,
+    summary: linked.length ? `${count(linked.length, 'skill', 'skills')} listed and linked: ${linked.join(', ')}` : 'no skills listed',
+  };
+}
+
 // ---- the command ------------------------------------------------------------
 
 const actions = {};
 
 actions.doctor = {
   section: 'setup',
+  anywhere: true,
   summary: 'verify this machine: links, PATH, util, hooks, both suites',
   flags: {
     root: { arg: '<dir>' },
@@ -490,10 +581,12 @@ actions.doctor = {
       checkCodex(at),
       checkSettings(clone, at.claude, catalog),
       checkFlowHome(clone, at.flow),
+      checkOriginals(at),
+      checkProjectSkills(),
       flags['no-tests']
         ? { name: 'tests', skipped: '--no-tests' }
         : checkTests(clone, { bin }),
-    ];
+    ].filter(Boolean);
 
     out(render.doctorReport(checks));
     return checks.some((c) => c.problems && c.problems.length) ? 1 : 0;

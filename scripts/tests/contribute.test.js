@@ -52,6 +52,7 @@ function setup(name, { push = false, skills = 'react,postgres' } = {}) {
       ...process.env,
       PATH: `${bin}${path.delimiter}${process.env.PATH}`,
       FLOW_PROJECT: root,
+      FLOW_HOME: path.join(dir, 'flow-home'),
       FAKE_GH_LOG: log,
       FAKE_GH_PUSH: push ? 'yes' : 'no',
       FAKE_GH_SKILLS: skills,

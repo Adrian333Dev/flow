@@ -2,8 +2,10 @@
 /**
  * `flow install`: what installs, and where each piece lands.
  *
- * Every install here targets a scratch root and passes --no-bin. A test that
- * wrote into the real home folder would install Flow on the machine running it.
+ * Every install here targets a scratch root. A test that reached the real home
+ * folder would install Flow on the machine running it. Most pass --no-bin too;
+ * the one test of the typed names leaves it off, and those names land in the
+ * scratch root's own .local/bin.
  */
 
 const { test } = require('node:test');
@@ -85,25 +87,85 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.ok(!fs.existsSync(path.join(at.claude, 'scripts')), 'scripts never land under ~/.claude');
   assert.ok(!fs.existsSync(path.join(at.claude, 'commands')), 'nothing links a commands folder any more');
 
-  // One real rule file, reached two ways.
-  const rules = path.join(at.agents, 'AGENTS.md');
-  assert.strictEqual(fs.readFileSync(rules, 'utf8'), fs.readFileSync(path.join(REPO, 'home', 'AGENTS.md'), 'utf8'));
-  assert.strictEqual(fs.readFileSync(path.join(at.claude, 'CLAUDE.md'), 'utf8'), `@${rules}\n`,
-    'a scratch root gets the full path, since ~ would reach the real home folder');
-  assert.strictEqual(linkTarget(path.join(at.codex, 'AGENTS.md')), rules);
-  assert.match(first.stdout, /merge/, 'settings are left for a human to merge');
+  // The rule file and both ways in to it are /flow:setup-machine's, written
+  // after its interview. Install leaves all 3 alone and says which command
+  // finishes the machine.
+  assert.ok(!fs.existsSync(path.join(at.agents, 'AGENTS.md')), 'no rule file yet');
+  assert.ok(!fs.existsSync(path.join(at.claude, 'CLAUDE.md')), 'no import line yet');
+  assert.ok(!fs.existsSync(at.codex), 'nothing under ~/.codex at all');
+  assert.match(first.stdout, /restart Claude Code, then type \/flow:setup-machine/);
+
+  // Where the clone sits, for everything that names a file in it by path. It
+  // goes in the local settings file, which stays on this machine.
+  assert.deepStrictEqual(
+    JSON.parse(fs.readFileSync(path.join(at.flowHome, 'settings.local.json'), 'utf8')),
+    { clone: REPO }
+  );
 
   // A skill renamed in the clone leaves a link pointing at nothing.
   fs.symlinkSync(path.join(REPO, 'skills', 'phases', 'write-tickets'), at.skill('write-tickets'));
-  fs.appendFileSync(rules, '\n## The user\n\nWrites by voice.\n');
 
   const second = flow(dir, ['install', '--root', root, '--no-bin']);
   assert.strictEqual(second.code, 0, second.stderr);
   assert.match(second.stdout, /unlinked \(gone\): .*\.agents\/skills\/flow\/skills\/write-tickets/);
   assert.ok(fs.existsSync(at.skill('groundwork')), 'still linked after a re-run');
-  assert.match(second.stdout, /kept: .*\.agents\/AGENTS\.md, yours/);
-  assert.match(fs.readFileSync(rules, 'utf8'), /Writes by voice/, 'the rule file is never overwritten');
-  assert.match(second.stdout, /kept: .*\.claude\/CLAUDE\.md, already importing/);
+});
+
+test('install writes the machine as it was before Flow, once', () => {
+  const dir = project('install-original');
+  const root = path.join(dir, 'root');
+  const at = paths(root);
+
+  // One path that was already there, so the original holds a real copy beside
+  // its absent entries.
+  fs.mkdirSync(path.join(at.claude, 'agents'), { recursive: true });
+  fs.writeFileSync(path.join(at.claude, 'agents', 'mine.md'), 'my own agent\n');
+
+  const first = flow(dir, ['install', '--root', root, '--no-bin']);
+  assert.strictEqual(first.code, 0, first.stderr);
+  assert.match(first.stdout, /wrote: .*originals\/machine, this machine as it was before Flow/);
+
+  const file = path.join(at.flowHome, 'originals', 'machine', 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+  assert.strictEqual(manifest.place, 'machine');
+  assert.strictEqual(manifest.project, null);
+  assert.strictEqual(manifest.closed, false, '/flow:setup-machine closes it, not install');
+
+  // ~/.agents did not exist, so the whole folder is recorded absent and a
+  // restore takes it away again. Nothing under ~/.flow is ever recorded.
+  const byPath = Object.fromEntries(manifest.entries.map((e) => [e.path, e.type]));
+  assert.strictEqual(byPath[at.agents], 'absent');
+  assert.strictEqual(byPath[path.join(at.claude, 'skills')], 'absent');
+  assert.strictEqual(byPath[at.codex], 'absent');
+  assert.ok(!Object.keys(byPath).some((p) => p.startsWith(at.flowHome)), 'nothing under ~/.flow/');
+
+  // The second run finds Flow's own links in place. Recording them would make
+  // Flow the state to go back to.
+  const second = flow(dir, ['install', '--root', root, '--no-bin']);
+  assert.strictEqual(second.code, 0, second.stderr);
+  assert.doesNotMatch(second.stdout, /this machine as it was before Flow/);
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(file, 'utf8')), manifest, 'nothing was added');
+});
+
+test('a name that has left the BIN map is unlinked, and another tool keeps its own', () => {
+  const dir = project('install-bin');
+  const root = path.join(dir, 'root');
+  const bin = path.join(root, '.local', 'bin');
+
+  assert.strictEqual(flow(dir, ['install', '--root', root]).code, 0);
+  assert.strictEqual(linkTarget(path.join(bin, 'flow')), path.join(REPO, 'scripts', 'flow', 'flow.js'));
+  assert.strictEqual(linkTarget(path.join(bin, 'fw')), path.join(REPO, 'scripts', 'flow', 'flow.js'));
+
+  // gsave left for util on 2026-08-30. Its link still resolved, so nothing
+  // ever noticed it.
+  fs.symlinkSync(path.join(REPO, 'scripts', 'flow', 'flow.js'), path.join(bin, 'gsave'));
+  fs.symlinkSync(path.join(dir, 'other-tool.js'), path.join(bin, 'other'));
+
+  const again = flow(dir, ['install', '--root', root]);
+  assert.match(again.stdout, /unlinked \(renamed\): .*bin\/gsave/);
+  assert.ok(!fs.existsSync(path.join(bin, 'gsave')), 'the stale name is gone');
+  assert.ok(fs.lstatSync(path.join(bin, 'other')).isSymbolicLink(), 'a link into anywhere else is left alone');
+  assert.ok(fs.existsSync(path.join(bin, 'flow')), 'the names still in the map stay');
 });
 
 test('the import line comes from home/CLAUDE.md, with ~ kept only for the real home folder', () => {
@@ -114,46 +176,38 @@ test('the import line comes from home/CLAUDE.md, with ~ kept only for the real h
   assert.strictEqual(machine.importLine(REPO, '/scratch/root'), '@/scratch/root/.agents/AGENTS.md');
 });
 
-test('install fills an empty CLAUDE.md and leaves a written one alone', () => {
+test('install never touches the rule file or either way in to it', () => {
   const dir = project('install-claude-md');
   const root = path.join(dir, 'root');
   const at = paths(root);
   const claudeRules = path.join(at.claude, 'CLAUDE.md');
-  const codexRules = path.join(at.codex, 'AGENTS.md');
 
-  // A fresh Claude Code install can leave an empty CLAUDE.md, and an empty
-  // file holds nothing to lose.
+  // Rules of the user's own, in the file /flow:setup-machine will later ask
+  // about. Install reads none of it and writes none of it.
   fs.mkdirSync(at.claude, { recursive: true });
-  fs.writeFileSync(claudeRules, '');
-  const empty = flow(dir, ['install', '--root', root, '--no-bin']);
-  assert.strictEqual(empty.code, 0, empty.stderr);
-  assert.strictEqual(fs.readFileSync(claudeRules, 'utf8'), `@${path.join(at.agents, 'AGENTS.md')}\n`);
-
-  // Rules written by hand, in either file, are never replaced. The output
-  // names what to move and where.
   fs.writeFileSync(claudeRules, 'My own rules.\n');
-  fs.unlinkSync(codexRules);
-  fs.writeFileSync(codexRules, 'Codex rules of my own.\n');
+
   const written = flow(dir, ['install', '--root', root, '--no-bin']);
   assert.strictEqual(written.code, 0, written.stderr);
   assert.strictEqual(fs.readFileSync(claudeRules, 'utf8'), 'My own rules.\n');
-  assert.strictEqual(fs.readFileSync(codexRules, 'utf8'), 'Codex rules of my own.\n');
-  assert.match(written.stdout, /CLAUDE\.md, yours, and it does not import/);
-  assert.match(written.stdout, /\.codex\/AGENTS\.md, yours, so Codex reads it instead/);
+  assert.ok(!fs.existsSync(path.join(at.agents, 'AGENTS.md')));
+  assert.ok(!fs.existsSync(at.codex));
 });
 
 test('install never reaches outside the root it was given', () => {
   const dir = project('install-scoped');
   const root = path.join(dir, 'root');
+  const before = fs.readdirSync(dir).sort();
   flow(dir, ['install', '--root', root, '--no-bin']);
 
-  assert.deepStrictEqual(fs.readdirSync(dir), ['root'], 'nothing lands beside the root');
-  assert.deepStrictEqual(fs.readdirSync(root).sort(), ['.agents', '.claude', '.codex', '.flow']);
+  assert.deepStrictEqual(fs.readdirSync(dir).sort(), [...before, 'root'].sort(), 'nothing lands beside the root');
+  assert.deepStrictEqual(fs.readdirSync(root).sort(), ['.agents', '.claude', '.flow']);
 });
 
 test('the flags that took one folder each are gone', () => {
   const dir = project('install-old-flags');
+  const before = fs.readdirSync(dir).sort();
   const old = run('flow/flow.js', ['install', '--home', path.join(dir, 'home'), '--no-bin']);
   assert.notStrictEqual(old.code, 0, 'an unknown flag refuses rather than installing for real');
-  assert.deepStrictEqual(fs.readdirSync(dir), [], 'nothing was written before the refusal');
+  assert.deepStrictEqual(fs.readdirSync(dir).sort(), before, 'nothing was written before the refusal');
 });

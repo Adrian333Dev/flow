@@ -13,6 +13,7 @@
  */
 
 const { FlowError } = require('./lib/error');
+const machine = require('./lib/machine');
 const cli = require('./lib/cli');
 const board = require('./commands/board');
 const tickets = require('./commands/tickets');
@@ -23,10 +24,12 @@ const privateSkills = require('./commands/private-skills');
 const git = require('./commands/git');
 const install = require('./commands/install');
 const doctor = require('./commands/doctor');
+const sync = require('./commands/sync');
+const uninstall = require('./commands/uninstall');
 const audit = require('./commands/audit');
 const scorecard = require('./commands/scorecard');
 const contribute = require('./commands/contribute');
-const snapshot = require('./commands/snapshot');
+const restore = require('./commands/restore');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -46,7 +49,7 @@ const TITLE = 'flow: tickets, computed from .flow/tickets/';
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...scorecard, ...contribute };
+const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...sync, ...uninstall, ...scorecard, ...contribute };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
@@ -107,8 +110,8 @@ domain  a skill from the domain-skills repository installs into one project,
         .claude/skills/ and writes its name to .flow/domain-skills.txt. git
         ignores the link and commits the list, so on another machine or in a
         new worktree a bare flow domain-skills add links everything listed.
-        The repository is domainSkills in ~/.flow/settings.json, the path to
-        the clone's skills folder
+        The repository is domainSkills in ~/.flow/settings.local.json, the
+        path to the clone's skills folder
 private a skill you write yourself lives in ~/.flow/private-skills/<name>/
         and takes a name no Flow or domain skill uses. flow private-skills add
         links it into this project and lists it in .flow/private-skills.txt;
@@ -130,11 +133,22 @@ migrate a change to where Flow and the harnesses keep their files, written
         by /flow:setup-machine, /flow:setup-project or /flow:migrate into
         ~/.flow/migrations/<machine or project>/<time>/: migration.md lists
         each change, files/ holds each new version. After your yes the skill
-        runs ~/.flow/scripts/apply-migration.js, which copies each path into
-        ~/.flow/snapshots/ the moment before it changes it, and never touches
-        a path the migration leaves out. flow snapshot restore needs no
-        session, and takes a snapshot first, so a restore is undone the same
-        way
+        runs ~/.flow/scripts/apply-migration.js, which never touches a path
+        the migration leaves out. A line that fails stops the run there, and
+        running the script again carries on from that line
+before  ~/.flow/originals/<machine or project>/ holds every path as it was
+        before Flow first touched it. flow install writes the machine's, the
+        first setup of each place closes it, and nothing is ever added after
+        that. flow restore machine and flow restore project put every path
+        back; flow uninstall does both, then deletes ~/.flow/ and the clone.
+        Both need a terminal with no session running, so neither is a command
+        the agent can run
+sync    ~/.flow/ is one private git repository, and that is the whole of how a
+        second machine gets your rules, notes, study cases and wiki. flow sync
+        brings the other machine's down, then sends this one up. What belongs
+        to one machine stays there: version, run.json, originals/,
+        settings.local.json, the scripts and references links, and each wiki
+        tool's downloads
 default cases and overlays each read a bare word as an argument to their
         most used action: flow overlays groundwork is flow overlays get
         groundwork. domain-skills and private-skills default to ls,
@@ -169,7 +183,8 @@ git     off everywhere by default: the agent names a git command that writes
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, 'domain-skills': domainSkills, 'private-skills': privateSkills, overlays, git, audit, snapshot },
+    groups: { cases, 'domain-skills': domainSkills, 'private-skills': privateSkills, overlays, git, audit, restore },
+    check: (action, flags) => (action.anywhere ? null : machine.requireSetup(flags.root)),
     fallback: tickets.fallback,
     sections: SECTIONS,
     title: TITLE,

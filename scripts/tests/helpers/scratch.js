@@ -11,6 +11,11 @@
  * this folder sits inside the Flow repo, so an uninitialised scratch project
  * would resolve to Flow itself and write tickets into it. FLOW_PROJECT is the
  * documented override for exactly that, and `flow()` below sets it.
+ *
+ * Every scratch project is a machine Flow is already set up on. `flow` refuses
+ * every command where `~/.flow/version` is missing and every project where
+ * `.flow/` is, so a test that skipped both would prove only the refusal. The
+ * refusals have their own test, in flow.test.js.
  */
 
 const fs = require('fs');
@@ -21,12 +26,45 @@ const SCRIPTS = path.resolve(__dirname, '..', '..');
 const REPO = path.resolve(SCRIPTS, '..');
 const SCRATCH = path.join(REPO, 'tmp', 'tests');
 
-/** A fresh empty project folder. `name` keeps one test clear of another. */
+/** A fresh empty project folder, already in Flow. `name` keeps tests apart. */
 function project(name) {
   const dir = path.join(SCRATCH, name);
   fs.rmSync(dir, { recursive: true, force: true });
-  fs.mkdirSync(dir, { recursive: true });
+  fs.mkdirSync(path.join(dir, '.flow'), { recursive: true });
+  setUp(path.join(dir, 'flow-home'));
   return dir;
+}
+
+/** A ~/.flow/ that a setup finished in: the version stamp is what says so. */
+function setUp(home) {
+  fs.mkdirSync(home, { recursive: true });
+  fs.writeFileSync(path.join(home, 'version'), '2026-09-20\n');
+  return home;
+}
+
+/**
+ * The half of a machine `/flow:setup-machine` writes: the rule file, the one
+ * line importing it, and the link Codex reads.
+ *
+ * `flow install` stopped writing all 3 on 2026-09-20, because the rule file is
+ * written after that skill's interview and a copy made before it holds nothing
+ * of the user. A test that needs a finished machine does the skill's job here.
+ */
+function setupMachine(root) {
+  const machine = require('../../flow/lib/machine');
+  const at = machine.folders(root);
+  const rules = path.join(at.agents, 'AGENTS.md');
+
+  fs.mkdirSync(at.agents, { recursive: true });
+  fs.copyFileSync(path.join(REPO, 'home', 'AGENTS.md'), rules);
+
+  fs.mkdirSync(at.claude, { recursive: true });
+  fs.writeFileSync(path.join(at.claude, 'CLAUDE.md'), `${machine.importLine(REPO, at.base)}\n`);
+
+  fs.mkdirSync(at.codex, { recursive: true });
+  fs.rmSync(path.join(at.codex, 'AGENTS.md'), { force: true });
+  fs.symlinkSync(rules, path.join(at.codex, 'AGENTS.md'));
+  return rules;
 }
 
 /** Write a file inside a scratch project, creating the folders it needs. */
@@ -56,7 +94,8 @@ function run(script, args = [], options = {}) {
 
 /** `flow` against a scratch project, with the root override set. */
 function flow(dir, args) {
-  return run('flow/flow.js', args, { cwd: dir, env: { ...process.env, FLOW_PROJECT: dir } });
+  const env = { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: path.join(dir, 'flow-home') };
+  return run('flow/flow.js', args, { cwd: dir, env });
 }
 
-module.exports = { SCRIPTS, REPO, SCRATCH, project, write, run, flow };
+module.exports = { SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, write, run, flow };

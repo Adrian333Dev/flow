@@ -7,16 +7,17 @@
  *   ├─ migration.md   one line per change: write, delete, move or run
  *   └─ files/         the new version of each file it writes, at files/<full path>
  *
- * The folder sits beside the project's snapshots, named the same way:
- * `lib/snapshots.js` says how. Its name is the time the agent wrote it, and
+ * The folder sits beside the project's original, named the same way:
+ * `lib/originals.js` says how. Its name is the time the agent wrote it, and
  * the script reads that time back to find files changed since.
  *
  * The agent reads and decides, and never writes a real path itself. The user
  * says yes, then the skill runs `~/.flow/scripts/apply-migration.js <id>`,
- * the only thing that touches a real path. It copies each one into a snapshot
- * before its first change. So no path the migration names changes without a
- * copy, and no path it leaves out changes at all. That is why migration.md is
- * the list, rather than a second list the agent could get wrong.
+ * the only thing that touches a real path. During the first setup of a machine
+ * or a project it records each path in that place's original first, and after
+ * that window closes it changes paths and records nothing. No path the
+ * migration leaves out changes at all, which is why migration.md is the list
+ * rather than a second list the agent could get wrong.
  *
  * The action lines. Everything else in the file is prose for the user:
  *
@@ -33,14 +34,14 @@ const fs = require('fs');
 const path = require('path');
 const { FlowError } = require('./error');
 const frontmatter = require('./frontmatter');
-const snapshots = require('./snapshots');
+const originals = require('./originals');
 
 const TYPES = ['setup-machine', 'setup-project', 'migrate'];
 const VERBS = ['write', 'delete', 'move', 'run'];
 
 const home = (at) => path.join(at.flow, 'migrations');
 
-const folder = (at, id) => snapshots.inside(home(at), id, 'migration');
+const folder = (at, id) => originals.inside(home(at), id, 'migration');
 
 function resolvePath(raw, { base, project }) {
   const text = raw.trim().replace(/^`(.*)`$/, '$1');
@@ -86,7 +87,7 @@ const touched = (a) => (a.verb === 'move' ? [a.from, a.to] : a.verb === 'run' ? 
 function read(dir, at) {
   const file = path.join(dir, 'migration.md');
   if (!fs.existsSync(file)) throw new FlowError(`${file} does not exist: the agent writes the migration first.`);
-  const written = snapshots.timeOf(path.basename(dir));
+  const written = originals.timeOf(path.basename(dir));
   if (!written) {
     throw new FlowError(`a migration's folder is named for the time it was written, such as 2026-09-20T10-12-40, and ${path.basename(dir)} is not one.`);
   }
@@ -105,9 +106,9 @@ function read(dir, at) {
   return { type: data.type, project: ctx.project, written, actions };
 }
 
-/** No migration may touch the migrations or the snapshots, or anything holding them. */
+/** No migration may touch the migrations or the originals, or anything holding them. */
 function guard(p, at) {
-  for (const kept of [home(at), snapshots.home(at)]) {
+  for (const kept of [home(at), originals.home(at)]) {
     if (p === kept || p.startsWith(kept + path.sep) || kept.startsWith(p + path.sep)) {
       throw new FlowError(`${p} holds ${path.basename(kept)}, and a migration may not touch it.`);
     }
@@ -131,7 +132,7 @@ function changedSince(migration, actions, done = []) {
   const changed = new Set();
   const walk = (p) => {
     if (ours(p)) return;
-    const stat = snapshots.lstat(p);
+    const stat = originals.lstat(p);
     if (!stat || stat.isSymbolicLink()) return;
     if (stat.isDirectory()) for (const name of fs.readdirSync(p).sort()) walk(path.join(p, name));
     else if (stat.mtimeMs >= after) changed.add(p);

@@ -38,12 +38,16 @@ function maybeRoot() {
 const shorten = (p) => (p.startsWith(os.homedir() + path.sep) ? '~' + p.slice(os.homedir().length) : p);
 
 /**
- * `domainSkills` from `~/.flow/settings.json`: the file it sits in, whether it
- * is set, and the folder it names with a leading `~` expanded.
+ * `domainSkills`: the file it sits in, whether it is set, and the folder it
+ * names with a leading `~` expanded.
+ *
+ * It holds the path to a clone, so it belongs in `~/.flow/settings.local.json`,
+ * which stays on this machine. `~/.flow/settings.json` beside it is shared with
+ * the other machine, where that path is somebody else's. A value in either is
+ * read, and the local one wins.
  */
 function domainSetting() {
-  const file = settings.globalFile();
-  const value = settings.read(file).domainSkills;
+  const { file, value } = settings.globalKey('domainSkills');
   const set = typeof value === 'string' && value.trim() !== '';
   return { file, set, dir: set ? path.resolve(value.replace(/^~(?=$|\/)/, os.homedir())) : null };
 }

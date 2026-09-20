@@ -39,7 +39,7 @@ test('outside a git repository it prints nothing and succeeds', () => {
   // a loose folder actually meets.
   const result = run('flow/flow.js', ['overlays', 'get', 'groundwork'], {
     cwd: dir,
-    env: { ...process.env, GIT_CEILING_DIRECTORIES: path.join(REPO, 'tmp') },
+    env: { ...process.env, FLOW_HOME: path.join(dir, 'flow-home'), GIT_CEILING_DIRECTORIES: path.join(REPO, 'tmp') },
   });
 
   assert.strictEqual(result.code, 0, result.stderr);

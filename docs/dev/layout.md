@@ -26,11 +26,11 @@ When you first open the repository, the split that matters has four parts:
 
 ## What installs on a machine
 
-**`home/AGENTS.md`** is the rules that apply in every directory, project or not, in Claude Code and in Codex. It is copied to `~/.agents/AGENTS.md` on a first install, then personalized there. `~/.codex/AGENTS.md` is a link to that copy. The copy here is the template: placeholders and rules, never personal content.
+**`home/AGENTS.md`** is the rules that apply in every directory, project or not, in Claude Code and in Codex. `/flow:setup-machine` copies it to `~/.agents/AGENTS.md` after its interview, and it is personalized there. `~/.codex/AGENTS.md` is a link to that copy. The copy here is the template: placeholders and rules, never personal content.
 
-**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, copied to `~/.claude/CLAUDE.md` so Claude Code loads the same rules. Claude Code never reads an `AGENTS.md` by itself. `project-template/` holds the same pair for a project.
+**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same skill, so Claude Code loads the same rules. Claude Code never reads an `AGENTS.md` by itself. `project-template/` holds the same pair for a project.
 
-**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../manual/settings.md) explains every key. It is merged into `~/.claude/settings.json` by hand, because `flow install` never writes that file.
+**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../manual/settings.md) explains every key. `/flow:setup-machine` merges it into `~/.claude/settings.json` key by key. `flow install` never writes that file, and writes none of the 3 above either: a rule file copied before the interview holds nothing of the user.
 
 **`scripts/`** holds the CLI, the hooks, and the script that carries out a migration:
 
@@ -40,7 +40,7 @@ When you first open the repository, the split that matters has four parts:
 - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
 - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
 - `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill whose ticket id matches nothing, before the skill loads.
-- `apply-migration.js` carries out a migration that `/flow:setup-machine`, `/flow:setup-project` or `/flow:migrate` wrote, copying each path into a snapshot before it changes. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/snapshots.js` hold the logic.
+- `apply-migration.js` carries out a migration that `/flow:setup-machine`, `/flow:setup-project` or `/flow:migrate` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and its `.info` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
@@ -49,7 +49,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.agents/skills/flow/skills/`, so nothing outside this tree ever reads a group name.
 
-**`skills/.claude-plugin/plugin.json`** is 2 lines naming Flow and describing it, and it is what makes every skill typed `/flow:groundwork` instead of `/groundwork`. Codex reads it here, because it follows each skill's link into this tree and looks above the real folder. `flow install` copies it into `~/.agents/skills/flow/.claude-plugin/`, where Claude Code reads it. Copied rather than linked, because Codex ignores a symlinked manifest. That copy and the 2 rule files are the only things `flow install` writes that are not symlinks.
+**`skills/.claude-plugin/plugin.json`** is 2 lines naming Flow and describing it, and it is what makes every skill typed `/flow:groundwork` instead of `/groundwork`. Codex reads it here, because it follows each skill's link into this tree and looks above the real folder. `flow install` copies it into `~/.agents/skills/flow/.claude-plugin/`, where Claude Code reads it. Copied rather than linked, because Codex ignores a symlinked manifest. That copy and `~/.flow/settings.local.json` are the only things `flow install` writes that are not symlinks.
 
 **`agents/`** holds subagent definitions, one markdown file each: a system prompt, a tool allowlist, and a model. Symlinked into `~/.claude/agents/`.
 

@@ -16,7 +16,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { REPO, project, run } = require('./helpers/scratch');
+const { REPO, project, run, setupMachine } = require('./helpers/scratch');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
 function machine(name) {
@@ -27,6 +27,10 @@ function machine(name) {
 
   const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin']);
   assert.strictEqual(installed.code, 0, installed.stderr);
+
+  // Install is half a machine. The rule file and its 2 ways in come from
+  // /flow:setup-machine, which does not exist as a skill yet.
+  setupMachine(root);
 
   // `flow install` stops short of settings.json on purpose, so the merge a real
   // machine does by hand happens here, with the hook paths pointed at this tree.
@@ -151,7 +155,7 @@ test('a CLAUDE.md with no import, a missing Codex link and an override file are 
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /CLAUDE\.md does not import the rules/);
-  assert.match(report.stdout, /AGENTS\.md is not linked: run flow install/);
+  assert.match(report.stdout, /AGENTS\.md is not linked: type \/flow:setup-machine/);
   assert.match(report.stdout, /AGENTS\.override\.md exists, and Codex reads it in place of AGENTS\.md/);
 });
 

@@ -98,7 +98,9 @@ Fixed order, each step naming the file it reads or writes.
 
 The project half runs the same 6 inside the project when its `.flow/version` is behind the machine's, over `.claude/settings.json`, `.claude/settings.local.json` and `.flow/`.
 
-## Snapshot and restore, locked 2026-09-17, rebuilt 2026-09-18
+## Snapshot and restore, locked 2026-09-17, rebuilt 2026-09-18, replaced 2026-09-20
+
+**Replaced by `## The original replaces the snapshot, locked 2026-09-20` below.** What follows is the design as it stood, and the half of it that survives is the migration: `migration.md`, `~/.flow/migrations/` and `apply-migration.js` all work as written here. Every sentence about a snapshot is history.
 
 **A migration is what the agent proposes, and a snapshot is the copies taken as it runs. They are 2 folders.** A migration is the list of changes and the new version of every file it writes. A snapshot is only what each path held before, and a list of those paths. Every run takes one, so 1.1 closes with 1.0. Rebuilt on the user's ask of 2026-09-18 that it hold every path a run could replace or remove, memory files and deletes included. Split the same day, the user's call: one folder holding the plan, `new/` and `old/` together left "apply a snapshot" meaning either side.
 
@@ -386,6 +388,85 @@ Rules load when a session launches, so after step 5 the session doing the work s
 ### A clone older than the machine
 
 `~/.flow/version` newer than the newest changelog entry means the clone was moved back, by a checkout or a bad pull. `flow doctor` calls that a problem and exits non-zero, rather than a note. No migration ever runs backwards: the way out is `flow snapshot restore <id>`, or moving the clone forward again.
+
+## The original replaces the snapshot, locked 2026-09-20
+
+**An original is every path as it was before Flow first touched it, kept in one folder per place.** A place is the machine, or one project. It replaces the whole snapshot system above: the copy a run took, the undo copy a restore took, and the folder per migration all go.
+
+```text
+~/.flow/originals/machine/
+├─ manifest.json   one entry per path, and whether the window is still open
+└─ files/          what each path held before, at files/<full path>
+```
+
+- **The folder's name is the place**, so nothing reads a date and there is no id to look up. A project's folder is named the way Claude Code names its own, every character that is not a letter or a digit turned into `-`.
+- **It is written in one window and never added to.** `flow install` opens the machine's and records every path it is about to create. The first `/flow:setup-machine` adds each path its migration changes, then closes the window for good. A project's window opens and closes inside its first `/flow:setup-project`.
+- **A second `flow install` adds nothing.** `~/.flow/scripts` existing is the tell that Flow was here before, and recording Flow's own links would make Flow the state to go back to.
+- **A path that was not there is recorded `absent`**, at its highest missing folder, so a restore deletes the folders Flow made.
+- **Nothing under `~/.flow/` is ever recorded**, so putting the machine's original back leaves the user's notes, tickets, study cases and wiki where they are.
+- **The original survives a restore**, so the same command runs twice and lands in the same state. The snapshot design had a restore copy everything first, which made an undo of an undo.
+- **Undoing one migration is parked.** The user ruled on 2026-09-20 that the original matters for the first week or two, while putting the machine back is still worth doing, and that nothing else earns a copy per run. `backlog.md` holds the parked pieces: per-migration snapshots, the undo copy, `flow snapshot new`, `flow snapshot drop`, hard links and chained restores.
+- **Built 2026-09-20**: `scripts/flow/lib/originals.js` and `scripts/flow/commands/restore.js` replace `lib/snapshots.js` and `commands/snapshot.js`, giving `flow restore ls`, `flow restore machine` and `flow restore project`, tested in `scripts/tests/restore.test.js`. `apply-migration.js` records into the open window instead of snapshotting, closes it when the migration's `type` is a setup, and keeps how far it got in `applied.json` beside `migration.md`.
+
+### `flow uninstall`, the command Flow never had
+
+One command puts every project's original back, then the machine's, then deletes `~/.flow/` and the clone. It does all of it itself, because restoring the machine deletes `~/.local/bin/flow` and a second command would have nothing left to type. The projects come out of the originals, each manifest holding its project's path.
+
+```text
+$ flow uninstall
+Restores delapse, backmark and this machine, then deletes ~/.flow/ and ~/code/flow.
+Type uninstall to go on:
+```
+
+- **The message carries instructions and no explanation**, the user's call 2026-09-20.
+- **The clone is kept where git says it holds work.** A file changed and not committed, or a commit no remote has, and the path is printed instead of deleted. Both checks are reads. Deleting a clone with a day's work in it is data loss, not an uninstall.
+- **A machine with no original is still covered.** `scripts/flow/lib/installed.js` is the one list of what Flow puts on a machine, read by `flow install` to write the original and by `flow uninstall` to strip a machine that has none. Flow's hooks come out of `~/.claude/settings.json`, and the import line out of `~/.claude/CLAUDE.md`. A hook is Flow's when its command names a path inside `~/.flow/`. The permission rules are left, because nothing can tell a rule the user wrote from one that was merged in.
+- **A rooted uninstall never deletes the clone.** `--root` builds a scratch machine under `tmp/`, and that machine does not own the clone it was built from.
+
+### 4 locks keep restore and uninstall away from the agent
+
+Both commands undo the machine, so the agent may never run either.
+
+1. **Every session closed.** `confirm.noSessions()` refuses while any `claude` or `codex` process runs. The agent only exists inside one, so this lock alone stops it.
+2. **A word typed at `/dev/tty`.** Opening that device from a command the agent ran fails with `No such device or address`, tested 2026-09-20.
+3. **No flag skips the prompt**, so a pasted line and shell history cannot answer it.
+4. **`deny` rules in `home/settings.json`** for `flow restore machine`, `flow restore project` and `flow uninstall`, under both typed names and the `node ~/.flow/scripts/flow/flow.js` path form. `flow restore ls` stays allowed, since it only prints. `apply-migration.js` is not denied, because `/flow:migrate` has to run it.
+
+### A skipped setup is caught by code, never by a hook
+
+`flow install` finishes half a machine, so a user who never types `/flow:setup-machine` has a machine where Flow's rules load nowhere. 2 refusals catch that, both in code that runs anyway.
+
+- **`machine.requireSetup(root)`** refuses every `flow` command where `~/.flow/version` is missing, except the 4 marked `anywhere: true`: `install`, `doctor`, `restore` and `uninstall`. `lib/cli.js` runs it between the flags and the action.
+- **`inFlow()` in `scripts/flow/lib/root.js`** refuses any project with no `.flow/`.
+- **`scripts/check-ticket.js` runs both** before its ticket check, and blocks the expansion with whichever fired.
+- **No hook can do this job.** Flow's hooks reach `~/.claude/settings.json` only when `/flow:setup-machine` merges them, so the machine that skipped setup has no hook to fire. `SessionStart` cannot block at all, and `UserPromptSubmit` exit 2 erases what the user typed.
+
+### One private repository carries a machine's Flow to the next machine
+
+`~/.flow/` is itself a git repository on GitHub, and that is the whole of how a second machine gets the user's rules, notes, study cases and wiki. `flow sync` brings the other machine's work down, then sends this one up.
+
+- **Down first.** A pull that is not a fast-forward stops everything, and a commit made here first would only add a merge to clean up.
+- **One repository for everything, never one per folder**, the user's call 2026-09-20, and it sends nothing up when nothing changed.
+- **Syncing covers `~/.flow/` and never a project**, the user's call 2026-09-20.
+- **7 things never travel**, and `~/.flow/.gitignore` names them: `version`, `run.json`, `originals/`, `settings.local.json`, the `scripts` and `references` links, and each wiki tool's `downloads/`. The 2 links were added on 2026-09-20: both point into this machine's clone, which sits somewhere else on the other machine.
+- **A setting holding a path lives in `settings.local.json`**, which stays on the machine. `lib/settings.js` reads the pair as one file, the local one winning key by key, and `globalKey()` says which of the 2 holds a setting for a message that has to name a file. `domainSkills` and `clone` are the 2 paths there today.
+- **Uncommitted work travels by `util git work`, on the user's own command.** The agent never runs it, ruled 2026-09-20. Its rename to `util git uncommitted` and the `get <machine> --branch` fix are in `lab/util/backlog.md`.
+- **Built 2026-09-20**: `scripts/flow/lib/flow-repo.js` and `scripts/flow/commands/sync.js`, tested in `scripts/tests/sync.test.js` against a local folder. The round trip through a real GitHub remote is proved by nothing yet, and `backlog.md` carries that gap.
+
+### `flow install` asks 2 questions, and only at a terminal
+
+`confirm.hasTerminal()` decides. With nobody at the keyboard the install asks neither and says so in its output, because Enter on the second question makes a repository on GitHub and no default nobody typed may do that.
+
+1. **A name for this machine**, saved as git's `util.machine`, where `util` already reads it. The default is the computer's name and 4 random letters, since WSL calls every machine `me` and 2 machines sharing a name overwrite each other's stored work.
+2. **The private GitHub repository for `~/.flow/`.** Enter makes one with `gh`, an address uses one that exists, `skip` leaves the machine alone. Neither answer can fail the install: every link is made before the questions run, so a `gh` that is not logged in is a line in the output.
+
+### `flow install` is half a machine, and names the other half
+
+- **It writes no rule file.** `~/.agents/AGENTS.md`, the import line in `~/.claude/CLAUDE.md` and the link `~/.codex/AGENTS.md` all belong to `/flow:setup-machine` now, since a copy made before that skill's interview holds nothing of the user.
+- **Its closing line is "restart Claude Code, then type /flow:setup-machine"**, in place of the hand merge of `home/settings.json` it used to print.
+- **It prunes a name that left the `BIN` map.** `pruneUnlisted()` in `lib/links.js` drops a link into the clone's `scripts/` whose name Flow no longer ships. The dead-link check could never catch one: the old name still resolves and still runs.
+- **`~/.flow/docs` was dropped**, reversing the line that added it. The clone's path goes in `~/.flow/settings.local.json` under `clone`, and `/flow:help` reads `<clone>/docs/manual/README.md` through it.
+- **`flow doctor` gained 2 checks**: whether the machine has an original and whether its window is still open, and which names in a project's `domain-skills.txt` and `private-skills.txt` have no link in `.claude/skills/`. Both print notes rather than problems, and its messages for the rule file, the import line, the Codex link and `settings.json` now name `/flow:setup-machine`.
 
 ## Settled by the user
 

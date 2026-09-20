@@ -24,7 +24,7 @@ function setup(name) {
   write(dir, 'repo/skills/react/SKILL.md', '---\nname: react\ndescription: React 19.\n---\n');
   write(home, 'settings.json', JSON.stringify({ domainSkills: path.join(dir, 'repo', 'skills') }));
   const root = path.join(dir, 'project');
-  fs.mkdirSync(root);
+  fs.mkdirSync(path.join(root, '.flow'), { recursive: true });
   const flow = (args) => run('flow/flow.js', ['private-skills', ...args], {
     cwd: root,
     env: { ...process.env, FLOW_PROJECT: root, FLOW_HOME: home, CLAUDE_CONFIG_DIR: claude },

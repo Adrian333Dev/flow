@@ -5,7 +5,7 @@ Every command, skill, setting and file Flow gives you, in one place. Look one up
 ## Table of contents
 
 - [Installing](#installing)
-- [Migrations and snapshots](#migrations-and-snapshots)
+- [Migrations and the original](#migrations-and-the-original)
 - [Typing a command](#typing-a-command)
 - [The board](#the-board)
 - [One ticket](#one-ticket)
@@ -37,12 +37,17 @@ What one run puts on the machine:
 - **`~/.claude/skills/flow`**: a link to that folder, which is how Claude Code finds the same skills.
 - **`~/.claude/agents/` and `~/.claude/rules/`**: one link per file into the clone. Both folders can hold entries Flow did not create, and a link to the whole folder would replace all of them.
 - **`~/.flow/scripts` and `~/.flow/references`**: links into the clone.
-- **`~/.local/bin/flow` and `fw`**: links to `flow.js`, so both are on your `PATH`.
-- **The rules**: `~/.agents/AGENTS.md` copied from the template, `~/.claude/CLAUDE.md` copied from the template, holding the one line `@~/.agents/AGENTS.md`, and `~/.codex/AGENTS.md` linking to the copy. Each is written only where no file exists or the one there is empty.
+- **`~/.local/bin/flow` and `fw`**: links to `flow.js`, so both are on your `PATH`. A name Flow used to ship and has since renamed is unlinked here, since its link still resolves and would still run.
+- **`~/.flow/settings.local.json`**: the path to this clone, under the key `clone`, so a skill can name a file in it. It is the settings file that stays on this machine.
+- **`~/.flow/originals/machine/`**: every path in this list as it was before Flow, copied before anything is created. [Migrations and the original](#migrations-and-the-original) covers it. Only a machine Flow was never on gets one, because on any other the paths are already Flow's own.
 
 `--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.codex`, `<dir>/.flow` and `<dir>/.local/bin`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
 
-**Two files become yours and stop tracking the repository.** `~/.agents/AGENTS.md` is copied from the template on a first install and never rewritten, so your name, your machine and your preferences survive a re-run, and a rule added to the template later has to be carried across by hand. A `CLAUDE.md` or a Codex `AGENTS.md` you wrote yourself is kept too, and the run says what to move into `~/.agents/AGENTS.md`. `~/.claude/settings.json` is never written at all: `flow install` prints the file to merge and stops, because merging Flow's hooks and permission rules into your own model and plugin settings is a judgment call.
+**At a terminal it asks 2 questions.** The first is a name for this machine, saved as git's `util.machine`, which is how work sent between your machines says where it came from. The default is your computer's name and 4 random letters, because a computer's name is not reliably different: WSL calls every machine it is installed on `me`. The second is the private GitHub repository that carries `~/.flow/` to your other machine, covered in [flow sync](#flow-sync). Run where no terminal is attached, it asks neither and says so.
+
+**Installing is half of putting Flow on a machine.** The other half is `/flow:setup-machine`, and the last line of the install says to restart Claude Code and type it. That skill interviews you, then writes the rule file `~/.agents/AGENTS.md`, the one line `@~/.agents/AGENTS.md` in `~/.claude/CLAUDE.md`, and the link `~/.codex/AGENTS.md` pointing at the rule file. It also merges Flow's hooks and permission rules into `~/.claude/settings.json`, key by key, because that file already holds your model, your plugins and your effort level. A rule file written before the interview would be the template with nothing of yours in it, which is why `flow install` writes none of the 4.
+
+**Every `flow` command refuses until that skill has run**, except `install`, `doctor`, `restore` and `uninstall`. `~/.flow/version` is what says the setup finished, and a command that finds it missing answers `Flow is not set up on this machine. Restart Claude Code and type /flow:setup-machine.`
 
 **Install `util` first.** `util` is a separate command-line tool holding Flow's general-purpose commands, its own repository, included here as a submodule at `lab/util/`.
 
@@ -69,25 +74,68 @@ Everything about an installed machine a function can decide. It writes nothing, 
 
 `flow check` is the other verification command and answers a different question: the ticket graph in the project you are standing in.
 
-## Migrations and snapshots
+### `flow sync`
 
-A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 skills write one: `/flow:setup-machine` moves your machine onto Flow, `/flow:setup-project` moves a project, and `/flow:migrate` moves either one to a newer Flow. A snapshot is a copy of every path a migration changes, taken the moment before each change, so that one command puts everything back.
+`~/.flow/` is one private git repository, and that repository is the whole of how Flow reaches your second machine. Everything of yours that should travel already lives there: the rules, the workflow notes, the study cases, the private skills, the wiki and the tickets that belong to no project. A project travels through its own repository, and Flow leaves it alone.
 
-A migration is not a ticket. A ticket is your project's own work, and git undoes it. A migration changes files git never sees, such as `~/.claude/`, so a snapshot undoes it.
+`flow sync` brings the other machine's work down, then sends this machine's up. Down first: a pull that is not a fast-forward stops everything and says to sort `~/.flow/` out by hand, and a commit made here first would only add a merge to untangle. Nothing runs by itself. You type it.
 
-Each migration and each snapshot gets its own folder:
+A commit is named for the machine that made it, so a line in a note can be traced back to where it was written:
+
+```text
+$ flow sync
+came down: Updating 8f21a0c..3d4b19e
+went up: desktop: 2 files
+```
+
+What describes one machine never travels, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, `originals/`, `settings.local.json`, the `scripts` and `references` links, and each wiki tool's `downloads/`.
+
+### `flow uninstall`
+
+Takes Flow off this machine and leaves it as it was. It puts each project's original back, then the machine's, then deletes `~/.flow/` and the clone. It does all of that itself rather than asking you to run `flow restore` first, because putting the machine's original back deletes `~/.local/bin/flow` and a second command would have nothing left to type.
+
+```text
+$ flow uninstall
+Restores delapse, backmark and this machine, then deletes ~/.flow/ and ~/code/flow.
+Type uninstall to go on:
+```
+
+The clone stays where git says it holds something you would lose: a file changed and not committed, or a commit no remote has. The path is printed instead, for you to delete yourself.
+
+A machine with no original is still covered. Every path Flow owns is removed, Flow's hooks come out of `~/.claude/settings.json`, and the import line comes out of `~/.claude/CLAUDE.md`. What those paths held before Flow is gone, which is what the original exists to prevent.
+
+The same 4 locks as `flow restore` guard it, the first 2 being every Claude Code and Codex session closed and the word `uninstall` typed at a terminal. [Migrations and the original](#migrations-and-the-original) lists all 4.
+
+## Migrations and the original
+
+A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 skills write one: `/flow:setup-machine` moves your machine onto Flow, `/flow:setup-project` moves a project, and `/flow:migrate` moves either one to a newer Flow.
+
+The original is every path as it was before Flow first touched it. There is one per place, a place being this machine or one project, and putting it back is how you undo Flow.
+
+A migration is not a ticket. A ticket is your project's own work, and git undoes it. A migration changes files git never sees, such as `~/.claude/`, so the original undoes it.
+
+**The original is written in one window, and nothing is ever added to it afterwards.** `flow install` opens the machine's and copies every path it is about to create. The first `/flow:setup-machine` adds each path its migration changes, and closing the window is the last thing that run does. A project's window opens and closes inside its first `/flow:setup-project`. After that, a migration months later copies nothing: a file you made last week is yours, not part of the machine you had before Flow, and nothing on disk can tell the two apart.
+
+**What it is for is the first week or two**, where you try Flow and decide against it. Undoing one migration is a different job, and Flow does not do it.
+
+A migration gets a folder per run, and a place gets one original:
 
 ```text
 ~/.flow/migrations/home-me-code-projects-delapse/2026-09-20T10-12-40/
 ├─ migration.md     one line per change: write, delete, move or run
+├─ applied.json     how far the run got, written as it goes
 └─ files/           the new version of each file it writes, at files/<full path>
 
-~/.flow/snapshots/home-me-code-projects-delapse/2026-09-20T10-15-02/
-├─ manifest.json    the paths copied, how far the run got, and the migration it was taken for
-└─ files/           each path as it was before, at files/<full path>
+~/.flow/originals/home-me-code-projects-delapse/
+├─ manifest.json    one entry per path, and whether the window is closed
+└─ files/           each path as it was before Flow, at files/<full path>
 ```
 
-A migration of the machine goes in `machine/`. A project's goes in a folder named for the project's full path, with every character that is not a letter or a digit turned into `-`, so `/home/me/code/projects/delapse` becomes `home-me-code-projects-delapse`. Inside, each folder is named for the time it was written. An id is the folder's path below `migrations/` or `snapshots/`, such as `machine/2026-09-18T21-30-05`.
+A migration of the machine goes in `machine/`. A project's goes in a folder named for the project's full path, with every character that is not a letter or a digit turned into `-`, so `/home/me/code/projects/delapse` becomes `home-me-code-projects-delapse`. An original is filed under the same name, and that name is the whole of how it is found: no date is read, and there is no id to look up. A migration id is the folder's path below `migrations/`, such as `machine/2026-09-18T21-30-05`.
+
+**A path that was not there is recorded as absent**, along with any folder made to hold it, so putting the original back deletes it. That is why restoring a project's original takes its whole `.flow/` with it.
+
+**Nothing under `~/.flow/` is ever recorded.** Putting the machine's original back leaves your notes, tickets and study cases exactly where they are. Only `flow uninstall` deletes that folder.
 
 Claude writes the migration, then stops for your yes. You read `migration.md`, delete any line you refuse, and say go. Claude never writes a real path itself. The skill runs `apply-migration.js`, which carries out `migration.md` one line at a time, so a path the migration leaves out is never touched.
 
@@ -115,9 +163,9 @@ project: ~/code/projects/delapse
 
 ### `~/.flow/scripts/apply-migration.js <id>`
 
-Carries out a migration, and takes its snapshot. The skill that wrote the migration runs it after your yes, and you never type it. It is not a `flow` command and not on your `PATH`, so it cannot run by accident.
+Carries out a migration. The skill that wrote the migration runs it after your yes, and you never type it. It is not a `flow` command and not on your `PATH`, so it cannot run by accident.
 
-Before each line runs, every path that line changes is copied into a new snapshot, once per path. The snapshot goes in the folder named for the migration's project, or in `machine/`. A path that does not exist yet is recorded as missing, along with any folder made to hold it, so a restore deletes them. A symlink is recorded with the path it points at, never copied.
+Before each line runs, every path that line changes is copied into the place's original, once per path, and only while that window is open. A symlink is recorded with the path it points at, never copied. A `setup-machine` or `setup-project` migration closes the window on its way out, and every migration after that copies nothing.
 
 Every line is checked before the first one runs. Any of these refuses the whole migration and changes nothing:
 
@@ -126,34 +174,39 @@ Every line is checked before the first one runs. Any of these refuses the whole 
 - a relative path in a migration with no `project`
 - a `write` line whose file `files/` does not hold
 - a `run` line that names no path and does not say `writes nothing`
-- a path inside `~/.flow/migrations/` or `~/.flow/snapshots/`, or a folder holding either
+- a path inside `~/.flow/migrations/` or `~/.flow/originals/`, or a folder holding either
 - a migration already applied
 - a file named by a `write` or `delete` line, or any file inside a folder one names, that changed after the time the migration's folder is named for
 
 The last check catches a migration run long after it was written, or in the middle of your work. It lists every changed file, and Claude writes the migration again from what is there now. `run` and `move` lines are left out of it, since a command acts on the file as it finds it, and a move takes whatever is there with it.
 
-A line that fails stops the run there. `flow snapshot restore <snapshot id>` undoes the lines already done. Or fix what failed, and the skill runs the script again, which carries on from the line that stopped, in the same snapshot. A migration edited in between refuses to carry on, because the lines already done no longer match it. A migration whose stopped run was restored starts over from its first line, in a new snapshot.
+A line that fails stops the run there, and `applied.json` beside `migration.md` holds how far it got. Fix what failed, and the skill runs the script again, which carries on from the line that stopped. A migration edited in between refuses to carry on, because the lines already done no longer match the file.
 
-### `flow snapshot ls`
+### `flow restore ls`
 
-Every snapshot, newest first: its id, its type, the project or `machine`, and what it was taken for. A migration's snapshot names the migration and how far it got. A restore's snapshot names the snapshot it undid.
+Every original on this machine, the machine's first: where it is of, how many paths it holds, when it was written, and whether its window is closed. This is the default action, so `flow restore` with nothing after it prints the same list.
 
 ```text
-home-me-code-projects-delapse/2026-09-20T10-15-02  setup-project  ~/code/projects/delapse  migration home-me-code-projects-delapse/2026-09-20T10-12-40, applied
-machine/2026-09-19T18-40-02                        migrate        machine                  migration machine/2026-09-19T18-31-50, stopped after line 3 of 7
-machine/2026-09-18T22-02-11                        restore        machine                  undoes machine/2026-09-18T21-30-05
-machine/2026-09-18T21-30-05                        setup-machine  machine                  migration machine/2026-09-18T21-12-44, applied, restored by machine/2026-09-18T22-02-11
+machine                   7 paths   written 2026-09-18T21:30:05   closed
+~/code/projects/delapse   3 paths   written 2026-09-20T10:15:02   closed
 ```
 
-Run inside a project, it lists that project's snapshots alone, and `--all` lists every one. `flow snapshot` with nothing after it is the same list.
+### `flow restore machine` and `flow restore project`
 
-### `flow snapshot restore <id>`
+Puts every path in one original back the way it was, the newest entry first, with its old time. A path recorded as absent is deleted. Each needs no agent and no session, so both work from a plain shell after a migration that broke Claude Code itself.
 
-Puts back every path the migration changed, the newest change first, and deletes what the migration created. Each file comes back with its old time too. It needs no agent and no session, so it works from a plain shell after a migration that broke Claude Code itself.
+The original survives a restore, so the same command runs again and lands in the same place.
 
-A restore takes a snapshot of its own first, in a folder beside the one it restores, and prints that folder's id. `flow snapshot restore <that id>` undoes the restore.
+Restoring the machine deletes `~/.local/bin/flow` along with everything else `flow install` made, so the last line says how to put Flow back. It leaves `~/.flow/` alone: only `flow uninstall` deletes that.
 
-`--root <dir>` on the script and both commands stands in for your home folder, as it does for `flow install`.
+**4 locks stand in front of both, and in front of `flow uninstall`.** Each one alone stops an agent, and together they mean this only ever happens because you typed it:
+
+1. **Every session closed.** A running `claude` or `codex` process refuses the command outright. Claude Code also rewrites `~/.claude.json` as it goes, and would write its own copy over the one just put back.
+2. **A word typed at the terminal.** `restore` or `uninstall`, read from `/dev/tty` rather than from the input, so a pipe, a heredoc and `yes |` all miss it. A command run by an agent has no terminal at all.
+3. **No flag skips the prompt.** There is nothing to paste and nothing to pull out of your shell history.
+4. **`deny` rules in `~/.claude/settings.json`** covering `flow`, `fw` and the script's own path.
+
+`--root <dir>` on the script and every one of these commands stands in for your home folder, as it does for `flow install`.
 
 ## Typing a command
 
@@ -163,7 +216,7 @@ flow <command> [id]... [--flags]
 
 The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
-Seven groups carry their own actions: `cases`, `domain-skills`, `private-skills`, `overlays`, `git`, `audit`, `snapshot`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
+Seven groups carry their own actions: `cases`, `domain-skills`, `private-skills`, `overlays`, `git`, `audit`, `restore`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
 
 Before the first install, the command is typed by path:
 
@@ -387,7 +440,7 @@ Which domain and private skills exist, and adding them to a project or to the ma
 
 A domain skill carries knowledge about one field or tool, such as React or Postgres. It comes from the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository and installs into one project, never onto the machine, so only the project using it pays for its description.
 
-Flow finds your clone of the repository through one setting in `~/.flow/settings.json`, the path to the clone's `skills/` folder:
+Flow finds your clone of the repository through one setting in `~/.flow/settings.local.json`, the path to the clone's `skills/` folder. It goes in the local file because a path belongs to one machine, and your other machine keeps its clone somewhere else:
 
 ```json
 { "domainSkills": "~/code/domain-skills/skills" }
@@ -571,19 +624,20 @@ A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is
 
 Two files, and Flow contributes to one of them.
 
-**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. It prints what to merge and stops. Flow contributes four keys:
+**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `/flow:setup-machine` merges Flow's keys into it, key by key. Flow contributes four keys:
 
 - **`hooks`**: 5 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. The `UserPromptSubmit` hook prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply
-- **`permissions`**: an allow list, a deny list for Claude Code surfaces Flow does not use, and no git entries at all, because `flow git` owns git
+- **`permissions`**: an allow list, a deny list, and no git entries at all, because `flow git` owns git. The deny list covers the Claude Code surfaces Flow does not use, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses. It reaches outside skills only: Flow's own are a plugin, which this key cannot touch
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 
 A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing.
 
-**`~/.flow/settings.json`** is Flow's own. It holds 2 keys:
+**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Every setting holding a path goes in it. Together they hold 3 keys:
 
-- **`git`**: the git write state. `flow git` writes it, so there is nothing to edit by hand
-- **`domainSkills`**: the path to your clone's `skills/` folder, which [`flow domain-skills`](#flow-domain-skills) reads. You write this one
+- **`git`**: the git write state, in the shared file. `flow git` writes it, so there is nothing to edit by hand
+- **`domainSkills`**: the path to your clone's `skills/` folder, in the local file, which [`flow domain-skills`](#flow-domain-skills) reads. You write this one
+- **`clone`**: the path to your Flow clone, in the local file. `flow install` writes it on every run
 
 [Settings](settings.md) explains every key in both files, every value Flow rejected, and why.
 

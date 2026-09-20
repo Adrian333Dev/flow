@@ -1,25 +1,32 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * apply-migration.js <id> [--root <dir>]: carry out a migration, copying each
- * path into a snapshot the moment before it changes. `flow/lib/migrations.js`
- * says what a migration is, and `flow/lib/snapshots.js` what a snapshot holds.
+ * apply-migration.js <id> [--root <dir>]: carry out a migration, recording
+ * each path in the place's original the moment before it changes, while that
+ * original's window is open. `flow/lib/migrations.js` says what a migration
+ * is, and `flow/lib/originals.js` what an original holds and when it closes.
  *
  * /flow:setup-machine, /flow:setup-project and /flow:migrate run it, after the
  * user's yes and never before. It is not a flow command and not on PATH: bare
  * `flow <verb> <id>` acts on a ticket, and a migration typed by hand weeks
  * later changes the machine as it was then.
  *
+ * The first setup of a place is the one run that writes an original. A
+ * setup-machine migration adds to the one `flow install` opened, a
+ * setup-project migration opens the project's, and the last thing either does
+ * is close it. Every later migration changes paths and records nothing, so a
+ * machine's original always holds the state from before Flow rather than the
+ * state before the newest change. Undoing one migration is parked.
+ *
+ * How far a run got lives in applied.json beside migration.md, holding the
+ * action lines as they were and the count already done. A run that stops
+ * part-way, on a command that fails or a move with nothing to move, leaves it
+ * there, and running this again carries on from the line that stopped. A
+ * migration edited in between refuses rather than guessing which lines ran.
+ *
  * It refuses, changing nothing, when a line cannot be read, when files/ lacks
  * a file a write line needs, when the migration is already applied, and when
  * a file a write or delete line names changed after the migration was written.
- *
- * A run that stops part-way, on a command that fails or a move with nothing
- * to move, keeps every copy it took. `flow snapshot restore <snapshot>` undoes
- * the lines already done. Running this again carries on from the line that
- * stopped, in the same snapshot: the one whose manifest names this migration,
- * unfinished and never restored. A migration edited in between refuses rather
- * than guessing which lines already ran.
  */
 
 const fs = require('fs');
@@ -29,38 +36,41 @@ const { out, parseArgs } = require('./flow/lib/cli');
 const { FlowError } = require('./flow/lib/error');
 const machine = require('./flow/lib/machine');
 const migrations = require('./flow/lib/migrations');
-const snapshots = require('./flow/lib/snapshots');
+const originals = require('./flow/lib/originals');
 
 const show = machine.shorten;
 const USAGE = 'apply-migration.js <id> [--root <dir>]';
+
+/** The 2 types that write an original. Everything after them records nothing. */
+const SETUP = { 'setup-machine': true, 'setup-project': true };
 
 /** One action line, carried out. Returns what to print. */
 function change(dir, action, cwd) {
   const { verb } = action;
 
   if (verb === 'write') {
-    snapshots.remove(action.path);
-    snapshots.copyEntry(snapshots.mirror(dir, action.path), action.path);
+    originals.remove(action.path);
+    originals.copyEntry(originals.mirror(dir, action.path), action.path);
     return `wrote ${show(action.path)}`;
   }
 
   if (verb === 'delete') {
-    if (!snapshots.lstat(action.path)) return `already gone: ${show(action.path)}`;
-    snapshots.remove(action.path);
+    if (!originals.lstat(action.path)) return `already gone: ${show(action.path)}`;
+    originals.remove(action.path);
     return `deleted ${show(action.path)}`;
   }
 
   if (verb === 'move') {
-    if (!snapshots.lstat(action.from)) throw new Error(`${show(action.from)} does not exist`);
-    if (snapshots.lstat(action.to)) throw new Error(`${show(action.to)} already exists`);
+    if (!originals.lstat(action.from)) throw new Error(`${show(action.from)} does not exist`);
+    if (originals.lstat(action.to)) throw new Error(`${show(action.to)} already exists`);
     fs.mkdirSync(path.dirname(action.to), { recursive: true });
     try {
       fs.renameSync(action.from, action.to);
     } catch (e) {
       // Another disk: rename cannot cross one, so copy, then remove.
       if (e.code !== 'EXDEV') throw e;
-      snapshots.copyEntry(action.from, action.to, true);
-      snapshots.remove(action.from);
+      originals.copyEntry(action.from, action.to, true);
+      originals.remove(action.from);
     }
     return `moved ${show(action.from)} -> ${show(action.to)}`;
   }
@@ -71,19 +81,21 @@ function change(dir, action, cwd) {
   return `ran ${action.command}`;
 }
 
-/** Every snapshot taken for this migration, newest first, with its manifest. */
-function takenFor(parent, id) {
-  let names = [];
-  try {
-    names = fs.readdirSync(parent);
-  } catch {
-    return [];
-  }
-  return names
-    .sort()
-    .reverse()
-    .map((name) => ({ dir: path.join(parent, name), manifest: snapshots.readManifest(path.join(parent, name)) }))
-    .filter((s) => s.manifest && s.manifest.migration === id);
+/** How far a run got, beside migration.md. Null before the first line runs. */
+const progressFile = (dir) => path.join(dir, 'applied.json');
+
+function readProgress(dir) {
+  const file = progressFile(dir);
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
+}
+
+const saveProgress = (dir, progress) =>
+  fs.writeFileSync(progressFile(dir), JSON.stringify(progress, null, 2) + '\n');
+
+/** The command that puts this place back, or null where no original exists. */
+function wayBack(at, project) {
+  const found = originals.read(at, project);
+  return found ? `flow restore ${project ? 'project' : 'machine'}` : null;
 }
 
 function apply(argv) {
@@ -94,38 +106,29 @@ function apply(argv) {
   const dir = migrations.folder(at, id);
   const migration = migrations.read(dir, at);
   const lines = migration.actions.map((a) => a.line);
+  const { project, type } = migration;
 
-  const parent = path.join(snapshots.home(at), snapshots.place(migration.project));
-  const earlier = takenFor(parent, id);
-  const finished = earlier.find((s) => s.manifest.applied === s.manifest.lines.length);
-  if (finished) {
-    const snap = snapshots.idOf(at, finished.dir);
-    const undone = finished.manifest.restoredBy;
-    throw new FlowError(undone
-      ? `${id} was applied in ${snap}, then restored by ${undone}. Apply it again with flow snapshot restore ${undone}.`
-      : `${id} is already applied, in ${snap}. Undo it with flow snapshot restore ${snap}.`);
-  }
-
-  const open = earlier.find((s) => !s.manifest.restoredBy);
-  let snap = open ? open.dir : null;
-  let manifest = open ? open.manifest : null;
-  if (manifest && JSON.stringify(manifest.lines) !== JSON.stringify(lines)) {
-    const snapId = snapshots.idOf(at, snap);
+  const progress = readProgress(dir);
+  if (progress && JSON.stringify(progress.lines) !== JSON.stringify(lines)) {
     throw new FlowError(
-      `migration.md changed after ${snapId} started it, so the lines already done are unknown.\n` +
-      `  Put migration.md back as it was, or undo what ran with flow snapshot restore ${snapId}.`
+      `migration.md changed after line ${progress.applied} of it ran, so the lines already done are unknown.\n` +
+      '  Put migration.md back as it was, then run this again.'
     );
   }
-  const nothing = manifest ? 'nothing more ran' : 'nothing ran';
+  if (progress && progress.applied === lines.length) {
+    const back = wayBack(at, project);
+    throw new FlowError(`${id} is already applied.${back ? `\n  Put this ${project ? 'project' : 'machine'} back as it was before Flow: ${back}` : ''}`);
+  }
+  const nothing = progress ? 'nothing more ran' : 'nothing ran';
 
-  const todo = migration.actions.slice(manifest ? manifest.applied : 0);
-  const missing = todo.filter((a) => a.verb === 'write' && !snapshots.lstat(snapshots.mirror(dir, a.path)));
+  const todo = migration.actions.slice(progress ? progress.applied : 0);
+  const missing = todo.filter((a) => a.verb === 'write' && !originals.lstat(originals.mirror(dir, a.path)));
   if (missing.length) {
-    const names = missing.map((a) => `  ${show(snapshots.mirror(dir, a.path))}`).join('\n');
+    const names = missing.map((a) => `  ${show(originals.mirror(dir, a.path))}`).join('\n');
     throw new FlowError(`migration.md writes files that files/ does not hold, so ${nothing}:\n${names}`);
   }
 
-  const changed = migrations.changedSince(migration, todo, manifest ? manifest.entries.map((e) => e.path) : []);
+  const changed = migrations.changedSince(migration, todo, progress ? progress.touched : []);
   if (changed.length) {
     const names = changed.slice(0, 20).map((p) => `  ${show(p)}`);
     if (changed.length > 20) names.push(`  and ${changed.length - 20} more`);
@@ -135,29 +138,33 @@ function apply(argv) {
     );
   }
 
-  if (!manifest) {
-    snap = snapshots.newFolder(parent);
-    manifest = { type: migration.type, project: migration.project, migration: id, taken: snapshots.stamp(), lines, applied: 0, entries: [] };
-    snapshots.saveManifest(snap, manifest);
-  }
-  const snapId = snapshots.idOf(at, snap);
+  // The first setup of a place is the one run allowed to open its original.
+  // install.js opens the machine's, so this is where a project's begins.
+  if (SETUP[type] && !originals.read(at, project)) originals.start(at, project);
 
-  const cwd = migration.project || at.base;
+  const state = progress || { lines, applied: 0, touched: [] };
+  const cwd = project || at.base;
   for (const action of todo) {
-    for (const p of migrations.touched(action)) snapshots.record(snap, manifest, p);
+    for (const p of migrations.touched(action)) {
+      originals.record(at, project, p);
+      if (!state.touched.includes(p)) state.touched.push(p);
+    }
+    saveProgress(dir, state);
     try {
       out(change(dir, action, cwd));
     } catch (e) {
       throw new FlowError(
-        `stopped at line ${manifest.applied + 1} of ${lines.length}, "${action.line}": ${e.message}.\n` +
-        `  Undo what ran: flow snapshot restore ${snapId}\n  Carry on after a fix: apply-migration.js ${id}`
+        `stopped at line ${state.applied + 1} of ${lines.length}, "${action.line}": ${e.message}.\n` +
+        `  Carry on after a fix: apply-migration.js ${id}`
       );
     }
-    manifest.applied += 1;
-    snapshots.saveManifest(snap, manifest);
+    state.applied += 1;
+    saveProgress(dir, state);
   }
 
-  out(`applied ${id}, ${lines.length} lines. Undo it with flow snapshot restore ${snapId}`);
+  if (SETUP[type]) originals.close(at, project);
+  const back = wayBack(at, project);
+  out(`applied ${id}, ${lines.length} lines.${back ? ` Put this ${project ? 'project' : 'machine'} back with ${back}` : ''}`);
   return 0;
 }
 

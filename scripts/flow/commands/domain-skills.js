@@ -16,9 +16,11 @@
  * committed, one name per line, and a bare `add` links every name on it. That
  * is how a second machine, a fresh clone or a new worktree gets them back.
  *
- * The repository is found through `domainSkills` in `~/.flow/settings.json`: the
- * path to the clone's `skills/` folder. `flow private-skills` reads it too, to
- * refuse a name the repository already uses.
+ * The repository is found through `domainSkills` in
+ * `~/.flow/settings.local.json`: the path to the clone's `skills/` folder. It
+ * sits in the local file because a path belongs to one machine.
+ * `flow private-skills` reads it too, to refuse a name the repository already
+ * uses.
  */
 
 const fs = require('fs');

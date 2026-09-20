@@ -2,11 +2,20 @@
 /**
  * settings.json: what Flow itself reads, as opposed to what Claude Code reads.
  *
- *   ~/.flow/settings.json          global, and where a session entry lives
+ *   ~/.flow/settings.json        this machine and the next one, since
+ *                                ~/.flow/ is one git repository shared between
+ *                                them
+ *   ~/.flow/settings.local.json  this machine alone, and git ignores it. Every
+ *                                setting holding a path goes here, because the
+ *                                other machine keeps its clone somewhere else
  *   <project>/.flow/settings.json  one project
  *
- * Keys sit at the top level: `git`, and `domainSkills` in the global file alone. A
- * new setting is a new key, and nothing here is shaped around a fixed set.
+ * The 2 machine files are read as one, and the local file wins key by key, so
+ * a machine can override a shared setting without editing the shared file.
+ * `readGlobal` and `globalKey` are that pair; `read` is one named file.
+ *
+ * Keys sit at the top level: `git`, `domainSkills` and `clone`. A new setting
+ * is a new key, and nothing here is shaped around a fixed set.
  *
  * Reading never throws. `guard.js` calls it before every shell command the
  * agent runs, and a missing, empty or corrupt file has to mean the same thing
@@ -18,7 +27,8 @@ const os = require('os');
 const path = require('path');
 
 const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.flow');
-const globalFile = () => path.join(flowHome(), 'settings.json');
+const globalFile = (home) => path.join(home || flowHome(), 'settings.json');
+const localFile = (home) => path.join(home || flowHome(), 'settings.local.json');
 const projectFile = (root) => path.join(root, '.flow', 'settings.json');
 
 /** The settings object, or `{}` for anything unreadable. */
@@ -53,6 +63,22 @@ function remove(file, key) {
   if (Object.keys(data).length) write(file, data);
   else fs.rmSync(file, { force: true });
   return true;
+}
+
+/** Both machine files as one object, the local one winning key by key. */
+const readGlobal = (home) => ({ ...read(globalFile(home)), ...read(localFile(home)) });
+
+/**
+ * One machine setting, and the file it sits in, for a message that says where
+ * to put it. A setting neither file holds names the local file, which is where
+ * a path belongs.
+ */
+function globalKey(key, home) {
+  const local = read(localFile(home));
+  if (key in local) return { file: localFile(home), value: local[key] };
+  const shared = read(globalFile(home));
+  if (key in shared) return { file: globalFile(home), value: shared[key] };
+  return { file: localFile(home), value: undefined };
 }
 
 /** The nearest `.flow/settings.json` at or above `from`, or null. */
@@ -131,6 +157,6 @@ function gitMode(context) {
 }
 
 module.exports = {
-  MODES, flowHome, globalFile, projectFile, findProjectFile,
-  read, write, remove, gitScope, gitMode, expired, live,
+  MODES, flowHome, globalFile, localFile, projectFile, findProjectFile,
+  read, readGlobal, globalKey, write, remove, gitScope, gitMode, expired, live,
 };
