@@ -12,8 +12,8 @@
  * What describes this machine alone never travels, and `IGNORED` below is that
  * list:
  *
- *   version       the migration this machine reached. Another machine's date
- *                 here claims migrations that never ran
+ *   version       the changelog entry this machine reached. Another machine's
+ *                 number here claims migrations that never ran
  *   run.json      a half-finished run on this machine
  *   originals/    this machine's disk as it was before Flow. Putting another
  *                 machine's back would write its files over this one's

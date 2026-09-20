@@ -134,7 +134,7 @@ The command lives in `lab/util/commands/git/work.js`, and nothing about it was b
 - **Hooks**: `SessionEnd` fires on `/clear`, `/resume`, `/logout` and exit, never on `/compact`, and its hooks share 1.5 seconds. `Stop` runs after every answer. `SessionStart` cannot block: exit 2 there prints a notice the session ignores, `hooks.md:853`. `UserPromptSubmit` exit 2 rejects the prompt and erases it, `hooks.md:823`. `UserPromptExpansion` exit 2 blocks the expansion.
 - **This machine**: the hostname is `me`; `~/.claude/` is 433 MB with `projects/` at 351 MB of transcripts; `~/.codex/` is 1.8 GB; `~/.flow/` does not exist; `~/.local/bin/` already holds `flow` and `fw` pointing into this clone, from 2026-09-05; `util` and `u` point at `~/code/util`, a clone outside this one.
 - **`~/.claude.json` holds no login token.** The token is in `~/.claude/.credentials.json`. `~/.claude.json` can hold MCP server keys, which is one reason an original never travels.
-- **`~/.flow/version`** is one line holding the date of the newest changelog entry a machine applied. `CHANGELOG.md` has to come back before a migration can ship.
+- **`~/.flow/version`** is one line holding the number of the newest changelog entry a machine applied. `CHANGELOG.md` came back on 2026-09-20 holding entry `1`, and `CLAUDE.md` → `no-changelog-entry-yet` says the next entry waits for the first install.
 - **The knowledge base design** is in `lab/context/knowledge-base.md`, agreed, and its folder is `~/.flow/wiki/`.
 
 ## Loose ends nobody has raised

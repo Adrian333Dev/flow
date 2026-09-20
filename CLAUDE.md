@@ -100,10 +100,10 @@ Run all 5 on the finished draft. A failure is a rewrite.
 
 **`style-md-is-the-house-style`** Read `references/style.md` before writing or rewriting a skill, a `CLAUDE.md`, a workflow doc or a manual page. A `CLAUDE.md` adds `references/write-rules.md`, and a manual page adds `references/write-docs.md`.
 
-Two rules from it fire here constantly:
+Two rules fire here constantly, the first of them style.md's:
 
 - **`never-rule-against-uninstructed`** Never rule against a behavior nothing in Flow instructs.
-- **`no-changelog`** ⛔ `CHANGELOG.md` is SUSPENDED (user, 2026-08-09). Never write, update or create one. It returns at Flow's first release, behavior only: a rule added, removed or reversed, a mode added, a mechanism replaced. Never renames, path fixes or reference sweeps. Date headers (`## 2026-08-03`), newest first, no version numbers. Never loaded into context.
+- **`no-changelog-entry-yet`** Never add a `CHANGELOG.md` entry until Flow is installed on a machine, since a migration is the only reader an entry has. From that install on: one entry per change of behavior, a rule added, removed or reversed, a mode added, a mechanism replaced. Never renames, path fixes or reference sweeps. Entries count up from 1 and carry the date, `## 2, 2026-11-02`, newest first. `~/.flow/version` holds the number a machine last applied. Never loaded into context.
 
 ## Authoring a skill
 

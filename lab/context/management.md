@@ -64,9 +64,11 @@ The last phase of the method, after the walk closed all 8 branches and the attac
 - **Converting a project that already has its own workflow.** Set by the user 2026-09-08: it waits for such a project, because nothing here can be walked against a real one until one exists.
 - **The interview's question list.** Written when `/flow:setup-machine` is written, against the harvest it follows, never before it.
 
-## The version, locked 2026-09-16
+## The version, locked 2026-09-16, numbered 2026-09-20
 
-**Each machine and each project keeps a one-line file holding the date of the last changelog entry it applied.** `~/.flow/version` on the machine, `.flow/version` in the project, written by the skill at the end of a run. The changelog is the file that returns at v1, one dated entry per change of behavior, newest first, and the date of its newest entry is Flow's version.
+**The line is the entry's number rather than its date since 2026-09-20**, by `## The changelog comes back` below. The last bullet here predicted that change and names what forced it. Everything else in this section stands.
+
+**Each machine and each project keeps a one-line file holding the last changelog entry it applied.** `~/.flow/version` on the machine, `.flow/version` in the project, written by the skill at the end of a run. The changelog is the file that returns at v1, one dated entry per change of behavior, newest first, and the date of its newest entry is Flow's version.
 
 What follows from the file:
 
@@ -467,6 +469,17 @@ Both commands undo the machine, so the agent may never run either.
 - **It prunes a name that left the `BIN` map.** `pruneUnlisted()` in `lib/links.js` drops a link into the clone's `scripts/` whose name Flow no longer ships. The dead-link check could never catch one: the old name still resolves and still runs.
 - **`~/.flow/docs` was dropped**, reversing the line that added it. The clone's path goes in `~/.flow/settings.local.json` under `clone`, and `/flow:help` reads `<clone>/docs/manual/README.md` through it.
 - **`flow doctor` gained 2 checks**: whether the machine has an original and whether its window is still open, and which names in a project's `domain-skills.txt` and `private-skills.txt` have no link in `.claude/skills/`. Both print notes rather than problems, and its messages for the rule file, the import line, the Codex link and `settings.json` now name `/flow:setup-machine`.
+
+## The changelog comes back, and the version is an entry's number, locked 2026-09-20
+
+**`CHANGELOG.md` exists again, holding entry `1` and nothing else.** It was suspended on 2026-08-09 because a file of entries nobody reads is churn. What brings it back is the migration design: a machine records the last entry it applied, and a migration is every entry above that one. Nothing below `## The version` in the build order can be built against a file that does not exist.
+
+- **The second entry waits for the first machine.** An entry has one reader, a machine that already has Flow and has fallen behind, and no machine has Flow. Entries start the day `/flow:setup-machine` runs here, inside the management skill's own build, and from then on every change of behavior gets one.
+- **Nothing is backfilled.** Setup installs the state of the day it runs rather than replaying the road to it, so the months of rule changes behind entry `1` need no entries at all. That history is in git and in `lab/context/`.
+- **An entry is numbered, and the number is the version**: `## 2, 2026-11-02`, counting up from 1, newest first. `~/.flow/version` holds `2`. The date stays in the heading, for a user reading how old their machine is.
+- **The counter is what the date-only line could not do.** `## The version` above ruled a date over a commit hash on 2026-09-16 and named the case that would overturn it: 2 entries on one day. A machine stamps the date, then reads entries newer than it, so the second entry of a day is never seen. A number cannot tie.
+- **A version like `1.4.2` was rejected, the user's question of 2026-09-20.** That shape tells a stranger whether an upgrade is safe to take without looking. Flow is a clone the user pulls, with no registry, nobody pinning a range, and a migration shown whole before it runs. It would also make the agent rule on every change whether it is major, minor or a patch, and that judgment buys nothing here.
+- **The git tag a machine installs from is named for the entry**, `v12`, so the clone's newest tag and the changelog's newest entry are the same fact.
 
 ## Settled by the user
 

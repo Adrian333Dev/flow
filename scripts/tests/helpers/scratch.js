@@ -35,10 +35,13 @@ function project(name) {
   return dir;
 }
 
-/** A ~/.flow/ that a setup finished in: the version stamp is what says so. */
+/**
+ * A ~/.flow/ that a setup finished in: the version stamp is what says so. It
+ * holds the number of the newest CHANGELOG.md entry the machine applied.
+ */
 function setUp(home) {
   fs.mkdirSync(home, { recursive: true });
-  fs.writeFileSync(path.join(home, 'version'), '2026-09-20\n');
+  fs.writeFileSync(path.join(home, 'version'), '1\n');
   return home;
 }
 

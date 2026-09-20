@@ -96,6 +96,7 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 
 - **A command that exists to print gets its whole output compared against a literal**, set 2026-09-11. A test reading only the filesystem passed over a bug where the command described the filesystem wrongly.
 - **Stack content lives in a domain skill, never in a rule file with `paths:`**, set by the user 2026-09-10, rejecting a `rules/typescript.md`.
+- **`CHANGELOG.md` is back, holding entry `1` dated 2026-09-20 and nothing else.** The next entry waits for the first machine Flow is installed on, since a migration is the only reader an entry has. An entry's number is the version: `~/.flow/version` holds the number a machine last applied, and a migration is every entry above it. `CLAUDE.md` → `no-changelog-entry-yet` is the writing rule, and `lab/context/management.md` → `## The changelog comes back` holds the argument, the rejected `1.4.2` shape included.
 ## Which record covers what
 
 All in `lab/context/`, flat. 20 files were merged into 9 on 2026-09-16, and `rejected-replies.md` was added the same day. Every one is history except this file.

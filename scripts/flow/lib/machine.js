@@ -46,7 +46,8 @@ function folders(root) {
 /**
  * Refuse every command on a machine where /flow:setup-machine never finished.
  *
- * `~/.flow/version` is written by the last step of a setup or a migration, so
+ * `~/.flow/version` holds the number of the newest changelog entry this
+ * machine applied, written by the last step of a setup or a migration, so
  * its absence means the run never reached the end. Nothing else can catch this:
  * Flow's hooks reach ~/.claude/settings.json only when that skill merges them,
  * so before it runs there is no hook to fire and no rule file loaded. The
