@@ -44,7 +44,7 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 
 `/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings` are user only. `user-only-skills` in `home/AGENTS.md` names them, so every other file names them bare. A user-only skill missing from that list is marked `(user only)` where the agent first meets it, by `references/style.md` → `### Only in a loaded file`. `/flow:tickets-from-spec` was `/flow:cut-from-spec` until 2026-09-18. The 4 phase skills take a ticket id and load it with its files on their first line, since 2026-09-16. `/flow:debug` still sends a bug inside a web page to `/web-pages`, which left for `domain-skills` and waits on its rebuild there.
 
-## `flow` has 10 command groups, and all 155 tests pass
+## `flow` has 10 command groups, and all 160 tests pass
 
 One of them, *a worker hands the parent its diff and the command that deleted a file*, fails about one run in five when the machine is busy. It is a race in the test, not a bug in `changes.js`, and it has a line in `backlog.md`.
 
@@ -67,6 +67,7 @@ One of them, *a worker hands the parent its diff and the command that deleted a 
 - **`instructions-loaded.js`**: records which rule files entered context.
 - **`check-ticket.js`**, when a phase skill or `/flow:start` is typed with a ticket id: blocks the skill when the id matches nothing, so a typo loads nothing.
 - **`reminder.js`**, on every message the user sends: prints `references/reminder.md`, unless `"reminder": false` says not to. It was a bare `cat` until 2026-09-20, and a `cat` reads no setting. Every line Flow prints by itself gets a key like it, read through `settings.prints(name)`.
+- **`file-suggestion.js`**, not a hook but named by `fileSuggestion` in `home/settings.json`: builds the list `@` opens, git-ignored files included and the most recently changed first. It walks the project once, skipping a fixed list plus `fileSuggestionIgnore` from all 3 levels, saves the walk to `<os temp>/flow-file-suggestion/<hash>.txt`, and answers each keystroke from it, walking again in the background once the save is 2 seconds old. Measured 2026-09-23 on this repo's 33,500 files: 50 to 58 ms a typed query, 75 ms a bare `@`, 34 ms of each Node starting. The first `@` in a project waits 250 ms at most. The other `@` entries, subagent names among them, still show beside its paths: checked by the user in a live session 2026-09-23.
 - **`session-check.js`**, when a session opens: one line when `~/.flow/run.json`, `~/.flow/version` or the project's `.flow/version` needs attention, and nothing when all 3 are fine. A stopped run silences the other version lines. It is also the only thing that names `/flow:migrate`, a skill the agent can never start. `"sessionCheck": false` silences the printing. The same hook makes every skill link match the settings, returning `reloadSkills: true` when one changed, starts `scripts/skills-pull.js` detached, and prints what that job left in `~/.flow/skills-update.json`.
 
 ## Every skill repository updates itself, built 2026-09-20, widened 2026-09-23

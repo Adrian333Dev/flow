@@ -660,15 +660,16 @@ A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is
 
 Two files, and Flow contributes to one of them.
 
-**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `/flow:setup-machine` merges Flow's keys into it, key by key. Flow contributes three keys:
+**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `/flow:setup-machine` merges Flow's keys into it, key by key. Flow contributes four keys:
 
 - **`hooks`**: 6 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
 - **`permissions`**: an allow list, a deny list, and no git entries at all, because `flow git` owns git. The deny list covers the Claude Code surfaces Flow does not use, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
+- **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first
 
 A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. `/flow:setup-machine` also writes `skillOverrides`, Claude Code's key for hiding a skill, for the ones it switches off: Claude Code's own `/batch`, and a skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
 
-**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Together they hold 6 keys:
+**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Together they hold 7 keys:
 
 - **`git`**: the git write state, in the shared file. `flow git` writes it, so there is nothing to edit by hand
 - **`sources`**: the skill repositories [`flow skills`](#flow-skills) takes skills from, in the shared file. `flow skills add` and `drop` write it
@@ -676,6 +677,7 @@ A project overrides any of them in its own `.claude/settings.json`, and the two 
 - **`reminder`**: whether the reminder prints beside every message, in the shared file. `false` silences it, and every line Flow prints by itself gets a key like it
 - **`sessionCheck`**: whether the line naming what needs attention prints when a session opens, in the shared file. `false` silences it
 - **`skillsAutoUpdate`**: whether every skill repository pulls itself when a session opens, in the shared file. `false` turns each pull into a fetch that names what is waiting
+- **`fileSuggestionIgnore`**: folders and files the `@` list never offers, in either file and in a project's `.flow/settings.json`. The lists add up
 
 [Settings](settings.md) explains every key in both files, every value Flow rejected, and why.
 

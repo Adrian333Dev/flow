@@ -1,48 +1,31 @@
 # Handoff
 
-Written 2026-09-23, before a compaction the user asked for. Read this once, then rewrite it whole next time.
+Written 2026-09-23, at the end of a phase, before the user commits. Read this once, then rewrite it whole next time.
 
-**Next: build the essential-skills rule.** The user approved it ("Yes, approved your proposal") and asked for the build to start right after the compaction. `one-approval-runs-to-the-end` holds: the build, its tests, every record it makes stale and the writing pass, then one report. The approved spec is in `lab/context/management.md` → `### The settings hold only the exceptions`, the bullet **Essential skills cannot be switched, and `ls` hides them**.
+**Nothing is in flight.** Every item the user raised in this phase is built, tested (160 of 160) and written into the docs. The next session starts with whatever the user brings.
 
-**Everything before it is done.** The `flow skills` build, code, tests (154 of 154) and docs. Also built this session: the project's git unlock moved to `<project>/.flow/settings.local.json` so `.flow/settings.json` is committed; `domainSkillsAutoUpdate` renamed `skillsAutoUpdate`; `scripts/domain-pull.js` renamed `scripts/skills-pull.js`. A project still cannot switch off a skill on for the whole machine, by the user's choice.
+## Built in this phase
 
-## The essential-skills build
+- **Essential skills.** Every Flow skill outside `skills/dev/` is always linked. `flow skills ls` leaves it out, `on` and `off` refuse it, and `flow doctor` reports a settings line naming one. `/flow:review` and `/flow:apply-domain-findings` are the only Flow skills that switch, and both start off. `skills.essential()` in `scripts/flow/lib/skills.js` holds the test. `flow install` links only the essential ones and leaves the dev ones to `apply`.
+- **The `@` file list.** `scripts/file-suggestion.js`, named by `fileSuggestion` in `home/settings.json`, offers git-ignored files and puts the most recently changed first. It saves each project's walk to `<os temp>/flow-file-suggestion/<hash>.txt` and answers every keystroke from it, walking again in the background once the save is 2 seconds old. `fileSuggestionIgnore` adds folders to skip, from all 3 levels, added together. The user checked in a live session that subagent names still show beside its paths. `docs/manual/settings.md` → `### fileSuggestion` holds the design and the timings.
+- **`find()` in `scripts/flow/lib/skills.js` is deleted**, with the user's yes.
+- **All 6 Claude Code issues have their numbers** in `lab/context/claude-code.md`: #95761, #95762 and #95763 joined the 3 from 2026-09-10.
+- Earlier in the phase, already committed: the project's git unlock moved to `<project>/.flow/settings.local.json`, `domainSkillsAutoUpdate` became `skillsAutoUpdate`, and `scripts/domain-pull.js` became `scripts/skills-pull.js`.
 
-The rule, in short:
+## Speed, as measured
 
-- **Essential is every Flow skill outside `skills/dev/`**, read off the tree. Switchable: `review` and `apply-domain-findings`, and both now **start off** (today every Flow skill starts on).
-- **`on` and `off` refuse an essential skill by name**, saying it is part of the workflow and always on. `drop` still removes a stray line.
-- **`ls` lists only the 2 switchable Flow skills** under `flow`.
-- **`apply` always links every essential skill.** A hand-written line naming one is ignored, and `flow doctor` reports it with the `drop` fix.
+Measured 2026-09-23 on this machine, WSL2:
 
-The `ls` sample becomes:
-
-```text
-$ flow skills ls
-                          state  level
-flow
-  apply-domain-findings   off
-  review                  on     global
-domain-skills             41 more
-  react                   on     project
-```
-
-Files, in order:
-
-1. `scripts/flow/lib/skill-links.js`: the essential test (group folder from `scripts/flow/lib/skills.js`), the defaults, `apply`, the catalog, the header comment.
-2. `scripts/flow/commands/skills.js`: the refusal in `on` and `off`, `ls` filtering.
-3. `scripts/flow/commands/doctor.js`: `checkSkills` reports a line naming an essential skill. `checkAgents` may assume Flow skills on; check it.
-4. `scripts/tests/skills.test.js` and `doctor.test.js`: a refusal test, an `ls` test, a doctor test, and any test assuming `review` starts on.
-5. Run `npm test` in `scripts/`.
-6. Docs: `docs/manual/reference.md` → `### flow skills` (the sample at line 492, the defaults, the refusal list) and `## The skills`; `docs/manual/settings.md` → `### skills` (defaults); `docs/dev/skills.md` and `skills/tools/file-findings/references/write-skills.md` together (the line saying every skill is shown until `off --machine`); `home/AGENTS.md` already says "`/flow:review`, if it's in your skill list"; the sample in `lab/context/management.md` line 624; `lab/context/state.md` → `## 12 skills`.
-7. Writing pass on each file: `references/style.md`, plus `write-docs.md` for a page under `docs/`. No em dashes.
-8. Report once: what is now true, one line per file.
+- **This repo, 33,500 files**: a typed query 50 to 58 ms, a bare `@` about 75 ms. 34 ms of each is Node starting.
+- **A walk with nothing saved**: 200 to 400 ms on this repo, 3.8 s on the whole home folder. That is why the first `@` in a project stops walking at 250 ms.
+- **Where the time went before the cache became plain text**: reading the file 10 ms, parsing JSON 13 ms, lowercasing every path 12 ms. The plain-text cache searches the whole text for the first word and splits only the lines holding it.
 
 ## How to reply to this user
 
 - **Feedback arrives dictated.** It is thinking unless it names a change and says to make it.
 - **Before a big build, say its size and order in one line first.**
 - **When the user asks to save context, stop and save.**
+- **Performance matters to the user.** Measure before calling something fast, and show the numbers.
 - **Pick the smallest change that works. Never regenerate a sample the user has seen.** Show only lines that change.
 - **Nothing is released.** Never design for a machine set up with an older Flow.
 - Everything in `CLAUDE.md` → `## The reply` holds.
@@ -51,14 +34,9 @@ Files, in order:
 
 - **No hook can edit the skill list Claude sees.** A `SessionStart` hook can return `reloadSkills: true` (`lab/research/claude-code-docs/hooks.md` line 1101). Whether that rescan reaches the plugin folder is untested.
 - **`skillOverrides` skips plugin skills.** `enabledPlugins` switches a plugin whole.
-- **`os.homedir()` follows `HOME`**, so a test moving `HOME` also moves where `machine.folders()` puts `~/.agents` and what `shorten` shortens.
+- **`fileSuggestion` replaces the file paths alone.** Claude Code can skip it without a warning, in an untrusted folder or where managed settings turn hooks off.
+- **`os.homedir()` follows `HOME`**, and `os.tmpdir()` follows `TMPDIR`, which is how `scripts/tests/file-suggestion.test.js` gives each test its own cache.
 - **`tmp/skills-try/`** holds a hand-run scratch machine with `env.sh`, left for poking at `flow skills`.
-
-## Open, and waiting on the user
-
-- **`find()` in `scripts/flow/lib/skills.js` has no caller.** Deleting it needs a yes.
-- **`fileSuggestion` is undesigned**, talk first in `backlog.md`.
-- **The 3 issue numbers** belong in `lab/context/claude-code.md` → `## Filed`.
 
 ## Loose ends nobody has raised
 
@@ -66,8 +44,9 @@ Files, in order:
 - **2 tests fail under load and pass alone**: the worker-diff case in `changes.test.js`, and one in `restore.test.js`.
 - **The scorecard records use a `kind` field.**
 - **`docs/dev/layout.md` says Claude Code never reads an `AGENTS.md`.**
-- **2 untracked files no session of ours wrote**: `lab/context/context-7-alternatives.md` and `context7-report.md`.
+- **2 files no session of ours wrote**, committed in `b1f6666`: `lab/context/context-7-alternatives.md` and `context7-report.md`.
 - **util's `~/.util/sources`** keeps naming `~/.flow/repos/util` after an uninstall.
+- **The `@` cache is never cleaned up.** One file per project stays in the system's temp folder until the system clears it, about 3 MB for 33,500 files.
 
 ## Where to look things up
 

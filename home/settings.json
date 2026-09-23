@@ -1,5 +1,9 @@
 {
   "cleanupPeriodDays": 365,
+  "fileSuggestion": {
+    "type": "command",
+    "command": "node \"$HOME/.flow/scripts/file-suggestion.js\""
+  },
   "hooks": {
     "PreToolUse": [
       {

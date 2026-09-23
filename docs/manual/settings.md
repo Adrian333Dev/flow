@@ -19,6 +19,7 @@ All 5 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`permissions`](#permissions)
   - [`skillOverrides`](#skilloverrides)
   - [`cleanupPeriodDays`](#cleanupperioddays)
+  - [`fileSuggestion`](#filesuggestion)
   - [Feature flags](#feature-flags)
   - [Deliberately absent](#deliberately-absent)
 - [Flow's settings files](#flows-settings-files)
@@ -28,6 +29,7 @@ All 5 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`skillsAutoUpdate`](#skillsautoupdate)
   - [`reminder`](#reminder)
   - [`sessionCheck`](#sessioncheck)
+  - [`fileSuggestionIgnore`](#filesuggestionignore)
 
 ## Claude Code's settings file
 
@@ -324,6 +326,36 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 
 ---
 
+### `fileSuggestion`
+
+```json
+"fileSuggestion": { "type": "command", "command": "node \"$HOME/.flow/scripts/file-suggestion.js\"" }
+```
+
+Typing `@` opens a list of up to 15 file paths to pick from. Claude Code builds that list itself unless this key names a script. Flow's script, `scripts/file-suggestion.js`, builds it instead.
+
+**Flow replaces the list for 2 things Claude Code's own cannot do:**
+
+- **It offers git-ignored files.** Claude Code's list leaves them out, so `.env`, `tmp/` or a local notes file could only be named by typing the whole path. The script walks the project itself and never reads `.gitignore`.
+- **It puts the most recently changed file first.** A bare `@` shows the 15 files you touched last, which is usually the one you are about to name.
+
+A path shows when every word you typed appears in it, ignoring case. `comp butt` finds `src/components/Button.tsx`, and `btn` does not, where Claude Code's own looser matching would.
+
+**It never enters** `.git`, `node_modules`, `dist`, `build`, `out`, `coverage`, `.next`, `target`, `.venv` or `__pycache__`. [`fileSuggestionIgnore`](#filesuggestionignore) adds your own.
+
+**It runs on every keystroke after `@`, so it answers from a saved walk.** Walking 30,000 files takes 200 to 400 ms, too slow to wait for on every letter. So the walk runs once and saves every path with its change time, in one file per project under the system's temp folder. A keystroke reads that file: about 60 ms on 30,000 files, 34 of them Node starting.
+
+- **A saved walk older than 2 seconds is still used.** The keystroke answers from it, and a walk runs in the background for the next keystroke. A file created a moment ago is missing for one keystroke at most.
+- **Where 200 paths or fewer match, their change times are read fresh**, so the file you saved a second ago tops the list without waiting for a walk.
+- **The very first `@` in a project waits 250 ms at most.** With nothing saved yet, the walk stops there, and the next keystroke finishes it in the background.
+- **The walk stops at 50,000 files**, nearest the root first, so a huge folder never slows the list. A file deeper than that is reached by typing its whole path.
+
+The script replaces the file paths alone. Everything else `@` offers, subagent names among it, still shows.
+
+Claude Code can skip the script without a warning and use its own list: in a folder you have not trusted, or where managed settings turn hooks off.
+
+---
+
 ### Feature flags
 
 | Key | Value | Effect |
@@ -351,7 +383,7 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 ```json
 {
   "sources": ["Adrian333Dev/domain-skills", "mattpocock/skills"],
-  "skills": { "review": "off" },
+  "skills": { "review": "on" },
   "git": { "mode": "allow", "until": "2026-09-14T15:00:00.000Z", "session": "<session id>" }
 }
 ```
@@ -465,3 +497,19 @@ Whether the line naming what needs attention prints when a session opens. Write 
 [The session check](#the-session-check) shows every line it can print and says which files it reads.
 
 It silences the printing alone. Every skill repository still updates itself, which [`skillsAutoUpdate`](#skillsautoupdate) governs.
+
+---
+
+### `fileSuggestionIgnore`
+
+Folders and files the `@` list never offers, beyond the fixed ones [`fileSuggestion`](#filesuggestion) names:
+
+```json
+"fileSuggestionIgnore": ["tmp", "lab/research"]
+```
+
+**An entry with no `/` is a name**, skipped at any depth: `tmp` skips `tmp/` and `docs/tmp/`. **An entry with a `/` is a path** from the project root: `lab/research` skips that folder and no other `research`. A `/` at the end changes nothing.
+
+**3 files can hold it, and their lists add up**: the project's `.flow/settings.json`, `~/.flow/settings.local.json` and `~/.flow/settings.json`. Unlike [`skills`](#skills), no level replaces another, since a nearer file never needs to bring back a path a farther one hid.
+
+A change shows once the next walk has run, a few seconds at most.

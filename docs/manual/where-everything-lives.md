@@ -108,7 +108,7 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 
 ### `~/.flow/`, what only Flow reads
 
-- **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, `apply-migration.js`, which carries out a migration, and `skills-pull.js`, which updates every skill repository in the background. `flow install` makes it.
+- **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, `apply-migration.js`, which carries out a migration, `skills-pull.js`, which updates every skill repository in the background, and `file-suggestion.js`, which builds the list `@` opens. `flow install` makes it.
 - **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, the line the reminder hook prints, and `harnesses/`, where each harness keeps its own files. `flow install` makes it.
 - **`docs`**: a symlink to the clone's `docs/`: the manual you are reading, under `manual/`, and the pages for whoever changes Flow, under `dev/`. `/flow:help` answers a question by naming a page under `~/.flow/docs/manual/`, which is the same path on every machine whatever your clone is called. `flow install` makes it.
 - **`settings.json`**: the settings both your machines share. `git` is the git write state, written by `flow git`. `reminder` is whether the reminder prints beside every message, and `sessionCheck` whether a session opens with a line about what needs attention: one key per line Flow prints by itself. `sources` lists the skill repositories, and `skills` the skills switched on or off for every machine. `skillsAutoUpdate` is whether each skill repository pulls itself when a session opens.
