@@ -18,6 +18,9 @@
  * and its `strip` removes each one, plus Flow's own lines from the 2 files
  * that are the user's.
  *
+ * Before `~/.flow/` goes, every link into it goes too: a source's skill in
+ * `~/.claude/skills/` or a project's, and util's names in `~/.local/bin/`.
+ *
  * The clone is deleted last, and only when git says it holds nothing the user
  * would lose: uncommitted changes or commits no remote has stop it, and the
  * path is printed instead. Deleting a clone with a day's work in it is not an
@@ -114,6 +117,9 @@ actions.uninstall = {
       for (const line of installed.strip(clone, at, { bin })) out(line);
     }
 
+    const skillDirs = [at.claude, ...projects.map((row) => path.join(row.manifest.project, '.claude'))]
+      .map((d) => path.join(d, 'skills'));
+    for (const line of installed.unlinkInto(at.flow, [...skillDirs, bin])) out(line);
     originals.remove(at.flow);
     out(`removed ${show(at.flow)}`);
 

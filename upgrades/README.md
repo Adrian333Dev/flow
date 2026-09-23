@@ -5,7 +5,7 @@ One guide per changelog entry, holding everything `/flow:migrate` needs to move 
 ## Where they live
 
 - **`upgrades/12.md`**, in the clone, beside `CHANGELOG.md`. A pull brings every guide with it.
-- **The clone's path** is `clone` in `~/.flow/settings.local.json`, written by `flow install`. Nothing goes under `~/.flow/`, which holds what a machine saved rather than what it pulled.
+- **The clone** is reached through `~/.flow/repos/flow`, a link `flow install` makes to wherever the clone sits. The guides stay in the clone, so a pull is all that brings a new one.
 - **The name is the entry's number alone.** `12.md` is the step from 11 to 12. `11-to-12.md` says nothing the number does not, and a machine at 8 would look for `8-to-12.md`, which nobody writes.
 
 ## A guide is one step, and several run in order

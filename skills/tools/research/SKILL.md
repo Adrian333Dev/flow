@@ -21,11 +21,10 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 - **A tool already chosen** → a skill, plugin or MCP server for it, before reading a line of its documentation. A skill written by the people who build the tool is worth more than the docs it was made from.
 
 1. **Search these at once:**
-   - **Your private skills:** `flow private-skills ls` (rarely relevant)
-   - **The domain-skills repository:** `flow domain-skills ls <word>`, one word per search, since it lists only a skill matching every word. When it finds no repository on this machine, clone it instead, `git clone --depth 1 https://github.com/Adrian333Dev/domain-skills tmp/references/domain-skills`, and grep the `description:` lines of `skills/*/SKILL.md`.
-   - **The toolbox**, a catalog of outside tools with notes from real use: `git clone --depth 1 https://github.com/Adrian333Dev/toolbox tmp/references/toolbox`, or `git -C tmp/references/toolbox pull` when the clone is already there. Read its `README.md`, then search the folders that could hold an answer, the way it says.
+   - **Every skill Flow can reach:** `flow skills ls <pattern>`. Each pattern is a regular expression over the name and the description, and a skill shows when it matches every one. It covers your private skills, the domain-skills repository and every other skill repository Flow has. `flow skills ls --source domain-skills` lists one repository whole.
+   - **The toolbox**, a catalog of outside tools with notes from real use, at `~/.flow/repos/toolbox/`. Read its `README.md`, then search the folders that could hold an answer, the way it says. No folder there → `flow install` clones it.
    - **skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill.
-2. **A private or domain skill that fits needs no judging.** Add it: `flow private-skills add <name>` or `flow domain-skills add <name>`.
+2. **A skill `flow skills ls` found needs no judging.** Turn it on: `flow skills on <name>`.
 3. **When nothing from step 1 fits, search outward:**
    - **Skills on GitHub:** `gh search code <word> --filename SKILL.md`
    - **Plugin marketplaces:** `gh search code <word> --filename marketplace.json`
@@ -40,8 +39,8 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 
 **Adopting a skill:**
 
-- For one project → install it with its own installer, such as `npx skills add <owner/repo> --skill <name>`. A change edits the project's copy
-- A second project needs the change → copy the edited skill into the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository with a note naming its upstream repository, commit and license, then install it in both with `flow domain-skills add <name>`. Only when its license allows republishing
+- From any skill repository → `flow skills add <owner/repo> <name>`, which clones the repository and turns the skill on for this project. `--machine` turns it on for this machine.
+- It needs a change → copy the edited skill into the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository with a note naming its upstream repository, commit and license, then `flow skills on <name>` wherever it is wanted. Only when its license allows republishing
 
 ## How deep to go
 

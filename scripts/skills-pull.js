@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * domain-pull.js: the domain-skills clone updating itself, in the background.
+ * skills-pull.js: every skill repository Flow cloned updating itself, in the
+ * background.
  *
  * The `SessionStart` hook starts this script detached and returns at once, so
  * the session never waits for the network. Nothing here prints: what it finds

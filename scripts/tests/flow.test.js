@@ -87,7 +87,7 @@ test('flow git writes a mode, scopes it, and clears every scope at once', () => 
 
   // Outside a session the entry lands on the project instead.
   assert.match(run(['git', 'ask']).stdout, /ask in this project/);
-  assert.ok(fs.existsSync(path.join(dir, '.flow', 'settings.json')));
+  assert.ok(fs.existsSync(path.join(dir, '.flow', 'settings.local.json')));
 
   assert.match(run(['git', 'off']).stdout, /git writes: off$/m);
   assert.match(run(['git'], 'S1').stdout, /git writes: off/, 'off clears the session entry too');

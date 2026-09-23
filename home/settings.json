@@ -173,6 +173,5 @@
       "Bash(node ~/.flow/scripts/flow/flow.js restore:*)",
       "Bash(node ~/.flow/scripts/flow/flow.js uninstall:*)"
     ]
-  },
-  "skillOverrides": {}
+  }
 }

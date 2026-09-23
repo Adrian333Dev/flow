@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Apply domain findings
 
-The domain skill to update is `$ARGUMENTS`. Its findings are the open pull requests on `Adrian333Dev/domain-skills` adding files under `skills/<skill>/findings/`, and none is ever merged. The clone is the parent of the folder `domainSkills` names in `~/.flow/settings.json`.
+The domain skill to update is `$ARGUMENTS`. Its findings are the open pull requests on `Adrian333Dev/domain-skills` adding files under `skills/<skill>/findings/`, and none is ever merged. The clone is `~/.flow/repos/sources/Adrian333Dev_domain-skills/`.
 
 ## Method
 

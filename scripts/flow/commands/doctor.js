@@ -38,10 +38,11 @@ const originals = require('../lib/originals');
 const prereq = require('../lib/prereq');
 const render = require('../lib/render');
 const { projectRoot } = require('../lib/root');
+const links = require('../lib/skill-links');
 const skills = require('../lib/skills');
 const version = require('../lib/version');
 
-/** Typed names util puts there. Their target is util's clone, which Flow never knows. */
+/** Typed names util puts there, linked into util's clone at `~/.flow/repos/util/`. */
 const UTIL_BIN = ['util', 'u'];
 
 /**
@@ -147,13 +148,73 @@ function checkNames(clone, { bin }) {
     for (const name of UTIL_BIN) {
       const found = inspect(path.join(bin, name));
       if (found.state === 'ok') counted.push(name);
-      else if (found.state === 'missing') problems.push(`${name} is not linked: run util install from util's clone`);
+      else if (found.state === 'missing') problems.push(`${name} is not linked: run flow install`);
       else if (found.state === 'real') problems.push(`${name} is a real file, not a link`);
-      else problems.push(`${name} points at ${found.raw}, which is gone: re-run util install`);
+      else problems.push(`${name} points at ${found.raw}, which is gone: run flow install`);
     }
   }
 
   return { name: 'names', problems, summary: `${counted.join(', ')} all resolve` };
+}
+
+/**
+ * The util commands Flow calls, and the only hand-maintained list Flow has.
+ *
+ * Nothing anywhere declares this dependency, so the list is written out, and
+ * the caller beside each entry says what stops working when it fails.
+ */
+const UTIL_COMMANDS = [
+  { name: 'fs tree', callers: 'home/AGENTS.md, in tree-for-structure' },
+  { name: 'fs merge', callers: 'home/AGENTS.md, in merge-for-bulk-reads' },
+  { name: 'fs open', callers: 'flow get --files, through tickets.js' },
+];
+
+/**
+ * The util commands, proved by running each one.
+ *
+ * `--help` rather than reading util's registry: it exits 0 only when the
+ * command resolved and ran, so it catches a util clone too old to carry the
+ * command as well as one that was never registered. Re-deriving util's own
+ * resolution rules inside Flow would drift from them instead.
+ */
+function checkUtil() {
+  const problems = [];
+  for (const command of UTIL_COMMANDS) {
+    const run = spawnSync('util', [...command.name.split(' '), '--help'], { stdio: 'ignore' });
+    if (run.error && run.error.code === 'ENOENT') {
+      return {
+        name: 'util',
+        problems: ['util is not on PATH at all, so none of the 3 commands Flow calls can run'],
+      };
+    }
+    if (run.status !== 0) problems.push(`util ${command.name} does not run, and it is called by ${command.callers}`);
+  }
+
+  // A failure above is nearly always the registry rather than the command,
+  // because nothing is built into util: it reads ~/.util/sources and every
+  // command comes out of a directory named there.
+  if (problems.length) problems.push(...registryDiagnosis());
+
+  return { name: 'util', problems, summary: `${UTIL_COMMANDS.map((c) => c.name).join(', ')} all run` };
+}
+
+/** Why a util command is missing, read off util's own source registry. */
+function registryDiagnosis() {
+  const file = path.join(process.env.UTIL_HOME || path.join(os.homedir(), '.util'), 'sources');
+  let text;
+  try {
+    text = fs.readFileSync(file, 'utf8');
+  } catch {
+    return [`${file} does not exist, so no source is registered: run flow install`];
+  }
+  const paths = text.split('\n')
+    .map((l) => l.replace(/\s+#.*$/, '').trim())
+    .filter((l) => l && !l.startsWith('#'))
+    .map(machine.expandHome);
+  if (!paths.length) return [`${file} is empty, so no source is registered: run flow install`];
+  const gone = paths.filter((p) => !fs.existsSync(p));
+  if (gone.length) return gone.map((p) => `${file} names ${p}, which does not exist: run flow install`);
+  return [`${file} names ${paths.length} live source(s), so the command itself is missing from util's clone: run flow install`];
 }
 
 /**
@@ -162,7 +223,6 @@ function checkNames(clone, { bin }) {
  */
 function checkAgents(at, catalog) {
   const problems = [];
-  const notes = [];
 
   // A clash is reported rather than thrown, so the rest of the report still
   // prints. Two skills sharing a name is not a missing link: a link is named
@@ -176,8 +236,13 @@ function checkAgents(at, catalog) {
     problems.push(`${shorten(plugin)} is a link: it has to be the real folder, and ~/.claude/skills/flow the link to it`);
   }
 
+  // A Flow skill switched off has no link, on purpose, so only the ones on
+  // for this machine are checked: every essential one, and a dev one with a line.
+  const machineLines = links.lines({ home: at.flow, root: null, levels: ['machine', 'global'] });
+  const on = installable.filter((s) =>
+    links.machineState({ name: s.name, essential: skills.essential(s) }, { type: 'flow' }, machineLines) === 'on');
   const linkDir = skills.linkDir(at.agents);
-  problems.push(...checkLinks(installable.map((s) => ({
+  problems.push(...checkLinks(on.map((s) => ({
     at: path.join(linkDir, s.name), target: s.dir, what: `skills/${s.name}`,
   }))));
 
@@ -198,19 +263,14 @@ function checkAgents(at, catalog) {
 
   const rules = path.join(at.agents, 'AGENTS.md');
   if (!fs.existsSync(rules)) {
-    problems.push(`${shorten(rules)} is missing: type /flow:setup-machine, which writes it after the interview`);
-  } else if (fs.readFileSync(rules, 'utf8').includes('<!-- e.g.')) {
-    // A note rather than a problem. The file is a copy and is meant to diverge,
-    // so a placeholder left in it means one section was never filled, which is
-    // a thing to finish rather than a thing that is broken.
-    notes.push('AGENTS.md still carries its template placeholders, so ## The user and ## Preferences were never filled in');
+    problems.push(`${shorten(rules)} is missing: type /flow:setup-machine, which writes it`);
   }
 
   return {
     name: shorten(at.agents),
     problems,
-    notes,
-    summary: `${count(installable.length, 'skill', 'skills')} linked under skills/${skills.PLUGIN}/, AGENTS.md present`,
+    summary: `${count(on.length, 'skill', 'skills')} linked under skills/${skills.PLUGIN}/` +
+      `${on.length < installable.length ? `, ${installable.length - on.length} switched off` : ''}, AGENTS.md present`,
   };
 }
 
@@ -247,28 +307,6 @@ function checkClaude(clone, at) {
     count(rules.length, 'rule', 'rules'),
   ].join(', ');
   return { name: shorten(at.claude), problems, summary: `${counted} linked, CLAUDE.md imports the rules` };
-}
-
-/**
- * What Codex reads: AGENTS.md, a link to the rule file.
- *
- * Codex reads AGENTS.override.md first when one exists, so a leftover one
- * hides the rules as surely as a missing link.
- */
-function checkCodex(at) {
-  const problems = checkLinks([
-    {
-      at: path.join(at.codex, 'AGENTS.md'),
-      target: path.join(at.agents, 'AGENTS.md'),
-      what: 'AGENTS.md',
-      fix: 'type /flow:setup-machine',
-    },
-  ]);
-  const override = path.join(at.codex, 'AGENTS.override.md');
-  if (fs.existsSync(override) && fs.readFileSync(override, 'utf8').trim() !== '') {
-    problems.push(`${shorten(override)} exists, and Codex reads it in place of AGENTS.md: move what it holds into ${shorten(path.join(at.agents, 'AGENTS.md'))}`);
-  }
-  return { name: shorten(at.codex), problems, summary: 'AGENTS.md links to the rules' };
 }
 
 /**
@@ -409,46 +447,77 @@ function checkOriginals(at) {
 }
 
 /**
- * The skills this project lists against the links it has, or null outside a
- * project.
+ * The skills Flow switches, read against the settings: every source cloned,
+ * every line naming a skill some source holds and none naming an essential
+ * one, and every skill switched on linked where it loads from.
  *
- * git commits the 2 lists and ignores the links, because a link holds this
- * machine's path. So a fresh clone, a new worktree and a second machine each
- * start with every name listed and no link at all, and `flow domain-skills
- * add` with no name puts them back. A note rather than a problem: a project
- * nobody has run that command in yet is not broken.
+ * Read-only like everything here. A link out of step is a problem even
+ * though the next session start fixes it, since until then the skill list
+ * is wrong. `flow skills ls` makes the links match now.
  */
-function checkProjectSkills() {
-  let root;
+function checkSkills(at) {
+  const problems = [];
+  const groups = links.catalog(at.flow);
+  const machineLines = links.lines({ home: at.flow, root: null, levels: ['machine', 'global'] });
+  let root = null;
   try {
     root = projectRoot();
   } catch {
-    return null;
+    // Outside a project: the machine's links are the whole check.
+  }
+  const projectLines = root ? links.lines({ home: at.flow, root, levels: ['project'] }) : new Map();
+
+  const sources = groups.filter((g) => g.type === 'source');
+  for (const g of sources.filter((g) => !g.cloned)) {
+    problems.push(`${g.id} is a source and is not cloned, so none of its skills can load: run flow install`);
   }
 
-  const notes = [];
-  const linked = [];
-  for (const [file, command] of [['domain-skills.txt', 'flow domain-skills add'], ['private-skills.txt', 'flow private-skills add']]) {
-    let names = [];
-    try {
-      names = fs.readFileSync(path.join(root, '.flow', file), 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
-    } catch {
-      continue;
-    }
-    for (const name of names) {
-      // existsSync follows the link, so a link into a clone that moved reads
-      // as missing here, which is the same fix.
-      if (fs.existsSync(path.join(root, '.claude', 'skills', name))) linked.push(name);
-      else notes.push(`.flow/${file} names ${name}, which is not linked in this project: run ${command}`);
-    }
+  const known = new Set(groups.flatMap((g) => [...g.skills.keys()]));
+  for (const [name, line] of new Map([...machineLines, ...projectLines])) {
+    if (known.has(name.split(':').pop())) continue;
+    const flag = line.level === 'project' ? '' : ` --${line.level}`;
+    problems.push(`"${name}" is switched ${line.state} at ${line.level} level, and no source holds it: flow skills drop ${name}${flag}`);
   }
 
-  return {
-    name: `${path.basename(root)}, the skills it lists`,
-    problems: [],
-    notes,
-    summary: linked.length ? `${count(linked.length, 'skill', 'skills')} listed and linked: ${linked.join(', ')}` : 'no skills listed',
+  // A line naming an essential skill changes nothing, since that skill is
+  // always linked, so it only misleads whoever reads the settings.
+  const flow = groups.find((g) => g.type === 'flow');
+  for (const [name, line] of new Map([...machineLines, ...projectLines])) {
+    const skill = flow.skills.get(name.split(':').pop());
+    if (!skill || !links.isEssential(flow, skill)) continue;
+    const flag = line.level === 'project' ? '' : ` --${line.level}`;
+    problems.push(`"${name}" is switched ${line.state} at ${line.level} level, and it is part of Flow's workflow, ` +
+      `always on, so the line does nothing: flow skills drop ${name}${flag}`);
+  }
+
+  // Flow's own skills link into the plugin folder, which checkAgents reads.
+  let machineOn = 0;
+  let projectOn = 0;
+  const wanted = (dir, skill) => {
+    const found = inspect(path.join(dir, skill.name));
+    if (found.state !== 'ok' || found.target !== fs.realpathSync(skill.dir)) {
+      problems.push(`${skill.name} is switched on and ${shorten(path.join(dir, skill.name))} does not link to it: run flow skills ls`);
+    }
   };
+  for (const g of groups.filter((g) => g.type !== 'flow')) {
+    for (const skill of g.skills.values()) {
+      if (links.machineState(skill, g, machineLines) === 'on') {
+        machineOn++;
+        wanted(path.join(at.claude, 'skills'), skill);
+        continue;
+      }
+      const line = root && links.lineFor(projectLines, g, skill.name);
+      if (line && line.state === 'on') {
+        projectOn++;
+        wanted(path.join(root, '.claude', 'skills'), skill);
+      }
+    }
+  }
+
+  const summary = `${count(sources.filter((g) => g.cloned).length, 'source', 'sources')} cloned, ` +
+    `${count(machineOn, 'skill', 'skills')} on for this machine` +
+    (root ? `, ${projectOn} more for ${path.basename(root)}` : '');
+  return { name: 'skills', problems, summary };
 }
 
 /**
@@ -608,7 +677,7 @@ function report(checks) {
 actions.doctor = {
   section: 'setup',
   anywhere: true,
-  summary: 'verify this machine: version, links, PATH, util, hooks, both suites',
+  summary: 'verify this machine: version, links, PATH, util, skills, hooks, both suites',
   flags: {
     root: { arg: '<dir>' },
     'no-bin': { bool: true },
@@ -645,14 +714,13 @@ actions.doctor = {
       checkClone(clone, { updates: flags.updates }),
       prereq.checkPrograms(),
       bin ? checkNames(clone, { bin }) : { name: 'names', skipped: '--no-bin' },
-      prereq.checkUtil(),
+      checkUtil(),
       checkAgents(at, catalog),
       checkClaude(clone, at),
-      checkCodex(at),
       checkSettings(clone, at.claude, catalog),
       checkFlowHome(clone, at.flow),
       checkOriginals(at),
-      checkProjectSkills(),
+      checkSkills(at),
       flags['no-tests']
         ? { name: 'tests', skipped: '--no-tests' }
         : checkTests(clone, { bin }),

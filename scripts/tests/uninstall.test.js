@@ -32,7 +32,7 @@ function machine(name) {
   const root = path.join(dir, 'root');
   const at = folders(root);
 
-  const made = run('flow/flow.js', ['install', '--root', root, '--no-bin']);
+  const made = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone']);
   assert.strictEqual(made.code, 0, made.stderr);
   setupMachine(root);
 
@@ -86,4 +86,20 @@ test('a CLAUDE.md holding the import line and nothing else goes with it', () => 
   const m = machine('uninstall-claude-md');
   installed.stripShared(m.at);
   assert.ok(!exists(path.join(m.at.claude, 'CLAUDE.md')));
+});
+
+test('every link into ~/.flow goes before the folder does, and nothing else is touched', () => {
+  const m = machine('uninstall-links');
+  const skills = path.join(m.at.claude, 'skills');
+  const source = path.join(m.at.flow, 'repos', 'sources', 'me_skills', 'react');
+  fs.mkdirSync(source, { recursive: true });
+  fs.symlinkSync(source, path.join(skills, 'react'));
+  fs.symlinkSync(path.join(m.dir, 'elsewhere'), path.join(skills, 'other'));
+  fs.mkdirSync(path.join(skills, 'real'));
+
+  const done = installed.unlinkInto(m.at.flow, [skills, path.join(m.dir, 'no-such-folder')]);
+  assert.deepStrictEqual(done, [`removed ${require('../flow/lib/machine').shorten(path.join(skills, 'react'))}`]);
+  assert.ok(exists(path.join(skills, 'other')), "another tool's link stays");
+  assert.ok(exists(path.join(skills, 'real')), 'a real folder stays');
+  assert.ok(exists(path.join(skills, 'flow')), 'the plugin link points into ~/.agents, so it stays for the restore');
 });

@@ -2,9 +2,9 @@ tmp/
 node_modules
 
 # A skill belonging to this project lives here as a real folder, committed. A
-# domain or private skill is a symlink holding this machine's path, which would
-# load nothing on the next machine, so these two lines ignore links and track
-# folders. The names live in .flow/domain-skills.txt and .flow/private-skills.txt.
+# source's skill or a private one is a symlink holding this machine's path, which
+# would load nothing on the next machine, so these two lines ignore links and
+# track folders. Which skills are on lives in "skills" in .flow/settings.json.
 .claude/skills/*
 !.claude/skills/*/
 
@@ -16,4 +16,4 @@ node_modules
 # flow git allow --project writes an unlock with a clock on it, and the guard
 # deletes that entry once the clock runs out. Committed, it would be one commit
 # saying git writes are on and another an hour later saying they are off.
-.flow/settings.json
+.flow/settings.local.json

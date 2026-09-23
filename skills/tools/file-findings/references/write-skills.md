@@ -9,14 +9,14 @@ Read this before creating or restructuring a skill. Style lives in `~/.flow/refe
 
 ## Where it lives
 
-**Every skill lives once, in the Flow clone**, inside the group folder that files it. The group says where the file sits and decides nothing else.
+**Every skill lives once, in the Flow clone**, inside the group folder that files it. The group says where the file sits, and 2 groups decide more: `drafts/` does not install, and `dev/` switches.
 
 - **`phases/`**: what you are doing, one at a time
 - **`tools/`**: what you reach for around the work. It starts, produces something, finishes
-- **`dev/`**: maintaining Flow and the `domain-skills` repository
+- **`dev/`**: maintaining Flow and the `domain-skills` repository. The one group that switches: each skill starts off
 - **`drafts/`**: a skill being written. `flow install` skips this group, so start every new skill here and graduate it with `mv`
 
-**Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. There is no list of names to keep in step with the tree. A skill about one field or tool, such as React, belongs to the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, in the shape its `CONTRIBUTING.md` sets, and `flow domain-skills add <name>` installs it into a project. Any other skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it. A skill of your own that no repository should carry goes in `~/.flow/private-skills/<name>/`, under a name no Flow or domain skill uses. `flow private-skills add <name>` installs it into a project, and `--global` installs it onto the machine.
+**Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. There is no list of names to keep in step with the tree. A skill about one field or tool, such as React, belongs to the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, in the shape its `CONTRIBUTING.md` sets, and `flow skills on <name>` turns it on in a project. Any other skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it. A skill of your own that no repository should carry goes in `~/.flow/private-skills/<name>/`, under a name no Flow or domain skill uses, and `flow skills on <name>` turns it on the same way. `--machine` turns either one on for the whole machine.
 
 ## The name, and the prefix
 
@@ -26,7 +26,7 @@ The `flow:` is added when the skill loads. `flow install` links every skill into
 
 Both names are needed because the two harnesses read opposite halves: Claude Code names the command after the folder, Codex after the frontmatter `name`. Keeping them identical is what makes one folder serve both.
 
-**Every skill outside `drafts/` is shown in every session, and nothing turns one off.** `skillOverrides`, the settings key that hides a skill, does not reach a plugin's skills. `claude plugin disable flow@skills-dir` takes the whole set and is the only switch there is. It reaches outside skills normally: a domain skill, a private skill, anything another tool put in `.claude/skills/`.
+**Every skill outside `drafts/` and `dev/` is shown in every session, and nothing switches it off.** A `dev/` skill is shown once `flow skills on <name> --machine` adds its link, or `--global` on every machine. A Flow skill has no switch for one project: `skillOverrides`, the settings key that hides a skill, skips a plugin's skills.
 
 ## Shape
 

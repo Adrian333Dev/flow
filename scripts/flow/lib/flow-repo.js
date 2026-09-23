@@ -20,8 +20,11 @@
  *   settings.local.json   every setting holding a path, the clone included
  *   scripts, references, docs   links into this machine's clone, which sits
  *                 somewhere else on the other machine
- *   skills-update.*   what this machine's domain-skills clone is behind by,
- *                 and the lock the job that reads it holds
+ *   repos/        this machine's clones: Flow, util, the toolbox and every
+ *                 source. `sources` travels, and `flow install` clones them
+ *   history.jsonl   every change Flow made on this machine
+ *   skills-update.*   what this machine's source clones are behind by, and
+ *                 the lock the job that reads it holds
  *   a wiki tool's downloads   pages fetched once per machine
  *
  * A commit is named for the machine that made it, `desktop: 2 files`, so a
@@ -48,6 +51,8 @@ const IGNORED = [
   'scripts',
   'references',
   'docs',
+  'repos/',
+  'history.jsonl',
   'skills-update.json',
   'skills-update.lock',
   'wiki/*/downloads/',

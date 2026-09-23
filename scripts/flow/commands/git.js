@@ -69,12 +69,12 @@ function target(flags) {
 
   if (flags.project) {
     if (!root) throw new FlowError('--project needs a git repository, and this is not inside one.');
-    return { scope: 'project', file: settings.projectFile(root) };
+    return { scope: 'project', file: settings.projectLocalFile(root) };
   }
 
   const session = process.env.CLAUDE_CODE_SESSION_ID;
   if (session) return { scope: 'session', file: settings.globalFile(), session };
-  if (root) return { scope: 'project', file: settings.projectFile(root) };
+  if (root) return { scope: 'project', file: settings.projectLocalFile(root) };
   return { scope: 'global', file: settings.globalFile() };
 }
 
@@ -156,7 +156,7 @@ actions.off = {
   run() {
     const files = [settings.globalFile()];
     const root = maybeRoot();
-    if (root) files.push(settings.projectFile(root));
+    if (root) files.push(settings.projectLocalFile(root));
 
     const cleared = files.filter((file) => settings.remove(file, 'git'));
     out(cleared.length ? 'git writes: off' : 'git writes: off already');

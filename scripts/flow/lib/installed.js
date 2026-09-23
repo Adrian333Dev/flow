@@ -13,10 +13,10 @@
  * off the clone's own folders, so a new file in either reaches both commands
  * by existing. What is left is 6 fixed paths and the names in `~/.local/bin`.
  *
- * 2 of the paths are written by `/flow:setup-machine` rather than by install:
- * the rule file `~/.agents/AGENTS.md` and the link `~/.codex/AGENTS.md`.
- * Install still records them, so whatever was there before Flow is in the
- * original whether or not that skill ever runs.
+ * 1 of the paths is written by `/flow:setup-machine` rather than by install:
+ * the rule file `~/.agents/AGENTS.md`. Install still records it, so whatever
+ * was there before Flow is in the original whether or not that skill ever
+ * runs.
  *
  * `shared()` is the other half of a machine, and nothing ever deletes it: 2
  * files that are the user's, which Flow adds lines to. An uninstall takes
@@ -39,9 +39,9 @@ const show = machine.shorten;
 /**
  * The names you type, against the one script both of them run.
  *
- * `fw` is the second name because `flow` is typed all day. `gsave`, `ptree`
- * and `fmerge` all left on 2026-08-30, into the `util` repo as `git save`,
- * `fs tree` and `fs merge`, and `util install` owns those names now.
+ * `fw` is the second name because `flow` is typed all day. `util` and `u`
+ * are util's own, made by `util install` from `~/.flow/repos/util/`, which
+ * `flow install` runs.
  */
 const BIN = {
   flow: path.join('scripts', 'flow', 'flow.js'),
@@ -64,7 +64,6 @@ function paths(clone, at, { bin = null } = {}) {
     path.join(at.flow, 'references'),
     path.join(at.flow, 'docs'),
     path.join(at.agents, 'AGENTS.md'),
-    path.join(at.codex, 'AGENTS.md'),
   ];
   if (bin) for (const name of Object.keys(BIN)) found.push(path.join(bin, name));
   return found;
@@ -156,4 +155,35 @@ function stripShared(at) {
   return done;
 }
 
-module.exports = { BIN, paths, shared, strip, stripShared };
+/**
+ * Remove every link in `dirs` pointing into `~/.flow/`, before that folder
+ * goes: a skill from a source, switched on for the machine or a project, and
+ * util's names, which link into `repos/util/`. No list names them, since the
+ * settings decide which exist, so they are found by where they point.
+ */
+function unlinkInto(flowHome, dirs) {
+  const done = [];
+  for (const dir of dirs) {
+    let entries = [];
+    try {
+      entries = fs.readdirSync(dir);
+    } catch {
+      continue;
+    }
+    for (const name of entries) {
+      const at = path.join(dir, name);
+      let target;
+      try {
+        target = path.resolve(dir, fs.readlinkSync(at));
+      } catch {
+        continue;
+      }
+      if (!target.startsWith(flowHome + path.sep)) continue;
+      fs.unlinkSync(at);
+      done.push(`removed ${show(at)}`);
+    }
+  }
+  return done;
+}
+
+module.exports = { BIN, paths, shared, strip, stripShared, unlinkInto };

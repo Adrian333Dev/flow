@@ -13,7 +13,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { project, write, run, utilStub, pathWith } = require('./helpers/scratch');
+const { project, write, run } = require('./helpers/scratch');
 const folders = require('../flow/lib/machine').folders;
 const originals = require('../flow/lib/originals');
 
@@ -34,11 +34,10 @@ function flowAt(dir, root, args, env = {}) {
 
 /**
  * A migration, applied. Every run checks Flow's prerequisites before it writes
- * anything, so a stub util answers the probe: the real one is a submodule a
- * fresh checkout may not have. `bin` is how a test hands it a broken one.
+ * anything, and `env` is how a test takes one away.
  */
-const applyAt = (dir, root, id, bin = utilStub(dir), env = {}) =>
-  run('apply-migration.js', [id, '--root', root], { cwd: dir, env: { ...process.env, PATH: pathWith(bin), ...env } });
+const applyAt = (dir, root, id, env = {}) =>
+  run('apply-migration.js', [id, '--root', root], { cwd: dir, env: { ...process.env, ...env } });
 
 /** One place's original, as the manifest on disk. */
 const original = (root, proj = null) => originals.read(folders(root), proj);
@@ -307,7 +306,7 @@ test('flow restore lists the originals, and refuses to put one back unasked', ()
 // The stop the user asked for on 2026-09-21: a prerequisite that is not met
 // stops the run, and the process that writes is where it is enforced, since a
 // skill body can be skipped and this cannot.
-test('a util command Flow calls that does not run stops the migration before anything changes', () => {
+test('a program Flow calls that is not on PATH stops the migration before anything changes', () => {
   const dir = project('apply-prereq');
   const root = path.join(dir, 'root');
   machine(root);
@@ -319,17 +318,17 @@ test('a util command Flow calls that does not run stops the migration before any
     '',
   ].join('\n'), { [path.join(root, '.agents/AGENTS.md')]: 'new rules\n' });
 
-  // UTIL_HOME points at nothing, so the diagnosis is the same on every machine.
-  const refused = applyAt(dir, root, id, utilStub(dir, { works: false }), { UTIL_HOME: path.join(dir, 'util-home') });
+  // A PATH holding nothing, so node, git and claude are all missing. The
+  // script itself runs through the node that started the test.
+  const refused = applyAt(dir, root, id, { PATH: path.join(dir, 'nothing-here') });
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /4 prerequisites of Flow's are not met, so nothing ran:/);
-  assert.match(refused.stderr, /util fs tree does not run, and it is called by home\/AGENTS.md/);
-  assert.match(refused.stderr, /no source is registered: run util install/);
+  assert.match(refused.stderr, /3 prerequisites of Flow's are not met, so nothing ran:/);
+  assert.match(refused.stderr, /git is not on PATH, and a project is found by asking git for its root/);
   assert.match(refused.stderr, /flow doctor --prereq checks the same list/);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n', 'the write never happened');
   assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n', 'and neither did the delete');
   assert.strictEqual(original(root), null, 'the original was never opened either');
 
-  assert.strictEqual(applyAt(dir, root, id).code, 0, 'a working util lets the same migration through');
+  assert.strictEqual(applyAt(dir, root, id).code, 0, 'with the programs back, the same migration goes through');
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
 });

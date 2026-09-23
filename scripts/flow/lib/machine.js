@@ -1,20 +1,20 @@
 'use strict';
 /**
- * Where Flow goes on a machine: 4 folders under the home folder.
+ * Where Flow goes on a machine: 3 folders under the home folder.
  *
  *   ~/.agents  the one real copy of every file Flow keeps outside the clone:
  *              the rule file AGENTS.md, and the plugin folder skills/flow/
  *   ~/.claude  what Claude Code reads. It reaches ~/.agents through a link and
  *              an import, and holds no original of Flow's
- *   ~/.codex   what Codex reads. AGENTS.md here is a link into ~/.agents
- *   ~/.flow    what only Flow reads: scripts/ and references/
+ *   ~/.flow    what only Flow reads: the clones in repos/, scripts/,
+ *              references/, docs/ and the settings
  *
- * `~/.agents` holds the originals because the name belongs to no vendor, and
- * Codex already reads skills from it. Claude Code does not, so it gets a link.
+ * `~/.agents` holds the originals because the name belongs to no vendor.
+ * Claude Code does not read it, so it gets a link.
  *
- * `flow install --root <dir>` and `flow doctor --root <dir>` put all 4 under
+ * `flow install --root <dir>` and `flow doctor --root <dir>` put all 3 under
  * `<dir>` instead, which is how the tests and lab/scripts/try.sh build a whole
- * machine inside tmp/. One flag for all 4, so no run can redirect some of them
+ * machine inside tmp/. One flag for all 3, so no run can redirect some of them
  * and write the rest into the real home folder.
  */
 
@@ -24,11 +24,11 @@ const path = require('path');
 const { FlowError } = require('./error');
 
 /**
- * The 4 folders, under `root` or under the home folder.
+ * The 3 folders, under `root` or under the home folder.
  *
  * FLOW_HOME moves the last one on its own, the way `lib/settings.js` reads it,
- * so a test can point Flow's own folder somewhere else without moving the 3
- * the harnesses read. `--root` wins over it: that flag exists to put a whole
+ * so a test can point Flow's own folder somewhere else without moving the
+ * other 2. `--root` wins over it: that flag exists to put a whole
  * machine in one place.
  */
 function folders(root) {
@@ -38,7 +38,6 @@ function folders(root) {
     base,
     agents: path.join(base, '.agents'),
     claude: path.join(base, '.claude'),
-    codex: path.join(base, '.codex'),
     flow,
   };
 }
@@ -57,7 +56,7 @@ function folders(root) {
 function requireSetup(root) {
   const at = folders(root);
   if (fs.existsSync(path.join(at.flow, 'version'))) return;
-  throw new FlowError('Flow is not set up on this machine. Restart Claude Code and type /flow:setup-machine.');
+  throw new FlowError('Flow is not set up on this machine. Run flow install again.');
 }
 
 /**

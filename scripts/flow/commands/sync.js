@@ -17,6 +17,9 @@
  * the 2 machines have diverged, and a commit made here first would only add a
  * merge to sort out by hand.
  *
+ * A pull can bring skill lines written on the other machine, so the links
+ * are made to match right after it, the way a session start would.
+ *
  * `lib/flow-repo.js` holds the repository, the commit named for the machine,
  * and the list of what never travels.
  */
@@ -24,6 +27,7 @@
 const { out } = require('../lib/cli');
 const machine = require('../lib/machine');
 const repo = require('../lib/flow-repo');
+const links = require('../lib/skill-links');
 
 const actions = {};
 
@@ -35,6 +39,10 @@ actions.sync = {
     const at = machine.folders(flags.root);
     const came = repo.load(at);
     out(came ? `came down: ${came}` : 'nothing new came down.');
+    if (came) {
+      const done = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
+      if (done.changed.length) out(done.changed.join('\n'));
+    }
     const sent = repo.save(at);
     out(sent ? `went up: ${sent}` : 'nothing changed here, so nothing went up.');
     return 0;

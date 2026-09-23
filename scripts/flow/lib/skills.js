@@ -3,17 +3,20 @@
  * The skill catalog, what installs, and what a session is shown of each one.
  *
  * A skill is a folder holding `SKILL.md`, filed 1 level deep under a group:
- * `skills/phases/groundwork/`. The group files it and decides one thing:
- * `drafts/` does not install, and every other group does.
+ * `skills/phases/groundwork/`. The group files it and decides 2 things:
+ * `drafts/` does not install, and every other group does; `dev/` switches on
+ * and off, and every other group is part of the workflow and always on.
  *
  * Flow's own skills have no list of names. A list is a hand-maintained copy of
  * what the tree already says, and it can only ever be wrong; a group folder is
  * visible on disk, cannot drift, and adding a skill to it is a `mkdir`.
  *
  * Installing and being shown are separate questions. Every skill outside
- * `drafts/` installs, and every one of them is shown in every session. There
- * is no per-skill off switch: `skillOverrides` does not reach a plugin's
- * skills, and `claude plugin disable flow@skills-dir` takes the whole set.
+ * `drafts/` installs, and each one is shown while its link in the plugin
+ * folder exists. An essential skill, one outside `dev/`, is always linked.
+ * A `dev/` skill starts off, and `flow skills on <name> --machine` adds its
+ * link, which is the only per-skill switch: `skillOverrides` does not reach a
+ * plugin's skills. `lib/skill-links.js` makes the links match the settings.
  */
 
 const fs = require('fs');
@@ -24,6 +27,12 @@ const { skillsRoot } = require('./clone');
 
 /** The one group `flow install` skips. A skill starts here and graduates by `mv`. */
 const DRAFTS = 'drafts';
+
+/** The one group whose skills switch. The rest are the workflow, always on. */
+const SWITCHABLE = 'dev';
+
+/** Whether a Flow skill is part of the workflow, and so can never be switched off. */
+const essential = (skill) => skill.group !== SWITCHABLE;
 
 /**
  * The name every Flow skill is typed under: `/flow:groundwork`.
@@ -112,17 +121,6 @@ function catalog() {
   return found;
 }
 
-/** One skill by name, or a refusal naming what does exist. */
-function find(name) {
-  const all = catalog();
-  const hit = all.get(name);
-  if (hit) return hit;
-  throw new FlowError(
-    `no skill named "${name}" in ${skillsRoot()}.\n` +
-    `  The skills: ${[...all.keys()].sort().join(', ')}`
-  );
-}
-
 /** Everything `flow install` links. Pass drafts to include the group it skips. */
 function installable({ drafts = false } = {}) {
   return [...catalog().values()].filter((s) => drafts || s.group !== DRAFTS);
@@ -132,5 +130,5 @@ function installable({ drafts = false } = {}) {
 const configDir = () => process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
 
 module.exports = {
-  DRAFTS, PLUGIN, catalog, configDir, find, installable, linkDir, manifestFile, manifestSource, pluginDir, pluginLink, subdirs,
+  DRAFTS, PLUGIN, SWITCHABLE, catalog, configDir, essential, installable, linkDir, manifestFile, manifestSource, pluginDir, pluginLink, subdirs,
 };

@@ -1,14 +1,16 @@
 # Settings
 
-Flow reads 3 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
+Flow reads 5 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
 
 - **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `/flow:setup-machine` merges them in.
 - **`~/.flow/settings.json`** belongs to Flow, and travels to your other machine with the rest of `~/.flow/`.
-- **`~/.flow/settings.local.json`** belongs to Flow and to this machine alone. git ignores it, and every setting holding a path goes in it, because your other machine keeps its clones somewhere else.
+- **`~/.flow/settings.local.json`** belongs to Flow and to this machine alone. git ignores it.
+- **`<project>/.flow/settings.json`** belongs to one project, and is committed with it.
+- **`<project>/.flow/settings.local.json`** belongs to one project on this machine alone. The project template's `.gitignore` leaves it out.
 
-Flow reads its 2 as one file, and the local one wins key by key.
+Flow reads its 2 machine files as one, and the local one wins key by key.
 
-All 3 are strict JSON, so none can hold a comment. This page holds the explanations instead.
+All 5 are strict JSON, so none can hold a comment. This page holds the explanations instead.
 
 ## Table of contents
 
@@ -21,9 +23,9 @@ All 3 are strict JSON, so none can hold a comment. This page holds the explanati
   - [Deliberately absent](#deliberately-absent)
 - [Flow's settings files](#flows-settings-files)
   - [`git`](#git)
-  - [`domainSkills`](#domainskills)
-  - [`domainSkillsAutoUpdate`](#domainskillsautoupdate)
-  - [`clone`](#clone)
+  - [`sources`](#sources)
+  - [`skills`](#skills)
+  - [`skillsAutoUpdate`](#skillsautoupdate)
   - [`reminder`](#reminder)
   - [`sessionCheck`](#sessioncheck)
 
@@ -158,14 +160,16 @@ Prints one line when this machine or this project needs attention, and nothing a
 Flow: this machine is at changelog entry 3, and 5 is the newest. Type /flow:migrate to catch up.
 Flow: delapse is at changelog entry 3, and this machine is at 5. Type /flow:migrate here.
 Flow: a migrate run stopped after step 4, so this machine is part way through a change. Type /flow:migrate to carry on, or run flow doctor for the way back.
-Flow: /home/me/code/domain-skills is behind. 2 domain skills changed: react, sql. Update it when you want them, or set "domainSkillsAutoUpdate": true.
+Flow: domain-skills is behind. 2 skills changed: react, sql. Update it when you want them, or set "skillsAutoUpdate": true.
 ```
 
-It reads 4 files and waits for nothing: `~/.flow/run.json`, which a setup or a migration leaves behind only when it never finished, `~/.flow/version`, the project's `.flow/version`, and `~/.flow/skills-update.json`, which the background pull below writes. [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
+Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json`, which a setup or a migration leaves behind only when it never finished, `~/.flow/version`, the project's `.flow/version`, and `~/.flow/skills-update.json`, which the background pull below writes. [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
 
-**A stopped run silences the other version lines.** Each of them reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying about Flow's own version. The domain-skills line is a separate record and still prints.
+**A stopped run silences the other version lines.** Each of them reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying about Flow's own version. A skill repository's line is a separate record and still prints.
 
-**It also sends the domain-skills clone to update itself**, by starting `~/.flow/scripts/domain-pull.js` in the background and returning at once. A session never waits for the network, and whatever that pull finds is printed by the session after it. [`domainSkillsAutoUpdate`](#domainskillsautoupdate) covers the pull, its 2 guards and the switch.
+**It also makes every skill link match the settings.** A switch you made on your other machine arrives through [`flow sync`](reference.md#flow-sync) as a line in `~/.flow/settings.json`, and the next session start makes the link. When a link changed, it asks Claude Code to scan the skill folders again. [`skills`](#skills) covers the lines.
+
+**It also sends every skill repository to update itself**, by starting `~/.flow/scripts/skills-pull.js` in the background and returning at once. A session never waits for the network, and whatever that pull finds is printed by the session after it. [`skillsAutoUpdate`](#skillsautoupdate) covers the pull, its 2 guards and the switch.
 
 **It is also the only thing that names `/flow:migrate`.** You type that skill and the agent can never start it, which keeps its description out of every session, so nothing else would tell either of you the command exists.
 
@@ -251,7 +255,7 @@ flow git off                back to reads only
 
 The scope is the session you type it in, unless `--project` or `--global` widens it. It lasts an hour unless `--for` says otherwise. Past that, the guard deletes the entry the first time it looks, so a switch left on turns itself off.
 
-`--project` writes `.flow/settings.json` inside the repository, and the project template ignores that path. An unlock is this machine's state with a clock on it: committed, it would be one commit saying git writes are on and another an hour later saying they are off.
+`--project` writes `.flow/settings.local.json` inside the repository, and the project template ignores that path. An unlock is this machine's state with a clock on it: committed, it would be one commit saying git writes are on and another an hour later saying they are off.
 
 Three things hold whatever the mode says:
 
@@ -289,36 +293,18 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 ### `skillOverrides`
 
-**What a session is shown of each skill.** A description sits in context from the moment a session starts, whether the skill is ever invoked or not, so every installed skill costs something in every session. This key is where that cost is decided, per skill, per machine and per project.
+```json
+"skillOverrides": { "batch": "off" }
+```
 
-#### It does not reach Flow's own skills
+**Claude Code's key for hiding a skill from the model.** Set to `off`, a skill's description never enters a session, and typing it fails with *disabled via skillOverrides*. `home/settings.json` ships no entry. `/flow:setup-machine` writes one for each skill it switches off: Claude Code's own `/batch`, which needs worktrees, and a skill synced from your Claude account that works against Flow's rules.
 
-Flow's skills install as a plugin. `flow install` writes one small file, `~/.agents/skills/flow/.claude-plugin/plugin.json`, which Claude Code reaches through the link `~/.claude/skills/flow`. Every skill below it is a plugin skill: `flow:groundwork`, `flow:start`, `flow:execute`. Claude Code's settings page rules the key out for exactly those: *Does not apply to plugin skills, which are managed through `/plugin`*. No value here hides `/flow:execute`.
+**[`flow skills`](reference.md#flow-skills) never writes it.** Flow switches its own skills, and the ones from skill repositories, by adding and removing links. 2 reasons decided against this key:
 
-**The switch that does reach them is all or nothing.** `claude plugin disable flow@skills-dir` takes the whole set, and the next session has none of it. Flow's skills are reached in ordinary work in any project, which is why the set ships on and `home/settings.json` ships `skillOverrides` empty.
+- **It does not reach Flow's own skills.** Flow's skills load as a plugin, and Claude Code's settings page rules the key out for those: *Does not apply to plugin skills, which are managed through `/plugin`*.
+- **A removed link costs the same as `off`.** A skill with no link is never found, so its description costs nothing either. One mechanism for every source beats 2.
 
-#### What it does reach is every skill from outside the clone
-
-A domain skill that `flow domain-skills add <name>` put in one project, a private skill from `~/.flow/private-skills/`, a skill another tool wrote into `.claude/skills/`. Each is a plain skill named by its folder, and each answers to this key.
-
-Installing and being shown are separate questions for those. A skill set to `off` costs nothing in context, so nothing is gained by leaving one uninstalled.
-
-#### Two values, keyed by skill name
-
-- **`on`**: the name and the description. What a skill gets when it is named nowhere
-- **`off`**: the model is shown nothing, and `/name` refuses with *disabled via skillOverrides*
-
-**Claude Code accepts two more and Flow uses neither.** `name-only` shows the name and hides the description, so the model keeps the power to fire a skill and loses the only thing it could judge with. `user-invocable-only` hides it from the model and leaves `/name` working, which was rejected on 2026-08-30: a skill that exists to fire during a phase is unfirable once the model cannot see it. All four verified 2026-08-29.
-
-#### A project overrides the machine's file key by key
-
-`home/settings.json` names what is off on the machine, and ships naming nothing. A project turns a skill on or off in its own `.claude/settings.json`.
-
-**The two files merge rather than replacing.** Verified 2026-08-29 against Claude Code 2.1.251: a project setting `on` restored a skill the machine's file had set to `off`, a project setting `off` hid one the machine's file never named, and an entry only the machine's file carried survived untouched. An edit takes effect on the next session. A `.claude/settings.json` that never existed before did not apply until its second run, which is the workspace trust flow rather than this key.
-
-**Nothing announces a skill that is off, and nothing should.** The announcement would load in every session, including every project that turned the skill off, which is the exact cost this key exists to remove.
-
-**This is not `disable-model-invocation`.** That one is a line in the skill file, and there is one copy of every skill on the machine, so it says *never fire anywhere* and cannot say anything narrower. `/flow:start`, `/flow:tickets-from-spec` and `/flow:apply-domain-findings` carry it because *never* is true of them. Everything else is decided here.
+**It stays yours for every skill Flow did not install**: a plugin's, or one another tool wrote into `~/.claude/skills/`. A project's `.claude/settings.json` can override the machine's file here, name by name.
 
 ---
 
@@ -363,17 +349,16 @@ The minimum is 1, and `0` fails validation. A settings file that cannot be parse
 `~/.flow/settings.json` and `~/.flow/settings.local.json` hold what Flow reads and Claude Code never does. Every key sits at the top level, and Flow reads the 2 files as one with the local file winning:
 
 ```json
-{ "git": { "mode": "allow", "until": "2026-09-14T15:00:00.000Z", "session": "<session id>" } }
-```
-
-```json
 {
-  "domainSkills": "~/code/domain-skills/skills",
-  "clone": "/home/me/code/flow"
+  "sources": ["Adrian333Dev/domain-skills", "mattpocock/skills"],
+  "skills": { "review": "off" },
+  "git": { "mode": "allow", "until": "2026-09-14T15:00:00.000Z", "session": "<session id>" }
 }
 ```
 
-**Which file a key goes in is decided by one question: would the value still be true on your other machine?** `~/.flow/` is one git repository shared between your machines, so `settings.json` travels and `settings.local.json` is the part git ignores. A path is never true on both machines, so every path lives in the local file.
+**Which file a key goes in is decided by one question: would the value still be true on your other machine?** `~/.flow/` is one git repository shared between your machines, so `settings.json` travels and `settings.local.json` is the part git ignores.
+
+A project has the same pair in its own `.flow/`. `.flow/settings.json` holds the project's [`skills`](#skills) lines and is committed, so a fresh clone of the project gets its skills back. `.flow/settings.local.json` holds the [`git`](#git) entry `--project` writes, and stays on this machine.
 
 A change applies on the next command, with nothing to restart.
 
@@ -387,57 +372,71 @@ Whether the agent may run a git command that writes, and until when. `flow git` 
 - **`until`**: when the entry expires. `--for never` leaves it out
 - **`session`**: the session the entry belongs to. `--project` and `--global` leave it out
 
-`--project` writes the entry into the project's own `.flow/settings.json`, which the project template gitignores.
+`--project` writes the entry into the project's own `.flow/settings.local.json`, which the project template gitignores.
 
 ---
 
-### `domainSkills`
+### `sources`
 
-The path to the `skills/` folder in your clone of the domain-skills repository. A domain skill carries knowledge about one field or tool, such as React, and installs into one project at a time. You write this key, and a leading `~` stands for your home folder:
+The skill repositories Flow takes skills from. A skill repository is a git repository of skill folders: every `SKILL.md` in it is a skill. `flow skills add` and `flow skills drop` write this key, in the shared file:
 
 ```json
-"domainSkills": "~/code/domain-skills/skills"
+"sources": ["Adrian333Dev/domain-skills", "mattpocock/skills"]
 ```
 
-`flow domain-skills` reads it. `flow private-skills` reads it too, to refuse a private skill named like a domain skill. Without it, or with a path that does not exist, every action refuses and names the fix. [Reference](reference.md#flow-domain-skills) covers the commands.
+Each entry is `owner/repo` for GitHub, or a full git address for anywhere else. With no `sources` key the list is the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository alone, which holds skills about one field or tool, such as React.
+
+**`flow install` clones every entry that is missing**, into `~/.flow/repos/sources/<owner>_<repo>/`, and nothing else clones. Your other machine gets the list through [`flow sync`](reference.md#flow-sync), and its next `flow install` makes the clones. [`flow skills`](reference.md#flow-skills) covers the commands.
 
 ---
 
-### `domainSkillsAutoUpdate`
+### `skills`
 
-Whether the clone those skills come from updates itself. Write `false` to be asked instead:
+Which skills are switched on or off, one line per skill name that differs from its default:
 
 ```json
-"domainSkillsAutoUpdate": false
+"skills": { "react": "on", "review": "on" }
 ```
 
-**On, which is the default, a session opens and the clone pulls itself in the background.** Every skill reaches a project as a symlink into that clone, so a merge in the repository reaches every project holding the skill the moment the pull lands. Nothing else has to run: Flow being behind means a migration, and a domain skill being behind means a pull.
+**3 files hold this key, and the nearest one wins, name by name.**
 
-**Two guards, both read before anything is pulled.** Uncommitted work in the clone, and a pull that would not be a fast-forward. Either one means no pull, and a line at the top of the next session saying which:
+- **One project**: `<project>/.flow/settings.json`, committed with the project
+- **This machine**: `~/.flow/settings.local.json`
+- **Every machine**: `~/.flow/settings.json`
+
+A name no file mentions is off. So the files hold only what you switched. Flow's own skills outside `skills/dev/` are the exception. They are the workflow, always on, and a line naming one does nothing. Only `/flow:review` and `/flow:apply-domain-findings` switch.
+
+**`flow skills on` and `off` write the lines, and you never have to.** No flag writes the project's file, `--machine` this machine's, and `--global` the shared one. A line you write by hand works too, from the next command or the next session.
+
+**A line works by making a link.** A skill on for a project is a link in that project's `.claude/skills/`. One on for the machine is a link in `~/.claude/skills/`. Every `flow skills` command and every session start add and remove links until they match the lines. [`flow skills`](reference.md#flow-skills) shows the listing, and what each command refuses.
+
+---
+
+### `skillsAutoUpdate`
+
+Whether every skill repository in [`sources`](#sources) updates itself. Write `false` to be asked instead:
+
+```json
+"skillsAutoUpdate": false
+```
+
+**On, which is the default, a session opens and each clone pulls itself in the background.** Every skill reaches a project as a link into its clone, so a merge in the repository reaches every project holding the skill the moment the pull lands. Nothing else has to run: Flow being behind means a migration, and a skill being behind means a pull.
+
+**Two guards, both read before anything is pulled.** Uncommitted work in the clone, and a pull that would not be a fast-forward. Either one means no pull for that clone, and a line at the top of the next session saying which:
 
 ```text
-Flow: /home/me/code/domain-skills has 2 uncommitted files, so no domain skill was updated. Commit them, or update the clone by hand.
+Flow: domain-skills has 2 uncommitted files, so none of its skills was updated. Commit them, or update the clone by hand.
 ```
 
 Without the guards, a pull nobody asked for could wreck work sitting in that clone.
 
-**Off, the session fetches instead and names what is waiting**, every session until you pull. The names are the news: `react changed` is something to read, where `3 commits` is not.
+**Off, each session fetches instead and names what is waiting**, every session until you pull. The names are the news: `react changed` is something to read, where `3 commits` is not.
 
-**It costs one network call every 6 hours at most.** The clone's last fetch is what the check reads, so a machine that opens 20 sessions in a morning looks once. A clone with something to report is checked every session instead, which is how the line stops the moment you have pulled by hand.
+**It costs one network call per clone every 6 hours at most.** A clone's last fetch is what the check reads, so a machine that opens 20 sessions in a morning looks once. A clone with something to report is checked every session instead, which is how the line stops the moment you have pulled by hand.
+
+Every pull that changed something adds a line to `~/.flow/history.jsonl`, naming the skills it changed.
 
 `"sessionCheck": false` silences the line and not the pull, since the skills are what an agent reads in a project. This key is the one that stops it.
-
----
-
-### `clone`
-
-The path to your Flow clone. `flow install` writes it on every run, so a clone you move is corrected by installing again:
-
-```json
-"clone": "/home/me/code/flow"
-```
-
-It exists for the files in the clone that no link under `~/.flow/` reaches: `CHANGELOG.md` and `upgrades/<number>.md` sit at the clone's root, and `/flow:migrate` reads both. The manual is not one of them, because `~/.flow/docs` links to the whole `docs/` folder. Nothing else records where the clone sits: every other route in is a symlink, and a symlink cannot be read backwards.
 
 ---
 
@@ -465,4 +464,4 @@ Whether the line naming what needs attention prints when a session opens. Write 
 
 [The session check](#the-session-check) shows every line it can print and says which files it reads.
 
-It silences the printing alone. The domain-skills clone still updates itself, which [`domainSkillsAutoUpdate`](#domainskillsautoupdate) governs.
+It silences the printing alone. Every skill repository still updates itself, which [`skillsAutoUpdate`](#skillsautoupdate) governs.

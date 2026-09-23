@@ -38,24 +38,20 @@ What one run puts on the machine:
 - **`~/.claude/agents/` and `~/.claude/rules/`**: one link per file into the clone. Both folders can hold entries Flow did not create, and a link to the whole folder would replace all of them.
 - **`~/.flow/scripts`, `~/.flow/references` and `~/.flow/docs`**: links into the clone. Every file Flow names by a fixed path sits under one of the 3, so the path is the same on every machine whatever the clone is called.
 - **`~/.local/bin/flow` and `fw`**: links to `flow.js`, so both are on your `PATH`. A name Flow used to ship and has since renamed is unlinked here, since its link still resolves and would still run.
-- **`~/.flow/settings.local.json`**: the path to this clone, under the key `clone`, for the files no link above reaches: `CHANGELOG.md` and `upgrades/<number>.md` at the clone's root. It is the settings file that stays on this machine.
+- **`~/.flow/repos/`**: every clone Flow reads. `flow/` is a link to the clone you ran the install from. `util/` and `toolbox/` sit beside it, and `sources/<owner>_<repo>/` holds one clone per skill repository, covered in [Skill discovery](#skill-discovery). Each missing one is cloned, newest commit only. A clone that fails, offline say, prints a line and the install still finishes, so running it again is the fix. `--no-clone` skips every clone.
+- **`~/.local/bin/util` and `u`**: made by util's own installer, which the install runs from `~/.flow/repos/util/`.
+- **`~/.flow/history.jsonl`**: one line saying the install ran. Every change Flow makes to the machine adds a line here, and nothing rewrites one.
 - **`~/.flow/originals/machine/`**: every path in this list as it was before Flow, copied before anything is created. [Migrations and the original](#migrations-and-the-original) covers it. Only a machine Flow was never on gets one, because on any other the paths are already Flow's own.
 
-`--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.codex`, `<dir>/.flow` and `<dir>/.local/bin`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
+`--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.flow` and `<dir>/.local/bin`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
 
 **At a terminal it asks 2 questions.** The first is a name for this machine, saved as git's `util.machine`, which is how work sent between your machines says where it came from. The default is your computer's name and 4 random letters, because a computer's name is not reliably different: WSL calls every machine it is installed on `me`. The second is the private GitHub repository that carries `~/.flow/` to your other machine, covered in [flow sync](#flow-sync). Run where no terminal is attached, it asks neither and says so.
 
-**Installing is half of putting Flow on a machine.** The other half is `/flow:setup-machine`, and the last line of the install says to restart Claude Code and type it. That skill interviews you, then writes the rule file `~/.agents/AGENTS.md`, the one line `@~/.agents/AGENTS.md` in `~/.claude/CLAUDE.md`, and the link `~/.codex/AGENTS.md` pointing at the rule file. It also merges Flow's hooks and permission rules into `~/.claude/settings.json`, key by key, because that file already holds your model, your plugins and your effort level. A rule file written before the interview would be the template with nothing of yours in it, which is why `flow install` writes none of the 4.
+**Installing is half of putting Flow on a machine.** The other half is `/flow:setup-machine`, and the last line of the install says to restart Claude Code and type it. That skill lists every change in one form for you to check, then writes the rule file `~/.agents/AGENTS.md` and the one line `@~/.agents/AGENTS.md` in `~/.claude/CLAUDE.md`. It also merges Flow's hooks and permission rules into `~/.claude/settings.json`, key by key, because that file already holds your model, your plugins and your effort level. A rule file written before that form would be the template with nothing of yours in it, which is why `flow install` writes none of the 3. On a machine where the setup already ran, the install ends by saying there is nothing more to do.
 
-**Every `flow` command refuses until that skill has run**, except `install`, `doctor`, `restore` and `uninstall`. `~/.flow/version` is what says the setup finished, and a command that finds it missing answers `Flow is not set up on this machine. Restart Claude Code and type /flow:setup-machine.`
+**Every `flow` command refuses until that skill has run**, except `install`, `doctor`, `restore` and `uninstall`. `~/.flow/version` is what says the setup finished, and a command that finds it missing answers `Flow is not set up on this machine. Run flow install again.`
 
-**Install `util` first.** `util` is a separate command-line tool holding Flow's general-purpose commands, its own repository, included here as a submodule at `lab/util/`.
-
-```bash
-node <util-clone>/util.js install
-```
-
-Flow's rules name `util fs tree` for looking at directory structure, and `flow get --files` runs `util fs open` to assemble context files. A machine without `util` still works: `flow get --files` prints that `util` is not on `PATH` where the files would have been, and carries on.
+**util comes with the install.** `util` is a separate command-line tool holding Flow's general-purpose commands, in its own repository. Flow's rules name `util fs tree` for looking at directory structure, and `flow get --files` runs `util fs open` to assemble context files. A machine without `util` still works: `flow get --files` prints that `util` is not on `PATH` where the files would have been, and carries on.
 
 ### `flow doctor`
 
@@ -66,17 +62,17 @@ Everything about an installed machine a function can decide. It writes nothing, 
 - **The clone**: every submodule sits on the commit the clone points at. With `--updates` it also reads the newest `v<number>` tag the remote carries, which is the one check here that touches the network.
 - **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, and `~/.local/bin` is on your `PATH`.
 - **The programs Flow shells out to**: `node`, `git` and `claude` are on your `PATH`.
-- **The 3 util commands Flow calls**: `util fs tree`, `util fs merge` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all.
-- **`~/.agents/`**: `skills/flow/` is a real folder, it holds one link per skill pointing into this clone, and its manifest names `flow`. `AGENTS.md` is present. A template placeholder still in it is a note, not a failure.
+- **The 3 util commands Flow calls**: `util fs tree`, `util fs merge` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all. `flow install` fixes every case.
+- **`~/.agents/`**: `skills/flow/` is a real folder, it holds one link into this clone per skill switched on, and its manifest names `flow`. `AGENTS.md` is present.
 - **`~/.claude/`**: `skills/flow` links to the plugin folder, one link per agent and rule points into this clone, and `CLAUDE.md` holds the line importing `~/.agents/AGENTS.md`.
-- **`~/.codex/`**: `AGENTS.md` links to `~/.agents/AGENTS.md`, and no `AGENTS.override.md` hides it. Codex reads an override file in place of `AGENTS.md`.
 - **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a Flow skill, which would do nothing because Flow's skills load as a plugin. `permissions.defaultMode` must be set, since without it a session on a Pro, Max or Team plan starts in auto mode. A mode other than the template's `default` is a note, not a failure.
 - **`~/.flow/`**: `scripts`, `references` and `docs` resolve into this clone.
+- **Skills**: every skill repository in `sources` is cloned, every name a `skills` line switches is held by some source, no line names a Flow skill that is always on, and every skill switched on has its link. A link out of step is fixed by the next session start, or at once by `flow skills ls`.
 - **Both test suites**, Flow's and util's. They are the only slow part, and `--no-tests` drops them.
 
 `--root` and `--no-bin` mirror `flow install`, so an install redirected into a scratch tree can be verified where it sits. `--updates` adds the one check that goes to the network, and everything else is a read of this machine. A machine with nothing installed gets a single message saying so, instead of every check failing separately.
 
-**`--prereq` is the last 2 checks alone**, the programs and the util commands, and it is the only form that runs on a machine Flow has never been installed on. Those 2 are Flow's prerequisites: things Flow calls and never installs. Everything else in the report describes an install, which is why the flag skips it.
+**`--prereq` is the programs check alone**, and it is the only form that runs on a machine Flow has never been installed on. `node`, `git` and `claude` are Flow's prerequisites: things Flow calls and never installs. Everything else in the report describes an install, which is why the flag skips it.
 
 ```text
 $ flow doctor --prereq
@@ -233,7 +229,7 @@ flow <command> [id]... [--flags]
 
 The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
-Seven groups carry their own actions: `cases`, `domain-skills`, `private-skills`, `overlays`, `git`, `audit`, `restore`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
+Six groups carry their own actions: `cases`, `skills`, `overlays`, `git`, `audit`, `restore`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
 
 Before the first install, the command is typed by path:
 
@@ -451,67 +447,79 @@ Every issue folder with its count, open count, latest date, and the rules that f
 
 ## Skill discovery
 
-Which domain and private skills exist, and adding them to a project or to the machine. [The skills](#the-skills) lists Flow's own; [Adding a skill](../dev/skills.md) covers writing one.
+Every skill Flow can reach, and switching each one on or off for a project, for this machine or for every machine. [The skills](#the-skills) lists Flow's own; [Adding a skill](../dev/skills.md) covers writing one.
 
-### `flow domain-skills`
+### `flow skills`
 
-A domain skill carries knowledge about one field or tool, such as React or Postgres. It comes from the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository and installs into one project, so only the project using it pays for its description. A skill about a tool you work with everywhere goes onto the machine instead, with `--global`, which says what that costs before it does it.
+One command lists, adds and switches skills from 4 places, each shown in `ls` as a source:
 
-Flow finds your clone of the repository through one setting in `~/.flow/settings.local.json`, the path to the clone's `skills/` folder. It goes in the local file because a path belongs to one machine, and your other machine keeps its clone somewhere else:
+- **`flow`**: the 2 Flow skills in `skills/dev/`, `/flow:review` and `/flow:apply-domain-findings`. Off until you switch one on. Every other Flow skill is part of the workflow and always on, so `ls` leaves it out.
+- **A skill repository**: a repository of skill folders, cloned whole into `~/.flow/repos/sources/<owner>_<repo>/`. Every `SKILL.md` in it is a skill, at any depth, and a `SKILL.md` at the root makes the repository one skill. `ls` names it by its repository name, `domain-skills` for the first. Off until you switch one on.
+- **`private`**: skills you write yourself, in `~/.flow/private-skills/<name>/`. Off until you switch one on.
+- **`outside`**: plugins, and skill folders another tool put in `~/.claude/skills/`. `ls` shows them, and nothing here switches them: Claude Code's `/plugin` and `/skills` menus do.
+
+`sources` in `~/.flow/settings.json` lists the skill repositories, as `owner/repo` for GitHub or a full git address for anywhere else. With no `sources` key the list is the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository alone. `flow install` clones every one that is missing.
 
 ```json
-{ "domainSkills": "~/code/domain-skills/skills" }
+{ "sources": ["Adrian333Dev/domain-skills", "mattpocock/skills"] }
 ```
 
-- **`flow domain-skills ls [words...]`**: every skill in the repository, whether this project has it, whether the machine has it, and its description. Words keep only the skills whose name or description holds all of them. This is the default action, so `flow domain-skills react` is `flow domain-skills ls react`.
-- **`flow domain-skills add <name...>`**: links each skill into `.claude/skills/<name>` and writes its name to `.flow/domain-skills.txt`. A name missing from the repository is reported, and the others still link. A broken link, left by a clone that moved, is replaced. A real folder, or a working link another installer made, is left alone.
-- **`flow domain-skills add <name...> --global`**: links into `~/.claude/skills/<name>` and writes the name to `~/.flow/domain-skills.txt` instead, leaving every project alone.
-- **`flow domain-skills add`** with no name: links every skill the list names, `--global` reading the machine's list.
-- **`flow domain-skills drop <name...>`**: removes the link and the name, `--global` from the machine. A real folder or a link pointing outside the repository is left alone.
+The commands:
 
-**git ignores the links and commits the list.** A link holds this machine's path, so it would load nothing anywhere else. On another machine, in a fresh clone or in a new worktree, run `flow domain-skills add` with no name to get every skill back. The machine's list travels the same way, inside `~/.flow/`'s own repository.
+- **`flow skills ls [pattern...] [--source <name>]`**: every skill by source, with its state. Each pattern is a regular expression matched against the name and the description, ignoring case, and a skill shows when it matches every one. `--source` lists one source whole, by its name or its `owner/repo`. With neither, a skill repository shows only the skills a settings line names, plus a count of the rest. This is the default action, so `flow skills react` is `flow skills ls react`.
+- **`flow skills on <name...>`** and **`flow skills off <name...>`**: write the name's line at one level, then make the links match.
+- **`flow skills drop <name...>`**: remove the name's line at that level, so the level above decides again. `drop <owner/repo>` removes a skill repository from `sources` and deletes its clone.
+- **`flow skills add <owner/repo> [name...]`**: clone a skill repository, add it to `sources`, and turn on each name given. With no name it lists what it found and switches nothing. A repository holding no `SKILL.md` is refused, and its clone removed.
 
-The first `add` into a project with no `.claude/skills/` folder needs a Claude Code restart, since Claude Code only watches a skills folder that existed when the session started.
+**The level comes from a flag.** No flag is this project, `--machine` this machine, and `--global` every machine. Each level is one settings file, holding a `skills` key with a line per name switched:
 
-`ls` fills its `HERE` and `GLOBAL` columns with one of 4 values:
+- **This project**: `<project>/.flow/settings.json`, committed with the project, so a fresh clone of it gets its skills back.
+- **This machine**: `~/.flow/settings.local.json`, which stays on this machine.
+- **Every machine**: `~/.flow/settings.json`, which [`flow sync`](#flow-sync) carries to your other machine.
 
-- **`added`**: linked and listed
-- **`not linked`**: listed, with no link on this machine. `flow domain-skills add` fixes it
-- **`not listed`**: linked, with no line in the list. `flow domain-skills add <name>` fixes it
-- **`-`**: neither
+```json
+{ "skills": { "react": "on", "review": "on" } }
+```
 
-**`--global` says what it costs, then does it.** Every session on the machine loads that skill's description, in a project the skill has nothing to do with too. Which skills are worth that is decided one at a time, so the command tells you and links it anyway:
+The nearest level wins, name by name: the project over the machine, the machine over every machine. A name no file mentions is off. So the files hold only what you switched.
+
+**A skill is on where its link exists**, and nothing else switches one. A skill on for a project is linked in that project's `.claude/skills/<name>`, and one on for the machine in `~/.claude/skills/<name>`. Flow's own are linked in `~/.agents/skills/flow/skills/<name>`. Every `flow skills` command makes the links match the settings, and so does every session start, which asks Claude Code to scan the skill folders again when a link changed.
 
 ```text
-linked: ~/.claude/skills/react
-
-Every session on this machine now loads that description, in a project the skill has nothing to do with too.
+$ flow skills ls
+                         state    level
+flow
+  apply-domain-findings  off
+  review                 on       global
+domain-skills            41 more
+  react                  on       project
+  vitest                 off      machine
+private
+  my-notes               on       global
+outside
+  frontend-design        plugin
 ```
 
-**The clone updates itself when a session opens.** The skills are symlinks into it, so a pull makes every project holding one current at once. [`domainSkillsAutoUpdate`](settings.md#domainskillsautoupdate) covers the pull, the 2 guards that stop it, and the switch.
+`level` shows only where a line set the state. An empty one is the source's default.
 
-### `flow private-skills`
+What each command refuses, and what it says instead:
 
-A private skill is a skill you write yourself. It lives in `~/.flow/private-skills/<name>/`, outside every repository, and installs into one project or onto the whole machine. A skill that belongs to one repository and the people working on it needs no command: commit it as a real folder in that repository's `.claude/skills/<name>/`.
+- **A Flow skill outside `skills/dev/`, in `on` or `off`.** It is part of the workflow and always on. A line naming one does nothing, and `drop` still removes it.
+- **A Flow skill with no flag.** Flow's skills load for the whole machine as one plugin, so they have no project level. Add `--machine` or `--global`.
+- **`off` in a project, for a skill on for the machine.** The machine's link loads in every session, so a project cannot hide it. `off --machine` switches it off everywhere on this machine.
+- **A name 2 skill repositories share.** Name the one you mean as `owner/repo:name`.
+- **A real folder, or a link another tool made, where the link would go.** It is left alone and reported.
+- **No flag outside a project.** Add `--machine` or `--global`.
 
-```text
-~/.flow/private-skills/
-├── billing/SKILL.md
-├── deploy/SKILL.md
-└── global.txt        the skills added to this machine, one name per line
+`on --machine` and `on --global` say what they cost as they go: every session on the machine loads that skill's description, in a project it has nothing to do with too. The first link into a skills folder that did not exist needs a Claude Code restart, since Claude Code only watches a skills folder that existed when the session started. A line naming a skill no source holds shows under `ls` as `missing`, with the `drop` that removes it.
+
+Every switch, clone and pull adds a line to `~/.flow/history.jsonl`:
+
+```json
+{"at":"2026-09-24T09:12:05Z","type":"skill","name":"react","state":"on","level":"project","by":"flow skills on"}
 ```
 
-- **`flow private-skills ls [words...]`**: every private skill, whether this project has it (`HERE`), whether the machine has it (`GLOBAL`), and its description. Both columns take the 4 values `flow domain-skills ls` uses, and words filter the same way. This is the default action.
-- **`flow private-skills add <name...>`**: links each skill into `.claude/skills/<name>` and writes its name to `.flow/private-skills.txt`, which git commits.
-- **`flow private-skills add <name...> --global`**: links each skill into `~/.claude/skills/<name>`, where every session on the machine sees it, and writes its name to `global.txt`.
-- **`flow private-skills add`** with no name: links every skill the project's list names. With `--global`, it links every skill `global.txt` names.
-- **`flow private-skills drop <name...>`**: removes the link and the name. With `--global`, it removes them from the machine.
-
-**A private skill takes a name of its own.** `add` refuses a name one of Flow's skills uses. It also refuses a name the domain-skills repository uses, whenever `domainSkills` is set. Two skills with one name would share one link path, and the second link would replace the first.
-
-**Share the folder between machines by making it a private git repository.** `global.txt` travels with it. On the second machine, `flow private-skills add --global` links every skill `global.txt` names, and a bare `add` inside each project links what that project lists.
-
-Links, restarts and folders work as in `flow domain-skills`: git ignores the links, the first `add` into a new skills folder needs a restart, and a real folder or another installer's link is left alone.
+**The clones update themselves when a session opens.** The skills are links into them, so a pull makes every project holding one current at once. [`skillsAutoUpdate`](settings.md#skillsautoupdate) covers the pull, the 2 guards that stop it, and the switch.
 
 ## Overlays
 
@@ -623,7 +631,7 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 
 **`(user only)` marks a skill only you can start.** Claude never sees its description, so it never fires one on its own. When one is the next step, Claude suggests it to you.
 
-**The `flow:` in front of every one comes from a single file.** `skills/.claude-plugin/plugin.json` in the clone holds the one word `flow`. `flow install` links the whole set into `~/.agents/skills/flow/`, beside a copy of that file, and links `~/.claude/skills/flow` to the same folder. Both Claude Code and Codex read the file and offer every skill below it as `flow:<name>`, so no folder and no `SKILL.md` in the clone carries a prefix. Codex spells the same command `$flow:groundwork`. Changing the word in the manifest renames every command at once, and `claude plugin disable flow@skills-dir` takes the whole set out of a session.
+**The `flow:` in front of every one comes from a single file.** `skills/.claude-plugin/plugin.json` in the clone holds the one word `flow`. `flow install` links the whole set into `~/.agents/skills/flow/`, beside a copy of that file, and links `~/.claude/skills/flow` to the same folder. Both Claude Code and Codex read the file and offer every skill below it as `flow:<name>`, so no folder and no `SKILL.md` in the clone carries a prefix. Codex spells the same command `$flow:groundwork`. Changing the word in the manifest renames every command at once. [`flow skills on review --machine`](#flow-skills) adds one of the 2 `dev/` skills to every session on the machine.
 
 **`phases/`, the four states a piece of work passes through.** Shown in every session. Each takes a ticket id, `/flow:execute t047`, and loads the ticket and its files itself. Typed bare, it loads nothing.
 
@@ -636,12 +644,12 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 
 - **`/flow:start`** (user only): opens a session on the board, one ticket, or a loose file
 - **`/flow:handoff`**: writes what a session that was not here needs, the state itself rather than a reading list
-- **`/flow:file-findings`**: files what a session learned into the skills, rules and checks that will hold it next time
+- **`/flow:file-findings`** (user only): files a session's findings into skills, rules and checks
 - **`/flow:research`**: reads what an external tool actually does, from its own documentation and source
 - **`/flow:visualize`**: draws ASCII diagrams, screen mockups and HTML previews
 - **`/flow:tickets-from-spec`** (user only): cuts the next batch of work out of `docs/spec/` into tickets
 
-**`dev/`, maintaining Flow and the `domain-skills` repository.** Shown in every session.
+**`dev/`, maintaining Flow and the `domain-skills` repository.** Off until [`flow skills on <name> --machine`](#flow-skills) turns one on. These 2 are the only Flow skills that switch.
 
 - **`/flow:review`**: finds where Flow's rules failed, where friction repeated, and where the design was wrong
 - **`/flow:apply-domain-findings <skill>`** (user only): checks the findings sent to one domain skill, writes the true ones into its body and pages, and closes their pull requests
@@ -652,26 +660,25 @@ A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is
 
 Two files, and Flow contributes to one of them.
 
-**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `/flow:setup-machine` merges Flow's keys into it, key by key. Flow contributes four keys:
+**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `/flow:setup-machine` merges Flow's keys into it, key by key. Flow contributes three keys:
 
-- **`hooks`**: 6 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does, and sends the domain-skills clone to update itself in the background
+- **`hooks`**: 6 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
 - **`permissions`**: an allow list, a deny list, and no git entries at all, because `flow git` owns git. The deny list covers the Claude Code surfaces Flow does not use, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
-- **`skillOverrides`**: which skills this machine is shown, keyed by skill name, with `on` and `off` the only two values Flow uses. It reaches outside skills only: Flow's own are a plugin, which this key cannot touch
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 
-A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing.
+A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. `/flow:setup-machine` also writes `skillOverrides`, Claude Code's key for hiding a skill, for the ones it switches off: Claude Code's own `/batch`, and a skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
 
-**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Every setting holding a path goes in it. Together they hold 6 keys:
+**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Together they hold 6 keys:
 
 - **`git`**: the git write state, in the shared file. `flow git` writes it, so there is nothing to edit by hand
-- **`domainSkills`**: the path to your clone's `skills/` folder, in the local file, which [`flow domain-skills`](#flow-domain-skills) reads. You write this one
-- **`clone`**: the path to your Flow clone, in the local file. `flow install` writes it on every run
+- **`sources`**: the skill repositories [`flow skills`](#flow-skills) takes skills from, in the shared file. `flow skills add` and `drop` write it
+- **`skills`**: which skills are switched on or off, a line per name, in either file and in a project's `.flow/settings.json`. The nearest file wins, name by name. `flow skills` writes it
 - **`reminder`**: whether the reminder prints beside every message, in the shared file. `false` silences it, and every line Flow prints by itself gets a key like it
 - **`sessionCheck`**: whether the line naming what needs attention prints when a session opens, in the shared file. `false` silences it
-- **`domainSkillsAutoUpdate`**: whether the domain-skills clone pulls itself when a session opens, in the shared file. `false` turns the pull into a fetch that names what is waiting
+- **`skillsAutoUpdate`**: whether every skill repository pulls itself when a session opens, in the shared file. `false` turns each pull into a fetch that names what is waiting
 
 [Settings](settings.md) explains every key in both files, every value Flow rejected, and why.
 
 ## Files
 
-Flow keeps the one real copy of its rules and its plugin folder in `~/.agents/`, what Claude Code reads in `~/.claude/`, what Codex reads in `~/.codex/`, and what only Flow reads in `~/.flow/`. A project splits into `.claude/` and `.flow/`. [Where everything lives](where-everything-lives.md) shows every folder in one tree and says what writes each entry.
+Flow keeps the one real copy of its rules and its plugin folder in `~/.agents/`, what Claude Code reads in `~/.claude/`, and what only Flow reads in `~/.flow/`, its clones included. A project splits into `.claude/` and `.flow/`. [Where everything lives](where-everything-lives.md) shows every folder in one tree and says what writes each entry.

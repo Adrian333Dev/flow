@@ -29,10 +29,12 @@ The bare form ends by starting `claude`, or `codex` with `--codex`, which takes 
 It runs the same command a real install runs, pointed at a folder that stands in for your home folder:
 
 ```sh
-flow install --root tmp/try/root --no-bin --drafts
+flow install --root tmp/try/root --no-bin --no-clone --drafts
 ```
 
-The scratch session therefore tests the arrangement an install produces, rather than a second arrangement the script assembled by hand. `.agents`, `.claude`, `.codex` and `.flow` all land under `tmp/try/root/`, and none of them in your real home folder.
+The scratch session therefore tests the arrangement an install produces, rather than a second arrangement the script assembled by hand. `.agents`, `.claude` and `.flow` all land under `tmp/try/root/`, and none of them in your real home folder.
+
+`--no-clone` skips the clones a real install makes into `~/.flow/repos/`, so a scratch session never reaches the network. It has no util, no toolbox and no skill repository.
 
 `--drafts` links the skills in `skills/drafts/`, which a real install skips. A draft is unreachable anywhere else, so the scratch session passes the flag on every run.
 
@@ -42,7 +44,7 @@ The scratch session therefore tests the arrangement an install produces, rather 
 
 ## The Codex session
 
-`--codex` starts Codex instead of Claude Code, against the same install. Codex looks for skills in `~/.agents/skills/` under whatever `HOME` says, so the session gets `HOME=tmp/try/root`, and `CODEX_HOME=tmp/try/root/.codex` beside it. It sees Flow's skills as `$flow:groundwork` and the rules through the link `tmp/try/root/.codex/AGENTS.md`.
+`--codex` starts Codex instead of Claude Code, against the same install. Codex looks for skills in `~/.agents/skills/` under whatever `HOME` says, so the session gets `HOME=tmp/try/root`, and `CODEX_HOME=tmp/try/root/.codex` beside it. It sees Flow's skills as `$flow:groundwork`, and no rules: an install makes no Codex link, since Flow does not support Codex yet.
 
 It starts signed in because `try.sh` copies `~/.codex/auth.json` into the scratch `.codex/`. A copy rather than a link, so nothing the session does can write your real login.
 

@@ -29,22 +29,25 @@ There is one copy of every skill on the machine, so an edit is live in every pro
 
 ## The groups
 
-A group is a filing decision. Nothing outside `skills/` reads a group name: the symlinks `flow install` builds are flat, each named for the skill, so moving a skill to a different group later is a `mv`.
+A group is mostly a filing decision. The symlinks `flow install` builds are flat, each named for the skill, so moving a skill to a different group later is a `mv`.
 
 - **`phases/`**: what you are doing: groundwork, execute, prototype, debug
 - **`tools/`**: what you reach for around the work: start, handoff, file-findings, research, visualize, tickets-from-spec
 - **`dev/`**: maintaining Flow and the `domain-skills` repository: review, apply-domain-findings
 - **`drafts/`**: one still being written
 
-`drafts/` is the only group that changes behavior. `flow install` skips it, so a skill ships by being moved out of it. Until then the skill is reachable only through [the scratch session](scratch-session.md), which passes `--drafts` on every run.
+2 groups change behavior:
+
+- **`drafts/`** does not install. `flow install` skips it, so a skill ships by being moved out of it. Until then the skill is reachable only through [the scratch session](scratch-session.md), which passes `--drafts` on every run.
+- **`dev/`** switches. A skill in it starts off, and `flow skills on <name> --machine` turns it on. Every skill in any other group is part of the workflow: always linked, and `flow skills` refuses to switch it.
 
 `phases/` is closed at those 4. A skill that looks like a fifth phase belongs somewhere else: `/flow:tickets-from-spec` produces tickets and files under `tools/`.
 
-Every group that installs is shown in every session, and no setting hides one of them. `skillOverrides` is the key that hides a skill, and it skips a plugin's skills; Flow's are a plugin. The only switch is `claude plugin disable flow@skills-dir`, which takes the whole set.
+A `dev/` skill is shown in every session once `flow skills on <name> --machine` adds its link to the plugin folder, or `--global` on every machine. A Flow skill has no switch for one project. `skillOverrides`, the key Claude Code hides a skill with, skips a plugin's skills, and Flow's are a plugin.
 
-A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and installs into the one project that uses it: `flow domain-skills add <name>`. A skill about a tool used in every project goes onto the machine instead, with `--global`, which says what that costs first.
+A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and is turned on in the one project that uses it: `flow skills on <name>`. A skill about a tool used in every project is turned on for the machine instead, with `--machine`, which says what that costs first.
 
-A skill of your own that no repository should carry lives in `~/.flow/private-skills/<name>/`. `flow private-skills add <name>` installs it into a project, and `--global` installs it onto the machine. Its name must differ from every Flow skill and every domain skill.
+A skill of your own that no repository should carry lives in `~/.flow/private-skills/<name>/`. `flow skills on <name>` turns it on in a project, and `--machine` on the machine. Its name must differ from every Flow skill and every domain skill.
 
 ## Frontmatter
 

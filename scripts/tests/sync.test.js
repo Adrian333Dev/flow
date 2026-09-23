@@ -42,6 +42,8 @@ test('what belongs to one machine is what the ignore file names', () => {
     'scripts',
     'references',
     'docs',
+    'repos/',
+    'history.jsonl',
     'skills-update.json',
     'skills-update.lock',
     'wiki/*/downloads/',
@@ -64,5 +66,5 @@ test('sync refuses on a machine where setup never finished', () => {
 
   const refused = run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /not set up on this machine.*\/flow:setup-machine/);
+  assert.match(refused.stderr, /not set up on this machine\. Run flow install again\./);
 });

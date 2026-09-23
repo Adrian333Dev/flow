@@ -5,7 +5,8 @@
 # A development script. It ships nowhere, and `flow install` never links it.
 #
 # Everything is built under tmp/try/root/, which stands in for the home folder:
-# .agents, .claude, .codex and .flow, the same 4 folders a real install fills.
+# .agents, .claude and .flow, the same 3 folders a real install fills, and
+# .codex with --codex.
 # Files outside it are read and none is written: Claude Code's credentials,
 # ~/.claude.json and ~/.claude/settings.json, and for --codex ~/.codex/auth.json.
 # Between them they carry the login and every answer onboarding asks for, so a
@@ -63,13 +64,17 @@ mkdir -p "$scratch" "$proj"
 # ~/.local/bin alone. The scratch session then runs the arrangement a real
 # install produces, rather than a second one built by hand here.
 #
-# --root stands in for the home folder, so all 4 folders land under it and
+# --root stands in for the home folder, so all 3 folders land under it and
 # none in the real one.
+#
+# --no-clone, so a scratch session never reaches the network: util, the
+# toolbox and the skill repositories stay uncloned, and the session has
+# Flow's own skills alone.
 #
 # --drafts always, because a draft that cannot be tested is the one thing this
 # script exists to make testable.
 node "$root/scripts/flow/flow.js" install \
-  --root "$scratch" --no-bin --drafts >/dev/null
+  --root "$scratch" --no-bin --no-clone --drafts >/dev/null
 
 # The hooks name $HOME/.flow/scripts and $HOME/.flow/references, which is
 # where Flow installs and where nothing sits yet. Point them at this config's
@@ -213,8 +218,8 @@ cat <<EOF
 built $try
   root/.agents  the plugin folder and the rule file, the one real copy of each
   root/.claude  what Claude Code reads: a link to the plugin, agents, CLAUDE.md
-  root/.codex   what Codex reads: a link to the rule file$([ "$codex" = 1 ] && echo ", and a copy of the login")
-  root/.flow    what only Flow reads: scripts and references
+$([ "$codex" = 1 ] && echo "  root/.codex   a copy of the Codex login")
+  root/.flow    what only Flow reads: scripts, references and docs
   project/      a git repo carrying the project template, kept between runs
 
 start the session from the project:

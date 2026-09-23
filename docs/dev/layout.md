@@ -26,7 +26,7 @@ When you first open the repository, the split that matters has four parts:
 
 ## What installs on a machine
 
-**`home/AGENTS.md`** is the rules that apply in every directory, project or not, in Claude Code and in Codex. `/flow:setup-machine` copies it to `~/.agents/AGENTS.md` after its interview, and it is personalized there. `~/.codex/AGENTS.md` is a link to that copy. The copy here is the template: placeholders and rules, never personal content.
+**`home/AGENTS.md`** is the rules that apply in every directory, project or not. `/flow:setup-machine` copies it to `~/.agents/AGENTS.md` after its interview, and it is personalized there. The copy here is the template: placeholders and rules, never personal content.
 
 **`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same skill, so Claude Code loads the same rules. Claude Code never reads an `AGENTS.md` by itself. `project-template/` holds the same pair for a project.
 
@@ -41,8 +41,8 @@ When you first open the repository, the split that matters has four parts:
 - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
 - `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill whose ticket id matches nothing, before the skill loads.
 - `reminder.js` is the `UserPromptSubmit` hook that prints `references/reminder.md` beside every message, unless `"reminder": false` in `~/.flow/settings.json` silences it.
-- `session-check.js` is the `SessionStart` hook that names what needs attention, reading `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`, and printing nothing when all 3 are fine. `"sessionCheck": false` silences it.
-- `domain-pull.js` updates the domain-skills clone in the background, started by the session check and never typed. It pulls, or fetches and writes what is waiting into `~/.flow/skills-update.json`, which `"domainSkillsAutoUpdate": false` chooses. `flow/lib/skills-update.js` holds the logic.
+- `session-check.js` is the `SessionStart` hook that names what needs attention, reading `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`, and printing nothing when all 3 are fine. `"sessionCheck": false` silences it. It also makes every skill link match the `skills` lines, through `flow/lib/skill-links.js`.
+- `skills-pull.js` updates every skill repository in `~/.flow/repos/sources/` in the background, started by the session check and never typed. It pulls, or fetches and writes what is waiting into `~/.flow/skills-update.json`, which `"skillsAutoUpdate": false` chooses. `flow/lib/skills-update.js` holds the logic.
 - `apply-migration.js` carries out a migration that `/flow:setup-machine`, `/flow:setup-project` or `/flow:migrate` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and its `.info` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
@@ -50,7 +50,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, with `write-rules.md` beside it for a rule file and `write-docs.md` for a documentation page, `workflow.md` describes how the pieces fit, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message, and `harnesses/<name>.md` says where one harness keeps its own files, Claude Code's first. Symlinked as `~/.flow/references`.
 
-**`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.agents/skills/flow/skills/`, so nothing outside this tree ever reads a group name.
+**`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.agents/skills/flow/skills/`, so the only group names read outside this tree are `drafts/`, which never installs, and `dev/`, whose skills switch.
 
 **`skills/.claude-plugin/plugin.json`** is 2 lines naming Flow and describing it, and it is what makes every skill typed `/flow:groundwork` instead of `/groundwork`. Codex reads it here, because it follows each skill's link into this tree and looks above the real folder. `flow install` copies it into `~/.agents/skills/flow/.claude-plugin/`, where Claude Code reads it. Copied rather than linked, because Codex ignores a symlinked manifest. That copy and `~/.flow/settings.local.json` are the only things `flow install` writes that are not symlinks.
 

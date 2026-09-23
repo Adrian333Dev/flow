@@ -10,13 +10,18 @@
  *
  * It reads 4 files and waits for nothing: ~/.flow/run.json, ~/.flow/version,
  * the project's .flow/version, and ~/.flow/skills-update.json, which is the
- * domain-skills clone's own news. `flow doctor` stays the full check, since it
+ * skill repositories' own news. `flow doctor` stays the full check, since it
  * runs both test suites and takes seconds.
  *
- * The one thing it starts is scripts/domain-pull.js, detached, which brings
- * that clone up to date in the background. Starting a process is not waiting
- * for one: the hook returns before the pull has reached the network, and what
- * the pull finds is printed by the session after it.
+ * It makes every skill link match the settings, the step every `flow skills`
+ * command runs, so a switch made on another machine or pulled with a project
+ * applies here. When that changed a link it asks Claude Code to scan the skill
+ * folders again (`reloadSkills`), so the first prompt already sees the change.
+ *
+ * The one thing it starts is scripts/skills-pull.js, detached, which brings
+ * every skill repository up to date in the background. Starting a process is
+ * not waiting for one: the hook returns before the pull has reached the
+ * network, and what the pull finds is printed by the session after it.
  *
  * It is also how /flow:migrate gets named at all. That skill is typed and
  * never model-invoked, so its description stays out of every session, and
@@ -33,6 +38,8 @@ const { cloneRoot } = require('./flow/lib/clone');
 const machine = require('./flow/lib/machine');
 const migrations = require('./flow/lib/migrations');
 const settings = require('./flow/lib/settings');
+const links = require('./flow/lib/skill-links');
+const skills = require('./flow/lib/skills');
 const update = require('./flow/lib/skills-update');
 const version = require('./flow/lib/version');
 
@@ -59,7 +66,7 @@ function projectRoot(from) {
  *
  * Every other one reads a version stamp that the stopped run was in the middle
  * of moving, so finishing the run is the only thing worth saying about Flow's
- * own version. The domain-skills line is a separate record and still prints.
+ * own version. The skill repositories' lines are a separate record and still print.
  */
 function stoppedRun(at) {
   const found = migrations.run(at);
@@ -109,7 +116,16 @@ function attention(at, cwd) {
 }
 
 /**
- * Send the domain-skills clone to look for new work, without waiting for it.
+ * Make every skill link match the settings. Returns whether a link changed,
+ * which is when the skill folders need scanning again.
+ */
+function relink(at, cwd) {
+  const done = links.apply({ home: at.flow, root: projectRoot(cwd), claude: skills.configDir(), agents: at.agents });
+  return done.changed.length > 0;
+}
+
+/**
+ * Send every skill repository to look for new work, without waiting for it.
  *
  * Detached with no output anywhere, so the session is never held by a network
  * call and never sees what the pull printed. `skills-update.js` decides
@@ -117,11 +133,11 @@ function attention(at, cwd) {
  *
  * `"sessionCheck": false` silences the lines above and not this: the skills
  * are what an agent reads in a project, so a quiet machine still wants them
- * current. `"domainSkillsAutoUpdate": false` is the key that stops the pull.
+ * current. `"skillsAutoUpdate": false` is the key that stops the pull.
  */
 function startPull(at) {
   if (!update.due(at)) return;
-  const child = spawn(process.execPath, [path.join(__dirname, 'domain-pull.js')], {
+  const child = spawn(process.execPath, [path.join(__dirname, 'skills-pull.js')], {
     detached: true,
     stdio: 'ignore',
   });
@@ -130,22 +146,35 @@ function startPull(at) {
 
 try {
   const at = machine.folders();
+  let cwd = process.cwd();
+  try {
+    cwd = JSON.parse(fs.readFileSync(0, 'utf8')).cwd || cwd;
+  } catch {
+    // Run by hand, with no event on stdin. The working folder stands in.
+  }
 
+  const lines = [];
   if (settings.prints('sessionCheck')) {
-    let cwd = process.cwd();
-    try {
-      cwd = JSON.parse(fs.readFileSync(0, 'utf8')).cwd || cwd;
-    } catch {
-      // Run by hand, with no event on stdin. The working folder stands in.
-    }
-    const lines = attention(at, cwd);
-
-    // The clone's news is a record of its own: a domain skill being behind is
+    lines.push(...attention(at, cwd));
+    // The repositories' news is a record of its own: a skill being behind is
     // a pull, where Flow being behind is a migration.
-    const skills = update.line(update.readNote(at));
-    if (skills) lines.push(skills);
+    lines.push(...update.lines(update.readNote(at)));
+  }
 
-    if (lines.length) process.stdout.write(lines.map((line) => `Flow: ${line}`).join('\n') + '\n');
+  let reload = false;
+  try {
+    reload = relink(at, cwd);
+  } catch {
+    // A link that cannot be made is flow doctor's to report, never a session's.
+  }
+
+  const text = lines.map((line) => `Flow: ${line}`).join('\n');
+  if (reload) {
+    const said = { hookEventName: 'SessionStart', reloadSkills: true };
+    if (text) said.additionalContext = text;
+    process.stdout.write(JSON.stringify({ hookSpecificOutput: said }) + '\n');
+  } else if (text) {
+    process.stdout.write(text + '\n');
   }
 
   startPull(at);

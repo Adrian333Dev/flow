@@ -27,6 +27,12 @@ const SCRIPTS = path.resolve(__dirname, '..', '..');
 const REPO = path.resolve(SCRIPTS, '..');
 const SCRATCH = path.join(REPO, 'tmp', 'tests');
 
+// Every clone Flow makes goes through `FLOW_GIT_BASE`, and no test reaches
+// the network: by default it names a folder holding nothing, so a clone fails
+// at once and says so. A test that wants a clone to work builds the
+// repositories itself and points this at them.
+process.env.FLOW_GIT_BASE = process.env.FLOW_GIT_BASE || `${path.join(SCRATCH, 'no-remote')}${path.sep}`;
+
 /** A fresh empty project folder, already in Flow. `name` keeps tests apart. */
 function project(name) {
   const dir = path.join(SCRATCH, name);
@@ -50,8 +56,7 @@ function setUp(home) {
 
 /**
  * The half of a machine `/flow:setup-machine` writes: the rule file, the one
- * line importing it, the link Codex reads, and the version stamp its last step
- * leaves behind.
+ * line importing it, and the version stamp its last step leaves behind.
  *
  * `flow install` stopped writing all 3 on 2026-09-20, because the rule file is
  * written after that skill's interview and a copy made before it holds nothing
@@ -67,10 +72,6 @@ function setupMachine(root) {
 
   fs.mkdirSync(at.claude, { recursive: true });
   fs.writeFileSync(path.join(at.claude, 'CLAUDE.md'), `${machine.importLine(REPO, at.base)}\n`);
-
-  fs.mkdirSync(at.codex, { recursive: true });
-  fs.rmSync(path.join(at.codex, 'AGENTS.md'), { force: true });
-  fs.symlinkSync(rules, path.join(at.codex, 'AGENTS.md'));
 
   setUp(at.flow);
   return rules;
@@ -94,6 +95,28 @@ function utilStub(dir, { works = true } = {}) {
   fs.chmodSync(file, 0o755);
   return bin;
 }
+
+/**
+ * A git repository on disk holding `files`, `{ 'react/SKILL.md': text }`,
+ * committed once. A test clones it through `FLOW_GIT_BASE` in place of GitHub.
+ */
+function gitRepo(dir, files) {
+  fs.rmSync(dir, { recursive: true, force: true });
+  for (const [name, body] of Object.entries(files)) write(dir, name, body);
+  const git = (...args) => {
+    const ran = spawnSync('git', ['-c', 'user.name=test', '-c', 'user.email=test@example.com', ...args],
+      { cwd: dir, encoding: 'utf8' });
+    if (ran.status !== 0) throw new Error(`git ${args.join(' ')}: ${ran.stderr}`);
+  };
+  git('init', '--quiet', '--initial-branch=main');
+  git('add', '-A');
+  git('commit', '--quiet', '-m', 'first');
+  return dir;
+}
+
+/** A skill's SKILL.md, with the frontmatter every source expects. */
+const skillFile = (name, description = `The ${name} skill.`) =>
+  `---\nname: ${name}\ndescription: ${description}\n---\n\nBody.\n`;
 
 /** PATH with one folder in front of this machine's. */
 const pathWith = (bin) => `${bin}${path.delimiter}${process.env.PATH}`;
@@ -129,4 +152,6 @@ function flow(dir, args) {
   return run('flow/flow.js', args, { cwd: dir, env });
 }
 
-module.exports = { SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, utilStub, pathWith, write, run, flow };
+module.exports = {
+  SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, utilStub, gitRepo, skillFile, pathWith, write, run, flow,
+};

@@ -1,104 +1,203 @@
 'use strict';
 /**
- * Skills linked in from a folder outside the clone: the domain-skills
- * repository, and `~/.flow/private-skills/`.
+ * Every skill Flow can switch, which ones are on, and the one step that makes
+ * the links match.
  *
- * Both commands keep 3 things in step: a source folder holding one skill per
- * folder, a list file naming the skills added, and one link per name in a
- * skills folder Claude Code reads. A link holds this machine's path, so the
- * list is what travels to a second machine, and an add with no names relinks
- * every name on it.
+ * A skill comes from one of 3 places, each a source in `flow skills ls`:
  *
- * A command replaces or removes only a link it could have made: one into its
- * source, or one whose target is gone. A clone that moved leaves only dead
- * links, and add has to be able to fix them. A live link anywhere else came
- * from another installer and is left alone.
+ *   flow      Flow's own, in this clone, linked into the plugin folder
+ *             `~/.agents/skills/flow/skills/`
+ *   private   `~/.flow/private-skills/<name>/`, the user's own
+ *   a source  a skill repository cloned into `~/.flow/repos/sources/`, the
+ *             domain-skills repository being the first
+ *
+ * Whether one is on is a line in a settings file, `"skills": { "react": "on" }`.
+ * The 3 files are 3 levels, and the nearest line wins, name by name:
+ *
+ *   project  <project>/.flow/settings.json
+ *   machine  ~/.flow/settings.local.json
+ *   global   ~/.flow/settings.json, every machine through `flow sync`
+ *
+ * A name no file mentions starts off, being a library to pick from. So the
+ * files hold only what the user switched.
+ *
+ * Flow's essential skills, every one outside `skills/dev/`, are the workflow
+ * itself: always linked, whatever a line says. `on` and `off` refuse them,
+ * `ls` leaves them out, and `flow doctor` reports a line naming one.
+ *
+ * A skill is on when its link exists, and nothing else switches one. `apply`
+ * makes every link match the settings, and every command that can change them
+ * runs it, the session-start hook included. A link is Flow's to add or remove
+ * only when it points into a source or the private folder: a real folder, or a
+ * link another installer made, is left alone and reported.
+ *
+ * A project cannot hide a skill linked for the whole machine: that link loads
+ * in every session. `off` refuses that case rather than write a line nothing
+ * obeys.
  */
 
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
-const { out } = require('./cli');
 const { FlowError } = require('./error');
 const frontmatter = require('./frontmatter');
-const { projectRoot } = require('./root');
+const { shorten } = require('./machine');
+const repos = require('./repos');
 const settings = require('./settings');
-const { subdirs } = require('./skills');
+const skills = require('./skills');
 
-/** The project, or null where there is none: `ls` works anywhere. */
-function maybeRoot() {
-  try {
-    return projectRoot();
-  } catch {
-    return null;
-  }
+const LEVELS = ['project', 'machine', 'global'];
+
+/** The settings file one level writes to. */
+function levelFile(level, { home, root }) {
+  if (level === 'global') return settings.globalFile(home);
+  if (level === 'machine') return settings.localFile(home);
+  return settings.projectFile(root);
 }
 
-/** A path under the home folder written with `~`, for output. */
-const shorten = (p) => (p.startsWith(os.homedir() + path.sep) ? '~' + p.slice(os.homedir().length) : p);
+/** The `skills` object in one file, keeping only `on` and `off`. */
+function linesIn(file) {
+  const found = settings.read(file).skills;
+  const kept = {};
+  if (found && typeof found === 'object' && !Array.isArray(found)) {
+    for (const [name, state] of Object.entries(found)) if (state === 'on' || state === 'off') kept[name] = state;
+  }
+  return kept;
+}
 
 /**
- * `domainSkills`: the file it sits in, whether it is set, and the folder it
- * names with a leading `~` expanded.
- *
- * It holds the path to a clone, so it belongs in `~/.flow/settings.local.json`,
- * which stays on this machine. `~/.flow/settings.json` beside it is shared with
- * the other machine, where that path is somebody else's. A value in either is
- * read, and the local one wins.
+ * Every line in force, name by name: `{ state, level }`. `levels` limits the
+ * files read, so the machine's own view leaves the project out.
  */
-function domainSetting() {
-  const { file, value } = settings.globalKey('domainSkills');
-  const set = typeof value === 'string' && value.trim() !== '';
-  return { file, set, dir: set ? path.resolve(value.replace(/^~(?=$|\/)/, os.homedir())) : null };
-}
-
-/** Every skill in a source folder, keyed by name, with its description. */
-function readSource(source) {
+function lines({ home, root, levels = LEVELS }) {
   const found = new Map();
-  for (const name of subdirs(source)) {
-    const file = path.join(source, name, 'SKILL.md');
-    if (!fs.existsSync(file)) continue;
-    const { data } = frontmatter.parse(fs.readFileSync(file, 'utf8'));
-    found.set(name, { name, dir: path.join(source, name), description: String(data.description || '') });
+  for (const level of [...LEVELS].reverse()) {
+    if (!levels.includes(level) || (level === 'project' && !root)) continue;
+    for (const [name, state] of Object.entries(linesIn(levelFile(level, { home, root })))) {
+      found.set(name, { state, level });
+    }
   }
   return found;
 }
 
-function readList(file) {
-  try {
-    return fs.readFileSync(file, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
-  } catch (e) {
-    if (e.code === 'ENOENT') return [];
-    throw new FlowError(`${file} exists and could not be read: ${e.message}`);
-  }
+/** Write one name's line at one level, or remove it with `state` null. */
+function writeLine(level, where, name, state) {
+  const file = levelFile(level, where);
+  const data = settings.read(file);
+  const next = { ...linesIn(file) };
+  if (state) next[name] = state;
+  else delete next[name];
+  if (Object.keys(next).length) data.skills = next;
+  else delete data.skills;
+  if (Object.keys(data).length) settings.write(file, data);
+  else fs.rmSync(file, { force: true });
 }
 
-/** Sorted, so the file never records the order skills were added in. Empty deletes it. */
-function writeList(file, names) {
-  const sorted = [...new Set(names)].sort();
-  if (!sorted.length) {
-    fs.rmSync(file, { force: true });
-    return;
-  }
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, sorted.join('\n') + '\n');
-}
+// ------------------------------------------------------------- the catalog
 
-/** Where a link points, or null when nothing or a real folder sits there. */
-function linkTarget(to) {
+const describe = (file) => {
   try {
-    return fs.lstatSync(to).isSymbolicLink() ? fs.readlinkSync(to) : null;
+    const { data } = frontmatter.parse(fs.readFileSync(file, 'utf8'));
+    return { name: data.name ? String(data.name) : null, description: String(data.description || '') };
   } catch {
-    return null;
+    return { name: null, description: '' };
   }
+};
+
+const SKIP = new Set(['.git', 'node_modules']);
+
+/**
+ * Every skill in a folder, at any depth: a folder holding `SKILL.md` is one,
+ * and nothing below it is searched. A `SKILL.md` at the top makes the whole
+ * folder one skill, named by the file's `name:` line.
+ */
+function scan(dir) {
+  const found = new Map();
+  const top = path.join(dir, 'SKILL.md');
+  if (fs.existsSync(top)) {
+    const { name, description } = describe(top);
+    const called = name || path.basename(dir);
+    found.set(called, { name: called, dir, description });
+    return found;
+  }
+  const walk = (at) => {
+    let entries;
+    try {
+      entries = fs.readdirSync(at, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+      if (!e.isDirectory() || SKIP.has(e.name)) continue;
+      const sub = path.join(at, e.name);
+      const file = path.join(sub, 'SKILL.md');
+      if (fs.existsSync(file)) {
+        if (!found.has(e.name)) found.set(e.name, { name: e.name, dir: sub, description: describe(file).description });
+      } else {
+        walk(sub);
+      }
+    }
+  };
+  walk(dir);
+  return found;
+}
+
+const privateDir = (home) => path.join(home || settings.flowHome(), 'private-skills');
+
+/** Flow's own skills, with the description each one's frontmatter carries. */
+function flowSkills() {
+  const found = new Map();
+  for (const s of skills.installable()) {
+    found.set(s.name, {
+      name: s.name, dir: s.dir, essential: skills.essential(s),
+      description: describe(path.join(s.dir, 'SKILL.md')).description,
+    });
+  }
+  return found;
 }
 
 /**
- * What sits where a skill's link goes: `missing`, `ours` (a live link into the
- * source), `dead` (a link to nothing), `elsewhere` (a live link somewhere
- * else) or `folder` (a real file or folder).
+ * Every source of skills, in the order `ls` prints them: Flow's, each
+ * repository in `sources`, then the private ones. A repository not cloned
+ * yet is listed with no skills and `cloned: false`.
  */
-function slot(to, source) {
+function catalog(home) {
+  const groups = [{ name: 'flow', type: 'flow', skills: flowSkills() }];
+  for (const source of repos.names(repos.sources(home))) {
+    const dir = repos.sourceDir(home, source);
+    const cloned = fs.existsSync(dir);
+    groups.push({ ...source, type: 'source', dir, cloned, skills: cloned ? scan(dir) : new Map() });
+  }
+  groups.push({ name: 'private', type: 'private', dir: privateDir(home), skills: scan(privateDir(home)) });
+  return groups;
+}
+
+/**
+ * One skill by name, or by `owner/repo:name` where 2 sources share it.
+ * Refuses a name found nowhere, and a bare name found twice.
+ */
+function find(groups, ref) {
+  const at = ref.lastIndexOf(':');
+  const [from, name] = at > 0 ? [ref.slice(0, at), ref.slice(at + 1)] : [null, ref];
+  const hits = groups
+    .filter((g) => !from || g.name === from || g.id === from)
+    .filter((g) => g.skills.has(name))
+    .map((g) => ({ group: g, skill: g.skills.get(name) }));
+  if (hits.length === 1) return hits[0];
+  if (!hits.length) {
+    const missing = groups.filter((g) => g.type === 'source' && !g.cloned).map((g) => g.name);
+    const hint = missing.length ? `\n  Not cloned yet: ${missing.join(', ')}. flow install clones them.` : '';
+    throw new FlowError(`no skill named "${ref}". flow skills ls <pattern> searches every source.${hint}`);
+  }
+  throw new FlowError(
+    `"${name}" is in ${hits.length} sources. Name the one you mean:\n` +
+    hits.map((h) => `  ${h.group.id || h.group.name}:${name}`).join('\n')
+  );
+}
+
+// --------------------------------------------------------------- the links
+
+/** What sits at a path: `missing`, `link` (with its target) or `folder`. */
+function slot(to) {
   let stat;
   try {
     stat = fs.lstatSync(to);
@@ -106,149 +205,140 @@ function slot(to, source) {
     return { state: 'missing' };
   }
   if (!stat.isSymbolicLink()) return { state: 'folder' };
-  const target = fs.readlinkSync(to);
-  if (!fs.existsSync(to)) return { state: 'dead', target };
-  if (target.startsWith(source + path.sep)) return { state: 'ours', target };
-  return { state: 'elsewhere', target };
+  return { state: 'link', target: fs.readlinkSync(to), live: fs.existsSync(to) };
 }
 
-/** Refuses a path passed where a name belongs. Run before anything is read. */
-function checkNames(names) {
-  for (const name of names) {
-    if (name.includes('/') || name.includes(path.sep)) {
-      throw new FlowError(`"${name}" is a skill name, not a path.`);
-    }
-  }
-}
+/** Whether a link points somewhere Flow links from: a source clone or the private folder. */
+const ours = (target, home) =>
+  [path.join(repos.dir(home), 'sources'), privateDir(home)].some((d) => target.startsWith(d + path.sep));
 
-/**
- * What `ls` prints in a place's column: `added`, `not linked`, `not listed`
- * or `-`. The two halves are shown apart because each has its own fix: a listed
- * skill with no link needs a bare add, a link nobody listed needs add <name>.
- */
-function placeState({ name, source, skillsDir, listed }) {
-  const linked = linkTarget(path.join(skillsDir, name)) === path.join(source, name);
-  const isListed = listed.includes(name);
-  if (linked && isListed) return 'added';
-  if (isListed) return 'not linked';
-  if (linked) return 'not listed';
-  return '-';
+/** Whether a skill is one of Flow's essential ones, linked whatever the settings say. */
+const isEssential = (group, skill) => group.type === 'flow' && !!skill.essential;
+
+/** The line naming a skill: `owner/repo:name` where one was written, else the bare name. */
+const lineFor = (found, group, name) => (group.id && found.get(`${group.id}:${name}`)) || found.get(name);
+
+/** On or off for the whole machine: always on if essential, else the line, else off. */
+function machineState(skill, group, machineLines) {
+  if (isEssential(group, skill)) return 'on';
+  const line = lineFor(machineLines, group, skill.name);
+  return line ? line.state : 'off';
 }
 
 /**
- * Where skills get added: a project or the machine.
+ * Make every link match the settings. Returns what changed, what could not be
+ * made, and the names a line mentions that no source holds.
  *
- *   skillsDir  the folder Claude Code reads the links from
- *   list       the file naming what was added
- *   where      "in this project" or "on this machine", for messages
- *   show       a path as the output prints it
+ *   claude  the Claude Code folder holding `skills/`
+ *   agents  the folder holding Flow's plugin, or null to leave Flow's skills alone
+ *   root    the project, or null outside one
  */
-function project(root, listName) {
-  return {
-    skillsDir: path.join(root, '.claude', 'skills'),
-    list: path.join(root, '.flow', listName),
-    where: 'in this project',
-    show: (p) => path.relative(root, p),
+function apply({ home, root = null, claude, agents = null }) {
+  const groups = catalog(home);
+  const machineLines = lines({ home, root: null, levels: ['machine', 'global'] });
+  const projectLines = root ? lines({ home, root, levels: ['project'] }) : new Map();
+  const changed = [];
+  const problems = [];
+
+  const put = (dir, name, target, { anyLink = false } = {}) => {
+    const to = path.join(dir, name);
+    const at = slot(to);
+    if (at.state === 'link' && at.target === target) return;
+    if (at.state === 'folder') return problems.push(`${to} is a real folder, not a link: left alone.`);
+    if (at.state === 'link' && at.live && !anyLink && !ours(at.target, home)) {
+      return problems.push(`${to} links to ${at.target}, which Flow never made: left alone.`);
+    }
+    if (at.state === 'link') fs.unlinkSync(to);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.symlinkSync(target, to);
+    changed.push(`linked: ${shorten(to)}`);
   };
-}
 
-/**
- * Link each name into `place.skillsDir` and add it to `place.list`. No names
- * links every listed one. A name that fails never stops the others: on a
- * second machine whose clone is behind, one skill missing from the pull should
- * cost that one skill, not every link.
- *
- * `refuse(name)` returns a reason a name may not be linked, or null. `flag`
- * is appended to the commands a message suggests, such as ` --global`. `note`
- * is printed once at the end when anything linked, for a cost the user should
- * hear at the moment they pay it.
- */
-function addSkills({ names, source, known, place, command, flag = '', note = '', refuse = () => null }) {
-  const listed = readList(place.list);
-  const wanted = names.length ? names : listed;
+  const take = (dir, name, { anyLink = false } = {}) => {
+    const to = path.join(dir, name);
+    const at = slot(to);
+    if (at.state !== 'link') return;
+    if (!anyLink && !ours(at.target, home)) return;
+    fs.unlinkSync(to);
+    changed.push(`unlinked: ${shorten(to)}`);
+  };
 
-  if (!wanted.length) {
-    out(`${place.show(place.list)} lists no skills, so there is nothing to link.\n  Name one: ${command} add <name>${flag}`);
-    return 0;
-  }
+  const flowDir = agents ? skills.linkDir(agents) : null;
+  const machineDir = path.join(claude, 'skills');
+  const projectDir = root ? path.join(root, '.claude', 'skills') : null;
 
-  const hadFolder = fs.existsSync(place.skillsDir);
-  const linked = [];
-  const problems = [];
-
-  for (const name of wanted) {
-    const skill = known.get(name);
-    const reason = refuse(name);
-    const to = path.join(place.skillsDir, name);
-    const at = slot(to, source);
-    if (reason) {
-      problems.push(reason);
-    } else if (!skill) {
-      problems.push(`no skill named "${name}" in ${shorten(source)}. Pull the latest, or remove it: ${command} drop ${name}${flag}`);
-    } else if (at.state === 'folder') {
-      problems.push(`${place.show(to)} is a real folder, not a link: left alone.`);
-    } else if (at.state === 'elsewhere') {
-      problems.push(`${place.show(to)} links to ${shorten(at.target)}, which ${command} never made: left alone.`);
-    } else {
-      if (at.state !== 'missing') fs.unlinkSync(to);
-      fs.mkdirSync(place.skillsDir, { recursive: true });
-      fs.symlinkSync(skill.dir, to);
-      linked.push(name);
+  for (const group of groups) {
+    for (const skill of group.skills.values()) {
+      const onMachine = machineState(skill, group, machineLines) === 'on';
+      if (group.type === 'flow') {
+        if (!flowDir || !fs.existsSync(flowDir)) continue;
+        if (onMachine) put(flowDir, skill.name, skill.dir, { anyLink: true });
+        else take(flowDir, skill.name, { anyLink: true });
+        continue;
+      }
+      if (onMachine) put(machineDir, skill.name, skill.dir);
+      else take(machineDir, skill.name);
+      if (!projectDir) continue;
+      const line = lineFor(projectLines, group, skill.name);
+      if (line && line.state === 'on' && !onMachine) put(projectDir, skill.name, skill.dir);
+      else take(projectDir, skill.name);
     }
   }
 
-  writeList(place.list, [...listed, ...linked]);
-  if (linked.length) out(linked.map((n) => `linked: ${place.show(path.join(place.skillsDir, n))}`).join('\n'));
-  if (linked.length && !hadFolder) {
-    out(`\nRestart Claude Code: it only watches a skills folder that existed when the session started.`);
-  }
-  if (linked.length && note) out(`\n${note}`);
-  if (problems.length) throw new FlowError(problems.join('\n'));
-  return 0;
-}
-
-/**
- * Remove each name's link and its line. `place.skillsDir` also holds a
- * project's own skills as real folders, and links from other installers, and
- * both are left alone.
- */
-function dropSkills({ names, source, place }) {
-  const listed = readList(place.list);
-  const dropped = [];
-  const problems = [];
-
-  for (const name of names) {
-    const to = path.join(place.skillsDir, name);
-    const at = slot(to, source);
-    if (at.state === 'ours' || at.state === 'dead') {
-      fs.unlinkSync(to);
-      dropped.push(name);
-    } else if (at.state === 'elsewhere') {
-      problems.push(`${place.show(to)} links to ${shorten(at.target)}, outside ${shorten(source)}: left alone.`);
-    } else if (at.state === 'folder') {
-      problems.push(`${place.show(to)} is a real folder, not a link: left alone.`);
-    } else if (listed.includes(name)) {
-      dropped.push(name);
-    } else {
-      problems.push(`"${name}" is neither linked nor listed ${place.where}.`);
+  // A link into a source whose skill is gone: a pull removed it, or a source
+  // was dropped. Nothing in the catalog reaches it, so it is swept here.
+  for (const dir of [machineDir, projectDir].filter(Boolean)) {
+    let entries = [];
+    try {
+      entries = fs.readdirSync(dir);
+    } catch {
+      continue;
+    }
+    for (const name of entries) {
+      const at = slot(path.join(dir, name));
+      if (at.state === 'link' && !at.live && ours(at.target, home)) take(dir, name);
     }
   }
 
-  writeList(place.list, listed.filter((n) => !dropped.includes(n)));
-  if (dropped.length) out(dropped.map((n) => `dropped: ${n}`).join('\n'));
-  if (problems.length) throw new FlowError(problems.join('\n'));
-  return 0;
+  const known = new Set(groups.flatMap((g) => [...g.skills.keys()]));
+  const everyLine = new Map([...machineLines, ...projectLines]);
+  const missing = [...everyLine.keys()].filter((n) => !known.has(n.split(':').pop())).sort();
+  return { changed, problems, missing, groups, machineLines, projectLines };
 }
 
-/** The skills whose name or description holds every word, ignoring case. */
-function matching(known, words) {
-  const lower = words.map((w) => w.toLowerCase());
-  return [...known.values()].filter((s) => {
-    const text = `${s.name} ${s.description}`.toLowerCase();
-    return lower.every((w) => text.includes(w));
-  });
+// ------------------------------------------------------------ outside skills
+
+/**
+ * What Flow does not manage: skill folders and links another tool put in
+ * `~/.claude/skills/`, and the plugins Claude Code installed. `ls` shows them
+ * so the list is whole, and switches none of them.
+ */
+function outside({ home, claude }) {
+  const found = [];
+  const dir = path.join(claude, 'skills');
+  let entries = [];
+  try {
+    entries = fs.readdirSync(dir);
+  } catch {
+    // No skills folder yet.
+  }
+  for (const name of entries.sort()) {
+    if (name === skills.PLUGIN) continue;
+    const at = slot(path.join(dir, name));
+    if (at.state === 'link' && ours(at.target, home)) continue;
+    if (!fs.existsSync(path.join(dir, name, 'SKILL.md'))) continue;
+    found.push({ name, type: 'skill', description: describe(path.join(dir, name, 'SKILL.md')).description });
+  }
+  try {
+    const listed = JSON.parse(fs.readFileSync(path.join(claude, 'plugins', 'installed_plugins.json'), 'utf8')).plugins || {};
+    for (const id of Object.keys(listed).sort()) found.push({ name: id.split('@')[0], type: 'plugin', description: '' });
+  } catch {
+    // No plugins, or a file Claude Code changed the shape of. Neither is Flow's.
+  }
+  return found;
 }
 
 module.exports = {
-  maybeRoot, shorten, project, checkNames, domainSetting, readSource, readList, linkTarget, placeState, matching, addSkills, dropSkills,
+  LEVELS, levelFile, lines, lineFor, writeLine, scan, privateDir, catalog, find, apply, outside,
+  machineState, isEssential,
 };

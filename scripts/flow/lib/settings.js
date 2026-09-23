@@ -8,15 +8,24 @@
  *   ~/.flow/settings.local.json  this machine alone, and git ignores it. Every
  *                                setting holding a path goes here, because the
  *                                other machine keeps its clone somewhere else
- *   <project>/.flow/settings.json  one project
+ *   <project>/.flow/settings.json  one project, committed with it
+ *   <project>/.flow/settings.local.json  one project on this machine alone,
+ *                                and the project template ignores it. It
+ *                                holds the git unlock `flow git allow
+ *                                --project` writes, a state with a clock on
+ *                                it that would otherwise be one commit
+ *                                turning git writes on and another turning
+ *                                them off
  *
  * The 2 machine files are read as one, and the local file wins key by key, so
  * a machine can override a shared setting without editing the shared file.
  * `readGlobal` and `globalKey` are that pair; `read` is one named file.
  *
- * Keys sit at the top level: `git`, `domainSkills`, `clone`, and one per line
+ * Keys sit at the top level: `git`, `sources`, `skills`, and one per line
  * Flow prints by itself. A new setting is a new key, and nothing here is
- * shaped around a fixed set.
+ * shaped around a fixed set. `skills` is the one key merged name by name
+ * across all 3 files, the project's included, and `lib/skill-links.js` does
+ * that merge.
  *
  * Reading never throws. `guard.js` calls it before every shell command the
  * agent runs, and a missing, empty or corrupt file has to mean the same thing
@@ -31,6 +40,7 @@ const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.flow')
 const globalFile = (home) => path.join(home || flowHome(), 'settings.json');
 const localFile = (home) => path.join(home || flowHome(), 'settings.local.json');
 const projectFile = (root) => path.join(root, '.flow', 'settings.json');
+const projectLocalFile = (root) => path.join(root, '.flow', 'settings.local.json');
 
 /** The settings object, or `{}` for anything unreadable. */
 function read(file) {
@@ -82,11 +92,11 @@ function globalKey(key, home) {
   return { file: localFile(home), value: undefined };
 }
 
-/** The nearest `.flow/settings.json` at or above `from`, or null. */
-function findProjectFile(from) {
+/** The nearest `.flow/settings.local.json` at or above `from`, or null. */
+function findProjectLocalFile(from) {
   let dir = path.resolve(from);
   for (;;) {
-    const file = projectFile(dir);
+    const file = projectLocalFile(dir);
     if (fs.existsSync(file)) return file;
     const parent = path.dirname(dir);
     if (parent === dir) return null;
@@ -135,7 +145,7 @@ function gitScope({ session, cwd }) {
     if (entry.session === session) return { scope: 'session', file: global, entry };
   }
 
-  const near = findProjectFile(cwd || process.cwd());
+  const near = findProjectLocalFile(cwd || process.cwd());
   if (near) {
     const found = read(near).git;
     if (found && !found.session) return { scope: 'project', file: near, entry: found };
@@ -170,6 +180,6 @@ function gitMode(context) {
 }
 
 module.exports = {
-  MODES, flowHome, globalFile, localFile, projectFile, findProjectFile,
+  MODES, flowHome, globalFile, localFile, projectFile, projectLocalFile, findProjectLocalFile,
   read, readGlobal, globalKey, prints, write, remove, gitScope, gitMode, expired, live,
 };

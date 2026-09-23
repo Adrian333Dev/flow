@@ -16,7 +16,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { REPO, project, run, setupMachine, utilStub, pathWith } = require('./helpers/scratch');
+const { REPO, project, run, setupMachine, utilStub, pathWith, write, skillFile } = require('./helpers/scratch');
 const version = require('../flow/lib/version');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
@@ -26,11 +26,15 @@ function machine(name) {
   const home = path.join(root, '.claude');
   const flowHome = path.join(root, '.flow');
 
-  const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin']);
+  // No source, so nothing waits on a clone: the skills check has its own test.
+  fs.mkdirSync(flowHome, { recursive: true });
+  fs.writeFileSync(path.join(flowHome, 'settings.json'), JSON.stringify({ sources: [] }));
+
+  const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone']);
   assert.strictEqual(installed.code, 0, installed.stderr);
 
-  // Install is half a machine. The rule file and its 2 ways in come from
-  // /flow:setup-machine, which does not exist as a skill yet.
+  // Install is half a machine. The rule file and the line importing it come
+  // from /flow:setup-machine, which does not exist as a skill yet.
   setupMachine(root);
 
   // `flow install` stops short of settings.json on purpose, so the merge a real
@@ -149,7 +153,7 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   const settingsFile = path.join(m.home, 'settings.json');
   const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
   delete settings.hooks.InstructionsLoaded;
-  settings.skillOverrides[skill] = 'off';
+  settings.skillOverrides = { [skill]: 'off' };
   fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
 
   const references = path.join(m.flowHome, 'references');
@@ -197,15 +201,11 @@ test('--prereq checks what Flow calls and nothing Flow installs', () => {
   const ok = at(utilStub(dir));
   assert.strictEqual(ok.code, 0, ok.stderr);
   assert.match(ok.stdout, /ok {4}programs: node, git, claude all resolve/);
-  assert.match(ok.stdout, /ok {4}util: fs tree, fs merge, fs open all run/);
-  assert.ok(!/skills|hooks|settings|version/.test(ok.stdout), `an install check ran anyway:\n${ok.stdout}`);
+  assert.ok(!/util|skills|hooks|settings|version/.test(ok.stdout), `an install check ran anyway:\n${ok.stdout}`);
 
-  const utilHome = path.join(dir, 'util-home');
-  fs.mkdirSync(utilHome, { recursive: true });
-  const broken = at(utilStub(dir, { works: false }), { UTIL_HOME: utilHome });
+  const broken = at(dir, { PATH: path.join(dir, 'nothing-here') });
   assert.strictEqual(broken.code, 1, 'a skill reads the exit code and stops');
-  assert.match(broken.stdout, /util fs tree does not run/);
-  assert.match(broken.stdout, /no source is registered: run util install/);
+  assert.match(broken.stdout, /git is not on PATH, and a project is found by asking git for its root/);
 });
 
 test('a util that does not run is diagnosed against its source registry', () => {
@@ -217,22 +217,19 @@ test('a util that does not run is diagnosed against its source registry', () => 
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /util fs open does not run, and it is called by flow get --files/);
-  assert.match(report.stdout, /no source is registered: run util install/);
+  assert.match(report.stdout, /no source is registered: run flow install/);
 });
 
-test('a CLAUDE.md with no import, a missing Codex link and an override file are each named', () => {
+test('a CLAUDE.md with no import is named', () => {
   const m = machine('doctor-rules');
 
   fs.writeFileSync(path.join(m.home, 'CLAUDE.md'), 'My own rules.\n');
-  fs.unlinkSync(path.join(m.root, '.codex', 'AGENTS.md'));
-  fs.writeFileSync(path.join(m.root, '.codex', 'AGENTS.override.md'), 'Other rules.\n');
 
   const report = doctor(m, { bin: utilStub(m.dir) });
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /CLAUDE\.md does not import the rules/);
-  assert.match(report.stdout, /AGENTS\.md is not linked: type \/flow:setup-machine/);
-  assert.match(report.stdout, /AGENTS\.override\.md exists, and Codex reads it in place of AGENTS\.md/);
+  assert.doesNotMatch(report.stdout, /codex/i, 'Codex is not checked');
 });
 
 test('a plugin folder reached through a broken link is named', () => {
@@ -246,4 +243,35 @@ test('a plugin folder reached through a broken link is named', () => {
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /skills\/flow points at .*gone, which is gone/);
+});
+
+test('the skills check names a source not cloned, a line no source holds, and a missing link', () => {
+  const m = machine('doctor-skills');
+  const bin = utilStub(m.dir);
+  const source = path.join(m.flowHome, 'repos', 'sources', 'me_skills');
+  write(source, 'react/SKILL.md', skillFile('react'));
+  write(source, 'vue/SKILL.md', skillFile('vue'));
+
+  // A dev skill switched off has no link, and that is not a problem. A line
+  // naming an essential skill is one: it does nothing.
+  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ sources: ['me/skills', 'me/absent'] }));
+  fs.writeFileSync(path.join(m.flowHome, 'settings.local.json'), JSON.stringify({
+    skills: { review: 'off', groundwork: 'off', react: 'on', gone: 'on' },
+  }));
+
+  const report = doctor(m, { bin });
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /me\/absent is a source and is not cloned, so none of its skills can load: run flow install/);
+  assert.match(report.stdout, /"gone" is switched on at machine level, and no source holds it: flow skills drop gone --machine/);
+  assert.match(report.stdout, /react is switched on and .*\.claude\/skills\/react does not link to it: run flow skills ls/);
+  assert.match(report.stdout, /"groundwork" is switched off at machine level, and it is part of Flow's workflow, always on, so the line does nothing: flow skills drop groundwork --machine/);
+  assert.doesNotMatch(report.stdout, /skills\/review is not linked/);
+  assert.doesNotMatch(report.stdout, /vue/, 'a skill switched off is not checked');
+
+  fs.symlinkSync(path.join(source, 'react'), path.join(m.home, 'skills', 'react'));
+  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ sources: ['me/skills'] }));
+  fs.writeFileSync(path.join(m.flowHome, 'settings.local.json'), JSON.stringify({ skills: { review: 'off', react: 'on' } }));
+  const fixed = doctor(m, { bin });
+  assert.strictEqual(fixed.code, 0, fixed.stdout);
+  assert.match(fixed.stdout, /skills: 1 source cloned, 1 skill on for this machine/);
 });

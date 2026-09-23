@@ -19,8 +19,7 @@ const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
 const overlays = require('./commands/overlays');
-const domainSkills = require('./commands/domain-skills');
-const privateSkills = require('./commands/private-skills');
+const skills = require('./commands/skills');
 const git = require('./commands/git');
 const install = require('./commands/install');
 const doctor = require('./commands/doctor');
@@ -105,19 +104,18 @@ skills  one real copy of each lives in the clone, filed under a group folder.
         inside ~/.agents/skills/flow/, beside the manifest that makes each one
         typed as /flow:groundwork. Codex reads that folder, and Claude Code
         reaches it through the link ~/.claude/skills/flow
-domain  a skill from the domain-skills repository installs into one project,
-        never the machine: flow domain-skills add links it into
-        .claude/skills/ and writes its name to .flow/domain-skills.txt. git
-        ignores the link and commits the list, so on another machine or in a
-        new worktree a bare flow domain-skills add links everything listed.
-        The repository is domainSkills in ~/.flow/settings.local.json, the
-        path to the clone's skills folder
-private a skill you write yourself lives in ~/.flow/private-skills/<name>/
-        and takes a name no Flow or domain skill uses. flow private-skills add
-        links it into this project and lists it in .flow/private-skills.txt;
-        --global links it into ~/.claude/skills/ and lists it in global.txt
-        inside the private folder. A bare add relinks a list. Share the
-        folder between machines by making it a private git repository
+sources a skill repository Flow takes skills from, cloned whole into
+        ~/.flow/repos/sources/<owner>_<repo>/. sources in ~/.flow/settings.json
+        lists them, the domain-skills repository first. flow skills add
+        owner/repo clones one, flow install clones any that are missing, and
+        the session-start hook pulls them. Private skills live in
+        ~/.flow/private-skills/<name>/ and take a name no other skill uses
+switch  a skill is on where its link exists. "skills": { "react": "on" } in
+        a settings file says which: <project>/.flow/settings.json for the
+        project, ~/.flow/settings.local.json for this machine, and
+        ~/.flow/settings.json for every machine, the nearest winning. Flow's
+        own skills start on and have no project level; the rest start off.
+        flow skills on, off and drop write the line and fix the links
 overlay a project adds to a skill without editing it, because one copy of that
         skill is shared by every project on the machine. Write
         .flow/overlays/<name>.md and every session in that project reads it as
@@ -147,12 +145,12 @@ sync    ~/.flow/ is one private git repository, and that is the whole of how a
         second machine gets your rules, notes, study cases and wiki. flow sync
         brings the other machine's down, then sends this one up. What belongs
         to one machine stays there: version, run.json, originals/,
-        settings.local.json, the scripts and references links, and each wiki
-        tool's downloads
+        settings.local.json, repos/, history.jsonl, the scripts, references
+        and docs links, and each wiki tool's downloads
 default cases and overlays each read a bare word as an argument to their
         most used action: flow overlays groundwork is flow overlays get
-        groundwork. domain-skills and private-skills default to ls,
-        so flow domain-skills react lists the skills naming react
+        groundwork. skills defaults to ls, so flow skills react lists the
+        skills naming react
 audit   what Claude Code did, read back afterwards. It reads the transcripts
         Claude Code already writes at ~/.claude/projects/ and derives an index
         at ~/.flow/audit/audit.db; nothing is recorded and nothing is
@@ -183,7 +181,7 @@ git     off everywhere by default: the agent names a git command that writes
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, 'domain-skills': domainSkills, 'private-skills': privateSkills, overlays, git, audit, restore },
+    groups: { cases, skills, overlays, git, audit, restore },
     check: (action, flags) => (action.anywhere ? null : machine.requireSetup(flags.root)),
     fallback: tickets.fallback,
     sections: SECTIONS,

@@ -1,7 +1,7 @@
 'use strict';
 /**
- * The domain-skills clone updating itself: `scripts/domain-pull.js` and the
- * library under it.
+ * Every skill repository updating itself: `scripts/skills-pull.js` and the
+ * library under it. The domain-skills repository stands in for all of them.
  *
  * Every test builds 2 real repositories under tmp/, an upstream and a clone of
  * it, because the whole feature is 2 git guards and a pull. Nothing reaches
@@ -55,15 +55,12 @@ function place(name, settings = {}) {
   git(upstream, ['add', '-A']);
   git(upstream, ['commit', '-q', '-m', 'the skills']);
 
-  const clone = path.join(dir, 'clone');
-  git(dir, ['clone', '-q', upstream, clone]);
-
+  // Where `flow install` puts the default source, so no setting names it.
   const home = path.join(dir, 'flow-home');
-  fs.mkdirSync(home, { recursive: true });
-  fs.writeFileSync(path.join(home, 'settings.json'), JSON.stringify({
-    domainSkills: path.join(clone, 'skills'),
-    ...settings,
-  }));
+  const clone = path.join(home, 'repos', 'sources', 'Adrian333Dev_domain-skills');
+  fs.mkdirSync(path.dirname(clone), { recursive: true });
+  git(dir, ['clone', '-q', upstream, clone]);
+  fs.writeFileSync(path.join(home, 'settings.json'), JSON.stringify(settings));
 
   return { dir, upstream, clone, home, at: { flow: home } };
 }
@@ -76,9 +73,13 @@ function commit(upstream, name, text) {
 }
 
 /** The background job, run in the foreground so a test can see what it did. */
-const pull = (home) => run('domain-pull.js', [], { env: { ...CLEAN, FLOW_HOME: home } });
+const pull = (home) => run('skills-pull.js', [], { env: { ...CLEAN, FLOW_HOME: home } });
 
-const note = (home) => update.readNote({ flow: home });
+/** The one note the single clone left, or null. */
+const note = (home) => {
+  const notes = update.readNote({ flow: home });
+  return notes && notes[0];
+};
 
 test('a pull brings the clone up to date and leaves nothing to report', () => {
   const at = place('skills-pull');
@@ -90,6 +91,11 @@ test('a pull brings the clone up to date and leaves nothing to report', () => {
   assert.match(body(at.clone, 'react'), /React 20\./, 'every project linking react is current now');
   assert.strictEqual(note(at.home), null, 'and a session has nothing to say');
   assert.strictEqual(update.stale(at.clone), false, 'the fetch just happened, so the next session leaves it alone');
+
+  const [line] = fs.readFileSync(path.join(at.home, 'history.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.strictEqual(line.type, 'pull');
+  assert.strictEqual(line.source, 'Adrian333Dev/domain-skills');
+  assert.deepStrictEqual(line.changed, ['react'], 'the history names the skills a pull changed');
 });
 
 test('uncommitted work in the clone stops the pull and is left untouched', () => {
@@ -104,7 +110,7 @@ test('uncommitted work in the clone stops the pull and is left untouched', () =>
   assert.strictEqual(found.state, 'dirty');
   assert.strictEqual(found.files, 1);
   assert.match(body(at.clone, 'react'), /Half a sentence/, 'the work in the clone is still there');
-  assert.match(update.line(found), /1 uncommitted file, so no domain skill was updated/);
+  assert.match(update.line(found), /^domain-skills has 1 uncommitted file, so none of its skills was updated/);
 });
 
 test('a pull that would not fast-forward is refused, and git says why', () => {
@@ -125,7 +131,7 @@ test('a pull that would not fast-forward is refused, and git says why', () => {
 });
 
 test('with the update off, a fetch names the skills behind and stops once they are in', () => {
-  const at = place('skills-fetch', { domainSkillsAutoUpdate: false });
+  const at = place('skills-fetch', { skillsAutoUpdate: false });
   commit(at.upstream, 'sql', 'Query plans, and now locking.');
 
   assert.strictEqual(pull(at.home).code, 0);
@@ -134,7 +140,7 @@ test('with the update off, a fetch names the skills behind and stops once they a
   assert.strictEqual(found.count, 1);
   assert.deepStrictEqual(found.skills, ['sql'], 'the names are the news, not the number of commits');
   assert.match(body(at.clone, 'sql'), /Query plans\.\n/, 'a fetch writes nothing into the working tree');
-  assert.match(update.line(found), /1 domain skill changed: sql\./);
+  assert.match(update.line(found), /^domain-skills is behind\. 1 skill changed: sql\./);
 
   // The user pulls by hand. The next session checks again and says nothing.
   git(at.clone, ['merge', '-q', '--ff-only', 'origin/main']);
@@ -152,7 +158,7 @@ test('a note waiting is checked every session, and a fresh clone with none is le
     assert.strictEqual(pull(at.home).code, 0);
     assert.strictEqual(update.due(at.at), false, 'nothing behind and a fresh fetch: no session does anything');
 
-    update.writeNote(at.at, { state: 'blocked', why: 'something git said.' });
+    update.writeNote(at.at, [{ state: 'blocked', why: 'something git said.', clone: 'domain-skills' }]);
     assert.strictEqual(update.due(at.at), true, 'a note is only cleared by looking again');
   } finally {
     if (was === undefined) delete process.env.FLOW_HOME;

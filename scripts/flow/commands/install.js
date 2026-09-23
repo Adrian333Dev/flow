@@ -10,14 +10,23 @@
  * Everything after that is `flow install`, and re-running it is how a new
  * skill, a renamed command or a moved clone reaches this machine.
  *
- * This is half of putting Flow on a machine, and the half is links: every one
- * of them points into the clone, and `lib/installed.js` lists what gets made.
- * `lib/machine.js` says which folder holds what. The other half is the skill
- * this prints at the end, `/flow:setup-machine`: it interviews the user, then
- * writes the rule file `~/.agents/AGENTS.md` and the 2 ways in to it, merges
- * Flow's hooks into `~/.claude/settings.json`, and closes the original. A rule
- * file written here would be the template with nothing of the user in it, so
- * this no longer writes one.
+ * This is half of putting Flow on a machine: links into the clone, which
+ * `lib/installed.js` lists, and the clones Flow reads, which `lib/repos.js`
+ * lists. `lib/machine.js` says which folder holds what. The other half is the
+ * skill this prints at the end, `/flow:setup-machine`: it writes the rule file
+ * `~/.agents/AGENTS.md` and the import line, merges Flow's hooks into
+ * `~/.claude/settings.json`, and closes the original. A rule file written here
+ * would be the template with nothing of the user in it, so this writes none.
+ *
+ * Every clone lives in `~/.flow/repos/`. Flow's own is `repos/flow`, a link
+ * where this clone sits somewhere else. util, the toolbox and every skill
+ * repository in `sources` are cloned when missing, and a clone that fails is
+ * a warning: running install again changes nothing that exists, so it is
+ * always the fix. util gets its names through its own `util install`.
+ * `--no-clone` skips all 3, for the tests and the scratch session.
+ *
+ * On a machine where setup already finished, `~/.flow/version` exists and the
+ * run ends without sending the user to setup again.
  *
  * Before it creates anything, the first run writes the machine's original: a
  * copy of every path it is about to make, as that path was before Flow.
@@ -43,15 +52,19 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { out } = require('../lib/cli');
 const { cloneRoot } = require('../lib/clone');
 const confirm = require('../lib/confirm');
+const { FlowError } = require('../lib/error');
 const flowRepo = require('../lib/flow-repo');
+const history = require('../lib/history');
 const installed = require('../lib/installed');
 const { link, pruneDead, pruneUnlisted, markdownFiles } = require('../lib/links');
 const machine = require('../lib/machine');
 const originals = require('../lib/originals');
-const settings = require('../lib/settings');
+const repos = require('../lib/repos');
+const links = require('../lib/skill-links');
 const skills = require('../lib/skills');
 
 const actions = {};
@@ -59,10 +72,11 @@ const actions = {};
 actions.install = {
   section: 'setup',
   anywhere: true,
-  summary: 'link Flow into ~/.agents, ~/.claude, ~/.codex, ~/.flow and ~/.local/bin',
+  summary: 'link Flow into ~/.agents, ~/.claude, ~/.flow and ~/.local/bin, and clone what it reads',
   flags: {
     root: { arg: '<dir>' },
     'no-bin': { bool: true },
+    'no-clone': { bool: true },
     drafts: { bool: true },
   },
   run({ flags }) {
@@ -71,6 +85,18 @@ actions.install = {
     const show = machine.shorten;
     const done = [];
     const bin = flags['no-bin'] ? null : path.join(at.base, '.local', 'bin');
+    const setUp = fs.existsSync(path.join(at.flow, 'version'));
+
+    // Refused before anything is made: 2 clones would each think the other's
+    // skills and scripts were their own.
+    const flowClone = repos.flowClone(at.flow);
+    const found = originals.lstat(flowClone);
+    if (found && found.isSymbolicLink() && !fs.existsSync(flowClone)) fs.unlinkSync(flowClone);
+    const already = fs.existsSync(flowClone) ? realpath(flowClone) : null;
+    if (already && already !== realpath(clone)) {
+      throw new FlowError(`${machine.shorten(flowClone)} is ${already}, and this is ${clone}. ` +
+        'Run flow install from that clone, or remove the link first.');
+    }
 
     // Before anything is created, and only on a machine Flow was never on. A
     // later run would copy Flow's own links into the original and call them the
@@ -104,7 +130,9 @@ actions.install = {
     for (const gone of pruneDead(linkDir, clone)) {
       done.push(`unlinked (gone): ${show(path.join(linkDir, gone))}`);
     }
-    for (const skill of skills.installable({ drafts: flags.drafts })) {
+    // The essential skills only: a dev skill starts off, and apply below links
+    // one switched on.
+    for (const skill of skills.installable({ drafts: flags.drafts }).filter(skills.essential)) {
       link(skill.dir, path.join(linkDir, skill.name));
       done.push(`linked: ${show(path.join(linkDir, skill.name))}`);
     }
@@ -137,15 +165,15 @@ actions.install = {
       done.push(`linked: ${show(path.join(at.flow, name))}`);
     }
 
-    // Where the clone sits, for the files no link under ~/.flow reaches:
-    // CHANGELOG.md and upgrades/<number>.md at the clone's root, which
-    // /flow:migrate reads. It goes in the local file because the path holds
-    // this machine alone: the other
-    // machine keeps its clone somewhere else, and ~/.flow/settings.json is
-    // shared between the two.
-    const local = settings.localFile(at.flow);
-    settings.write(local, { ...settings.read(local), clone });
-    done.push(`wrote: ${show(local)}, clone: ${clone}`);
+    // Flow's own clone, where every other clone sits beside it. A link when
+    // the clone lives somewhere else, which is the usual case.
+    if (!already) {
+      fs.mkdirSync(path.dirname(flowClone), { recursive: true });
+      fs.symlinkSync(clone, flowClone);
+      done.push(`linked: ${show(flowClone)}`);
+    }
+
+    if (!flags['no-clone']) done.push(...cloneMissing(at));
 
     if (bin) {
       for (const [name, file] of Object.entries(installed.BIN)) {
@@ -161,21 +189,33 @@ actions.install = {
       }
     }
 
+    if (bin && !flags['no-clone']) done.push(...installUtil(at, bin));
+
+    // Last, once every skill link is made and every clone is in place: a
+    // skill switched off loses its link, and one switched on for the machine
+    // gets its own.
+    const applied = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
+    done.push(...applied.changed);
+    done.push(...applied.problems);
+
     done.push(...ask(at, clone));
+    history.record(at.flow, { type: 'install', clone });
     out(done.join('\n'));
+
+    if (setUp) {
+      out('\nFlow is already set up on this machine, so there is nothing more to do.');
+      return 0;
+    }
 
     out(
       `\nOne step left: restart Claude Code, then type /flow:setup-machine.\n` +
-      `That skill asks what it needs, writes your rule file ${show(path.join(at.agents, 'AGENTS.md'))},\n` +
+      `That skill lists every change in one form for you to check, writes your rule file ${show(path.join(at.agents, 'AGENTS.md'))},\n` +
       `merges Flow's hooks and permission rules into ${show(path.join(at.claude, 'settings.json'))},\n` +
       `and closes the record of how this machine looked before Flow.\n` +
       `Restart first: settings and skills are both read when a session starts.`
     );
 
-    out(
-      `\nEvery skill is typed under the plugin name: /${skills.PLUGIN}:groundwork in Claude Code,\n` +
-      `$${skills.PLUGIN}:groundwork in Codex.`
-    );
+    out(`\nEvery skill is typed under the plugin name: /${skills.PLUGIN}:groundwork.`);
 
     if (bin) {
       out('\nCheck ~/.local/bin is on your PATH, then every name above works anywhere.');
@@ -183,6 +223,55 @@ actions.install = {
     return 0;
   },
 };
+
+/** A path with every link resolved, or the path itself where it resolves to nothing. */
+function realpath(p) {
+  try {
+    return fs.realpathSync(p);
+  } catch {
+    return p;
+  }
+}
+
+/**
+ * Clone util, the toolbox and every source missing from `~/.flow/repos/`.
+ * A failure is a line of the report, never a stop: every link is already made.
+ */
+function cloneMissing(at) {
+  const done = [];
+  const wanted = [
+    ...Object.entries(repos.OWN).map(([name, entry]) => ({ source: repos.parse(entry), to: repos.ownClone(at.flow, name) })),
+    ...repos.sources(at.flow).map((entry) => {
+      const source = repos.parse(entry);
+      return { source, to: repos.sourceDir(at.flow, source) };
+    }),
+  ];
+  for (const { source, to } of wanted) {
+    if (fs.existsSync(to)) continue;
+    const cloned = repos.clone(source.url, to);
+    if (cloned.ok) {
+      history.record(at.flow, { type: 'clone', source: source.id, commit: cloned.commit });
+      done.push(`cloned: ${source.id} into ${machine.shorten(to)}`);
+    } else {
+      done.push(`could not clone ${source.id}: ${cloned.why}. Run flow install again once that is fixed.`);
+    }
+  }
+  return done;
+}
+
+/**
+ * util's names, made by util's own installer so its record of them stays
+ * whole. A root other than the home folder keeps util's own folder there too.
+ */
+function installUtil(at, bin) {
+  const entry = path.join(repos.ownClone(at.flow, 'util'), 'util.js');
+  if (!fs.existsSync(entry)) return [];
+  const env = { ...process.env };
+  if (at.base !== os.homedir()) env.UTIL_HOME = path.join(at.base, '.util');
+  const ran = spawnSync(process.execPath, [entry, 'install', '--bin', bin], { env, encoding: 'utf8' });
+  if (ran.status === 0) return [`linked: util and u, through util install`];
+  return [`util install failed: ${(ran.stderr || ran.stdout || '').trim().split('\n').pop()}`];
+}
 
 /**
  * A name no second machine will hold: this computer's name, and 4 random
