@@ -18,7 +18,7 @@ Installing creates symlinks from your machine into this clone, so most files are
 When you first open the repository, the split that matters has four parts:
 
 - **Seven folders install**: `home/`, `scripts/`, `references/`, `skills/`, `agents/`, `rules/`, and `project-template/`
-- **Seven entries belong to the repository**: `CLAUDE.md`, `README.md`, `backlog.md`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
+- **Eight entries belong to the repository**: `CLAUDE.md`, `README.md`, `install.sh`, `backlog.md`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
 - **`lab/` is the design record**: installed nowhere, never deleted
 - **`repos/` and `tmp/` are gitignored**: either can be thrown away at any moment
 
@@ -67,6 +67,8 @@ When you first open the repository, the split that matters has four parts:
 
 **`README.md`** introduces Flow and links to everything else.
 
+**`install.sh`** is what the one pasted install line runs, `curl -fsSL <address>/install.sh | bash`. It checks for git, node and claude, clones Flow into `~/.flow/repos/flow/`, then hands over to `flow install`, which does every other step. A clone that exists is never cloned again, so running it twice changes nothing. `--use <folder>` skips the clone and uses that folder as Flow.
+
 **`backlog.md`** holds every open item in Flow, one line each: `## V1` in build order, then `## After V1` by area. The only place an open item lives. `lab/context/` holds the reasoning behind them. Each submodule under `lab/` keeps its own `backlog.md` in the same shape.
 
 **`CHANGELOG.md`** holds one entry per change in how Flow behaves, numbered from 1, newest first. An entry's number is Flow's version, and `~/.flow/version` holds the number a machine last applied. Nothing is written into it until Flow is installed on a machine, since a migration is the only reader an entry has.
@@ -94,13 +96,13 @@ Everything beside `context/` is a folder:
 - **`util/`**: the `util` CLI, a submodule: [Adrian333Dev/util](https://github.com/Adrian333Dev/util). Edited here, committed from inside the folder, and the new pointer committed here afterwards.
 - **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/flow:research` clones it into `tmp/` to search it.
 - **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
-- **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, and `try.sh` builds [the scratch session](scratch-session.md).
+- **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, `try.sh` builds [the scratch session](scratch-session.md), and `save-computer.sh` keeps a copy of this computer for it to start from.
 - **`research/`**: evidence behind the skills, and cached upstream documentation.
 
 ## What is gitignored
 
 - **`repos/`**: clones of other people's repositories. `bash lab/scripts/repos.sh` restores them. Nothing here is yours and nothing here is ever edited.
-- **`tmp/`**: scratch. `tmp/try/` is the throwaway session from `try.sh`, holding both config roots and a project that survives between runs. `tmp/tests/` is where both test suites write.
+- **`tmp/`**: scratch. `tmp/try/` is the scratch session from `try.sh`: `root/`, the pretend computer's home folder, a project that survives between runs, and `sandbox.sh`, the line that starts the session. `tmp/computers/` holds the computers `save-computer.sh` saved, never rewritten. `tmp/tests/` is where both test suites write.
 
 Neither survives a fresh clone, and nothing at runtime reads either one.
 
@@ -108,7 +110,7 @@ Neither survives a fresh clone, and nothing at runtime reads either one.
 
 - A note about why something was decided → `lab/context/`, flat, one file per decision
 - An open item → `backlog.md`, one line, with a pointer to the argument. An item about a submodule alone → that submodule's `backlog.md`
-- A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`. `lab/scripts/seeds/<name>/` is a board for the scratch project, `files/` copied in and `seed.sh` run, picked with `try.sh --seed <name>`
+- A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`. `lab/scripts/seeds/<name>/` is a board for the scratch project, `files/` copied in and `seed.sh` run, picked with `try.sh --project <name>`
 - A rule check → `scripts/rule-checks/<rule-id>.js`, named after the rule it enforces. Nothing registers it
 - A change in how Flow behaves, once Flow is installed somewhere → one entry in `CHANGELOG.md`, plus `upgrades/<number>.md` where the change moves a path on a machine
 - A scratch file → `tmp/`, never the repository root

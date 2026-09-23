@@ -838,6 +838,21 @@ The rulings behind it, each approved 2026-09-23:
 - **A project gets `flow setup project`**, paired with `flow restore project`.
 - **No `flow update`.** The switch applies itself, `flow sync` carries it, and Flow updates through migrations.
 
+## One pasted line installs Flow, ruled 2026-09-23
+
+**A new machine gets Flow from one line, the way codex-seo installs.** Ruled by the user 2026-09-23, "I think I approve everything", after reading `repos/codex-seo/README.md`. It builds `## How Flow ships`'s "one pasted line".
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/<tag>/install.sh | bash
+```
+
+- **`install.sh` sits at the repo root, is bash, and stays about 20 lines.** It checks for git, node and claude, clones Flow at the tag into `~/.flow/repos/flow/`, then runs `node scripts/flow/flow.js install`. Every other step stays in `install.js`.
+- **Bash, because the line runs before Flow is on disk.** `install.js` lives inside the clone, so it cannot fetch the clone. Every machine has bash, and a missing node gets a sentence naming it rather than `node: command not found`.
+- **`--use <folder>` skips the clone** and uses that folder as Flow. `lab/scripts/try.sh` passes the working copy, so a test covers uncommitted edits: a `git clone` of a local folder copies only commits.
+- **A second run changes nothing.** Where `~/.flow/repos/flow/` exists, `install.sh` clones nothing and hands on to `flow install`, which already leaves a machine alone: `### flow install starts setup, and a second run leaves it alone`.
+- **Updating Flow is `flow up`, never a rerun.** The session-start pull updates the skill sources in `~/.flow/repos/sources/` and never Flow's own clone, which moves only by tag, through a migration.
+- **Built first in the `/flow:setup-machine` build**, since only that skill makes it testable end to end.
+
 ## Settled by the user
 
 Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.

@@ -338,7 +338,7 @@ Its sections, in order:
 
 - `npm test` inside `scripts/`: nothing there changes, and it has to stay green.
 - The trials from step 1.
-- One live session: `bash lab/scripts/try.sh --print` asking a Next.js question, then checking the folder it wrote. Claude Code's trial session keeps the real `HOME`, so a file the agent writes itself would land in the real `~/.flow/`. The `--codex` form sets `HOME` to the scratch root. Use it, or check before running.
+- One live session: `bash lab/scripts/try.sh` asking a Next.js question, then checking the folder it wrote. The session's home folder is the scratch root, so a file the agent writes lands in `tmp/try/root/.flow/`, never the real `~/.flow/`.
 - The writing pass on every markdown file touched, inside the edit that touched it.
 
 ## Facts found
