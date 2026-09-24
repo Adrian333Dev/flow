@@ -20,7 +20,7 @@ An agentic development workflow for a solo developer. Rules, enforcement, a CLI 
 
 ## What makes it different
 
-Flow is installed globally, once per machine, by symlinking skills, scripts, and reference files from one clone into your home folder. Flow runs on Claude Code, and does not support Codex yet. `~/.agents/` holds the one real copy of the rules and the skills: the rules (`AGENTS.md`) and a folder holding one symlink per skill, `skills/flow/`, so that every skill is typed `/flow:groundwork`. `~/.claude/` holds what Claude Code reads: a one-line `CLAUDE.md` importing the rules, hooks and permissions (`settings.json`), and a link to the skills folder. `~/.flow/` holds what only Flow reads: the CLI scripts, the guard, reference files, the git-writes state, workflow notes, study cases, and every clone Flow reads, under `repos/`. Every project shares the same skills, rules, preferences, and accumulated knowledge. A project adds its own rules and context on top through `.claude/` and `.flow/` at the project level, and [skill overlays](#skill-overlays) let a project extend what a global skill does without editing it.
+Flow is installed globally, once per machine, by symlinking skills, scripts, and reference files from one clone into your home folder. Flow runs on Claude Code, and does not support Codex yet. `~/.agents/` holds the one real copy of the rules and the skills: the rules (`AGENTS.md`) and a folder holding one symlink per skill, `skills/flow/`, so that every skill is typed `/flow:groundwork`. `~/.claude/` holds what Claude Code reads: a one-line `CLAUDE.md` importing the rules, hooks and permissions (`settings.json`), and a link to the skills folder. `~/.flow/` holds what only Flow reads: the CLI scripts, the guard, reference files, workflow notes, study cases, and every clone Flow reads, under `repos/`. Every project shares the same skills, rules, preferences, and accumulated knowledge. A project adds its own rules and context on top through `.claude/` and `.flow/` at the project level, and [skill overlays](#skill-overlays) let a project extend what a global skill does without editing it.
 
 The workflow handles a full project from the initial idea through to a finished, reviewed build. Each phase produces what the next one consumes:
 
@@ -69,7 +69,6 @@ flow next               rank what is workable
 flow new "title"        create a ticket (--type, --deps, --parent, --body -)
 flow check              catch cycles, dangling ids, dropped blockers
 flow <id>               show one ticket in full
-flow git allow          unlock git writes with a timer
 flow audit read         query session history from indexed transcripts
 ```
 
@@ -102,11 +101,11 @@ Two more fire on a situation:
 
 ### The guard ([`scripts/guard.js`](scripts/guard.js))
 
-A `PreToolUse` hook that runs before every shell command the agent executes. It checks every command against the rules: git mutations (against a mode that can be off, ask, or allow), privileged commands (`sudo`, `su`), pipe-to-shell patterns, permission bypass attempts, recursive deletes outside the working directory, and self-unlock attempts. A denied command never executes. Destructive operations that are not outright banned still stop for confirmation. The guard is a general mechanism, and its rule set will grow as the workflow does.
+A `PreToolUse` hook that runs before every shell command the agent executes. It asks you about 4 dangers a permission pattern cannot see, because each sits past the command's first word: a recursive or forced delete outside the working directory, a download piped into a shell, a write into a shell startup file, and a git command that throws work away, such as a force push or `reset --hard`. Each one asks every time, even after you saved a rule allowing that command. The guard never allows anything, so a bug in it cannot let through more than the settings do.
 
-### Git write locking
+### Permissions
 
-Git is locked by default. `flow git allow` unlocks writes for the current session with a timer that locks them again when it expires. Scope narrows from global to project to session, and the narrowest wins. The agent cannot unlock git for itself: the guard denies `flow git allow` from inside a session, so the user types it in the input box.
+Flow's settings allow the routine work: edits, file reads, web lookups, and the everyday shell commands, such as moving files, running a script, running tests and Flow's own commands. Everything else asks, every git write included. "Yes, don't ask again" saves a pattern such as `Bash(git commit *)` for that project, so a command you approve once stops asking. `sudo`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright.
 
 ### Subagent verification by change record ([`scripts/changes.js`](scripts/changes.js))
 
@@ -174,7 +173,7 @@ Other differentiators:
 | Start from any point | Yes, any phase | Each skill invoked independently | Each command invoked independently | Each skill invoked independently |
 | Cross-session state | Ticket CLI, handoffs, pre-loaded files | No built-in state management | No built-in state management | Issue tracker integration |
 | Self-improving | Capture and file-findings loop | No | No | No |
-| Enforcement | Hook-level guard, git locking, permissions | SessionStart hook | No | No |
+| Enforcement | Hook-level guard, permissions | SessionStart hook | No | No |
 | Subagent verification | A diff per subagent, recorded by hooks | No | No | No |
 | Global install | One symlinked clone | Per-project or global config | Plugin or CLI | Plugin or copied files |
 | Cost optimization | Built-in (ASCII, merge, research levels, delegation) | No | No | No |

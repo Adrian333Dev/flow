@@ -76,8 +76,7 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 │  ├─ inbox.md
 │  ├─ findings/
 │  ├─ overlays/<skill>.md
-│  ├─ settings.json
-│  └─ settings.local.json
+│  └─ settings.json
 └─ docs/
    ├─ spec/
    ├─ context/
@@ -115,7 +114,7 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 - **`AGENTS.md`**: the rules every session loads, reached through the link `~/.agents/AGENTS.md`. `flow setup` writes it from `home/AGENTS.md`, with what it kept from your old rule files in `## Preferences` and `## The user`, and from then on the file is yours. Sessions write what they learn about you into it.
 - **`setup-prompt.md`**: the text a setup session starts with, Flow's rules followed by the setup's instructions. `flow setup` rewrites it each time it opens that session, and git ignores it.
 - **`install.log`**: every line of this machine's last `flow install`, where the screen showed a summary. Git ignores it.
-- **`settings.json`**: the settings both your machines share. `git` is the git write state, written by `flow git`. `reminder` is whether the reminder prints beside every message, and `sessionCheck` whether a session opens with a line about what needs attention: one key per line Flow prints by itself. `sources` lists the skill repositories, and `skills` the skills switched on or off for every machine. `skillsAutoUpdate` is whether each skill repository pulls itself when a session opens.
+- **`settings.json`**: the settings both your machines share. `reminder` is whether the reminder prints beside every message, and `sessionCheck` whether a session opens with a line about what needs attention: one key per line Flow prints by itself. `sources` lists the skill repositories, and `skills` the skills switched on or off for every machine. `skillsAutoUpdate` is whether each skill repository pulls itself when a session opens.
 - **`settings.local.json`**: the settings this machine keeps to itself, which git ignores. `skills` here is the skills switched on or off for this machine alone, written by `flow skills --machine`.
 - **`repos/`**: every clone Flow reads, each described under [The clones](#the-clones).
 - **`history.jsonl`**: one JSON line per change Flow made to this machine: a clone, a pull, a skill switched, an install, a setup or a migration applied. `flow skills`, `flow install`, `apply-migration.js` and the background pull write it.
@@ -153,7 +152,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 
 - **`AGENTS.md`**: rules for this project alone. It starts from `project-template/`, and you and the sessions fill it in.
 - **`CLAUDE.md`**: one line, `@AGENTS.md`, from the template, so Claude Code loads the same rules.
-- **`.gitignore`**: from the template. It ignores the skill symlinks and `.flow/settings.local.json`, and keeps everything else in `.flow/` committed.
+- **`.gitignore`**: from the template. It ignores the skill symlinks, and keeps everything in `.flow/` committed.
 - **`.work-include`**: from the template, empty. It names the gitignored files that travel with `util git work send`.
 
 ### `.claude/`
@@ -170,7 +169,6 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 - **`findings/`**: one file per lesson a session learned. `/flow:file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for `flow contribute`.
 - **`overlays/<skill>.md`**: text this project adds to the end of a global skill when it loads. You or a session write it.
 - **`settings.json`**: the skills switched on or off for this project, committed, so a fresh clone gets them back. `flow skills on` and `off` write it with no flag.
-- **`settings.local.json`**: a git unlock for this project alone, with its expiry time. `flow git allow --project` writes it, and the guard removes the entry once it expires. Gitignored.
 
 ### `docs/`, the project's own
 

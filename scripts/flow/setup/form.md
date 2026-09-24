@@ -26,12 +26,13 @@ type: setup-machine
 
 - Flow's rules, read at the start of every session. `~/.agents/AGENTS.md`, loaded by `~/.claude/CLAUDE.md`
 - Flow's hooks: guard.js, changes.js, rule-check.js, instructions-loaded.js, check-ticket.js, reminder.js, session-check.js. `hooks`
-- Git commands that change anything stay blocked until you type `! flow git allow`, and commands that destroy work always ask. `guard.js`
+- Commands that can destroy work always ask you first: a delete outside the project, a download run straight as a script, a change to your shell's startup file, and git commands that throw work away. `guard.js`
 - Claude sees exactly what each helper agent changed, even with several working at once. `changes.js`
 - The file list after `@` comes from Flow, which stays fast in big projects. `fileSuggestion`
-- Shell commands, edits, web pages, web search and context7 (a library docs lookup) run without asking. `permissions.allow`
+- Edits, file reads, web pages, web search and context7 (a library docs lookup) run without asking. So do the everyday shell commands: moving and copying files, running node or python, running tests and scripts, and Flow's own commands. `permissions.allow`
 - Every session starts in Manual mode: Claude asks before anything the line above doesn't cover. `permissions.defaultMode`
 - Claude can't run the commands that undo Flow. Only you can. `permissions.deny: Bash(flow restore …), Bash(flow uninstall …)`
+- Claude can't run commands as the system's admin, format a disk, or start a copy of itself that never asks. `permissions.deny: Bash(sudo *), Bash(mkfs*), Bash(* --dangerously-skip-permissions *)`
 
 ### Always removed, because Flow can't work with them
 
@@ -64,7 +65,7 @@ These cost nothing until you type them:
 - [x] Pick-list questions: Claude asks you to choose from options, where Flow has it recommend one. `permissions.deny: AskUserQuestion`
 - [x] Artifacts: Claude publishes its work as a web page on claude.ai, where Flow draws it in the terminal. `disableArtifact`
 - [x] The review findings tool: during a code review, Claude shows its findings in Claude Code's own layout instead of Flow's. `permissions.deny: ReportFindings`
-- [x] Claude replying after a command you run yourself with `!`: Flow asks you to run commands such as `! flow git allow`, and a reply to each costs a turn. `respondToBashCommands`
+- [x] Claude replying after a command you run yourself with `!`: Flow asks you to run commands such as `! flow sync`, and a reply to each costs a turn. `respondToBashCommands`
 - [x] {competing things}, such as: tdd skill: tells Claude how to plan and test every change, which Flow's steps already do. `~/.claude/skills/tdd/`
 - [x] {competing things}, such as: grill-me, synced from your Claude account: interviews you with a list of questions, where Flow has Claude recommend. `skillOverrides`
 

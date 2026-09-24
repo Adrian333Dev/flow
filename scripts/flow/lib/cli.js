@@ -122,8 +122,8 @@ function dispatch(argv, { commands, groups, fallback, sections, title, notes, ch
 
   // A group with nothing after it prints its help, unless its default action
   // needs no argument, then the bare form is that action. `flow cases` has
-  // nothing to show without a name and helps instead; `flow git` answers, and
-  // so does `flow skills`, whose patterns are optional.
+  // nothing to show without a name and helps instead; `flow skills` answers,
+  // since its patterns are optional.
   if (!typed || HELP_WORDS.includes(typed)) {
     const fallbackAction = group.default && group.actions[group.default];
     const optional = !fallbackAction?.args || fallbackAction.args.startsWith('[');

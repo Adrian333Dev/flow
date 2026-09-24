@@ -881,6 +881,18 @@ curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/<tag>/install.sh 
 - **Updating Flow is `flow up`, never a rerun.** The session-start pull updates the skill sources in `~/.flow/repos/sources/` and never Flow's own clone, which moves only by tag, through a migration.
 - **Built first in the `/flow:setup-machine` build**, since only that skill makes it testable end to end.
 
+## Permissions have one owner per rule, ruled 2026-09-24 and 2026-09-25
+
+What the setup form's `permissions` lines install. Claude Code's settings hold every rule a pattern can state, and `guard.js` keeps only the checks that read inside a command.
+
+- **`Read` is allowed everywhere**, ruled 2026-09-24, and denied under `~/.ssh` and `~/.aws`. An asked-for read taught the agent that `cat` was the quiet way.
+- **The bare `Bash` allow goes**, replaced by 23 patterns: `mkdir`, `touch`, `mv`, `cp`, `rm`, `ln`, `chmod`, `node`, `python3`, `flow`, `fw`, `util`, `npm test` and `npm run` with the same pair for pnpm, yarn and bun, `pytest`, `cargo test`, `go test`. The user approved the first 14, then asked for the other package managers and the other languages' test commands. A command the list misses asks once, and "don't ask again" saves a pattern for that project.
+- **The deny list gains `sudo *`, `mkfs*` and `* --dangerously-skip-permissions *`.** `mkfs*` has no space, to catch `mkfs.ext4`.
+- **No `ask` rule anywhere**, since an ask rule beats every allow, a saved one included.
+- **`guard.js` asks about 4 things and never allows**: a recursive or forced delete outside the working directory, a download piped into a shell (a deny until now), a shell startup file write, and the destructive git table. The install, `chmod 777`, `dd` and `mkfs` asks went, and fall to Claude Code's own prompt.
+- **The timed git switch goes whole**, ruled 2026-09-25. Git writes are a preference, built against a plugin that committed after every edit, and Claude Code's prompt already asks before each one. The user accepted that auto mode can run a commit unasked. `flow git`, the `git` key, the project's `.flow/settings.local.json` and the rule `no-git-writes` went with it.
+- **Chained commands get nothing built.** One can save a piece word for word. Revisit only if `.claude/settings.local.json` fills with word-for-word rules.
+
 ## Settled by the user
 
 Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.

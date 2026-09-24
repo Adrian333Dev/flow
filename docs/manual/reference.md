@@ -13,7 +13,6 @@ Every command, skill, setting and file Flow gives you, in one place. Look one up
 - [Cases](#cases)
 - [Skill discovery](#skill-discovery)
 - [Overlays](#overlays)
-- [Git](#git)
 - [Audit](#audit)
 - [Rule checks](#rule-checks)
 - [Sharing findings](#sharing-findings)
@@ -581,28 +580,6 @@ Print the overlay for a skill. Prints nothing when no overlay file exists, which
 
 Every skill runs this at its end, so the overlay arrives after the skill's own content.
 
-## Git
-
-Git writes are off by default. The agent names a git command and you run it. The guard (`scripts/guard.js`) runs before every shell command and enforces the mode.
-
-### `flow git`
-
-Show the current mode: off, allow, or ask, and the scope it applies to.
-
-### `flow git allow` / `flow git ask` / `flow git off`
-
-Set the mode. `allow` lets git writes through. `ask` confirms each one. `off` restores the default.
-
-The scope is the current session when a session id is available (the normal case inside Claude Code), and the current project otherwise. `--project` and `--global` widen it. The narrowest scope wins when more than one is set.
-
-`--for <duration>` sets a timer: `30m`, `2h`, or `never`. The default is 1 hour. The entry is deleted the first time anything looks at it after the timer expires.
-
-The agent cannot set the mode for itself. The guard denies `flow git allow` and `flow git ask` from inside a session. Type it yourself: `! flow git allow` in the input box.
-
-Destructive commands (`push --force`, `reset --hard`, `clean -f`, `rebase`, `branch -D`) ask for confirmation regardless of the mode.
-
-`git worktree` is instructed: it runs whatever the mode says, because worktrees are the mechanism for parallel dispatch.
-
 ## Audit
 
 Session history, read back from the transcripts Claude Code writes at `~/.claude/projects/`. Nothing is recorded and nothing is intercepted: the audit reads what Claude Code already wrote.
@@ -712,16 +689,15 @@ Two files, and Flow contributes to one of them.
 
 **`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `flow setup` merges Flow's keys into it, key by key. Flow contributes four keys:
 
-- **`hooks`**: 6 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
-- **`permissions`**: an allow list, a deny list, and no git entries at all, because `flow git` owns git. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
+- **`hooks`**: 6 jobs. `guard.js` asks you before a shell command that could destroy work: a delete outside the project, a download piped into a shell, a write into a shell startup file, or a git command that throws work away. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
+- **`permissions`**: an allow list and a deny list. The allow list covers edits, reads, web lookups and the everyday shell commands, such as `mv`, `node`, `npm test` and `flow`, so every other command asks you, every git write included. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first
 
 A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. `flow setup` also writes `skillOverrides`, Claude Code's key for hiding a skill, for the ones it switches off: Claude Code's own `/batch`, and a skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
 
-**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Together they hold 7 keys:
+**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Together they hold 6 keys:
 
-- **`git`**: the git write state, in the shared file. `flow git` writes it, so there is nothing to edit by hand
 - **`sources`**: the skill repositories [`flow skills`](#flow-skills) takes skills from, in the shared file. `flow skills add` and `drop` write it
 - **`skills`**: which skills are switched on or off, a line per name, in either file and in a project's `.flow/settings.json`. The nearest file wins, name by name. `flow skills` writes it
 - **`reminder`**: whether the reminder prints beside every message, in the shared file. `false` silences it, and every line Flow prints by itself gets a key like it

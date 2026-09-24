@@ -1,16 +1,15 @@
 # Settings
 
-Flow reads 5 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
+Flow reads 4 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
 
 - **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `flow setup` merges them in.
 - **`~/.flow/settings.json`** belongs to Flow, and travels to your other machine with the rest of `~/.flow/`.
 - **`~/.flow/settings.local.json`** belongs to Flow and to this machine alone. git ignores it.
 - **`<project>/.flow/settings.json`** belongs to one project, and is committed with it.
-- **`<project>/.flow/settings.local.json`** belongs to one project on this machine alone. The project template's `.gitignore` leaves it out.
 
 Flow reads its 2 machine files as one, and the local one wins key by key.
 
-All 5 are strict JSON, so none can hold a comment. This page holds the explanations instead.
+All 4 are strict JSON, so none can hold a comment. This page holds the explanations instead.
 
 ## Table of contents
 
@@ -23,7 +22,6 @@ All 5 are strict JSON, so none can hold a comment. This page holds the explanati
   - [Feature flags](#feature-flags)
   - [Deliberately absent](#deliberately-absent)
 - [Flow's settings files](#flows-settings-files)
-  - [`git`](#git)
   - [`sources`](#sources)
   - [`skills`](#skills)
   - [`skillsAutoUpdate`](#skillsautoupdate)
@@ -46,11 +44,18 @@ Settings load at startup. **Restart Claude Code after any change.**
   { "type": "command", "command": "node \"$HOME/.flow/scripts/guard.js\"" } ] } ] }
 ```
 
-Runs `scripts/guard.js` before every Bash call. The script reads the pending command on stdin and returns `deny`, `ask`, or nothing.
+Runs `scripts/guard.js` before every Bash call. The script reads the pending command on stdin, and answers `ask` or nothing.
+
+**The guard asks about 4 things a permission pattern cannot see.** A pattern such as `Bash(rm *)` matches the start of a command. These 4 dangers sit further in:
+
+- **A recursive or forced delete outside the working directory**: `rm -rf ../other-project`. A delete inside it passes
+- **A download piped into a shell**: `curl -fsSL https://example.com/install.sh | sh`
+- **A write into a shell startup file**: `echo 'export PATH=…' >> ~/.bashrc`
+- **A git command that throws work away**: a force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, a tag or ref delete, `reflog delete` or `expire`, `gc --prune`, `worktree remove --force`
+
+Each one asks every time, even where an allow rule matches, such as a `Bash(git push *)` you saved. The guard never answers `allow`. Anything it stays silent on goes to Claude Code's own rules, so a bug in the guard can never let through more than the settings do.
 
 Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed under nvm has to be on it, but `flow` and `util` are Node too, so that is already a hard requirement of the toolchain and this adds nothing new. What it removes is a third language in a five-file folder.
-
-**The guard and the blanket `Bash` allow below are one unit. Never install one without the other.** Blanket allow with no guard leaves nothing deciding a shell command: the deny list holds no `Bash` entries at all, because a static list cannot name the open set of what a shell command can be.
 
 #### The change record
 
@@ -90,7 +95,7 @@ Records what each subagent changed, and hands the parent a diff per file when th
 - **A command's changes inside a submodule.** A snapshot holds a submodule as one commit. `Edit` and `Write` inside one are still recorded
 - **A command's changes to a gitignored file.** `Edit` and `Write` on one are still recorded
 
-**`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state. It runs as a hook rather than through the Bash tool, so `guard.js` never sees it and the git mode never applies to it.
+**`git add` has to stay reachable.** The snapshot stages into a throwaway index, which touches no real git state. It runs as a hook rather than through the Bash tool, so neither `guard.js` nor a permission prompt ever sees it.
 
 [The agents Claude Code runs](../dev/agents.md#what-a-subagent-changed) shows a real record.
 
@@ -111,7 +116,7 @@ Records what each subagent changed, and hands the parent a diff per file when th
 
 **The hole this fills is file creation.** A `paths:`-scoped rule triggers when Claude *reads* a matching file, so writing `src/foo.ts` in a session that opened no `.ts` file leaves the TypeScript rules out of context entirely. `PreToolUse` fires on `Write` whatever loaded.
 
-**It never returns `allow`, and it never fails closed.** `guard.js` denies on an unexpected throw because it is the last thing holding git back. This one stays silent instead: it measures writing habits, and breaking every edit in a session over a bug in one check would cost far more than the counts are worth. `permissionDecisionReason` is used only on a deny, since on an allow it reaches the terminal and never Claude.
+**It never returns `allow`, and it never fails closed.** An unexpected throw stays silent. It measures writing habits, and breaking every edit in a session over a bug in one check would cost far more than the counts are worth. `permissionDecisionReason` is used only on a deny, since on an allow it reaches the terminal and never Claude.
 
 `InstructionsLoaded` has no decision control at all. Claude Code discards its output and ignores its exit code, so it records or it does not.
 
@@ -195,18 +200,28 @@ Rules evaluate **deny → ask → allow**, first match wins. A broad deny beats 
 
 | Entry | Covers |
 |---|---|
-| `Bash` | every shell command |
 | `Edit` | every file-editing tool, including Write |
 | `Read` | every file read, in any folder |
 | `WebFetch` | every domain |
 | `WebSearch` | every search |
 | `mcp__context7__*` | every tool from the context7 MCP server |
+| `Bash(mkdir *)`, `Bash(touch *)`, `Bash(mv *)`, `Bash(cp *)`, `Bash(rm *)`, `Bash(ln *)`, `Bash(chmod *)` | making, moving, copying, linking and deleting files, and changing a file's permissions |
+| `Bash(node *)`, `Bash(python3 *)` | running a script |
+| `Bash(flow *)`, `Bash(fw *)`, `Bash(util *)` | Flow's own commands |
+| `Bash(npm test *)`, `Bash(npm run *)`, and the same 2 for `pnpm`, `yarn` and `bun` | a project's tests and scripts |
+| `Bash(pytest *)`, `Bash(cargo test *)`, `Bash(go test *)` | tests in Python, Rust and Go |
 
-A tool name written **without parentheses matches every use of that tool**.
+A tool name written **without parentheses matches every use of that tool**. A pattern ending in ` *` matches the command with anything after it, or with nothing: `Bash(npm test *)` covers `npm test` and `npm test -- --watch`, and never `npm testing`.
 
-Why blanket rather than a curated list: approving a command through the permission dialog saves the *exact string* that ran, so `util fs tree --depth 3` and `util fs tree --depth 4` become two rules. A hand-kept list of command patterns never converges and goes stale the moment a path moves. The deny list plus the guard define the boundary instead.
+**A shell command no entry matches asks you.** `git commit`, `npm install` and `curl` all stop for a yes. Claude Code's own read-only set runs with no rule: `ls`, `cat`, `head`, `tail`, `grep`, `find`, `wc`, `diff`, and git's reads such as `git status`, `git log` and `git diff`.
 
-**`Read` is blanket for the same reason as `Bash`.** Without it, a read outside the project asks you. The same file printed with `cat` passes under the `Bash` allow, so the agent learns that the shell is the quiet way to read. Approving one read saves a rule for that one folder, and the next folder asks again.
+**"Yes, don't ask again" saves a pattern, into the project.** Approving `npm view left-pad version` offers `Bash(npm view *)`, which lands in `.claude/settings.local.json` at the repository root. The next `npm view` in that project runs with no prompt. A chained command saves one rule per piece, and a piece Claude Code cannot shorten into a pattern is saved word for word: `curl -sI https://example.com` stays whole.
+
+**Why a shipped list rather than every shell command.** Until 2026-09-25 this list held a bare `Bash`, and the guard held a list of dangerous commands to catch. A list of dangers is only ever as complete as whoever last edited it, and whatever it missed ran with no question. A list of routine commands fails the other way: whatever it misses asks you once, and one "don't ask again" covers it in that project from then on.
+
+**Git has no entry, so every git write asks.** A commit, a push, a merge: each stops for a yes. Save `Bash(git commit *)` from the prompt and commits run freely in that project. The guard's destructive-git ask still holds after that, since it reads the flags a pattern cannot.
+
+**`Read` is blanket.** Without it, a read outside the project asks you. Approving one read saves a rule for that one folder, and the next folder asks again.
 
 Still prompts: writes into protected paths (`.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends), which allow rules cannot pre-approve by design.
 
@@ -241,6 +256,18 @@ These are **bare tool names**, which removes each tool from the model's context 
 
 A `Read` deny rule blocks the `Read` tool, and an edit to a file there. It also blocks the shell commands Claude Code recognizes as reads: `cat`, `head`, `tail`, `sed` and `grep`. It cannot see a script that opens files itself, such as `util fs merge` or a python one-liner.
 
+#### `deny`: 3 commands no session should run
+
+```json
+"deny": ["Bash(sudo *)", "Bash(mkfs*)", "Bash(* --dangerously-skip-permissions *)"]
+```
+
+- **`sudo`** runs a command as the system's administrator, with no limit on what it can change
+- **`mkfs`** formats a disk. The pattern has no space before the `*`, so it also covers the named forms such as `mkfs.ext4`
+- **`--dangerously-skip-permissions`** starts a second Claude Code that never asks about anything. The leading `*` catches the flag wherever it sits in the command
+
+A deny rule holds in every mode, and a saved allow cannot lift it. Run any of the 3 yourself, in your own terminal.
+
 #### `deny`: the 2 commands that undo Flow
 
 ```json
@@ -253,32 +280,9 @@ This is the 4th of 4 locks, and the weakest: a prefix rule cannot name every way
 
 `flow restore ls` is left allowed. It prints what has been recorded and changes nothing.
 
-#### `deny`: no git entries, and why
+#### No `ask` rules
 
-**No `Bash(git …)` rule appears in `home/settings.json`, and adding one would break the switch.** `guard.js` decides every git command instead.
-
-A deny rule is read once at session start, and it only ever adds. Nothing in a project, a flag or a settings file can lift a user-level entry, so a rule written here is permanent and no switch can reach past it. `guard.js` runs before every shell command and re-reads its state each time, which is what lets the mode change mid-session.
-
-`flow git` writes that state, into `~/.flow/settings.json`:
-
-```text
-flow git                    what the mode is, and when it runs out
-flow git allow [--for 2h]   the agent may write with git
-flow git ask                the same, confirming every one
-flow git off                back to reads only
-```
-
-The scope is the session you type it in, unless `--project` or `--global` widens it. It lasts an hour unless `--for` says otherwise. Past that, the guard deletes the entry the first time it looks, so a switch left on turns itself off.
-
-`--project` writes `.flow/settings.local.json` inside the repository, and the project template ignores that path. An unlock is this machine's state with a clock on it: committed, it would be one commit saying git writes are on and another an hour later saying they are off.
-
-Three things hold whatever the mode says:
-
-- **Reads always run.** `status`, `log`, `diff`, `show` and 22 more, by allowlist. Anything outside it is a write
-- **Destructive commands always ask.** A force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, a tag or ref delete, `reflog delete`, `gc --prune`, `worktree remove --force`. They ask rather than deny, so you can still say yes: they just never run silently
-- **The agent cannot turn it on.** `flow git allow` is refused when the agent runs it. Type it yourself as `! flow git allow`, which reaches no tool call and so reaches no guard
-
-`guard.js` is the only thing between the agent and git now, so an error it cannot recover from denies a git command rather than falling through.
+**Flow ships no `ask` rule, because an `ask` rule beats every allow rule, a saved one included.** `"ask": ["Bash(git push *)"]` would prompt on every push forever, however many times you chose "don't ask again". Whatever needs a question every time lives in `guard.js` instead, which asks about the dangerous form alone.
 
 #### Modes
 
@@ -293,16 +297,18 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 **`auto` is not where a session starts.** In auto mode a second model, the classifier, reviews a call before it runs and blocks what looks beyond your request. 3 things decided against it:
 
 - **It pulls against Flow's first rule.** Anthropic's permission modes page says auto mode nudges the model to "keep working without stopping for clarifying questions". `instruction-or-thinking` in `home/AGENTS.md` says a message that is not an instruction gets a reply and no edit.
-- **It reviews nearly every shell command.** Entering auto mode drops a blanket `Bash` allow, so every shell command that is not a plain read goes to the classifier. Reads, edits inside the project and the narrower allow entries skip it.
+- **It reviews most shell commands.** Entering auto mode drops the allow entries that can run any code, such as `Bash(node *)`, `Bash(python3 *)` and `Bash(npm run *)`, so those commands go to the classifier. Reads, edits inside the project and the narrower allow entries skip it.
 - **Its cost on a subscription is unconfirmed.** The same page says classifier calls count toward usage on Enterprise plans and API accounts, and says nothing about Pro or Max.
 
-**The guard works in either mode.** A hook's `ask` still forces a prompt in auto mode, and a hook's `deny` always holds. The classifier can add a block and never remove one.
+**The guard works in either mode.** A hook's `ask` still forces a prompt in auto mode. The classifier can add a block and never remove one.
+
+**In auto mode a git commit can run with no prompt**, when the classifier judges it part of your request. The guard's destructive-git ask still holds there.
 
 **`auto` and `dontAsk` are the 2 unattended modes.** Reach for either with Shift+Tab, never by setting it here. `auto` lets the classifier approve what the allow list does not cover, and catches what the guard never looks for, such as a command sending data off the machine. `dontAsk` denies whatever the allow list does not cover, with no second model, so a long run finishes and every denial shows up in the transcript.
 
-**`acceptEdits` buys almost nothing.** With `Bash`, `Edit` and `Read` blanket-allowed above, it is not the looser mode it looks like.
+**`acceptEdits` buys almost nothing.** It lets edits through, and `mkdir`, `touch`, `rm`, `mv`, `cp` and `sed` inside the project. The allow list above already covers all of them but `sed`.
 
-**`bypassPermissions` is locked out**, by `permissions.disableBypassPermissionsMode: "disable"`. Its one addition over `acceptEdits` is silent writes into `.claude` and `.git`, and Flow's settings, subagents and links all sit in `.claude`. The same key disables the `--dangerously-skip-permissions` flag that `guard.js` already denies as a Bash command, and makes Claude Code ignore `permissionMode: bypassPermissions` in any agent definition.
+**`bypassPermissions` is locked out**, by `permissions.disableBypassPermissionsMode: "disable"`. Its one addition over `acceptEdits` is silent writes into `.claude` and `.git`, and Flow's settings, subagents and links all sit in `.claude`. The same key disables the `--dangerously-skip-permissions` flag, which the deny list above also blocks as a shell command, and makes Claude Code ignore `permissionMode: bypassPermissions` in any agent definition.
 
 ---
 
@@ -379,7 +385,7 @@ Claude Code can skip the script without a warning and use its own list: in a fol
 | `disableClaudeAiConnectors` | `true` | No claude.ai connectors. |
 | `disableArtifact` | `true` | No artifact tool. `/flow:visualize` renders inline. |
 | `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo: `AGENTS.md`, `docs/`, or a skill. |
-| `respondToBashCommands` | `false` | A command you type behind `!` in the input box puts its output in context and stops there, instead of spending a turn reacting to it. `! flow git allow` and `! ls` should cost nothing. When you want a reaction, the next message asks for one, and it carries your instructions, which an automatic reply cannot. |
+| `respondToBashCommands` | `false` | A command you type behind `!` in the input box puts its output in context and stops there, instead of spending a turn reacting to it. `! flow sync` and `! ls` should cost nothing. When you want a reaction, the next message asks for one, and it carries your instructions, which an automatic reply cannot. |
 
 ---
 
@@ -396,28 +402,15 @@ Claude Code can skip the script without a warning and use its own list: in a fol
 ```json
 {
   "sources": ["Adrian333Dev/domain-skills", "mattpocock/skills"],
-  "skills": { "review": "on" },
-  "git": { "mode": "allow", "until": "2026-09-14T15:00:00.000Z", "session": "<session id>" }
+  "skills": { "review": "on" }
 }
 ```
 
 **Which file a key goes in is decided by one question: would the value still be true on your other machine?** `~/.flow/` is one git repository shared between your machines, so `settings.json` travels and `settings.local.json` is the part git ignores.
 
-A project has the same pair in its own `.flow/`. `.flow/settings.json` holds the project's [`skills`](#skills) lines and is committed, so a fresh clone of the project gets its skills back. `.flow/settings.local.json` holds the [`git`](#git) entry `--project` writes, and stays on this machine.
+A project has one file of its own, `.flow/settings.json`. It holds the project's [`skills`](#skills) lines and is committed, so a fresh clone of the project gets its skills back.
 
 A change applies on the next command, with nothing to restart.
-
----
-
-### `git`
-
-Whether the agent may run a git command that writes, and until when. `flow git` writes this key, so never edit it by hand. [`deny`: no git entries, and why](#deny-no-git-entries-and-why) covers the commands, the scopes and what holds whatever the mode says.
-
-- **`mode`**: `allow` or `ask`. No entry means off
-- **`until`**: when the entry expires. `--for never` leaves it out
-- **`session`**: the session the entry belongs to. `--project` and `--global` leave it out
-
-`--project` writes the entry into the project's own `.flow/settings.local.json`, which the project template gitignores.
 
 ---
 

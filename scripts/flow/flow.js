@@ -20,7 +20,6 @@ const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
 const overlays = require('./commands/overlays');
 const skills = require('./commands/skills');
-const git = require('./commands/git');
 const install = require('./commands/install');
 const doctor = require('./commands/doctor');
 const sync = require('./commands/sync');
@@ -169,20 +168,12 @@ checks  a rule check is one file in ~/.flow/scripts/rule-checks/, named after
         measure records and interrupts nothing, warn puts a line in front of
         the agent, block refuses the edit. Every check starts at measure, and
         flow scorecard says which have earned a promotion. A rule with no check
-        is listed as coverage, never as a failure
-git     off everywhere by default: the agent names a git command that writes
-        and you run it. flow git allow lifts that for an hour, flow git ask
-        confirms each one instead. guard.js reads the entry before every shell
-        command, so it lands on the next one with nothing to restart. The scope
-        is this session unless --project or --global widens it, and the entry
-        is deleted the first time anything looks at it after --for runs out.
-        Destructive commands ask however this is set, and turning it on is
-        yours to type: the agent is refused, so use ! flow git allow`;
+        is listed as coverage, never as a failure`;
 
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, skills, overlays, git, audit, restore, setup },
+    groups: { cases, skills, overlays, audit, restore, setup },
     check: (action, flags) => (action.anywhere ? null : machine.requireSetup(flags.root)),
     fallback: tickets.fallback,
     sections: SECTIONS,
