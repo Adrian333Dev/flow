@@ -13,7 +13,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { REPO, project, run, setupMachine } = require('./helpers/scratch');
+const { REPO, project, run, setupMachine, bareRepo } = require('./helpers/scratch');
 const installed = require('../flow/lib/installed');
 const folders = require('../flow/lib/machine').folders;
 
@@ -32,7 +32,7 @@ function machine(name) {
   const root = path.join(dir, 'root');
   const at = folders(root);
 
-  const made = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone']);
+  const made = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone', '--repo', bareRepo(path.basename(dir))]);
   assert.strictEqual(made.code, 0, made.stderr);
   setupMachine(root);
 

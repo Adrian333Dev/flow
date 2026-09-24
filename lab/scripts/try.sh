@@ -1,25 +1,34 @@
 #!/usr/bin/env bash
-# try.sh: a pretend computer with this repo's Flow on it, so a real Claude Code
-# or Codex session can run against the repo while nothing is installed.
+# try.sh: a pretend computer, so a real Claude Code or Codex session can run
+# against this repo's Flow while nothing is installed on the real one.
 #
 # A development script. It ships nowhere, and `flow install` never links it.
 #
-# The session runs under bwrap, which only exists on Linux. tmp/try/root/ is
-# mounted where the home folder is, and the rest of the disk is read-only, so
-# nothing of the real home shows through: no ~/.agents, no ~/.local/bin, no
-# ~/.claude. The session writes into tmp/try/ and nowhere else, apart from the
-# Claude Code login, below.
+# The session runs under bwrap, which only exists on Linux. A run's home
+# folder is mounted where the real one is, and the rest of the disk is
+# read-only, so nothing of the real home shows through: no ~/.agents, no
+# ~/.local/bin, no ~/.claude. The session writes into its run's folder and
+# nowhere else, apart from the Claude Code login, below.
 #
-# --case picks what the pretend computer starts as:
+# Each run is a folder of its own, tmp/try/<name>/, kept until you delete it:
 #
-#   with-flow   Flow installed by `flow install`, and signed in (the default)
-#   empty       signed in to Claude Code and nothing else. The session starts
-#               by running install.sh, the way a new user's first step does
-#   <name>      a computer saved by lab/scripts/save-computer.sh. It starts
-#               with install.sh too
+#   home/        the pretend computer's home folder, seen inside as ~
+#   home/code/<project>   the scratch project, seen inside as ~/code/<project>
+#   remote.git   the stand-in for the GitHub repository ~/.flow/ lives in
+#   sandbox.sh   the bwrap line that starts the session, rewritten every run
 #
-# Every run copies the case into tmp/try/root/ afresh, so a test never changes
-# a saved computer.
+# The first run of a name builds it from a case, then runs install.sh from
+# this checkout, the way a new user's first step does: the real install, with
+# util, the toolbox and the skill repositories cloned from GitHub, and the
+# setup session after it. Running the same name again reopens it as it was
+# left, with no install, so a machine that went through setup stays one to
+# test on.
+#
+# --case picks what a new run's computer starts as:
+#
+#   empty       signed in to Claude Code and nothing else (the default)
+#   <name>      a computer saved by lab/scripts/save-computer.sh, copied from
+#               tmp/computers/<name>/, which is never changed
 #
 # Skills and agents are symlinked rather than copied, so editing one in the
 # repo is live inside the running session: write, save, invoke. That is the
@@ -30,12 +39,15 @@
 # ~/code/flow-dev builds a session against that checkout and leaves the stable
 # one alone.
 #
-#   bash lab/scripts/try.sh                    the with-flow case, the app project
-#   bash lab/scripts/try.sh --case empty       a computer before Flow
-#   bash lab/scripts/try.sh --case my-laptop   a saved computer
-#   bash lab/scripts/try.sh --codex            the same, in a Codex session
-#   bash lab/scripts/try.sh --project guards   build the scratch project from another seed
-#   bash lab/scripts/try.sh --fresh            delete tmp/try first, scratch project included
+#   bash lab/scripts/try.sh                                    a new computer, the run named empty
+#   bash lab/scripts/try.sh --case before-flow                 a saved computer, the run named before-flow
+#   bash lab/scripts/try.sh --case before-flow --name setup-1  the same, the run named setup-1
+#   bash lab/scripts/try.sh --name setup-1                     reopen setup-1 as it was left
+#   bash lab/scripts/try.sh --name setup-1 --fresh             build setup-1 again from its case
+#   bash lab/scripts/try.sh --list                             every run, and how far each got
+#   bash lab/scripts/try.sh --delete setup-1                   delete that run
+#   bash lab/scripts/try.sh --codex                            a Codex session in place of Claude Code
+#   bash lab/scripts/try.sh --project guards                   a new run's project from another seed
 #
 # Run where no terminal is attached, from an agent's shell, it builds
 # everything and prints the line that starts the session.
@@ -43,40 +55,105 @@ set -euo pipefail
 
 fresh=0
 codex=0
-project=app
-case=with-flow
+list=0
+project=
+case=
+name=
+delete=
 while [ $# -gt 0 ]; do
   case "$1" in
     --fresh) fresh=1 ;;
     --codex) codex=1 ;;
+    --list) list=1 ;;
     --project) project="${2:-}"; shift ;;
     --case) case="${2:-}"; shift ;;
-    *) echo "try.sh: unknown argument \"$1\", takes --case <name>, --project <name>, --codex and --fresh" >&2; exit 2 ;;
+    --name) name="${2:-}"; shift ;;
+    --delete) delete="${2:-}"; shift ;;
+    *) echo "try.sh: unknown argument \"$1\", takes --case, --name, --project, --codex, --fresh, --list and --delete" >&2; exit 2 ;;
   esac
   shift
 done
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 try="$root/tmp/try"
-scratch="$try/root"
-home="$scratch/.claude"
-proj="$try/project"
 computers="$root/tmp/computers"
 seeds="$root/lab/scripts/seeds"
 program=claude
 [ "$codex" = 1 ] && program=codex
 
-case "$case" in
-  with-flow|empty) ;;
-  *)
-    if [ -z "$case" ] || [ ! -d "$computers/$case" ]; then
-      echo "try.sh: no case named \"$case\". The cases are with-flow, empty, and the saved computers: $(ls "$computers" 2>/dev/null | tr '\n' ' ')" >&2
-      echo "Save this computer with: bash lab/scripts/save-computer.sh <name>" >&2
-      exit 2
-    fi
-    ;;
-esac
-if [ -z "$project" ] || [ ! -e "$seeds/$project/seed.sh" ]; then
+plain() {
+  case "$1" in
+    ''|*/*|.*) echo "try.sh: \"$1\" is not a plain name" >&2; exit 2 ;;
+  esac
+}
+
+# ---- list and delete --------------------------------------------------------
+
+if [ "$list" = 1 ]; then
+  found=0
+  for dir in "$try"/*/; do
+    [ -e "$dir/case" ] || continue
+    found=1
+    state="not installed"
+    [ -e "$dir/home/.flow/scripts" ] && state="installed, setup not finished"
+    [ -e "$dir/home/.flow/version" ] && state="set up"
+    printf '%-20s from %-16s %s\n' "$(basename "$dir")" "$(cat "$dir/case")" "$state"
+  done
+  [ "$found" = 1 ] || echo "no runs yet. Start one with: bash lab/scripts/try.sh --case <name>"
+  exit 0
+fi
+
+if [ -n "$delete" ]; then
+  plain "$delete"
+  if [ ! -e "$try/$delete/case" ]; then
+    echo "try.sh: no run named \"$delete\". bash lab/scripts/try.sh --list shows them" >&2
+    exit 2
+  fi
+  rm -rf "${try:?}/$delete"
+  echo "deleted the run $delete"
+  exit 0
+fi
+
+# ---- which run --------------------------------------------------------------
+
+name="${name:-${case:-empty}}"
+plain "$name"
+run="$try/$name"
+scratch="$run/home"
+home="$scratch/.claude"
+
+# --fresh keeps what the run was built from, unless the flags name another.
+if [ "$fresh" = 1 ] && [ -e "$run/case" ]; then
+  case="${case:-$(cat "$run/case")}"
+  project="${project:-$(cat "$run/project")}"
+  rm -rf "${run:?}"
+fi
+
+built=0
+if [ -e "$run/case" ]; then
+  built=1
+  if [ -n "$case" ] && [ "$case" != "$(cat "$run/case")" ]; then
+    echo "try.sh: the run $name was built from $(cat "$run/case"), not $case. Name another run, or add --fresh to build $name again" >&2
+    exit 2
+  fi
+  if [ -n "$project" ] && [ "$project" != "$(cat "$run/project")" ]; then
+    echo "try.sh: the run $name holds the $(cat "$run/project") project. Name another run, or add --fresh" >&2
+    exit 2
+  fi
+  case="$(cat "$run/case")"
+  project="$(cat "$run/project")"
+fi
+case="${case:-empty}"
+project="${project:-app}"
+plain "$case"
+plain "$project"
+
+if [ "$case" != empty ] && [ ! -d "$computers/$case" ]; then
+  echo "try.sh: no case named \"$case\". The cases are empty, and the saved computers: $(ls "$computers" 2>/dev/null | tr '\n' ' ')" >&2
+  echo "Save this computer with: bash lab/scripts/save-computer.sh <name>" >&2
+  exit 2
+fi
+if [ ! -e "$seeds/$project/seed.sh" ]; then
   echo "try.sh: no project named \"$project\", the projects are: $(ls "$seeds" | tr '\n' ' ')" >&2
   exit 2
 fi
@@ -84,14 +161,7 @@ if ! command -v bwrap >/dev/null; then
   echo "try.sh: the session runs under bwrap, and bwrap is not on the PATH" >&2
   exit 2
 fi
-
-# The pretend computer is rebuilt every run. The scratch project is not, and
-# this is the fix: it accumulates the tickets, handoffs and inbox entries a
-# real test needs, and wiping it every run left nothing to test against.
-# --fresh takes it out. tmp/computers/ is never touched.
-[ "$fresh" = 1 ] && rm -rf "$try"
-rm -rf "$scratch"
-mkdir -p "$scratch" "$home" "$proj"
+proj="$scratch/code/$project"
 
 # The first-run answers: the account and the onboarding flag from
 # ~/.claude.json, the theme from ~/.claude/settings.json. Each is stored, and
@@ -151,9 +221,9 @@ creds="$HOME/.claude/.credentials.json"
 # The session's view of the disk. The whole disk read-only, then the scratch
 # root mounted over the home folder at its real path, so ~ and every path
 # built from it read the way they do on a real machine. Three things come back
-# in: the repo, read-only, since skills link into it; tmp/try, writable, which
-# holds the scratch root and the project; and the programs the session runs,
-# which live under the real home folder here.
+# in: the repo, read-only, since skills link into it; the run's own folder,
+# writable, which holds the stand-in repository; and the programs the session
+# runs, which live under the real home folder here.
 #
 # The login is the one file bound writable from the real home. Claude Code
 # renews it by writing it, and a copy that renewed would use up the refresh
@@ -167,7 +237,7 @@ path="$HOME/.local/bin:$node_dir/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/u
 box=(bwrap --die-with-parent --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp
   --bind "$scratch" "$HOME"
   --ro-bind "$root" "$root"
-  --bind "$try" "$try"
+  --bind "$run" "$run"
   --ro-bind "$node_dir" "$node_dir")
 [ -e "$creds" ] && box+=(--bind "$creds" "$creds")
 
@@ -186,47 +256,60 @@ bring() {
 
 box+=(--clearenv --setenv HOME "$HOME" --setenv PATH "$path"
   --setenv USER "$USER" --setenv TERM "${TERM:-xterm-256color}" --setenv LANG "${LANG:-C.UTF-8}")
-for name in COLORTERM WSL_DISTRO_NAME WSL_INTEROP DISPLAY WAYLAND_DISPLAY; do
-  [ -n "${!name:-}" ] && box+=(--setenv "$name" "${!name}")
+for var in COLORTERM WSL_DISTRO_NAME WSL_INTEROP DISPLAY WAYLAND_DISPLAY; do
+  [ -n "${!var:-}" ] && box+=(--setenv "$var" "${!var}")
 done
 
-# ---- the case ---------------------------------------------------------------
+# ---- a new run --------------------------------------------------------------
 
-# Git settings come along in every case: the scratch project commits, and a
-# computer without a git identity is not one Flow ever meets. A saved computer
-# brings its own over this copy.
-[ -e "$HOME/.gitconfig" ] && cp "$HOME/.gitconfig" "$scratch/.gitconfig"
+if [ "$built" = 0 ]; then
+  mkdir -p "$scratch" "$home"
 
-case "$case" in
-  empty) first_run ;;
-  with-flow) ;;
-  *) cp -a "$computers/$case/." "$scratch/" ;;
-esac
+  # Git settings come along in every case: the scratch project commits, and a
+  # computer without a git identity is not one Flow ever meets. A saved
+  # computer brings its own over this copy.
+  [ -e "$HOME/.gitconfig" ] && cp "$HOME/.gitconfig" "$scratch/.gitconfig"
 
-# Claude Code comes in every case, since install.sh checks for it, and Codex
-# with --codex. Brought after a saved computer is copied, so its own links to
+  if [ "$case" = empty ]; then
+    first_run
+  else
+    cp -a "$computers/$case/." "$scratch/"
+  fi
+
+  # The install asks for the repository ~/.flow/ lives in, and --repo answers
+  # with this one. A real one would put a new private repository on GitHub
+  # every time a run is built.
+  git init --quiet --bare "$run/remote.git"
+
+  # A project is built from a seed, a folder under lab/scripts/seeds/: files/
+  # is copied into the project, then seed.sh runs with FLOW_JS and PROJ set
+  # and builds the board. The default, app, is a small real program with
+  # tickets that fit it, so the phase skills run against code. The manual's
+  # captured examples come from it.
+  mkdir -p "$proj"
+  cp -r "$root/project-template/." "$proj/"
+  git -C "$proj" init --quiet
+  [ -d "$seeds/$project/files" ] && cp -r "$seeds/$project/files/." "$proj/"
+  # The seed runs outside the sandbox, where Flow is not set up and every flow
+  # command refuses. A ~/.flow of its own, holding only the version stamp, lets
+  # it through without reading or writing the real one.
+  seed_home="$run/seed-flow"
+  mkdir -p "$seed_home"
+  node -e 'console.log(require(process.argv[1]).newest(process.argv[2]))' \
+    "$root/scripts/flow/lib/version.js" "$root" > "$seed_home/version"
+  FLOW_HOME="$seed_home" FLOW_JS="$root/scripts/flow/flow.js" FLOW_PROJECT="$proj" PROJ="$proj" \
+    bash "$seeds/$project/seed.sh"
+  rm -rf "$seed_home"
+
+  echo "$case" > "$run/case"
+  echo "$project" > "$run/project"
+fi
+
+# Claude Code comes in every run, since install.sh checks for it, and Codex
+# with --codex. Brought on every run, after a saved computer is copied, so its own links to
 # them are replaced by ones that resolve inside the sandbox.
 bring claude
 [ "$codex" = 1 ] && bring codex
-
-if [ "$case" = with-flow ]; then
-  # `flow install` itself, run inside the sandbox with no --root, so every link
-  # it makes is the one a real machine gets: ~/.local/bin/flow included.
-  #
-  # --new-session takes the terminal away, so the install's 2 questions are
-  # skipped rather than asked behind the silenced output.
-  #
-  # --no-clone, so a scratch session never reaches the network: util, the
-  # toolbox and the skill repositories stay uncloned, and the session has
-  # Flow's own skills alone. --drafts always, because a draft that cannot be
-  # tested is the one thing this script exists to make testable.
-  "${box[@]}" --new-session --chdir "$root" node "$root/scripts/flow/flow.js" install \
-    --no-clone --drafts </dev/null >/dev/null
-  # On a real machine /flow:setup-machine merges Flow's hooks into
-  # settings.json. This case stands for a machine where setup already ran.
-  cp "$root/home/settings.json" "$home/settings.json"
-  first_run
-fi
 
 # Codex keeps its login in auth.json, and renews it by rewriting that file
 # when the access token is 5 minutes from expiring. Renewal uses up the old
@@ -257,58 +340,44 @@ NODE
   chmod 600 "$scratch/.codex/auth.json"
 fi
 
-# ---- the scratch project ----------------------------------------------------
-
-# Built once and kept. flow finds the project root through git, and tmp/ sits
-# inside the Flow repo, without a repo of its own here, every ticket would
-# land in Flow itself.
-# A project is built from a seed, a folder under lab/scripts/seeds/: files/ is
-# copied into the project, then seed.sh runs with FLOW_JS and PROJ set and
-# builds the board. The default, app, is a small real program with tickets
-# that fit it, so the phase skills run against code. The manual's captured
-# examples come from it.
-if [ ! -e "$proj/.git" ]; then
-  cp -r "$root/project-template/." "$proj/"
-  git -C "$proj" init --quiet
-  [ -d "$seeds/$project/files" ] && cp -r "$seeds/$project/files/." "$proj/"
-  FLOW_JS="$root/scripts/flow/flow.js" FLOW_PROJECT="$proj" PROJ="$proj" bash "$seeds/$project/seed.sh"
-  echo "built the scratch project at $proj from the $project seed"
-fi
-
 # ---- start it ---------------------------------------------------------------
 
-# The session starts from a script, since the bwrap line is too long to copy
-# by hand. The script is rewritten every run, with the rest of the computer.
-#
-# Every case but with-flow starts at install.sh, run from this checkout with
-# --use, so the test covers edits nobody has committed. The session opens once
-# the install ends.
-if [ "$case" = with-flow ]; then
-  inside=("$program")
+# A new run starts at install.sh, run from this checkout with --use, so the
+# test covers edits nobody has committed. --drafts always, because a draft
+# that cannot be tested is the one thing this script exists to make testable.
+# The session opens once the install ends. A run reopened starts the session
+# alone.
+if [ "$built" = 0 ]; then
+  inside=(bash -c 'bash "$1" --use "$2" --drafts --repo "$3" && exec "$4"' install
+    "$root/install.sh" "$root" "$run/remote.git" "$program")
 else
-  inside=(bash -c 'bash "$1" --use "$2" --no-clone --drafts && exec "$3"' install
-    "$root/install.sh" "$root" "$program")
+  inside=("$program")
 fi
-launcher="$try/sandbox.sh"
+launcher="$run/sandbox.sh"
 {
   echo '#!/usr/bin/env bash'
-  echo "# Written by lab/scripts/try.sh: the scratch session, on the $case case."
+  echo "# Written by lab/scripts/try.sh: the run $name, from the $case case."
   printf 'exec'
-  printf ' %q' "${box[@]}" --chdir "$proj" "${inside[@]}"
+  printf ' %q' "${box[@]}" --chdir "$HOME/code/$project" "${inside[@]}"
   echo
 } > "$launcher"
+
+reopened=
+[ "$built" = 1 ] && reopened=", reopened as it was left"
+cat <<EOF
+
+the run $name, from the $case case$reopened
+  home folder    $scratch, seen inside as ~
+  Flow's files   $scratch/.flow
+  project        $proj, seen inside as ~/code/$project
+
+EOF
 
 if [ -t 0 ]; then
   exec bash "$launcher"
 fi
 
 cat <<EOF
-
-built $try, on the $case case
-  root/        the pretend computer's home folder, mounted at $HOME
-  project/     a git repo carrying the project template, kept between runs
-  sandbox.sh   the bwrap line that starts the session
-
 start the session from a terminal:
 
   bash $launcher

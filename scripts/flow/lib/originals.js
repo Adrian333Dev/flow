@@ -15,7 +15,7 @@
  *
  * **It is written in one window and never added to.** `flow install` opens the
  * machine's and records every path it is about to create. The first
- * /flow:setup-machine adds each path its migration changes, and closing the
+ * `flow setup` adds each path its migration changes, and closing the
  * window is the last thing that run does. A project's window opens and closes
  * inside its first /flow:setup-project. After that `record` is a no-op, so a
  * migration months later cannot mistake today's file for the state from before

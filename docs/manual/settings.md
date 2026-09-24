@@ -2,7 +2,7 @@
 
 Flow reads 5 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
 
-- **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `/flow:setup-machine` merges them in.
+- **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `flow setup` merges them in.
 - **`~/.flow/settings.json`** belongs to Flow, and travels to your other machine with the rest of `~/.flow/`.
 - **`~/.flow/settings.local.json`** belongs to Flow and to this machine alone. git ignores it.
 - **`<project>/.flow/settings.json`** belongs to one project, and is committed with it.
@@ -33,7 +33,7 @@ All 5 are strict JSON, so none can hold a comment. This page holds the explanati
 
 ## Claude Code's settings file
 
-`home/settings.json` is the template, and `/flow:setup-machine` merges its keys into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
+`home/settings.json` is the template, and `flow setup` merges its keys into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
 
 Settings load at startup. **Restart Claude Code after any change.**
 
@@ -197,6 +197,7 @@ Rules evaluate **deny → ask → allow**, first match wins. A broad deny beats 
 |---|---|
 | `Bash` | every shell command |
 | `Edit` | every file-editing tool, including Write |
+| `Read` | every file read, in any folder |
 | `WebFetch` | every domain |
 | `WebSearch` | every search |
 | `mcp__context7__*` | every tool from the context7 MCP server |
@@ -205,7 +206,9 @@ A tool name written **without parentheses matches every use of that tool**.
 
 Why blanket rather than a curated list: approving a command through the permission dialog saves the *exact string* that ran, so `util fs tree --depth 3` and `util fs tree --depth 4` become two rules. A hand-kept list of command patterns never converges and goes stale the moment a path moves. The deny list plus the guard define the boundary instead.
 
-Not on the list, so still prompts: reads outside the working directory, and writes into protected paths (`.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends), which allow rules cannot pre-approve by design.
+**`Read` is blanket for the same reason as `Bash`.** Without it, a read outside the project asks you. The same file printed with `cat` passes under the `Bash` allow, so the agent learns that the shell is the quiet way to read. Approving one read saves a rule for that one folder, and the next folder asks again.
+
+Still prompts: writes into protected paths (`.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends), which allow rules cannot pre-approve by design.
 
 **Spawning a subagent never prompts, so `Agent` needs no entry.** Claude Code checks a subagent's own tool calls against these same rules while it works, and that is what governs a worker.
 
@@ -227,6 +230,16 @@ These are **bare tool names**, which removes each tool from the model's context 
 **`SendMessage` stays allowed.** A parent resumes a finished subagent with it, after a crash too.
 
 **`Agent(fork)` is a scoped rule**, like `Agent(isolation:worktree)` above, so it blocks one subagent type and leaves the Agent tool alone. A fork is a subagent that starts with a copy of the whole conversation, and Claude Code starts one on its own in an interactive session. Flow never uses one: every agent Flow starts sees only what its prompt gives it.
+
+#### `deny`: 2 folders holding keys
+
+```json
+"deny": ["Read(~/.ssh/**)", "Read(~/.aws/**)"]
+```
+
+**Every read is allowed, so these 2 folders are walled off by name.** `~/.ssh` holds the keys that log you into servers and git hosts. `~/.aws` holds cloud credentials.
+
+A `Read` deny rule blocks the `Read` tool, and an edit to a file there. It also blocks the shell commands Claude Code recognizes as reads: `cat`, `head`, `tail`, `sed` and `grep`. It cannot see a script that opens files itself, such as `util fs merge` or a python one-liner.
 
 #### `deny`: the 2 commands that undo Flow
 
@@ -287,7 +300,7 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 
 **`auto` and `dontAsk` are the 2 unattended modes.** Reach for either with Shift+Tab, never by setting it here. `auto` lets the classifier approve what the allow list does not cover, and catches what the guard never looks for, such as a command sending data off the machine. `dontAsk` denies whatever the allow list does not cover, with no second model, so a long run finishes and every denial shows up in the transcript.
 
-**`acceptEdits` buys almost nothing.** With `Bash` and `Edit` blanket-allowed above, it is not the looser mode it looks like.
+**`acceptEdits` buys almost nothing.** With `Bash`, `Edit` and `Read` blanket-allowed above, it is not the looser mode it looks like.
 
 **`bypassPermissions` is locked out**, by `permissions.disableBypassPermissionsMode: "disable"`. Its one addition over `acceptEdits` is silent writes into `.claude` and `.git`, and Flow's settings, subagents and links all sit in `.claude`. The same key disables the `--dangerously-skip-permissions` flag that `guard.js` already denies as a Bash command, and makes Claude Code ignore `permissionMode: bypassPermissions` in any agent definition.
 
@@ -299,7 +312,7 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 "skillOverrides": { "batch": "off" }
 ```
 
-**Claude Code's key for hiding a skill from the model.** Set to `off`, a skill's description never enters a session, and typing it fails with *disabled via skillOverrides*. `home/settings.json` ships no entry. `/flow:setup-machine` writes one for each skill it switches off: Claude Code's own `/batch`, which needs worktrees, and a skill synced from your Claude account that works against Flow's rules.
+**Claude Code's key for hiding a skill from the model.** Set to `off`, a skill's description never enters a session, and typing it fails with *disabled via skillOverrides*. `home/settings.json` ships no entry. `flow setup` writes one for each skill it switches off: Claude Code's own `/batch`, which needs worktrees, and a skill synced from your Claude account that works against Flow's rules.
 
 **[`flow skills`](reference.md#flow-skills) never writes it.** Flow switches its own skills, and the ones from skill repositories, by adding and removing links. 2 reasons decided against this key:
 

@@ -89,7 +89,7 @@ function attention(at, cwd) {
   const mine = version.applied(path.join(at.flow, 'version'));
 
   if (mine.state === 'missing') {
-    out.push('this machine carries no version stamp, so /flow:setup-machine never reached its last step. Type /flow:setup-machine.');
+    out.push('this machine carries no version stamp, so flow setup never reached its last step. Run flow setup.');
   } else if (mine.state === 'unreadable') {
     out.push(`~/.flow/version holds "${mine.text}", and it holds one changelog entry number and nothing else. Run flow doctor.`);
   } else if (newest !== null && mine.number > newest) {

@@ -21,7 +21,7 @@ set -euo pipefail
 name="${1:-}"
 case "$name" in
   '') echo "save-computer.sh: name the copy, as in: bash lab/scripts/save-computer.sh my-laptop" >&2; exit 2 ;;
-  empty|with-flow) echo "save-computer.sh: \"$name\" is one of try.sh's own cases, pick another name" >&2; exit 2 ;;
+  empty) echo "save-computer.sh: \"$name\" is one of try.sh's own cases, pick another name" >&2; exit 2 ;;
   */*|.*) echo "save-computer.sh: \"$name\" is not a plain name" >&2; exit 2 ;;
 esac
 

@@ -86,7 +86,7 @@ function runAction(action, argv, usage, extra) {
 /**
  * Checked once per run, between the flags and the action, so a check that
  * needs `--root` sees it. `dispatch` sets it and the tool decides what it
- * does: flow refuses a machine /flow:setup-machine never finished.
+ * does: flow refuses a machine `flow setup` never finished.
  */
 let before = null;
 

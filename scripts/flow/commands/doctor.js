@@ -165,7 +165,7 @@ function checkNames(clone, { bin }) {
  */
 const UTIL_COMMANDS = [
   { name: 'fs tree', callers: 'home/AGENTS.md, in tree-for-structure' },
-  { name: 'fs merge', callers: 'home/AGENTS.md, in merge-for-bulk-reads' },
+  { name: 'fs merge', callers: 'home/AGENTS.md, in read-one-merge-many' },
   { name: 'fs open', callers: 'flow get --files, through tickets.js' },
 ];
 
@@ -263,7 +263,7 @@ function checkAgents(at, catalog) {
 
   const rules = path.join(at.agents, 'AGENTS.md');
   if (!fs.existsSync(rules)) {
-    problems.push(`${shorten(rules)} is missing: type /flow:setup-machine, which writes it`);
+    problems.push(`${shorten(rules)} is missing: run flow setup, which writes it`);
   }
 
   return {
@@ -295,7 +295,7 @@ function checkClaude(clone, at) {
   try {
     text = fs.readFileSync(file, 'utf8');
   } catch {
-    problems.push(`CLAUDE.md is missing, so Claude Code loads no rules: type /flow:setup-machine`);
+    problems.push(`CLAUDE.md is missing, so Claude Code loads no rules: run flow setup`);
   }
   if (text !== null && !text.split('\n').some((l) => l.trim() === line)) {
     problems.push(`CLAUDE.md does not import the rules, so Claude Code never reads them: add the line ${line}`);
@@ -312,7 +312,7 @@ function checkClaude(clone, at) {
 /**
  * settings.json: the one file Flow shares rather than owns.
  *
- * `/flow:setup-machine` merges Flow's keys into it, key by key, because it
+ * `flow setup` merges Flow's keys into it, key by key, because it
  * already holds your model, your plugins and your effort level. A merge that
  * stopped half way is the likeliest state on this whole page.
  */
@@ -328,7 +328,7 @@ function checkSettings(clone, claude, catalog) {
       : `does not parse: ${e.message}`;
     return {
       name: 'settings.json',
-      problems: [`${file} ${why}: type /flow:setup-machine, which merges ${path.join(clone, 'home', 'settings.json')} into it`],
+      problems: [`${file} ${why}: run flow setup, which merges ${path.join(clone, 'home', 'settings.json')} into it`],
     };
   }
 
@@ -340,7 +340,7 @@ function checkSettings(clone, claude, catalog) {
     const match = installed.find((h) => h.event === row.event && h.matcher === row.matcher &&
       h.script && path.basename(h.script) === path.basename(row.script));
     if (!match) {
-      problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: type /flow:setup-machine, which merges it in`);
+      problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: run flow setup, which merges it in`);
       continue;
     }
     const resolved = machine.expandHome(match.script);
@@ -428,7 +428,7 @@ function checkOriginals(at) {
     notes.push('this machine has no original, so flow restore machine has nothing to put back ' +
       'and flow uninstall removes Flow\'s own paths instead of restoring them');
   } else if (!mine.closed) {
-    notes.push('the machine\'s original is still open, so /flow:setup-machine has not run to the end. ' +
+    notes.push('the machine\'s original is still open, so flow setup has not run to the end. ' +
       'It closes the original on its way out');
   }
 
@@ -523,10 +523,10 @@ function checkSkills(at) {
 /**
  * A run that stopped part-way, reported before anything else.
  *
- * Each of the 3 management skills writes ~/.flow/run.json before its first
- * step and deletes it at its last, so the file on disk means a run never
- * finished. Every check below it is then reading a machine half way through a
- * change, and reads it wrong.
+ * `flow setup`, /flow:setup-project and /flow:migrate each write
+ * ~/.flow/run.json before their first step and delete it at their last, so
+ * the file on disk means a run never finished. Every check below it is then
+ * reading a machine half way through a change, and reads it wrong.
  */
 function checkRun(at) {
   const found = migrations.run(at);
@@ -538,14 +538,16 @@ function checkRun(at) {
 
   const started = found.started ? `, started ${found.started}` : '';
   const step = found.step ? `after step ${found.step}` : 'before its first step';
-  const skill = migrations.TYPES.includes(found.type) ? `/flow:${found.type}` : 'the skill that wrote it';
+  // The machine's setup is a command. The other 2 are skills.
+  const resume = found.type === 'setup-machine' ? 'run flow setup'
+    : migrations.TYPES.includes(found.type) ? `open a session and type /flow:${found.type}` : 'open the run that wrote it again';
   const back = found.project ? `flow restore project ${found.project}` : 'flow restore machine';
 
   return {
     name: 'run.json',
     problems: [
       `a ${found.type || 'Flow'} run stopped ${step}${started}, so this machine is part way through a change`,
-      `carry on: open a session and type ${skill}, which reads ${file} and starts at that step`,
+      `carry on: ${resume}, which reads ${file} and starts at that step`,
       `go back: type ${back} in a shell with no session open, which puts the place back to how it was before Flow`,
     ],
   };
@@ -574,7 +576,7 @@ function checkVersion(clone, at) {
   const file = path.join(at.flow, 'version');
   const mine = version.applied(file);
   if (mine.state === 'missing') {
-    notes.push(`${shorten(file)} is missing, and the last step of /flow:setup-machine is what stamps it`);
+    notes.push(`${shorten(file)} is missing, and the last step of flow setup is what stamps it`);
   } else if (mine.state === 'unreadable') {
     problems.push(`${shorten(file)} holds "${mine.text}", and it holds one changelog entry number and nothing else`);
   } else if (mine.number > newest) {

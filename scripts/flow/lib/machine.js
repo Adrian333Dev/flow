@@ -43,20 +43,35 @@ function folders(root) {
 }
 
 /**
- * Refuse every command on a machine where /flow:setup-machine never finished.
+ * Refuse every command on a machine where `flow setup` never finished.
  *
  * `~/.flow/version` holds the number of the newest changelog entry this
  * machine applied, written by the last step of a setup or a migration, so
  * its absence means the run never reached the end. Nothing else can catch this:
- * Flow's hooks reach ~/.claude/settings.json only when that skill merges them,
+ * Flow's hooks reach ~/.claude/settings.json only when the setup merges them,
  * so before it runs there is no hook to fire and no rule file loaded. The
  * commands that put Flow on a machine or take it off say `anywhere: true` and
  * skip it.
+ *
+ * A setup running right now passes too. Its migration runs `flow skills` to
+ * take over the user's outside skills, and it stamps the version only after
+ * the check at its end, so it would otherwise refuse its own steps.
+ * `~/.flow/run.json` naming `setup-machine` is how the run says so.
  */
 function requireSetup(root) {
   const at = folders(root);
   if (fs.existsSync(path.join(at.flow, 'version'))) return;
-  throw new FlowError('Flow is not set up on this machine. Run flow install again.');
+  if (settingUp(at)) return;
+  throw new FlowError('Flow is not set up on this machine. Run flow setup.');
+}
+
+/** True while `flow setup` is part way through, read off `~/.flow/run.json`. */
+function settingUp(at) {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(at.flow, 'run.json'), 'utf8')).type === 'setup-machine';
+  } catch {
+    return false;
+  }
 }
 
 /**

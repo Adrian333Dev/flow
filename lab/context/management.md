@@ -830,6 +830,34 @@ The rulings behind it, each approved 2026-09-23:
 - **Codex is never mentioned.**
 - **The capture line in `home/AGENTS.md` that routes a Flow failure gains `→ /flow:review, if it's in your skill list`**, since the user can switch that skill off.
 
+**Built 2026-09-24 as `skills/tools/setup-machine/references/form.md`, with 4 differences from the form above**, each forced by the code:
+
+- **`fileSuggestion` gets a line under `## What Flow sets up`**, and **`disableRemoteControl` one under `### Rarely used`.** Both keys are in `home/settings.json`, and the form must name every key it writes.
+- **`/flow:setup-machine` joins the list of skills that cost nothing until typed.** Taken back out the same day, when setup stopped being a skill.
+- **`## Every file this changes` holds one path per line, in the parser's shape.** A `move` reads `->`, and a `run` line ends `: writes <paths>`, since `scripts/flow/lib/migrations.js` refuses anything else. The rule file is 2 lines, `~/.flow/AGENTS.md` and the link `~/.agents/AGENTS.md`, landing the move agreed 2026-09-20 in `backlog.md` → **Working on more than one machine**.
+
+### Setup is not a skill, ruled 2026-09-24 after the first terminal run
+
+The user ran the build through `try.sh` from a real terminal. What it found, and what was agreed in answer:
+
+- **Setup leaves `skills/`.** Safe mode loads no skill, so the text only ever reached the session as a system prompt, and a typed `/flow:setup-machine` in a normal session would run beside the plugins it removes. It lives in `scripts/flow/setup/`: `machine.md` and `form.md`. Migrations stay skills, since they run on a machine setup already cleared.
+- **`flow setup` comes back** as the command that opens the session, reversing its drop below. `flow install` calls it last, and typing it carries on a stopped setup. `flow setup check` checks the install is whole first, and `flow setup finish` stamps the version.
+- **Auto mode refused the first write**, `~/.flow/run.json`, as the agent changing its own setup. The session now starts with `--permission-mode acceptEdits`, `--add-dir ~/.flow` and 3 allowed commands. `disableAutoMode` was rejected: it changes the user's own choice for every session.
+- **A missing requirement stops setup.** The session met no `util`, since the sandbox skipped the clones, and fell back to `cat`.
+- **The form shows only what go changes.** A setting is judged by its value, so memory already off gets no box. An installed thing is judged by being there, since one switched off can be switched on again.
+- **An always-removed plugin has no box, and goes by `claude plugin uninstall`**, never by `enabledPlugins: false`.
+- **The repository question has no skip.** Enter makes one with `gh`, signing in first when `gh auth status` fails. An address is read with `git ls-remote` before it is kept. With no terminal and no `--repo`, the install stops before setup.
+- **The install prints a summary**, and every line to `~/.flow/install.log`.
+- **`try.sh` runs are folders of their own**, `tmp/try/<name>/`, kept and reopened by name. Every run starts with the real install, clones from GitHub included, and `--repo` points at a local stand-in so no run makes a GitHub repository. `with-flow` is gone. The project sits at `~/code/<seed>`, the path a real one has.
+
+A sandbox run of the moved setup, under `acceptEdits`, reached a correct form and then stopped on 4 things. Fixed the same day under the same approval:
+
+- **`util fs tree` and `util fs merge` are allowed too**, 5 commands in all. Flow's own rules forbid `ls` and send every look at a folder through them.
+- **The session starts in the home folder**, so reading `~/.claude/` and `~/.agents/` asks nothing.
+- **`flow setup` names the migration folder in `run.json`.** The session has no allowed command that tells it the time.
+- **`~/.agents/AGENTS.md` is made by a `run` line** at apply time, never as a link inside `files/`, since `ln` is not a command `acceptEdits` lets through.
+- **One prompt stays.** Claude Code asks before any write to a path holding a `.claude` folder, `files/home/<user>/.claude/settings.json` included, and the docs say no allow rule skips it. The session warns the user first, and the prompt's for-this-session answer covers the rest. Renaming the mirror path was the alternative, and would change the migration format for one prompt.
+
 ### `flow install` starts setup, and a second run leaves it alone
 
 - **`flow setup` is dropped. `flow install` ends by starting the setup session itself**, `claude --safe-mode` with one `--append-system-prompt-file`: the rule template joined with the setup skill. Safe mode was tested by the user and works. Only the last copy of that flag counts, so the 2 files are joined into one.

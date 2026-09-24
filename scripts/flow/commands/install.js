@@ -12,18 +12,19 @@
  *
  * This is half of putting Flow on a machine: links into the clone, which
  * `lib/installed.js` lists, and the clones Flow reads, which `lib/repos.js`
- * lists. `lib/machine.js` says which folder holds what. The other half is the
- * skill this prints at the end, `/flow:setup-machine`: it writes the rule file
- * `~/.agents/AGENTS.md` and the import line, merges Flow's hooks into
+ * lists. `lib/machine.js` says which folder holds what. The other half is
+ * `flow setup`, which this starts at the end: a Claude Code session that
+ * writes the rule file and the import line, merges Flow's hooks into
  * `~/.claude/settings.json`, and closes the original. A rule file written here
  * would be the template with nothing of the user in it, so this writes none.
+ * `commands/setup.js` says how the session opens.
  *
  * Every clone lives in `~/.flow/repos/`. Flow's own is `repos/flow`, a link
  * where this clone sits somewhere else. util, the toolbox and every skill
  * repository in `sources` are cloned when missing, and a clone that fails is
  * a warning: running install again changes nothing that exists, so it is
  * always the fix. util gets its names through its own `util install`.
- * `--no-clone` skips all 3, for the tests and the scratch session.
+ * `--no-clone` skips all 3, for the tests.
  *
  * On a machine where setup already finished, `~/.flow/version` exists and the
  * run ends without sending the user to setup again.
@@ -33,8 +34,11 @@
  * `flow restore machine` puts all of them back, `~/.local/bin/flow` included.
  *
  * At a terminal it asks 2 questions, this machine's name and the GitHub
- * repository that carries `~/.flow/` to a second machine. Run where nobody is
- * at the keyboard it asks neither and says so.
+ * repository `~/.flow/` lives in, and `--repo <address>` answers the second.
+ * `ask()` below says why an install with no repository stops before setup.
+ *
+ * The screen gets a summary and every line that changed or failed. The whole
+ * run goes to `~/.flow/install.log`.
  *
  * `--root <dir>` puts the whole install under `<dir>` in place of the home
  * folder, `~/.local/bin` included. The tests and lab/scripts/try.sh use it to
@@ -66,7 +70,9 @@ const originals = require('../lib/originals');
 const repos = require('../lib/repos');
 const links = require('../lib/skill-links');
 const skills = require('../lib/skills');
+const setup = require('./setup');
 
+const show = machine.shorten;
 const actions = {};
 
 actions.install = {
@@ -77,12 +83,12 @@ actions.install = {
     root: { arg: '<dir>' },
     'no-bin': { bool: true },
     'no-clone': { bool: true },
+    repo: { arg: '<address>' },
     drafts: { bool: true },
   },
   run({ flags }) {
     const clone = cloneRoot();
     const at = machine.folders(flags.root);
-    const show = machine.shorten;
     const done = [];
     const bin = flags['no-bin'] ? null : path.join(at.base, '.local', 'bin');
     const setUp = fs.existsSync(path.join(at.flow, 'version'));
@@ -198,31 +204,47 @@ actions.install = {
     done.push(...applied.changed);
     done.push(...applied.problems);
 
-    done.push(...ask(at, clone));
+    const asked = ask(at, flags.repo);
+    done.push(...asked.lines);
     history.record(at.flow, { type: 'install', clone });
-    out(done.join('\n'));
 
+    // Every line goes to the log. The screen gets the ones that say something
+    // changed or failed: a link made again, the same as last time, is noise
+    // above the part that matters.
+    const log = path.join(at.flow, 'install.log');
+    fs.writeFileSync(log, `${new Date().toISOString()}\n${done.join('\n')}\n`);
+    const count = skills.installable({ drafts: flags.drafts }).filter(skills.essential).length;
+    const shown = done.filter((line) => !/^(linked|wrote): /.test(line) || /originals/.test(line));
+    out([
+      `Flow is installed: ${count} skills, each typed under the plugin name, as /${skills.PLUGIN}:groundwork.`,
+      ...shown,
+      `Every line of the install is in ${show(log)}.`,
+    ].join('\n'));
+
+    if (bin && !onPath(bin)) {
+      out(`\n${show(bin)} is not on your PATH, so flow and util do not run by name yet. Add it, then open a new terminal.`);
+    }
+
+    if (!asked.ok) return 1;
     if (setUp) {
       out('\nFlow is already set up on this machine, so there is nothing more to do.');
       return 0;
     }
-
-    out(
-      `\nOne step left: restart Claude Code, then type /flow:setup-machine.\n` +
-      `That skill lists every change in one form for you to check, writes your rule file ${show(path.join(at.agents, 'AGENTS.md'))},\n` +
-      `merges Flow's hooks and permission rules into ${show(path.join(at.claude, 'settings.json'))},\n` +
-      `and closes the record of how this machine looked before Flow.\n` +
-      `Restart first: settings and skills are both read when a session starts.`
-    );
-
-    out(`\nEvery skill is typed under the plugin name: /${skills.PLUGIN}:groundwork.`);
-
-    if (bin) {
-      out('\nCheck ~/.local/bin is on your PATH, then every name above works anywhere.');
+    // A scratch root is never the machine a session would read, so the
+    // session is left for the test to open through flow setup itself.
+    if (flags.root) {
+      out(`\nOne step left: setting up this machine. Start it from a terminal:\n\n  flow setup --root ${flags.root}`);
+      return 0;
     }
-    return 0;
+    out('');
+    return setup.start(at, clone, null);
   },
 };
+
+/** True when `dir` is one of the folders on PATH. */
+function onPath(dir) {
+  return (process.env.PATH || '').split(path.delimiter).some((d) => path.resolve(d || '.') === path.resolve(dir));
+}
 
 /** A path with every link resolved, or the path itself where it resolves to nothing. */
 function realpath(p) {
@@ -289,58 +311,96 @@ function suggestName() {
 }
 
 /**
- * The 2 questions, asked at a terminal and skipped anywhere else.
+ * The 2 questions: this machine's name, and the repository `~/.flow/` lives
+ * in. Returns the lines to print, and whether the repository is in place.
  *
- * Skipped rather than answered by default, because Enter on the second one
- * makes a repository on GitHub. A default nobody typed must never do that, and
- * a test never has a terminal.
+ * The repository has no skip. `~/.flow/` holds the rules, the notes and the
+ * study cases, and the repository is both their backup and how a second
+ * machine gets them, so an install without one is not finished. With no
+ * terminal and no `--repo`, the install stops here, every link already made,
+ * and setup does not start.
  *
- * Neither answer can fail the install. Every link is already made by the time
- * these are asked, so a `gh` that is not logged in reports itself as a line in
- * the output and the machine is still installed.
+ * A repository that is already there is kept without asking, so running
+ * install again asks nothing.
  */
-function ask(at, clone) {
-  const done = [];
-  if (!confirm.hasTerminal()) {
-    done.push(
-      'asked nothing: no terminal here, so this machine has no name and no repository.\n' +
-      `  Run node ${path.join(clone, 'scripts', 'flow', 'flow.js')} install from a terminal to answer both.`
-    );
-    return done;
-  }
+function ask(at, repo) {
+  const lines = [];
+  const terminal = confirm.hasTerminal();
 
   const already = flowRepo.machineName(at);
-  const suggested = already || suggestName();
-  const name = confirm.ask(
-    `\nA name for this machine, so work sent to the other one says where it came from [${suggested}]: `,
-    suggested
-  );
-  if (name === already) done.push(`kept: this machine is called ${name}`);
-  else {
+  if (already) lines.push(`kept: this machine is called ${already}`);
+  else if (terminal) {
+    const suggested = suggestName();
+    const name = confirm.ask(
+      `\nA name for this machine, so work sent to the other one says where it came from [${suggested}]: `,
+      suggested
+    );
     const set = flowRepo.git(at.flow, ['config', '--global', 'util.machine', name]);
-    done.push(set.ok ? `named: this machine is ${name}` : `could not save the name: ${set.err}`);
+    lines.push(set.ok ? `named: this machine is ${name}` : `could not save the name: ${set.err}`);
   }
 
-  const answer = confirm.ask(
-    '\n~/.flow/ holds your rules, notes, study cases and the tickets that belong to no\n' +
-    'project. One private GitHub repository is how a second machine gets them.\n' +
-    '  Enter      make one now with gh, private\n' +
-    '  <address>  use a repository you already made\n' +
-    '  skip       leave ~/.flow/ on this machine alone\n' +
-    'Which: ',
-    'new'
-  );
-  if (answer === 'skip') {
-    done.push('skipped: ~/.flow/ stays on this machine. flow install again to give it a repository');
-    return done;
+  const origin = flowRepo.isRepo(at) ? flowRepo.git(at.flow, ['remote', 'get-url', 'origin']) : { ok: false };
+  if (origin.ok && !repo) {
+    lines.push(`kept: ${show(at.flow)} is sent to ${origin.out}`);
+    return { lines, ok: true };
   }
-  try {
-    done.push(`repository: ${flowRepo.start(at, answer)}`);
-    done.push('send it up and bring the other machine\'s down with flow sync');
-  } catch (e) {
-    done.push(e.message);
+
+  if (repo) {
+    try {
+      lines.push(`repository: ${flowRepo.start(at, repo)}`);
+      return { lines, ok: true };
+    } catch (e) {
+      lines.push(`stopped: ${e.message}`);
+      return { lines, ok: false };
+    }
   }
-  return done;
+
+  if (!terminal) {
+    lines.push(
+      `stopped: ${show(at.flow)} needs a repository, and there is no terminal here to ask for one.\n` +
+      '  Run flow install from a terminal, or name one: flow install --repo <address>'
+    );
+    return { lines, ok: false };
+  }
+
+  for (;;) {
+    const gh = github();
+    const answer = confirm.ask(
+      `\n${show(at.flow)} holds your rules, notes, study cases and the tickets that belong to no\n` +
+      'project. It lives in one private GitHub repository, which keeps a copy of it and is\n' +
+      'how a second machine gets it.\n' +
+      (gh === 'ready' ? '  Enter      make one now, private, with gh\n' : '') +
+      (gh === 'signed-out' ? '  Enter      sign in to GitHub with gh, then make one, private\n' : '') +
+      (gh === 'missing' ? '  (gh is not installed, so Enter cannot make one: make it on github.com)\n' : '') +
+      '  <address>  use one you already made\n' +
+      'Which: ',
+      'new'
+    );
+    if (answer === 'new' && gh === 'missing') continue;
+    if (answer === 'new' && gh === 'signed-out') {
+      const tty = fs.openSync('/dev/tty', 'r');
+      const login = spawnSync('gh', ['auth', 'login'], { stdio: [tty, 'inherit', 'inherit'] });
+      fs.closeSync(tty);
+      if (login.status !== 0) {
+        out('gh did not sign in. Try again, or give an address.');
+        continue;
+      }
+    }
+    try {
+      lines.push(`repository: ${flowRepo.start(at, answer)}`);
+      lines.push('send it up and bring the other machine\'s down with flow sync');
+      return { lines, ok: true };
+    } catch (e) {
+      out(e.message);
+    }
+  }
+}
+
+/** Whether gh can make a repository now: ready, signed-out or missing. */
+function github() {
+  const status = spawnSync('gh', ['auth', 'status'], { stdio: 'ignore' });
+  if (status.error) return 'missing';
+  return status.status === 0 ? 'ready' : 'signed-out';
 }
 
 module.exports = actions;

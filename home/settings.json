@@ -145,6 +145,7 @@
     "allow": [
       "Bash",
       "Edit",
+      "Read",
       "WebFetch",
       "WebSearch",
       "mcp__context7__*"
@@ -168,6 +169,8 @@
       "EnterWorktree",
       "Agent(isolation:worktree)",
       "Agent(fork)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
       "Bash(flow restore machine:*)",
       "Bash(flow restore project:*)",
       "Bash(flow uninstall:*)",

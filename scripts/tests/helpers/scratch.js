@@ -55,12 +55,12 @@ function setUp(home) {
 }
 
 /**
- * The half of a machine `/flow:setup-machine` writes: the rule file, the one
+ * The half of a machine `flow setup` writes: the rule file, the one
  * line importing it, and the version stamp its last step leaves behind.
  *
  * `flow install` stopped writing all 3 on 2026-09-20, because the rule file is
- * written after that skill's interview and a copy made before it holds nothing
- * of the user. A test that needs a finished machine does the skill's job here.
+ * written after the setup's survey, and a copy made before it holds nothing
+ * of the user. A test that needs a finished machine does the setup's job here.
  */
 function setupMachine(root) {
   const machine = require('../../flow/lib/machine');
@@ -114,6 +114,20 @@ function gitRepo(dir, files) {
   return dir;
 }
 
+/**
+ * An empty bare repository standing in for the GitHub one `~/.flow/` lives
+ * in, for `flow install --repo`. Kept outside the test's own folder, so a test
+ * counting what landed there counts only the install.
+ */
+function bareRepo(name) {
+  const dir = path.join(SCRATCH, 'remotes', `${name}.git`);
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  const ran = spawnSync('git', ['init', '--quiet', '--bare', dir], { encoding: 'utf8' });
+  if (ran.status !== 0) throw new Error(`git init --bare: ${ran.stderr}`);
+  return dir;
+}
+
 /** A skill's SKILL.md, with the frontmatter every source expects. */
 const skillFile = (name, description = `The ${name} skill.`) =>
   `---\nname: ${name}\ndescription: ${description}\n---\n\nBody.\n`;
@@ -153,5 +167,5 @@ function flow(dir, args) {
 }
 
 module.exports = {
-  SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, utilStub, gitRepo, skillFile, pathWith, write, run, flow,
+  SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, utilStub, gitRepo, bareRepo, skillFile, pathWith, write, run, flow,
 };

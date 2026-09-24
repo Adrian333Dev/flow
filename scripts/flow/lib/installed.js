@@ -13,7 +13,7 @@
  * off the clone's own folders, so a new file in either reaches both commands
  * by existing. What is left is 6 fixed paths and the names in `~/.local/bin`.
  *
- * 1 of the paths is written by `/flow:setup-machine` rather than by install:
+ * 1 of the paths is written by `flow setup` rather than by install:
  * the rule file `~/.agents/AGENTS.md`. Install still records it, so whatever
  * was there before Flow is in the original whether or not that skill ever
  * runs.

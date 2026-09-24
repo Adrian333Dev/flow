@@ -15,6 +15,7 @@
  *   version       the changelog entry this machine reached. Another machine's
  *                 number here claims migrations that never ran
  *   run.json      a half-finished run on this machine
+ *   setup-prompt.md   what the setup session was handed, rebuilt each run
  *   originals/    this machine's disk as it was before Flow. Putting another
  *                 machine's back would write its files over this one's
  *   settings.local.json   every setting holding a path, the clone included
@@ -23,6 +24,7 @@
  *   repos/        this machine's clones: Flow, util, the toolbox and every
  *                 source. `sources` travels, and `flow install` clones them
  *   history.jsonl   every change Flow made on this machine
+ *   install.log   every line of this machine's last install
  *   skills-update.*   what this machine's source clones are behind by, and
  *                 the lock the job that reads it holds
  *   a wiki tool's downloads   pages fetched once per machine
@@ -46,6 +48,7 @@ const IGNORED = [
   '# What belongs to this machine alone.',
   'version',
   'run.json',
+  'setup-prompt.md',
   'originals/',
   'settings.local.json',
   'scripts',
@@ -53,6 +56,7 @@ const IGNORED = [
   'docs',
   'repos/',
   'history.jsonl',
+  'install.log',
   'skills-update.json',
   'skills-update.lock',
   'wiki/*/downloads/',
@@ -107,6 +111,16 @@ function start(at, remote) {
       throw new FlowError(`gh could not make the repository: ${(gh.stderr || '').trim()}\n  Make one on GitHub, then run flow install again and give its address.`);
     }
     return `made ${name} on GitHub, private`;
+  }
+
+  // Read before it is kept, so an address git cannot reach is refused while
+  // the user is still at the question, rather than at the first flow sync.
+  // No password prompt: one with no stored sign-in fails here instead.
+  const reached = spawnSync('git', ['ls-remote', remote], {
+    cwd: at.flow, encoding: 'utf8', env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+  });
+  if (reached.status !== 0) {
+    throw new FlowError(`git cannot reach ${remote}: ${(reached.stderr || '').trim().split('\n').pop()}`);
   }
 
   const existing = git(at.flow, ['remote', 'get-url', 'origin']);

@@ -37,6 +37,7 @@ test('what belongs to one machine is what the ignore file names', () => {
   assert.deepStrictEqual(lines, [
     'version',
     'run.json',
+    'setup-prompt.md',
     'originals/',
     'settings.local.json',
     'scripts',
@@ -44,6 +45,7 @@ test('what belongs to one machine is what the ignore file names', () => {
     'docs',
     'repos/',
     'history.jsonl',
+    'install.log',
     'skills-update.json',
     'skills-update.lock',
     'wiki/*/downloads/',
@@ -66,5 +68,15 @@ test('sync refuses on a machine where setup never finished', () => {
 
   const refused = run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /not set up on this machine\. Run flow install again\./);
+  assert.match(refused.stderr, /not set up on this machine\. Run flow setup\./);
+
+  // A setup part way through runs flow commands of its own, and stamps the
+  // version only at its end, so its run.json lets them through.
+  fs.writeFileSync(path.join(m.at.flow, 'run.json'), JSON.stringify({ type: 'setup-machine', step: 5 }));
+  const during = run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
+  assert.doesNotMatch(during.stderr, /not set up/);
+
+  fs.writeFileSync(path.join(m.at.flow, 'run.json'), JSON.stringify({ type: 'migrate', step: 5 }));
+  const migrating = run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
+  assert.match(migrating.stderr, /not set up on this machine/, 'only a setup passes');
 });

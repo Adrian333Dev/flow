@@ -62,7 +62,7 @@ test('check-ticket blocks before the ticket check when setup never ran', () => {
   const machine = check('groundwork', '', dir);
   assert.strictEqual(machine.code, 0);
   assert.match(machine.stdout, /"decision":"block"/);
-  assert.match(machine.stdout, /not set up on this machine\. Run flow install again\./);
+  assert.match(machine.stdout, /not set up on this machine\. Run flow setup\./);
 
   fs.writeFileSync(path.join(dir, 'flow-home', 'version'), '2026-09-20\n');
   fs.rmSync(path.join(dir, '.flow'), { recursive: true });

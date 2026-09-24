@@ -26,15 +26,16 @@ When you first open the repository, the split that matters has four parts:
 
 ## What installs on a machine
 
-**`home/AGENTS.md`** is the rules that apply in every directory, project or not. `/flow:setup-machine` copies it to `~/.agents/AGENTS.md` after its interview, and it is personalized there. The copy here is the template: placeholders and rules, never personal content.
+**`home/AGENTS.md`** is the rules that apply in every directory, project or not. `flow setup` writes it to `~/.flow/AGENTS.md` once the user has checked its form, links `~/.agents/AGENTS.md` to that file, and it is personalized there. The copy here is the template: placeholders and rules, never personal content.
 
 **`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same skill, so Claude Code loads the same rules. Claude Code never reads an `AGENTS.md` by itself. `project-template/` holds the same pair for a project.
 
-**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../manual/settings.md) explains every key. `/flow:setup-machine` merges it into `~/.claude/settings.json` key by key. `flow install` never writes that file, and writes none of the 3 above either: a rule file copied before the interview holds nothing of the user.
+**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../manual/settings.md) explains every key. `flow setup` merges it into `~/.claude/settings.json` key by key. `flow install` never writes that file, and writes none of the 3 above either: a rule file copied before the interview holds nothing of the user.
 
 **`scripts/`** holds the CLI, the hooks, and the script that carries out a migration:
 
 - `flow/flow.js` is the entry point. `lib/` holds the argument layer and the model. `commands/` holds one file per command group. `lib/audit/` reads Claude Code's transcripts.
+- `flow/setup/` holds what the `flow setup` session follows: `machine.md`, its instructions, and `form.md`, the form it fills in. Not a skill: the session runs in safe mode, which loads none, so `commands/setup.js` hands the text over as a system prompt.
 - `guard.js` is the `PreToolUse` hook that blocks unauthorized commands.
 - `changes.js` records what each subagent changed, under its agent id, and hands the parent a diff per file when the subagent finishes. `flow/lib/changes.js` holds the logic.
 - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
@@ -44,7 +45,7 @@ When you first open the repository, the split that matters has four parts:
 - `session-check.js` is the `SessionStart` hook that names what needs attention, reading `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`, and printing nothing when all 3 are fine. `"sessionCheck": false` silences it. It also makes every skill link match the `skills` lines, through `flow/lib/skill-links.js`.
 - `skills-pull.js` updates every skill repository in `~/.flow/repos/sources/` in the background, started by the session check and never typed. It pulls, or fetches and writes what is waiting into `~/.flow/skills-update.json`, which `"skillsAutoUpdate": false` chooses. `flow/lib/skills-update.js` holds the logic.
 - `file-suggestion.js` builds the list `@` opens, named by `fileSuggestion` in `home/settings.json`. It saves each project's walk in the system's temp folder and answers every keystroke from it.
-- `apply-migration.js` carries out a migration that `/flow:setup-machine`, `/flow:setup-project` or `/flow:migrate` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
+- `apply-migration.js` carries out a migration that `flow setup`, `/flow:setup-project` or `/flow:migrate` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and its `.info` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
@@ -102,7 +103,7 @@ Everything beside `context/` is a folder:
 ## What is gitignored
 
 - **`repos/`**: clones of other people's repositories. `bash lab/scripts/repos.sh` restores them. Nothing here is yours and nothing here is ever edited.
-- **`tmp/`**: scratch. `tmp/try/` is the scratch session from `try.sh`: `root/`, the pretend computer's home folder, a project that survives between runs, and `sandbox.sh`, the line that starts the session. `tmp/computers/` holds the computers `save-computer.sh` saved, never rewritten. `tmp/tests/` is where both test suites write.
+- **`tmp/`**: scratch. `tmp/try/<name>/` is one run of the scratch session from `try.sh`, kept until `try.sh --delete` removes it: `home/`, the pretend computer's home folder with the project in `home/code/`, `remote.git`, the stand-in for the repository `~/.flow/` lives in, and `sandbox.sh`, the line that starts the session. `tmp/computers/` holds the computers `save-computer.sh` saved, never rewritten. `tmp/tests/` is where both test suites write.
 
 Neither survives a fresh clone, and nothing at runtime reads either one.
 

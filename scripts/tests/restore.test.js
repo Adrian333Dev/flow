@@ -94,6 +94,8 @@ test('the first setup writes the original, and restoring it puts every path back
   const applied = applyAt(dir, root, id);
   assert.strictEqual(applied.code, 0, applied.stderr);
   assert.match(applied.stdout, /Put this machine back with flow restore machine$/m);
+  const logged = JSON.parse(read(path.join(root, '.flow', 'history.jsonl')).trim().split('\n').pop());
+  assert.deepStrictEqual([logged.type, logged.id, logged.lines], ['setup-machine', id, 6]);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
   assert.strictEqual(read(path.join(root, '.claude/rules/one.md')), 'rule one\n');
   assert.ok(!exists(path.join(root, '.claude/projects/-p/memory')), 'the memory folder is gone');

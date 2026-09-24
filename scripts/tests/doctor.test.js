@@ -16,7 +16,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { REPO, project, run, setupMachine, utilStub, pathWith, write, skillFile } = require('./helpers/scratch');
+const { REPO, project, run, setupMachine, utilStub, pathWith, write, skillFile, bareRepo } = require('./helpers/scratch');
 const version = require('../flow/lib/version');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
@@ -30,11 +30,11 @@ function machine(name) {
   fs.mkdirSync(flowHome, { recursive: true });
   fs.writeFileSync(path.join(flowHome, 'settings.json'), JSON.stringify({ sources: [] }));
 
-  const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone']);
+  const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone', '--repo', bareRepo(path.basename(dir))]);
   assert.strictEqual(installed.code, 0, installed.stderr);
 
   // Install is half a machine. The rule file and the line importing it come
-  // from /flow:setup-machine, which does not exist as a skill yet.
+  // from flow setup, an agent's run, so the test writes them itself.
   setupMachine(root);
 
   // `flow install` stops short of settings.json on purpose, so the merge a real

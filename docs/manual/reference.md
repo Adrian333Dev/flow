@@ -41,17 +41,67 @@ What one run puts on the machine:
 - **`~/.flow/repos/`**: every clone Flow reads. `flow/` is a link to the clone you ran the install from. `util/` and `toolbox/` sit beside it, and `sources/<owner>_<repo>/` holds one clone per skill repository, covered in [Skill discovery](#skill-discovery). Each missing one is cloned, newest commit only. A clone that fails, offline say, prints a line and the install still finishes, so running it again is the fix. `--no-clone` skips every clone.
 - **`~/.local/bin/util` and `u`**: made by util's own installer, which the install runs from `~/.flow/repos/util/`.
 - **`~/.flow/history.jsonl`**: one line saying the install ran. Every change Flow makes to the machine adds a line here, and nothing rewrites one.
+- **`~/.flow/install.log`**: every line of the last run. The screen shows a summary, plus each line saying something changed or failed.
 - **`~/.flow/originals/machine/`**: every path in this list as it was before Flow, copied before anything is created. [Migrations and the original](#migrations-and-the-original) covers it. Only a machine Flow was never on gets one, because on any other the paths are already Flow's own.
 
 `--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.flow` and `<dir>/.local/bin`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
 
-**At a terminal it asks 2 questions.** The first is a name for this machine, saved as git's `util.machine`, which is how work sent between your machines says where it came from. The default is your computer's name and 4 random letters, because a computer's name is not reliably different: WSL calls every machine it is installed on `me`. The second is the private GitHub repository that carries `~/.flow/` to your other machine, covered in [flow sync](#flow-sync). Run where no terminal is attached, it asks neither and says so.
+**At a terminal it asks 2 questions.** The first is a name for this machine, saved as git's `util.machine`, which is how work sent between your machines says where it came from. The default is your computer's name and 4 random letters, because a computer's name is not reliably different: WSL calls every machine it is installed on `me`. A machine that already has a name is not asked again.
 
-**Installing is half of putting Flow on a machine.** The other half is `/flow:setup-machine`, and the last line of the install says to restart Claude Code and type it. That skill lists every change in one form for you to check, then writes the rule file `~/.agents/AGENTS.md` and the one line `@~/.agents/AGENTS.md` in `~/.claude/CLAUDE.md`. It also merges Flow's hooks and permission rules into `~/.claude/settings.json`, key by key, because that file already holds your model, your plugins and your effort level. A rule file written before that form would be the template with nothing of yours in it, which is why `flow install` writes none of the 3. On a machine where the setup already ran, the install ends by saying there is nothing more to do.
+The second is the private GitHub repository `~/.flow/` lives in. `~/.flow/` holds your rules, notes and study cases, and the repository is both their copy off this machine and how your other machine gets them, covered in [flow sync](#flow-sync). There is no skip:
 
-**Every `flow` command refuses until that skill has run**, except `install`, `doctor`, `restore` and `uninstall`. `~/.flow/version` is what says the setup finished, and a command that finds it missing answers `Flow is not set up on this machine. Run flow install again.`
+```text
+~/.flow holds your rules, notes, study cases and the tickets that belong to no
+project. It lives in one private GitHub repository, which keeps a copy of it and is
+how a second machine gets it.
+  Enter      make one now, private, with gh
+  <address>  use one you already made
+Which:
+```
+
+- **Enter** makes the repository with `gh`, GitHub's command-line tool. The install checks `gh auth status` first. Not signed in, the line reads `sign in to GitHub with gh, then make one`, and Enter runs `gh auth login` before making it.
+- **An address** is read with `git ls-remote` before it is kept. An address git cannot reach, or one it has no sign-in for, is refused on the spot and the question comes back.
+- **`--repo <address>`** answers the question without asking it.
+
+A repository already set is kept without asking. Run where no terminal is attached and without `--repo`, the install stops at this question: every link is made, and setup does not start.
+
+**Installing is half of putting Flow on a machine.** The other half is [`flow setup`](#flow-setup), and the install runs it as its last step.
+
+**Every `flow` command refuses until the setup has finished**, except `install`, `setup`, `doctor`, `restore` and `uninstall`. `~/.flow/version` is what says the setup finished, and a command that finds it missing answers `Flow is not set up on this machine. Run flow setup.` A setup that is running passes too, since its own form runs `flow skills`.
 
 **util comes with the install.** `util` is a separate command-line tool holding Flow's general-purpose commands, in its own repository. Flow's rules name `util fs tree` for looking at directory structure, and `flow get --files` runs `util fs open` to assemble context files. A machine without `util` still works: `flow get --files` prints that `util` is not on `PATH` where the files would have been, and carries on.
+
+### `flow setup`
+
+Sets Flow up on this machine: the rule file, the line loading it, Flow's keys in `~/.claude/settings.json`, and whatever the machine already holds that works against Flow. `flow install` runs it as its last step. Typed again, it carries on a setup that stopped part way.
+
+It opens a Claude Code session in safe mode, which loads none of your own rules, skills, plugins or hooks, so nothing already on the machine argues with the setup. The session is handed Flow's rules and the setup's instructions, `scripts/flow/setup/machine.md` in the clone. It reads what your machine already holds, then lists every change in one form for you to check. Nothing outside `~/.flow/` changes before you say go.
+
+After your yes, it writes the rule file `~/.flow/AGENTS.md`, makes `~/.agents/AGENTS.md` a link to it, and replaces `~/.claude/CLAUDE.md` with the one line `@~/.agents/AGENTS.md`. It also merges Flow's hooks and permission rules into `~/.claude/settings.json`, key by key, because that file already holds your model, your plugins and your effort level. A rule file written before that form would be the template with nothing of yours in it, which is why `flow install` writes none of the 3.
+
+**The form shows only what saying go would change.** A setting is judged by its value, so memory already switched off gets no line. An installed plugin or skill that works against Flow is judged by being there, so it gets a line even when it is switched off: it could be switched back on. A plugin goes by `claude plugin uninstall`.
+
+**The session runs in its own permission mode**, whatever yours is. It starts in your home folder, so reading your setup asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow setup`, `flow doctor`, `util fs tree`, `util fs merge` and the script that applies the form. Anything else asks you first. Auto mode's own check refused the setup's first write in testing, which is why the setup never runs under it.
+
+**Claude Code asks you once, partway through.** It asks before any write to a path with a `.claude` folder in it, and the form keeps its new `~/.claude/settings.json` under `~/.flow/migrations/`, at a path that ends in `.claude/settings.json`. No setting skips that question. The session tells you it is coming, and answering **allow Claude to edit its own settings for this session** covers every later one.
+
+**It refuses to start on an unfinished install.** `flow setup check` runs the same check on its own: `node`, `git` and `claude`; `flow`, `fw`, `util` and `u` in `~/.local/bin`; every clone in `~/.flow/repos/`; and the repository `~/.flow/` lives in. Any one missing is named, and `flow install` is the fix for all of them.
+
+Run where no terminal is attached, or with `--root`, it prints the line that starts the session instead:
+
+```text
+One step left: setting up this machine. Start it from a terminal:
+
+  cd /home/me && claude --safe-mode --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow setup:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' 'Bash(util fs merge:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this machine.'
+```
+
+- **`~/.flow/setup-prompt.md`**: Flow's rules followed by the setup's instructions, rewritten each time the session starts.
+- **`~/.flow/run.json`**: how far the setup got, and the folder its form goes in. `flow setup` writes it, the session updates it after each step, and the next `flow setup` carries on from there:
+
+  ```json
+  { "started": "2026-09-24T01:45:46.858Z", "type": "setup-machine", "migration": "machine/2026-09-24T04-45-46", "step": 4 }
+  ```
+- **`flow setup finish`**: the session's last step. It stamps `~/.flow/version` and deletes `run.json`.
 
 ### `flow doctor`
 
@@ -120,13 +170,13 @@ The same 4 locks as `flow restore` guard it, the first 2 being every Claude Code
 
 ## Migrations and the original
 
-A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 skills write one: `/flow:setup-machine` moves your machine onto Flow, `/flow:setup-project` moves a project, and `/flow:migrate` moves either one to a newer Flow.
+A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 things write one: `flow setup` moves your machine onto Flow, `/flow:setup-project` moves a project, and `/flow:migrate` moves either one to a newer Flow.
 
 The original is every path as it was before Flow first touched it. There is one per place, a place being this machine or one project, and putting it back is how you undo Flow.
 
 A migration is not a ticket. A ticket is your project's own work, and git undoes it. A migration changes files git never sees, such as `~/.claude/`, so the original undoes it.
 
-**The original is written in one window, and nothing is ever added to it afterwards.** `flow install` opens the machine's and copies every path it is about to create. The first `/flow:setup-machine` adds each path its migration changes, and closing the window is the last thing that run does. A project's window opens and closes inside its first `/flow:setup-project`. After that, a migration months later copies nothing: a file you made last week is yours, not part of the machine you had before Flow, and nothing on disk can tell the two apart.
+**The original is written in one window, and nothing is ever added to it afterwards.** `flow install` opens the machine's and copies every path it is about to create. The first `flow setup` adds each path its migration changes, and closing the window is the last thing that run does. A project's window opens and closes inside its first `/flow:setup-project`. After that, a migration months later copies nothing: a file you made last week is yours, not part of the machine you had before Flow, and nothing on disk can tell the two apart.
 
 **What it is for is the first week or two**, where you try Flow and decide against it. Undoing one migration is a different job, and Flow does not do it.
 
@@ -151,7 +201,7 @@ A migration of the machine goes in `machine/`. A project's goes in a folder name
 
 Claude writes the migration, then stops for your yes. You read `migration.md`, delete any line you refuse, and say go. Claude never writes a real path itself. The skill runs `apply-migration.js`, which carries out `migration.md` one line at a time, so a path the migration leaves out is never touched.
 
-`migration.md` opens with 2 frontmatter fields. `type` names the skill that wrote it: `setup-machine`, `setup-project` or `migrate`. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
+`migration.md` opens with 2 frontmatter fields. `type` names what wrote it: `setup-machine` for `flow setup`, `setup-project` or `migrate` for the skill of that name. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
 
 - **`- write <path>: <why>`**: the copy at `files/<full path>` replaces it, a file or a whole folder.
 - **`- delete <path>: <why>`**: removes a file or a whole folder.
@@ -660,14 +710,14 @@ A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is
 
 Two files, and Flow contributes to one of them.
 
-**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `/flow:setup-machine` merges Flow's keys into it, key by key. Flow contributes four keys:
+**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `flow setup` merges Flow's keys into it, key by key. Flow contributes four keys:
 
 - **`hooks`**: 6 jobs. `guard.js` checks every shell command before it runs. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
-- **`permissions`**: an allow list, a deny list, and no git entries at all, because `flow git` owns git. The deny list covers the Claude Code surfaces Flow does not use, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
+- **`permissions`**: an allow list, a deny list, and no git entries at all, because `flow git` owns git. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first
 
-A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. `/flow:setup-machine` also writes `skillOverrides`, Claude Code's key for hiding a skill, for the ones it switches off: Claude Code's own `/batch`, and a skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
+A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. `flow setup` also writes `skillOverrides`, Claude Code's key for hiding a skill, for the ones it switches off: Claude Code's own `/batch`, and a skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
 
 **`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Together they hold 7 keys:
 

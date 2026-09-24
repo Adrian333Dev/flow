@@ -29,6 +29,7 @@ const audit = require('./commands/audit');
 const scorecard = require('./commands/scorecard');
 const contribute = require('./commands/contribute');
 const restore = require('./commands/restore');
+const setup = require('./commands/setup');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -128,7 +129,7 @@ share   a finding for a domain skill waits in .flow/findings/<skill>/, where
         merged: /flow:apply-domain-findings rewrites the skill from it and
         closes it with what went in
 migrate a change to where Flow and the harnesses keep their files, written
-        by /flow:setup-machine, /flow:setup-project or /flow:migrate into
+        by flow setup, /flow:setup-project or /flow:migrate into
         ~/.flow/migrations/<machine or project>/<time>/: migration.md lists
         each change, files/ holds each new version. After your yes the skill
         runs ~/.flow/scripts/apply-migration.js, which never touches a path
@@ -181,7 +182,7 @@ git     off everywhere by default: the agent names a git command that writes
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, skills, overlays, git, audit, restore },
+    groups: { cases, skills, overlays, git, audit, restore, setup },
     check: (action, flags) => (action.anywhere ? null : machine.requireSetup(flags.root)),
     fallback: tickets.fallback,
     sections: SECTIONS,

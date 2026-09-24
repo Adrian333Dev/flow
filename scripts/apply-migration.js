@@ -6,7 +6,7 @@
  * original's window is open. `flow/lib/migrations.js` says what a migration
  * is, and `flow/lib/originals.js` what an original holds and when it closes.
  *
- * /flow:setup-machine, /flow:setup-project and /flow:migrate run it, after the
+ * `flow setup`, /flow:setup-project and /flow:migrate run it, after the
  * user's yes and never before. It is not a flow command and not on PATH: bare
  * `flow <verb> <id>` acts on a ticket, and a migration typed by hand weeks
  * later changes the machine as it was then.
@@ -23,6 +23,7 @@
  * part-way, on a command that fails or a move with nothing to move, leaves it
  * there, and running this again carries on from the line that stopped. A
  * migration edited in between refuses rather than guessing which lines ran.
+ * A run that reaches the end adds one line to ~/.flow/history.jsonl.
  *
  * It refuses, changing nothing, when a line cannot be read, when files/ lacks
  * a file a write line needs, when the migration is already applied, when a
@@ -37,6 +38,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { out, parseArgs } = require('./flow/lib/cli');
 const { FlowError } = require('./flow/lib/error');
+const history = require('./flow/lib/history');
 const machine = require('./flow/lib/machine');
 const migrations = require('./flow/lib/migrations');
 const originals = require('./flow/lib/originals');
@@ -171,6 +173,7 @@ function apply(argv) {
   }
 
   if (SETUP[type]) originals.close(at, project);
+  history.record(at.flow, { type, id, lines: lines.length, ...(project ? { project } : {}) });
   const back = wayBack(at, project);
   out(`applied ${id}, ${lines.length} lines.${back ? ` Put this ${project ? 'project' : 'machine'} back with ${back}` : ''}`);
   return 0;
