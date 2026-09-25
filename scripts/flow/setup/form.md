@@ -32,7 +32,7 @@ type: setup-machine
 - Edits, file reads, web pages, web search and context7 (a library docs lookup) run without asking. So do the everyday shell commands: moving and copying files, running node or python, running tests and scripts, and Flow's own commands. `permissions.allow`
 - Every session starts in Manual mode: Claude asks before anything the line above doesn't cover. `permissions.defaultMode`
 - Claude can't run the commands that undo Flow. Only you can. `permissions.deny: Bash(flow restore …), Bash(flow uninstall …)`
-- Claude can't run commands as the system's admin, format a disk, or start a copy of itself that never asks. `permissions.deny: Bash(sudo *), Bash(mkfs*), Bash(* --dangerously-skip-permissions *)`
+- Claude can't run commands as the system's admin or as another user, format a disk, or start a copy of itself that never asks. `permissions.deny: Bash(sudo *), Bash(su *), Bash(mkfs*), Bash(* --dangerously-skip-permissions *)`
 
 ### Always removed, because Flow can't work with them
 

@@ -194,6 +194,7 @@
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
       "Bash(sudo *)",
+      "Bash(su *)",
       "Bash(mkfs*)",
       "Bash(* --dangerously-skip-permissions *)",
       "Bash(flow restore machine:*)",

@@ -38,6 +38,7 @@
 const fs = require('fs');
 const path = require('path');
 const { FlowError } = require('./error');
+const history = require('./history');
 
 const home = (at) => path.join(at.flow, 'originals');
 
@@ -179,7 +180,8 @@ function putBack(base, entry) {
 
 /**
  * Put a whole place back, newest entry first. The original itself survives, so
- * the same restore runs again and lands in the same state.
+ * the same restore runs again and lands in the same state. Adds one line to
+ * ~/.flow/history.jsonl.
  */
 function restore(at, project = null) {
   const base = dir(at, project);
@@ -190,6 +192,7 @@ function restore(at, project = null) {
     putBack(base, entry);
     done.push({ path: entry.path, removed: entry.type === 'absent' });
   }
+  history.record(at.flow, { type: 'restore', paths: done.length, ...(project ? { project } : {}) });
   return done;
 }
 

@@ -256,17 +256,18 @@ These are **bare tool names**, which removes each tool from the model's context 
 
 A `Read` deny rule blocks the `Read` tool, and an edit to a file there. It also blocks the shell commands Claude Code recognizes as reads: `cat`, `head`, `tail`, `sed` and `grep`. It cannot see a script that opens files itself, such as `util fs merge` or a python one-liner.
 
-#### `deny`: 3 commands no session should run
+#### `deny`: 4 commands no session should run
 
 ```json
-"deny": ["Bash(sudo *)", "Bash(mkfs*)", "Bash(* --dangerously-skip-permissions *)"]
+"deny": ["Bash(sudo *)", "Bash(su *)", "Bash(mkfs*)", "Bash(* --dangerously-skip-permissions *)"]
 ```
 
 - **`sudo`** runs a command as the system's administrator, with no limit on what it can change
+- **`su`** logs the shell in as another user, the administrator by default, with the same reach as `sudo`
 - **`mkfs`** formats a disk. The pattern has no space before the `*`, so it also covers the named forms such as `mkfs.ext4`
 - **`--dangerously-skip-permissions`** starts a second Claude Code that never asks about anything. The leading `*` catches the flag wherever it sits in the command
 
-A deny rule holds in every mode, and a saved allow cannot lift it. Run any of the 3 yourself, in your own terminal.
+A deny rule holds in every mode, and a saved allow cannot lift it. Run any of the 4 yourself, in your own terminal.
 
 #### `deny`: the 2 commands that undo Flow
 

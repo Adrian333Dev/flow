@@ -105,7 +105,7 @@ A `PreToolUse` hook that runs before every shell command the agent executes. It 
 
 ### Permissions
 
-Flow's settings allow the routine work: edits, file reads, web lookups, and the everyday shell commands, such as moving files, running a script, running tests and Flow's own commands. Everything else asks, every git write included. "Yes, don't ask again" saves a pattern such as `Bash(git commit *)` for that project, so a command you approve once stops asking. `sudo`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright.
+Flow's settings allow the routine work: edits, file reads, web lookups, and the everyday shell commands, such as moving files, running a script, running tests and Flow's own commands. Everything else asks, every git write included. "Yes, don't ask again" saves a pattern such as `Bash(git commit *)` for that project, so a command you approve once stops asking. `sudo`, `su`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright.
 
 ### Subagent verification by change record ([`scripts/changes.js`](scripts/changes.js))
 

@@ -257,7 +257,13 @@ machine                   7 paths   written 2026-09-18T21:30:05   closed
 
 Puts every path in one original back the way it was, the newest entry first, with its old time. A path recorded as absent is deleted. Each needs no agent and no session, so both work from a plain shell after a migration that broke Claude Code itself.
 
-The original survives a restore, so the same command runs again and lands in the same place.
+The original survives a restore, so the same command runs again and lands in the same place. Each restore adds a line to `~/.flow/history.jsonl`:
+
+```json
+{"at":"2026-09-25T10:04:31Z","type":"restore","paths":7}
+```
+
+A project's restore adds its folder as `project`.
 
 Restoring the machine deletes `~/.local/bin/flow` along with everything else `flow install` made, so the last line says how to put Flow back. It leaves `~/.flow/` alone: only `flow uninstall` deletes that.
 
@@ -278,7 +284,7 @@ flow <command> [id]... [--flags]
 
 The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
-Six groups carry their own actions: `cases`, `skills`, `overlays`, `git`, `audit`, `restore`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
+Six groups carry their own actions: `cases`, `skills`, `overlays`, `audit`, `restore`, `setup`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
 
 Before the first install, the command is typed by path:
 
@@ -690,7 +696,7 @@ Two files, and Flow contributes to one of them.
 **`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `flow setup` merges Flow's keys into it, key by key. Flow contributes four keys:
 
 - **`hooks`**: 6 jobs. `guard.js` asks you before a shell command that could destroy work: a delete outside the project, a download piped into a shell, a write into a shell startup file, or a git command that throws work away. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
-- **`permissions`**: an allow list and a deny list. The allow list covers edits, reads, web lookups and the everyday shell commands, such as `mv`, `node`, `npm test` and `flow`, so every other command asks you, every git write included. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
+- **`permissions`**: an allow list and a deny list. The allow list covers edits, reads, web lookups and the everyday shell commands, such as `mv`, `node`, `npm test` and `flow`, so every other command asks you, every git write included. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `su`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first
 

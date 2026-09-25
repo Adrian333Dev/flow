@@ -7,7 +7,7 @@
  * on stdin and prints a verdict on stdout.
  *
  * Claude Code's own settings hold every rule a pattern can state: the allow
- * list, and a deny list for sudo, mkfs and the permission bypass. What is left
+ * list, and a deny list for sudo, su, mkfs and the permission bypass. What is left
  * here needs to read inside a command, where a pattern only sees its start:
  *
  *   - a recursive or forced delete pointing outside the working directory

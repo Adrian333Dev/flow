@@ -887,13 +887,19 @@ What the setup form's `permissions` lines install. Claude Code's settings hold e
 
 - **`Read` is allowed everywhere**, ruled 2026-09-24, and denied under `~/.ssh` and `~/.aws`. An asked-for read taught the agent that `cat` was the quiet way.
 - **The bare `Bash` allow goes**, replaced by 23 patterns: `mkdir`, `touch`, `mv`, `cp`, `rm`, `ln`, `chmod`, `node`, `python3`, `flow`, `fw`, `util`, `npm test` and `npm run` with the same pair for pnpm, yarn and bun, `pytest`, `cargo test`, `go test`. The user approved the first 14, then asked for the other package managers and the other languages' test commands. A command the list misses asks once, and "don't ask again" saves a pattern for that project.
-- **The deny list gains `sudo *`, `mkfs*` and `* --dangerously-skip-permissions *`.** `mkfs*` has no space, to catch `mkfs.ext4`.
+- **The deny list gains `sudo *`, `su *`, `mkfs*` and `* --dangerously-skip-permissions *`.** `mkfs*` has no space, to catch `mkfs.ext4`. `su *` was added 2026-09-25, since the old guard denied `su` beside `sudo`.
 - **No `ask` rule anywhere**, since an ask rule beats every allow, a saved one included.
 - **`guard.js` asks about 4 things and never allows**: a recursive or forced delete outside the working directory, a download piped into a shell (a deny until now), a shell startup file write, and the destructive git table. The install, `chmod 777`, `dd` and `mkfs` asks went, and fall to Claude Code's own prompt.
 - **The timed git switch goes whole**, ruled 2026-09-25. Git writes are a preference, built against a plugin that committed after every edit, and Claude Code's prompt already asks before each one. The user accepted that auto mode can run a commit unasked. `flow git`, the `git` key, the project's `.flow/settings.local.json` and the rule `no-git-writes` went with it.
 - **Chained commands get nothing built.** One can save a piece word for word. Revisit only if `.claude/settings.local.json` fills with word-for-word rules.
 
-## Settled by the user
+## Project setup is a command, ruled 2026-09-25
+
+**`flow setup project`, typed in the project's folder, opens a safe-mode session, the way `flow setup` does for the machine.** Agreed by the user 2026-09-25, in place of the planned `/flow:setup-project` skill.
+
+- **The reason is what the project itself loads, not the machine being unready.** A normal session in a project loads its `CLAUDE.md`, its hooks, its skills and the plugins its `.claude/settings.json` switches on, and a project's `enabledPlugins` beats the user's own. Delapse loads a workflow section naming superpowers as its engine, and switches superpowers on. Safe mode loads none of it, so setup reads those files as text.
+- **The skill wins only in a project with little of its own**, since it runs inside a session already open. It loses in exactly the projects setup exists for.
+
 
 Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.
 

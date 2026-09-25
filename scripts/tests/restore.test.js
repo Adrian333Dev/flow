@@ -129,6 +129,8 @@ test('the first setup writes the original, and restoring it puts every path back
   assert.strictEqual(original(root).entries.length, 7, 'the original never grows after the first setup');
 
   originals.restore(folders(root), null);
+  const restored = JSON.parse(read(path.join(root, '.flow', 'history.jsonl')).trim().split('\n').pop());
+  assert.deepStrictEqual([restored.type, restored.paths, restored.project], ['restore', 7, undefined]);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n');
   assert.ok(!exists(path.join(root, '.claude/rules')), 'what the migration created is removed');
   assert.strictEqual(read(path.join(root, '.claude/projects/-p/memory/b.md')), 'memory b\n');
@@ -249,6 +251,8 @@ test('a project setup opens its own original, stops part-way, and carries on aft
   ]);
 
   originals.restore(folders(root), proj);
+  const restored = JSON.parse(read(path.join(root, '.flow', 'history.jsonl')).trim().split('\n').pop());
+  assert.deepStrictEqual([restored.type, restored.project], ['restore', proj], 'a project restore names the project');
   assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), 'old project rules\n');
   assert.strictEqual(read(path.join(proj, 'docs/work/one.md')), 'one\n');
   assert.ok(!exists(path.join(proj, '.flow')), "restoring a project's original takes its whole .flow/");
