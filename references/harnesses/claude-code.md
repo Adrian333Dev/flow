@@ -31,6 +31,15 @@ Under the config folder, except the last 2.
 - **`.claude/agent-memory/<agent>/MEMORY.md`**: what a subagent defined here carries between runs, written by Claude Code. **`.claude/agent-memory-local/<agent>/MEMORY.md`** beside it is the gitignored half.
 - **`.mcp.json`**, at the root and never inside `.claude/`: the MCP servers this repository offers. Each one waits for the user's approval before it connects.
 
+## A session that loads no project files
+
+`claude --setting-sources user --strict-mcp-config`, started in the project. `flow setup project` opens its session this way, loading `~/.claude` alone:
+
+- **`--setting-sources user`** skips every project path above: the rules files at any depth, `.claude/` and `.mcp.json`.
+- **`--strict-mcp-config`** skips every MCP server not passed with `--mcp-config`, the ones `~/.claude.json` holds for this project included.
+
+A harness with no such launch gets its project files moved out before the session and back after.
+
 ## What a migration may name
 
 - **Every path above takes a `write`, a `delete` or a `move` line**, under the 4 rules below.
