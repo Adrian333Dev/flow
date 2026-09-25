@@ -934,6 +934,13 @@ What the setup form's `permissions` lines install. Claude Code's settings hold e
 - **Setup makes a second ticket, "Find skills, plugins and MCP servers for this stack"**, naming the stack read from the code and what is already installed. Its run uses `/flow:research`, and every install is its own yes. A project with no code gets none, since `/flow:groundwork` settles the stack.
 - **The paths it writes**: `AGENTS.md`, `CLAUDE.md` as `@AGENTS.md`, `.claude/settings.json`, `.gitignore` lines, `.work-include`, `.flow/settings.json`, `.flow/tickets/`, `.flow/overlays/`, `.flow/inbox.md`, `.flow/findings/`, `.flow/domain-skills.txt`, `docs/context/`, `.flow/version` last. On the machine: `~/.flow/AGENTS.md`'s 2 sections, `~/.flow/migrations/<project>/<time>/`, `~/.flow/originals/<project>/`, one `history.jsonl` line.
 
+**The step file, `scripts/flow/setup/project.md`, agreed 2026-09-25**, proposed and left unopposed, the harvest then loosened by the user:
+
+- **Its steps follow `machine.md`.** 0 `flow setup project check`. 1 read what Flow brings: the harness files, `project-template/`, the form's template `scripts/flow/setup/project-form.md`. 2 read the project. 3 sort every finding into one place and write the new files under `files/`, `project-template/` as the base. 4 hand over the form, then stop. 5 take the answer, with the second check where the user changed something. 6 carry the form into the files. 7 apply it with `apply-migration.js project/<folder>`, which already handles `setup-project` and opens the project's original. 8 `flow doctor`. 9 `flow setup project finish`, writing `.flow/version`. 10 the last message: what changed, `flow restore project` to undo it, start `claude` again.
+- **2 new subcommands**: `flow setup project check` and `flow setup project finish`, beside the launch itself. None exists yet.
+- **The launch adds `--add-dir ~/.flow` and `--add-dir` for the project's memory folder.** The session starts in the project, so a write to `~/.flow/migrations/` and a read under `~/.claude/projects/` would each ask otherwise. A write under `files/` into a `.claude` path still asks once, and the session warns first, as `machine.md` does.
+- **Setup needs a git repository.** Only files git would keep are read, and `util git work` assumes git. Outside one the check says to run `git init` and stops. An empty repository gets `project-template/` alone. Overturned by a project the user wants set up that is not under git.
+
 
 Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.
 

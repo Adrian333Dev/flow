@@ -15,7 +15,8 @@ Two decisions, in order: whether the comment is worth writing, then which form i
 
 **Write a comment where a reader fluent in the language would still guess wrong.** Everything else the code already says, and says more reliably, because code cannot go stale against itself.
 
-- **`header-says-what-the-file-is`** Open every file of code with a header comment. Its first sentence says what the file is, and reads on its own: a reader deciding whether to open the file stops there. What follows says how the file fits and why. A file shorter than its header would be needs none.
+- **`header-says-what-the-file-is`** Open every file of code with a header comment. Its first sentence says what the file is, and reads on its own: a reader deciding whether to open the file stops there. Anything after it is optional: a short note on how the file fits, or a decision behind it. A file shorter than its header would be needs none.
+- **`cut-words-never-information`** Write every comment as short as it stays clear. Never over-explain: a comment is a guide to the code, never an essay. Examples, flags, usage lines and details a reader would otherwise open the code for all stay.
 - **`say-what-the-code-cannot`** Write the reason, the constraint, the decision, or what the outside system really returns. The name and the signature carry what the code does, so the comment carries why it does it that way: a workaround and the bug behind it, an ordering that matters, a number that looks arbitrary and is not.
 - **`never-restate-the-line`** Delete a comment that repeats the code under it. `// increment the counter` above `i++` costs a line and a read and pays back nothing.
 - **`not-every-declaration`** Leave a function whose name already answers the question uncommented. Comment the one where a reader would have to open the body to find out.
