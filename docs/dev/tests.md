@@ -50,6 +50,6 @@ Flow's suite covers ticket operations (create with every flag, edit, deps, parki
 
 The bridge is tested against fixture checks written into a scratch folder, because `scripts/rule-checks/` ships empty and the first real rule id does not exist yet.
 
-`util`'s suite covers the source registry, namespace resolution and the short form, a name claimed by two sources, the description reader, the shipped commands, and `util install`.
+`util`'s suite covers the source registry, namespace resolution and the short form, a name claimed by two sources, the summary reader, the shipped commands, and `util install`.
 
 Neither suite covers a real Claude Code session. That is what [the scratch session](scratch-session.md) is for, and it is checked by hand.

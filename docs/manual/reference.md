@@ -581,6 +581,8 @@ Every switch, clone and pull adds a line to `~/.flow/history.jsonl`:
 
 A project extends a global skill by writing `.flow/overlays/<name>.md`. That content is appended to the skill's body when the skill loads in that project.
 
+Every project shares the machine's one copy of a skill, so a project changes a skill here and never edits it. Removing works by adding too: "skip phase 3 here" is enough, because the overlay arrives after the phase it changes.
+
 ### `flow overlays get <name>`
 
 Print the overlay for a skill. Prints nothing when no overlay file exists, which is the normal case and not an error. This is the default action: `flow overlays groundwork` is `flow overlays get groundwork`.
@@ -624,7 +626,7 @@ Whether the rules Flow writes are actually being followed. A **rule check** is o
 - `rule-check.js` runs on `PreToolUse` for Edit and Write. It runs every check against the edit and appends one line per result to `~/.flow/scorecards/<session>.jsonl`.
 - `instructions-loaded.js` runs on `InstructionsLoaded`, recording which `CLAUDE.md` and rule files entered context. A warning names the rule id when the rule's file is loaded, and carries the rule's whole text when it is not.
 
-Each check declares its own `tier`. `measure` records and interrupts nothing, `warn` puts a line in front of the agent, `block` refuses the edit. Every check starts at `measure`. The `.info` file in `scripts/rule-checks/` states the full export contract.
+Each check declares its own `tier`. `measure` records and interrupts nothing, `warn` puts a line in front of the agent, `block` refuses the edit. Every check starts at `measure`. `/flow:file-findings`' `references/write-checks.md` states the full export contract.
 
 ### `flow scorecard`
 

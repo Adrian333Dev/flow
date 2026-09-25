@@ -46,7 +46,7 @@ When you first open the repository, the split that matters has four parts:
 - `skills-pull.js` updates every skill repository in `~/.flow/repos/sources/` in the background, started by the session check and never typed. It pulls, or fetches and writes what is waiting into `~/.flow/skills-update.json`, which `"skillsAutoUpdate": false` chooses. `flow/lib/skills-update.js` holds the logic.
 - `file-suggestion.js` builds the list `@` opens, named by `fileSuggestion` in `home/settings.json`. It saves each project's walk in the system's temp folder and answers every keystroke from it.
 - `apply-migration.js` carries out a migration that `flow setup`, `flow setup project` or `/flow:migrate` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
-- `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and its `.info` states the export contract.
+- `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and `/flow:file-findings`' `references/write-checks.md` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
@@ -60,7 +60,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`rules/`** holds prescriptive rules, one markdown file per topic. Each file is symlinked into `~/.claude/rules/` by `flow install`. Rules without `paths:` frontmatter load every session; rules with `paths:` load only when the agent reads a matching file. Populated by `/flow:file-findings` when knowledge is promoted from `.flow/findings/`.
 
-**`project-template/`** is what a new project starts with: an `AGENTS.md` with a `## Project` section, a `CLAUDE.md` holding the one line `@AGENTS.md`, a `.gitignore`, a `.work-include`, and `.flow/overlays/` with an `.info` that explains what overlays are. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.work-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git work send`.
+**`project-template/`** is what a new project starts with: an `AGENTS.md` with a `## Project` section, a `CLAUDE.md` holding the one line `@AGENTS.md`, a `.gitignore` and a `.work-include`. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.work-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git work send`.
 
 ## What belongs to the repository
 

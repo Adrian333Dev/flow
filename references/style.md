@@ -123,7 +123,7 @@ Cut what lengthens a sentence without clarifying it. Readability first; the toke
 
 The description is in context from the moment a session starts, whether the skill is ever invoked or not.
 
-**This is not the `description:` marker.** That marker is an index entry a few words long, cut at the first full stop by `util ls`. Claude Code loads a skill's frontmatter description whole and fires the skill from it alone, so its length is set by the rules below and by nothing else.
+**Claude Code loads a skill's frontmatter description whole, and fires the skill from it alone.** Its length is set by the rules below and by nothing else.
 
 - **What it is and what it covers. Never the steps.** A description that summarizes the workflow gets followed instead of the file. An agent given "code review between tasks" did one review where the skill specified two.
 - **Never when to invoke it.** A trigger written here is loaded by every session that never fires it. Write one only where it is wanted; `write-skills.md` names the 4 homes.
@@ -191,9 +191,6 @@ A table header carrying what each row would repeat. Dropped: a list is preferred
 ### State the rule, cut the argument
 
 A rule followed by the case for it, the mechanism behind it, or a consequence the reader infers. The rule stays, the rest goes. Ruled by the user 2026-09-07: assume an intelligent reader.
-
-- **Before:** "**A description is a few words long.** Write what the name is missing, then stop. A listing puts dozens of them in front of an agent at once, and every one is read on every run. `util fs tree` and `util ls` cut at the first full stop or 120 characters, so a second sentence is written and never seen. That is a bound, never a target."
-- **After:** "A few words saying what it holds." The tool's cut-off is the tool's business.
 
 - **Before:** "**Every path named here is a default.** One named in `## Preferences`, in this directory's `CLAUDE.md`, or by the user wins."
 - **After:** deleted. An override is read where it is written. Had a line been needed: "Every path here can be overridden."

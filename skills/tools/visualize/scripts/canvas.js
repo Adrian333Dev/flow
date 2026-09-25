@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// description: character grid for drawing an ASCII diagram by coordinate
+// A character grid for drawing an ASCII diagram by coordinate.
 //
 // Every write is asserted, so a coordinate outside the grid throws where the
 // mistake is rather than drawing somewhere unexpected.
