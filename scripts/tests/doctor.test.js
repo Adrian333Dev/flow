@@ -66,7 +66,7 @@ test('a fresh install passes every check', () => {
 
   assert.strictEqual(report.code, 0, report.stdout + report.stderr);
   assert.match(report.stdout, /nothing to fix\./);
-  assert.match(report.stdout, /util: fs tree, fs merge, fs open all run/);
+  assert.match(report.stdout, /util: fs tree, fs open all run/);
   assert.match(report.stdout, /12 hooks registered, every file they name on disk, sessions start in "default" mode/);
 });
 

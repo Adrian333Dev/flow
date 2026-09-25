@@ -17,6 +17,7 @@ Every command, skill, setting and file Flow gives you, in one place. Look one up
 - [Rule checks](#rule-checks)
 - [Sharing findings](#sharing-findings)
 - [The skills](#the-skills)
+- [Agents read files with Read, never `util fs merge`](#agents-read-files-with-read-never-util-fs-merge)
 - [Settings](#settings)
 - [Files](#files)
 
@@ -80,7 +81,7 @@ After your yes, it writes the rule file `~/.flow/AGENTS.md`, makes `~/.agents/AG
 
 **The form shows only what saying go would change.** A setting is judged by its value, so memory already switched off gets no line. An installed plugin or skill that works against Flow is judged by being there, so it gets a line even when it is switched off: it could be switched back on. A plugin goes by `claude plugin uninstall`.
 
-**The session runs in its own permission mode**, whatever yours is. It starts in your home folder, so reading your setup asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow setup`, `flow doctor`, `util fs tree`, `util fs merge` and the script that applies the form. Anything else asks you first. Auto mode's own check refused the setup's first write in testing, which is why the setup never runs under it.
+**The session runs in its own permission mode**, whatever yours is. It starts in your home folder, so reading your setup asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow setup`, `flow doctor`, `util fs tree` and the script that applies the form. Anything else asks you first. Auto mode's own check refused the setup's first write in testing, which is why the setup never runs under it.
 
 **Claude Code asks you once, partway through.** It asks before any write to a path with a `.claude` folder in it, and the form keeps its new `~/.claude/settings.json` under `~/.flow/migrations/`, at a path that ends in `.claude/settings.json`. No setting skips that question. The session tells you it is coming, and answering **allow Claude to edit its own settings for this session** covers every later one.
 
@@ -91,7 +92,7 @@ Run where no terminal is attached, or with `--root`, it prints the line that sta
 ```text
 One step left: setting up this machine. Start it from a terminal:
 
-  cd /home/me && claude --safe-mode --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow setup:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' 'Bash(util fs merge:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this machine.'
+  cd /home/me && claude --safe-mode --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow setup:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this machine.'
 ```
 
 - **`~/.flow/setup-prompt.md`**: Flow's rules followed by the setup's instructions, rewritten each time the session starts.
@@ -111,7 +112,7 @@ Everything about an installed machine a function can decide. It writes nothing, 
 - **The clone**: every submodule sits on the commit the clone points at. With `--updates` it also reads the newest `v<number>` tag the remote carries, which is the one check here that touches the network.
 - **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, and `~/.local/bin` is on your `PATH`.
 - **The programs Flow shells out to**: `node`, `git` and `claude` are on your `PATH`.
-- **The 3 util commands Flow calls**: `util fs tree`, `util fs merge` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all. `flow install` fixes every case.
+- **The 2 util commands Flow calls**: `util fs tree` and `util fs open`, each proved by running it. A failure is then explained against `~/.util/sources`, because a `util` on `PATH` with no registered source carries no commands at all. `flow install` fixes every case.
 - **`~/.agents/`**: `skills/flow/` is a real folder, it holds one link into this clone per skill switched on, and its manifest names `flow`. `AGENTS.md` is present.
 - **`~/.claude/`**: `skills/flow` links to the plugin folder, one link per agent and rule points into this clone, and `CLAUDE.md` holds the line importing `~/.agents/AGENTS.md`.
 - **`~/.claude/settings.json`**: it parses, every hook the template declares is registered, every hook script is on disk, and no `skillOverrides` key names a Flow skill, which would do nothing because Flow's skills load as a plugin. `permissions.defaultMode` must be set, since without it a session on a Pro, Max or Team plan starts in auto mode. A mode other than the template's `default` is a note, not a failure.
@@ -126,7 +127,7 @@ Everything about an installed machine a function can decide. It writes nothing, 
 ```text
 $ flow doctor --prereq
 ok    programs: node, git, claude all resolve
-ok    util: fs tree, fs merge, fs open all run
+ok    util: fs tree, fs open all run
 
 nothing to fix.
 ```
@@ -169,13 +170,13 @@ The same 4 locks as `flow restore` guard it, the first 2 being every Claude Code
 
 ## Migrations and the original
 
-A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 things write one: `flow setup` moves your machine onto Flow, `/flow:setup-project` moves a project, and `/flow:migrate` moves either one to a newer Flow.
+A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 things write one: `flow setup` moves your machine onto Flow, `flow setup project` moves a project, and `/flow:migrate` moves either one to a newer Flow.
 
 The original is every path as it was before Flow first touched it. There is one per place, a place being this machine or one project, and putting it back is how you undo Flow.
 
 A migration is not a ticket. A ticket is your project's own work, and git undoes it. A migration changes files git never sees, such as `~/.claude/`, so the original undoes it.
 
-**The original is written in one window, and nothing is ever added to it afterwards.** `flow install` opens the machine's and copies every path it is about to create. The first `flow setup` adds each path its migration changes, and closing the window is the last thing that run does. A project's window opens and closes inside its first `/flow:setup-project`. After that, a migration months later copies nothing: a file you made last week is yours, not part of the machine you had before Flow, and nothing on disk can tell the two apart.
+**The original is written in one window, and nothing is ever added to it afterwards.** `flow install` opens the machine's and copies every path it is about to create. The first `flow setup` adds each path its migration changes, and closing the window is the last thing that run does. A project's window opens and closes inside its first `flow setup project`. After that, a migration months later copies nothing: a file you made last week is yours, not part of the machine you had before Flow, and nothing on disk can tell the two apart.
 
 **What it is for is the first week or two**, where you try Flow and decide against it. Undoing one migration is a different job, and Flow does not do it.
 
@@ -200,7 +201,7 @@ A migration of the machine goes in `machine/`. A project's goes in a folder name
 
 Claude writes the migration, then stops for your yes. You read `migration.md`, delete any line you refuse, and say go. Claude never writes a real path itself. The skill runs `apply-migration.js`, which carries out `migration.md` one line at a time, so a path the migration leaves out is never touched.
 
-`migration.md` opens with 2 frontmatter fields. `type` names what wrote it: `setup-machine` for `flow setup`, `setup-project` or `migrate` for the skill of that name. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
+`migration.md` opens with 2 frontmatter fields. `type` names what wrote it: `setup-machine` for `flow setup`, `setup-project` for `flow setup project`, and `migrate` for `/flow:migrate`. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
 
 - **`- write <path>: <why>`**: the copy at `files/<full path>` replaces it, a file or a whole folder.
 - **`- delete <path>: <why>`**: removes a file or a whole folder.
@@ -688,6 +689,16 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 - **`/flow:apply-domain-findings <skill>`** (user only): checks the findings sent to one domain skill, writes the true ones into its body and pages, and closes their pull requests
 
 A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is what ships it.
+
+## Agents read files with Read, never `util fs merge`
+
+Flow's rules send every file an agent opens through Read, Claude Code's own tool for opening a file, and ask for all the files a step needs at once. `util fs merge`, the util command that prints many files as one text, is left out on purpose. Its line in `util ls` says it is not designed for Claude Code.
+
+**The reason is a size limit.** Claude Code hands a shell command's output to the agent up to about 30,000 characters, counted across everything the command printed. Past that, the agent sees a 2,000-character preview and the path of a file holding the rest. A Read call gets its own page of 25,000 tokens, about 100,000 characters, and Read calls sent together each get a full page. 10 files read together arrive whole. The same 10 through `merge` arrive as a preview.
+
+**No setting raises the limit for `merge` alone.** Claude Code's `bashOutputMaxChars` raises it for every command on the machine, or for every command in one session when passed with `--settings`. Neither was worth the change for one command.
+
+**Leave `merge` out of your preferences.** A line in the `## Preferences` section of `~/.agents/AGENTS.md` telling agents to use it brings the limit back. `merge` stays useful to you: it prints a set of files ready to paste into a chat.
 
 ## Settings
 

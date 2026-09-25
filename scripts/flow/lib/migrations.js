@@ -1,7 +1,7 @@
 'use strict';
 /**
  * Migrations: a change to where Flow and the harnesses keep their files,
- * written by `flow setup`, /flow:setup-project or /flow:migrate.
+ * written by `flow setup`, flow setup project or /flow:migrate.
  *
  *   ~/.flow/migrations/<machine or project>/<date-time>/
  *   ├─ migration.md   one line per change: write, delete, move or run

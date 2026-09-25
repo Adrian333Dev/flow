@@ -16,13 +16,13 @@ const { FlowError } = require('./error');
 
 /**
  * A project Flow has been set up in, or a refusal naming the skill that does
- * it. `.flow/` is what /flow:setup-project writes, so its absence means the
+ * it. `.flow/` is what flow setup project writes, so its absence means the
  * project was never brought in, and every command reading a ticket, an overlay
  * or a skill list goes through here.
  */
 function inFlow(root) {
   if (fs.existsSync(path.join(root, '.flow'))) return root;
-  throw new FlowError(`${root} is not a Flow project yet. Type /flow:setup-project to bring it in.`);
+  throw new FlowError(`${root} is not a Flow project yet. Type flow setup project to bring it in.`);
 }
 
 function projectRoot() {

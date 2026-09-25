@@ -19,7 +19,7 @@ One user message, your work, one reply. In that order, every time.
 - **`read-minimal-context`** Path and line range, one filtered query over many reads, stop when answered.
 - **`tree-for-structure`** The shape of a folder → `util fs tree`, never `ls` or `find`.
 - **`search-then-choose`** Search with `grep -rn` first. Open only the files whose matching lines matter.
-- **`read-one-merge-many`** 1 file → `Read`. 2 or more → `util fs merge`. Never `cat`, `head`, `tail` or `sed -n`.
+- **`read-in-parallel`** Files → `Read`, all of them in one parallel batch. Never `cat`, `head`, `tail` or `sed -n`.
 - **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
 - **`handoff-read-once`** A handoff file is read once, then left alone. A ticket is the opposite: whoever works it keeps it true.
@@ -80,7 +80,6 @@ One phase at a time:
 `util` and `flow` are on `PATH`. `util ls` and a bare `flow` print every command.
 
 - `util fs tree [path] [--depth N] [--except pattern]` prints the tree under a path, here by default, full depth, with each file's line count.
-- `util fs merge [--ext ts,tsx] [--except pattern] [--force] <path>...` prints the files joined into one stream, every line numbered. A path is a file, a folder (recursive) or a range, `file.md:45-89`. Past 2000 lines it prints line counts instead; `--force` overrides.
 - `flow t047` shows a ticket. `flow` is the ticket system and the only writer of ticket frontmatter.
 
 ## Judgment

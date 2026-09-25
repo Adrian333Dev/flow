@@ -104,7 +104,7 @@ function attention(at, cwd) {
   const name = path.basename(root);
   const theirs = version.applied(path.join(root, '.flow', 'version'));
   if (theirs.state === 'missing') {
-    out.push(`${name} carries no version stamp, so /flow:setup-project never reached its last step. Type /flow:setup-project.`);
+    out.push(`${name} carries no version stamp, so flow setup project never reached its last step. Type flow setup project.`);
   } else if (theirs.state === 'unreadable') {
     out.push(`${name}/.flow/version holds "${theirs.text}", and it holds one changelog entry number and nothing else. Run flow doctor.`);
   } else if (mine.state === 'ok' && theirs.number < mine.number) {

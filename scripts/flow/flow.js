@@ -128,7 +128,7 @@ share   a finding for a domain skill waits in .flow/findings/<skill>/, where
         merged: /flow:apply-domain-findings rewrites the skill from it and
         closes it with what went in
 migrate a change to where Flow and the harnesses keep their files, written
-        by flow setup, /flow:setup-project or /flow:migrate into
+        by flow setup, flow setup project or /flow:migrate into
         ~/.flow/migrations/<machine or project>/<time>/: migration.md lists
         each change, files/ holds each new version. After your yes the skill
         runs ~/.flow/scripts/apply-migration.js, which never touches a path

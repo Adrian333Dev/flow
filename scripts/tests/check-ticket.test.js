@@ -68,5 +68,5 @@ test('check-ticket blocks before the ticket check when setup never ran', () => {
   fs.rmSync(path.join(dir, '.flow'), { recursive: true });
   const inProject = check('groundwork', 'write the map', dir);
   assert.strictEqual(inProject.code, 0);
-  assert.match(inProject.stdout, /not a Flow project yet.*\/flow:setup-project/, 'a message with no ticket id still blocks');
+  assert.match(inProject.stdout, /not a Flow project yet.*flow setup project/, 'a message with no ticket id still blocks');
 });

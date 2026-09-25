@@ -165,7 +165,6 @@ function checkNames(clone, { bin }) {
  */
 const UTIL_COMMANDS = [
   { name: 'fs tree', callers: 'home/AGENTS.md, in tree-for-structure' },
-  { name: 'fs merge', callers: 'home/AGENTS.md, in read-one-merge-many' },
   { name: 'fs open', callers: 'flow get --files, through tickets.js' },
 ];
 
@@ -523,7 +522,7 @@ function checkSkills(at) {
 /**
  * A run that stopped part-way, reported before anything else.
  *
- * `flow setup`, /flow:setup-project and /flow:migrate each write
+ * `flow setup`, flow setup project and /flow:migrate each write
  * ~/.flow/run.json before their first step and delete it at their last, so
  * the file on disk means a run never finished. Every check below it is then
  * reading a machine half way through a change, and reads it wrong.
@@ -600,7 +599,7 @@ function checkVersion(clone, at) {
     const name = path.basename(root);
     const theirs = version.applied(path.join(root, '.flow', 'version'));
     if (theirs.state === 'missing') {
-      notes.push(`${name} has no .flow/version, and the last step of /flow:setup-project is what stamps it`);
+      notes.push(`${name} has no .flow/version, and the last step of flow setup project is what stamps it`);
     } else if (theirs.state === 'unreadable') {
       problems.push(`${name}/.flow/version holds "${theirs.text}", and it holds one changelog entry number and nothing else`);
     } else {

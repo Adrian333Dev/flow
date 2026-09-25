@@ -355,7 +355,7 @@ That closes 4.0.
 **The management skill is 4 skills, filed in `skills/tools/`, every one of them typed by the user.** 3 until 2026-09-18, when project setup split from machine setup.
 
 - **`/flow:setup-machine`** puts Flow on a machine that never had it, or has somebody else's setup on it. Branch 3 is its body. Named `/flow:setup` until 2026-09-18.
-- **`/flow:setup-project`** brings one project into Flow, the first time the user opens it: it reads the whole project and writes its context files, tickets and state. `## What setup does to settings.json and to a project` holds it.
+- **`/flow:setup-project`** brings one project into Flow, the first time the user opens it: it reads the whole project and writes its context files, tickets and state. `## What setup does to settings.json and to a project` holds it. It became the command `flow setup project` 2026-09-25, under `## Project setup is a command`.
 - **`/flow:migrate`** moves the machine forward, then a project, when Flow itself changed. Branch 0 is its body.
 - **`/flow:help`** answers a question about Flow out of the manual, and answers "what do I do now". Branch 5 is its body.
 - **Prerequisites is not a skill.** It was `references/prerequisites.md`, read by both setup skills and `/flow:migrate` as step 0, because 6.0 said it runs before any job and never on its own. **Replaced 2026-09-21 by `flow doctor --prereq`**, one command with an exit code: see `## Prerequisites are checked by running them`.
@@ -895,10 +895,42 @@ What the setup form's `permissions` lines install. Claude Code's settings hold e
 
 ## Project setup is a command, ruled 2026-09-25
 
-**`flow setup project`, typed in the project's folder, opens a safe-mode session, the way `flow setup` does for the machine.** Agreed by the user 2026-09-25, in place of the planned `/flow:setup-project` skill.
+**`flow setup project`, typed in the project's folder, runs in 2 halves: a script, then a normal session.** Agreed by the user 2026-09-25, in place of the planned `/flow:setup-project` skill. The split was the user's idea, approved the same day, and replaced a single safe-mode session.
 
-- **The reason is what the project itself loads, not the machine being unready.** A normal session in a project loads its `CLAUDE.md`, its hooks, its skills and the plugins its `.claude/settings.json` switches on, and a project's `enabledPlugins` beats the user's own. Delapse loads a workflow section naming superpowers as its engine, and switches superpowers on. Safe mode loads none of it, so setup reads those files as text.
-- **The skill wins only in a project with little of its own**, since it runs inside a session already open. It loses in exactly the projects setup exists for.
+- **The script needs no agent**, the way `flow install` needs none. It copies every path it will touch into `~/.flow/originals/<project>/`, lists what Claude Code would load from the project, and asks one yes. Then it removes those files and writes `project-template/`. Claude Code picks what to load by path alone, so a path list finds all of it: `CLAUDE.md`, `AGENTS.md`, `.claude/settings.json` and `.claude/settings.local.json`, `.claude/skills/`, `.mcp.json`, and the memory folder under `~/.claude/projects/` named for the project's path. The script decides nothing about keeping.
+- **The session then runs the harvest with Flow loaded and nothing of the project's.** It reads the removed files from the original, and puts back in Flow's shape whatever passes. Flow's skills are there, `/flow:research` included.
+- **Safe mode had one reason, and the script removes it.** A project's own files load into every session opened there, and a project's `enabledPlugins` beats the user's own. Delapse's `CLAUDE.md` names superpowers as its engine, and its settings switch superpowers on. Safe mode also switched off Flow's own skills and hooks.
+- **A run stopped between the halves** leaves Flow's template and none of the project's facts, plugins or tickets. Running again carries on from `inventory.md`. `flow restore project` puts every removed file back.
+
+**3 harvest rulings, approved by the user 2026-09-25:**
+
+- **Open work becomes tickets, one per open item**, and the files it came from stay where they are. Delapse keeps it in `docs/work/now.md`, `audit/bugs.md`, `audit/debt.md` and `roadmap.md`.
+- **Memory about the user goes to the machine's preferences box**, under the same second test as machine setup: would the user still want it had Flow been there from the start. A rule the agent would get wrong without being told goes to the project's `AGENTS.md`, and a lasting fact the code does not show quickly to `docs/context/<subject>.md`, one question per file. A finished project note is dropped, and an open one becomes a ticket.
+- **A renamed project's memory is offered, never guessed.** Claude Code names the folder for the path at the time, so Delapse-validation's sits under `-home-me-code-projects-backmark-validation`. With no folder matching the current path, the form lists every memory folder whose project is gone from disk, each unticked.
+
+**3 rulings on what setup writes and on restore, set by the user 2026-09-25:**
+
+- **Project context stays short.** The session may read the code for anything useful, beyond what the docs say. What it writes about the project stays small, because a long description goes out of date with the code and becomes upkeep.
+- **No rule for standard practice.** A rule is kept only where a capable agent reading the code would likely get it wrong without it. Delapse's "all LLM calls go through `LlmService`" fails: one service injected where it is needed is ordinary design, and ruling on it would mean hundreds of rules like it.
+- **A machine restore may leave the projects as they are.** It lists every project set up and offers to restore them first. Declining is allowed, with a warning.
+
+**How the harvest runs, agreed 2026-09-25**, proposed and left unopposed:
+
+- **Every stage of project works with the same steps**: an empty folder gets `project-template/` alone, docs with no code get `AGENTS.md` from the docs, a partly built project gets the full harvest, a large one more batches. Someone else's repository gives nothing to the user's preferences.
+- **Only files git would keep are surveyed.** Delapse's `temp/repos/` holds about 50 rule files of other projects.
+- **3 stages.** A survey writes `inventory.md` into the migration folder, one line per source with its path, type, size and whether it is read, so a stopped run carries on from the first unread line. Subagents read it in batches with `util fs tree` and `Read`, each writing findings beside it, and the main session holds only the inventory and the findings. Every finding lands in one place: the project's `AGENTS.md`, `docs/context/`, a ticket, `.flow/inbox.md`, `.flow/findings/`, the machine's 2 sections, left in place, taken over as a skill source, or dropped with its Flow rule named.
+- **Sources are typed by content, never by file name**: intent, how it is built, decision, open work, rules for the agent, reference, history. Reference and history are never read whole: Delapse's largest doc is 860 KB of Inngest's own documentation, then finished milestone plans.
+- **The code is read freely and wins over every doc.** A doc the code contradicts becomes a ticket.
+- **`migration.md` holds decisions, never content.** One box per thing the user might reverse, with a count. Content sits in `files/`, and dropped lines in `dropped.md` beside the form, each with the Flow rule replacing it.
+- **Setup writes no spec**, since a spec is the user's intent and setup asks nothing. It makes one ticket, "Write the product spec", listing every intent, build and decision source with a line each. That ticket's `/flow:groundwork` run checks each claim with the user and writes `product.md`, `tech.md` and `decisions.md`. The old docs stay until then, and deleting them is its own yes. Renaming old specs was rejected: 95% are below Flow's standard.
+- **Tickets come only from explicit lists of open work**, never from features a spec describes.
+- **Everything in the project's settings gets the keep-or-remove test one by one**, as skills do: plugins, hooks, permissions, MCP servers in `.mcp.json`, and `.claude/settings.local.json`. What knows the project's field is kept, and what tells the agent how to work goes. Lumacraft's project settings switch on 11 plugins.
+- **An idea the user never committed to goes to `.flow/inbox.md`**, raw. It is neither open work nor a fact.
+- **A lesson about a tool goes to `.flow/findings/<what-was-learned>.md`**, such as a library's misbehavior and its workaround. It is knowledge `/flow:file-findings` can promote, not a fact about the project.
+- **Domain skills come back through `.flow/domain-skills.txt`**, which setup writes and links, as locked 2026-09-17. It asks for the domain-skills clone the first time a project wants a skill from it.
+- **A `CLAUDE.md` in a subfolder needs nothing of its own.** The survey takes every file git keeps and types it by content, so a committed `packages/api/CLAUDE.md` is sorted like the root one. A repository cloned in later is usually gitignored, and is handled when it causes trouble.
+- **Setup makes a second ticket, "Find skills, plugins and MCP servers for this stack"**, naming the stack read from the code and what is already installed. Its run uses `/flow:research`, and every install is its own yes. A project with no code gets none, since `/flow:groundwork` settles the stack.
+- **The paths it writes**: `AGENTS.md`, `CLAUDE.md` as `@AGENTS.md`, `.claude/settings.json`, `.gitignore` lines, `.work-include`, `.flow/settings.json`, `.flow/tickets/`, `.flow/overlays/`, `.flow/inbox.md`, `.flow/findings/`, `.flow/domain-skills.txt`, `docs/context/`, `.flow/version` last. On the machine: `~/.flow/AGENTS.md`'s 2 sections, `~/.flow/migrations/<project>/<time>/`, `~/.flow/originals/<project>/`, one `history.jsonl` line.
 
 
 Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.

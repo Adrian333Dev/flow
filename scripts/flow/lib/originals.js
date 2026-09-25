@@ -17,7 +17,7 @@
  * machine's and records every path it is about to create. The first
  * `flow setup` adds each path its migration changes, and closing the
  * window is the last thing that run does. A project's window opens and closes
- * inside its first /flow:setup-project. After that `record` is a no-op, so a
+ * inside its first flow setup project. After that `record` is a no-op, so a
  * migration months later cannot mistake today's file for the state from before
  * Flow. The user ruled copy-on-first-touch out on 2026-09-20 for exactly that
  * reason: a path created after setup is not part of the original.

@@ -13,7 +13,7 @@
  * It blocks 3 things, and the 2 setup checks run first, whatever was typed. A
  * machine where `flow setup` never finished has no rules loaded and no
  * other hook installed, so this is the only gate a typed skill passes through.
- * A project /flow:setup-project never ran in is the same case one level down.
+ * A project flow setup project never ran in is the same case one level down.
  * Both messages come from flow's own libraries rather than a copy here.
  *
  * Then the ticket. The first word typed is the only thing judged. A word that

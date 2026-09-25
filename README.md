@@ -140,11 +140,7 @@ skills/
 └─ dev/          review, apply-domain-findings
 ```
 
-`util fs merge` for loading many files into context in one call. It supports line ranges (`file.md:45-89`), extension filters (`--ext ts,tsx`), and a trailing note after `--` that rides alongside the content. One call is cheaper than separate parallel reads, and the agent gets the content in a single block instead of scattered across tool results:
-
-```sh
-util fs merge src/auth.ts src/db.ts:1-50 lib/helpers/ -- focus on the auth flow
-```
+Read calls sent together for files: every file a step needs is asked for at once, and each call gets its own page of about 100,000 characters. `util fs merge`, which prints many files as one text, is a tool for pasting into a chat and never for agents. Claude Code passes a command's output to the agent up to about 30,000 characters in total, so a large set of files through `merge` arrives as a preview.
 
 Research levels that stop at the shallowest depth that answers the question. Delegating heavy research to external LLMs (including free ones) keeps cost at zero for broad surveys. A cheaper model for delegated mechanical steps. Prototypes built by a subagent, so throwaway code does not consume the main context.
 

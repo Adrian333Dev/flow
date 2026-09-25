@@ -52,9 +52,8 @@ const ALLOWED = [
   'Bash(flow setup:*)',
   'Bash(flow doctor:*)',
   'Bash(node ~/.flow/scripts/apply-migration.js:*)',
-  // Flow's rules send every look at a folder through these 2, never ls.
+  // Flow's rules send every look at a folder through this, never ls.
   'Bash(util fs tree:*)',
-  'Bash(util fs merge:*)',
 ];
 
 /** util's names, which util's own installer links beside Flow's. */
