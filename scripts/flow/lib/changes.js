@@ -95,6 +95,11 @@ function repoRoot(cwd) {
 /**
  * The tree holding every file as it stands right now. The throwaway index
  * starts as a copy of the real one, so git re-reads only the files that changed.
+ *
+ * The copy keeps the real index's modified time. git trusts a file whose size
+ * and time match its entry, to the second, and re-reads one changed in the
+ * same second as the index was written. A copy dated now loses that check, so
+ * an edit of the same size in the same second as the commit went unseen.
  */
 function snapshot(root, dir) {
   const scratch = path.join(dir, 'scratch');
@@ -102,7 +107,11 @@ function snapshot(root, dir) {
   const index = path.join(scratch, `index-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   try {
     const real = path.resolve(root, git(['rev-parse', '--git-path', 'index'], root).trim());
-    if (fs.existsSync(real)) fs.copyFileSync(real, index);
+    if (fs.existsSync(real)) {
+      fs.copyFileSync(real, index);
+      const { atime, mtime } = fs.statSync(real);
+      fs.utimesSync(index, atime, mtime);
+    }
     git(['add', '-A'], root, { env: { GIT_INDEX_FILE: index } });
     return git(['write-tree'], root, { env: { GIT_INDEX_FILE: index } }).trim();
   } finally {

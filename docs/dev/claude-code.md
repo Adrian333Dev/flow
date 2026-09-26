@@ -133,13 +133,13 @@ Put together with the deduplication rule above: a skill that takes arguments is 
 
 **None of these values stop anything but the skill itself.** A plugin's commands, subagents and hooks all keep running. `skillOverrides` controls the trigger and never the cost.
 
-**It does not reach a plugin's skills at all.** `lab/research/claude-code-docs/settings.md` says so in one line: "Does not apply to plugin skills, which are managed through `/plugin`." Flow's own skills load as a plugin, so no `skillOverrides` value hides one. `claude plugin disable flow@skills-dir` switches the whole set off, and that is the only switch there is.
+**It does not reach a plugin's skills at all.** `lab/research/claude-code-docs/settings-reference.md` → `### skillOverrides` says so in one line: "Overrides don't apply to plugin skills, which you manage through `/plugin`." Flow's own skills load as a plugin, so no `skillOverrides` value hides one. `claude plugin disable flow@skills-dir` switches the whole set off, and that is the only switch there is.
 
 ## A plugin is a bundle, not a skill
 
 A plugin is a folder carrying a manifest, `.claude-plugin/plugin.json`, which names it. It can hold skills, subagents, slash commands and hooks at once. Enabling one adds a small system, not a file: the surveyed `impeccable` plugin ships 1 skill, 4 subagents, 23 commands and 2 hooks.
 
-**A marketplace is one way in, not the only one.** Any folder under a skills directory that holds `.claude-plugin/plugin.json` is loaded as a plugin on the next session, named `<plugin>@skills-dir`, with nothing installed and nothing copied. `lab/research/claude-code-docs/plugins-reference.md` documents it. That is the route Flow takes: `flow install` writes the manifest beside the links it already builds, and the whole set becomes `flow:<skill>`.
+**A marketplace is one way in, not the only one.** Any folder under a skills directory that holds `.claude-plugin/plugin.json` is loaded as a plugin on the next session, named `<plugin>@skills-dir`, with nothing installed and nothing copied. `lab/research/claude-code-docs/plugins-loading.md` documents it. That is the route Flow takes: `flow install` writes the manifest beside the links it already builds, and the whole set becomes `flow:<skill>`.
 
 - **Plugin skills are namespaced `plugin:skill`**, such as `superpowers:brainstorming`. The name comes from the manifest, so changing one word there renames every command in the set. Typing the bare name still works when nothing else claims it.
 - **`enabledPlugins` is the real off switch.** Off means no skill, no commands, no subagents and no hooks.

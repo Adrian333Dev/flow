@@ -19,8 +19,18 @@ const { spawnSync } = require('child_process');
 const { SCRATCH, run } = require('./helpers/scratch');
 const update = require('../flow/lib/skills-update');
 
-/** git with no machine settings behind it, and an identity of its own. */
-const CLEAN = { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null', GIT_TERMINAL_PROMPT: '0' };
+/**
+ * git with no machine settings behind it, and an identity of its own. The
+ * ceiling stops it at the scratch folder, which sits inside Flow's own
+ * repository: a commit whose folder lost its .git would otherwise land there.
+ */
+const CLEAN = {
+  ...process.env,
+  GIT_CONFIG_GLOBAL: '/dev/null',
+  GIT_CONFIG_SYSTEM: '/dev/null',
+  GIT_TERMINAL_PROMPT: '0',
+  GIT_CEILING_DIRECTORIES: SCRATCH,
+};
 
 function git(dir, args) {
   const ran = spawnSync('git', [

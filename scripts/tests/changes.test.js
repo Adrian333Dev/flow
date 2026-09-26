@@ -15,11 +15,15 @@ function repo(name) {
   const root = path.join(dir, 'repo');
   const home = path.join(dir, 'flow-home');
   fs.mkdirSync(root, { recursive: true });
-  spawnSync('git', ['init', '-q', '-b', 'main'], { cwd: root });
+  // The scratch folder sits inside Flow's own repository. Where this init
+  // failed, the commit below would land in Flow's, as it once did.
+  const env = { ...process.env, GIT_CEILING_DIRECTORIES: dir };
+  spawnSync('git', ['init', '-q', '-b', 'main'], { cwd: root, env });
+  assert.ok(fs.existsSync(path.join(root, '.git')), 'the scratch repository exists');
   write(root, 'keep.txt', 'one\ntwo\n');
   write(root, 'old.txt', 'a line nobody needs to read again\n'.repeat(50));
-  spawnSync('git', ['add', '-A'], { cwd: root });
-  spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'start'], { cwd: root });
+  spawnSync('git', ['add', '-A'], { cwd: root, env });
+  spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'start'], { cwd: root, env });
   return { root, home };
 }
 
@@ -81,6 +85,30 @@ test('a worker hands the parent its diff and the command that deleted a file', a
   assert.match(stderr, /- `rm old\.txt`: old\.txt \(deleted\)/);
   assert.match(stderr, /deleted file mode/);
   assert.doesNotMatch(stderr, /nobody needs to read/, 'a deleted file shows its header, never its content');
+});
+
+/** Block until the clock has just passed into a new second. */
+function nextSecond() {
+  const second = Math.floor(Date.now() / 1000);
+  while (Math.floor(Date.now() / 1000) === second) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5);
+}
+
+// git trusts a file whose size and modified time match its index entry, and
+// times are compared by the second. It guards the same second by comparing
+// against the index file's own time, which a copied index must keep.
+test('an edit of the same size in the same second as the commit is still seen', async () => {
+  nextSecond();
+  const ctx = repo('changes-same-second');
+  start(ctx, 'w1');
+  const waiting = await waiter(ctx, 'w1');
+  edit(ctx, 'w1', 'c1', 'keep.txt', 'one\nTWO\n');
+  command(ctx, 'w1', 'c2', 'sleep 1', nextSecond);
+  stop(ctx, 'w1');
+
+  const { stderr } = await waiting.done;
+  assert.match(stderr, /1 file changed/);
+  assert.match(stderr, /-two\n\+TWO/);
+  assert.doesNotMatch(stderr, /Commands that changed files/, 'the command changed nothing');
 });
 
 test('2 workers at once each get only their own file, and the parent\'s edit goes to neither', async () => {
