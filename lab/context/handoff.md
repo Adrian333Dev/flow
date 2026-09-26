@@ -2,21 +2,19 @@
 
 Written 2026-09-26. Read this once, then rewrite it whole next time.
 
-## Next: run project setup for the first time
+## Next: `/flow:help`
 
-**`flow setup project` is built and has never run.** The next step is running it on Delapse in the sandbox, `bash lab/scripts/try.sh`, and fixing what the run finds. Ask the user before starting it: a run needs their terminal.
+**The build order in `backlog.md` → `### The management skill, in build order` has 2 lines left before the first real install**: `skills/tools/help/SKILL.md`, then the install on this machine, which waits for the user's word. `/flow:help` is designed in `lab/context/management.md` → `## The answer job`. Propose its shape to the user before building.
 
-What exists, all uncommitted:
+## Built today, never run for real
 
-- **`scripts/flow/setup/project.md`**: the step file, 11 steps, the harvest as goals and tips.
-- **`scripts/flow/setup/project-form.md`**: the form's template.
-- **`scripts/flow/commands/setup.js`** → `actions.project`: the launch, `check` and `finish`. 3 tests in `scripts/tests/setup.test.js`.
-- **`scripts/flow/commands/doctor.js`**: the stopped-run line names `flow setup project` for a project run.
-- Records: `lab/context/management.md` → the form's block under `## Project setup is a command`, `lab/context/state.md`, `backlog.md`, `docs/manual/reference.md` → `### flow setup project`, `docs/dev/layout.md`.
+`flow up` is uncommitted. Neither has met a real case.
 
-Untested by any run: whether `--add-dir` accepts the memory folder, whether `flow new` with `FLOW_PROJECT` pointed at the copy under `files/` works from inside the session, and how the session copes with Delapse's 182 docs.
+- **`flow setup project`**: `scripts/flow/setup/project.md`, `project-form.md`, `scripts/flow/commands/setup.js` → `actions.project`. The user chose to try it at the end, once Flow is finished, on Delapse in the sandbox, `bash lab/scripts/try.sh`. Untested: whether `--add-dir` accepts the memory folder, whether `flow new` with `FLOW_PROJECT` pointed at the copy under `files/` works from inside the session, and how the session copes with Delapse's 182 docs.
+- **`flow up`**, in place of the `/flow:migrate` skill: `scripts/flow/commands/up.js` and `scripts/flow/setup/migrate.md`. It pulls, then opens one session per place behind, the machine first. A real run needs entry 2 in `CHANGELOG.md` and its guide, and entry 2 waits for the first install. Untested: whether `flow audit session` lists the hooks a `claude -p` session fired, which the proof step relies on.
+- Records: `management.md` → `## Project setup is a command, ruled 2026-09-25` and `## Migration is a session flow up opens, ruled 2026-09-26`, `lab/context/state.md`, `backlog.md`, `docs/manual/reference.md` → `### flow setup project` and `### flow up`, `upgrades/README.md`, now 5 headings.
 
-The 3 projects studied: `/home/me/code/projects/delapse`, `/home/me/code/projects/delapse-validation` (memory under the old name `-home-me-code-projects-backmark-validation`), and `repos/lumacraft_v2`, read with `cat` only.
+The suite passed 169 of 169 on the last run.
 
 ## Restore: agreed, not built
 
@@ -28,7 +26,7 @@ The 3 projects studied: `/home/me/code/projects/delapse`, `/home/me/code/project
 - **Read returns 25,000 tokens per page**, and at most 2,000 lines by default, with `offset` and `limit`.
 - **`--setting-sources user` skips project instructions at any depth, skills, commands, subagents, settings and `.mcp.json`.** Probed in `tmp/probe-sources/`.
 - **The `util` on PATH runs `~/code/util`, an older copy than `lab/util/`.** Its tree shows no line counts.
-- **A test's scratch folder sits inside Flow's repository**, so git finds Flow above a folder never initialised. `GIT_CEILING_DIRECTORIES` stops it, as the project setup tests do.
+- **A test's scratch folder sits inside Flow's repository**, so git finds Flow above a folder never initialised. `GIT_CEILING_DIRECTORIES` stops it, as the setup and update tests do.
 
 ## How to reply to this user
 
@@ -40,8 +38,10 @@ The 3 projects studied: `/home/me/code/projects/delapse`, `/home/me/code/project
 
 ## Loose ends nobody has raised
 
+- `scripts/flow/setup/` now holds the update session's text too, so its name undersells it.
 - util's test `git work refuses to send from a machine with no name` fails on this machine, since the global git config sets `util.machine`.
 - `docs/manual/reference.md` has a heading `# Delapse into Flow` in the middle of `## Migrations and the original`, not written by this work.
 - 2 Flow tests fail under load and pass alone: the worker-diff case in `changes.test.js`, and one in `restore.test.js`.
+- `references/workflow.md` → `Migration` still says a migration is undone with a snapshot.
 - The scorecard records use a `kind` field.
 - Scratch to clear some day: `tmp/read-calls/`, `tmp/guard-probe/`, `tmp/merge-try/`, `tmp/open-example/`, `tmp/docs-fetch/`, `tmp/probe-sources/`, `tmp/ps.md`.

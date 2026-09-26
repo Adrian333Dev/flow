@@ -980,6 +980,22 @@ Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.
 - **Install, verify and re-install across the user's 2 machines are v1.** Converting a project that already has its own workflow waits for such a project. Set 2026-09-08.
 - **The 9 outside skills and plugins on this machine are the test material**, untouched until the skill runs here. Set 2026-09-15.
 
+## Migration is a session flow up opens, ruled 2026-09-26
+
+**`/flow:migrate` is not built. `flow up` pulls the clone, then opens the update session itself**, the way `flow setup` opens setup. Proposed and approved 2026-09-26.
+
+- **The deciding argument is the order.** A skill runs the text a session loaded before the pull, so every guide needed a heading saying whether the old steps could carry it, and a run stopped half way when they could not. Opening the session after the pull means the newest steps always run. `## When a migration changes the management skill itself` above no longer applies, and the `Can the old skill run it` heading is gone: `upgrades/README.md` holds 5 headings now.
+- **It merges 2 build items into 1.** `flow up` was always going to run the migration, and a command cannot type a skill into a session.
+- **The permissions match setup's**: `acceptEdits`, `--add-dir ~/.flow`, and the commands the session runs allowed by name. A skill would have run under the user's own mode, which asks before each of them.
+- **What it costs**: a session that says a project is behind cannot fix it in place. The user quits and types `flow up`. The session-start line says so.
+- **The machine goes first.** A project's number is compared with the machine's, so `flow up` typed in a project that is behind along with the machine runs the machine's session, then the project's. 2 forms, 2 yeses, one migration folder each.
+- **A normal session, not safe mode and not `--setting-sources user`.** Flow's rules and hooks are already on the machine, and a Flow project holds nothing that competes with them.
+- **The form holds 3 sections**: what changed, one line per entry with a guide; the user's own lines, each kept under a ticked box; every file it changes. The design's `keep or drop` line from `### The one thing a whole write can destroy` became the box.
+- **A pull git refuses stops `flow up`** with git's message. A stopped run is carried on with no pull, so the guides cannot change under it.
+- **Nothing behind prints one line and runs nothing**, `flow doctor` included. The session runs `flow doctor` after a migration, where there is something new to check.
+- **Proof as `## Proof` above designed it**, run only where the migration changed a hook, the rule file or the skills: `claude -p --output-format json "ok"` from the place's folder, then `flow audit session <session_id>`. No run has shown that the session view lists the hooks that fired.
+- **What was built**: `scripts/flow/commands/up.js`, `scripts/flow/setup/migrate.md`, `migrations.resume()` naming the command for a stopped run, and 4 tests in `scripts/tests/up.test.js`. `session-check.js` and `flow doctor` name `flow up`.
+
 ## The options on the table, by branch
 
 None approved. Each is a position to argue in the walk, never the answer.

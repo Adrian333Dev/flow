@@ -1,6 +1,6 @@
 # Claude Code: where it keeps its files
 
-One file per harness, in `~/.flow/references/harnesses/`. `flow setup`, `flow setup project` and `/flow:migrate` read every file in that folder, so a second harness is a file written here and no skill edited.
+One file per harness, in `~/.flow/references/harnesses/`. `flow setup`, `flow setup project` and `flow up` open sessions that read every file in that folder, so a second harness is a file written here and no instructions edited.
 
 Claude Code's own paths, never Flow's. `flow doctor` reports what Flow owns, and `scripts/flow/lib/installed.js` is the list behind it.
 

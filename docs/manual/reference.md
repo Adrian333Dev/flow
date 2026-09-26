@@ -132,7 +132,7 @@ Setting up ~/code/shop runs in its own session. Start it from a terminal:
 
 Everything about an installed machine a function can decide. It writes nothing, prints one line per area when that area is clean and one line per problem when it is not, and exits 1 if anything failed. Run it after installing, and again whenever something behaves as though it were not installed.
 
-- **A run that stopped part-way**: `~/.flow/run.json` exists only while a setup or a migration is running, so a file left on disk means the machine is half way through a change. It is reported before anything else, naming the step it stopped at and both ways out: carry on in a new session, or put the place back to how it was before Flow.
+- **A run that stopped part-way**: `~/.flow/run.json` exists only while a setup or a migration is running, so a file left on disk means the machine is half way through a change. It is reported before anything else, naming the step it stopped at and both ways out: carry on by typing the command that started it, or put the place back to how it was before Flow.
 - **How current the machine is**: the entry number in `~/.flow/version` against the newest entry in `CHANGELOG.md`, and a project's `.flow/version` against the machine's. Being behind is a note suggesting `flow up`, because the machine still works. A number above the newest entry is a failure, since only a clone that moved backwards produces one.
 - **The clone**: every submodule sits on the commit the clone points at. With `--updates` it also reads the newest `v<number>` tag the remote carries, which is the one check here that touches the network.
 - **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, and `~/.local/bin` is on your `PATH`.
@@ -160,6 +160,44 @@ nothing to fix.
 Setting Flow up and migrating it both start here, and both stop when it exits 1. `apply-migration.js` runs the same 2 checks again before it changes its first path, so a migration never begins on a machine that cannot finish it.
 
 `flow check` is the other verification command and answers a different question: the ticket graph in the project you are standing in.
+
+### `flow up`
+
+Brings Flow up to date in one word: this machine, and the project you type it in. Every change to how Flow behaves gets a numbered entry in `CHANGELOG.md`, and that number is Flow's version. `~/.flow/version` holds the entry this machine last applied, and a project's `.flow/version` holds its own.
+
+1. **It pulls the clone** with `git pull --ff-only`, then updates its submodules. A pull git refuses stops everything, with git's own message.
+2. **It compares the numbers.** The machine goes first, against the newest entry. A project goes second, against the machine, since a project can't be ahead of the machine it sits on.
+3. **It opens one Claude Code session per place that is behind.** The session follows `scripts/flow/setup/migrate.md` in the clone. It reads the upgrade guide each entry names, `upgrades/<number>.md`, and writes one form, `migration.md`. Nothing outside `~/.flow/` changes before you say go.
+
+Nothing behind prints one line and opens nothing:
+
+```text
+Flow is up to date: this machine is at entry 3, and so is ~/code/shop.
+```
+
+**The session opens after the pull, so the newest update steps always run.** The session's rules are still the old ones, since rules load when a session starts, and where a guide disagrees with them, the guide wins. The last message tells you to start `claude` again.
+
+**The form keeps your own edits.** Before writing the new version of a file Flow owns, the session compares your copy with Flow's template. A line in your copy that neither the template nor a guide explains is yours. It is carried into the new file, and the form lists it under `Your own lines, kept` with a ticked box. Untick it to drop the line.
+
+**One form per place.** Typed in a project that is behind along with the machine, `flow up` opens the machine's session first. Once that session stamps the machine, the project's opens. Quit a session part way and `flow up` carries it on, without pulling again.
+
+Run where no terminal is attached, or with `--root`, it prints the line that starts the session instead. `--root` never pulls.
+
+```text
+Bringing this machine from entry 2 to 3 runs in its own session. Start it from a terminal:
+
+  cd /home/me && claude --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow up:*)' 'Bash(flow doctor:*)' 'Bash(flow audit:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' 'Bash(claude -p:*)' --append-system-prompt-file /home/me/.flow/migrate-prompt.md 'Bring this machine up to date.'
+```
+
+- **`~/.flow/run.json`**: the same file the setups write, with `type` `migrate`, the project where there is one, and the 2 entry numbers, `from` and `to`.
+- **`flow up check`**: the session's first step. It lists every entry between the 2 numbers and the guide each one names:
+
+  ```text
+  ready: this machine goes from entry 2 to 3.
+    3, 2026-11-02: /home/me/code/flow/upgrades/3.md
+  ```
+- **`flow up finish`**: the session's last step. It stamps `to` into the version file and deletes `run.json`.
+- **Proof**: where the update changed a hook, the rule file or the skills, the session starts a second one with `claude -p`, which loads the new files, and reads back through `flow audit` what it loaded.
 
 ### `flow sync`
 
@@ -195,7 +233,7 @@ The same 4 locks as `flow restore` guard it, the first 2 being every Claude Code
 
 ## Migrations and the original
 
-A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 things write one: `flow setup` moves your machine onto Flow, `flow setup project` moves a project, and `/flow:migrate` moves either one to a newer Flow.
+A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 things write one: `flow setup` moves your machine onto Flow, `flow setup project` moves a project, and `flow up` moves either one to a newer Flow.
 
 The original is every path as it was before Flow first touched it. There is one per place, a place being this machine or one project, and putting it back is how you undo Flow.
 
@@ -224,9 +262,9 @@ A migration of the machine goes in `machine/`. A project's goes in a folder name
 
 **Nothing under `~/.flow/` is ever recorded.** Putting the machine's original back leaves your notes, tickets and study cases exactly where they are. Only `flow uninstall` deletes that folder.
 
-Claude writes the migration, then stops for your yes. You read `migration.md`, delete any line you refuse, and say go. Claude never writes a real path itself. The skill runs `apply-migration.js`, which carries out `migration.md` one line at a time, so a path the migration leaves out is never touched.
+Claude writes the migration, then stops for your yes. You read `migration.md`, delete any line you refuse, and say go. Claude never writes a real path itself. The session runs `apply-migration.js`, which carries out `migration.md` one line at a time, so a path the migration leaves out is never touched.
 
-`migration.md` opens with 2 frontmatter fields. `type` names what wrote it: `setup-machine` for `flow setup`, `setup-project` for `flow setup project`, and `migrate` for `/flow:migrate`. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
+`migration.md` opens with 2 frontmatter fields. `type` names what wrote it: `setup-machine` for `flow setup`, `setup-project` for `flow setup project`, and `migrate` for `flow up`. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
 
 - **`- write <path>: <why>`**: the copy at `files/<full path>` replaces it, a file or a whole folder.
 - **`- delete <path>: <why>`**: removes a file or a whole folder.

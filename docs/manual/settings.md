@@ -164,9 +164,9 @@ The rules for writing a reply sit at the end of a long file, loaded once at the 
 Prints one line when this machine or this project needs attention, and nothing at all when neither does:
 
 ```text
-Flow: this machine is at changelog entry 3, and 5 is the newest. Type /flow:migrate to catch up.
-Flow: delapse is at changelog entry 3, and this machine is at 5. Type /flow:migrate here.
-Flow: a migrate run stopped after step 4, so this machine is part way through a change. Type /flow:migrate to carry on, or run flow doctor for the way back.
+Flow: this machine is at changelog entry 3, and 5 is the newest. Run flow up in a terminal to catch up.
+Flow: delapse is at changelog entry 3, and this machine is at 5. Run flow up in a terminal, inside it.
+Flow: a migrate run stopped after step 4, so this machine is part way through a change. To carry on, run flow up in a terminal. flow doctor names the way back.
 Flow: domain-skills is behind. 2 skills changed: react, sql. Update it when you want them, or set "skillsAutoUpdate": true.
 ```
 
@@ -177,8 +177,6 @@ Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json
 **It also makes every skill link match the settings.** A switch you made on your other machine arrives through [`flow sync`](reference.md#flow-sync) as a line in `~/.flow/settings.json`, and the next session start makes the link. When a link changed, it asks Claude Code to scan the skill folders again. [`skills`](#skills) covers the lines.
 
 **It also sends every skill repository to update itself**, by starting `~/.flow/scripts/skills-pull.js` in the background and returning at once. A session never waits for the network, and whatever that pull finds is printed by the session after it. [`skillsAutoUpdate`](#skillsautoupdate) covers the pull, its 2 guards and the switch.
-
-**It is also the only thing that names `/flow:migrate`.** You type that skill and the agent can never start it, which keeps its description out of every session, so nothing else would tell either of you the command exists.
 
 `"sessionCheck": false` in `~/.flow/settings.json` silences it, and [`sessionCheck`](#sessioncheck) covers the switch.
 

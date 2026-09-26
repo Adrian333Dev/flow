@@ -29,6 +29,7 @@ const scorecard = require('./commands/scorecard');
 const contribute = require('./commands/contribute');
 const restore = require('./commands/restore');
 const setup = require('./commands/setup');
+const up = require('./commands/up');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -48,7 +49,7 @@ const TITLE = 'flow: tickets, computed from .flow/tickets/';
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...sync, ...uninstall, ...scorecard, ...contribute };
+const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...up, ...sync, ...uninstall, ...scorecard, ...contribute };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
@@ -128,9 +129,9 @@ share   a finding for a domain skill waits in .flow/findings/<skill>/, where
         merged: /flow:apply-domain-findings rewrites the skill from it and
         closes it with what went in
 migrate a change to where Flow and the harnesses keep their files, written
-        by flow setup, flow setup project or /flow:migrate into
+        by flow setup, flow setup project or flow up into
         ~/.flow/migrations/<machine or project>/<time>/: migration.md lists
-        each change, files/ holds each new version. After your yes the skill
+        each change, files/ holds each new version. After your yes the session
         runs ~/.flow/scripts/apply-migration.js, which never touches a path
         the migration leaves out. A line that fails stops the run there, and
         running the script again carries on from that line

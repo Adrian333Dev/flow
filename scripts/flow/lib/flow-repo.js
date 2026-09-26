@@ -15,7 +15,8 @@
  *   version       the changelog entry this machine reached. Another machine's
  *                 number here claims migrations that never ran
  *   run.json      a half-finished run on this machine
- *   setup-prompt.md   what the setup session was handed, rebuilt each run
+ *   setup-prompt.md, migrate-prompt.md   what a setup or an update session
+ *                 was handed, rebuilt each run
  *   originals/    this machine's disk as it was before Flow. Putting another
  *                 machine's back would write its files over this one's
  *   settings.local.json   every setting holding a path, the clone included
@@ -49,6 +50,7 @@ const IGNORED = [
   'version',
   'run.json',
   'setup-prompt.md',
+  'migrate-prompt.md',
   'originals/',
   'settings.local.json',
   'scripts',

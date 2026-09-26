@@ -7,11 +7,12 @@
  * `flow doctor`'s other checks, where a missing piece is repaired rather than
  * treated as a wall. util is one of those: `flow install` clones and links it.
  *
- * Two callers, and a failure stops both. `flow doctor --prereq` is step 0 of
- * `flow setup`, `flow setup project` and /flow:migrate: one command with
- * an exit code, in place of a skill typing shell lines and reading them back.
- * `apply-migration.js` runs the same list again before it changes its first
- * path, so a skill that skipped step 0 still writes nothing.
+ * Two callers, and a failure stops both. The check each session Flow opens
+ * runs first, `flow setup check` and `flow up check`, runs this list: one
+ * command with an exit code, in place of an agent typing shell lines and
+ * reading them back. `apply-migration.js` runs the same list again before it
+ * changes its first path, so a session that skipped its check still writes
+ * nothing.
  */
 
 const fs = require('fs');

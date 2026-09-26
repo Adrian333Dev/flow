@@ -541,7 +541,7 @@ function checkSkills(at) {
 /**
  * A run that stopped part-way, reported before anything else.
  *
- * `flow setup`, flow setup project and /flow:migrate each write
+ * `flow setup`, `flow setup project` and `flow up` each write
  * ~/.flow/run.json before their first step and delete it at their last, so
  * the file on disk means a run never finished. Every check below it is then
  * reading a machine half way through a change, and reads it wrong.
@@ -556,11 +556,8 @@ function checkRun(at) {
 
   const started = found.started ? `, started ${found.started}` : '';
   const step = found.step ? `after step ${found.step}` : 'before its first step';
-  // Both setups are commands. /flow:migrate is a skill.
   const inside = found.project ? `in ${shorten(found.project)}, ` : '';
-  const resume = found.type === 'setup-machine' ? 'run flow setup'
-    : found.type === 'setup-project' ? `${inside}run flow setup project`
-      : migrations.TYPES.includes(found.type) ? `open a session and type /flow:${found.type}` : 'open the run that wrote it again';
+  const resume = migrations.resume(found);
   const back = found.project ? `${inside}type flow restore project` : 'type flow restore machine';
 
   return {

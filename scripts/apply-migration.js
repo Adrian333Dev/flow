@@ -6,7 +6,7 @@
  * original's window is open. `flow/lib/migrations.js` says what a migration
  * is, and `flow/lib/originals.js` what an original holds and when it closes.
  *
- * `flow setup`, flow setup project and /flow:migrate run it, after the
+ * The sessions `flow setup`, `flow setup project` and `flow up` open run it, after the
  * user's yes and never before. It is not a flow command and not on PATH: bare
  * `flow <verb> <id>` acts on a ticket, and a migration typed by hand weeks
  * later changes the machine as it was then.
@@ -29,7 +29,7 @@
  * a file a write line needs, when the migration is already applied, when a
  * file a write or delete line names changed after the migration was written,
  * and when a prerequisite of Flow's is not met. The last one is checked here
- * rather than trusted to a skill's first step, because this is the process
+ * rather than trusted to a session's first step, because this is the process
  * that writes: a machine left between two versions is the thing being avoided.
  */
 

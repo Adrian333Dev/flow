@@ -35,7 +35,7 @@ When you first open the repository, the split that matters has four parts:
 **`scripts/`** holds the CLI, the hooks, and the script that carries out a migration:
 
 - `flow/flow.js` is the entry point. `lib/` holds the argument layer and the model. `commands/` holds one file per command group. `lib/audit/` reads Claude Code's transcripts.
-- `flow/setup/` holds what the 2 setup sessions follow: `machine.md` and `form.md` for `flow setup`, `project.md` and `project-form.md` for `flow setup project`. Each pair is the instructions, then the form they fill in. Not skills: `commands/setup.js` hands the text over as a system prompt, and the machine's session runs in safe mode, which loads no skill.
+- `flow/setup/` holds what the sessions Flow opens follow: `machine.md` and `form.md` for `flow setup`, `project.md` and `project-form.md` for `flow setup project`, and `migrate.md`, instructions and form in one file, for `flow up`. Not skills: `commands/setup.js` and `commands/up.js` hand the text over as a system prompt, and the machine's setup runs in safe mode, which loads no skill.
 - `guard.js` is the `PreToolUse` hook on Bash. It asks before 4 commands that can destroy work, and never allows anything.
 - `changes.js` records what each subagent changed, under its agent id, and hands the parent a diff per file when the subagent finishes. `flow/lib/changes.js` holds the logic.
 - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
@@ -45,7 +45,7 @@ When you first open the repository, the split that matters has four parts:
 - `session-check.js` is the `SessionStart` hook that names what needs attention, reading `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`, and printing nothing when all 3 are fine. `"sessionCheck": false` silences it. It also makes every skill link match the `skills` lines, through `flow/lib/skill-links.js`.
 - `skills-pull.js` updates every skill repository in `~/.flow/repos/sources/` in the background, started by the session check and never typed. It pulls, or fetches and writes what is waiting into `~/.flow/skills-update.json`, which `"skillsAutoUpdate": false` chooses. `flow/lib/skills-update.js` holds the logic.
 - `file-suggestion.js` builds the list `@` opens, named by `fileSuggestion` in `home/settings.json`. It saves each project's walk in the system's temp folder and answers every keystroke from it.
-- `apply-migration.js` carries out a migration that `flow setup`, `flow setup project` or `/flow:migrate` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
+- `apply-migration.js` carries out a migration that `flow setup`, `flow setup project` or `flow up` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and `/flow:file-findings`' `references/write-checks.md` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
@@ -74,7 +74,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`CHANGELOG.md`** holds one entry per change in how Flow behaves, numbered from 1, newest first. An entry's number is Flow's version, and `~/.flow/version` holds the number a machine last applied. Nothing is written into it until Flow is installed on a machine, since a migration is the only reader an entry has.
 
-**`upgrades/`** holds one guide per entry, `12.md` being the step from 11 to 12. `/flow:migrate` reads every guide above the machine's number and writes one migration from them, and `upgrades/README.md` says what a guide holds. Nothing here is symlinked: the skill reads the guides out of this clone, which it finds through `clone` in `~/.flow/settings.local.json`.
+**`upgrades/`** holds one guide per entry, `12.md` being the step from 11 to 12. The session `flow up` opens reads every guide above the machine's number and writes one migration from them, and `upgrades/README.md` says what a guide holds. Nothing here is symlinked: the session reads the guides out of this clone, through `~/.flow/repos/flow`.
 
 **`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `lab/`, `repos/`, and `project-template/` from loading when a file beside one is read.
 

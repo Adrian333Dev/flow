@@ -1,7 +1,7 @@
 'use strict';
 /**
  * Migrations: a change to where Flow and the harnesses keep their files,
- * written by `flow setup`, flow setup project or /flow:migrate.
+ * written by `flow setup`, `flow setup project` or `flow up`.
  *
  *   ~/.flow/migrations/<machine or project>/<date-time>/
  *   ├─ migration.md   one line per change: write, delete, move or run
@@ -12,7 +12,7 @@
  * the script reads that time back to find files changed since.
  *
  * The agent reads and decides, and never writes a real path itself. The user
- * says yes, then the skill runs `~/.flow/scripts/apply-migration.js <id>`,
+ * says yes, then the session runs `~/.flow/scripts/apply-migration.js <id>`,
  * the only thing that touches a real path. During the first setup of a machine
  * or a project it records each path in that place's original first, and after
  * that window closes it changes paths and records nothing. No path the
@@ -31,6 +31,7 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { FlowError } = require('./error');
 const frontmatter = require('./frontmatter');
@@ -46,7 +47,7 @@ const folder = (at, id) => originals.inside(home(at), id, 'migration');
 /**
  * ~/.flow/run.json: the run going on right now, or nothing.
  *
- * Each of the 3 skills writes it before its first step, rewrites the step it
+ * Each of the 3 commands writes it before its first step, rewrites the step it
  * just finished, and deletes it at the last one. So the file sitting on disk
  * means a run never finished, and the machine is part way through a change.
  * It holds when the run started, its `type`, the migration folder it opened,
@@ -71,6 +72,18 @@ function run(at) {
   } catch (e) {
     return { file, error: e.message };
   }
+}
+
+/**
+ * The command that carries a stopped run on, named for its `type`. Every
+ * run is opened by a command, so every one is carried on by typing it again.
+ */
+function resume(found) {
+  const inside = found.project ? `in ${found.project.replace(os.homedir(), '~')}, ` : '';
+  if (found.type === 'setup-machine') return 'run flow setup';
+  if (found.type === 'setup-project') return `${inside}run flow setup project`;
+  if (found.type === 'migrate') return 'run flow up';
+  return 'open the run that wrote it again';
 }
 
 function resolvePath(raw, { base, project }) {
@@ -171,4 +184,4 @@ function changedSince(migration, actions, done = []) {
   return [...changed];
 }
 
-module.exports = { TYPES, home, folder, runFile, run, read, touched, changedSince };
+module.exports = { TYPES, home, folder, runFile, run, resume, read, touched, changedSince };

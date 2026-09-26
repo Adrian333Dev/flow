@@ -49,18 +49,18 @@ test('a current machine in a current project prints nothing at all', () => {
   assert.strictEqual(result.code, 0);
 });
 
-test('a machine behind the changelog and a project behind its machine each name /flow:migrate', () => {
+test('a machine behind the changelog and a project behind its machine each name flow up', () => {
   const behind = check(place('session-behind', { machine: NEWEST - 1, project: NEWEST - 1 }));
   assert.match(behind.stdout, new RegExp(`Flow: this machine is at changelog entry ${NEWEST - 1}, and ${NEWEST} is the newest`));
-  assert.match(behind.stdout, /Type \/flow:migrate to catch up\./);
+  assert.match(behind.stdout, /Run flow up in a terminal to catch up\./);
 
   const project = check(place('session-project', { machine: NEWEST, project: NEWEST - 1 }));
   assert.match(project.stdout, new RegExp(`Flow: project is at changelog entry ${NEWEST - 1}, and this machine is at ${NEWEST}`));
-  assert.match(project.stdout, /Type \/flow:migrate here\./);
+  assert.match(project.stdout, /Run flow up in a terminal, inside it\./);
   assert.strictEqual(project.stdout.trim().split('\n').length, 1, 'the machine itself is current, so it says nothing');
 });
 
-test('a stopped run prints alone, and names the skill that carries it on', () => {
+test('a stopped run prints alone, and names the command that carries it on', () => {
   const result = check(place('session-stopped', {
     machine: NEWEST - 1,
     project: NEWEST - 1,
@@ -69,7 +69,7 @@ test('a stopped run prints alone, and names the skill that carries it on', () =>
 
   assert.strictEqual(result.stdout.trim().split('\n').length, 1, 'finishing the run is the only thing worth saying');
   assert.match(result.stdout, /a migrate run stopped after step 4/);
-  assert.match(result.stdout, /Type \/flow:migrate to carry on/);
+  assert.match(result.stdout, /To carry on, run flow up in a terminal/);
 });
 
 // A skill repository is a record of its own: it being behind is a pull,

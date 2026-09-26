@@ -62,4 +62,4 @@ function applied(file) {
   return /^\d+$/.test(text) ? { state: 'ok', number: Number(text) } : { state: 'unreadable', text };
 }
 
-module.exports = { newest, applied };
+module.exports = { entries, newest, applied };

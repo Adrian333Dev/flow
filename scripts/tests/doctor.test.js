@@ -82,9 +82,8 @@ test('a machine with nothing installed says so once, rather than failing every c
 test('a run that stopped part-way is reported first, and names both ways out', () => {
   const m = machine('doctor-run');
 
-  // What /flow:migrate leaves behind when it stops: the step it finished, and
-  // the migration folder it opened. Nothing writes this file yet, so the shape
-  // is the one `lib/migrations.js` documents.
+  // What flow up leaves behind when its session stops: the step it finished,
+  // and the migration folder it opened.
   fs.writeFileSync(path.join(m.flowHome, 'run.json'), JSON.stringify({
     started: '2026-09-20T10:12:40',
     type: 'migrate',
@@ -97,7 +96,7 @@ test('a run that stopped part-way is reported first, and names both ways out', (
   assert.strictEqual(report.code, 1);
   assert.strictEqual(report.stdout.split('\n')[0], 'fail  run.json:', 'it comes before every other check');
   assert.match(report.stdout, /a migrate run stopped after step 4, started 2026-09-20T10:12:40/);
-  assert.match(report.stdout, /carry on: open a session and type \/flow:migrate/);
+  assert.match(report.stdout, /carry on: run flow up, which reads/);
   assert.match(report.stdout, /go back: type flow restore machine/);
 });
 

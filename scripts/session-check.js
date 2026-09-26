@@ -23,10 +23,6 @@
  * not waiting for one: the hook returns before the pull has reached the
  * network, and what the pull finds is printed by the session after it.
  *
- * It is also how /flow:migrate gets named at all. That skill is typed and
- * never model-invoked, so its description stays out of every session, and
- * nothing else would tell the user the command exists.
- *
  * `"sessionCheck": false` in ~/.flow/settings.json silences it. Exit 2 on this
  * event prints a notice the session ignores, so a failure here is silence.
  */
@@ -74,9 +70,8 @@ function stoppedRun(at) {
   if (found.error) return `${migrations.runFile(at)} does not parse, and a run wrote it. Run flow doctor.`;
 
   const step = found.step ? `after step ${found.step}` : 'before its first step';
-  const skill = migrations.TYPES.includes(found.type) ? `/flow:${found.type}` : 'the skill that wrote it';
   return `a ${found.type || 'Flow'} run stopped ${step}, so this machine is part way through a change. ` +
-    `Type ${skill} to carry on, or run flow doctor for the way back.`;
+    `To carry on, ${migrations.resume(found)} in a terminal. flow doctor names the way back.`;
 }
 
 /** What needs attention, one line each, empty where nothing does. */
@@ -95,7 +90,7 @@ function attention(at, cwd) {
   } else if (newest !== null && mine.number > newest) {
     out.push(`this machine is at entry ${mine.number} and the changelog stops at ${newest}, so the clone moved backwards. Run flow doctor.`);
   } else if (newest !== null && mine.number < newest) {
-    out.push(`this machine is at changelog entry ${mine.number}, and ${newest} is the newest. Type /flow:migrate to catch up.`);
+    out.push(`this machine is at changelog entry ${mine.number}, and ${newest} is the newest. Run flow up in a terminal to catch up.`);
   }
 
   const root = projectRoot(cwd);
@@ -108,7 +103,7 @@ function attention(at, cwd) {
   } else if (theirs.state === 'unreadable') {
     out.push(`${name}/.flow/version holds "${theirs.text}", and it holds one changelog entry number and nothing else. Run flow doctor.`);
   } else if (mine.state === 'ok' && theirs.number < mine.number) {
-    out.push(`${name} is at changelog entry ${theirs.number}, and this machine is at ${mine.number}. Type /flow:migrate here.`);
+    out.push(`${name} is at changelog entry ${theirs.number}, and this machine is at ${mine.number}. Run flow up in a terminal, inside it.`);
   } else if (mine.state === 'ok' && theirs.number > mine.number) {
     out.push(`${name} is at entry ${theirs.number} and this machine is at ${mine.number}, so the project is ahead of the machine. Run flow doctor.`);
   }
