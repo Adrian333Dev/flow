@@ -537,17 +537,19 @@ function checkRun(at) {
 
   const started = found.started ? `, started ${found.started}` : '';
   const step = found.step ? `after step ${found.step}` : 'before its first step';
-  // The machine's setup is a command. The other 2 are skills.
+  // Both setups are commands. /flow:migrate is a skill.
+  const inside = found.project ? `in ${shorten(found.project)}, ` : '';
   const resume = found.type === 'setup-machine' ? 'run flow setup'
-    : migrations.TYPES.includes(found.type) ? `open a session and type /flow:${found.type}` : 'open the run that wrote it again';
-  const back = found.project ? `flow restore project ${found.project}` : 'flow restore machine';
+    : found.type === 'setup-project' ? `${inside}run flow setup project`
+      : migrations.TYPES.includes(found.type) ? `open a session and type /flow:${found.type}` : 'open the run that wrote it again';
+  const back = found.project ? `${inside}type flow restore project` : 'type flow restore machine';
 
   return {
     name: 'run.json',
     problems: [
       `a ${found.type || 'Flow'} run stopped ${step}${started}, so this machine is part way through a change`,
       `carry on: ${resume}, which reads ${file} and starts at that step`,
-      `go back: type ${back} in a shell with no session open, which puts the place back to how it was before Flow`,
+      `go back: ${back} in a shell with no session open, which puts the place back to how it was before Flow`,
     ],
   };
 }

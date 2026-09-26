@@ -941,6 +941,20 @@ What the setup form's `permissions` lines install. Claude Code's settings hold e
 - **The launch adds `--add-dir ~/.flow` and `--add-dir` for the project's memory folder.** The session starts in the project, so a write to `~/.flow/migrations/` and a read under `~/.claude/projects/` would each ask otherwise. A write under `files/` into a `.claude` path still asks once, and the session warns first, as `machine.md` does.
 - **Setup needs a git repository.** Only files git would keep are read, and `util git work` assumes git. Outside one the check says to run `git init` and stops. An empty repository gets `project-template/` alone. Overturned by a project the user wants set up that is not under git.
 
+**The form, `scripts/flow/setup/project-form.md`, agreed 2026-09-26**, and built the same day with the step file and the commands:
+
+- **Decisions with counts, never content.** `9 rules → AGENTS.md`. The files sit under `files/`, and `dropped.md` lists each dropped line with its Flow rule.
+- **Its sections**: `What Flow sets up` (with the always-removed lines, no box), `🔴 Removed unless you untick it`, `Moving into Flow's files`, `Tickets`, `Added to your own rules`, `Every file this changes`.
+- **The red section carries the machine form's warning**, plus "untick one only if you know exactly why". Set by the user: unticking must never look harmless.
+- **Every line says what happens, then where.** Set by the user after a first draft whose ticket lines confused them.
+- **One section about the user, not 2 boxes.** Only lines new to `~/.flow/AGENTS.md`, from the project's files and memory. The session files each under `## Preferences` or `## The user`. Most projects show none. A separate file about the user was rejected: `~/.flow/AGENTS.md` is already the one place, and every session loads it.
+- **Few options, set by the user.** The form never invites editing `files/` or bringing a dropped line back.
+- **The memory folder is deleted behind a box.** Flow keeps memory off. `flow restore project` puts it back, since the original records every path a setup migration touches outside `~/.flow/`.
+- **A memory folder under an old name is read only once ticked**, at the second check, which lists what it added.
+- **A domain skill comes back with `flow skills on <name>`**, replacing `.flow/domain-skills.txt` above, which `## Skills, sources and the machine's clones` removed on 2026-09-23. `.flow/overlays/` is not written either: it is made when an overlay is.
+- **Tickets are made by `flow new`**, run with `FLOW_PROJECT` pointing at the project's copy under `files/`, so the format and numbering are `flow`'s.
+- **Built**: the launch, `flow setup project check` and `flow setup project finish` in `scripts/flow/commands/setup.js`, 3 tests, and `flow doctor`'s stopped-run line naming `flow setup project`.
+
 
 Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.
 

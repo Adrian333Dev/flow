@@ -24,9 +24,18 @@
  * `flow install` calls `start` as its last step. Typed again, it carries on
  * a setup that stopped part way, since `~/.flow/run.json` says how far it got.
  *
- *   flow setup          open the session
- *   flow setup check    what a finished install has, checked
- *   flow setup finish   stamp ~/.flow/version, the session's last step
+ * `flow setup project` does the same for one project, typed inside it. That
+ * session is a normal one, not safe mode: it needs Flow's rules and hooks,
+ * which the machine's setup put in `~/.claude`. `--setting-sources user` and
+ * `--strict-mcp-config` keep everything of the project's out, so nothing in
+ * the project changes before the user's yes. `setup/project.md` is its text.
+ *
+ *   flow setup                   open the session
+ *   flow setup check             what a finished install has, checked
+ *   flow setup finish            stamp ~/.flow/version, the session's last step
+ *   flow setup project           the same 3, for the project you are in
+ *   flow setup project check
+ *   flow setup project finish    stamp .flow/version
  */
 
 const fs = require('fs');
@@ -55,6 +64,9 @@ const ALLOWED = [
   // Flow's rules send every look at a folder through this, never ls.
   'Bash(util fs tree:*)',
 ];
+
+/** What the project session runs without asking: the same, plus git's list of what it keeps. */
+const PROJECT_ALLOWED = [...ALLOWED, 'Bash(git ls-files:*)'];
 
 /** util's names, which util's own installer links beside Flow's. */
 const UTIL_BIN = ['util', 'u'];
@@ -189,6 +201,127 @@ function start(at, clone, rootFlag) {
   return 0;
 }
 
+// ---------------------------------------------------------------- a project
+
+/**
+ * The project's root, git's top folder above where the command was typed, or
+ * null outside a repository. FLOW_PROJECT stands in for where it was typed,
+ * as it does in lib/root.js.
+ */
+function projectTop() {
+  const found = flowRepo.git(process.env.FLOW_PROJECT || process.cwd(), ['rev-parse', '--show-toplevel']);
+  return found.ok ? found.out : null;
+}
+
+/** Claude Code's memory for a project, in the folder it names after the path. */
+const memoryDir = (at, project) =>
+  path.join(at.claude, 'projects', project.replace(/[^A-Za-z0-9]/g, '-'), 'memory');
+
+/** Why this project cannot be set up now, as problem lines. Empty means ready. */
+function projectProblems(at, project) {
+  const problems = [];
+  if (!fs.existsSync(path.join(at.flow, 'version'))) {
+    problems.push('Flow is not set up on this machine. Run flow setup first');
+  }
+  if (!project) problems.push('this folder is not a git repository. Run git init here first');
+  const run = readRun(at);
+  if (run && !(run.type === 'setup-project' && run.project === project)) {
+    const where = run.project ? ` in ${show(run.project)}` : '';
+    problems.push(`${show(runFile(at))} says a ${run.type} run${where} stopped part way. Finish that first`);
+  }
+  return problems;
+}
+
+/** Open the project's session, or print the line that opens it. `start` above says why. */
+function startProject(at, clone, rootFlag) {
+  const project = projectTop();
+  if (project && fs.existsSync(path.join(project, '.flow', 'version'))) {
+    out(`${show(project)} is already set up, so there is nothing more to do.`);
+    return 0;
+  }
+  const problems = projectProblems(at, project);
+  if (problems.length) {
+    throw new FlowError(`this project cannot be set up yet:\n${problems.map((p) => `  ${p}`).join('\n')}`);
+  }
+
+  const run = readRun(at);
+  const memory = memoryDir(at, project);
+  if (!run) {
+    const now = new Date();
+    const migration = `${originals.place(project)}/${originals.stamp(now, '-')}`;
+    const fresh = { started: now.toISOString(), type: 'setup-project', project, memory, migration, step: 0 };
+    fs.writeFileSync(runFile(at), JSON.stringify(fresh, null, 2) + '\n');
+  }
+
+  // Flow's rules load from ~/.claude/CLAUDE.md, so the prompt is the step file alone.
+  const file = path.join(at.flow, 'setup-prompt.md');
+  fs.copyFileSync(path.join(clone, 'scripts', 'flow', 'setup', 'project.md'), file);
+  const args = [
+    '--setting-sources', 'user',
+    '--strict-mcp-config',
+    '--permission-mode', 'acceptEdits',
+    '--add-dir', at.flow,
+    // A project Claude Code never opened has no memory folder to add.
+    ...(fs.existsSync(memory) ? ['--add-dir', memory] : []),
+    '--allowedTools', ...PROJECT_ALLOWED,
+    '--append-system-prompt-file', file,
+    run ? 'Carry on setting up this project.' : 'Set up this project.',
+  ];
+  const line = `cd ${quote(project)} && ${['claude', ...args].map(quote).join(' ')}`;
+
+  if (rootFlag || !process.stdout.isTTY || !confirm.hasTerminal()) {
+    out(`Setting up ${show(project)} runs in its own session. Start it from a terminal:\n\n  ${line}`);
+    return 0;
+  }
+  out(run
+    ? 'Carrying on the setup that stopped part way. Claude Code opens now.\n'
+    : `Setting up ${show(project)}. Claude Code opens now, reads the project,\n` +
+      'and writes one form for you to check before anything changes.\n');
+  const tty = fs.openSync('/dev/tty', 'r');
+  const ran = spawnSync('claude', args, { cwd: project, stdio: [tty, 'inherit', 'inherit'] });
+  fs.closeSync(tty);
+  if (ran.error) {
+    out(`Could not start claude: ${ran.error.message}. Start it yourself:\n\n  ${line}`);
+    return 1;
+  }
+  return 0;
+}
+
+/** `flow setup project check`: exit 0 where the project can be set up. */
+function checkProject(at) {
+  const project = projectTop();
+  if (project && fs.existsSync(path.join(project, '.flow', 'version'))) {
+    out(`${show(project)} is already set up`);
+    return 1;
+  }
+  const problems = projectProblems(at, project);
+  if (!problems.length) {
+    out(`ready: ${show(project)} can be set up`);
+    return 0;
+  }
+  out(`not ready:\n${problems.map((p) => `  ${p}`).join('\n')}`);
+  return 1;
+}
+
+/**
+ * `flow setup project finish`: stamp the project's .flow/version and end the
+ * run. The project comes from run.json, so it works from any folder.
+ */
+function finishProject(at, clone) {
+  const run = readRun(at);
+  if (!run || run.type !== 'setup-project') {
+    throw new FlowError(`no project setup is running: ${show(runFile(at))} does not name one.`);
+  }
+  const newest = version.newest(clone);
+  if (newest === null) throw new FlowError('CHANGELOG.md holds no entry, so there is no version to stamp.');
+  const file = path.join(run.project, '.flow', 'version');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `${newest}\n`);
+  fs.rmSync(runFile(at));
+  out(`stamped: ${show(file)} is ${newest}. This project is set up.`);
+  return 0;
+}
+
 const actions = {};
 
 actions.start = {
@@ -232,8 +365,25 @@ actions.finish = {
   },
 };
 
+actions.project = {
+  anywhere: true,
+  args: '[check|finish]',
+  summary: 'set up the project you are in: open its session, check it can start, or stamp .flow/version',
+  flags: { root },
+  run({ positional, flags }) {
+    const at = machine.folders(flags.root);
+    const [word, ...extra] = positional;
+    if (extra.length || (word && !['check', 'finish'].includes(word))) {
+      throw new FlowError('usage: flow setup project [check|finish]');
+    }
+    if (word === 'check') return checkProject(at);
+    if (word === 'finish') return finishProject(at, cloneRoot());
+    return startProject(at, cloneRoot(), flags.root);
+  },
+};
+
 module.exports = {
-  summary: 'set this machine up, through one form you check',
+  summary: 'set this machine up, or a project, through one form you check',
   default: 'start',
   actions,
   start,

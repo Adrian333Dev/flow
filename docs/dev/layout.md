@@ -35,7 +35,7 @@ When you first open the repository, the split that matters has four parts:
 **`scripts/`** holds the CLI, the hooks, and the script that carries out a migration:
 
 - `flow/flow.js` is the entry point. `lib/` holds the argument layer and the model. `commands/` holds one file per command group. `lib/audit/` reads Claude Code's transcripts.
-- `flow/setup/` holds what the `flow setup` session follows: `machine.md`, its instructions, and `form.md`, the form it fills in. Not a skill: the session runs in safe mode, which loads none, so `commands/setup.js` hands the text over as a system prompt.
+- `flow/setup/` holds what the 2 setup sessions follow: `machine.md` and `form.md` for `flow setup`, `project.md` and `project-form.md` for `flow setup project`. Each pair is the instructions, then the form they fill in. Not skills: `commands/setup.js` hands the text over as a system prompt, and the machine's session runs in safe mode, which loads no skill.
 - `guard.js` is the `PreToolUse` hook on Bash. It asks before 4 commands that can destroy work, and never allows anything.
 - `changes.js` records what each subagent changed, under its agent id, and hands the parent a diff per file when the subagent finishes. `flow/lib/changes.js` holds the logic.
 - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.

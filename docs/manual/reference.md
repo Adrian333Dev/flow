@@ -103,6 +103,31 @@ One step left: setting up this machine. Start it from a terminal:
   ```
 - **`flow setup finish`**: the session's last step. It stamps `~/.flow/version` and deletes `run.json`.
 
+### `flow setup project`
+
+Sets up the project you are in: Flow's rule file `AGENTS.md`, a `CLAUDE.md` loading it, `.flow/`, and tickets for the open work the project already lists. Type it in the project's folder, on a machine `flow setup` finished. Typed again, it carries on a setup that stopped part way.
+
+It opens a normal Claude Code session, which loads Flow's rules and hooks and nothing of the project's: no `CLAUDE.md`, no skill, no setting and no MCP server. The launch does this with 2 flags, `--setting-sources user` and `--strict-mcp-config`. The session follows `scripts/flow/setup/project.md` in the clone. It reads the project's rule files, its docs, its code and its Claude Code memory, then lists every change in one form, `migration.md`. Nothing in the project changes before you say go.
+
+**The form holds decisions, and the content sits beside it.** Each line says what happens and where, with a count: `9 rules → AGENTS.md`. The new version of every file is under `files/` beside the form, and `dropped.md` lists each line left behind with the Flow rule that already does its job. Anything that works against Flow is under `🔴 Removed unless you untick it`. Lines it finds about you, rather than the project, go into your own rules in `~/.flow/AGENTS.md`.
+
+**The code wins over the docs.** Where a doc says something the code contradicts, that becomes a ticket. Every project gets 2 more tickets where they apply: "Write the product spec", listing the docs that hold your plans today, and "Find skills, plugins and MCP servers for this stack". The setup writes no spec: a spec is your intent, and the setup asks you nothing.
+
+**It refuses where it can't start**: a machine `flow setup` never finished, a folder outside a git repository, or another setup stopped part way. `flow setup project check` runs the same check on its own. An empty repository gets the project template and nothing more.
+
+Run where no terminal is attached, or with `--root`, it prints the line that starts the session instead:
+
+```text
+Setting up ~/code/shop runs in its own session. Start it from a terminal:
+
+  cd /home/me/code/shop && claude --setting-sources user --strict-mcp-config --permission-mode acceptEdits --add-dir /home/me/.flow --add-dir /home/me/.claude/projects/-home-me-code-shop/memory --allowedTools 'Bash(flow setup:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' 'Bash(git ls-files:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this project.'
+```
+
+- **`--add-dir`**: `~/.flow`, where the form is written, and the project's memory folder, where one exists, so neither asks each time.
+- **`~/.flow/run.json`**: the same file as the machine's setup, with `type` `setup-project`, the project's path and its memory folder.
+- **`flow setup project finish`**: the session's last step. It stamps the project's `.flow/version` and deletes `run.json`.
+- **`flow restore project`** puts the project back as it was before, `.flow/` deleted with it.
+
 ### `flow doctor`
 
 Everything about an installed machine a function can decide. It writes nothing, prints one line per area when that area is clean and one line per problem when it is not, and exits 1 if anything failed. Run it after installing, and again whenever something behaves as though it were not installed.
