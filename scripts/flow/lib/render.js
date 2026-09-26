@@ -317,9 +317,14 @@ function brief(tickets, limit) {
 }
 
 function checkReport(problems) {
-  if (!graph.hasProblems(problems)) return 'no problems: no cycles, no dangling ids, no dropped blockers, no closed parents.';
+  if (!graph.hasProblems(problems)) return 'no problems: no cycles, no dangling ids, no dropped blockers, no closed parents, no unknown statuses.';
 
   const out = [];
+  if (problems.unknownStatuses.length) {
+    out.push(`unknown statuses (${problems.unknownStatuses.length}), valid ones are ${statuses.NAMES.join(', ')}:`);
+    for (const t of problems.unknownStatuses) out.push(`  ${t.id} has status ${t.data.status ?? '(none)'}`);
+    out.push('');
+  }
   if (problems.cycles.length) {
     out.push(`dependency cycles (${problems.cycles.length}):`);
     for (const c of problems.cycles) out.push(`  ${c.join(' → ')} → ${c[0]}`);

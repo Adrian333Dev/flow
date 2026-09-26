@@ -158,7 +158,7 @@ Each run has its own project at `home/code/<seed>`, seen inside as `~/code/<seed
 **A seed fills it when the run is built.** A seed is a folder under `lab/scripts/seeds/`: a `files/` folder copied into the project, then a `seed.sh` that creates tickets with `flow new` and moves them with the verbs, so every status is `flow`'s own. `--project <name>` picks one for a new run. A new scenario is a new folder, and `try.sh` never changes.
 
 - **`app`**, the default: a small expense tracker with tests, and 9 tickets that fit it. A parent at groundwork with one question left open, a child mid-build whose plan names real files with 2 of 4 steps in the code, a child blocked by it, an issue with a real bug one command reproduces, a topic half walked with the prototype it cut, a parked feature, a chore at review, a feature done. `docs/spec/expense.md` holds 2 features not yet cut. Every phase skill runs against code here, and the captured examples in `docs/manual/use/` come from this board.
-- **`guards`**: every refusal has a ticket to hit, and `flow check` finds 2 faults written by hand. `GUARDS.md` in the project lists the commands that refuse.
+- **`guards`**: every refusal has a ticket to hit, and `flow check` finds 3 faults written by hand. `GUARDS.md` in the project lists the commands that refuse.
 - **`resume`**: a ticket at every status a handoff can leave, each with a `## State` and an `open` block, and a loose `notes/handoff.md` beside a draft.
 - **`empty`**: the template and nothing else.
 

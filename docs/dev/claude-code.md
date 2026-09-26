@@ -92,6 +92,8 @@ From `code.claude.com/docs/en/memory`.
 - **`~/.claude/rules/` is user scope** and loads before project rules, so a project rule wins a conflict.
 - **Rule files are found recursively**, and symlinks are followed.
 - **Anthropic's size guidance is under 200 lines per `CLAUDE.md`.** A file over 4 MiB is skipped entirely, with no warning.
+- **Claude Code reads an `AGENTS.md` by itself since 2.1.277**, but only where no `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` sits in the working directory or above it. `~/.claude/CLAUDE.md` and `.claude/rules/` don't block it. Nothing under a `.agents/` folder is ever read this way, so `~/.agents/AGENTS.md` reaches Claude Code only through the import in `~/.claude/CLAUDE.md`.
+- **A project keeps its one-line `CLAUDE.md` anyway.** An `AGENTS.md` read directly fires no `InstructionsLoaded` hook, so `instructions-loaded.js` would never record the rules loading. An `AGENTS.md` pulled in by an `@` import fires the hook as usual. The import never loads the rules twice.
 
 ## Where a skill is found
 

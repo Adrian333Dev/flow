@@ -6,4 +6,4 @@
 	url = https://github.com/Adrian333Dev/toolbox.git
 [submodule "lab/domain-skills"]
 	path = lab/domain-skills
-	url = git@github.com:Adrian333Dev/domain-skills.git
+	url = https://github.com/Adrian333Dev/domain-skills.git

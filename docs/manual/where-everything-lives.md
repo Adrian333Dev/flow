@@ -96,7 +96,7 @@ The folder belongs to no one tool. Claude Code reaches it through an import and 
 
 ### `~/.claude/`, what Claude Code reads
 
-- **`CLAUDE.md`**: one line, `@~/.agents/AGENTS.md`. Claude Code reads `CLAUDE.md` and never `AGENTS.md`, and the `@` line pulls the rules in. `flow setup` writes it in place of what it held, after moving anything worth keeping into the rule file.
+- **`CLAUDE.md`**: one line, `@~/.agents/AGENTS.md`. Claude Code never reads anything under `~/.agents/` by itself, so the `@` line pulls the rules in. `flow setup` writes it in place of what it held, after moving anything worth keeping into the rule file.
 - **`settings.json`**: Claude Code's settings. `flow install` never writes it. `flow setup` merges Flow's hooks and permissions into it. [Settings](settings.md) explains every key.
 - **`skills/flow`**: a symlink to `~/.agents/skills/flow/`. Claude Code never reads `~/.agents/`, so this link is how it finds the same skills. `flow install` makes it.
 - **`skills/<name>`**: a symlink for each skill from a skill repository or `~/.flow/private-skills/` switched on for the whole machine. `flow skills on --machine` or `--global` makes it, and so does the next session start on your other machine.

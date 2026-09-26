@@ -28,7 +28,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`home/AGENTS.md`** is the rules that apply in every directory, project or not. `flow setup` writes it to `~/.flow/AGENTS.md` once the user has checked its form, links `~/.agents/AGENTS.md` to that file, and it is personalized there. The copy here is the template: placeholders and rules, never personal content.
 
-**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same skill, so Claude Code loads the same rules. Claude Code never reads an `AGENTS.md` by itself. `project-template/` holds the same pair for a project.
+**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same skill, so Claude Code loads the same rules. Claude Code never reads anything under `~/.agents/` by itself. `project-template/` holds the same pair for a project, where the `CLAUDE.md` stays even though Claude Code could read the `AGENTS.md` alone: [How an instruction file loads](claude-code.md#how-an-instruction-file-loads) says why.
 
 **`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../manual/settings.md) explains every key. `flow setup` merges it into `~/.claude/settings.json` key by key. `flow install` never writes that file, and writes none of the 3 above either: a rule file copied before the interview holds nothing of the user.
 

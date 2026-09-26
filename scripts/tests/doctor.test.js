@@ -220,6 +220,27 @@ test('a util that does not run is diagnosed against its source registry', () => 
   assert.match(report.stdout, /no source is registered: run flow install/);
 });
 
+test('a util run the system kills before it exits is retried, never counted', () => {
+  const m = machine('doctor-util-killed');
+
+  // Each command's first run is killed, the way a busy machine refuses a
+  // process, and every run after it works.
+  const bin = path.join(m.dir, 'bin-killed');
+  fs.mkdirSync(bin, { recursive: true });
+  const seen = path.join(m.dir, 'seen');
+  fs.writeFileSync(path.join(bin, 'util'),
+    '#!/usr/bin/env bash\n' +
+    `mark="${seen}-$1-$2"\n` +
+    '[ -e "$mark" ] || { touch "$mark"; kill -9 $$; }\n' +
+    'exit 0\n');
+  fs.chmodSync(path.join(bin, 'util'), 0o755);
+
+  const report = doctor(m, { bin });
+
+  assert.match(report.stdout, /util: fs tree, fs open all run/);
+  assert.doesNotMatch(report.stdout, /does not run/);
+});
+
 test('a CLAUDE.md with no import is named', () => {
   const m = machine('doctor-rules');
 

@@ -142,6 +142,22 @@ test('flow check reports cycles, dangling deps, and dropped blockers', () => {
   assert.match(r2.stdout, /cycle/i);
 });
 
+test('flow check reports a status outside the 8', () => {
+  const dir = project('board-check-status');
+
+  write(dir, '.flow/tickets/t001-typo/ticket.md',
+    '---\nid: t001\ntitle: Typo\nstatus: buildng\ntype: feature\ndeps: []\n---\n\n');
+  const r = flow(dir, ['check']);
+  assert.strictEqual(r.code, 1, 'check should exit 1 on an unknown status');
+  assert.match(r.stdout, /unknown statuses \(1\)/);
+  assert.match(r.stdout, /t001 has status buildng/);
+
+  write(dir, '.flow/tickets/t001-typo/ticket.md',
+    '---\nid: t001\ntitle: Typo\nstatus: building\ntype: feature\ndeps: []\n---\n\n');
+  const clean = flow(dir, ['check']);
+  assert.strictEqual(clean.code, 0, clean.stdout);
+});
+
 test('priority inheritance flows through the parent chain', () => {
   const dir = project('board-priority');
 

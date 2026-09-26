@@ -79,7 +79,7 @@ board.next = {
 
 board.check = {
   section: 'board',
-  summary: 'cycles, dangling ids, dropped blockers, orphaned parents',
+  summary: 'cycles, dangling ids, dropped blockers, orphaned parents, unknown statuses',
   run() {
     const problems = graph.check(load());
     out(render.checkReport(problems));

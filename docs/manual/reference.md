@@ -340,13 +340,14 @@ Flags: `--limit <n>` (show at most n ready tickets, default 10), `--all` (no lim
 
 Integrity problems in the ticket graph. Exits 0 when clean, 1 when problems exist. Reports:
 
+- **Unknown statuses**: a ticket's status is none of the 8, such as `buildng` typed by hand
 - **Dependency cycles**: t001 → t002 → t001
 - **Dangling deps**: a ticket depends on an id that does not exist
 - **Dropped blockers**: a ticket depends on a dropped ticket, so it can never become ready
 - **Dangling parents**: a ticket names a parent that does not exist
 - **Closed parents**: a ticket is still open but its parent is done or dropped
 
-Only live tickets are reported. A done ticket that once depended on a dropped one is history.
+An unknown status is reported on every ticket. The dependency problems are reported on live tickets only, since a done ticket that once depended on a dropped one is history.
 
 ### `flow ls`
 

@@ -39,8 +39,6 @@ flow plan t001            # open children: t002 and t003
 flow done t001            # done with open children
 flow groundwork t005      # unmet dependency: t004 is todo
 flow park t002            # reason required
-flow check                # t007 depends on dropped t006, t008 names t099
+flow check                # t007 depends on dropped t006, t008 names t099, t009 is buildng
 ```
-
-`t009` carries `status: buildng`, and nothing catches it: `flow check` looks for cycles, dangling ids, dropped blockers and closed parents, and `flow tree` prints the word as it is.
 MD

@@ -179,14 +179,19 @@ const UTIL_COMMANDS = [
 function checkUtil() {
   const problems = [];
   for (const command of UTIL_COMMANDS) {
-    const run = spawnSync('util', [...command.name.split(' '), '--help'], { stdio: 'ignore' });
+    const run = runUtil(command.name);
     if (run.error && run.error.code === 'ENOENT') {
       return {
         name: 'util',
-        problems: ['util is not on PATH at all, so none of the 3 commands Flow calls can run'],
+        problems: [`util is not on PATH at all, so none of the ${UTIL_COMMANDS.length} commands Flow calls can run`],
       };
     }
-    if (run.status !== 0) problems.push(`util ${command.name} does not run, and it is called by ${command.callers}`);
+    // A null status means the process never ran to an exit: the system
+    // refused to start it, or killed it, which a busy machine does. That says
+    // nothing about util, so it is not counted.
+    if (run.status !== null && run.status !== 0) {
+      problems.push(`util ${command.name} does not run, and it is called by ${command.callers}`);
+    }
   }
 
   // A failure above is nearly always the registry rather than the command,
@@ -195,6 +200,20 @@ function checkUtil() {
   if (problems.length) problems.push(...registryDiagnosis());
 
   return { name: 'util', problems, summary: `${UTIL_COMMANDS.map((c) => c.name).join(', ')} all run` };
+}
+
+/**
+ * One util command's `--help`, retried up to 3 times while the process never
+ * reaches an exit of its own, 200ms apart. Missing util is not retried.
+ */
+function runUtil(name) {
+  let run;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
+    run = spawnSync('util', [...name.split(' '), '--help'], { stdio: 'ignore' });
+    if (run.status !== null || (run.error && run.error.code === 'ENOENT')) break;
+  }
+  return run;
 }
 
 /** Why a util command is missing, read off util's own source registry. */

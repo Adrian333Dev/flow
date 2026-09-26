@@ -13,7 +13,7 @@
 // are that table's columns, read as sets: SATISFYING unblocks a dependent, LIVE
 // is still repairable, OPEN still owes work, IN_FLIGHT is being worked on now.
 const statuses = require('./statuses');
-const { SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT } = statuses;
+const { SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, NAMES } = statuses;
 const STATUS_RANK = statuses.RANK;
 
 // `normal` sits between the two deliberate answers, and is what an absent field
@@ -291,8 +291,14 @@ function check(tickets) {
   const droppedBlockers = [];
   const danglingParents = [];
   const closedParents = [];
+  const unknownStatuses = [];
 
   for (const t of tickets) {
+    // Nothing refuses a status written by hand, and a misspelt one matches no
+    // column in statuses.js: the ticket drops out of every set, so it is never
+    // ready, never in flight, and never reported below.
+    if (!NAMES.includes(t.data.status)) unknownStatuses.push(t);
+
     // Parent problems are judged over OPEN rather than LIVE: a ticket in
     // review still owes work, so a broken parent above it is still a problem.
     if (OPEN.has(t.data.status) && t.data.parent) {
@@ -314,12 +320,12 @@ function check(tickets) {
     }
   }
 
-  return { cycles: findCycles(tickets), dangling, droppedBlockers, danglingParents, closedParents };
+  return { cycles: findCycles(tickets), dangling, droppedBlockers, danglingParents, closedParents, unknownStatuses };
 }
 
 const hasProblems = (p) =>
   p.cycles.length + p.dangling.length + p.droppedBlockers.length +
-  p.danglingParents.length + p.closedParents.length > 0;
+  p.danglingParents.length + p.closedParents.length + p.unknownStatuses.length > 0;
 
 /** Would adding `dep` to `ticket` close a loop? */
 function wouldCycle(tickets, ticketId, dep) {
