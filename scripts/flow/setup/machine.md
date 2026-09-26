@@ -109,6 +109,6 @@ Each unticked line means Flow leaves that thing exactly as the machine has it:
 - **A key or a `deny` rule** → take it out of `files/…/settings.json`. Where the machine had its own value, keep that value.
 - **A skill, a rule file, a hook or a plugin** → drop its `delete` or `run` line, or keep the hook in `hooks`.
 - **A takeover** → drop all of its lines.
-- **A green line**: `cleanupPeriodDays` keeps the machine's value. `skillsAutoUpdate`, `reminder` and `sessionCheck` are written `false` into `~/.flow/settings.json`, with a `write` line for it.
+- **A green line**: `cleanupPeriodDays` keeps the machine's value. `skillsAutoUpdate`, `reminder`, `sessionCheck` and `setupReminder` are written `false` into `~/.flow/settings.json`, with a `write` line for it.
 
 Write each box's text into the 2 sections of `files/…/.flow/AGENTS.md`. Every `write` line still needs its file under `files/`, and every `delete` line still needs to name a path.

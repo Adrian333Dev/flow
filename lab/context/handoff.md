@@ -2,25 +2,25 @@
 
 Written 2026-09-26. Read this once, then rewrite it whole next time.
 
-## Next: 2 conversations the user opened, then the research redesign
+## Next: the second machine, then the research redesign
 
 **The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The user asked for a sweep of the backlog for anything essential and small before the final sweep. The small batch is built, below. What is left, in the order recommended to the user:
 
-1. **Suggesting `flow setup project` in a folder that looks like a project.** The user does not want every folder treated as a project: `~/code/playground` and `~/kb_v0` are git repositories and not projects. They floated a check for code markers such as `package.json`. `backlog.md` → `### Install and migration` holds the line. The reply to that message is where this conversation stands.
-2. **A second machine joining `~/.flow/`'s repository**, which cannot happen today. Same section of `backlog.md`.
-3. **The research redesign**, agreed 2026-09-19 and waiting for the management work. `lab/context/knowledge-base.md` → `## The build plan`, whose `### Settle before building` holds 3 points for the user.
-4. **4 conversations**: filling `## The user` and `## Preferences`, wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`.
-5. **The final sweep.** The user warned it is much bigger than it looks.
+1. **A second machine joining `~/.flow/`'s repository**, which cannot happen today. Same section of `backlog.md`.
+2. **The research redesign**, agreed 2026-09-19 and waiting for the management work. `lab/context/knowledge-base.md` → `## The build plan`, whose `### Settle before building` holds 3 points for the user.
+3. **4 conversations**: filling `## The user` and `## Preferences`, wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`.
+4. **The final sweep.** The user warned it is much bigger than it looks.
 
-## Built today, not committed by the user
+## Built today
 
-The suite passed 173 of 173 on the last whole run.
+The suite passed 177 of 177 on the last whole run.
 
-**A test run made a commit in this repository**: `54272df start`, author `t <t@t>`, holding 13 of today's files as they stood at 14:24. 10 copies of `changes.test.js` shared one scratch folder, one deleted another's `.git`, and that copy's `git commit` climbed up to Flow's repository. Nothing was pushed. The user was told, and what happens to the commit is theirs to decide. Both tests that commit now set `GIT_CEILING_DIRECTORIES`.
+**A test run made a commit in this repository**: `54272df start`, author `t <t@t>`, holding 13 of today's files as they stood at 14:24. 10 copies of `changes.test.js` shared one scratch folder, one deleted another's `.git`, and that copy's `git commit` climbed up to Flow's repository. Nothing was pushed. The user was told and committed the rest on top of it as `2c23bc9`. Both tests that commit now set `GIT_CEILING_DIRECTORIES`.
 
 - **The session check never takes the home folder for a project.** `scripts/session-check.js` → `projectRoot()`. Before, a session opened outside a project unlinked every skill switched on for the whole machine. Test in `session-check.test.js`, shown failing on the old hook first.
 - **`flow restore machine` offers the projects first**: `restore` for all, `machine` for the machine alone. `confirm.word()` takes a list of words. `docs/manual/reference.md` shows the prompt. The user ran it at a real terminal on a pretend machine, `node tmp/restore-try/build.js`, typed `restore`, and all 3 paths came back. The printed layout is messy, filed in `backlog.md` → `` `flow`, the tool ``.
-- **`/flow:groundwork`'s 6 `### When` cases** moved to `skills/phases/groundwork/references/walk-cases.md`, one trigger line each left in the skill.
+- **A session opened in a git repository with no `.flow/` suggests `flow setup project`**, as a `systemMessage` the user sees and the agent is never told to act on. The user refused `AskUserQuestion`, switched off on this machine, and wanted no instruction to the agent. `"setupReminder": false` turns it off, `"setupReminderSkip"` lists folders it never shows in. `flow settings off setupReminder` writes the folder list for the repository it is typed in, and `--machine` or `--global` the key, the levels `flow skills` uses. The user wants the line shorter still, and accepted it for now. The home folder and `~/.flow/` never get it. Whether Claude Code shows the line at session start was read in the docs, never seen in a live session.
+- **`/flow:groundwork`'s 6 `### When` cases** were moved to a reference file, then moved back the same day at the user's call: 52 lines saved cost a second read, and `references/style.md` §4 puts material some runs need in `### When` sections.
 - **`flow sync`**: the first sync to an empty remote no longer refuses, and a refused pull prints git's real reason. `sync.test.js` runs a round trip through a bare repository.
 - **`scripts/flow/lib/changes.js` → `snapshot()`** keeps the real index's modified time on its copy, which fixed the test that failed 1 run in 5. A new test forces the same-second timing and failed 3 of 3 before the fix.
 - **`lab/research/claude-code-docs/`** fetched again, 3 pages added, 3 citations repointed.

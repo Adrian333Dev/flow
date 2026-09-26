@@ -30,6 +30,7 @@ const contribute = require('./commands/contribute');
 const restore = require('./commands/restore');
 const setup = require('./commands/setup');
 const up = require('./commands/up');
+const settingsCommand = require('./commands/settings');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -148,6 +149,10 @@ sync    ~/.flow/ is one private git repository, and that is the whole of how a
         to one machine stays there: version, run.json, originals/,
         settings.local.json, repos/, history.jsonl, the scripts, references
         and docs links, and each wiki tool's downloads
+setting every on/off setting Flow reads: the lines it prints by itself and
+        the skill pull. flow settings lists them, and on or off switches one
+        for this folder, --machine or --global, the levels flow skills uses.
+        Only a setting with a folder list works per folder
 default cases and overlays each read a bare word as an argument to their
         most used action: flow overlays groundwork is flow overlays get
         groundwork. skills defaults to ls, so flow skills react lists the
@@ -174,7 +179,7 @@ checks  a rule check is one file in ~/.flow/scripts/rule-checks/, named after
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, skills, overlays, audit, restore, setup },
+    groups: { cases, skills, settings: settingsCommand, overlays, audit, restore, setup },
     check: (action, flags) => (action.anywhere ? null : machine.requireSetup(flags.root)),
     fallback: tickets.fallback,
     sections: SECTIONS,

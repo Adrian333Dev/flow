@@ -10,6 +10,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const { SCRATCH, REPO, run, write, skillFile } = require('./helpers/scratch');
 const version = require('../flow/lib/version');
 
@@ -37,10 +38,13 @@ function place(name, opts = {}) {
 /**
  * The hook, handed the event Claude Code sends it. HOME and CLAUDE_CONFIG_DIR
  * move with FLOW_HOME: the hook makes skill links in Claude Code's folder.
+ * The scratch folder sits inside Flow's own repository, so git stops at it.
  */
 const check = ({ home, project, user }) => run('session-check.js', [], {
   input: JSON.stringify({ hook_event_name: 'SessionStart', source: 'startup', cwd: project }),
-  env: { ...process.env, FLOW_HOME: home, HOME: user, CLAUDE_CONFIG_DIR: path.join(user, '.claude') },
+  env: {
+    ...process.env, FLOW_HOME: home, HOME: user, CLAUDE_CONFIG_DIR: path.join(user, '.claude'), GIT_CEILING_DIRECTORIES: SCRATCH,
+  },
 });
 
 test('a current machine in a current project prints nothing at all', () => {
@@ -157,4 +161,25 @@ test('a folder under the home folder with no .flow of its own is not a project',
   const second = check(at);
   assert.strictEqual(second.stdout, '', 'the link stays, and the home folder is never read as a project');
   assert.strictEqual(fs.readlinkSync(link), path.join(source, 'react'));
+});
+
+test('a git repository with no .flow gets the setup line, shown to the user alone, unless a setting says not', () => {
+  const at = place('session-setup-line', { machine: NEWEST });
+  const shop = path.join(at.user, 'code', 'shop');
+  fs.mkdirSync(path.join(shop, 'src'), { recursive: true });
+  assert.strictEqual(spawnSync('git', ['init', '-q'], { cwd: shop }).status, 0);
+
+  const output = JSON.parse(check({ ...at, project: path.join(shop, 'src') }).stdout);
+  assert.strictEqual(output.systemMessage, 'Flow: not set up here. Run flow setup project to add it, or flow settings off setupReminder to stop this.');
+  assert.strictEqual(output.hookSpecificOutput, undefined, 'nothing reaches the agent');
+
+  const notes = path.join(at.user, 'notes');
+  fs.mkdirSync(notes, { recursive: true });
+  assert.strictEqual(check({ ...at, project: notes }).stdout, '', 'a folder git does not track');
+
+  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ setupReminderSkip: ['~/code/shop'] }));
+  assert.strictEqual(check({ ...at, project: path.join(shop, 'src') }).stdout, '', 'a skipped folder, and everything below it');
+
+  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ setupReminder: false }));
+  assert.strictEqual(check({ ...at, project: shop }).stdout, '', 'off everywhere');
 });

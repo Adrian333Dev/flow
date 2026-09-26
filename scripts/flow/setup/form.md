@@ -91,6 +91,7 @@ These cost nothing until you type them:
 - [x] Auto-update the skill repositories you added, each time a session opens. Off, each session tells you what's waiting instead. `skillsAutoUpdate`
 - [x] Remind Claude how to reply, beside every message you send. `reminder`
 - [x] Tell you when a session opens if Flow or your skill repositories need updating. `sessionCheck`
+- [x] Suggest setting Flow up when a session opens in a git repository that doesn't have it. `setupReminder`
 - [x] Keep session history for a year instead of 30 days, so a rule can be traced back to the session that caused it. `cleanupPeriodDays`
 
 ## Taken over by Flow unless you untick it

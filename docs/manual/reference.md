@@ -792,16 +792,42 @@ Two files, and Flow contributes to one of them.
 
 A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. `flow setup` also writes `skillOverrides`, Claude Code's key for hiding a skill, for the ones it switches off: Claude Code's own `/batch`, and a skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
 
-**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Together they hold 6 keys:
+**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your second machine: `~/.flow/` is one git repository shared between the two, and the local file is the part git ignores. Together they hold 8 keys:
 
 - **`sources`**: the skill repositories [`flow skills`](#flow-skills) takes skills from, in the shared file. `flow skills add` and `drop` write it
 - **`skills`**: which skills are switched on or off, a line per name, in either file and in a project's `.flow/settings.json`. The nearest file wins, name by name. `flow skills` writes it
 - **`reminder`**: whether the reminder prints beside every message, in the shared file. `false` silences it, and every line Flow prints by itself gets a key like it
 - **`sessionCheck`**: whether the line naming what needs attention prints when a session opens, in the shared file. `false` silences it
+- **`setupReminder`**: whether a session opened in a git repository with no `.flow/` suggests `flow setup project`, in the shared file. `false` turns it off
+- **`setupReminderSkip`**: folders that line never shows in, each with everything below it, in the local file
 - **`skillsAutoUpdate`**: whether every skill repository pulls itself when a session opens, in the shared file. `false` turns each pull into a fetch that names what is waiting
 - **`fileSuggestionIgnore`**: folders and files the `@` list never offers, in either file and in a project's `.flow/settings.json`. The lists add up
 
 [Settings](settings.md) explains every key in both files, every value Flow rejected, and why.
+
+### `flow settings`
+
+Switches the 4 on/off keys above without opening a file: `reminder`, `sessionCheck`, `setupReminder` and `skillsAutoUpdate`. Each is on unless a file says `false`.
+
+```sh
+flow settings                              # every setting, whether it is on here, and which level says so
+flow settings off setupReminder            # this folder: the git repository you are in
+flow settings off setupReminder --machine  # this machine: ~/.flow/settings.local.json
+flow settings off setupReminder --global   # every machine: ~/.flow/settings.json
+flow settings on setupReminder             # undoes the first
+```
+
+```text
+setting           state  level
+reminder          on                  a line beside every message, pointing Claude at the reply rules
+sessionCheck      on                  what needs attention, when a session opens
+setupReminder     off    this folder  suggests flow setup project in a git repository without Flow
+skillsAutoUpdate  on                  each skill repository updates itself when a session opens
+```
+
+**The levels are [`flow skills`](#flow-skills)' own**: no flag for here, `--machine`, `--global`. The machine file wins over the shared one, so a switch that another level still overrules prints a second line saying which level does.
+
+**Only `setupReminder` works per folder**, since it alone has a list of folders to skip, `setupReminderSkip`. Every other setting refuses with no flag and names the 2 flags that work. Outside a git repository, a switch with no flag refuses too.
 
 ## Files
 

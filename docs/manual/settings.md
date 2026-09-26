@@ -27,6 +27,8 @@ All 4 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`skillsAutoUpdate`](#skillsautoupdate)
   - [`reminder`](#reminder)
   - [`sessionCheck`](#sessioncheck)
+  - [`setupReminder`](#setupreminder)
+  - [`setupReminderSkip`](#setupreminderskip)
   - [`fileSuggestionIgnore`](#filesuggestionignore)
 
 ## Claude Code's settings file
@@ -173,6 +175,14 @@ Flow: domain-skills is behind. 2 skills changed: react, sql. Update it when you 
 Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json`, which a setup or a migration leaves behind only when it never finished, `~/.flow/version`, the project's `.flow/version`, and `~/.flow/skills-update.json`, which the background pull below writes. [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
 
 **A stopped run silences the other version lines.** Each of them reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying about Flow's own version. A skill repository's line is a separate record and still prints.
+
+**In a git repository Flow is not set up in, it suggests setting Flow up**, as a line shown to you and never to the agent:
+
+```text
+Flow: not set up here. Run flow setup project to add it, or flow settings off setupReminder to stop this.
+```
+
+It shows in every session opened there, anywhere inside the repository, until the project is set up or a setting stops it. Not every folder is a project, so a folder git does not track never gets it, and neither do the home folder and `~/.flow/`, which are repositories and never projects. [`setupReminder`](#setupreminder) turns it off everywhere, and [`setupReminderSkip`](#setupreminderskip) in chosen folders. [`flow settings`](reference.md#flow-settings) writes either one for you.
 
 **It also makes every skill link match the settings.** A switch you made on your other machine arrives through [`flow sync`](reference.md#flow-sync) as a line in `~/.flow/settings.json`, and the next session start makes the link. When a link changed, it asks Claude Code to scan the skill folders again. [`skills`](#skills) covers the lines.
 
@@ -501,7 +511,33 @@ Whether the line naming what needs attention prints when a session opens. Write 
 
 [The session check](#the-session-check) shows every line it can print and says which files it reads.
 
-It silences the printing alone. Every skill repository still updates itself, which [`skillsAutoUpdate`](#skillsautoupdate) governs.
+It silences the printing alone, the setup line included. Every skill repository still updates itself, which [`skillsAutoUpdate`](#skillsautoupdate) governs.
+
+---
+
+### `setupReminder`
+
+Whether a session opened in a git repository with no `.flow/` suggests `flow setup project`. Write `false` to turn it off everywhere:
+
+```json
+"setupReminder": false
+```
+
+[The session check](#the-session-check) shows the line and says where it shows.
+
+---
+
+### `setupReminderSkip`
+
+Folders the setup line never shows in, each with everything below it:
+
+```json
+"setupReminderSkip": ["~/code/playground", "~/notes"]
+```
+
+**Put it in `~/.flow/settings.local.json`.** It holds paths, and your other machine may keep its folders somewhere else. `~` stands for the home folder, and any other entry is a full path.
+
+`flow settings off setupReminder`, typed inside a repository, adds that repository's top folder to the list, and `on` takes it out.
 
 ---
 

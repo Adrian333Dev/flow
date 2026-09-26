@@ -23,13 +23,16 @@
  * not waiting for one: the hook returns before the pull has reached the
  * network, and what the pull finds is printed by the session after it.
  *
+ * In a git repository with no `.flow/` it also suggests `flow setup project`,
+ * to the user alone. `setupReminder()` holds the rules.
+ *
  * `"sessionCheck": false` in ~/.flow/settings.json silences it. Exit 2 on this
  * event prints a notice the session ignores, so a failure here is silence.
  */
 
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const { cloneRoot } = require('./flow/lib/clone');
 const machine = require('./flow/lib/machine');
 const migrations = require('./flow/lib/migrations');
@@ -116,6 +119,43 @@ function attention(at, cwd) {
   return out;
 }
 
+/** A path with its links followed, or the path itself where it does not exist. */
+function real(p) {
+  try {
+    return fs.realpathSync(p);
+  } catch {
+    return path.resolve(p);
+  }
+}
+
+/**
+ * The line suggesting `flow setup project`, or null.
+ *
+ * It needs a git repository, since not every folder is a project and a folder
+ * git does not track rarely becomes one. The home folder and `~/.flow/` are
+ * repositories that are never projects. `"setupReminder": false` turns the
+ * line off, and `"setupReminderSkip"` lists folders it never shows in, each
+ * with everything below it. `flow settings` writes both.
+ *
+ * It goes out as `systemMessage`, which Claude Code shows the user, because
+ * the agent has nothing to do about it.
+ */
+function setupReminder(at, cwd) {
+  if (!settings.prints('setupReminder') || projectRoot(cwd, at)) return null;
+  const git = spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd, encoding: 'utf8' });
+  if (git.status !== 0) return null;
+  const repo = real(git.stdout.trim());
+  if (repo === real(at.base) || repo === real(at.flow)) return null;
+
+  const here = real(cwd);
+  const skip = [].concat(settings.readGlobal().setupReminderSkip || [])
+    .filter((entry) => typeof entry === 'string')
+    .map((entry) => real(entry.replace(/^~(?=\/|$)/, at.base)));
+  if (skip.some((dir) => here === dir || here.startsWith(dir + path.sep))) return null;
+
+  return 'Flow: not set up here. Run flow setup project to add it, or flow settings off setupReminder to stop this.';
+}
+
 /**
  * Make every skill link match the settings. Returns whether a link changed,
  * which is when the skill folders need scanning again.
@@ -155,7 +195,9 @@ try {
   }
 
   const lines = [];
+  let reminder = null;
   if (settings.prints('sessionCheck')) {
+    reminder = setupReminder(at, cwd);
     lines.push(...attention(at, cwd));
     // The repositories' news is a record of its own: a skill being behind is
     // a pull, where Flow being behind is a migration.
@@ -170,10 +212,13 @@ try {
   }
 
   const text = lines.map((line) => `Flow: ${line}`).join('\n');
-  if (reload) {
-    const said = { hookEventName: 'SessionStart', reloadSkills: true };
+  if (reload || reminder) {
+    const said = { hookEventName: 'SessionStart' };
+    if (reload) said.reloadSkills = true;
     if (text) said.additionalContext = text;
-    process.stdout.write(JSON.stringify({ hookSpecificOutput: said }) + '\n');
+    const output = reload || text ? { hookSpecificOutput: said } : {};
+    if (reminder) output.systemMessage = reminder;
+    process.stdout.write(JSON.stringify(output) + '\n');
   } else if (text) {
     process.stdout.write(text + '\n');
   }
