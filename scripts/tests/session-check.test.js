@@ -133,3 +133,28 @@ test('a link the hook changed asks for a rescan, and a session with nothing to c
   assert.match(third.additionalContext, /^Flow: this machine is at changelog entry/);
   assert.ok(!fs.existsSync(path.join(at.user, '.claude', 'skills', 'react')), 'switched off, so unlinked');
 });
+
+// On a real machine ~/.flow sits in the home folder, so every folder under it
+// has a `.flow/` above it. That one is the machine's, never a project's.
+test('a folder under the home folder with no .flow of its own is not a project', () => {
+  const dir = path.join(SCRATCH, 'session-home');
+  fs.rmSync(dir, { recursive: true, force: true });
+  const user = path.join(dir, 'user');
+  const home = path.join(user, '.flow');
+  const playground = path.join(user, 'code', 'playground');
+  fs.mkdirSync(playground, { recursive: true });
+  fs.mkdirSync(home, { recursive: true });
+  fs.writeFileSync(path.join(home, 'version'), `${NEWEST}\n`);
+  const source = path.join(home, 'repos', 'sources', 'Adrian333Dev_domain-skills');
+  write(source, 'react/SKILL.md', skillFile('react'));
+  fs.writeFileSync(path.join(home, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
+
+  const at = { home, project: playground, user };
+  assert.strictEqual(JSON.parse(check(at).stdout).hookSpecificOutput.reloadSkills, true);
+  const link = path.join(user, '.claude', 'skills', 'react');
+  assert.strictEqual(fs.readlinkSync(link), path.join(source, 'react'), 'on for the whole machine, so linked');
+
+  const second = check(at);
+  assert.strictEqual(second.stdout, '', 'the link stays, and the home folder is never read as a project');
+  assert.strictEqual(fs.readlinkSync(link), path.join(source, 'react'));
+});

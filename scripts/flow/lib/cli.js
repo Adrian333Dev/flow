@@ -218,4 +218,10 @@ function groupHelp(name, group) {
   return lines.join('\n');
 }
 
-module.exports = { out, resolve, parseArgs, dispatch };
+/** `a, b and c`, so a list of names reads as a sentence. */
+function joinAnd(items) {
+  if (items.length < 2) return items.join('');
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
+module.exports = { out, resolve, parseArgs, dispatch, joinAnd };

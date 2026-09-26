@@ -32,7 +32,7 @@
  */
 
 const path = require('path');
-const { out } = require('../lib/cli');
+const { out, joinAnd } = require('../lib/cli');
 const { cloneRoot } = require('../lib/clone');
 const confirm = require('../lib/confirm');
 const { git } = require('../lib/flow-repo');
@@ -41,12 +41,6 @@ const machine = require('../lib/machine');
 const originals = require('../lib/originals');
 
 const show = machine.shorten;
-
-/** `a, b and c`, so the question reads as a sentence. */
-function list(items) {
-  if (items.length < 2) return items.join('');
-  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
-}
 
 /**
  * What the clone still holds that nothing else does, or null when it can go.
@@ -92,7 +86,7 @@ actions.uninstall = {
 
     const places = [...projects.map((row) => path.basename(row.manifest.project)), 'this machine'];
     const lines = [
-      `${mine ? 'Restores' : 'Strips Flow from'} ${list(places)}, then deletes ${show(at.flow)}` +
+      `${mine ? 'Restores' : 'Strips Flow from'} ${joinAnd(places)}, then deletes ${show(at.flow)}` +
       `${keepClone ? '.' : ` and ${show(clone)}.`}`,
     ];
     if (!mine) lines.push('This machine has no original, so what those paths held before Flow is gone.');

@@ -338,3 +338,58 @@ test('a program Flow calls that is not on PATH stops the migration before anythi
   assert.strictEqual(applyAt(dir, root, id).code, 0, 'with the programs back, the same migration goes through');
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
 });
+
+// The 2 locks refuse every test process, so this one runs the command in
+// process with both taken out, and answers the word itself.
+test('a machine restore offers its projects first, and restore takes them all where machine takes one', () => {
+  const confirm = require('../flow/lib/confirm');
+  const restore = require('../flow/commands/restore');
+  const kept = { noSessions: confirm.noSessions, word: confirm.word };
+  const said = [];
+
+  function place(name) {
+    const dir = project(name);
+    const root = path.join(dir, 'root');
+    write(root, '.claude/notes.md', 'notes\n');
+    const id = migration(root, 'machine', '---\ntype: setup-machine\n---\n- write ~/.claude/notes.md: x\n',
+      { [path.join(root, '.claude/notes.md')]: 'Flow\'s notes\n' });
+    assert.strictEqual(applyAt(dir, root, id).code, 0);
+    const proj = path.join(root, 'code', 'shop');
+    write(proj, 'CLAUDE.md', 'shop rules\n');
+    const pid = migration(root, originals.place(proj), `---\ntype: setup-project\nproject: ${proj}\n---\n- write CLAUDE.md: x\n`,
+      { [path.join(proj, 'CLAUDE.md')]: '@AGENTS.md\n' }, new Date(Date.now() + 1000));
+    assert.strictEqual(applyAt(dir, root, pid).code, 0);
+    return { root, proj };
+  }
+
+  const answering = (answer) => {
+    confirm.noSessions = () => {};
+    confirm.word = (wanted, lines) => {
+      said.push({ wanted, lines });
+      return answer;
+    };
+  };
+
+  try {
+    const all = place('restore-machine-all');
+    answering('restore');
+    assert.strictEqual(restore.actions.machine.run({ flags: { root: all.root } }), 0);
+    assert.deepStrictEqual(said[0].wanted, ['restore', 'machine']);
+    assert.match(said[0].lines.join('\n'), /Flow is also set up in shop\./);
+    assert.strictEqual(read(path.join(all.proj, 'CLAUDE.md')), 'shop rules\n', 'the project went first');
+    assert.strictEqual(read(path.join(all.root, '.claude/notes.md')), 'notes\n');
+
+    const alone = place('restore-machine-alone');
+    answering('machine');
+    assert.strictEqual(restore.actions.machine.run({ flags: { root: alone.root } }), 0);
+    assert.strictEqual(read(path.join(alone.proj, 'CLAUDE.md')), '@AGENTS.md\n', 'the project keeps Flow');
+    assert.strictEqual(read(path.join(alone.root, '.claude/notes.md')), 'notes\n');
+
+    const refused = place('restore-machine-no');
+    answering(null);
+    assert.strictEqual(restore.actions.machine.run({ flags: { root: refused.root } }), 1);
+    assert.strictEqual(read(path.join(refused.root, '.claude/notes.md')), 'Flow\'s notes\n', 'no word, nothing put back');
+  } finally {
+    Object.assign(confirm, kept);
+  }
+});

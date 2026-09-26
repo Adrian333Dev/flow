@@ -331,10 +331,23 @@ A project's restore adds its folder as `project`.
 
 Restoring the machine deletes `~/.local/bin/flow` along with everything else `flow install` made, so the last line says how to put Flow back. It leaves `~/.flow/` alone: only `flow uninstall` deletes that.
 
+**`flow restore machine` offers every project first.** Once `flow` is gone, a project's restore has to be typed through the script's full path, so the machine's restore asks about the projects while `flow` still exists. With Flow set up in 2 projects, it asks:
+
+```text
+Puts 7 paths on this machine back as they were before Flow.
+Flow is also set up in blog and shop.
+  restore  puts each one back first, then this machine.
+  machine  puts back this machine alone. flow leaves PATH, so blog and shop keep Flow's files until you run, inside each:
+           node ~/.flow/scripts/flow/flow.js restore project
+Type restore or machine:
+```
+
+With no project set up, it asks for `restore` alone.
+
 **4 locks stand in front of both, and in front of `flow uninstall`.** Each one alone stops an agent, and together they mean this only ever happens because you typed it:
 
 1. **Every session closed.** A running `claude` or `codex` process refuses the command outright. Claude Code also rewrites `~/.claude.json` as it goes, and would write its own copy over the one just put back.
-2. **A word typed at the terminal.** `restore` or `uninstall`, read from `/dev/tty` rather than from the input, so a pipe, a heredoc and `yes |` all miss it. A command run by an agent has no terminal at all.
+2. **A word typed at the terminal.** `restore`, `machine` or `uninstall`, read from `/dev/tty` rather than from the input, so a pipe, a heredoc and `yes |` all miss it. A command run by an agent has no terminal at all.
 3. **No flag skips the prompt.** There is nothing to paste and nothing to pull out of your shell history.
 4. **`deny` rules in `~/.claude/settings.json`** covering `flow`, `fw` and the script's own path.
 

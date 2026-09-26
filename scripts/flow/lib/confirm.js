@@ -53,22 +53,25 @@ function noSessions() {
 }
 
 /**
- * Lock 2: print the 2 lines, then read one word from the terminal. True when
- * the word typed is the one asked for.
+ * Lock 2: print the lines, then read one word from the terminal. Returns the
+ * word typed where it is one asked for, and null for anything else. `wanted`
+ * is one word, or a list where the answer picks what runs.
  */
 function word(wanted, lines) {
+  const words = [].concat(wanted);
+  const named = words.join(' or ');
   let tty;
   try {
     tty = fs.openSync('/dev/tty', 'r');
   } catch {
-    throw new FlowError(`Run this in a terminal, and type ${wanted} when it asks.`);
+    throw new FlowError(`Run this in a terminal, and type ${named} when it asks.`);
   }
   try {
-    process.stdout.write(`${lines.join('\n')}\nType ${wanted} to go on: `);
+    process.stdout.write(`${lines.join('\n')}\nType ${named}${words.length === 1 ? ' to go on' : ''}: `);
     const buffer = Buffer.alloc(1);
     let typed = '';
     while (fs.readSync(tty, buffer, 0, 1, null) === 1 && buffer[0] !== 10) typed += buffer.toString();
-    return typed.trim() === wanted;
+    return words.includes(typed.trim()) ? typed.trim() : null;
   } finally {
     fs.closeSync(tty);
   }

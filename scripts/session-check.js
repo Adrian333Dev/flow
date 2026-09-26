@@ -46,11 +46,17 @@ const version = require('./flow/lib/version');
  * fires wherever the user opened the session, so a walk up the tree is the
  * whole of it here: no git, no refusal, and a folder with no `.flow/` above it
  * is simply not a project.
+ *
+ * The home folder is never one. Its `.flow/` is the machine's, so a session
+ * opened anywhere under it would otherwise count the home folder as the
+ * project, read the global settings as the project's, and take down every
+ * skill link they had just made.
  */
-function projectRoot(from) {
+function projectRoot(from, at) {
   let dir = path.resolve(from);
   for (;;) {
-    if (fs.existsSync(path.join(dir, '.flow'))) return dir;
+    const flow = path.join(dir, '.flow');
+    if (dir !== at.base && flow !== at.flow && fs.existsSync(flow)) return dir;
     const up = path.dirname(dir);
     if (up === dir) return null;
     dir = up;
@@ -93,7 +99,7 @@ function attention(at, cwd) {
     out.push(`this machine is at changelog entry ${mine.number}, and ${newest} is the newest. Run flow up in a terminal to catch up.`);
   }
 
-  const root = projectRoot(cwd);
+  const root = projectRoot(cwd, at);
   if (!root) return out;
 
   const name = path.basename(root);
@@ -115,7 +121,7 @@ function attention(at, cwd) {
  * which is when the skill folders need scanning again.
  */
 function relink(at, cwd) {
-  const done = links.apply({ home: at.flow, root: projectRoot(cwd), claude: skills.configDir(), agents: at.agents });
+  const done = links.apply({ home: at.flow, root: projectRoot(cwd, at), claude: skills.configDir(), agents: at.agents });
   return done.changed.length > 0;
 }
 

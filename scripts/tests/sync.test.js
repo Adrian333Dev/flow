@@ -3,13 +3,15 @@
  * `flow sync` and `lib/flow-repo.js`: `~/.flow/` as one private git
  * repository, which is the whole of how Flow reaches a second machine.
  *
- * What is tested here is the part that runs no git command: the list of what
- * never travels, the `.gitignore` written from it, and the refusal on a
- * `~/.flow/` that was never made a repository. Sending and bringing down are
- * not covered, and are named as a gap in `lab/context/handoff.md`.
+ * The list of what never travels, the `.gitignore` written from it, the
+ * refusals, and a round trip between 2 machines through a bare repository in
+ * the scratch folder, standing in for GitHub. The second machine is a clone
+ * of that repository: how a machine with its own `~/.flow/` joins one is not
+ * built.
  */
 
 const { test } = require('node:test');
+const { spawnSync } = require('child_process');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
@@ -80,4 +82,38 @@ test('sync refuses on a machine where setup never finished', () => {
   fs.writeFileSync(path.join(m.at.flow, 'run.json'), JSON.stringify({ type: 'migrate', step: 5 }));
   const migrating = run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
   assert.match(migrating.stderr, /not set up on this machine/, 'only a setup passes');
+});
+
+test('the first sync sends to an empty remote, and each machine brings the other\'s work down', () => {
+  const a = machine('sync-a');
+  const remote = path.join(a.dir, 'remote.git');
+  spawnSync('git', ['init', '-q', '--bare', '-b', 'main', remote]);
+  repo.start(a.at, remote);
+  fs.writeFileSync(path.join(a.at.flow, 'workflow-notes.md'), 'from a\n');
+  const sync = (m) => run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
+
+  const first = sync(a);
+  assert.strictEqual(first.code, 0, first.stderr);
+  assert.match(first.stdout, /^nothing new came down\.\nwent up: .+: 2 files$/m, 'the notes and the ignore file');
+
+  const b = machine('sync-b');
+  fs.rmSync(b.at.flow, { recursive: true });
+  spawnSync('git', ['clone', '-q', remote, b.at.flow]);
+  fs.writeFileSync(path.join(b.at.flow, 'version'), '2026-09-20\n');
+  assert.match(sync(b).stdout, /^nothing new came down\.\nnothing changed here, so nothing went up\.$/m, 'version is ignored');
+
+  fs.appendFileSync(path.join(b.at.flow, 'workflow-notes.md'), 'from b\n');
+  assert.match(sync(b).stdout, /went up: .+: 1 file$/m);
+  const back = sync(a);
+  assert.match(back.stdout, /^came down: /m);
+  assert.strictEqual(fs.readFileSync(path.join(a.at.flow, 'workflow-notes.md'), 'utf8'), 'from a\nfrom b\n');
+
+  // The same file changed on both sides: the pull refuses, and says why.
+  fs.appendFileSync(path.join(a.at.flow, 'workflow-notes.md'), 'again from a\n');
+  assert.strictEqual(sync(a).code, 0);
+  fs.appendFileSync(path.join(b.at.flow, 'workflow-notes.md'), 'again from b\n');
+  const refused = sync(b);
+  assert.strictEqual(refused.code, 1);
+  assert.match(refused.stderr, /the pull would not fast-forward, so nothing came down:\n {2}error: Your local changes to the following files would be overwritten by merge:/);
+  assert.match(fs.readFileSync(path.join(b.at.flow, 'workflow-notes.md'), 'utf8'), /again from b\n$/, 'nothing of b\'s was lost');
 });

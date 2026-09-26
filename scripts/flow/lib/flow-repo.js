@@ -132,12 +132,20 @@ function start(at, remote) {
   return `origin is ${remote}`;
 }
 
-/** Bring another machine's work down. Anything but a fast-forward stops. */
+/**
+ * Bring another machine's work down. Anything but a fast-forward stops. A
+ * remote nothing was ever sent to has no `main`, which is the first sync of the
+ * first machine, so there is nothing to bring.
+ */
 function load(at) {
   if (!isRepo(at)) throw new FlowError(`${at.flow} is not a repository yet. Run flow install and give it one.`);
+  const heads = git(at.flow, ['ls-remote', '--heads', 'origin', 'main']);
+  if (heads.ok && !heads.out) return null;
   const pulled = git(at.flow, ['pull', '--ff-only', 'origin', 'main']);
   if (!pulled.ok) {
-    throw new FlowError(`the pull would not fast-forward, so nothing came down:\n  ${pulled.err.split('\n')[0]}\n  Sort ${at.flow} out by hand, then run flow sync again.`);
+    // git opens with what it fetched, so the reason is further down.
+    const reason = pulled.err.split('\n').filter((l) => !/^From | -> /.test(l)).join('\n  ');
+    throw new FlowError(`the pull would not fast-forward, so nothing came down:\n  ${reason}\n  Sort ${at.flow} out by hand, then run flow sync again.`);
   }
   return pulled.out.includes('Already up to date') ? null : pulled.out.split('\n')[0];
 }
