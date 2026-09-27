@@ -46,11 +46,9 @@ What one run puts on the machine:
 - **`~/.flow/install.log`**: every line of the last run. The screen shows a summary, plus each line saying something changed or failed.
 - **`~/.flow/originals/machine/`**: every path in this list as it was before Flow, copied before anything is created. [Migrations and the original](#migrations-and-the-original) covers it. Only a machine Flow was never on gets one, because on any other the paths are already Flow's own.
 
-`--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.flow` and `<dir>/.local/bin`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
+`--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.flow`, `<dir>/.local/bin` and the global git config, `<dir>/.gitconfig`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
 
-**At a terminal it asks one question**: a name for this machine, saved as git's `util.machine`. Work sent between your machines carries the name, so you can tell where it came from. The default is your computer's name and 4 random letters, because a computer's name is not reliably different: WSL calls every machine it is installed on `me`. A machine that already has a name is not asked again.
-
-**Then it connects your Flow home.** Your Flow home is `~/.flow/`: your rules, notes, study cases and the tickets that belong to no project. It lives in one private GitHub repository, always called `flow-home` on your account. The repository is both the copy of it off this machine and how your other machines get it, covered in [flow sync](#flow-sync). There is no skip, and nothing to answer:
+**It checks everything before it makes anything.** Your Flow home is `~/.flow/`: your rules, notes, study cases and the tickets that belong to no project. It lives in one private GitHub repository, always called `flow-home` on your account. The repository is both the copy of it off this machine and how your other machines get it, covered in [flow sync](#flow-sync). There is no skip. Before the first link, the install signs `gh` in, finds the repository, reads what your other machines left in it, and asks this machine's name. A check that fails stops the install with nothing linked, and the stop line says what to fix.
 
 - **`gh` signs in first**, where it is not signed in. `gh` is GitHub's command-line tool, and Flow reaches your account through it. The browser sign-in often fails on WSL, so the install shows how to make a token and has `gh` ask for it:
 
@@ -64,29 +62,41 @@ What one run puts on the machine:
   ```
 
   Those 3 are the least `gh` accepts, and `repo` covers making a private repository. Flow never deletes the repository, so `delete_repo` stays unticked. The install then runs `gh auth setup-git`, so `flow sync` uploads with the same sign-in.
-- **On your first machine**, `<you>/flow-home` does not exist yet. The install makes it, private, and sends it a first commit holding `.gitignore`. A machine you install next then joins it, even before this one ever runs `flow sync`:
+- **The machine's name is the one question**, asked last, and only where the machine has none yet:
 
   ```text
+  Machine name (default: desktop-wsl):
+  ```
+
+  The default is what sort of computer this is and the system it runs: `laptop`, `desktop` or `server`, then `wsl`, `mac`, or the Linux distribution, such as `ubuntu`. The sort comes from the chassis type the firmware reports, asked of Windows under WSL, and a Mac with a battery is a laptop. Where nothing says, the name is the system alone. A name another machine already holds gets a number, `desktop-wsl-2`. Typing a taken name asks `desktop-wsl is taken. Replace it? (y/N)`, which is how a rebuilt machine gets its old name back. The name is saved as git's `flow.machine`, and `util git` files the work it moves between machines under the same name. With no terminal, the default is taken.
+
+**Then it links everything, and connects your Flow home:**
+
+- **On your first machine**, `<you>/flow-home` does not exist yet. The install makes it, private, with `Managed by Flow. Never rename, edit or make public.` as its description. It sends a first commit holding `.gitignore`, a `README.md` warning against editing the repository by hand, and this machine's record. A machine you install next then joins it, even before this one ever runs `flow sync`:
+
+  ```text
+  named: this machine is desktop-wsl
   repository: made adrian333dev/flow-home on GitHub, private
   started: your Flow home, sent up so your other machines join it
   ```
-- **On every machine after the first**, the repository already holds your Flow home. The install downloads it into `~/.flow/` before setup starts, then clones the skill repositories and links the skills its settings name:
+- **On every machine after the first**, the repository already holds your Flow home. The install downloads it into `~/.flow/` before setup starts, and sends this machine's record up at once, so its name is claimed. Then it clones the skill repositories and links the skills its settings name:
 
   ```text
   repository: found adrian333dev/flow-home on GitHub
-  joined: 14 files from desktop-qkzv, your Flow home as your other machine last sent it
+  named: this machine is laptop-mac
+  joined: 14 files from desktop-wsl, your Flow home as your other machine last sent it
   cloned: Adrian333Dev/domain-skills into ~/.flow/repos/sources/Adrian333Dev_domain-skills
   ```
 
-**A new machine installs the release your Flow home is on.** Each machine keeps a record in the repository, `machines/<name>.json`, holding the changelog entry it is on (see [flow sync](#flow-sync)). Where the highest entry there differs from the clone the install came from, the install switches the clone to that release's tag, `v<number>`, and runs again from it. Your machines then move to a newer release together, through [flow up](#flow-up). A clone you ran the install from by path is never switched: the install stops and names the tag to switch it to.
+**A new machine installs the release your Flow home is on.** Each machine keeps a record in the repository, `machines/<name>.json`, holding the changelog entry it is on (see [flow sync](#flow-sync)). Where the highest entry there differs from the clone the install came from, the install switches the clone to that release's tag, `v<number>`, before linking anything, and runs again from it. Your machines then move to a newer release together, through [flow up](#flow-up). A clone you ran the install from by path is never switched: the install stops and names the tag to switch it to.
 
-**It refuses 3 things, each before anything comes down:**
+**It refuses 3 things, each before anything is made:**
 
 - **A repository called `flow-home` that is not a Flow home**, such as a project of yours with the same name. A Flow home is told apart by its `.gitignore`, whose first line is `# What belongs to this machine alone.`
 - **A `~/.flow/` already holding a file the download would write over.** The message names each one. Move them out, run the install again, then copy back what you want to keep.
 - **A repository git cannot reach.** The stop line carries git's own reason.
 
-A repository already connected is kept, and running the install again asks nothing. Until the repository is connected, the install stops before setup, with every link already made.
+A repository already connected is kept, and running the install again asks nothing.
 
 **Installing is half of putting Flow on a machine.** The other half is [`flow setup`](#flow-setup), and the install runs it as its last step.
 
@@ -241,7 +251,7 @@ Nothing runs by itself. You type it.
 ```text
 $ flow sync
 came down: 2 files
-went up: desktop-qkzv: 3 files
+went up: desktop-wsl: 3 files
 ```
 
 **The same lines changed on 2 machines stop it.** The merge is undone, so nothing comes down and nothing goes up. Your work stays, committed in `~/.flow/`, for you to merge by hand before syncing again.
@@ -249,18 +259,18 @@ went up: desktop-qkzv: 3 files
 **A machine behind another machine's release syncs nothing.** Each machine keeps a record in the repository, `machines/<name>.json`:
 
 ```json
-{ "name": "laptop-mzpq", "joined": "2026-09-27", "flowVersion": 12 }
+{ "name": "laptop-mac", "joined": "2026-09-27", "flowVersion": 12 }
 ```
 
 `flowVersion` is the changelog entry the machine is on, written by `flow setup finish` and `flow up finish`. Say your desktop moves to entry 12 with `flow up`, and your laptop is still on 11. The desktop's update migrates its own copy of `~/.flow/`, then sends it up. On the laptop, `flow sync` reads the desktop's record before anything moves, and stops:
 
 ```text
-your Flow home is on changelog entry 12, since desktop-qkzv moved to it, and this machine is on 11. Nothing was synced. Run flow up first.
+your Flow home is on changelog entry 12, since desktop-wsl moved to it, and this machine is on 11. Nothing was synced. Run flow up first.
 ```
 
 The laptop's `flow up` migrates the laptop's own copy, with everything it wrote while it was cut off. Both copies then have the same shape, and the next `flow sync` merges them. Without the stop, the laptop would download a shape its Flow does not know, or send its old shape back up.
 
-The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-qkzv is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.`
+The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.`
 
 **What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `history.jsonl`, `install.log`, `skills-update.json` and its lock, `scorecards/`, `audit/`, `changes/`, and each wiki tool's `downloads/`.
 

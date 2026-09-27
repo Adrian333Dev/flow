@@ -250,7 +250,12 @@ function finish(at) {
   const file = run.project ? path.join(run.project, '.flow', 'version') : path.join(at.flow, 'version');
   fs.writeFileSync(file, `${run.to}\n`);
   // The other machines read this record, and sync nothing until they match it.
-  if (!run.project) flowRepo.writeRecord(at, run.to);
+  // The README is rewritten with it, so a new release's wording goes up with
+  // the next sync.
+  if (!run.project) {
+    flowRepo.writeRecord(at, run.to);
+    flowRepo.writeReadme(at);
+  }
   fs.rmSync(runFile(at));
   out(`stamped: ${show(file)} is ${run.to}. ${run.project ? 'This project' : 'This machine'} is up to date.`);
   return 0;

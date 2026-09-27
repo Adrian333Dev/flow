@@ -207,7 +207,9 @@ test('install never reaches outside the root it was given', () => {
   flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
 
   assert.deepStrictEqual(fs.readdirSync(dir).sort(), [...before, 'root'].sort(), 'nothing lands beside the root');
-  assert.deepStrictEqual(fs.readdirSync(root).sort(), ['.agents', '.claude', '.flow']);
+  assert.deepStrictEqual(fs.readdirSync(root).sort(), ['.agents', '.claude', '.flow', '.gitconfig'],
+    'the machine name lands in the root\'s own git config, never the real one');
+  assert.match(fs.readFileSync(path.join(root, '.gitconfig'), 'utf8'), /machine = test-machine/);
 });
 
 test('the flags that took one folder each are gone', () => {
@@ -279,7 +281,7 @@ test('install refuses when ~/.flow/repos/flow is another clone', () => {
   assert.ok(!fs.existsSync(path.join(root, '.agents')), 'nothing was made');
 });
 
-test('install stops before setup until the Flow home connects, and keeps it once it has', () => {
+test('install checks the Flow home before it makes anything, and keeps it once connected', () => {
   const dir = project('install-no-repo');
   const root = path.join(dir, 'root');
 
@@ -293,12 +295,13 @@ test('install stops before setup until the Flow home connects, and keeps it once
   assert.strictEqual(signedOut.code, 1);
   assert.match(signedOut.stdout, /stopped: gh (is not signed in|did not sign in)/);
   assert.doesNotMatch(fs.readFileSync(path.join(bin, 'calls'), 'utf8'), /repo|api/, 'no repository was looked for or made');
-  assert.doesNotMatch(signedOut.stdout, /One step left/);
-  assert.ok(fs.existsSync(path.join(root, '.agents', 'skills', 'flow', 'skills', 'groundwork')), 'the links are made');
+  assert.strictEqual(signedOut.stdout, 'stopped: gh is not signed in, and there is no terminal here to sign in. Run gh auth login, then flow install again.\n');
+  assert.ok(!fs.existsSync(root), 'nothing is made');
 
   const unreachable = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: path.join(dir, 'nothing-here.git') });
   assert.strictEqual(unreachable.code, 1);
-  assert.match(unreachable.stdout, /stopped: git cannot reach .*nothing-here\.git/);
+  assert.match(unreachable.stdout, /^stopped: git cannot reach .*nothing-here\.git/);
+  assert.ok(!fs.existsSync(path.join(root, '.agents')), 'nothing is linked');
 
   // Once connected, the repository is kept, whatever the stand-in says next.
   const remote = bareRepo('install-no-repo');

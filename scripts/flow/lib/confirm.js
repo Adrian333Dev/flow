@@ -22,7 +22,7 @@
  *
  * Every refusal is one line saying what to do, never an explanation.
  *
- * `ask` sits here too, for `flow install`'s 2 questions. Same terminal, the
+ * `ask` sits here too, for `flow install`'s machine name. Same terminal, the
  * opposite default: a missing terminal takes the fallback rather than refusing,
  * because an install with no answers still has work to do.
  */
@@ -80,10 +80,9 @@ function word(wanted, lines) {
 /**
  * True where a terminal is attached, so there is somebody to ask.
  *
- * `flow install` asks its 2 questions only when this says yes. Pressing Enter
- * is an answer there, and one of the defaults makes a repository on GitHub, so
- * a run with nobody at the keyboard, a test included, has to skip the
- * questions rather than take a default nobody chose.
+ * `flow install` asks the machine's name, and signs `gh` in, only when this
+ * says yes. With nobody at the keyboard, a test included, the name is the
+ * offered one, and a `gh` signed out stops the install.
  */
 function hasTerminal() {
   try {

@@ -195,7 +195,7 @@ test('a machine another machine moved ahead of says flow sync waits for flow up'
   const other = { flow: path.join(SCRATCH, 'session-ahead', 'other-flow'), base: path.join(SCRATCH, 'session-ahead') };
   fs.mkdirSync(other.flow, { recursive: true });
   repo.connect(other, remote);
-  repo.git(other.flow, ['config', 'util.machine', 'laptop']);
+  repo.git(other.flow, ['config', 'flow.machine', 'laptop']);
   repo.writeIgnore(other);
   repo.writeRecord(other, NEWEST + 1);
   repo.sync(other, NEWEST + 1);

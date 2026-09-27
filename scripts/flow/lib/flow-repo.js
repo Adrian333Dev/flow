@@ -34,18 +34,24 @@
  *   install.log   every line of this machine's last install
  *   skills-update.*   what this machine's source clones are behind by, and
  *                 the lock the job that reads it holds
- *   scorecards/, audit/, changes/   what this machine's sessions recorded,
- *                 the transcript index among them
+ *   scorecards/, audit/, changes/   what this machine's sessions recorded:
+ *                 rule checks, the transcript index, and what each subagent
+ *                 changed
  *   a wiki tool's downloads   pages fetched once per machine
  *
  * Each machine keeps one record in the repository, `machines/<name>.json`:
- * its name, the day it joined, and the changelog entry it is on. The highest
+ * its name, the day it joined, and the changelog entry it is on. `flow install`
+ * sends it up the moment the machine joins, so a name is claimed before
+ * another machine can be offered it. The highest
  * entry among them is the entry the Flow home is on. A machine below it has
  * not run the migration another machine already ran on its own copy, so it
  * neither sends nor fetches until `flow up` brings it level.
  *
  * A commit is named for the machine that made it, `desktop: 2 files`, so a
  * line in a note can be traced to where it was written.
+ *
+ * `README.md` warns whoever opens the repository on GitHub. The first machine
+ * sends it with the first commit, and `flow up` rewrites it.
  *
  * `flow sync` is typed, and `flow install` connects the repository once. A
  * download when a session opens and an upload when something changed are
@@ -54,12 +60,16 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { FlowError } = require('./error');
 
 /** The repository's name on the user's GitHub account. Never configurable. */
 const NAME = 'flow-home';
+
+/** What the repository's page on GitHub says under its name. */
+const DESCRIPTION = 'Managed by Flow. Never rename, edit or make public.';
 
 /** The first line of the ignore file, which is how a Flow home is told apart. */
 const MARK = '# What belongs to this machine alone.';
@@ -109,10 +119,20 @@ function gh(args) {
 
 const isRepo = (at) => fs.existsSync(path.join(at.flow, '.git'));
 
-/** This machine's name, from git's `util.machine`, which `util` reads too. */
+/**
+ * This machine's name, from git's `flow.machine`, which `util git` reads too
+ * where `util.machine` is missing. Read from the Flow home where it exists, so
+ * a name set in that repository alone wins, as the tests set it.
+ */
 function machineName(at) {
-  const set = git(at.flow, ['config', '--get', 'util.machine']);
+  const set = git(fs.existsSync(at.flow) ? at.flow : os.tmpdir(), ['config', '--get', 'flow.machine']);
   return set.ok && set.out ? set.out : null;
+}
+
+/** Save this machine's name in the global git config. Returns why it failed, or null. */
+function saveName(name) {
+  const set = git(os.tmpdir(), ['config', '--global', 'flow.machine', name]);
+  return set.ok ? null : set.err;
 }
 
 /** The name a record and a commit carry: the machine's own, or the home folder's. */
@@ -143,26 +163,37 @@ function writeIgnore(at) {
   fs.writeFileSync(path.join(at.flow, '.gitignore'), IGNORED);
 }
 
+/** The README, from the template in this clone. */
+function writeReadme(at) {
+  fs.mkdirSync(at.flow, { recursive: true });
+  fs.copyFileSync(path.join(__dirname, '..', 'templates', 'flow-home-README.md'), path.join(at.flow, 'README.md'));
+}
+
 // ------------------------------------------------------------ finding it
 
 /**
- * The repository's address, and a line saying how it was found. On GitHub,
- * `<login>/flow-home`, made private when it does not exist yet, which is the
- * first machine. `gh` must be signed in: `flow install` sees to that first.
+ * The repository's address, a line saying how it was found, and whether it
+ * exists yet. On GitHub it is `<login>/flow-home`, and it does not exist on
+ * the first machine, where `create()` makes it. Reads only. `gh` must be
+ * signed in: `flow install` sees to that first.
  */
 function locate() {
   if (process.env.FLOW_HOME_REMOTE) {
-    return { url: process.env.FLOW_HOME_REMOTE, said: `using ${process.env.FLOW_HOME_REMOTE}` };
+    return { url: process.env.FLOW_HOME_REMOTE, said: `using ${process.env.FLOW_HOME_REMOTE}`, exists: true };
   }
   const login = gh(['api', 'user', '--jq', '.login']);
   if (!login.ok || !login.out) throw new FlowError(`gh could not say which GitHub account is signed in: ${login.err}`);
   const full = `${login.out}/${NAME}`;
   const url = `https://github.com/${full}.git`;
-  if (gh(['repo', 'view', full, '--json', 'name']).ok) return { url, said: `found ${full} on GitHub` };
+  if (gh(['repo', 'view', full, '--json', 'name']).ok) return { url, full, said: `found ${full} on GitHub`, exists: true };
+  return { url, full, exists: false };
+}
 
-  const made = gh(['repo', 'create', NAME, '--private']);
-  if (!made.ok) throw new FlowError(`gh could not make ${full}: ${made.err}`);
-  return { url, said: `made ${full} on GitHub, private` };
+/** Make the repository `locate()` found missing: private, with the warning as its description. */
+function create(found) {
+  const made = gh(['repo', 'create', NAME, '--private', '--description', DESCRIPTION]);
+  if (!made.ok) throw new FlowError(`gh could not make ${found.full}: ${made.err}`);
+  return `made ${found.full} on GitHub, private`;
 }
 
 /**
@@ -272,22 +303,27 @@ function ahead(at, mine) {
 
 // ------------------------------------------------------------ joining
 
+const hasHead = (at) => git(at.flow, ['rev-parse', '-q', '--verify', 'HEAD']).ok;
+
 /**
- * Bring another machine's Flow home down onto this one, the first time.
+ * What an install will find in the Flow home, read before anything is made.
+ * Fetches, and changes nothing else.
  *
- * Only on a machine whose `~/.flow/` has never committed, into a repository
- * that has files. Returns null where there is nothing to join, which is the
- * first machine. `{ state: 'version', home }` where the Flow home is on
- * another entry than this clone, which `flow install` fixes by switching the
- * clone before anything comes down. `{ state: 'joined', files, from }` once the
- * files are here.
+ *   { state: 'kept', taken }      this machine has committed before
+ *   { state: 'first', taken }     the repository holds nothing yet
+ *   { state: 'version', home, name }   the Flow home is on another entry
+ *                                 than this clone, which `flow install` fixes
+ *                                 by switching the clone first
+ *   { state: 'join', files, from, taken }   another machine's files, ready
+ *                                 to come down
  *
- * Refuses a repository that is not a Flow home, and a `~/.flow/` already
- * holding a file the download would write over.
+ * `taken` is every name a record holds. Refuses a repository that is not a
+ * Flow home, and a `~/.flow/` already holding a file the download would
+ * write over.
  */
-function join(at, newest) {
-  if (git(at.flow, ['rev-parse', '-q', '--verify', 'HEAD']).ok) return null;
-  if (!fetch(at)) return null;
+function inspect(at, newest) {
+  if (hasHead(at)) return { state: 'kept', taken: records(at, 'HEAD').map((r) => r.name) };
+  if (!fetch(at)) return { state: 'first', taken: [] };
 
   const url = git(at.flow, ['remote', 'get-url', 'origin']).out;
   const ignore = git(at.flow, ['show', 'origin/main:.gitignore']);
@@ -296,6 +332,7 @@ function join(at, newest) {
       `Rename that repository on GitHub, then run flow install again.`);
   }
 
+  const found = records(at, 'origin/main');
   const top = highest(at, 'origin/main');
   if (top && newest !== null && top.number !== newest) return { state: 'version', home: top.number, name: top.name };
 
@@ -305,31 +342,53 @@ function join(at, newest) {
     throw new FlowError(`${at.flow} already holds ${inTheWay.join(', ')}, and your other machine's copies would ` +
       'go on top of them. Move them out of it, run flow install again, then copy back what you want to keep.');
   }
+  return { state: 'join', files: files.length, from: found.map((r) => r.name), taken: found.map((r) => r.name) };
+}
 
+/** Bring what `inspect()` found down onto this machine, the first time. */
+function join(at) {
   fs.rmSync(path.join(at.flow, '.gitignore'), { force: true });
   const out = git(at.flow, ['checkout', '-q', '-B', 'main', 'origin/main']);
   if (!out.ok) throw new FlowError(`could not bring the Flow home down: ${out.err}`);
   writeIgnore(at);
-  return { state: 'joined', files: files.length, from: records(at, 'HEAD').map((r) => r.name) };
 }
 
 /**
- * On the first machine, send the ignore file up at once, as the Flow home's
- * first commit. A second machine installed before the first ever synced then
- * still finds files and joins, where an empty repository would have made it a
- * first machine too, with a history git refuses to merge. Returns false where
- * this machine has committed before.
+ * Commit `files` and send them up. Returns the push's error, or null. A
+ * failed commit throws: nothing is sent where nothing was saved.
  */
-function seed(at) {
-  if (git(at.flow, ['rev-parse', '-q', '--verify', 'HEAD']).ok) return false;
-  writeIgnore(at);
-  const staged = git(at.flow, ['add', '.gitignore']);
+function commitAndPush(at, files, message) {
+  const staged = git(at.flow, ['add', ...files]);
   if (!staged.ok) throw new FlowError(`could not stage ${at.flow}: ${staged.err}`);
-  const made = git(at.flow, [...identity(at), 'commit', '-q', '-m', `${nameOf(at)}: the Flow home starts`]);
+  const made = git(at.flow, [...identity(at), 'commit', '-q', '-m', message]);
   if (!made.ok) throw new FlowError(`could not commit ${at.flow}: ${made.err}`);
   const sent = git(at.flow, ['push', '-q', 'origin', 'main']);
-  if (!sent.ok) throw new FlowError(`committed here, and the push failed:\n  ${sent.err.split('\n')[0]}`);
-  return true;
+  return sent.ok ? null : sent.err.split('\n')[0];
+}
+
+/**
+ * Send this machine's record up the moment it joins, so the name is claimed.
+ * A push that fails is not a stop: the files are here, and the next
+ * `flow sync` sends the record. Returns the push's error, or null.
+ */
+function claim(at, number) {
+  const file = path.relative(at.flow, writeRecord(at, number));
+  return commitAndPush(at, [file], `${nameOf(at)}: joins`);
+}
+
+/**
+ * On the first machine, send the ignore file, the README and this machine's
+ * record up at once, as the Flow home's first commit. A second machine
+ * installed before the first ever synced then still finds files and joins,
+ * where an empty repository would have made it a first machine too, with a
+ * history git refuses to merge.
+ */
+function seed(at, number) {
+  writeIgnore(at);
+  writeReadme(at);
+  const file = path.relative(at.flow, writeRecord(at, number));
+  const failed = commitAndPush(at, ['.gitignore', 'README.md', file], `${nameOf(at)}: the Flow home starts`);
+  if (failed) throw new FlowError(`committed here, and the push failed:\n  ${failed}`);
 }
 
 /**
@@ -381,8 +440,7 @@ function sync(at, mine) {
   }
 
   let came = 0;
-  const hasHead = git(at.flow, ['rev-parse', '-q', '--verify', 'HEAD']).ok;
-  if (remote && !hasHead) {
+  if (remote && !hasHead(at)) {
     const out = git(at.flow, ['checkout', '-q', '-B', 'main', 'origin/main']);
     if (!out.ok) throw new FlowError(`could not bring the Flow home down: ${out.err}`);
     came = git(at.flow, ['ls-tree', '-r', '--name-only', 'HEAD']).out.split('\n').filter(Boolean).length;
@@ -411,6 +469,7 @@ function sync(at, mine) {
 }
 
 module.exports = {
-  NAME, MARK, IGNORED, git, gh, isRepo, machineName, nameOf, changed, writeIgnore,
-  locate, connect, fetch, fetchDue, writeRecord, records, highest, ahead, join, seed, switchClone, sync,
+  NAME, MARK, IGNORED, git, gh, isRepo, machineName, saveName, nameOf, changed, writeIgnore, writeReadme,
+  locate, create, connect, fetch, fetchDue, writeRecord, records, highest, ahead, inspect, join, claim, seed,
+  switchClone, sync,
 };

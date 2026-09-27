@@ -38,7 +38,7 @@ function machine(name) {
 /** Connect a machine to `remote` and give it its own name. */
 function connect(m, remote) {
   repo.connect(m.at, remote);
-  repo.git(m.at.flow, ['config', 'util.machine', m.name]);
+  repo.git(m.at.flow, ['config', 'flow.machine', m.name]);
 }
 
 const sync = (m) => run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
@@ -111,7 +111,8 @@ test('2 machines send and merge their work, and the same lines changed on both s
 
   const b = machine('sync-b');
   connect(b, remote);
-  assert.deepStrictEqual(repo.join(b.at, NEWEST), { state: 'joined', files: 3, from: [] });
+  assert.deepStrictEqual(repo.inspect(b.at, NEWEST), { state: 'join', files: 3, from: [], taken: [] });
+  repo.join(b.at);
   assert.strictEqual(sync(b).stdout, 'nothing new came down.\nnothing changed here, so nothing went up.\n', 'version is ignored');
 
   // Different files on each side, then the same file at different lines.
@@ -147,9 +148,10 @@ test('a machine behind another machine\'s record syncs nothing until it catches 
   const b = machine('sync-behind');
   connect(b, remote);
   // The Flow home is on an entry this clone does not have, so nothing comes down.
-  assert.deepStrictEqual(repo.join(b.at, NEWEST), { state: 'version', home: NEWEST + 1, name: 'sync-ahead' });
+  assert.deepStrictEqual(repo.inspect(b.at, NEWEST), { state: 'version', home: NEWEST + 1, name: 'sync-ahead' });
   assert.ok(!fs.existsSync(path.join(b.at.flow, 'machines')));
-  assert.strictEqual(repo.join(b.at, NEWEST + 1).state, 'joined');
+  assert.deepStrictEqual(repo.inspect(b.at, NEWEST + 1).taken, ['sync-ahead']);
+  repo.join(b.at);
 
   fs.writeFileSync(path.join(b.at.flow, 'workflow-notes.md'), 'from b\n');
   const refused = sync(b);
@@ -268,12 +270,19 @@ test('the first install starts the Flow home, so a second machine joins it befor
 
   const first = install('sync-start-a');
   assert.strictEqual(first.ran.code, 0, first.ran.stdout + first.ran.stderr);
+  assert.match(first.ran.stdout, /named: this machine is test-machine\n/);
   assert.match(first.ran.stdout, /started: your Flow home, sent up so your other machines join it/);
+  const sent = (ref) => repo.git(first.root + '/.flow', ['ls-tree', '-r', '--name-only', ref]).out.split('\n');
+  assert.deepStrictEqual(sent('HEAD'), ['.gitignore', 'README.md', 'machines/test-machine.json'], 'the first commit');
 
+  // The name the first machine claimed is taken, so the second is offered the next.
   const second = install('sync-start-b');
   assert.strictEqual(second.ran.code, 0, second.ran.stdout + second.ran.stderr);
-  assert.match(second.ran.stdout, /joined: 1 file, your Flow home as your other machine last sent it/);
+  assert.match(second.ran.stdout, /named: this machine is test-machine-2\n/);
+  assert.match(second.ran.stdout, /joined: 3 files from test-machine, your Flow home as your other machine last sent it/);
   assert.doesNotMatch(second.ran.stdout, /started:/);
+  assert.match(repo.git(second.root + '/.flow', ['ls-tree', '-r', '--name-only', 'origin/main']).out,
+    /machines\/test-machine-2\.json/, 'the second machine\'s record went up at install');
 
   // Both write on their own, then meet: one history, so the merge goes through.
   const a = { root: first.root, dir: first.dir };

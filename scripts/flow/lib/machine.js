@@ -15,7 +15,8 @@
  * `flow install --root <dir>` and `flow doctor --root <dir>` put all 3 under
  * `<dir>` instead, which is how the tests and lab/scripts/try.sh build a whole
  * machine inside tmp/. One flag for all 3, so no run can redirect some of them
- * and write the rest into the real home folder.
+ * and write the rest into the real home folder. The global git config moves
+ * under `<dir>` too.
  */
 
 const fs = require('fs');
@@ -33,6 +34,9 @@ const { FlowError } = require('./error');
  */
 function folders(root) {
   const base = path.resolve(root || os.homedir());
+  // `<root>` stands in for `~`, so `~/.gitconfig` moves with it: the machine
+  // name `flow install` saves there never reaches the real one.
+  if (base !== os.homedir()) process.env.GIT_CONFIG_GLOBAL = path.join(base, '.gitconfig');
   const flow = !root && process.env.FLOW_HOME ? path.resolve(process.env.FLOW_HOME) : path.join(base, '.flow');
   return {
     base,

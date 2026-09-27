@@ -33,12 +33,14 @@
  * copy of every path it is about to make, as that path was before Flow.
  * `flow restore machine` puts all of them back, `~/.local/bin/flow` included.
  *
- * At a terminal it asks one question, this machine's name. Then it finds the
- * Flow home's repository, `<login>/flow-home` on GitHub, signing `gh` in
- * first where it is not. On every machine after the first, the repository
- * holds the other machine's `~/.flow/`, and it comes down before setup starts,
- * at the release the Flow home is on. `connect()` below holds all of it, and
- * says why an install with no repository stops before setup.
+ * It checks before it makes anything. `check()` signs `gh` in where it is
+ * not, finds the Flow home's repository, `<login>/flow-home` on GitHub, reads
+ * what the other machines left in it, and asks this machine's name, the one
+ * question. A check that fails stops the install with nothing linked. A Flow
+ * home on another release moves this clone to that release first, and the
+ * install runs again from it. Then the links, and `connectHome()`: on the
+ * first machine the repository is made and started, and on every machine
+ * after it the other machines' `~/.flow/` comes down before setup starts.
  *
  * The screen gets a summary and every line that changed or failed. The whole
  * run goes to `~/.flow/install.log`.
@@ -69,6 +71,7 @@ const history = require('../lib/history');
 const installed = require('../lib/installed');
 const { link, pruneDead, pruneUnlisted, markdownFiles } = require('../lib/links');
 const machine = require('../lib/machine');
+const machineName = require('../lib/machine-name');
 const originals = require('../lib/originals');
 const repos = require('../lib/repos');
 const links = require('../lib/skill-links');
@@ -92,6 +95,7 @@ actions.install = {
   run({ flags }) {
     const clone = cloneRoot();
     const at = machine.folders(flags.root);
+    const newest = version.newest(clone);
     const done = [];
     const bin = flags['no-bin'] ? null : path.join(at.base, '.local', 'bin');
     const setUp = fs.existsSync(path.join(at.flow, 'version'));
@@ -105,6 +109,13 @@ actions.install = {
     if (already && already !== realpath(clone)) {
       throw new FlowError(`${machine.shorten(flowClone)} is ${already}, and this is ${clone}. ` +
         'Run flow install from that clone, or remove the link first.');
+    }
+
+    const checked = check(at, newest);
+    if (checked.switchTo) return switchAndRerun(clone, flowClone, checked.switchTo, newest);
+    if (checked.stop) {
+      out(`stopped: ${checked.stop}`);
+      return 1;
     }
 
     // Before anything is created, and only on a machine Flow was never on. A
@@ -207,8 +218,7 @@ actions.install = {
     done.push(...applied.changed);
     done.push(...applied.problems);
 
-    const newest = version.newest(clone);
-    const asked = connect(at, newest);
+    const asked = connectHome(at, checked, newest);
     done.push(...asked.lines);
     // Another machine's settings came down with its sources and its skills.
     if (asked.joined) {
@@ -235,7 +245,6 @@ actions.install = {
       out(`\n${show(bin)} is not on your PATH, so flow and util do not run by name yet. Add it, then open a new terminal.`);
     }
 
-    if (asked.switchTo) return switchAndRerun(clone, flowClone, asked.switchTo, newest);
     if (!asked.ok) return 1;
     if (setUp) {
       out('\nFlow is already set up on this machine, so there is nothing more to do.');
@@ -307,90 +316,109 @@ function installUtil(at, bin) {
 }
 
 /**
- * A name no second machine will hold: this computer's name, and 4 random
- * letters.
+ * Everything an install needs, found before anything is made: `gh` signed in,
+ * the repository, what the other machines left in it, and this machine's
+ * name. Writes nothing but git's own copy of the repository's history, under
+ * `~/.flow/.git`.
  *
- * The letters are there because the computer's name is not reliably different.
- * WSL hands out `me` on every machine it is installed on, and 2 machines
- * sharing a name silently overwrite each other's stored work in `util git`.
- */
-function suggestName() {
-  const letters = 'abcdefghijklmnopqrstuvwxyz';
-  let tail = '';
-  for (let i = 0; i < 4; i++) tail += letters[Math.floor(Math.random() * letters.length)];
-  return `${os.hostname().split('.')[0].toLowerCase()}-${tail}`;
-}
-
-/**
- * This machine's name, asked once, then the Flow home's repository: found,
- * connected and, on every machine after the first, brought down.
+ * Returns `{ stop }` with why it cannot go on, `{ switchTo }` where the Flow
+ * home is on another release, or what `connectHome()` acts on.
  *
  * The repository has no skip. `~/.flow/` holds the rules, the notes and the
  * study cases, and the repository is both their backup and how another
- * machine gets them, so an install without one is not finished and setup
- * does not start. It is always `<login>/flow-home`, found through `gh`, so
- * nothing about it is asked. A repository already set is kept.
- *
- * Returns the lines to print and whether the repository is in place, plus
- * `joined` once another machine's files came down, and `switchTo` where they
- * wait for this clone to move to the release they are on.
+ * machine gets them, so an install without one is not finished. It is always
+ * `<login>/flow-home`, so nothing about it is asked. A repository already set
+ * is kept.
  */
-function connect(at, newest) {
+function check(at, newest) {
   const lines = [];
   const terminal = confirm.hasTerminal();
-
-  const already = flowRepo.machineName(at);
-  if (already) lines.push(`kept: this machine is called ${already}`);
-  else if (terminal) {
-    const suggested = suggestName();
-    const name = confirm.ask(
-      `\nA name for this machine, so work sent to the other one says where it came from [${suggested}]: `,
-      suggested
-    );
-    const set = flowRepo.git(at.flow, ['config', '--global', 'util.machine', name]);
-    lines.push(set.ok ? `named: this machine is ${name}` : `could not save the name: ${set.err}`);
+  if (!process.env.FLOW_HOME_REMOTE) {
+    const why = signIn(terminal);
+    if (why) return { stop: why };
   }
 
+  let make = null;
+  let found;
+  try {
+    const origin = flowRepo.isRepo(at) ? flowRepo.git(at.flow, ['remote', 'get-url', 'origin']) : { ok: false };
+    if (origin.ok) lines.push(`kept: ${show(at.flow)} is sent to ${origin.out}`);
+    else {
+      const located = flowRepo.locate();
+      if (located.exists) {
+        flowRepo.connect(at, located.url);
+        lines.push(`repository: ${located.said}`);
+      } else make = located;
+    }
+    found = make ? { state: 'first', taken: [] } : flowRepo.inspect(at, newest);
+  } catch (e) {
+    return { stop: e.message };
+  }
+  if (found.state === 'version') return { switchTo: found };
+
+  const kept = flowRepo.machineName(at);
+  if (kept) lines.push(`kept: this machine is called ${kept}`);
+  const name = kept ? null : askName(found.taken, terminal);
+  return { lines, make, found, name };
+}
+
+/**
+ * This machine's name: the offer from `lib/machine-name.js`, or what was
+ * typed. A name another machine's record holds is taken only on a yes, which
+ * is how a rebuilt machine gets its old name back. With nobody at a terminal,
+ * the offer.
+ */
+function askName(taken, terminal) {
+  const offered = machineName.suggest(taken);
+  if (!terminal) return offered;
+  for (;;) {
+    const name = machineName.clean(confirm.ask(`\nMachine name (default: ${offered}): `, offered));
+    if (!name) continue;
+    if (!taken.includes(name)) return name;
+    if (/^y(es)?$/i.test(confirm.ask(`${name} is taken. Replace it? (y/N) `, 'n'))) return name;
+  }
+}
+
+/**
+ * Act on what `check()` found, once every link is made: save the name, make
+ * the repository on the first machine and start it, or bring the other
+ * machines' files down and send this machine's record up.
+ *
+ * Returns the lines to print, whether the Flow home is in place, and
+ * `joined` once another machine's files came down.
+ */
+function connectHome(at, checked, newest) {
+  const lines = [...checked.lines];
+  if (checked.name) {
+    const why = flowRepo.saveName(checked.name);
+    lines.push(why ? `could not save the name: ${why}` : `named: this machine is ${checked.name}`);
+  }
   const stop = (why) => {
     lines.push(`stopped: ${why}`);
     return { lines, ok: false };
   };
-  const github = !process.env.FLOW_HOME_REMOTE;
-  if (github) {
-    const why = signIn(terminal);
-    if (why) return stop(why);
-  }
-
-  const origin = flowRepo.isRepo(at) ? flowRepo.git(at.flow, ['remote', 'get-url', 'origin']) : { ok: false };
-  if (origin.ok) lines.push(`kept: ${show(at.flow)} is sent to ${origin.out}`);
-  else {
-    try {
-      const found = flowRepo.locate();
-      flowRepo.connect(at, found.url);
-      lines.push(`repository: ${found.said}`);
-    } catch (e) {
-      return stop(e.message);
-    }
-  }
-
-  let joined;
+  const { state } = checked.found;
   try {
-    joined = flowRepo.join(at, newest);
+    if (checked.make) {
+      const said = flowRepo.create(checked.make);
+      flowRepo.connect(at, checked.make.url);
+      lines.push(`repository: ${said}`);
+    }
+    flowRepo.writeIgnore(at);
+    if (state === 'first') {
+      flowRepo.seed(at, newest);
+      lines.push('started: your Flow home, sent up so your other machines join it');
+    }
+    if (state !== 'join') return { lines, ok: true };
+    flowRepo.join(at);
   } catch (e) {
     return stop(e.message);
   }
-  if (joined && joined.state === 'version') return { lines, ok: false, switchTo: joined };
-  flowRepo.writeIgnore(at);
-  if (!joined) {
-    try {
-      if (flowRepo.seed(at)) lines.push('started: your Flow home, sent up so your other machines join it');
-    } catch (e) {
-      return stop(e.message);
-    }
-    return { lines, ok: true };
-  }
-  const from = joined.from.length ? ` from ${joined.from.join(', ')}` : '';
-  lines.push(`joined: ${joined.files} file${joined.files === 1 ? '' : 's'}${from}, your Flow home as your other machine last sent it`);
+  const { files, from } = checked.found;
+  const names = from.length ? ` from ${from.join(', ')}` : '';
+  lines.push(`joined: ${files} file${files === 1 ? '' : 's'}${names}, your Flow home as your other machine last sent it`);
+  const failed = flowRepo.claim(at, newest);
+  if (failed) lines.push(`not sent: this machine's record, which the next flow sync sends. ${failed}`);
   return { lines, ok: true, joined: true };
 }
 
@@ -427,13 +455,14 @@ function signIn(terminal) {
 
 /**
  * Move the clone `install.sh` made to the release the Flow home is on, then
- * run the install again from it. A clone somebody works in is never moved:
+ * run the install again from it. Nothing is linked yet, so the second run is
+ * the only one that links. A clone somebody works in is never moved: that is
+ * any clone outside `~/.flow/repos/flow`, where `install.sh` puts its own, and
  * the install stops and says what to do.
  */
 function switchAndRerun(clone, flowClone, wanted, newest) {
   const place = `your Flow home is on changelog entry ${wanted.home}, since ${wanted.name} is on it, and this Flow is on ${newest}`;
-  const found = originals.lstat(flowClone);
-  if (found && found.isSymbolicLink()) {
+  if (realpath(clone) !== path.resolve(flowClone)) {
     out(`stopped: ${place}. Switch ${clone} to v${wanted.home}, then run flow install again.`);
     return 1;
   }

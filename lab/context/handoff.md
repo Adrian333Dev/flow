@@ -12,7 +12,7 @@ Written 2026-09-27. Read this once, then rewrite it whole next time.
 
 ## Built 2026-09-27: every machine after the first joins the Flow home
 
-The user's words for `~/.flow/` in this design are "the Flow home" and "the private flow repo". The suite passed 185 of 185 on the last whole run. `lab/context/state.md` → the `setup` bullet holds the mechanism. The decisions, each the user's or agreed:
+The user's words for `~/.flow/` in this design are "the Flow home" and "the private flow repo". The suite passed 188 of 188 on the last whole run. `lab/context/state.md` → the `setup` bullet holds the mechanism. The decisions, each the user's or agreed:
 
 - **The repository is always `<login>/flow-home`, found through `gh`, never renamed.** `--repo` and the address question are gone. `gh` is the 4th prerequisite. `FLOW_HOME_REMOTE` is for the tests and `try.sh` alone.
 - **`gh` signs in with a pasted classic token**, since the browser sign-in fails on WSL. Scopes `repo`, `read:org`, `gist`, which the user tested; `delete_repo` stays off.
@@ -20,8 +20,13 @@ The user's words for `~/.flow/` in this design are "the Flow home" and "the priv
 - **A machine behind another's record syncs nothing until `flow up`.** The user wanted it to stop working entirely; the agreed version stops only sync, and sessions show a line. Each machine migrates its own copy, then git merges the two. The earlier idea of upgrade guides in 2 parts was dropped.
 - **Records hold `name`, `joined`, `flowVersion`.** `lastSync` was proposed and left out: writing it on every sync would make every sync send a change.
 - **`scorecards/`, `audit/` and `changes/` joined the ignore list.** The manual already said they stay, and the list said otherwise.
+- **Install checks everything before it links anything**: sign-in, repository, records, version, files in the way, name. The user's idea. The checks stay in `flow install`, never `install.sh`, which only checks the 4 programs.
+- **The name offered is `<type>-<system>`, `desktop-wsl`**, numbered on a clash with a record, and claimed by sending the record up at install. The prompt is `Machine name (default: desktop-wsl):`, the user's wording. A rebuilt machine takes its old name back through `<name> is taken. Replace it? (y/N)`. Dead machines' records stay: no command removes one.
+- **The name is git's `flow.machine`**, the user's call. util reads it where `util.machine` is missing, changed in the `lab/util` submodule, where util is worked on, and waiting for the user's commit there. `~/code/util` is the clone this machine runs, which pulls from GitHub, and is never edited. This machine's `util.machine = me-kmkw` came from testing, and the user will drop it before the clean install; `util uninstall` leaves git config alone. It also makes util's test *git work refuses to send from a machine with no name* fail on this machine only: 56 of 56 pass with an empty global config.
+- **The Flow home carries a README**, 2 short paragraphs saying Flow manages it and a hand edit can break sync, with no list of files: the user cut the lists twice. The repository's description says `Managed by Flow. Never rename, edit or make public.`
+- **Every line Flow prints stays short, with no explanation.** The user's rule, raised again this session: the manual explains, the CLI never does. Backlog item 5 of the writing passes is where the rules for printed lines get written.
 
-Never seen for real: the `gh` sign-in, `gh repo create`, the tag switch and rerun inside `flow install`, the background fetch in a live session.
+Never seen for real: the `gh` sign-in, `gh repo create`, the tag switch and rerun inside `flow install`, the background fetch in a live session, the PowerShell chassis read inside an install, the taken-name question.
 
 ## Built 2026-09-26
 

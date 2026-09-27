@@ -177,7 +177,7 @@ Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json
 **Another machine on a newer release gets its own line**, since [`flow sync`](reference.md#flow-sync) waits until this machine catches up:
 
 ```text
-Flow: desktop-qkzv is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.
+Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.
 ``` [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
 
 **A stopped run silences the other version lines.** Each of them reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying about Flow's own version. A skill repository's line is a separate record and still prints.
