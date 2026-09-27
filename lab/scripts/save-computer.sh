@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# save-computer.sh: keep a copy of this computer's Claude Code and Codex setup,
-# so lab/scripts/try.sh can start a session on it later with --case <name>.
+# save-computer.sh: keep a copy of this computer's Claude Code and Codex setup
+# as a seed, so lab/scripts/try.sh can start a run from it with --seed <name>.
+# try.sh --save saves a run's computer instead.
 #
 # A development script. It ships nowhere.
 #
@@ -21,40 +22,40 @@ set -euo pipefail
 name="${1:-}"
 case "$name" in
   '') echo "save-computer.sh: name the copy, as in: bash lab/scripts/save-computer.sh my-laptop" >&2; exit 2 ;;
-  empty) echo "save-computer.sh: \"$name\" is one of try.sh's own cases, pick another name" >&2; exit 2 ;;
-  */*|.*) echo "save-computer.sh: \"$name\" is not a plain name" >&2; exit 2 ;;
+  */*|.*|-*) echo "save-computer.sh: \"$name\" is not a plain name" >&2; exit 2 ;;
 esac
-
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 to="$root/tmp/computers/$name"
 if [ -e "$to" ]; then
   echo "save-computer.sh: $to already exists, and a saved computer is never overwritten" >&2
   exit 2
 fi
+
+from="$HOME"
 mkdir -p "$to"
 
 skip=(--exclude .venv --exclude node_modules)
-[ -d "$HOME/.claude" ] && rsync -a "${skip[@]}" \
+[ -d "$from/.claude" ] && rsync -a "${skip[@]}" \
   --exclude /projects --exclude /file-history --exclude /history.jsonl \
   --exclude /sessions --exclude /session-env --exclude /shell-snapshots \
   --exclude /paste-cache --exclude /cache --exclude /usage-data --exclude /backups \
   --exclude /telemetry --exclude '/daemon*' --exclude /jobs --exclude /ide \
   --exclude /downloads --exclude /feedback --exclude /debug --exclude /todos \
   --exclude /statsig --exclude /plugins/.trash --exclude /.credentials.json \
-  "$HOME/.claude/" "$to/.claude/"
-[ -d "$HOME/.agents" ] && rsync -a "${skip[@]}" "$HOME/.agents/" "$to/.agents/"
-[ -d "$HOME/.codex" ] && rsync -a "${skip[@]}" \
+  "$from/.claude/" "$to/.claude/"
+[ -d "$from/.agents" ] && rsync -a "${skip[@]}" "$from/.agents/" "$to/.agents/"
+[ -d "$from/.codex" ] && rsync -a "${skip[@]}" \
   --exclude /sessions --exclude '/logs*' --exclude '/*.sqlite*' --exclude /.tmp \
   --exclude /tmp --exclude /cache --exclude /packages --exclude /history.jsonl \
   --exclude /log --exclude /shell_snapshots --exclude /models_cache.json \
   --exclude /auth.json --exclude /.credentials.json \
-  "$HOME/.codex/" "$to/.codex/"
-[ -e "$HOME/.claude.json" ] && cp "$HOME/.claude.json" "$to/.claude.json"
-[ -e "$HOME/.gitconfig" ] && cp "$HOME/.gitconfig" "$to/.gitconfig"
-if [ -d "$HOME/.local/bin" ]; then
+  "$from/.codex/" "$to/.codex/"
+[ -e "$from/.claude.json" ] && cp "$from/.claude.json" "$to/.claude.json"
+[ -e "$from/.gitconfig" ] && cp "$from/.gitconfig" "$to/.gitconfig"
+if [ -d "$from/.local/bin" ]; then
   mkdir -p "$to/.local/bin"
-  find "$HOME/.local/bin" -maxdepth 1 -type l -exec cp -P {} "$to/.local/bin/" \;
+  find "$from/.local/bin" -maxdepth 1 -type l -exec cp -P {} "$to/.local/bin/" \;
 fi
 
 echo "saved this computer as $to ($(du -sh "$to" | cut -f1))"
-echo "start a session on it: bash lab/scripts/try.sh --case $name"
+echo "start a run from it: bash lab/scripts/try.sh --seed $name"

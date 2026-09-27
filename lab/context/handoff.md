@@ -9,6 +9,24 @@ Written 2026-09-27. Read this once, then rewrite it whole next time.
 1. **4 conversations**: filling `## The user` and `## Preferences`, wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`.
 2. **The final sweep.** The user warned it is much bigger than it looks.
 
+## Built 2026-09-27: `try.sh` starts from seeds
+
+**Every new run had failed since 2026-09-25** with `... is not a Flow project yet`. Commit `44addaa` deleted `project-template/.flow/overlays/.info`, the only reason the practice project had a `.flow/` folder, and every `flow` command refuses a project without one. `try.sh` now writes `.flow/settings.json` and `.flow/version` into the practice project, as `flow setup project` leaves them.
+
+**Then the user simplified the commands.** The decisions, each the user's or agreed:
+
+- **A saved computer is a seed**, picked with `--seed`, `before-flow` by default. `--case` and the `empty` case are gone.
+- **`--save <name>` saves a run's computer as a seed**: the last run opened, or the one `--name` names. The practice project, session files and logins stay behind. A run from a set-up seed skips the install and setup, and makes its `remote.git` from the seed's `~/.flow/`.
+- **The practice project builders moved to `lab/scripts/test-projects/`**, each `seed.sh` renamed `build.sh`, since "seed" now means a computer. `--project` is unchanged.
+- **The practice projects were renamed for what they hold**: `expense-tracker` (the default), `broken-board`, `unfinished-work`. `empty` became `not-set-up`: the expense tracker's code committed with no `.flow/`, the one project that tests `flow setup project`. A folder with no `build.sh` arrives that way.
+- **`save-computer.sh` saves the real computer alone.**
+- **`tmp/computers/` is the user's to back up.** No file in this repo says where, and `try.sh` never pushes.
+- **Testing 2 machines** is possible later, 2 runs sharing one `remote.git`, and not wanted yet.
+
+Checked: all 4 practice projects build, and `flow setup project check` accepts `not-set-up`; a run from `before-flow` installed inside the sandbox, was stamped with `flow setup finish`, saved with `--save`, and a run from that seed opened with no install, 9 tickets, and `flow sync` sending to its own `remote.git` alone. No set-up seed exists yet: the user runs setup once in a `before-flow` run, then `--save`s it.
+
+The same edit moved `scripts/flow/setup/project.md` and `project-form.md` to the research redesign: a lesson about a tool found while setting up a project goes to `~/.flow/wiki/<tool>/findings/`.
+
 ## Built 2026-09-27: the research redesign
 
 Every step of `lab/context/knowledge-base.md` → `## The build plan`, with the 3 open points approved as recommended. `lab/context/state.md` → the paragraph under the 12 skills holds the mechanism, and `docs/manual/research-and-capture.md` explains it to a user. The suite passed 188 of 188 after it; no script under `scripts/` changed.
@@ -16,7 +34,7 @@ Every step of `lab/context/knowledge-base.md` → `## The build plan`, with the 
 - **One folder per outside tool, `~/.flow/wiki/<tool>/`**, shared by every project: `index.md`, `research/`, `findings/`, and `downloads/`, which never syncs.
 - **Context7 through `context7.sh`**, never an MCP server. Trials ran against the real service: search, an unpinned and a pinned question, the id saved and reused, a stale line rewritten, a bad id, an unreachable address, an HTTP 500.
 - **`fetch-docs.sh` downloads into the tool's folder** and logs the tool's latest release. Trials: Next.js, Context7 with a clone and a pull, a site with no `llms.txt`.
-- **Never run**: `/flow:research` in a live `try.sh` session, since building a run needs the setup session at the user's terminal.
+- **Both scripts ran inside a `try.sh` sandbox** after a real install: a Context7 search and question, the id saved, the zod docs downloaded, and git in the pretend Flow home seeing `index.md` alone. `/flow:research` itself has never run in a live session. A `claude -p` try stopped before the model ran, because its `!`flow overlays research`` line needs `Bash(flow *)`, which only the setup session copies into `~/.claude/settings.json`, and that try skipped setup.
 - **Each script call prompts**, since `home/settings.json` allows no `bash ~/.agents/skills/...` command. The same held for `fetch-docs.sh` before. Nobody has decided whether it should.
 
 ## Built 2026-09-27: every machine after the first joins the Flow home

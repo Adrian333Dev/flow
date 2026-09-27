@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# resume: a ticket at every status a handoff can leave, each with a ## State
+# unfinished-work: a ticket at every status a handoff can leave, each with a ## State
 # and an open block, plus a loose file with a handoff beside it. For testing
 # /flow:handoff, /flow:start and the pickup in every phase skill.
 set -euo pipefail

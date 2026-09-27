@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# guards: a board built so that every refusal in flow has a ticket to hit,
+# broken-board: a board built so that every refusal in flow has a ticket to hit,
 # and flow check has faults to find. The commands that refuse are listed at
 # the end, for typing by hand.
 set -euo pipefail

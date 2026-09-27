@@ -49,7 +49,7 @@ Nothing changes until you say go. The new version of every file is under files/,
 - [x] {moving}, such as: 9 rules → `AGENTS.md`
 - [x] {moving}, such as: 4 facts about the project → `docs/context/`: stack, deploys, llm-calls, video-pipeline
 - [x] {moving}, such as: 3 unplanned ideas → `.flow/inbox.md`
-- [x] {moving}, such as: 2 lessons about tools → `.flow/findings/`: Inngest retries, ffmpeg on WSL
+- [x] {moving}, such as: 2 lessons about tools → `~/.flow/wiki/`: Inngest retries, ffmpeg on WSL
 - [ ] {old memory}, such as: Claude Code's memory under -home-me-code-projects-backmark: its project is gone from disk. Tick it only if it was this project.
 
 23 lines are dropped, since Flow's rules already cover them. dropped.md lists each one.

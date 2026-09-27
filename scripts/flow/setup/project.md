@@ -55,7 +55,8 @@ A message starting `Carry on` is the same job, stopped part way.
 - **A lasting fact the code doesn't show quickly** (a verified command, a deploy path, a settled convention) → `docs/context/<subject>.md`, one question per file. Keep each file short.
 - **Open work from an explicit list** → one ticket per item. Never a ticket for a feature a spec describes.
 - **An idea nobody committed to** → `.flow/inbox.md`, raw.
-- **A lesson about a tool** (a library misbehaving, and the workaround) → `.flow/findings/<what-was-learned>.md`.
+- **A lesson about an outside tool** (a library misbehaving, and the workaround) → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, with no detail of the project or its client. `<tool>` is the tool's GitHub repository name.
+- **Any other lesson worth reusing** → `.flow/findings/<what-was-learned>.md`.
 - **How the user wants Claude to work, or a fact about them** → `~/.flow/AGENTS.md`, `## Preferences` or `## The user`. Same test as the machine's setup: would they still want it had Flow been there from the start. Skip a line already there.
 - **A Flow rule does the same job** → `dropped.md` beside the form: the line, then the rule's id.
 - **Anything else** → dropped too, with no rule named.
@@ -91,6 +92,7 @@ Every new version goes under `files/<full path>`, beside the form. `project-temp
 - **`.flow/tickets/`**: made by `flow new` once `.flow/settings.json` is written, run with `FLOW_PROJECT` set to the project's folder under `files/`, so every ticket has the format and number `flow` gives it.
 - **`.flow/inbox.md`**, **`.flow/findings/`**, **`docs/context/`**: where there is something to put in them.
 - **`~/.flow/AGENTS.md`**: the machine's file, with the user's new lines added.
+- **`~/.flow/wiki/<tool>/findings/`**: one file per lesson about a tool.
 
 Build JSON with `node`, never by hand. A settings file that doesn't parse is a fault to fix before step 4.
 

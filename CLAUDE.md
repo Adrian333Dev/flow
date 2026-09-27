@@ -123,7 +123,7 @@ The decisions neither page carries:
 
 ## Trying a change
 
-**`try-sh-for-a-live-session`** `bash lab/scripts/try.sh` builds a pretend computer under `tmp/try/<name>/`, runs the real install on it, and starts a Claude Code session inside it, sandboxed, or a Codex one with `--codex`. `--case empty|<saved name>` picks what a new run's computer starts as, and `lab/scripts/save-computer.sh <name>` saves one. `--name` reopens a run as it was left, `--list` shows them, `--delete` removes one. Run from a session, it builds and prints the start command. Not an install: `~/.agents`, `~/.claude`, `~/.codex` and `~/.flow` are never written.
+**`try-sh-for-a-live-session`** `bash lab/scripts/try.sh` builds a pretend computer under `tmp/try/<name>/`, runs the real install on it where it has no Flow, and starts a Claude Code session inside it, sandboxed, or a Codex one with `--codex`. `--seed <name>` picks the saved computer a new run starts from, `before-flow` by default, and `--save <name>` saves a run's computer as one. `--name` reopens a run as it was left, `--list` shows them, `--delete` removes one. Run from a session, it builds and prints the start command. Not an install: `~/.agents`, `~/.claude`, `~/.codex` and `~/.flow` are never written.
 
 **`npm-test-in-scripts`** `npm test` inside `scripts/` runs Flow's suite. `lab/util/` has its own, run the same way. `docs/dev/scratch-session.md` and `docs/dev/tests.md` carry both procedures.
 

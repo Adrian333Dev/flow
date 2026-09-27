@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# app: a small real program with a board of tickets that fit it, so every
+# expense-tracker: a small real program with a board of tickets that fit it, so every
 # phase skill runs against code. try.sh copies files/ into the project first,
 # then runs this with FLOW_JS and PROJ set.
 set -euo pipefail
