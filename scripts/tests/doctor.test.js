@@ -148,6 +148,7 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   const linked = path.join(m.root, '.agents', 'skills', 'flow', 'skills');
   const [skill] = fs.readdirSync(linked).sort();
   fs.unlinkSync(path.join(linked, skill));
+  fs.unlinkSync(path.join(m.home, 'commands', 'capture.md'));
 
   const settingsFile = path.join(m.home, 'settings.json');
   const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
@@ -163,6 +164,7 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, new RegExp(`skills/${skill} is not linked: run flow install`));
+  assert.match(report.stdout, /commands\/capture\.md is not linked: run flow install/);
   assert.match(report.stdout, /no InstructionsLoaded hook running instructions-loaded\.js/);
   assert.match(report.stdout, new RegExp(`skillOverrides names "${skill}", a Flow skill, and does nothing`));
   assert.match(report.stdout, /references points at .*gone, which is gone/);

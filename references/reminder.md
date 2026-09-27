@@ -1,1 +1,1 @@
-Before replying, follow `~/.agents/AGENTS.md`, above all `## The reply` and its `### Before sending` tests.
+Follow `## The reply`, and pass every `### Before sending` test. If it applies, follow `## Capture`.

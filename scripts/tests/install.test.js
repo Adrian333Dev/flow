@@ -88,7 +88,9 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.strictEqual(linkTarget(path.join(at.flowHome, 'docs')), path.join(REPO, 'docs'),
     '/flow:help reads a manual page through this link');
   assert.ok(!fs.existsSync(path.join(at.claude, 'scripts')), 'scripts never land under ~/.claude');
-  assert.ok(!fs.existsSync(path.join(at.claude, 'commands')), 'nothing links a commands folder any more');
+  assert.ok(!fs.lstatSync(path.join(at.claude, 'commands')).isSymbolicLink(), 'commands/ holds other tools\' files too');
+  assert.strictEqual(linkTarget(path.join(at.claude, 'commands', 'capture.md')), path.join(REPO, 'commands', 'capture.md'),
+    'a command links per file, typed /capture with no prefix');
 
   // The rule file and the line importing it are /flow:setup-machine's.
   // Install leaves both alone and says which command finishes the machine.

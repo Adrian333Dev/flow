@@ -145,10 +145,10 @@ It fires only on what the user types. A skill the agent invokes, as `/flow:start
 Prints one line beside every message you send:
 
 ```text
-Before replying, follow `~/.agents/AGENTS.md`, above all `## The reply` and its `### Before sending` tests.
+Follow `## The reply`, and pass every `### Before sending` test. If it applies, follow `## Capture`.
 ```
 
-The rules for writing a reply sit at the end of a long file, loaded once at the start of a session. By turn 15 they are far behind the conversation, and the reply drifts back to long, compressed and undefined. A line arriving with the message puts them back in front of the agent.
+The rules for writing a reply sit at the end of a long file, loaded once at the start of a session. By turn 15 they are far behind the conversation, and the reply drifts back to long, compressed and undefined. A line arriving with the message puts them back in front of the agent. `## Capture` is named for the same reason, and only where a checkpoint makes it apply.
 
 **It points at the rules, never repeats them.** A reminder listing rules grows with every rule and drifts from the file it copies.
 

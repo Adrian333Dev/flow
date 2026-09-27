@@ -37,7 +37,7 @@ What one run puts on the machine:
 
 - **`~/.agents/skills/flow/`**: a real folder holding a copy of the manifest that names every skill `flow:`, and one link per skill into the clone. Codex reads skills from this folder.
 - **`~/.claude/skills/flow`**: a link to that folder, which is how Claude Code finds the same skills.
-- **`~/.claude/agents/` and `~/.claude/rules/`**: one link per file into the clone. Both folders can hold entries Flow did not create, and a link to the whole folder would replace all of them.
+- **`~/.claude/agents/`, `~/.claude/rules/` and `~/.claude/commands/`**: one link per file into the clone. All 3 folders can hold entries Flow did not create, and a link to the whole folder would replace all of them.
 - **`~/.flow/scripts`, `~/.flow/references` and `~/.flow/docs`**: links into the clone. Every file Flow names by a fixed path sits under one of the 3, so the path is the same on every machine whatever the clone is called.
 - **`~/.local/bin/flow` and `fw`**: links to `flow.js`, so both are on your `PATH`. A name Flow used to ship and has since renamed is unlinked here, since its link still resolves and would still run.
 - **`~/.flow/repos/`**: every clone Flow reads. `flow/` is a link to the clone you ran the install from. `util/` and `toolbox/` sit beside it, and `sources/<owner>_<repo>/` holds one clone per skill repository, covered in [Skill discovery](#skill-discovery). Each missing one is cloned, newest commit only. A clone that fails, offline say, prints a line and the install still finishes, so running it again is the fix. `--no-clone` skips every clone.
@@ -827,6 +827,10 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 - **`/flow:apply-domain-findings <skill>`** (user only): checks the findings sent to one domain skill, writes the true ones into its body and pages, and closes their pull requests
 
 A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is what ships it.
+
+**Commands, typed with no prefix.** A command is one file in `commands/`, linked into `~/.claude/commands/`, and typed by its file name.
+
+- **`/capture`** (user only): sweeps the conversation now and files what it holds, the way a checkpoint does
 
 ## Agents read files with Read, never `util fs merge`
 

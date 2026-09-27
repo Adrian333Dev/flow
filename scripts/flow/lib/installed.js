@@ -9,9 +9,9 @@
  * on a machine whose original was never written, which is the only way off for
  * a machine set up before originals existed.
  *
- * The list derives itself wherever it can: the agents and the rules are read
- * off the clone's own folders, so a new file in either reaches both commands
- * by existing. What is left is 6 fixed paths and the names in `~/.local/bin`.
+ * The list derives itself wherever it can: the agents, the rules and the
+ * commands are read off the clone's own folders, so a new file in any of them
+ * reaches both commands by existing. What is left is 6 fixed paths and the names in `~/.local/bin`.
  *
  * 1 of the paths is written by `flow setup` rather than by install:
  * the rule file `~/.agents/AGENTS.md`. Install still records it, so whatever
@@ -60,6 +60,7 @@ function paths(clone, at, { bin = null } = {}) {
     skills.pluginLink(at.claude),
     ...markdownFiles(path.join(clone, 'agents')).map((f) => path.join(at.claude, 'agents', f)),
     ...markdownFiles(path.join(clone, 'rules')).map((f) => path.join(at.claude, 'rules', f)),
+    ...markdownFiles(path.join(clone, 'commands')).map((f) => path.join(at.claude, 'commands', f)),
     path.join(at.flow, 'scripts'),
     path.join(at.flow, 'references'),
     path.join(at.flow, 'docs'),

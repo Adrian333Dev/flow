@@ -17,7 +17,7 @@ Installing creates symlinks from your machine into this clone, so most files are
 
 When you first open the repository, the split that matters has four parts:
 
-- **Seven folders install**: `home/`, `scripts/`, `references/`, `skills/`, `agents/`, `rules/`, and `project-template/`
+- **Eight folders install**: `home/`, `scripts/`, `references/`, `skills/`, `agents/`, `rules/`, `commands/`, and `project-template/`
 - **Eight entries belong to the repository**: `CLAUDE.md`, `README.md`, `install.sh`, `backlog.md`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
 - **`lab/` is the design record**: installed nowhere, never deleted
 - **`repos/` and `tmp/` are gitignored**: either can be thrown away at any moment
@@ -59,6 +59,8 @@ When you first open the repository, the split that matters has four parts:
 **`agents/`** holds subagent definitions, one markdown file each: a system prompt, a tool allowlist, and a model. Symlinked into `~/.claude/agents/`.
 
 **`rules/`** holds prescriptive rules, one markdown file per topic. Each file is symlinked into `~/.claude/rules/` by `flow install`. Rules without `paths:` frontmatter load every session; rules with `paths:` load only when the agent reads a matching file. Populated by `/flow:file-findings` when knowledge is promoted from `.flow/findings/`.
+
+**`commands/`** holds commands, one markdown file each, typed by the file name with no `flow:` prefix: `capture.md` is `/capture`. Each file is symlinked into `~/.claude/commands/`. A command is for a manual trigger only the user types, so each carries `disable-model-invocation: true` and costs no context until typed.
 
 **`project-template/`** is what a new project starts with: an `AGENTS.md` with a `## Project` section, a `CLAUDE.md` holding the one line `@AGENTS.md`, a `.gitignore` and a `.work-include`. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.work-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git work send`.
 

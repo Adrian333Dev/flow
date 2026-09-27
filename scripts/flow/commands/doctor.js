@@ -293,16 +293,18 @@ function checkAgents(at, catalog) {
 }
 
 /**
- * What Claude Code reads: the link to the plugin folder, one link per agent
- * and rule, and a CLAUDE.md importing the rule file.
+ * What Claude Code reads: the link to the plugin folder, one link per agent,
+ * rule and command, and a CLAUDE.md importing the rule file.
  */
 function checkClaude(clone, at) {
   const agents = markdownFiles(path.join(clone, 'agents'));
   const rules = markdownFiles(path.join(clone, 'rules'));
+  const commands = markdownFiles(path.join(clone, 'commands'));
   const problems = checkLinks([
     { at: skills.pluginLink(at.claude), target: skills.pluginDir(at.agents), what: `skills/${skills.PLUGIN}` },
     ...agents.map((f) => ({ at: path.join(at.claude, 'agents', f), target: path.join(clone, 'agents', f), what: `agents/${f}` })),
     ...rules.map((f) => ({ at: path.join(at.claude, 'rules', f), target: path.join(clone, 'rules', f), what: `rules/${f}` })),
+    ...commands.map((f) => ({ at: path.join(at.claude, 'commands', f), target: path.join(clone, 'commands', f), what: `commands/${f}` })),
   ]);
 
   // An import rather than a link, so the check reads the line. Without it
@@ -323,6 +325,7 @@ function checkClaude(clone, at) {
     `skills/${skills.PLUGIN}`,
     count(agents.length, 'agent', 'agents'),
     count(rules.length, 'rule', 'rules'),
+    count(commands.length, 'command', 'commands'),
   ].join(', ');
   return { name: shorten(at.claude), problems, summary: `${counted} linked, CLAUDE.md imports the rules` };
 }

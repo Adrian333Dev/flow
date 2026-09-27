@@ -60,10 +60,10 @@ One phase at a time:
 
 ## Capture
 
-**`capture-on-sight`** Write anything worth keeping the moment it surfaces. A background reflex, not every turn. On request ("note that"), immediately. Unsure: write it.
+**`capture-at-checkpoints`** At a checkpoint, sweep the conversation since the last sweep and file what it holds. A checkpoint: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed. On request, immediately. Unsure: write it.
 
 - Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
-- How the user wants to work → `~/.agents/AGENTS.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: the same correction twice, irritation at a habit, something they said about themselves.
+- How the user wants to work → `~/.agents/AGENTS.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: a correction, irritation at a habit, something they said about themselves. Under 10 lines in the section, write on the first sign; after that, on the second. One sentence each, replacing a line it sharpens.
 - Durable project fact (a verified command, a path, a settled convention) → `docs/context/<subject>.md`
 - An outside tool's behavior (a library quirk, a service's limit, a command's trap) → its own file, `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. The same fact already there → one line at its end: the version and the date it held. Never a detail of the project or its client. Skip what the loaded skill already says.
 - Other reusable knowledge (a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, written the same way. `/flow:file-findings` promotes it to a skill or a rule later.

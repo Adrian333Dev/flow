@@ -6,8 +6,20 @@ Written 2026-09-27. Read this once, then rewrite it whole next time.
 
 **The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The small batch, the second machine and the research redesign are built, below. What is left, in the order recommended to the user:
 
-1. **4 conversations**: filling `## The user` and `## Preferences`, wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`.
+1. **3 conversations**: wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`. The first of the 4, filling `## The user` and `## Preferences`, is built, below. The wrap-up must run the capture sweep, and its safe stopping points are the checkpoints `capture-at-checkpoints` lists.
 2. **The final sweep.** The user warned it is much bigger than it looks.
+
+## Built 2026-09-27: capture sweeps at checkpoints, and `/capture`
+
+`lab/context/state.md` → the capture and `commands/capture.md` bullets hold the mechanism. The decisions, each the user's or agreed:
+
+- **Capture moves from "the moment it surfaces" to a sweep at checkpoints.** The user's idea: mid-work, the agent misses things. The sweep reads the conversation in context, never the transcript file.
+- **`/flow:handoff` runs the sweep first**, since a handoff comes before `/clear`.
+- **The reminder names sections, never a file**: naming `~/.agents/AGENTS.md` invites a second read of a file already loaded. The user rejected a sentence saying the rules are loaded, since a later rule file would make it false.
+- **`/capture` is a command, not a skill**, the user's call, typed with no prefix. Flow's first command; `commands/` installs per file.
+- **The profile push**: under 10 lines in a section, write on the first sign; after that, on the second; a sharper line replaces the one it sharpens.
+
+The suite passed 188 of 188. Never seen in a live session: `/capture` typed, and a handoff running the sweep.
 
 ## Built 2026-09-27: `try.sh` starts from seeds
 

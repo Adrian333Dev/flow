@@ -129,8 +129,8 @@ actions.install = {
       done.push(`wrote: ${show(originals.dir(at))}, this machine as it was before Flow`);
     }
 
-    // Per item, never per folder: all three hold entries Flow does not own.
-    for (const dir of ['skills', 'agents', 'rules']) {
+    // Per item, never per folder: all four hold entries Flow does not own.
+    for (const dir of ['skills', 'agents', 'rules', 'commands']) {
       fs.mkdirSync(path.join(at.claude, dir), { recursive: true });
       for (const gone of pruneDead(path.join(at.claude, dir), clone)) {
         done.push(`unlinked (gone): ${show(path.join(at.claude, dir, gone))}`);
@@ -172,6 +172,12 @@ actions.install = {
     for (const file of markdownFiles(path.join(clone, 'rules'))) {
       link(path.join(clone, 'rules', file), path.join(at.claude, 'rules', file));
       done.push(`linked: ${show(path.join(at.claude, 'rules', file))}`);
+    }
+
+    // A command is typed by its file name alone, /capture, with no plugin prefix.
+    for (const file of markdownFiles(path.join(clone, 'commands'))) {
+      link(path.join(clone, 'commands', file), path.join(at.claude, 'commands', file));
+      done.push(`linked: ${show(path.join(at.claude, 'commands', file))}`);
     }
 
     // Named by path rather than typed: settings.json points hooks at
