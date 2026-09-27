@@ -60,7 +60,7 @@ One phase at a time:
 
 ## Capture
 
-**`capture-at-checkpoints`** At a checkpoint, sweep the conversation since the last sweep and file what it holds. A checkpoint: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed. On request, immediately. Unsure: write it.
+**`capture-at-checkpoints`** At a checkpoint, sweep the conversation since the last sweep and file what it holds. A checkpoint: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. On request, immediately. Unsure: write it.
 
 - Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
 - How the user wants to work → `~/.agents/AGENTS.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: a correction, irritation at a habit, something they said about themselves. Under 10 lines in the section, write on the first sign; after that, on the second. One sentence each, replacing a line it sharpens.

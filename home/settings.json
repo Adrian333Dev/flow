@@ -114,6 +114,20 @@
           {
             "type": "command",
             "command": "node \"$HOME/.flow/scripts/reminder.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/context-check.js\""
+          }
+        ]
+      }
+    ],
+    "PostToolBatch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/context-check.js\""
           }
         ]
       }

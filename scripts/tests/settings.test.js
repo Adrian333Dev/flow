@@ -72,6 +72,6 @@ test('a setting with no folder list, and a word naming no setting, each refuse a
   assert.match(folder.stderr, /reminder has no per-folder switch\. Add --machine for this machine, or --global for every machine\./);
 
   const unknown = at.flow('off', 'reminders', '--global');
-  assert.match(unknown.stderr, /no setting "reminders", one of: reminder, sessionCheck, setupReminder, skillsAutoUpdate/);
+  assert.match(unknown.stderr, /no setting "reminders", one of: reminder, sessionCheck, setupReminder, skillsAutoUpdate, wrapUp/);
   assert.ok(!fs.existsSync(path.join(at.home, 'settings.json')), 'nothing written');
 });

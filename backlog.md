@@ -108,7 +108,7 @@ Routed out of `lab/context/management.md` on 2026-09-17, the last phase of the g
 
 ### Context and session boundaries
 
-- [ ] **Wrap up when the context gets large**: a hook that reads the running token count, then tells the agent to stop at the next checkpoint, write the handoff and report in full. The transcript at `~/.claude/projects/<project>/<session-id>.jsonl` carries a `usage` block on every assistant message, so the count is readable without asking Claude Code for it. `PostToolUse`, never `UserPromptSubmit`: a long execution run makes no user turns for the second one to fire on. Threshold around 120k against a working ceiling of 150k. **What counts as a checkpoint has to be defined per phase**, because the reminder must never cut a ticket in half. Designing it is also what makes "go means finish everything" safe to put into `home/AGENTS.md`, so the two are one job. A working start was deleted 2026-09-15: `context-pulse`, a hook printing context usage read from the transcript, restored by `git show cf63643:lab/framework-build/hooks/context-pulse/index.mjs`. **talk first**. `rules.md`
+- [x] **Wrap up when the context gets large**: **built 2026-09-27** as `scripts/context-check.js`, on `PostToolBatch` and `UserPromptSubmit`: at 150,000 tokens, then every 20,000 past it, the agent is told to reach a checkpoint, run `/flow:handoff`, report and stop. The checkpoints are `capture-at-checkpoints`' list, with a plan step landed and verified added, rather than one list per phase. `lab/context/state.md` → the hooks.
 
 - [ ] **Nothing loads on a bare `/flow:start` with no ticket and no path**: a `handoff.md` sits beside whichever thing is being worked, so there can be several and no id points at one. Left out of the 2026-08-24 build
 

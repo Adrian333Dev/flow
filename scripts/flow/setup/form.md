@@ -25,7 +25,7 @@ type: setup-machine
 ## What Flow sets up
 
 - Flow's rules, read at the start of every session. `~/.agents/AGENTS.md`, loaded by `~/.claude/CLAUDE.md`
-- Flow's hooks: guard.js, changes.js, rule-check.js, instructions-loaded.js, check-ticket.js, reminder.js, session-check.js. `hooks`
+- Flow's hooks: guard.js, changes.js, rule-check.js, instructions-loaded.js, check-ticket.js, reminder.js, context-check.js, session-check.js. `hooks`
 - Commands that can destroy work always ask you first: a delete outside the project, a download run straight as a script, a change to your shell's startup file, and git commands that throw work away. `guard.js`
 - Claude sees exactly what each helper agent changed, even with several working at once. `changes.js`
 - The file list after `@` comes from Flow, which stays fast in big projects. `fileSuggestion`
@@ -90,6 +90,7 @@ These cost nothing until you type them:
 
 - [x] Auto-update the skill repositories you added, each time a session opens. Off, each session tells you what's waiting instead. `skillsAutoUpdate`
 - [x] Remind Claude how to reply, beside every message you send. `reminder`
+- [x] Tell Claude to stop at a safe point and write a handoff once the conversation passes 150,000 tokens. `wrapUp`
 - [x] Tell you when a session opens if Flow or your skill repositories need updating. `sessionCheck`
 - [x] Suggest setting Flow up when a session opens in a git repository that doesn't have it. `setupReminder`
 - [x] Keep session history for a year instead of 30 days, so a rule can be traced back to the session that caused it. `cleanupPeriodDays`
@@ -123,7 +124,7 @@ Left as they are: {left as they are}, such as: plugins, such as frontend-design,
 
 {action lines}
 
-~/.flow/settings.json is written too if you untick one of the first 3 green lines. ~/.flow/version is stamped once the check at the end passes. ~/.flow/originals/machine/ keeps a copy of every file above as it was, so `flow restore machine` can put this machine back.
+~/.flow/settings.json is written too if you untick one of the first 5 green lines. ~/.flow/version is stamped once the check at the end passes. ~/.flow/originals/machine/ keeps a copy of every file above as it was, so `flow restore machine` can put this machine back.
 ````
 
 ## The action lines

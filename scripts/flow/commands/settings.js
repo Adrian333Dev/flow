@@ -29,6 +29,7 @@ const SETTINGS = [
   { key: 'sessionCheck', says: 'what needs attention, when a session opens' },
   { key: 'setupReminder', says: 'suggests flow setup project where a repository or old memory needs it', skip: 'setupReminderSkip' },
   { key: 'skillsAutoUpdate', says: 'each skill repository updates itself when a session opens' },
+  { key: 'wrapUp', says: 'tells Claude to hand off once the conversation passes wrapUpAt tokens' },
 ];
 
 const LEVEL_FLAGS = { machine: { bool: true }, global: { bool: true } };

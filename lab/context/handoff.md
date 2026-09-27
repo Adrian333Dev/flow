@@ -2,12 +2,23 @@
 
 Written 2026-09-27. Read this once, then rewrite it whole next time.
 
-## Next: 4 conversations, then the final sweep
+## Next: 2 conversations, then the final sweep
 
 **The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The small batch, the second machine and the research redesign are built, below. What is left, in the order recommended to the user:
 
-1. **3 conversations**: wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`. The first of the 4, filling `## The user` and `## Preferences`, is built, below. The wrap-up must run the capture sweep, and its safe stopping points are the checkpoints `capture-at-checkpoints` lists.
+1. **2 conversations**: a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`. The first 2 of the 4, filling `## The user` and `## Preferences` and wrapping up when the context gets large, are built, below.
 2. **The final sweep.** The user warned it is much bigger than it looks.
+
+## Built 2026-09-27: the wrap-up at 150k
+
+`lab/context/state.md` → the `context-check.js` bullet holds the mechanism. The decisions, each the user's or agreed:
+
+- **The limit is 150,000 tokens**, the user's number: answers degrade past about 140k, and the agent runs 10k to 20k past the limit reaching a checkpoint. `"wrapUpAt"` moves it, `"wrapUp": false` silences it.
+- **It speaks again every 20,000 past the limit, firmer**, naming the step in hand, since an agent deep in a build tends to finish the whole job. The user raised it, and accepted the first version as fine for now.
+- **The checkpoints are `capture-at-checkpoints`' list**, plus a plan step landed and verified, never one list per phase. `/flow:handoff` runs the sweep, so the wrap-up needs no sweep of its own.
+- **Its own script, never folded into `reminder.js`**, which the proposal named: `"reminder": false` would otherwise silence the wrap-up too.
+
+The suite passed 193 of 193. Never seen in a live session.
 
 ## Built 2026-09-27: capture sweeps at checkpoints, and `/capture`
 

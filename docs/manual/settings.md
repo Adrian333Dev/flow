@@ -29,6 +29,8 @@ All 4 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`sessionCheck`](#sessioncheck)
   - [`setupReminder`](#setupreminder)
   - [`setupReminderSkip`](#setupreminderskip)
+  - [`wrapUp`](#wrapup)
+  - [`wrapUpAt`](#wrapupat)
   - [`fileSuggestionIgnore`](#filesuggestionignore)
 
 ## Claude Code's settings file
@@ -155,6 +157,39 @@ The rules for writing a reply sit at the end of a long file, loaded once at the 
 **The text is a file, and the script only prints it.** Claude Code adds whatever a `UserPromptSubmit` hook prints to standard output beside the message. The hook cannot change the message itself. Edit `references/reminder.md` to change the line.
 
 **`scripts/reminder.js` runs it, so it can be switched off.** `"reminder": false` in `~/.flow/settings.json` silences it, and [`reminder`](#reminder) covers the switch. The hook was a bare `cat` of the file until 2026-09-20, and `cat` reads no setting.
+
+#### The wrap-up
+
+```json
+"UserPromptSubmit":   [ { "hooks": [ …the reminder…, { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/context-check.js\"" } ] } ],
+"PostToolBatch":      [ { "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/context-check.js\"" } ] } ]
+```
+
+Tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens:
+
+```text
+The context is at 152k. At the next checkpoint, run /flow:handoff, report in full, and stop.
+```
+
+**The limit follows the work, never the window.** Answers get worse long before a 1-million-token window fills, and Claude Code's own summary waits until about 967,000. A session in Flow starts at about 25,000 before any work, so 150,000 leaves room for about 110,000 of it. The agent runs 10,000 to 20,000 past the limit while it reaches a checkpoint. [`wrapUpAt`](#wrapupat) moves the limit.
+
+**Every 20,000 tokens past the limit it speaks again, firmer.** An agent deep in a long build tends to finish the whole job first, so the later line names the step in hand:
+
+```text
+The context is at 171k, past the 150k limit. Stop at the step you are on: finish it, run /flow:handoff, report, and stop.
+```
+
+**A checkpoint is where `## Capture` in `~/.agents/AGENTS.md` says one is**: a handoff, finished work reported, a groundwork branch closed, or a plan step landed and verified. `/flow:handoff` sweeps the conversation for what is worth keeping before it writes, so nothing waits for the summary.
+
+**The size comes from the session file.** No hook input carries it. Every assistant message in `~/.claude/projects/<project>/<session-id>.jsonl` records its token count, and the script reads the last 2 from the end of the file, which can pass 100 MB. It speaks when a limit falls between those 2 counts, so it keeps no state of its own.
+
+**It runs on 2 events, since each message is followed by exactly one of them.** A message that calls tools is followed by `PostToolBatch`, which fires once per batch of tool calls, where `PostToolUse` fires once per tool. A message that ends a turn is followed by your next one, `UserPromptSubmit`. A long build makes no user turns at all, and a conversation with no tool calls makes no batches.
+
+**A helper agent's tool calls are skipped.** They fire the same hook, carrying the main session's file, so their counts would be the wrong ones.
+
+`"wrapUp": false` in `~/.flow/settings.json` silences it, and [`wrapUp`](#wrapup) covers the switch.
 
 #### The session check
 
@@ -550,6 +585,30 @@ Folders the setup line and the memory line never show in, each with everything b
 **Put it in `~/.flow/settings.local.json`.** It holds paths, and your other machines may keep their folders somewhere else. `~` stands for the home folder, and any other entry is a full path.
 
 `flow settings off setupReminder`, typed inside a repository, adds that repository's top folder to the list, and `on` takes it out.
+
+---
+
+### `wrapUp`
+
+Whether the agent is told to hand off once the conversation passes [`wrapUpAt`](#wrapupat) tokens. Write `false` to silence it:
+
+```json
+"wrapUp": false
+```
+
+[The wrap-up](#the-wrap-up) shows both lines and says when each prints.
+
+---
+
+### `wrapUpAt`
+
+The conversation size, in tokens, at which the agent is told to hand off. Unset, it is 150,000:
+
+```json
+"wrapUpAt": 140000
+```
+
+Either machine file holds it, and the local one wins, so a machine can keep a limit of its own.
 
 ---
 

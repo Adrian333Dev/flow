@@ -848,14 +848,14 @@ Two files, and Flow contributes to one of them.
 
 **`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `flow setup` merges Flow's keys into it, key by key. Flow contributes four keys:
 
-- **`hooks`**: 6 jobs. `guard.js` asks you before a shell command that could destroy work: a delete outside the project, a download piped into a shell, a write into a shell startup file, or a git command that throws work away. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
+- **`hooks`**: 7 jobs. `guard.js` asks you before a shell command that could destroy work: a delete outside the project, a download piped into a shell, a write into a shell startup file, or a git command that throws work away. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
 - **`permissions`**: an allow list and a deny list. The allow list covers edits, reads, web lookups and the everyday shell commands, such as `mv`, `node`, `npm test` and `flow`, so every other command asks you, every git write included. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `su`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first
 
 A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. `flow setup` also writes `skillOverrides`, Claude Code's key for hiding a skill, for the ones it switches off: Claude Code's own `/batch`, and a skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
 
-**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your other machines: `~/.flow/` is one git repository they all share, and the local file is the part git ignores. Together they hold 8 keys:
+**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your other machines: `~/.flow/` is one git repository they all share, and the local file is the part git ignores. Together they hold 10 keys:
 
 - **`sources`**: the skill repositories [`flow skills`](#flow-skills) takes skills from, in the shared file. `flow skills add` and `drop` write it
 - **`skills`**: which skills are switched on or off, a line per name, in either file and in a project's `.flow/settings.json`. The nearest file wins, name by name. `flow skills` writes it
@@ -864,13 +864,15 @@ A project overrides any of them in its own `.claude/settings.json`, and the two 
 - **`setupReminder`**: whether a session opened in a git repository with no `.flow/` suggests `flow setup project`, in the shared file. `false` turns it off
 - **`setupReminderSkip`**: folders that line never shows in, each with everything below it, in the local file
 - **`skillsAutoUpdate`**: whether every skill repository pulls itself when a session opens, in the shared file. `false` turns each pull into a fetch that names what is waiting
+- **`wrapUp`**: whether the agent is told to hand off once the conversation passes a size, in the shared file. `false` silences it
+- **`wrapUpAt`**: that size in tokens, 150,000 when unset, in either file
 - **`fileSuggestionIgnore`**: folders and files the `@` list never offers, in either file and in a project's `.flow/settings.json`. The lists add up
 
 [Settings](settings.md) explains every key in both files, every value Flow rejected, and why.
 
 ### `flow settings`
 
-Switches the 4 on/off keys above without opening a file: `reminder`, `sessionCheck`, `setupReminder` and `skillsAutoUpdate`. Each is on unless a file says `false`.
+Switches the 5 on/off keys above without opening a file: `reminder`, `sessionCheck`, `setupReminder`, `skillsAutoUpdate` and `wrapUp`. Each is on unless a file says `false`.
 
 ```sh
 flow settings                              # every setting, whether it is on here, and which level says so
@@ -886,6 +888,7 @@ reminder          on                  a line beside every message, pointing Clau
 sessionCheck      on                  what needs attention, when a session opens
 setupReminder     off    this folder  suggests flow setup project where a repository or old memory needs it
 skillsAutoUpdate  on                  each skill repository updates itself when a session opens
+wrapUp            on                  tells Claude to hand off once the conversation passes wrapUpAt tokens
 ```
 
 **The levels are [`flow skills`](#flow-skills)' own**: no flag for here, `--machine`, `--global`. The machine file wins over the shared one, so a switch that another level still overrules prints a second line saying which level does.

@@ -115,7 +115,7 @@ Every report is one file per question: the question or prompt at the top, the fi
 
 ## How a finding is captured
 
-A finding is something a session learned the hard way, written down so the next session never learns it again. Capture is the rule in every session's rules that writes it. It runs as a sweep over the conversation at a checkpoint: a handoff, finished work reported, a groundwork branch closed, the context near full. `/capture` runs one on demand.
+A finding is something a session learned the hard way, written down so the next session never learns it again. Capture is the rule in every session's rules that writes it. It runs as a sweep over the conversation at a checkpoint: a handoff, finished work reported, a groundwork branch closed, a plan step landed and verified, the context near full. The context counts as near full at 150,000 tokens, when [the wrap-up](settings.md#the-wrap-up) tells the agent to write a handoff. `/capture` runs one on demand.
 
 - **About an outside tool**: a library's quirk, a service's limit, a command's trap → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, named in 4 to 8 words, such as `middleware-runs-before-static-files.md`. It says what went wrong, what fixed it, the rule that follows, and the version. The same fact learned again adds one line at the end of the file, with the version and the date.
 - **Anything else reusable**: a pattern that works, a rule worth keeping → `.flow/findings/<what-was-learned>.md` in the project, the same way. `/flow:file-findings` later moves it into a skill or a rule.

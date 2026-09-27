@@ -116,7 +116,7 @@ Those get a `UserPromptSubmit` hook injecting a short reminder each turn. Built 
 
 #### "Go means finish everything" needs the wrap-up hook
 
-Cut from `home/CLAUDE.md` on 2026-08-31, because a run with no brake is worse than a run that stops early. The brake is a hook watching the token count that tells the agent to stop at the next checkpoint. `one-approval-runs-to-the-end` came back before that hook exists, so runaway sessions are possible until it lands. `backlog.md` → `### Context and session boundaries` carries the hook.
+Cut from `home/CLAUDE.md` on 2026-08-31, because a run with no brake is worse than a run that stops early. The brake is a hook watching the token count that tells the agent to stop at the next checkpoint. `one-approval-runs-to-the-end` came back before that hook existed. The hook landed 2026-09-27 as `scripts/context-check.js`, which tells the agent to hand off at 150,000 tokens.
 
 #### A study case says `fixed` the moment its rule changes
 
