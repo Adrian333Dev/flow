@@ -2,13 +2,22 @@
 
 Written 2026-09-27. Read this once, then rewrite it whole next time.
 
-## Next: the research redesign
+## Next: 4 conversations, then the final sweep
 
-**The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The user asked for a sweep of the backlog for anything essential and small before the final sweep. The small batch is built, and so is the second machine, below. What is left, in the order recommended to the user:
+**The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The small batch, the second machine and the research redesign are built, below. What is left, in the order recommended to the user:
 
-1. **The research redesign**, agreed 2026-09-19 and waiting for the management work. `lab/context/knowledge-base.md` → `## The build plan`, whose `### Settle before building` holds 3 points for the user.
-2. **4 conversations**: filling `## The user` and `## Preferences`, wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`.
-3. **The final sweep.** The user warned it is much bigger than it looks.
+1. **4 conversations**: filling `## The user` and `## Preferences`, wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`.
+2. **The final sweep.** The user warned it is much bigger than it looks.
+
+## Built 2026-09-27: the research redesign
+
+Every step of `lab/context/knowledge-base.md` → `## The build plan`, with the 3 open points approved as recommended. `lab/context/state.md` → the paragraph under the 12 skills holds the mechanism, and `docs/manual/research-and-capture.md` explains it to a user. The suite passed 188 of 188 after it; no script under `scripts/` changed.
+
+- **One folder per outside tool, `~/.flow/wiki/<tool>/`**, shared by every project: `index.md`, `research/`, `findings/`, and `downloads/`, which never syncs.
+- **Context7 through `context7.sh`**, never an MCP server. Trials ran against the real service: search, an unpinned and a pinned question, the id saved and reused, a stale line rewritten, a bad id, an unreachable address, an HTTP 500.
+- **`fetch-docs.sh` downloads into the tool's folder** and logs the tool's latest release. Trials: Next.js, Context7 with a clone and a pull, a site with no `llms.txt`.
+- **Never run**: `/flow:research` in a live `try.sh` session, since building a run needs the setup session at the user's terminal.
+- **Each script call prompts**, since `home/settings.json` allows no `bash ~/.agents/skills/...` command. The same held for `fetch-docs.sh` before. Nobody has decided whether it should.
 
 ## Built 2026-09-27: every machine after the first joins the Flow home
 
@@ -22,7 +31,7 @@ The user's words for `~/.flow/` in this design are "the Flow home" and "the priv
 - **`scorecards/`, `audit/` and `changes/` joined the ignore list.** The manual already said they stay, and the list said otherwise.
 - **Install checks everything before it links anything**: sign-in, repository, records, version, files in the way, name. The user's idea. The checks stay in `flow install`, never `install.sh`, which only checks the 4 programs.
 - **The name offered is `<type>-<system>`, `desktop-wsl`**, numbered on a clash with a record, and claimed by sending the record up at install. The prompt is `Machine name (default: desktop-wsl):`, the user's wording. A rebuilt machine takes its old name back through `<name> is taken. Replace it? (y/N)`. Dead machines' records stay: no command removes one.
-- **The name is git's `flow.machine`**, the user's call. util reads it where `util.machine` is missing, changed in the `lab/util` submodule, where util is worked on, and waiting for the user's commit there. `~/code/util` is the clone this machine runs, which pulls from GitHub, and is never edited. This machine's `util.machine = me-kmkw` came from testing, and the user will drop it before the clean install; `util uninstall` leaves git config alone. It also makes util's test *git work refuses to send from a machine with no name* fail on this machine only: 56 of 56 pass with an empty global config.
+- **The name is git's `flow.machine`**, the user's call. util reads it where `util.machine` is missing, changed in the `lab/util` submodule, where util is worked on, and committed by the user. `~/code/util` is the clone this machine runs, which pulls from GitHub, and is never edited. This machine's `util.machine = me-kmkw` came from testing, and the user will drop it before the clean install; `util uninstall` leaves git config alone. It also makes util's test *git work refuses to send from a machine with no name* fail on this machine only: 54 of 54 pass with an empty global config.
 - **The Flow home carries a README**, 2 short paragraphs saying Flow manages it and a hand edit can break sync, with no list of files: the user cut the lists twice. The repository's description says `Managed by Flow. Never rename, edit or make public.`
 - **Every line Flow prints stays short, with no explanation.** The user's rule, raised again this session: the manual explains, the CLI never does. Backlog item 5 of the writing passes is where the rules for printed lines get written.
 

@@ -50,6 +50,8 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 │  ├─ audit/
 │  ├─ changes/<session>/
 │  ├─ private-skills/<name>/
+│  ├─ wiki/<tool>/                one folder per outside tool
+│  ├─ research/<question>.md
 │  ├─ migrations/<place>/<time>/
 │  ├─ originals/<place>/
 │  ├─ groundwork/<slug>/
@@ -130,6 +132,8 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 - **`audit/`**: `audit.db`, the index of every transcript. `flow audit index` builds it, and it can be rebuilt from `~/.claude/projects/` at any time.
 - **`changes/<session>/`**: what each subagent changed, filed under its agent id. `changes.js` writes it, and deletes a session's folder once nothing has touched it for 7 days.
 - **`private-skills/<name>/`**: skills you write for yourself and never share. You write them, and `flow skills on` switches one on.
+- **`wiki/<tool>/`**: what Flow knows about one outside tool, such as `next.js`, shared by every project. `index.md` holds shortcuts into the tool's docs: its Context7 id, and which page answers what. `research/` holds reports about the tool alone. `findings/` holds what sessions learned using the tool, waiting to be written into its skill. `downloads/` holds the docs and the source this machine downloaded, which git ignores. `/flow:research` and capture write it. [Research and capture](research-and-capture.md) has the whole of it.
+- **`research/<question>.md`**: research reports about no single tool, true in any project, such as a comparison of services. `/flow:research` writes them.
 - **`migrations/<place>/<time>/`**: one folder per migration, a change to where Flow and Claude Code keep their files. It holds `migration.md`, one line per change, and `files/`, the new version of each file it writes. `flow setup`, `flow setup project` and `flow up` write it. `<place>` is `machine`, or the project's full path with every character that is not a letter or a digit turned into `-`, and `<time>` is when it was written. [Migrations and the original](reference.md#migrations-and-the-original) has the whole of it.
 - **`originals/<place>/`**: every path as it was before Flow first touched that place, one folder per place and no date anywhere. `flow install` writes the machine's, the first `flow setup` or `flow setup project` finishes it, and nothing is added after that. `flow restore` puts one back.
 - **`groundwork/<slug>/`**: groundwork run outside any project. `/flow:groundwork` writes it.
@@ -170,7 +174,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 - **`tickets/archive/`**: finished tickets, moved whole. Nothing is deleted.
 - **`groundwork/<slug>/`**: groundwork that is not a ticket yet, holding `map.md` and a `handoff.md` when a session stopped halfway. `/flow:groundwork` writes it, and `flow new --from-groundwork` moves it into a ticket.
 - **`inbox.md`**: raw notes with no obvious home yet. Sessions append to it, and `/flow:file-findings` drains it.
-- **`findings/`**: one file per lesson a session learned. `/flow:file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for `flow contribute`.
+- **`findings/`**: one file per lesson a session learned, other than a lesson about an outside tool, which goes to `~/.flow/wiki/<tool>/findings/`. `/flow:file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for `flow contribute`.
 - **`overlays/<skill>.md`**: text this project adds to the end of a global skill when it loads. You or a session write it.
 - **`settings.json`**: the skills switched on or off for this project, committed, so a fresh clone gets them back. `flow skills on` and `off` write it with no flag.
 
@@ -180,8 +184,8 @@ Flow sessions write into these and own none of them.
 
 - **`spec/`**: what the product is.
 - **`context/`**: verified facts about this repository that outlive any ticket.
-- **`research/<question>.md`**: `/flow:research` reports, flat, shared by the whole project.
+- **`research/<question>.md`**: `/flow:research` reports true only for this project, and the reports nobody could place. Flat, shared by the whole project.
 
 ## What stays on one machine
 
-These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/history.jsonl`, `~/.flow/install.log`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/migrate-prompt.md`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version` and `~/.flow/skills-update.json`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/` and `~/.flow/machines/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed, so it travels with the repository.
+These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/history.jsonl`, `~/.flow/install.log`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/migrate-prompt.md`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version`, `~/.flow/skills-update.json`, and every `~/.flow/wiki/<tool>/downloads/`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/wiki/`, `~/.flow/research/`, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/` and `~/.flow/machines/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed, so it travels with the repository.

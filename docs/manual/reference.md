@@ -817,7 +817,7 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 - **`/flow:start`** (user only): opens a session on the board, one ticket, or a loose file
 - **`/flow:handoff`**: writes what a session that was not here needs, the state itself rather than a reading list
 - **`/flow:file-findings`** (user only): files a session's findings into skills, rules and checks
-- **`/flow:research`**: reads what an external tool actually does, from its own documentation and source
+- **`/flow:research`**: reads what an external tool actually does, from its own documentation and source. It keeps what it learns in one folder per tool, `~/.flow/wiki/<tool>/`: [Research and capture](research-and-capture.md)
 - **`/flow:visualize`**: draws ASCII diagrams, screen mockups and HTML previews
 - **`/flow:tickets-from-spec`** (user only): cuts the next batch of work out of `docs/spec/` into tickets
 

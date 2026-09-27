@@ -52,7 +52,7 @@ Routed out of `lab/context/management.md` on 2026-09-17, the last phase of the g
 
 ### Individual skills
 
-- [ ] **Build the research redesign**: Context7 through a script, one folder per outside tool under `~/.flow/wiki/`, and capture sending tool findings there. Designed and agreed 2026-09-19, built once the management skills are finished. `knowledge-base.md` → `## The build plan`
+- [ ] **`/flow:write-skill`, the harvest**, user only: reads a subject's sources whole and writes its skill. For an outside tool, the source is `~/.flow/wiki/<tool>/`, where capture sends every finding about the tool since 2026-09-27, and the harvest deletes the findings it wrote in. Built after a first run done by hand. `skills.md` → `### /flow:write-skill`, `knowledge-base.md` → `### Capture and the harvest`
 
 - [ ] **`/grill`**: a skill fired at a finished artifact, `disable-model-invocation: true`, never model-invoked. Decided and undesigned. One form hands the stripped mechanism to subagents that never saw the conversation, so none of them can defend it. **talk first**
 
@@ -221,7 +221,7 @@ Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` 
   - **`flow audit` reads Codex's session logs**, `~/.codex/sessions/YYYY/MM/DD/rollout-<id>.jsonl`, through a new scanner beside `scan.js`. Until it exists, work done in Codex is invisible to every audit query
   - **No rule is measured per model.** Sonnet 4.6 puts the report before the edits. Opus 5 fails plain explanation with the reply rules loaded. A base rule set plus a per-model overlay is the shape, earned by the scorecard split rather than assumed
   - **Buy one coding plan and run Flow on it.** GLM at $18, or Qwen at about ¥200, which bundles Kimi, GLM and MiniMax. It answers whether a non-Claude model holds Flow's rules, whether the quota survives Flow's token profile, and whether auto mode's classifier runs on the gateway model
-  - **Replace `WebSearch` and `WebFetch` off Anthropic.** `WebSearch` is a server-side Anthropic tool and stops. `WebFetch` preflights to `api.anthropic.com` and reportedly fails behind third-party providers. An MCP search server is the replacement, and `CLAUDE.md`'s read-the-docs rule depends on both
+  - **Replace `WebSearch` and `WebFetch` off Anthropic.** `WebSearch` is a server-side Anthropic tool and stops. `WebFetch` preflights to `api.anthropic.com` and reportedly fails behind third-party providers. An MCP search server is the replacement, Parallel first, since its free endpoint needs no key. `CLAUDE.md`'s read-the-docs rule depends on both
   - **The audit's `cost_usd` and cache columns go wrong** from the first non-Anthropic session: a flat plan has no per-request dollar figure
   - **Survey the remaining harnesses**, `deepseek-harness` first
 

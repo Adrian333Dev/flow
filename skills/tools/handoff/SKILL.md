@@ -64,7 +64,7 @@ Short by construction. 4 other files already carry most of it, and none of it ge
 - **`plan.md`** holds the steps and which ones landed.
 - **`groundwork/map.md`** holds every decision and its reasoning.
 - **The ticket body** holds why the work exists; `## Done when` holds what finishes it.
-- **`docs/research/<question>.md`** holds the findings.
+- **The research report** holds the findings, wherever `/flow:research` filed it.
 
 What is left is what nobody wrote down, under 4 labels:
 
@@ -137,7 +137,7 @@ Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`,
 
 **Where `## State` disagrees with anything else in the ticket, it wins.** It is the newer of the two.
 
-A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, `docs/research/<question>.md` for a question. `## State` carries the job's progress, never its answer.
+A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, the research file `/flow:research` names for a question. `## State` carries the job's progress, never its answer.
 
 **A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `/flow:start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top what the first action is.
 

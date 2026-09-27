@@ -1,6 +1,6 @@
 ---
 name: research
-description: Researches any subject. Finds a skill, plugin, library, tool, existing solution or anything else. Reverse engineers tools, investigates source code and more.
+description: Researches any subject. Finds a skill, plugin, library, tool, existing solution or anything else. Reverse engineers tools, investigates source code and more. Keeps what it learns about each outside tool in one folder per tool, shared by every project, and asks Context7 for quick answers from a library's docs.
 ---
 
 # Research
@@ -11,7 +11,18 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 
 **Research before recommending.** A direction picked first turns every source into evidence for it.
 
-**Research any subject.** A question with no tool behind it, such as market research, has no docs or source to read. It uses level 4 and the findings file below.
+**Research any subject.** A question with no tool behind it, such as market research, has no docs or source to read. It uses level 4 and the report file below.
+
+## A question about a tool starts from its folder
+
+`~/.flow/wiki/<tool>/` holds what Flow knows about one outside tool, shared by every project on the machine: shortcuts into the docs, research reports, findings, and this machine's downloads. `references/wiki.md` holds its layout and what may be added or rewritten. Read it before the first write into a tool's folder.
+
+1. **The tool's domain skill comes first**, when one is loaded: it holds what earlier harvests gathered.
+2. **Open `~/.flow/wiki/<tool>/`**, creating it on the first research about the tool. Print the finding count, and whether `flow skills ls <tool>` finds a skill: `next.js: 7 findings, no skill`.
+3. **Read the files in `research/` and `findings/` whose names match the question.** Answered → stop, with no outside request.
+4. **Follow `index.md`**: the page listed for the topic, or the Context7 id, which skips Context7's search.
+5. **Go outside**, by the levels below.
+6. **Write back**: a line in `index.md` for the page that answered, and a report in `research/` past level 1.
 
 ## Look for what already solves it
 
@@ -35,7 +46,7 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
    - **Read its `SKILL.md`** before recommending it.
    - **Rank by publisher first:** the tool's own maker beats anyone else. Then the repo's stars and last push.
    - **Weigh install counts least.** The CLI reports them anonymously, and nothing verifies them.
-5. **Write down what you found, including finding nothing**, wherever this question's findings go. The next session asking the same question reads that instead of searching again.
+5. **Write down what you found, including finding nothing**, wherever this question's report goes, under `## Where it goes`. The next session asking the same question reads that instead of searching again.
 
 **Adopting a skill:**
 
@@ -46,42 +57,65 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 
 4 levels. Match depth to the work, escalate when the current level cannot answer, and never start higher than needed. Enough for a confident answer at the current level → stop and answer.
 
-1. **Targeted question**: one API, one config flag, "is X still maintained?" → Context7 or a single doc-page fetch. Inline, quick.
-2. **Working against a tool**: planning or building a feature on it → fetch its current docs by the llms.txt route below, cache them, read the relevant pages before freezing any API into a spec or plan.
-3. **Deep customization**: extending a library past what its docs describe → docs will not answer it. Clone the source and read the code: `git clone --depth 1 <repo> tmp/references/<tool>/repo`. Clone without asking, read-only and cheap, just announce it.
+1. **Targeted question**: one API, one config flag, "is X still maintained?" → Context7, below, or a single doc-page fetch. A bug's explanation → the tool's issues: `gh search issues <words> --repo <owner/repo>`. Inline, quick.
+2. **Working against a tool**: planning or building a feature on it → its downloads, by the llms.txt route below. Read the relevant pages before freezing any API into a spec or plan.
+3. **Deep customization**: extending a library past what its docs describe → docs will not answer it. Clone the source and read the code: `fetch-docs.sh <tool> - --repo <owner/repo> --clone` puts it in `downloads/repo/`, or pulls a clone already there. Clone without asking, read-only and cheap, just announce it.
 4. **Landscape**: surveying what exists, comparing options in depth, a domain you barely know → external prompt research, below.
+
+## Context7
+
+A web service answering a question from a library's docs, for one version where it holds that version. Called through the bundled script, never an MCP server:
+
+```bash
+bash ~/.agents/skills/flow/skills/research/scripts/context7.sh search next.js "redirect signed-out users"
+bash ~/.agents/skills/flow/skills/research/scripts/context7.sh ask /vercel/next.js "redirect signed-out users" --tool next.js
+bash ~/.agents/skills/flow/skills/research/scripts/context7.sh ask next.js@v15.1.8 "redirect signed-out users"
+```
+
+- **`search`** prints each library Context7 holds under the name: its id, branch, the day Context7 last read it, and the versions it can pin.
+- **`ask <id> ... --tool <folder>`** writes the id into the folder's `index.md` once it has answered. After that, **`ask <folder>`** skips the search. `@<version>` pins a version.
+- **Pick the version first**, from the tool's version in the project's lockfile:
+  - Context7 lists that version → pin it.
+  - The project is on the latest release, and Context7 last read the tool after that release → no version. Context7 then answers from the tool's development branch. `npm view <package> time` dates every release, and `gh release list --repo <owner/repo>` does it outside npm.
+  - Anything else → skip Context7, and read the tool's own docs for the project's version.
+- **Never save an answer.** Write the page it came from into `index.md` → `## Pages by topic`, under the topic it answered.
+- **`context7: unavailable (...)`** → the pages in `index.md` whose topic fits, then the downloads, then web search. A used-up monthly quota prints the same line.
+- **`context7: Library ... not found`** for an id `index.md` gave → search again, then ask with `--tool`, which rewrites the line.
 
 ## Getting current docs: the llms.txt route
 
 2 files most tools publish: **`llms.txt`**, an index linking to per-page markdown docs, and **`llms-full.txt`**, the whole docs in one file, often megabytes. These are the most complete and current machine-readable docs there are. Past level 1, prefer them over Context7, which lags.
 
-Fetch with the bundled script, run from the project root:
+Fetch with the bundled script, from any folder:
 
 ```bash
-bash ~/.agents/skills/flow/skills/research/scripts/fetch-docs.sh <tool> <domain> [extra-urls...]
-# e.g.  bash ~/.agents/skills/flow/skills/research/scripts/fetch-docs.sh inngest inngest.com
+bash ~/.agents/skills/flow/skills/research/scripts/fetch-docs.sh <tool> <domain> [--package <npm name>] [--repo <owner/repo>] [--clone] [page-urls...]
+# e.g.  bash ~/.agents/skills/flow/skills/research/scripts/fetch-docs.sh next.js nextjs.org --package next
 ```
 
-It chains every candidate URL, keeps real hits only, grabs **both** variants where both exist, and saves to `tmp/references/<tool>/` with source URL and fetch date in `_sources.md`. **Add a newly discovered URL pattern to the script, never to this file.**
+It chains every candidate URL, keeps real hits only, grabs **both** variants where both exist, and saves to `~/.flow/wiki/<tool>/downloads/`, pages into `pages/`. `_sources.md` there logs each file's address, the date, and the tool's latest release that day, read from `--package` or else `--repo`. **Add a newly discovered URL pattern to the script, never to this file.**
 
 Using what came back:
 
 - **`llms.txt`**: small; read it whole. It is the navigation map: pick the pages the task needs and fetch those too, by passing their URLs to the script.
 - **`llms-full.txt`**: **never read inline.** Grep it, read the matching slices. A searchable corpus, not a document.
-- Exact signatures and copy-paste examples come from these cached files verbatim. WebFetch summarizes: fine for "how does X work", wrong for a precise signature.
-- The cache survives sessions and tickets. Check `tmp/references/<tool>/` before re-fetching, and re-run the script when new work starts and the stamped dates look old.
+- Exact signatures and copy-paste examples come from these downloaded files verbatim. WebFetch summarizes: fine for "how does X work", wrong for a precise signature.
+- **Download again only for a newer version.** Opening a download inside a project, read the tool's version from the lockfile:
+  - Newer than the release in `_sources.md` → run the script again, then read.
+  - The same or older → read what is there. Older means the docs may describe what the project lacks: check what they say against Context7 pinned to the project's version, or the tool's docs for that version.
+  - No project, or the tool missing from the lockfile → read what is there.
 
-**No llms.txt anywhere:** Context7 → web search for the official docs, fetching useful pages into the same cache → ask the user for content or URLs. Never fall back to training memory.
+**No llms.txt anywhere:** Context7 → web search for the official docs, saving useful pages with the script → ask the user for content or URLs. Never fall back to training memory.
 
 ## Delegating heavy reading
 
 **`Explore` is the agent.** Claude Code ships it read-only and built for reading. Where the job has to run something before it can read, `general-purpose` does the same work with the full tool set.
 
-**Dispatch on how much there is to read.** The level never decides it. A cloned codebase, megabytes of cached docs, a question that means opening 20 files: that much reading buries the session it lands in. Send it out and read the findings. A page or two, one grep for a signature, a file whose name you already have: read it here. A dispatch costs a brief, a wait, and everything the subagent saw but never wrote down.
+**Dispatch on how much there is to read.** The level never decides it. A cloned codebase, megabytes of downloaded docs, a question that means opening 20 files: that much reading buries the session it lands in. Send it out and read the findings. A page or two, one grep for a signature, a file whose name you already have: read it here. A dispatch costs a brief, a wait, and everything the subagent saw but never wrote down.
 
 **The brief is a handoff**: `/flow:handoff` writes it, delivered in the subagent's prompt rather than as a file. 3 things it carries that belong to reading specifically:
 
-- **The sources**: cache paths under `tmp/references/<tool>/`, the clone path, or URLs to fetch.
+- **The sources**: paths under `~/.flow/wiki/<tool>/downloads/`, the clone at `downloads/repo/`, or URLs to fetch.
 - **The question**, precisely stated, with the constraints that shape the answer: stack, versions, decisions already locked.
 - **The output**: findings written into the question's research file, each citing where in the sources it came from.
 
@@ -106,11 +140,21 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 ## Where it goes
 
-**Fetched upstream material** (docs, clones) stays in `tmp/references/<tool>/`. Gitignored, refetchable, disposable.
+**One file per question**, the prompt or question at the top and the findings below it in the same file. Same shape whether an external LLM, a subagent or you answered it.
 
-**The research itself**: one file per question, the prompt or question at the top and the findings below it in the same file. Same shape whether an external LLM, a subagent or you answered it.
+- A quick question, level 1 → no file.
+- About one outside tool, true in any project → `~/.flow/wiki/<tool>/research/<question>.md`.
+- About no single tool, true in any project: a comparison, a technique, a field → `~/.flow/research/<question>.md`.
+- True only for this project: its users, its market, a client's old system → `docs/research/<question>.md`.
+- Unsure → `docs/research/`, since an unsure report may hold project details. Outside a project → `~/.flow/research/`.
 
-`docs/research/<question>.md`: **flat, and shared by the whole project.** Never inside a ticket or a groundwork folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds.
+**Never write a project's or a client's details into `~/.flow/`.** It goes to GitHub, and every project reads it.
+
+- **A question about 2 tools** → the folder of the tool it is mostly about, with a line in the other tool's `index.md`.
+- **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to `docs/spec/decisions.md`. A decision never goes in the report.
+- **Research done with an outside LLM** is no separate kind: its prompt and the pasted report go wherever the list puts the question.
+
+`docs/research/` and `~/.flow/research/` are **flat**. Never put a report inside a ticket or a groundwork folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds.
 
 **A question reading can answer never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a `prototype` ticket, and `/flow:groundwork` cuts it.
 

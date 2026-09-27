@@ -48,7 +48,7 @@ Then read the ticket body and its `## State` where one exists.
 
 ### Pass 1: read the code
 
-**Start with `## References` in the ticket**: whoever cut it already found what this work must respect. **No section** → look once in `docs/context/` and `docs/research/`, then write what you found into `## References`, so the next session skips the search.
+**Start with `## References` in the ticket**: whoever cut it already found what this work must respect. **No section** → look once in `docs/context/`, `docs/research/`, and `~/.flow/wiki/<tool>/` for each tool the work touches, then write what you found into `## References`, so the next session skips the search.
 
 **Add a line the moment you read something the build will need**, in any pass, not only this one. Left until the end of the run, half of them are forgotten.
 

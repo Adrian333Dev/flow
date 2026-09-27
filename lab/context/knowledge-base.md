@@ -1,14 +1,15 @@
 # Knowledge base: research, tool folders, Context7 and capture
 
-The design conversation of 2026-09-18 and 2026-09-19 on how `/flow:research` reaches outside tools and where Flow keeps what it learns about them. Nothing is built. A parallel session works on the management skills at the same time, and this file never covers that work.
+The design conversation of 2026-09-18 and 2026-09-19 on how `/flow:research` reaches outside tools and where Flow keeps what it learns about them. Built 2026-09-27, by `## The build plan` below. A parallel session works on the management skills at the same time, and this file never covers that work.
 
 The user supplied 2 reports as input, both in this folder: `context7-report.md`, on how Context7 retrieves docs, and `context-7-alternatives.md`, on the tools competing with it.
 
 ## Where the conversation stands
 
-- **The design is agreed whole**, `wiki/` included. 3 small points the build plan found are shown to the user under `### Settle before building`, each with a recommendation.
-- **The build waits for the management skills**, ruled by the user 2026-09-19. `backlog.md` → `### Individual skills` carries the item. Once the user says build, every step under `## The build plan` is in scope, in order.
-- **Owed by the end of this work**: a new page under `docs/manual/`, beside `where-everything-lives.md`. It explains from A to Z how research works, how the knowledge base works, how findings are gathered and how capture works, in every case, with tree drawings. Asked by the user 2026-09-19. Step 7 of `## The build plan` holds its outline and recommended name.
+- **Built 2026-09-27**, every step of `## The build plan`. The user approved the 3 points under `### Settle before building` as recommended. The first was already moot: the 2 catalogs had moved to `~/.flow/repos/` with the management work, so research clones nothing into `tmp/`.
+- **The manual page** is `docs/manual/research-and-capture.md`.
+- **Not done**: the live session of step 8. A `try.sh` run builds through the setup session, which needs the user's terminal. The scripts' trials ran alone.
+- **Changed in the build**: `fetch-docs.sh` rewrites a file's `_sources.md` line on a new download rather than adding a second, and removes the folder it made when nothing downloaded. `context7.sh ask <folder>@<version>` pins a version through the `index.md` line. The harvest has a line in `backlog.md` → `### Individual skills`.
 
 ## The user's rulings
 

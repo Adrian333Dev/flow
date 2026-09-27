@@ -147,7 +147,7 @@ A feature rarely spawns one. A whole product usually spawns several, because its
 - **Past what the documentation says** → **invoke `/flow:research`**, level 3: get the source and read it. **This is the case that sinks plans**, committing to a tool's internals unread produces a design that dies 4 steps into the build.
 - **Nothing written can answer it** → run something. A cheap check (one command, a 10-second script) runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail. Make it a child of this work where there is one: `flow new "<question>" --type prototype --parent <id>`. **Never build it here.** Start a subagent with `Run /flow:prototype on <id>`, and carry on with the walk. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. This groundwork resumes from the finding in the ticket's `reports/`. When nothing else on the map can move, say it waits on that ticket and stop. A session that ends first leaves the ticket in `building`, and `/flow:start <id>` picks it up.
 
-**A landscape too big to read here goes to a subagent**, never a ticket: reading asks no questions back, so nothing needs to watch it. `/flow:research` owns the brief. The branch stays `[ ]` until the report lands in `docs/research/`, and the walk carries on meanwhile. A whole product is where this fires.
+**A landscape too big to read here goes to a subagent**, never a ticket: reading asks no questions back, so nothing needs to watch it. `/flow:research` owns the brief. The branch stays `[ ]` until the report lands where `/flow:research` files it, and the walk carries on meanwhile. A whole product is where this fires.
 
 **Never send the user's own material to a subagent.** A summary drops the detail Phase 1 needs, and their files are where the contradictions hide.
 
@@ -281,8 +281,8 @@ One line each: the path, then what it says, in a few words. A bare path makes th
 ## References
 
 - `docs/context/contracts.md`: DTOs live in `packages/contracts`, never duplicated in the app
-- `docs/research/ai-elements-streaming.md`: how `<Conversation>` handles a streaming response
-- `tmp/references/ai-elements/llms.txt`: cached docs, fetched 2026-08-12
+- `~/.flow/wiki/ai-elements/research/conversation-streaming.md`: how `<Conversation>` handles a streaming response
+- `~/.flow/wiki/ai-elements/downloads/llms.txt`: the docs, downloaded 2026-08-12
 - `/flow:visualize`: invoke before proposing the panel's layout
 ```
 

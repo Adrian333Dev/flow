@@ -18,6 +18,7 @@ Flow is a Claude Code workflow for a solo developer: rules that load in every se
 - [Tickets](tickets.md): what a ticket is, the frontmatter, the body, and how one gets made and moved
 - [Settings](settings.md): every key in `~/.claude/settings.json` and `~/.flow/settings.json`, what it does, and why Flow sets it that way
 - [Where everything lives](where-everything-lives.md): one tree of every folder Flow puts on a machine and in a project, and what each holds
+- [Research and capture](research-and-capture.md): the folder per outside tool under `~/.flow/wiki/`, how research answers a question, Context7, downloads, where a report goes, and where a finding goes
 
 ## Where to start
 

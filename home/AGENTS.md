@@ -65,7 +65,8 @@ One phase at a time:
 - Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
 - How the user wants to work → `~/.agents/AGENTS.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: the same correction twice, irritation at a habit, something they said about themselves.
 - Durable project fact (a verified command, a path, a settled convention) → `docs/context/<subject>.md`
-- Reusable knowledge (a tool behavior, a library quirk, a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. `/flow:file-findings` promotes it to a skill or a rule later. Skip what the loaded skill already says.
+- An outside tool's behavior (a library quirk, a service's limit, a command's trap) → its own file, `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. The same fact already there → one line at its end: the version and the date it held. Never a detail of the project or its client. Skip what the loaded skill already says.
+- Other reusable knowledge (a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, written the same way. `/flow:file-findings` promotes it to a skill or a rule later.
   - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`
 - A warning from a rule check that was wrong → `.flow/findings/scorecard.md`
 - A decision the user confirmed with no open threads → `docs/spec/decisions.md`, or the groundwork map that owns the subject. Batched, never mid-discussion.
