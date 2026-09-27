@@ -8,6 +8,7 @@ A session ends, or its context fills, and the work has to carry on in a new one.
 - [The 3 steps](#the-3-steps)
 - [Groundwork closed, moving to execute](#groundwork-closed-moving-to-execute)
 - [Context filled mid-phase](#context-filled-mid-phase)
+- [Work with no ticket gets one](#work-with-no-ticket-gets-one)
 - [`/flow:handoff` against `/compact`](#handoff-against-compact)
 
 ## What `/flow:handoff` writes
@@ -50,6 +51,12 @@ Then `/clear` and `/flow:execute t001`. The skill finds the ticket at `planning`
 The same 3 steps, at a clean point: the current step finished, its check run, the edit landed. A handoff written mid-edit describes a state that no longer exists once the edit lands.
 
 `/flow:execute t002` then reads the status and lands on it. At `building` it opens `plan.md` and resumes at the first unchecked step. `## State` says how far that step got. `/flow:debug t004` reads `## State` for the hypotheses already killed and resumes at the first one still standing, never restarting the loop.
+
+## Work with no ticket gets one
+
+A conversation can start with no ticket: a design question, a quick fix that grew. In a project, `/flow:handoff` then creates a ticket for it with `flow new`. The ticket's body says what the job is and why, and its `## State` carries the rest. The new ticket is moved in flight, so a bare `/flow:start` after `/clear` shows it on the board and recommends it. Loose groundwork, a `.flow/groundwork/<slug>/` folder with no ticket, moves into the new ticket as its `groundwork/`.
+
+Only a folder with no `.flow/` gets a `handoff.md` file instead, picked up with `/flow:start <path>`.
 
 ## `/flow:handoff` against `/compact`
 

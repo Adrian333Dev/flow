@@ -172,7 +172,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 
 - **`tickets/<id>-<slug>/`**: one folder per ticket, holding `ticket.md`, `groundwork/`, and whatever the work writes. `flow new` makes it, and sessions fill it. [Tickets](tickets.md) shows the shape.
 - **`tickets/archive/`**: finished tickets, moved whole. Nothing is deleted.
-- **`groundwork/<slug>/`**: groundwork that is not a ticket yet, holding `map.md` and a `handoff.md` when a session stopped halfway. `/flow:groundwork` writes it, and `flow new --from-groundwork` moves it into a ticket.
+- **`groundwork/<slug>/`**: groundwork that is not a ticket yet, holding `map.md`. `/flow:groundwork` writes it, and `flow new --from-groundwork` moves it into a ticket. A session that stops halfway moves it the same way, since a handoff in a project always goes into a ticket.
 - **`inbox.md`**: raw notes with no obvious home yet. Sessions append to it, and `/flow:file-findings` drains it.
 - **`findings/`**: one file per lesson a session learned, other than a lesson about an outside tool, which goes to `~/.flow/wiki/<tool>/findings/`. `/flow:file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for `flow contribute`.
 - **`overlays/<skill>.md`**: text this project adds to the end of a global skill when it loads. You or a session write it.

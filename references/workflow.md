@@ -50,7 +50,7 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 
 **The artifact decides the phase, and the status is corrected to match.** A status is a claim a command wrote. `map.md`, `plan.md` and the hunt in `## State` are what the work left behind, so the artifact wins wherever the two disagree. Every phase skill opens its own artifact first, says the disagreement out loud, and writes the correcting command. Evidence that reads both ways is a question for the user, never a guess.
 
-**An `open` block loads a ticket's files before the session's first turn.** `/flow:handoff` writes it, fenced, inside `## State`, or near the top of a loose `handoff.md`; `flow get --files` reads it, and `/flow:start` runs that command. **It is content, not a reading list**, which is why arriving at a resumed ticket costs no tool calls. A ticket nobody has worked carries no block, so its artifact gets opened by hand. The format is `util fs open`'s, not Flow's, and works on any document, ticket or not. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it.
+**An `open` block loads a ticket's files before the session's first turn.** `/flow:handoff` writes it, fenced, inside `## State`, or near the top of a `handoff.md` in a folder with no `.flow/`; `flow get --files` reads it, and `/flow:start` runs that command. **It is content, not a reading list**, which is why arriving at a resumed ticket costs no tool calls. A ticket nobody has worked carries no block, so its artifact gets opened by hand. The format is `util fs open`'s, not Flow's, and works on any document, ticket or not. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it.
 
 **`## References` is not that block.** It is durable: whoever cut the ticket wrote what the build has to respect, and it survives to `done`. `## State` holds work in flight, and both it and its block are deleted at review.
 
@@ -66,7 +66,6 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 - **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.
 - **`docs/context/<subject>.md`**: durable project facts, one file per subject: a verified command, a path, a settled convention.
 - **`.flow/inbox.md`**: raw capture, unshaped, drained by `/flow:file-findings`.
-- **`.flow/handoff.md`**: session state when nothing narrower is live. State belongs to the most specific thing being worked: a ticket → its `## State`; loose groundwork → `handoff.md` in that folder; neither → here.
 
 ## Departing
 

@@ -99,7 +99,9 @@ The id takes 3 forms, and all 3 resolve to the same ticket: `t002`, `t2`, or the
 
 ## With a path: loose work
 
-`/flow:start docs/notes/pricing.md` opens work that has no ticket: a file beside the thing being worked on. The agent reads it and carries on from whatever the file says comes next.
+`/flow:start ~/notes/pricing/handoff.md` opens work outside a Flow project, meaning a folder with no `.flow/`: a file beside the thing being worked on. The agent reads it and carries on from whatever the file says comes next.
+
+Inside a project, work with no ticket gets one when it is handed off, so it shows on the board. [Stopping and picking up](resume.md) says how.
 
 ## Skipping `/flow:start`
 

@@ -2,12 +2,22 @@
 
 Written 2026-09-27. Read this once, then rewrite it whole next time.
 
-## Next: 2 conversations, then the final sweep
+## Next: 1 conversation, then the final sweep
 
 **The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The small batch, the second machine and the research redesign are built, below. What is left, in the order recommended to the user:
 
-1. **2 conversations**: a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`. The first 2 of the 4, filling `## The user` and `## Preferences` and wrapping up when the context gets large, are built, below.
+1. **1 conversation**: who reads `~/.flow/workflow-notes.md`. The other 3 of the 4, filling `## The user` and `## Preferences`, wrapping up when the context gets large, and a bare `/flow:start`, are built, below.
 2. **The final sweep.** The user warned it is much bigger than it looks.
+
+## Built 2026-09-27: a handoff in a project always goes into a ticket
+
+`lab/context/state.md` → the bullet of the same name holds the mechanism. The decisions, each the user's or agreed:
+
+- **A project's work lives in tickets**, the user's ruling: a handoff outside a ticket should not exist where Flow is set up. That closes the backlog item on a bare `/flow:start` loading nothing, with no code: the new ticket is in flight, and the board already puts work in flight first.
+- **Work with no ticket gets one at its handoff**, rather than the handoff refusing: a conversation that reached the wrap-up is real work.
+- **`.flow/handoff.md` is gone**, and so is the `handoff.md` inside a loose groundwork folder. A `handoff.md` stays only for a folder with no `.flow/`, which keeps Flow usable outside projects.
+
+Checked in scratch: `flow new --type topic --from-groundwork <folder> --body -` moves the folder and writes the body; `flow get <path>` reads a file in a folder with no `.flow/`. Never seen in a live session. `lab/scripts/test-projects/unfinished-work/` still builds a loose `notes/handoff.md` inside a project, the shape this ruling retires.
 
 ## Built 2026-09-27: the wrap-up at 150k
 

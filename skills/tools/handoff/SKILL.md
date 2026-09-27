@@ -18,9 +18,10 @@ It knows the repo. It knows nothing about this conversation.
 Decide this first. Everything else follows from it.
 
 - **Working a ticket** → `## State` inside that ticket's `ticket.md`.
+- **Work with no ticket, in a project with `.flow/`** → a new ticket, `flow new "…" --type <what the work is> --body -`, then the command its last line prints, which puts it in flight. The body: one paragraph on the job and why, then `## State`. Loose groundwork adds `--type topic --from-groundwork <its folder>`, which moves the folder into the ticket.
 - **Handing a job to a session that reports back** → a new ticket, `flow new "…" --body -`. A child of the ticket that dispatched it, where one exists.
 - **A subagent starting right now** → the prompt. It reads that and nothing else, so a file would be a second copy that goes stale the moment either one changes.
-- **No ticket system here** → `handoff.md`, beside the work. `flow` needs only a git repo, so this is the rare case: no repo at all, or one belonging to someone else. A path the user names beats all of it.
+- **No `.flow/` here** → `handoff.md`, beside the work. A path the user names beats all of it.
 
 **Inside a ticket the state is a living section.** Write to it as the work moves, every time something becomes true that no other file records: after every thing you learned or were told, never after every edit. **A sentence from the user counts**: a constraint, a correction, a leaning they have not locked. Running this skill at the end is then a check rather than a reconstruction, which is what makes it affordable at the one moment context is scarce. It also survives a session that dies before anyone runs anything.
 
@@ -129,7 +130,7 @@ Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`,
 
 **At `review`, empty `Found` before deleting the section.** Anything in it still true goes to `docs/context/<subject>.md`, or into `## References` as a line. Then the section goes: "step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
 
-**In a file**: `handoff.md` beside the most specific thing being worked: the groundwork's own folder, or the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
+**In a file**: `handoff.md` beside the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
 
 ## Booting from one
 
