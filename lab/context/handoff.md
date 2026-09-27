@@ -1,19 +1,29 @@
 # Handoff
 
-Written 2026-09-26. Read this once, then rewrite it whole next time.
+Written 2026-09-27. Read this once, then rewrite it whole next time.
 
-## Next: the second machine, then the research redesign
+## Next: the research redesign
 
-**The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The user asked for a sweep of the backlog for anything essential and small before the final sweep. The small batch is built, below. What is left, in the order recommended to the user:
+**The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The user asked for a sweep of the backlog for anything essential and small before the final sweep. The small batch is built, and so is the second machine, below. What is left, in the order recommended to the user:
 
-1. **A second machine joining `~/.flow/`'s repository**, which cannot happen today. Same section of `backlog.md`.
-2. **The research redesign**, agreed 2026-09-19 and waiting for the management work. `lab/context/knowledge-base.md` → `## The build plan`, whose `### Settle before building` holds 3 points for the user.
-3. **4 conversations**: filling `## The user` and `## Preferences`, wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`.
-4. **The final sweep.** The user warned it is much bigger than it looks.
+1. **The research redesign**, agreed 2026-09-19 and waiting for the management work. `lab/context/knowledge-base.md` → `## The build plan`, whose `### Settle before building` holds 3 points for the user.
+2. **4 conversations**: filling `## The user` and `## Preferences`, wrapping up when the context gets large, a bare `/flow:start`, and who reads `~/.flow/workflow-notes.md`.
+3. **The final sweep.** The user warned it is much bigger than it looks.
 
-## Built today
+## Built 2026-09-27: every machine after the first joins the Flow home
 
-The suite passed 177 of 177 on the last whole run.
+The user's words for `~/.flow/` in this design are "the Flow home" and "the private flow repo". The suite passed 185 of 185 on the last whole run. `lab/context/state.md` → the `setup` bullet holds the mechanism. The decisions, each the user's or agreed:
+
+- **The repository is always `<login>/flow-home`, found through `gh`, never renamed.** `--repo` and the address question are gone. `gh` is the 4th prerequisite. `FLOW_HOME_REMOTE` is for the tests and `try.sh` alone.
+- **`gh` signs in with a pasted classic token**, since the browser sign-in fails on WSL. Scopes `repo`, `read:org`, `gist`, which the user tested; `delete_repo` stays off.
+- **A new machine installs the release the Flow home is on**, read from the machine records. The user's idea.
+- **A machine behind another's record syncs nothing until `flow up`.** The user wanted it to stop working entirely; the agreed version stops only sync, and sessions show a line. Each machine migrates its own copy, then git merges the two. The earlier idea of upgrade guides in 2 parts was dropped.
+- **Records hold `name`, `joined`, `flowVersion`.** `lastSync` was proposed and left out: writing it on every sync would make every sync send a change.
+- **`scorecards/`, `audit/` and `changes/` joined the ignore list.** The manual already said they stay, and the list said otherwise.
+
+Never seen for real: the `gh` sign-in, `gh repo create`, the tag switch and rerun inside `flow install`, the background fetch in a live session.
+
+## Built 2026-09-26
 
 **A test run made a commit in this repository**: `54272df start`, author `t <t@t>`, holding 13 of today's files as they stood at 14:24. 10 copies of `changes.test.js` shared one scratch folder, one deleted another's `.git`, and that copy's `git commit` climbed up to Flow's repository. Nothing was pushed. The user was told and committed the rest on top of it as `2c23bc9`. Both tests that commit now set `GIT_CEILING_DIRECTORIES`.
 

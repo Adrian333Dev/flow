@@ -68,7 +68,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`README.md`** introduces Flow and links to everything else.
 
-**`install.sh`** is what the one pasted install line runs, `curl -fsSL <address>/install.sh | bash`. It checks for git, node and claude, clones Flow into `~/.flow/repos/flow/`, then hands over to `flow install`, which does every other step. A clone that exists is never cloned again, so running it twice changes nothing. `--use <folder>` skips the clone and uses that folder as Flow.
+**`install.sh`** is what the one pasted install line runs, `curl -fsSL <address>/install.sh | bash`. It checks for git, node, claude and gh, clones Flow into `~/.flow/repos/flow/`, then hands over to `flow install`, which does every other step. A clone that exists is never cloned again, so running it twice changes nothing. `--use <folder>` skips the clone and uses that folder as Flow.
 
 **`backlog.md`** holds every open item in Flow, one line each: `## V1` in build order, then `## After V1` by area. The only place an open item lives. `lab/context/` holds the reasoning behind them. Each submodule under `lab/` keeps its own `backlog.md` in the same shape.
 

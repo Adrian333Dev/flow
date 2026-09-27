@@ -10,7 +10,8 @@
  *
  * It reads 4 files and waits for nothing: ~/.flow/run.json, ~/.flow/version,
  * the project's .flow/version, and ~/.flow/skills-update.json, which is the
- * skill repositories' own news. `flow doctor` stays the full check, since it
+ * skill repositories' own news. It also reads the other machines' records
+ * from the Flow home's last fetch, which git holds on disk. `flow doctor` stays the full check, since it
  * runs both test suites and takes seconds.
  *
  * It makes every skill link match the settings, the step every `flow skills`
@@ -19,12 +20,14 @@
  * folders again (`reloadSkills`), so the first prompt already sees the change.
  *
  * The one thing it starts is scripts/skills-pull.js, detached, which brings
- * every skill repository up to date in the background. Starting a process is
+ * every skill repository up to date in the background, and fetches the Flow
+ * home's repository so a machine another one moved ahead of says so. Starting a process is
  * not waiting for one: the hook returns before the pull has reached the
  * network, and what the pull finds is printed by the session after it.
  *
  * In a git repository with no `.flow/` it also suggests `flow setup project`,
- * to the user alone. `setupReminder()` holds the rules.
+ * to the user alone, and in a project set up elsewhere whose old Claude Code
+ * memory sits on this machine. `setupReminder()` holds the rules.
  *
  * `"sessionCheck": false` in ~/.flow/settings.json silences it. Exit 2 on this
  * event prints a notice the session ignores, so a failure here is silence.
@@ -34,6 +37,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 const { cloneRoot } = require('./flow/lib/clone');
+const flowRepo = require('./flow/lib/flow-repo');
 const machine = require('./flow/lib/machine');
 const migrations = require('./flow/lib/migrations');
 const settings = require('./flow/lib/settings');
@@ -91,6 +95,8 @@ function attention(at, cwd) {
   const out = [];
   const newest = version.newest(cloneRoot());
   const mine = version.applied(path.join(at.flow, 'version'));
+  // Another machine's record, from the last fetch: no network here.
+  const other = mine.state === 'ok' ? flowRepo.ahead(at, mine.number) : null;
 
   if (mine.state === 'missing') {
     out.push('this machine carries no version stamp, so flow setup never reached its last step. Run flow setup.');
@@ -98,6 +104,8 @@ function attention(at, cwd) {
     out.push(`~/.flow/version holds "${mine.text}", and it holds one changelog entry number and nothing else. Run flow doctor.`);
   } else if (newest !== null && mine.number > newest) {
     out.push(`this machine is at entry ${mine.number} and the changelog stops at ${newest}, so the clone moved backwards. Run flow doctor.`);
+  } else if (other) {
+    out.push(`${other.name} is on changelog entry ${other.number}, and this machine is on ${mine.number}, so flow sync waits. Run flow up in a terminal.`);
   } else if (newest !== null && mine.number < newest) {
     out.push(`this machine is at changelog entry ${mine.number}, and ${newest} is the newest. Run flow up in a terminal to catch up.`);
   }
@@ -128,6 +136,15 @@ function real(p) {
   }
 }
 
+/** Whether `cwd` sits in a folder `"setupReminderSkip"` lists, or below one. */
+function skipped(at, cwd) {
+  const here = real(cwd);
+  return [].concat(settings.readGlobal().setupReminderSkip || [])
+    .filter((entry) => typeof entry === 'string')
+    .map((entry) => real(entry.replace(/^~(?=\/|$)/, at.base)))
+    .some((dir) => here === dir || here.startsWith(dir + path.sep));
+}
+
 /**
  * The line suggesting `flow setup project`, or null.
  *
@@ -137,22 +154,32 @@ function real(p) {
  * line off, and `"setupReminderSkip"` lists folders it never shows in, each
  * with everything below it. `flow settings` writes both.
  *
+ * In a project already set up, the same command folds in the Claude Code
+ * memory this machine kept for it from before Flow, which a project set up on
+ * another machine never had read. That line is the second case here.
+ *
  * It goes out as `systemMessage`, which Claude Code shows the user, because
  * the agent has nothing to do about it.
  */
 function setupReminder(at, cwd) {
-  if (!settings.prints('setupReminder') || projectRoot(cwd, at)) return null;
+  if (!settings.prints('setupReminder') || skipped(at, cwd)) return null;
+  const root = projectRoot(cwd, at);
+  if (root) {
+    if (version.applied(path.join(root, '.flow', 'version')).state !== 'ok') return null;
+    const memory = path.join(skills.configDir(), 'projects', root.replace(/[^A-Za-z0-9]/g, '-'), 'memory');
+    let held = [];
+    try {
+      held = fs.readdirSync(memory);
+    } catch {
+      // No memory for this project on this machine.
+    }
+    return held.length ? 'Flow: old Claude Code memory here. Run flow setup project to fold it in.' : null;
+  }
+
   const git = spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd, encoding: 'utf8' });
   if (git.status !== 0) return null;
   const repo = real(git.stdout.trim());
   if (repo === real(at.base) || repo === real(at.flow)) return null;
-
-  const here = real(cwd);
-  const skip = [].concat(settings.readGlobal().setupReminderSkip || [])
-    .filter((entry) => typeof entry === 'string')
-    .map((entry) => real(entry.replace(/^~(?=\/|$)/, at.base)));
-  if (skip.some((dir) => here === dir || here.startsWith(dir + path.sep))) return null;
-
   return 'Flow: not set up here. Run flow setup project to add it, or flow settings off setupReminder to stop this.';
 }
 
@@ -177,7 +204,7 @@ function relink(at, cwd) {
  * current. `"skillsAutoUpdate": false` is the key that stops the pull.
  */
 function startPull(at) {
-  if (!update.due(at)) return;
+  if (!update.due(at) && !flowRepo.fetchDue(at)) return;
   const child = spawn(process.execPath, [path.join(__dirname, 'skills-pull.js')], {
     detached: true,
     stdio: 'ignore',

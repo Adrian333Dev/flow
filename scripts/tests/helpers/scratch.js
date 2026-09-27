@@ -33,6 +33,11 @@ const SCRATCH = path.join(REPO, 'tmp', 'tests');
 // repositories itself and points this at them.
 process.env.FLOW_GIT_BASE = process.env.FLOW_GIT_BASE || `${path.join(SCRATCH, 'no-remote')}${path.sep}`;
 
+// The same for the Flow home's repository, which is otherwise found and made
+// on the signed-in GitHub account through gh. A test that installs points
+// this at a bare repository of its own, `bareRepo()` below.
+process.env.FLOW_HOME_REMOTE = process.env.FLOW_HOME_REMOTE || path.join(SCRATCH, 'no-remote', 'flow-home.git');
+
 /** A fresh empty project folder, already in Flow. `name` keeps tests apart. */
 function project(name) {
   const dir = path.join(SCRATCH, name);
@@ -116,7 +121,7 @@ function gitRepo(dir, files) {
 
 /**
  * An empty bare repository standing in for the GitHub one `~/.flow/` lives
- * in, for `flow install --repo`. Kept outside the test's own folder, so a test
+ * in, named to `flow install` through `FLOW_HOME_REMOTE`. Kept outside the test's own folder, so a test
  * counting what landed there counts only the install.
  */
 function bareRepo(name) {
@@ -160,9 +165,9 @@ function run(script, args = [], options = {}) {
   return { code: result.status, stdout: result.stdout || '', stderr: result.stderr || '' };
 }
 
-/** `flow` against a scratch project, with the root override set. */
-function flow(dir, args) {
-  const env = { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: path.join(dir, 'flow-home') };
+/** `flow` against a scratch project, with the root override set, and `extra` added to its environment. */
+function flow(dir, args, extra = {}) {
+  const env = { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: path.join(dir, 'flow-home'), ...extra };
   return run('flow/flow.js', args, { cwd: dir, env });
 }
 

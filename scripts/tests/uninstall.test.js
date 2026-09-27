@@ -32,7 +32,7 @@ function machine(name) {
   const root = path.join(dir, 'root');
   const at = folders(root);
 
-  const made = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone', '--repo', bareRepo(path.basename(dir))]);
+  const made = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
   assert.strictEqual(made.code, 0, made.stderr);
   setupMachine(root);
 

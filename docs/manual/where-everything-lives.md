@@ -89,7 +89,7 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 
 The folder belongs to no one tool. Claude Code reaches it through an import and a link.
 
-- **`AGENTS.md`**: the rules every session loads, as a link to `~/.flow/AGENTS.md`. The link is there so `flow sync` carries your rules to your other machine with the rest of `~/.flow/`. `flow setup` makes it.
+- **`AGENTS.md`**: the rules every session loads, as a link to `~/.flow/AGENTS.md`. The link is there so `flow sync` carries your rules to your other machines with the rest of `~/.flow/`. `flow setup` makes it.
 - **`skills/flow/`**: every Flow skill switched on, one symlink each, named for the skill with no group folder. They sit inside a folder of their own because of the file beside them, `.claude-plugin/plugin.json`, which holds the one word `flow`. Claude Code offers each skill as `flow:<name>`, so you type `/flow:groundwork`. `flow install` copies the manifest and makes the links. The 2 skills in `skills/dev/` start with no link, and `flow skills on <name> --machine` adds one.
 
 `skills/` may also hold skills from other tools. `flow install` touches only `flow/`.
@@ -99,7 +99,7 @@ The folder belongs to no one tool. Claude Code reaches it through an import and 
 - **`CLAUDE.md`**: one line, `@~/.agents/AGENTS.md`. Claude Code never reads anything under `~/.agents/` by itself, so the `@` line pulls the rules in. `flow setup` writes it in place of what it held, after moving anything worth keeping into the rule file.
 - **`settings.json`**: Claude Code's settings. `flow install` never writes it. `flow setup` merges Flow's hooks and permissions into it. [Settings](settings.md) explains every key.
 - **`skills/flow`**: a symlink to `~/.agents/skills/flow/`. Claude Code never reads `~/.agents/`, so this link is how it finds the same skills. `flow install` makes it.
-- **`skills/<name>`**: a symlink for each skill from a skill repository or `~/.flow/private-skills/` switched on for the whole machine. `flow skills on --machine` or `--global` makes it, and so does the next session start on your other machine.
+- **`skills/<name>`**: a symlink for each skill from a skill repository or `~/.flow/private-skills/` switched on for the whole machine. `flow skills on --machine` or `--global` makes it, and so does the next session start on your other machines.
 - **`agents/<file>.md`**: one symlink per subagent definition, such as `haiku-worker.md`. `flow install` makes them.
 - **`rules/<file>.md`**: one symlink per rules file. `flow install` makes them.
 - **`projects/`**: every session's transcript. Claude Code writes it, and `flow audit` reads it.
@@ -121,6 +121,8 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 - **`history.jsonl`**: one JSON line per change Flow made to this machine: a clone, a pull, a skill switched, an install, a setup, a migration applied or a restore. `flow skills`, `flow install`, `apply-migration.js`, `flow restore` and the background pull write it.
 - **`skills-update.json`**: what the last background pull of each skill repository found, such as the skills a fetch left waiting. `skills-pull.js` writes it and the session check prints it, and it is gone whenever there is nothing to say.
 - **`version`**: one line, the number of the newest `CHANGELOG.md` entry this machine has applied. A `flow` command refuses while it is missing, since that means `flow setup` never finished.
+- **`machines/<name>.json`**: one record per machine sharing this Flow home, such as `{ "name": "laptop-mzpq", "joined": "2026-09-27", "flowVersion": 12 }`. `flowVersion` is the entry that machine is on. `flow setup finish` and `flow up finish` write this machine's, and `flow sync` refuses while another machine's is higher. [`flow sync`](reference.md#flow-sync) has the whole of it.
+- **`.gitignore`**: what stays on this machine. `flow install` rewrites it every run, and its first line, `# What belongs to this machine alone.`, is how the install tells a Flow home from another repository.
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering. Sessions append to it.
 - **`study-cases/<issue>/<date>-<slug>.md`**: one file per recorded failure, filed under the name of the failure. Sessions write them through `flow cases new`.
 - **`scorecards/<session>.jsonl`**: one file per session. `rule-check.js` adds a line for every rule check that ran, and `instructions-loaded.js` a line for every instruction file that loaded. `flow scorecard` reads them.
@@ -181,4 +183,4 @@ Flow sessions write into these and own none of them.
 
 ## What stays on one machine
 
-These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/history.jsonl`, `~/.flow/install.log`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/migrate-prompt.md`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version` and `~/.flow/skills-update.json`. `flow sync` carries everything else under `~/.flow/` to your other machine, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md` and `~/.flow/migrations/` included. Your other machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed, so it travels with the repository.
+These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/history.jsonl`, `~/.flow/install.log`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/migrate-prompt.md`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version` and `~/.flow/skills-update.json`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/` and `~/.flow/machines/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed, so it travels with the repository.

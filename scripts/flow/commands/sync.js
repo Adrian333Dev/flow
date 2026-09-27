@@ -1,10 +1,10 @@
 'use strict';
 /**
- * `flow sync`: bring the other machine's `~/.flow/` down, then send this one
- * up.
+ * `flow sync`: save this machine's `~/.flow/`, bring the other machines' work
+ * down, and send the result up.
  *
  * `~/.flow/` is one private git repository, and that repository is the whole
- * of how Flow reaches a second machine: the rules, the workflow notes, the
+ * of how Flow reaches another machine: the rules, the workflow notes, the
  * study cases, the private skills, the wiki and the tickets that belong to no
  * project all live in it already. A project travels through its own
  * repository, and Flow leaves it alone.
@@ -13,38 +13,42 @@
  * so nothing downloads when a session opens and nothing uploads when a file
  * changes. Both of those are parked in `backlog.md`.
  *
- * Down before up, because a pull that is not a fast-forward stops everything:
- * the 2 machines have diverged, and a commit made here first would only add a
- * merge to sort out by hand.
+ * A machine on a lower changelog entry than another machine's record syncs
+ * nothing until `flow up` brings it level: each machine migrates its own copy,
+ * and a copy in the old shape must never meet one in the new.
  *
  * A pull can bring skill lines written on the other machine, so the links
  * are made to match right after it, the way a session start would.
  *
- * `lib/flow-repo.js` holds the repository, the commit named for the machine,
- * and the list of what never travels.
+ * `lib/flow-repo.js` holds the repository, the machine records, the commit
+ * named for the machine, and the list of what never travels.
  */
 
+const path = require('path');
 const { out } = require('../lib/cli');
 const machine = require('../lib/machine');
 const repo = require('../lib/flow-repo');
 const links = require('../lib/skill-links');
+const version = require('../lib/version');
 
 const actions = {};
 
 actions.sync = {
   section: 'setup',
-  summary: 'bring ~/.flow/ down from the other machine, then send this one up',
+  summary: 'save ~/.flow/, bring the other machines\' work down, then send it up',
   flags: { root: { arg: '<dir>' } },
   run({ flags }) {
     const at = machine.folders(flags.root);
-    const came = repo.load(at);
-    out(came ? `came down: ${came}` : 'nothing new came down.');
+    const mine = version.applied(path.join(at.flow, 'version'));
+    const { came, sent, pushed } = repo.sync(at, mine.state === 'ok' ? mine.number : 0);
+    out(came ? `came down: ${came} file${came === 1 ? '' : 's'}` : 'nothing new came down.');
     if (came) {
       const done = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
       if (done.changed.length) out(done.changed.join('\n'));
     }
-    const sent = repo.save(at);
-    out(sent ? `went up: ${sent}` : 'nothing changed here, so nothing went up.');
+    if (sent) out(`went up: ${sent}`);
+    else if (pushed) out(`went up: ${pushed} commit${pushed === 1 ? '' : 's'} an earlier sync could not send`);
+    else out('nothing changed here, so nothing went up.');
     return 0;
   },
 };

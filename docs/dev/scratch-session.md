@@ -76,7 +76,7 @@ tmp/try/setup-1/
 - **`empty`**, the default: signed in to Claude Code, and nothing else. This is the case for testing a first install on a computer that has never had Claude Code set up.
 - **A saved computer's name**: a copy of a real computer, made earlier with `save-computer.sh`. This is the case for testing `flow setup` on a computer that already has its own setup: plugins, skills, rule files, settings.
 
-Every case starts at `install.sh`, the script behind Flow's one pasted install line, the way a new user's first step does. It runs from this checkout, with `--use` pointing at it, so the test covers edits you have not committed. It is the real install: util, the toolbox and the skill repositories are cloned from GitHub into the run's `~/.flow/repos/`, and util links its own names. `--drafts` is added, for the reason [Why it is not an install](#why-it-is-not-an-install) gives, and `--repo` answers the repository question with the run's `remote.git`.
+Every case starts at `install.sh`, the script behind Flow's one pasted install line, the way a new user's first step does. It runs from this checkout, with `--use` pointing at it, so the test covers edits you have not committed. It is the real install: util, the toolbox and the skill repositories are cloned from GitHub into the run's `~/.flow/repos/`, and util links its own names. `--drafts` is added, for the reason [Why it is not an install](#why-it-is-not-an-install) gives, and `FLOW_HOME_REMOTE` points the install at the run's `remote.git` in place of GitHub.
 
 ## Saving a computer
 
@@ -131,7 +131,7 @@ Four files from your real home are read. Each one answers a question the session
 
 **Named keys are copied from `~/.claude.json`, never the whole file.** Your `~/.claude.json` also carries every project you have opened, every connected MCP server, and every skill's usage count. A session pretending to be a new computer should see none of it, so `try.sh` names the keys it takes and ignores the rest. A saved computer is the exception: it carries its own whole copy, since that is the computer being tested.
 
-**`--repo` keeps GitHub out of it.** The install asks for the private repository `~/.flow/` lives in, and pressing Enter would make a real one on your GitHub account every time a run is built. The run's `remote.git` stands in for it, and `gh`'s login never enters the sandbox.
+**`FLOW_HOME_REMOTE` keeps GitHub out of it.** The install finds the private repository `~/.flow/` lives in, `flow-home` on your GitHub account, through `gh`, and makes it where it is missing. The run's `remote.git` stands in for it, and `gh`'s login never enters the sandbox. The variable exists for this script and the tests alone. It is never a way to give Flow another repository.
 
 **`--drafts` links the skills in `skills/drafts/`**, which a real install skips. A draft is unreachable anywhere else, so every run passes the flag.
 

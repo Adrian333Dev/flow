@@ -17,7 +17,7 @@ const version = require('../flow/lib/version');
 function installed(name, { whole }) {
   const dir = project(name);
   const root = path.join(dir, 'root');
-  const made = flow(dir, ['install', '--root', root, '--no-clone', '--repo', bareRepo(name)]);
+  const made = flow(dir, ['install', '--root', root, '--no-clone'], { FLOW_HOME_REMOTE: bareRepo(name) });
   assert.strictEqual(made.code, 0, made.stderr);
   if (whole) {
     const flowHome = path.join(root, '.flow');
@@ -78,6 +78,10 @@ test('setup finish stamps the version and ends the run, and only a running setup
   assert.strictEqual(done.code, 0, done.stderr);
   assert.strictEqual(fs.readFileSync(path.join(m.flowHome, 'version'), 'utf8'), `${version.newest(REPO)}\n`);
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
+  const records = fs.readdirSync(path.join(m.flowHome, 'machines'));
+  assert.strictEqual(records.length, 1, 'the record the other machines read');
+  const record = JSON.parse(fs.readFileSync(path.join(m.flowHome, 'machines', records[0]), 'utf8'));
+  assert.strictEqual(record.flowVersion, version.newest(REPO));
 
   const after = flow(m.dir, ['setup', '--root', m.root]);
   assert.match(after.stdout, /Flow is already set up on this machine/);
@@ -148,4 +152,29 @@ test('setup project finish stamps .flow/version, and a machine run blocks a proj
   const other = projectCase('setup-project-busy');
   fs.writeFileSync(path.join(other.flowHome, 'run.json'), JSON.stringify({ type: 'setup-machine', step: 2 }));
   assert.match(other.setup().stderr, /says a setup-machine run stopped part way/);
+});
+
+// A project set up on another machine arrives through its own repository,
+// stamped. This machine's Claude Code memory for it was never read.
+test('setup project in a project set up already folds in this machine\'s old memory, and leaves the stamp alone', () => {
+  const m = projectCase('setup-project-memory');
+  m.setup();
+  m.setup('finish');
+  const stamp = fs.readFileSync(path.join(m.proj, '.flow', 'version'), 'utf8');
+
+  const memory = path.join(m.root, '.claude', 'projects', fs.realpathSync(m.proj).replace(/[^A-Za-z0-9]/g, '-'), 'memory');
+  fs.mkdirSync(memory, { recursive: true });
+  assert.match(m.setup().stdout, /is already set up, so there is nothing more to do/, 'an empty memory folder holds nothing to fold in');
+
+  fs.writeFileSync(path.join(memory, 'MEMORY.md'), '- the deploy runs from main\n');
+  assert.match(m.setup('check').stdout, /ready: .* is set up, and this machine's old memory for it can be folded in/);
+  const started = m.setup();
+  assert.match(started.stdout, /^Folding this machine's old memory into .* runs in its own session\./m);
+  assert.match(started.stdout, /'Fold this machine'\\''s old memory into this project\.'$/m);
+  assert.strictEqual(JSON.parse(fs.readFileSync(path.join(m.flowHome, 'run.json'), 'utf8')).memoryOnly, true);
+
+  const done = m.setup('finish');
+  assert.match(done.stdout, /^folded in: this machine's old memory for /);
+  assert.strictEqual(fs.readFileSync(path.join(m.proj, '.flow', 'version'), 'utf8'), stamp, 'flow up moves the stamp, never this');
+  assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
 });

@@ -74,7 +74,7 @@ Every line of every rule file found goes in 1 of 3 places:
 - **How the user wants Claude to work, and they would still want it had Flow been there from the start** → `### Your preferences`. `Never use em dashes` passes. `Always show me a diff before you edit` fails: it works around a missing workflow.
 - **True of the user, and it changes what Claude does** → `### About you`. `Colour-blind, so never tell things apart by red and green alone.` Never a skill level, never what they don't know, never what they are working on, and never what every Flow user shares, such as dictating by voice.
 
-Anything else is dropped too. Both boxes start empty, and most machines leave `### About you` that way. Rewrite each kept line in plain words, one rule per line.
+Anything else is dropped too. Both boxes start empty, and most machines leave `### About you` that way, unless `## When ~/.flow/AGENTS.md was already there` fills them. Rewrite each kept line in plain words, one rule per line.
 
 ## The files it writes
 
@@ -91,6 +91,15 @@ Anything else is dropped too. Both boxes start empty, and most machines leave `#
 - **`~/.agents/.skill-lock.json`**, where a takeover changes it.
 
 Build JSON with `node`, never by hand. A settings file that does not parse, or a hook that points at a missing script, is a fault to fix before step 5.
+
+## When `~/.flow/AGENTS.md` was already there
+
+It was there before this run wrote anything: `flow install` brought it down from the user's other machine, with the rest of `~/.flow/`. The user already approved its `## The user` and `## Preferences` there.
+
+- **The boxes start with those 2 sections**: `## Preferences` in `### Your preferences`, `## The user` in `### About you`. A harvested line joins a box only where it says something the arrived text does not.
+- **`files/…/.flow/AGENTS.md`**: `home/AGENTS.md` with the 2 sections from the boxes, as on any machine.
+- **`~/.flow/settings.json` arrived too.** A green line's `false` goes into that file, and every other key in it stays.
+- **A skill copied in by hand whose name is already in `~/.flow/private-skills/`** is the same skill. Its lines: delete the copy, then `flow skills on <name> --machine`. No move.
 
 ## The second check
 

@@ -33,9 +33,12 @@
  * copy of every path it is about to make, as that path was before Flow.
  * `flow restore machine` puts all of them back, `~/.local/bin/flow` included.
  *
- * At a terminal it asks 2 questions, this machine's name and the GitHub
- * repository `~/.flow/` lives in, and `--repo <address>` answers the second.
- * `ask()` below says why an install with no repository stops before setup.
+ * At a terminal it asks one question, this machine's name. Then it finds the
+ * Flow home's repository, `<login>/flow-home` on GitHub, signing `gh` in
+ * first where it is not. On every machine after the first, the repository
+ * holds the other machine's `~/.flow/`, and it comes down before setup starts,
+ * at the release the Flow home is on. `connect()` below holds all of it, and
+ * says why an install with no repository stops before setup.
  *
  * The screen gets a summary and every line that changed or failed. The whole
  * run goes to `~/.flow/install.log`.
@@ -70,6 +73,7 @@ const originals = require('../lib/originals');
 const repos = require('../lib/repos');
 const links = require('../lib/skill-links');
 const skills = require('../lib/skills');
+const version = require('../lib/version');
 const setup = require('./setup');
 
 const show = machine.shorten;
@@ -83,7 +87,6 @@ actions.install = {
     root: { arg: '<dir>' },
     'no-bin': { bool: true },
     'no-clone': { bool: true },
-    repo: { arg: '<address>' },
     drafts: { bool: true },
   },
   run({ flags }) {
@@ -204,8 +207,15 @@ actions.install = {
     done.push(...applied.changed);
     done.push(...applied.problems);
 
-    const asked = ask(at, flags.repo);
+    const newest = version.newest(clone);
+    const asked = connect(at, newest);
     done.push(...asked.lines);
+    // Another machine's settings came down with its sources and its skills.
+    if (asked.joined) {
+      if (!flags['no-clone']) done.push(...cloneMissing(at));
+      const joined = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
+      done.push(...joined.changed, ...joined.problems);
+    }
     history.record(at.flow, { type: 'install', clone });
 
     // Every line goes to the log. The screen gets the ones that say something
@@ -225,6 +235,7 @@ actions.install = {
       out(`\n${show(bin)} is not on your PATH, so flow and util do not run by name yet. Add it, then open a new terminal.`);
     }
 
+    if (asked.switchTo) return switchAndRerun(clone, flowClone, asked.switchTo, newest);
     if (!asked.ok) return 1;
     if (setUp) {
       out('\nFlow is already set up on this machine, so there is nothing more to do.');
@@ -311,19 +322,20 @@ function suggestName() {
 }
 
 /**
- * The 2 questions: this machine's name, and the repository `~/.flow/` lives
- * in. Returns the lines to print, and whether the repository is in place.
+ * This machine's name, asked once, then the Flow home's repository: found,
+ * connected and, on every machine after the first, brought down.
  *
  * The repository has no skip. `~/.flow/` holds the rules, the notes and the
- * study cases, and the repository is both their backup and how a second
- * machine gets them, so an install without one is not finished. With no
- * terminal and no `--repo`, the install stops here, every link already made,
- * and setup does not start.
+ * study cases, and the repository is both their backup and how another
+ * machine gets them, so an install without one is not finished and setup
+ * does not start. It is always `<login>/flow-home`, found through `gh`, so
+ * nothing about it is asked. A repository already set is kept.
  *
- * A repository that is already there is kept without asking, so running
- * install again asks nothing.
+ * Returns the lines to print and whether the repository is in place, plus
+ * `joined` once another machine's files came down, and `switchTo` where they
+ * wait for this clone to move to the release they are on.
  */
-function ask(at, repo) {
+function connect(at, newest) {
   const lines = [];
   const terminal = confirm.hasTerminal();
 
@@ -339,68 +351,100 @@ function ask(at, repo) {
     lines.push(set.ok ? `named: this machine is ${name}` : `could not save the name: ${set.err}`);
   }
 
+  const stop = (why) => {
+    lines.push(`stopped: ${why}`);
+    return { lines, ok: false };
+  };
+  const github = !process.env.FLOW_HOME_REMOTE;
+  if (github) {
+    const why = signIn(terminal);
+    if (why) return stop(why);
+  }
+
   const origin = flowRepo.isRepo(at) ? flowRepo.git(at.flow, ['remote', 'get-url', 'origin']) : { ok: false };
-  if (origin.ok && !repo) {
-    lines.push(`kept: ${show(at.flow)} is sent to ${origin.out}`);
+  if (origin.ok) lines.push(`kept: ${show(at.flow)} is sent to ${origin.out}`);
+  else {
+    try {
+      const found = flowRepo.locate();
+      flowRepo.connect(at, found.url);
+      lines.push(`repository: ${found.said}`);
+    } catch (e) {
+      return stop(e.message);
+    }
+  }
+
+  let joined;
+  try {
+    joined = flowRepo.join(at, newest);
+  } catch (e) {
+    return stop(e.message);
+  }
+  if (joined && joined.state === 'version') return { lines, ok: false, switchTo: joined };
+  flowRepo.writeIgnore(at);
+  if (!joined) {
+    try {
+      if (flowRepo.seed(at)) lines.push('started: your Flow home, sent up so your other machines join it');
+    } catch (e) {
+      return stop(e.message);
+    }
     return { lines, ok: true };
   }
-
-  if (repo) {
-    try {
-      lines.push(`repository: ${flowRepo.start(at, repo)}`);
-      return { lines, ok: true };
-    } catch (e) {
-      lines.push(`stopped: ${e.message}`);
-      return { lines, ok: false };
-    }
-  }
-
-  if (!terminal) {
-    lines.push(
-      `stopped: ${show(at.flow)} needs a repository, and there is no terminal here to ask for one.\n` +
-      '  Run flow install from a terminal, or name one: flow install --repo <address>'
-    );
-    return { lines, ok: false };
-  }
-
-  for (;;) {
-    const gh = github();
-    const answer = confirm.ask(
-      `\n${show(at.flow)} holds your rules, notes, study cases and the tickets that belong to no\n` +
-      'project. It lives in one private GitHub repository, which keeps a copy of it and is\n' +
-      'how a second machine gets it.\n' +
-      (gh === 'ready' ? '  Enter      make one now, private, with gh\n' : '') +
-      (gh === 'signed-out' ? '  Enter      sign in to GitHub with gh, then make one, private\n' : '') +
-      (gh === 'missing' ? '  (gh is not installed, so Enter cannot make one: make it on github.com)\n' : '') +
-      '  <address>  use one you already made\n' +
-      'Which: ',
-      'new'
-    );
-    if (answer === 'new' && gh === 'missing') continue;
-    if (answer === 'new' && gh === 'signed-out') {
-      const tty = fs.openSync('/dev/tty', 'r');
-      const login = spawnSync('gh', ['auth', 'login'], { stdio: [tty, 'inherit', 'inherit'] });
-      fs.closeSync(tty);
-      if (login.status !== 0) {
-        out('gh did not sign in. Try again, or give an address.');
-        continue;
-      }
-    }
-    try {
-      lines.push(`repository: ${flowRepo.start(at, answer)}`);
-      lines.push('send it up and bring the other machine\'s down with flow sync');
-      return { lines, ok: true };
-    } catch (e) {
-      out(e.message);
-    }
-  }
+  const from = joined.from.length ? ` from ${joined.from.join(', ')}` : '';
+  lines.push(`joined: ${joined.files} file${joined.files === 1 ? '' : 's'}${from}, your Flow home as your other machine last sent it`);
+  return { lines, ok: true, joined: true };
 }
 
-/** Whether gh can make a repository now: ready, signed-out or missing. */
-function github() {
+/** What a token needs, shown before gh asks for one. */
+const TOKEN_TIP = [
+  '',
+  'Flow keeps your Flow home in a private GitHub repository, through gh, and gh is not signed in.',
+  'Sign in with a token, which works everywhere, WSL included:',
+  '  1. Open github.com/settings/tokens/new, which makes a classic token.',
+  '  2. Tick repo, read:org and gist. Nothing else.',
+  '  3. Generate it and copy it.',
+  '  4. Below, choose "Paste an authentication token", and paste it.',
+  '',
+].join('\n');
+
+/**
+ * Sign gh in where it is not, then point git's own sign-in at it, so a push to
+ * the repository never asks for a password. Returns why it stopped, or null.
+ */
+function signIn(terminal) {
   const status = spawnSync('gh', ['auth', 'status'], { stdio: 'ignore' });
-  if (status.error) return 'missing';
-  return status.status === 0 ? 'ready' : 'signed-out';
+  if (status.error) return 'gh is not installed, and Flow keeps your Flow home on GitHub through it. Install it from cli.github.com, then run flow install again.';
+  if (status.status !== 0) {
+    if (!terminal) return 'gh is not signed in, and there is no terminal here to sign in. Run gh auth login, then flow install again.';
+    out(TOKEN_TIP);
+    const tty = fs.openSync('/dev/tty', 'r');
+    const login = spawnSync('gh', ['auth', 'login', '--hostname', 'github.com', '--git-protocol', 'https'], { stdio: [tty, 'inherit', 'inherit'] });
+    fs.closeSync(tty);
+    if (login.status !== 0) return 'gh did not sign in. Run flow install again to try once more.';
+  }
+  const git = spawnSync('gh', ['auth', 'setup-git'], { encoding: 'utf8' });
+  return git.status === 0 ? null : `gh could not set git up to use its sign-in: ${(git.stderr || '').trim()}`;
+}
+
+/**
+ * Move the clone `install.sh` made to the release the Flow home is on, then
+ * run the install again from it. A clone somebody works in is never moved:
+ * the install stops and says what to do.
+ */
+function switchAndRerun(clone, flowClone, wanted, newest) {
+  const place = `your Flow home is on changelog entry ${wanted.home}, since ${wanted.name} is on it, and this Flow is on ${newest}`;
+  const found = originals.lstat(flowClone);
+  if (found && found.isSymbolicLink()) {
+    out(`stopped: ${place}. Switch ${clone} to v${wanted.home}, then run flow install again.`);
+    return 1;
+  }
+  const why = flowRepo.switchClone(clone, wanted.home);
+  if (why) {
+    out(`stopped: ${place}, and ${why}.`);
+    return 1;
+  }
+  out(`switched: Flow to v${wanted.home}, since ${place}. Installing again from it.\n`);
+  const again = spawnSync(process.execPath, [path.join(clone, 'scripts', 'flow', 'flow.js'), ...process.argv.slice(2)], { stdio: 'inherit' });
+  return again.status === null ? 1 : again.status;
 }
 
 module.exports = actions;

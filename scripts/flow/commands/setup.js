@@ -24,7 +24,9 @@
  * `flow install` calls `start` as its last step. Typed again, it carries on
  * a setup that stopped part way, since `~/.flow/run.json` says how far it got.
  *
- * `flow setup project` does the same for one project, typed inside it. That
+ * `flow setup project` does the same for one project, typed inside it. In a
+ * project already set up, on another machine as a rule, it folds in only the
+ * Claude Code memory this machine kept for it from before Flow. That
  * session is a normal one, not safe mode: it needs Flow's rules and hooks,
  * which the machine's setup put in `~/.claude`. `--setting-sources user` and
  * `--strict-mcp-config` keep everything of the project's out, so nothing in
@@ -217,6 +219,26 @@ function projectTop() {
 const memoryDir = (at, project) =>
   path.join(at.claude, 'projects', project.replace(/[^A-Za-z0-9]/g, '-'), 'memory');
 
+/** Whether a folder holds anything: an empty memory folder has nothing to fold in. */
+function holdsFiles(dir) {
+  try {
+    return fs.readdirSync(dir).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * What a project needs, where `flow setup project` is typed: `setup`, the
+ * whole setup; `memory`, only this machine's old Claude Code memory folded
+ * into a project set up already, which happens when it was set up on another
+ * machine; or null, nothing at all.
+ */
+function projectNeeds(at, project) {
+  if (!project || !fs.existsSync(path.join(project, '.flow', 'version'))) return 'setup';
+  return holdsFiles(memoryDir(at, project)) ? 'memory' : null;
+}
+
 /** Why this project cannot be set up now, as problem lines. Empty means ready. */
 function projectProblems(at, project) {
   const problems = [];
@@ -235,7 +257,8 @@ function projectProblems(at, project) {
 /** Open the project's session, or print the line that opens it. `start` above says why. */
 function startProject(at, clone, rootFlag) {
   const project = projectTop();
-  if (project && fs.existsSync(path.join(project, '.flow', 'version'))) {
+  const needs = projectNeeds(at, project);
+  if (!needs) {
     out(`${show(project)} is already set up, so there is nothing more to do.`);
     return 0;
   }
@@ -246,12 +269,17 @@ function startProject(at, clone, rootFlag) {
 
   const run = readRun(at);
   const memory = memoryDir(at, project);
+  const memoryOnly = run ? Boolean(run.memoryOnly) : needs === 'memory';
   if (!run) {
     const now = new Date();
     const migration = `${originals.place(project)}/${originals.stamp(now, '-')}`;
     const fresh = { started: now.toISOString(), type: 'setup-project', project, memory, migration, step: 0 };
+    if (memoryOnly) fresh.memoryOnly = true;
     fs.writeFileSync(runFile(at), JSON.stringify(fresh, null, 2) + '\n');
   }
+  const task = memoryOnly
+    ? [`Fold this machine's old memory into this project.`, `Carry on folding this machine's old memory into this project.`]
+    : ['Set up this project.', 'Carry on setting up this project.'];
 
   // Flow's rules load from ~/.claude/CLAUDE.md, so the prompt is the step file alone.
   const file = path.join(at.flow, 'setup-prompt.md');
@@ -265,17 +293,18 @@ function startProject(at, clone, rootFlag) {
     ...(fs.existsSync(memory) ? ['--add-dir', memory] : []),
     '--allowedTools', ...PROJECT_ALLOWED,
     '--append-system-prompt-file', file,
-    run ? 'Carry on setting up this project.' : 'Set up this project.',
+    run ? task[1] : task[0],
   ];
   const line = `cd ${quote(project)} && ${['claude', ...args].map(quote).join(' ')}`;
 
+  const what = memoryOnly ? `Folding this machine's old memory into ${show(project)}` : `Setting up ${show(project)}`;
   if (rootFlag || !process.stdout.isTTY || !confirm.hasTerminal()) {
-    out(`Setting up ${show(project)} runs in its own session. Start it from a terminal:\n\n  ${line}`);
+    out(`${what} runs in its own session. Start it from a terminal:\n\n  ${line}`);
     return 0;
   }
   out(run
     ? 'Carrying on the setup that stopped part way. Claude Code opens now.\n'
-    : `Setting up ${show(project)}. Claude Code opens now, reads the project,\n` +
+    : `${what}. Claude Code opens now, reads ${memoryOnly ? 'the memory' : 'the project'},\n` +
       'and writes one form for you to check before anything changes.\n');
   const tty = fs.openSync('/dev/tty', 'r');
   const ran = spawnSync('claude', args, { cwd: project, stdio: [tty, 'inherit', 'inherit'] });
@@ -290,13 +319,16 @@ function startProject(at, clone, rootFlag) {
 /** `flow setup project check`: exit 0 where the project can be set up. */
 function checkProject(at) {
   const project = projectTop();
-  if (project && fs.existsSync(path.join(project, '.flow', 'version'))) {
+  const needs = projectNeeds(at, project);
+  if (!needs) {
     out(`${show(project)} is already set up`);
     return 1;
   }
   const problems = projectProblems(at, project);
   if (!problems.length) {
-    out(`ready: ${show(project)} can be set up`);
+    out(needs === 'memory'
+      ? `ready: ${show(project)} is set up, and this machine's old memory for it can be folded in`
+      : `ready: ${show(project)} can be set up`);
     return 0;
   }
   out(`not ready:\n${problems.map((p) => `  ${p}`).join('\n')}`);
@@ -311,6 +343,12 @@ function finishProject(at, clone) {
   const run = readRun(at);
   if (!run || run.type !== 'setup-project') {
     throw new FlowError(`no project setup is running: ${show(runFile(at))} does not name one.`);
+  }
+  // The project was set up already, and its stamp is flow up's to move.
+  if (run.memoryOnly) {
+    fs.rmSync(runFile(at));
+    out(`folded in: this machine's old memory for ${show(run.project)}.`);
+    return 0;
   }
   const newest = version.newest(clone);
   if (newest === null) throw new FlowError('CHANGELOG.md holds no entry, so there is no version to stamp.');
@@ -359,6 +397,8 @@ actions.finish = {
     const newest = version.newest(cloneRoot());
     if (newest === null) throw new FlowError('CHANGELOG.md holds no entry, so there is no version to stamp.');
     fs.writeFileSync(path.join(at.flow, 'version'), `${newest}\n`);
+    // The record the other machines read, sent up by the next flow sync.
+    flowRepo.writeRecord(at, newest);
     fs.rmSync(runFile(at));
     out(`stamped: ${show(path.join(at.flow, 'version'))} is ${newest}. This machine is set up.`);
     return 0;

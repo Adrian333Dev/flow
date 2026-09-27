@@ -27,11 +27,11 @@ main() {
     shift
   done
 
-  for program in git node claude; do
+  for program in git node claude gh; do
     command -v "$program" >/dev/null || missing+=" $program"
   done
   if [ -n "$missing" ]; then
-    echo "Flow needs git, node and claude, and this machine has no:$missing" >&2
+    echo "Flow needs git, node, claude and gh, and this machine has no:$missing" >&2
     exit 1
   fi
 

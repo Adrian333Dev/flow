@@ -30,7 +30,7 @@ function machine(name) {
   fs.mkdirSync(flowHome, { recursive: true });
   fs.writeFileSync(path.join(flowHome, 'settings.json'), JSON.stringify({ sources: [] }));
 
-  const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone', '--repo', bareRepo(path.basename(dir))]);
+  const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
   assert.strictEqual(installed.code, 0, installed.stderr);
 
   // Install is half a machine. The rule file and the line importing it come
@@ -199,7 +199,7 @@ test('--prereq checks what Flow calls and nothing Flow installs', () => {
 
   const ok = at(utilStub(dir));
   assert.strictEqual(ok.code, 0, ok.stderr);
-  assert.match(ok.stdout, /ok {4}programs: node, git, claude all resolve/);
+  assert.match(ok.stdout, /ok {4}programs: node, git, claude, gh all resolve/);
   assert.ok(!/util|skills|hooks|settings|version/.test(ok.stdout), `an install check ran anyway:\n${ok.stdout}`);
 
   const broken = at(dir, { PATH: path.join(dir, 'nothing-here') });

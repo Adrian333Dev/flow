@@ -183,3 +183,39 @@ test('a git repository with no .flow gets the setup line, shown to the user alon
   fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ setupReminder: false }));
   assert.strictEqual(check({ ...at, project: shop }).stdout, '', 'off everywhere');
 });
+
+// The Flow home's last fetch holds every machine's record, so the hook reads
+// another machine moving ahead without touching the network.
+test('a machine another machine moved ahead of says flow sync waits for flow up', () => {
+  const repo = require('../flow/lib/flow-repo');
+  const at = place('session-ahead', { machine: NEWEST, project: NEWEST });
+  const remote = path.join(SCRATCH, 'session-ahead', 'remote.git');
+  spawnSync('git', ['init', '-q', '--bare', '-b', 'main', remote]);
+
+  const other = { flow: path.join(SCRATCH, 'session-ahead', 'other-flow'), base: path.join(SCRATCH, 'session-ahead') };
+  fs.mkdirSync(other.flow, { recursive: true });
+  repo.connect(other, remote);
+  repo.git(other.flow, ['config', 'util.machine', 'laptop']);
+  repo.writeIgnore(other);
+  repo.writeRecord(other, NEWEST + 1);
+  repo.sync(other, NEWEST + 1);
+
+  const mine = { flow: at.home, base: at.user };
+  repo.connect(mine, remote);
+  assert.strictEqual(check(at).stdout, '', 'nothing fetched yet, so nothing known');
+  repo.fetch(mine);
+  assert.strictEqual(check(at).stdout, `Flow: laptop is on changelog entry ${NEWEST + 1}, and this machine is on ${NEWEST}, so flow sync waits. Run flow up in a terminal.\n`);
+});
+
+test('a project set up elsewhere, with old Claude Code memory on this machine, gets a line to fold it in', () => {
+  const at = place('session-memory', { machine: NEWEST, project: NEWEST });
+  const memory = path.join(at.user, '.claude', 'projects', at.project.replace(/[^A-Za-z0-9]/g, '-'), 'memory');
+  fs.mkdirSync(memory, { recursive: true });
+  assert.strictEqual(check(at).stdout, '', 'an empty folder holds nothing');
+
+  fs.writeFileSync(path.join(memory, 'MEMORY.md'), '- the deploy runs from main\n');
+  assert.deepStrictEqual(JSON.parse(check(at).stdout), { systemMessage: 'Flow: old Claude Code memory here. Run flow setup project to fold it in.' });
+
+  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ setupReminder: false }));
+  assert.strictEqual(check(at).stdout, '', 'the same switch as the setup line');
+});

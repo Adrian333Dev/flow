@@ -276,9 +276,9 @@ if [ "$built" = 0 ]; then
     cp -a "$computers/$case/." "$scratch/"
   fi
 
-  # The install asks for the repository ~/.flow/ lives in, and --repo answers
-  # with this one. A real one would put a new private repository on GitHub
-  # every time a run is built.
+  # The install finds the Flow home's repository, flow-home on GitHub through
+  # gh, and FLOW_HOME_REMOTE points it at this one instead. The real one would
+  # be the user's own, and gh's login never enters the sandbox.
   git init --quiet --bare "$run/remote.git"
 
   # A project is built from a seed, a folder under lab/scripts/seeds/: files/
@@ -348,7 +348,7 @@ fi
 # The session opens once the install ends. A run reopened starts the session
 # alone.
 if [ "$built" = 0 ]; then
-  inside=(bash -c 'bash "$1" --use "$2" --drafts --repo "$3" && exec "$4"' install
+  inside=(bash -c 'FLOW_HOME_REMOTE="$3" bash "$1" --use "$2" --drafts && exec "$4"' install
     "$root/install.sh" "$root" "$run/remote.git" "$program")
 else
   inside=("$program")

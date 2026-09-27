@@ -12,7 +12,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { project, run, flow, gitRepo, bareRepo, skillFile, setUp, REPO } = require('./helpers/scratch');
+const { project, run, flow, gitRepo, bareRepo, skillFile, setUp, pathWith, REPO } = require('./helpers/scratch');
 
 const linkTarget = (p) => fs.readlinkSync(p);
 
@@ -42,11 +42,11 @@ test('a skill in drafts/ does not install', () => {
   fs.writeFileSync(path.join(draft, 'SKILL.md'),
     '---\nname: test-only-draft\ndescription: A draft written by the test suite.\n---\n');
   try {
-    flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin']);
+    flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
     assert.ok(!fs.existsSync(at.skill('test-only-draft')), 'a draft is skipped by the linker');
     assert.ok(fs.existsSync(at.skill('groundwork')), 'every other group still links');
 
-    flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin', '--drafts']);
+    flow(dir, ['install', '--root', root, '--no-bin', '--drafts'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
     assert.ok(fs.existsSync(at.skill('test-only-draft')),
       '--drafts links it, which is what the scratch session passes');
   } finally {
@@ -59,7 +59,7 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   const root = path.join(dir, 'root');
   const at = paths(root);
 
-  const first = flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin']);
+  const first = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.strictEqual(first.code, 0, first.stderr);
 
   // The plugin folder is real and lives in ~/.agents, where Codex reads it.
@@ -113,7 +113,7 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   // A skill renamed in the clone leaves a link pointing at nothing.
   fs.symlinkSync(path.join(REPO, 'skills', 'phases', 'write-tickets'), at.skill('write-tickets'));
 
-  const second = flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin']);
+  const second = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.strictEqual(second.code, 0, second.stderr);
   assert.match(second.stdout, /unlinked \(gone\): .*\.agents\/skills\/flow\/skills\/write-tickets/);
   assert.ok(fs.existsSync(at.skill('groundwork')), 'still linked after a re-run');
@@ -129,7 +129,7 @@ test('install writes the machine as it was before Flow, once', () => {
   fs.mkdirSync(path.join(at.claude, 'agents'), { recursive: true });
   fs.writeFileSync(path.join(at.claude, 'agents', 'mine.md'), 'my own agent\n');
 
-  const first = flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin']);
+  const first = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.strictEqual(first.code, 0, first.stderr);
   assert.match(first.stdout, /wrote: .*originals\/machine, this machine as it was before Flow/);
 
@@ -148,7 +148,7 @@ test('install writes the machine as it was before Flow, once', () => {
 
   // The second run finds Flow's own links in place. Recording them would make
   // Flow the state to go back to.
-  const second = flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin']);
+  const second = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.strictEqual(second.code, 0, second.stderr);
   assert.doesNotMatch(second.stdout, /this machine as it was before Flow/);
   assert.deepStrictEqual(JSON.parse(fs.readFileSync(file, 'utf8')), manifest, 'nothing was added');
@@ -159,7 +159,7 @@ test('a name that has left the BIN map is unlinked, and another tool keeps its o
   const root = path.join(dir, 'root');
   const bin = path.join(root, '.local', 'bin');
 
-  assert.strictEqual(flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir))]).code, 0);
+  assert.strictEqual(flow(dir, ['install', '--root', root], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) }).code, 0);
   assert.strictEqual(linkTarget(path.join(bin, 'flow')), path.join(REPO, 'scripts', 'flow', 'flow.js'));
   assert.strictEqual(linkTarget(path.join(bin, 'fw')), path.join(REPO, 'scripts', 'flow', 'flow.js'));
 
@@ -168,7 +168,7 @@ test('a name that has left the BIN map is unlinked, and another tool keeps its o
   fs.symlinkSync(path.join(REPO, 'scripts', 'flow', 'flow.js'), path.join(bin, 'gsave'));
   fs.symlinkSync(path.join(dir, 'other-tool.js'), path.join(bin, 'other'));
 
-  const again = flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir))]);
+  const again = flow(dir, ['install', '--root', root], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.match(again.stdout, /unlinked \(renamed\): .*bin\/gsave/);
   assert.ok(!fs.existsSync(path.join(bin, 'gsave')), 'the stale name is gone');
   assert.ok(fs.lstatSync(path.join(bin, 'other')).isSymbolicLink(), 'a link into anywhere else is left alone');
@@ -194,7 +194,7 @@ test('install never touches the rule file or either way in to it', () => {
   fs.mkdirSync(at.claude, { recursive: true });
   fs.writeFileSync(claudeRules, 'My own rules.\n');
 
-  const written = flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin']);
+  const written = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.strictEqual(written.code, 0, written.stderr);
   assert.strictEqual(fs.readFileSync(claudeRules, 'utf8'), 'My own rules.\n');
   assert.ok(!fs.existsSync(path.join(at.agents, 'AGENTS.md')));
@@ -204,7 +204,7 @@ test('install never reaches outside the root it was given', () => {
   const dir = project('install-scoped');
   const root = path.join(dir, 'root');
   const before = fs.readdirSync(dir).sort();
-  flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin']);
+  flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
 
   assert.deepStrictEqual(fs.readdirSync(dir).sort(), [...before, 'root'].sort(), 'nothing lands beside the root');
   assert.deepStrictEqual(fs.readdirSync(root).sort(), ['.agents', '.claude', '.flow']);
@@ -237,7 +237,7 @@ test('install clones what is missing, links a skill switched on, and never clone
 
   const env = { FLOW_GIT_BASE: `${remote}${path.sep}` };
   const remoteRepo = bareRepo('install-clones');
-  const install = () => run('flow/flow.js', ['install', '--root', root, '--repo', remoteRepo], { cwd: dir, env: { ...process.env, ...env } });
+  const install = () => run('flow/flow.js', ['install', '--root', root], { cwd: dir, env: { ...process.env, ...env, FLOW_HOME_REMOTE: remoteRepo } });
 
   const first = install();
   assert.strictEqual(first.code, 0, first.stderr);
@@ -273,30 +273,36 @@ test('install refuses when ~/.flow/repos/flow is another clone', () => {
   fs.mkdirSync(path.join(root, '.flow', 'repos'), { recursive: true });
   fs.symlinkSync(other, path.join(root, '.flow', 'repos', 'flow'));
 
-  const refused = flow(dir, ['install', '--root', root, '--repo', bareRepo(path.basename(dir)), '--no-bin']);
+  const refused = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.notStrictEqual(refused.code, 0);
   assert.match(refused.stderr, /repos\/flow is .*other-clone, and this is /);
   assert.ok(!fs.existsSync(path.join(root, '.agents')), 'nothing was made');
 });
 
-test('install stops before setup without a repository, and checks an address before keeping it', () => {
+test('install stops before setup until the Flow home connects, and keeps it once it has', () => {
   const dir = project('install-no-repo');
   const root = path.join(dir, 'root');
 
-  // No terminal and no --repo: every link is made, and setup never starts.
-  const stopped = flow(dir, ['install', '--root', root, '--no-bin']);
-  assert.strictEqual(stopped.code, 1);
-  assert.match(stopped.stdout, /stopped: .*\.flow needs a repository, and there is no terminal here to ask for one\./);
-  assert.doesNotMatch(stopped.stdout, /One step left/);
+  // gh signed out, and no stand-in: install stops at the sign-in and never
+  // asks GitHub for anything.
+  const bin = path.join(dir, 'gh-signed-out');
+  fs.mkdirSync(bin, { recursive: true });
+  fs.writeFileSync(path.join(bin, 'gh'), '#!/usr/bin/env bash\necho "$*" >> "$(dirname "$0")/calls"\nexit 1\n');
+  fs.chmodSync(path.join(bin, 'gh'), 0o755);
+  const signedOut = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: '', PATH: pathWith(bin) });
+  assert.strictEqual(signedOut.code, 1);
+  assert.match(signedOut.stdout, /stopped: gh (is not signed in|did not sign in)/);
+  assert.doesNotMatch(fs.readFileSync(path.join(bin, 'calls'), 'utf8'), /repo|api/, 'no repository was looked for or made');
+  assert.doesNotMatch(signedOut.stdout, /One step left/);
   assert.ok(fs.existsSync(path.join(root, '.agents', 'skills', 'flow', 'skills', 'groundwork')), 'the links are made');
 
-  const unreachable = flow(dir, ['install', '--root', root, '--no-bin', '--repo', path.join(dir, 'nothing-here.git')]);
+  const unreachable = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: path.join(dir, 'nothing-here.git') });
   assert.strictEqual(unreachable.code, 1);
   assert.match(unreachable.stdout, /stopped: git cannot reach .*nothing-here\.git/);
 
-  // Once kept, the repository is never asked for again.
+  // Once connected, the repository is kept, whatever the stand-in says next.
   const remote = bareRepo('install-no-repo');
-  assert.strictEqual(flow(dir, ['install', '--root', root, '--no-bin', '--repo', remote]).code, 0);
+  assert.strictEqual(flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: remote }).code, 0);
   const again = flow(dir, ['install', '--root', root, '--no-bin']);
   assert.strictEqual(again.code, 0, again.stdout);
   assert.match(again.stdout, new RegExp(`kept: .*\\.flow is sent to ${remote.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));

@@ -8,6 +8,13 @@ One edit asks anyway. Claude Code asks before every write to a path holding a `.
 
 Flow's clone is `~/.flow/repos/flow/`. Every path below starting `project-template/` sits inside it.
 
+The message that opened this session names the job:
+
+- **`Set up this project.`** → every step below.
+- **`Fold this machine's old memory into this project.`** → `run.json` says `"memoryOnly": true`. The project is set up already, on the user's other machine, and this machine's Claude Code memory for it was never read. `## When only the memory is read`, at the end, changes steps 1 to 3.
+
+A message starting `Carry on` is the same job, stopped part way.
+
 ## Steps
 
 0. **`flow setup project check`.** A failure → print what it said and stop.
@@ -107,3 +114,11 @@ Each unticked line means Flow leaves that thing exactly as the project has it:
 - **The line of tickets from open-work lists** → drop those tickets from `files/…/.flow/tickets/`.
 
 Every `write` line still needs its file under `files/`, and every `delete` line still needs to name a path.
+
+## When only the memory is read
+
+- **Step 1**: read `project-template/AGENTS.md` and the form's template alone.
+- **Step 2**: read the memory folder `run.json` names, and the project's own `AGENTS.md` and `docs/context/`, to know what is already kept. Nothing else.
+- **Step 3**: sort each memory line by `## Where each finding goes`. Skip a line the project's files already say. No ticket from the 2 always-written ones.
+- **The form** holds only the sections with a line, and the memory folder's box under `## 🔴 Removed unless you untick it`.
+- **Step 9 is `flow setup project finish` all the same.** It ends the run and leaves the project's version alone.

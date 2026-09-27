@@ -324,11 +324,11 @@ test('a program Flow calls that is not on PATH stops the migration before anythi
     '',
   ].join('\n'), { [path.join(root, '.agents/AGENTS.md')]: 'new rules\n' });
 
-  // A PATH holding nothing, so node, git and claude are all missing. The
+  // A PATH holding nothing, so node, git, claude and gh are all missing. The
   // script itself runs through the node that started the test.
   const refused = applyAt(dir, root, id, { PATH: path.join(dir, 'nothing-here') });
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /3 prerequisites of Flow's are not met, so nothing ran:/);
+  assert.match(refused.stderr, /4 prerequisites of Flow's are not met, so nothing ran:/);
   assert.match(refused.stderr, /git is not on PATH, and a project is found by asking git for its root/);
   assert.match(refused.stderr, /flow doctor --prereq checks the same list/);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n', 'the write never happened');

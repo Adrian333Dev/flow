@@ -100,9 +100,17 @@ function behind(at, clone, project, notes) {
   return null;
 }
 
-/** Pull the clone and its submodules. A clone that cannot pull stops everything. */
+/**
+ * Pull the clone and its submodules. A clone that cannot pull stops everything.
+ * A clone `flow install` switched to a release sits on its tag, off any
+ * branch, so it goes back to `main` first.
+ */
 function pull(clone) {
   const before = flowRepo.git(clone, ['rev-parse', '--short', 'HEAD']).out;
+  if (!flowRepo.git(clone, ['symbolic-ref', '-q', 'HEAD']).ok) {
+    const back = flowRepo.git(clone, ['checkout', '-q', 'main']);
+    if (!back.ok) throw new FlowError(`could not put ${show(clone)} back on main, so nothing was updated:\n  ${back.err}`);
+  }
   const pulled = flowRepo.git(clone, ['pull', '--ff-only']);
   if (!pulled.ok) {
     throw new FlowError(`could not pull ${show(clone)}, so nothing was updated:\n  ${pulled.err.split('\n').join('\n  ')}`);
@@ -241,6 +249,8 @@ function finish(at) {
   }
   const file = run.project ? path.join(run.project, '.flow', 'version') : path.join(at.flow, 'version');
   fs.writeFileSync(file, `${run.to}\n`);
+  // The other machines read this record, and sync nothing until they match it.
+  if (!run.project) flowRepo.writeRecord(at, run.to);
   fs.rmSync(runFile(at));
   out(`stamped: ${show(file)} is ${run.to}. ${run.project ? 'This project' : 'This machine'} is up to date.`);
   return 0;

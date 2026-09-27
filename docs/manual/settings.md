@@ -3,7 +3,7 @@
 Flow reads 4 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
 
 - **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `flow setup` merges them in.
-- **`~/.flow/settings.json`** belongs to Flow, and travels to your other machine with the rest of `~/.flow/`.
+- **`~/.flow/settings.json`** belongs to Flow, and travels to your other machines with the rest of `~/.flow/`.
 - **`~/.flow/settings.local.json`** belongs to Flow and to this machine alone. git ignores it.
 - **`<project>/.flow/settings.json`** belongs to one project, and is committed with it.
 
@@ -172,7 +172,13 @@ Flow: a migrate run stopped after step 4, so this machine is part way through a 
 Flow: domain-skills is behind. 2 skills changed: react, sql. Update it when you want them, or set "skillsAutoUpdate": true.
 ```
 
-Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json`, which a setup or a migration leaves behind only when it never finished, `~/.flow/version`, the project's `.flow/version`, and `~/.flow/skills-update.json`, which the background pull below writes. [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
+Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json`, which a setup or a migration leaves behind only when it never finished, `~/.flow/version`, the project's `.flow/version`, and `~/.flow/skills-update.json`, which the background pull below writes. It also reads your other machines' records from the last fetch of your Flow home, which git keeps on disk.
+
+**Another machine on a newer release gets its own line**, since [`flow sync`](reference.md#flow-sync) waits until this machine catches up:
+
+```text
+Flow: desktop-qkzv is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.
+``` [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
 
 **A stopped run silences the other version lines.** Each of them reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying about Flow's own version. A skill repository's line is a separate record and still prints.
 
@@ -184,9 +190,15 @@ Flow: not set up here. Run flow setup project to add it, or flow settings off se
 
 It shows in every session opened there, anywhere inside the repository, until the project is set up or a setting stops it. Not every folder is a project, so a folder git does not track never gets it, and neither do the home folder and `~/.flow/`, which are repositories and never projects. [`setupReminder`](#setupreminder) turns it off everywhere, and [`setupReminderSkip`](#setupreminderskip) in chosen folders. [`flow settings`](reference.md#flow-settings) writes either one for you.
 
-**It also makes every skill link match the settings.** A switch you made on your other machine arrives through [`flow sync`](reference.md#flow-sync) as a line in `~/.flow/settings.json`, and the next session start makes the link. When a link changed, it asks Claude Code to scan the skill folders again. [`skills`](#skills) covers the lines.
+**In a project set up on another machine, it suggests folding in this machine's old memory**, when Claude Code kept memory for the project here before Flow. The line is shown to you alone, and the same 2 settings stop it:
 
-**It also sends every skill repository to update itself**, by starting `~/.flow/scripts/skills-pull.js` in the background and returning at once. A session never waits for the network, and whatever that pull finds is printed by the session after it. [`skillsAutoUpdate`](#skillsautoupdate) covers the pull, its 2 guards and the switch.
+```text
+Flow: old Claude Code memory here. Run flow setup project to fold it in.
+```
+
+**It also makes every skill link match the settings.** A switch you made on another machine arrives through [`flow sync`](reference.md#flow-sync) as a line in `~/.flow/settings.json`, and the next session start makes the link. When a link changed, it asks Claude Code to scan the skill folders again. [`skills`](#skills) covers the lines.
+
+**It also sends every skill repository to update itself**, by starting `~/.flow/scripts/skills-pull.js` in the background and returning at once. The same job fetches your Flow home's repository, at most every 6 hours, which is where the line about another machine comes from. It fetches only: [`flow sync`](reference.md#flow-sync) is what brings the files down. A session never waits for the network, and whatever that pull finds is printed by the session after it. [`skillsAutoUpdate`](#skillsautoupdate) covers the pull, its 2 guards and the switch.
 
 `"sessionCheck": false` in `~/.flow/settings.json` silences it, and [`sessionCheck`](#sessioncheck) covers the switch.
 
@@ -415,7 +427,7 @@ Claude Code can skip the script without a warning and use its own list: in a fol
 }
 ```
 
-**Which file a key goes in is decided by one question: would the value still be true on your other machine?** `~/.flow/` is one git repository shared between your machines, so `settings.json` travels and `settings.local.json` is the part git ignores.
+**Which file a key goes in is decided by one question: would the value still be true on your other machines?** `~/.flow/` is one git repository shared between your machines, so `settings.json` travels and `settings.local.json` is the part git ignores.
 
 A project has one file of its own, `.flow/settings.json`. It holds the project's [`skills`](#skills) lines and is committed, so a fresh clone of the project gets its skills back.
 
@@ -433,7 +445,7 @@ The skill repositories Flow takes skills from. A skill repository is a git repos
 
 Each entry is `owner/repo` for GitHub, or a full git address for anywhere else. With no `sources` key the list is the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository alone, which holds skills about one field or tool, such as React.
 
-**`flow install` clones every entry that is missing**, into `~/.flow/repos/sources/<owner>_<repo>/`, and nothing else clones. Your other machine gets the list through [`flow sync`](reference.md#flow-sync), and its next `flow install` makes the clones. [`flow skills`](reference.md#flow-skills) covers the commands.
+**`flow install` clones every entry that is missing**, into `~/.flow/repos/sources/<owner>_<repo>/`, and nothing else clones. A machine joining your Flow home gets the list as `flow install` downloads it, and clones every entry there and then. A machine already on it gets a new entry through [`flow sync`](reference.md#flow-sync), and its next `flow install` makes the clone. [`flow skills`](reference.md#flow-skills) covers the commands.
 
 ---
 
@@ -511,31 +523,31 @@ Whether the line naming what needs attention prints when a session opens. Write 
 
 [The session check](#the-session-check) shows every line it can print and says which files it reads.
 
-It silences the printing alone, the setup line included. Every skill repository still updates itself, which [`skillsAutoUpdate`](#skillsautoupdate) governs.
+It silences the printing alone, the setup line and the memory line included. The background fetch of your Flow home still runs. Every skill repository still updates itself, which [`skillsAutoUpdate`](#skillsautoupdate) governs.
 
 ---
 
 ### `setupReminder`
 
-Whether a session opened in a git repository with no `.flow/` suggests `flow setup project`. Write `false` to turn it off everywhere:
+Whether a session opened in a git repository with no `.flow/` suggests `flow setup project`, and whether one opened in a project set up on another machine suggests folding in this machine's old memory. Write `false` to turn both off everywhere:
 
 ```json
 "setupReminder": false
 ```
 
-[The session check](#the-session-check) shows the line and says where it shows.
+[The session check](#the-session-check) shows both lines and says where each shows.
 
 ---
 
 ### `setupReminderSkip`
 
-Folders the setup line never shows in, each with everything below it:
+Folders the setup line and the memory line never show in, each with everything below it:
 
 ```json
 "setupReminderSkip": ["~/code/playground", "~/notes"]
 ```
 
-**Put it in `~/.flow/settings.local.json`.** It holds paths, and your other machine may keep its folders somewhere else. `~` stands for the home folder, and any other entry is a full path.
+**Put it in `~/.flow/settings.local.json`.** It holds paths, and your other machines may keep their folders somewhere else. `~` stands for the home folder, and any other entry is a full path.
 
 `flow settings off setupReminder`, typed inside a repository, adds that repository's top folder to the list, and `on` takes it out.
 
