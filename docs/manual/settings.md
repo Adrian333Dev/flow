@@ -114,7 +114,7 @@ Records what each subagent changed, and hands the parent a diff per file when th
 
 **One check exists, and it only measures.** `scripts/rule-checks/js-and-ts.js` counts a run of `//` lines above a function, and records the count without ever warning. More arrive one check file at a time.
 
-`rule-check.js` runs every check in that folder against the pending edit and appends one line per result to `~/.flow/scorecards/<session>.jsonl`. Each check carries its own tier: `measure` records silently, `warn` returns a line in `additionalContext`, `block` returns a `deny`. `flow scorecard` adds the counts up.
+`rule-check.js` runs every check in that folder against the pending edit and appends one line per result to `~/.flow/logs/scorecards/<session>.jsonl`. Each check carries its own tier: `measure` records silently, `warn` returns a line in `additionalContext`, `block` returns a `deny`. `flow scorecard` adds the counts up.
 
 `instructions-loaded.js` records which `CLAUDE.md` files, the files they import, and rule files entered context. That is what decides the shape of a warning: the rule id alone when the rule's file is loaded, and the rule's whole text injected when it is not. Telling the agent to go read the file costs a turn and can be skipped.
 
@@ -528,7 +528,7 @@ Without the guards, a pull nobody asked for could wreck work sitting in that clo
 
 **It costs one network call per clone every 6 hours at most.** A clone's last fetch is what the check reads, so a machine that opens 20 sessions in a morning looks once. A clone with something to report is checked every session instead, which is how the line stops the moment you have pulled by hand.
 
-Every pull that changed something adds a line to `~/.flow/history.jsonl`, naming the skills it changed.
+Every pull that changed something adds a line to the history log, `~/.flow/logs/history/<month>.jsonl`, naming the skills it changed. A pull or fetch git refused also adds one to the failure log beside it.
 
 `"sessionCheck": false` silences the line and not the pull, since the skills are what an agent reads in a project. This key is the one that stops it.
 

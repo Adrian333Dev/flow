@@ -188,6 +188,7 @@ The deciding argument: each machine refreshes its own downloads anyway. Committi
 - The harvest reads the tool's whole folder, checks each finding against the tool's docs or source, and writes the tool's skill. Run again later, it adds the findings that came in since. Harvested findings are deleted from the folder.
 - The harvest is `/flow:write-skill`, planned in `skills.md` → `### /flow:write-skill` and not built: the user names a subject and points it at sources, and it writes the skill.
 - Research prints the count when it opens a tool's folder. The user starts the harvest.
+- **Widened 2026-09-28:** the harvest also reads every outside skill on the tool that was cloned to be harvested, writes in its own words, and records each input's repository, path and commit in the skill's folder. A passage copied word for word keeps its license notice, and a skill with no license is never copied from. `skills.md` → `## Outside skills: review, then used whole or harvested` holds why.
 - Everything else capture does is unchanged.
 
 The deciding argument: findings about one tool, from every project and both machines, meet in one folder beside the research on that tool, so the harvest reads everything known about the tool at once. What would flip it: wanting each finding in the skill the day it is learned.
@@ -198,7 +199,7 @@ The deciding argument: findings about one tool, from every project and both mach
 - A finding about 2 tools → the folder of the tool causing it, with a line in the other's `index.md`.
 - Every finding names its version. 2 findings that disagree across versions both stay, and the harvest keeps what holds for versions still in use.
 - A client's details never enter a finding, since `~/.flow/` goes to GitHub. That repository stays private.
-- A tool whose skill came from its makers → findings still go to the tool's folder, and the harvest adds them to the user's copy of that skill in domain-skills, as research already adopts outside skills. `skills.md` → `### /flow:write-skill` already says how: new pages in an existing domain skill are sent like any contribution, and a skill with no home yet starts under `~/.flow/private-skills/`.
+- A tool whose skill came from its makers → **changed 2026-09-28**: that skill is used whole and never copied, since a copy stops receiving the makers' updates. Findings still go to the tool's folder. One the user wants applied goes in the project's `AGENTS.md`, and in an overlay once overlays reach outside skills. A disagreement true in every project means the skill is harvested after all.
 - A finding about a skill that is not about an outside tool, such as a domain skill on a field like accessibility → unchanged: the `skill:` header, `/flow:file-findings`, then `flow contribute`.
 - A finding about Flow or one of Flow's own skills → unchanged: the project's overlay or `/flow:review`.
 

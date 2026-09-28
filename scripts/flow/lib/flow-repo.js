@@ -30,13 +30,12 @@
  *                 somewhere else on the other machine
  *   repos/        this machine's clones: Flow, util, the toolbox and every
  *                 source. `sources` travels, and `flow install` clones them
- *   history.jsonl   every change Flow made on this machine
- *   install.log   every line of this machine's last install
+ *   logs/         what happened on this machine: the last install, every
+ *                 change Flow made, every failure, every rule check
  *   skills-update.*   what this machine's source clones are behind by, and
  *                 the lock the job that reads it holds
- *   scorecards/, audit/, changes/   what this machine's sessions recorded:
- *                 rule checks, the transcript index, and what each subagent
- *                 changed
+ *   audit/, changes/   what this machine's sessions left: the transcript
+ *                 index, and what each subagent changed
  *   a wiki tool's downloads   pages fetched once per machine
  *
  * Each machine keeps one record in the repository, `machines/<name>.json`:
@@ -87,11 +86,9 @@ const IGNORED = [
   'references',
   'docs',
   'repos/',
-  'history.jsonl',
-  'install.log',
+  'logs/',
   'skills-update.json',
   'skills-update.lock',
-  'scorecards/',
   'audit/',
   'changes/',
   'wiki/*/downloads/',

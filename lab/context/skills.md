@@ -23,7 +23,7 @@ Designed 2026-08-26 and built 2026-08-28: group folders, overlays, descriptions 
 
 ### External skills and plugins
 
-**Superseded in part, 2026-09-14**: an external skill for one project installs with its own installer and becomes the project's copy, and a second project needing a change moves it into `domain-skills`. Only the plugin half below is still open.
+**Superseded in part, 2026-09-14**: an external skill for one project installs with its own installer and becomes the project's copy, and a second project needing a change moves it into `domain-skills`. Only the plugin half below is still open. **Superseded again 2026-09-28** by `## Outside skills: review, then used whole or harvested` below.
 
 #### A plugin brings more than a skill
 
@@ -55,6 +55,33 @@ Two constraints the source set, both now honored by `flow install`: the manifest
 **What it cost:** `skillOverrides` no longer reaches any Flow skill, so there is no per-skill off switch, only `claude plugin disable flow@skills-dir`. Flow shipped the key empty and never used a value, so nothing broke. Domain skills and private skills land in `.claude/skills/` as plain skills and answer to the key as before.
 
 **Proven live on 2026-09-18.** A scratch session built by `lab/scripts/try.sh` reported `flow@skills-dir` loaded, and asked to name its skills it answered `flow:groundwork`, `flow:handoff`, `flow:visualize`.
+
+## Outside skills: review, then used whole or harvested
+
+Decided with the user 2026-09-27 and built 2026-09-28 as `references/knowledge.md`, which holds the rules. This section holds why. The user started from skills.sh: 10 NestJS skills, install counts from a few thousand to 30,000, and 2 cloned for reference, `repos/agent-nestjs-skills` and `repos/claude-skills`.
+
+**2 states, and no third.** Used whole: runs as published, updates by itself. Harvested: never switched on, read by the harvest into the user's own skill. A plugin or a standalone skill changes only which tool installs and updates it, never the state.
+
+- **Harvest is the default.** The user's argument: no one skill covers what matters, every skill holds lines the user disagrees with, and an outside description is rarely held to Flow's rules. The deciding one is the description: every switched-on skill's description loads each turn, Claude Code cuts each at 1,536 characters by default (`skillListingMaxDescChars`), and a few hundred skills crowd the list. Only a copy of the user's own answers to Flow's rules.
+- **Several general skills on at once was rejected.** They fire on the same files, and the agent follows whichever rule it read last.
+- **Harvesting every candidate by hand was the cost the user named.** The review cuts it: most of what one skill has and another lacks is general engineering the agent already knows. `nestjs-best-practices` spends rule files on the Liskov substitution principle.
+- **Used whole, for the makers' own skill.** It changes with each release, which a copy misses. What would overturn it: a makers' skill whose description or process breaks Flow's rules.
+- **The review's process test** comes from `### A plugin brings more than a skill` above. `nestjs-expert` in `repos/claude-skills` carries "Analyze, Design, Implement, Secure, Verify, Test" and a fixed output order: process competing with `/flow:execute`.
+- **Stars and installs pick which 3 to read, never the pick.** `jeffallan/claude-skills` has about 12,000 stars for 67 skills, and its `nestjs-expert` 5,500 installs. `kadajett/agent-nestjs-skills` has about 300 stars and 30,000 installs. The stars rate the collection, the installs one skill, and neither the fit.
+
+**A tool's skill holds what the agent gets wrong without it.** Changes since training, traps, the user's choices. For a tool the agent has never seen, how the tool thinks and where its docs are. The deciding argument is versions: a guidebook in a skill matches one release and goes stale silently, while the wiki downloads docs per version. What would overturn it: a tool whose docs are too poor to download.
+
+**A harvest owes no license.** Facts about a tool belong to nobody, and copyright covers wording, examples and structure. A passage copied word for word keeps its notice. `/flow:research`'s old step, copy the edited skill into `domain-skills` where the license allowed, is gone.
+
+**Harvested inputs are pulled like any clone, and nothing runs from them.** The update job was planned to report an input that changed since the commit its harvest recorded. That report is on `backlog.md`, not built. A skill in use is pulled as before, and a plugin is Claude Code's to update.
+
+**Overlays reach only Flow's skills.** Each Flow skill ends on `` !`flow overlays <name>` ``, which an outside skill never runs. 2 hooks could add it: `UserPromptExpansion` for a typed skill, `PostToolUse` on the `Skill` tool for one the agent loads. On `backlog.md`. Until then, a line in the project's `AGENTS.md`.
+
+**A companion skill beside an untouched upstream one was proposed and dropped** the same day: with the harvest as the default, findings wait in the wiki and go straight into the user's own skill.
+
+**Everything starts on for one project, and a service is reached through a command first.** The order: the vendor's command-line tool with a skill, a script bundled in the service's skill, then a project's MCP server. The deciding argument is output control: a command's output is cut in the shell before it reaches context, and an MCP tool's never is. Context cost decided less than expected: Claude Code's tool search, on by default, loads an idle server's tools as names only. Not checked for Codex.
+
+**The map is a shared reference, `references/knowledge.md`, not research's alone.** 4 readers need it: `/flow:research`, the harvest, both setup sessions, and any session asked to add a skill, a plugin or an MCP server, which `read-knowledge-md` in `home/AGENTS.md` routes. `skills.md` was rejected as its name once MCP servers and findings were in it. `wiki` names the tool folders already.
 
 ## The `domain-skills` repository: what is left to build
 

@@ -76,6 +76,7 @@ A message starting `Carry on` is the same job, stopped part way.
 - **A permission** stays, unless it undoes one of Flow's `deny` rules.
 - **A plugin** is switched off in the project's `.claude/settings.json`. Never uninstalled: other projects may use it.
 - **A skill from a source Flow knows** → `flow skills on <name>`, after its folder's delete.
+- **Any other outside skill** → sorted by `~/.flow/references/knowledge.md` → `## An outside skill`, and added as that section says.
 - **The memory folder** → a box under `## 🔴 Removed unless you untick it`. Flow keeps memory off.
 
 ## The files it writes

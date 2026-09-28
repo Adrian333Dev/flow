@@ -19,7 +19,8 @@
  * A pull that would not fast-forward is refused by `--ff-only` itself, and the
  * note carries what git said. Either refusal would otherwise wreck work
  * sitting in that clone, which is the whole reason the 2 guards exist. A pull
- * that changed something is a line in `~/.flow/history.jsonl`.
+ * that changed something is a line in the history log, and one that failed a
+ * line in the failure log, both under `~/.flow/logs/`.
  *
  * The notes are `~/.flow/skills-update.json`, and the hook prints them at the
  * top of every session until they are gone. They are also what keeps this
@@ -31,6 +32,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const history = require('./history');
+const failures = require('./failures');
 const repos = require('./repos');
 const settings = require('./settings');
 const links = require('./skill-links');
@@ -210,6 +212,12 @@ function lock(at) {
   return () => fs.rmSync(dir, { recursive: true, force: true });
 }
 
+/** A pull or a fetch git refused: a line in the failure log, and the clone's note. */
+function blocked(at, clone, verb, err) {
+  failures.record(at.flow, { source: 'skills-pull', what: `git ${verb} in ${clone.id}`, error: err });
+  return { state: 'blocked', why: firstLine(err), clone: clone.name };
+}
+
 /** One clone: pull it, or fetch and say what is waiting. Returns its note, or null. */
 function one(at, clone) {
   const { root, name } = clone;
@@ -220,7 +228,7 @@ function one(at, clone) {
   if (updates(at.flow)) {
     const before = repos.head(root);
     const pulled = git(root, ['pull', '--ff-only', '--quiet']);
-    if (!pulled.ok) return { state: 'blocked', why: firstLine(pulled.err), clone: name };
+    if (!pulled.ok) return blocked(at, clone, 'pull', pulled.err);
     const after = repos.head(root);
     if (before && after && before !== after) {
       history.record(at.flow, { type: 'pull', source: clone.id, from: before, to: after, changed: skillsIn(root, `${before}..${after}`) });
@@ -229,7 +237,7 @@ function one(at, clone) {
   }
 
   const fetched = git(root, ['fetch', '--quiet']);
-  if (!fetched.ok) return { state: 'blocked', why: firstLine(fetched.err), clone: name };
+  if (!fetched.ok) return blocked(at, clone, 'fetch', fetched.err);
   const found = behind(root);
   if (!found || !found.count) return null;
   return { state: 'behind', ...found, clone: name };

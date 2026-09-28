@@ -18,6 +18,8 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { SCRATCH, run } = require('./helpers/scratch');
 const update = require('../flow/lib/skills-update');
+const historyLog = require('../flow/lib/history');
+const failures = require('../flow/lib/failures');
 
 /**
  * git with no machine settings behind it, and an identity of its own. The
@@ -102,7 +104,7 @@ test('a pull brings the clone up to date and leaves nothing to report', () => {
   assert.strictEqual(note(at.home), null, 'and a session has nothing to say');
   assert.strictEqual(update.stale(at.clone), false, 'the fetch just happened, so the next session leaves it alone');
 
-  const [line] = fs.readFileSync(path.join(at.home, 'history.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+  const [line] = fs.readFileSync(historyLog.file(at.home), 'utf8').trim().split('\n').map(JSON.parse);
   assert.strictEqual(line.type, 'pull');
   assert.strictEqual(line.source, 'Adrian333Dev/domain-skills');
   assert.deepStrictEqual(line.changed, ['react'], 'the history names the skills a pull changed');
@@ -138,6 +140,8 @@ test('a pull that would not fast-forward is refused, and git says why', () => {
   assert.ok(found.why.length, `git said nothing: ${JSON.stringify(found)}`);
   assert.match(body(at.clone, 'react'), /What this machine wrote/, 'the local commit still stands');
   assert.match(update.line(found), /could not be updated/);
+  const [failed] = fs.readFileSync(failures.file(at.home), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.deepStrictEqual([failed.source, failed.what], ['skills-pull', 'git pull in Adrian333Dev/domain-skills']);
 });
 
 test('with the update off, a fetch names the skills behind and stops once they are in', () => {

@@ -43,7 +43,8 @@
  * after it the other machines' `~/.flow/` comes down before setup starts.
  *
  * The screen gets a summary and every line that changed or failed. The whole
- * run goes to `~/.flow/install.log`.
+ * run goes to `~/.flow/logs/install.log`, and a line that failed also to the
+ * failure log.
  *
  * `--root <dir>` puts the whole install under `<dir>` in place of the home
  * folder, `~/.local/bin` included. The tests and lab/scripts/try.sh use it to
@@ -68,6 +69,8 @@ const confirm = require('../lib/confirm');
 const { FlowError } = require('../lib/error');
 const flowRepo = require('../lib/flow-repo');
 const history = require('../lib/history');
+const failures = require('../lib/failures');
+const logs = require('../lib/logs');
 const installed = require('../lib/installed');
 const { link, pruneDead, pruneUnlisted, markdownFiles } = require('../lib/links');
 const machine = require('../lib/machine');
@@ -237,8 +240,12 @@ actions.install = {
     // Every line goes to the log. The screen gets the ones that say something
     // changed or failed: a link made again, the same as last time, is noise
     // above the part that matters.
-    const log = path.join(at.flow, 'install.log');
+    const log = path.join(logs.dir(at.flow), 'install.log');
+    fs.mkdirSync(path.dirname(log), { recursive: true });
     fs.writeFileSync(log, `${new Date().toISOString()}\n${done.join('\n')}\n`);
+    for (const line of done.filter((l) => /^(could not|not sent:)/.test(l))) {
+      failures.record(at.flow, { source: 'install', what: 'flow install', error: line });
+    }
     const count = skills.installable({ drafts: flags.drafts }).filter(skills.essential).length;
     const shown = done.filter((line) => !/^(linked|wrote): /.test(line) || /originals/.test(line));
     out([

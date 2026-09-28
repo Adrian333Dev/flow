@@ -53,6 +53,7 @@ One phase at a time:
 - **`user-only-skills`** Suggest `/flow:start`, `/flow:tickets-from-spec`, `/flow:file-findings` and `/flow:apply-domain-findings` to the user.
 - **`skip-a-step`** Skip a Flow step that makes the work worse. Name the step and the reason. Never ask first.
 - **`read-workflow-md`** `~/.flow/references/workflow.md` says how the pieces fit. Read it only when more context needed.
+- **`read-knowledge-md`** Read `~/.flow/references/knowledge.md` before adding a skill, a plugin or an MCP server.
 
 ## The user
 
@@ -71,6 +72,7 @@ One phase at a time:
 - A warning from a rule check that was wrong → `.flow/findings/scorecard.md`
 - A decision the user confirmed with no open threads → `docs/spec/decisions.md`, or the groundwork map that owns the subject. Batched, never mid-discussion.
 - Flow itself failed (a rule that didn't fire, friction that repeated, output the user rejected) → `/flow:review`, if it's in your skill list
+- Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
 - Everything else → `.flow/inbox.md`, raw. Never shape it. Past 200 lines, offer `/flow:file-findings`.
 
 **`docs-context-holds-verified-facts`** One question per file, facts and never process, rewritten rather than appended.

@@ -23,7 +23,7 @@
  * part-way, on a command that fails or a move with nothing to move, leaves it
  * there, and running this again carries on from the line that stopped. A
  * migration edited in between refuses rather than guessing which lines ran.
- * A run that reaches the end adds one line to ~/.flow/history.jsonl.
+ * A run that reaches the end adds one line to the history log, ~/.flow/logs/history/.
  *
  * It refuses, changing nothing, when a line cannot be read, when files/ lacks
  * a file a write line needs, when the migration is already applied, when a

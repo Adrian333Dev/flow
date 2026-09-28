@@ -147,7 +147,7 @@ sync    ~/.flow/ is one private git repository, and that is the whole of how a
         second machine gets your rules, notes, study cases and wiki. flow sync
         brings the other machine's down, then sends this one up. What belongs
         to one machine stays there: version, run.json, originals/,
-        settings.local.json, repos/, history.jsonl, the scripts, references
+        settings.local.json, repos/, logs/, the scripts, references
         and docs links, and each wiki tool's downloads
 setting every on/off setting Flow reads: the lines it prints by itself and
         the skill pull. flow settings lists them, and on or off switches one
@@ -170,7 +170,7 @@ audit   what Claude Code did, read back afterwards. It reads the transcripts
 checks  a rule check is one file in ~/.flow/scripts/rule-checks/, named after
         the rule id it enforces. The PreToolUse hook on Edit and Write runs
         every one of them and appends a line per result to
-        ~/.flow/scorecards/<session>.jsonl. Each check carries its own tier:
+        ~/.flow/logs/scorecards/<session>.jsonl. Each check carries its own tier:
         measure records and interrupts nothing, warn puts a line in front of
         the agent, block refuses the edit. Every check starts at measure, and
         flow scorecard says which have earned a promotion. A rule with no check

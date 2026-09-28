@@ -1,6 +1,6 @@
 'use strict';
 /**
- * The scorecard store: one file per session under ~/.flow/scorecards/, holding
+ * The scorecard store: one file per session under ~/.flow/logs/scorecards/, holding
  * one JSON object per line.
  *
  * Append only. Two hooks can fire close enough together that a read, change and
@@ -28,9 +28,9 @@
 
 const fs = require('fs');
 const path = require('path');
-const settings = require('./settings');
+const logs = require('./logs');
 
-const dir = () => path.join(settings.flowHome(), 'scorecards');
+const dir = () => path.join(logs.dir(), 'scorecards');
 
 /** A session id is a filename, so anything strange in it is flattened first. */
 const sessionFile = (sessionId) =>

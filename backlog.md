@@ -48,11 +48,15 @@ Routed out of `lab/context/management.md` on 2026-09-17, the last phase of the g
 
 ### The skill system
 
+- [ ] **Overlays for outside skills**, through 2 hooks adding `.flow/overlays/<name>.md` as context: `UserPromptExpansion` for a typed skill, `PostToolUse` on the `Skill` tool for one the agent loads. A skill used whole, a plugin's above all, takes a project's disagreements this way instead of a line in `AGENTS.md`. `skills.md` → `## Outside skills: review, then used whole or harvested`
+
+- [ ] **The update job reports a harvested input that changed**: after the pull, compare the clone's commit with the one the harvest recorded, and print the skill whose folder changed. Settle first how a harvested skill records its inputs, which `references/knowledge.md` leaves as "the skill's folder names each input". `skills.md` → `## Outside skills: review, then used whole or harvested`
+
 - [ ] **Plugins are a fourth install state Flow does not control**: off by default. `extraKnownMarketplaces` in the committed settings, `enabledPlugins` in `.claude/settings.local.json`, and a flip takes effect next session. `skillOverrides` is not an off switch: it leaves the commands and the hooks running
 
 ### Individual skills
 
-- [ ] **`/flow:write-skill`, the harvest**, user only: reads a subject's sources whole and writes its skill. For an outside tool, the source is `~/.flow/wiki/<tool>/`, where capture sends every finding about the tool since 2026-09-27, and the harvest deletes the findings it wrote in. Built after a first run done by hand. `skills.md` → `### /flow:write-skill`, `knowledge-base.md` → `### Capture and the harvest`
+- [ ] **`/flow:write-skill`, the harvest**, user only: reads a subject's sources whole and writes its skill. For an outside tool, the sources are `~/.flow/wiki/<tool>/`, where capture sends every finding about the tool since 2026-09-27, and every outside skill cloned to be harvested. It writes in its own words, records each input's commit, and deletes the findings it wrote in. Built after a first run done by hand. `skills.md` → `### /flow:write-skill`, `knowledge-base.md` → `### Capture and the harvest`
 
 - [ ] **`/grill`**: a skill fired at a finished artifact, `disable-model-invocation: true`, never model-invoked. Decided and undesigned. One form hands the stripped mechanism to subagents that never saw the conversation, so none of them can defend it. **talk first**
 
@@ -218,6 +222,7 @@ Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` 
   - **Codex's memory stays off**, as it is by default: `[features] memories`, in `repos/codex/codex-rs/features/src/lib.rs`. Claude Code keeps memory per project and Flow turns it off in `home/settings.json`. Codex's, when on, is one pile in `~/.codex/memories/`, which would split what the 2 harnesses know again
   - **The Codex subagents, as TOML files in `~/.codex/agents/`.** Read `import_subagents` in `repos/codex/codex-rs/external-agent-migration/src/source/cla.rs` first
   - **A skill linked onto the whole machine never reaches Codex.** `flow skills on <name> --machine` or `--global` links into `~/.claude/skills/`. Codex reads `~/.agents/skills/` alone, so both would move there, with a link back for Claude Code the way Flow's own plugin folder has one
+  - **The failure log sees nothing from Codex.** Codex has no `PostToolUseFailure` hook (`models.md`), so a failed MCP tool or Flow command there writes no line. `failure-log.md`
   - **`flow audit` reads Codex's session logs**, `~/.codex/sessions/YYYY/MM/DD/rollout-<id>.jsonl`, through a new scanner beside `scan.js`. Until it exists, work done in Codex is invisible to every audit query
   - **No rule is measured per model.** Sonnet 4.6 puts the report before the edits. Opus 5 fails plain explanation with the reply rules loaded. A base rule set plus a per-model overlay is the shape, earned by the scorecard split rather than assumed
   - **Buy one coding plan and run Flow on it.** GLM at $18, or Qwen at about ¥200, which bundles Kimi, GLM and MiniMax. It answers whether a non-Claude model holds Flow's rules, whether the quota survives Flow's token profile, and whether auto mode's classifier runs on the gateway model

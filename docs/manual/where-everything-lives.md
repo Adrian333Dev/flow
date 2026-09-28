@@ -41,12 +41,14 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 │  ├─ settings.json
 │  ├─ settings.local.json
 │  ├─ version
-│  ├─ history.jsonl
-│  ├─ install.log
+│  ├─ logs/                       what happened on this machine
+│  │  ├─ install.log
+│  │  ├─ history/<month>.jsonl
+│  │  ├─ failures/<month>.jsonl
+│  │  └─ scorecards/<session>.jsonl
 │  ├─ skills-update.json
 │  ├─ workflow-notes.md
 │  ├─ study-cases/<issue>/
-│  ├─ scorecards/<session>.jsonl
 │  ├─ audit/
 │  ├─ changes/<session>/
 │  ├─ private-skills/<name>/
@@ -111,16 +113,19 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 ### `~/.flow/`, what only Flow reads
 
 - **`scripts`**: a symlink to the clone's `scripts/`: the CLI, every hook, `apply-migration.js`, which carries out a migration, `skills-pull.js`, which updates every skill repository in the background, and `file-suggestion.js`, which builds the list `@` opens. `flow install` makes it.
-- **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, the line the reminder hook prints, and `harnesses/`, where each harness keeps its own files. `flow install` makes it.
+- **`references`**: a symlink to the clone's `references/`: the house style, the workflow map, the map of skills, plugins, MCP servers and findings, the line the reminder hook prints, and `harnesses/`, where each harness keeps its own files. `flow install` makes it.
 - **`docs`**: a symlink to the clone's `docs/`: the manual you are reading, under `manual/`, and the pages for whoever changes Flow, under `dev/`. `/flow:help` answers a question by naming a page under `~/.flow/docs/manual/`, which is the same path on every machine whatever your clone is called. `flow install` makes it.
 - **`AGENTS.md`**: the rules every session loads, reached through the link `~/.agents/AGENTS.md`. `flow setup` writes it from `home/AGENTS.md`, with what it kept from your old rule files in `## Preferences` and `## The user`, and from then on the file is yours. Sessions write what they learn about you into it.
 - **`setup-prompt.md`**: the text a setup session starts with, Flow's rules followed by the setup's instructions. `flow setup` rewrites it each time it opens that session, and git ignores it.
 - **`migrate-prompt.md`**: the instructions an update session starts with. `flow up` rewrites it each time it opens that session, and git ignores it.
-- **`install.log`**: every line of this machine's last `flow install`, where the screen showed a summary. Git ignores it.
 - **`settings.json`**: the settings both your machines share. `reminder` is whether the reminder prints beside every message, `sessionCheck` whether a session opens with a line about what needs attention, `setupReminder` whether a git repository without Flow gets a line suggesting it, and `wrapUp` whether the agent is told to hand off once the conversation passes `wrapUpAt` tokens: one key per line Flow prints by itself. `sources` lists the skill repositories, and `skills` the skills switched on or off for every machine. `skillsAutoUpdate` is whether each skill repository pulls itself when a session opens.
 - **`settings.local.json`**: the settings this machine keeps to itself, which git ignores. `skills` here is the skills switched on or off for this machine alone, written by `flow skills --machine`. `setupReminderSkip` lists the folders the setup suggestion never shows in.
 - **`repos/`**: every clone Flow reads, each described under [The clones](#the-clones).
-- **`history.jsonl`**: one JSON line per change Flow made to this machine: a clone, a pull, a skill switched, an install, a setup, a migration applied or a restore. `flow skills`, `flow install`, `apply-migration.js`, `flow restore` and the background pull write it.
+- **`logs/`**: what happened on this machine, which git ignores. Nothing here is ever rewritten. A log that grows gets one file per month, such as `history/2026-09.jsonl`: the newest file is the current month, and nothing moves or trims an old one.
+  - **`install.log`**: every line of this machine's last `flow install`, where the screen showed a summary.
+  - **`history/<month>.jsonl`**: one JSON line per change Flow made to this machine: a clone, a pull, a skill switched, an install, a setup, a migration applied or a restore. `flow skills`, `flow install`, `apply-migration.js`, `flow restore` and the background pull write it.
+  - **`failures/<month>.jsonl`**: one JSON line per failure of something Flow built or chose: an MCP tool, a Flow command or script, an API error that ended a turn. The `failures.js` hook writes most of them, the install, `flow sync` and the background pull the ones no session sees, and the agent what no hook can see. A line from a session names the session and the tool call, so the whole failure is one lookup away in its transcript. [The failure log](reference.md#the-failure-log) has an example.
+  - **`scorecards/<session>.jsonl`**: one file per session. `rule-check.js` adds a line for every rule check that ran, and `instructions-loaded.js` a line for every instruction file that loaded. `flow scorecard` reads them.
 - **`skills-update.json`**: what the last background pull of each skill repository found, such as the skills a fetch left waiting. `skills-pull.js` writes it and the session check prints it, and it is gone whenever there is nothing to say.
 - **`version`**: one line, the number of the newest `CHANGELOG.md` entry this machine has applied. A `flow` command refuses while it is missing, since that means `flow setup` never finished.
 - **`machines/<name>.json`**: one record per machine sharing this Flow home, such as `{ "name": "laptop-mac", "joined": "2026-09-27", "flowVersion": 12 }`. `flowVersion` is the entry that machine is on. `flow install` sends this machine's up when it joins, `flow setup finish` and `flow up finish` rewrite it, and `flow sync` refuses while another machine's is higher. [`flow sync`](reference.md#flow-sync) has the whole of it.
@@ -128,7 +133,6 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 - **`.gitignore`**: what stays on this machine. `flow install` rewrites it every run, and its first line, `# What belongs to this machine alone.`, is how the install tells a Flow home from another repository.
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering. Sessions append to it.
 - **`study-cases/<issue>/<date>-<slug>.md`**: one file per recorded failure, filed under the name of the failure. Sessions write them through `flow cases new`.
-- **`scorecards/<session>.jsonl`**: one file per session. `rule-check.js` adds a line for every rule check that ran, and `instructions-loaded.js` a line for every instruction file that loaded. `flow scorecard` reads them.
 - **`audit/`**: `audit.db`, the index of every transcript. `flow audit index` builds it, and it can be rebuilt from `~/.claude/projects/` at any time.
 - **`changes/<session>/`**: what each subagent changed, filed under its agent id. `changes.js` writes it, and deletes a session's folder once nothing has touched it for 7 days.
 - **`private-skills/<name>/`**: skills you write for yourself and never share. You write them, and `flow skills on` switches one on.
@@ -188,4 +192,4 @@ Flow sessions write into these and own none of them.
 
 ## What stays on one machine
 
-These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/history.jsonl`, `~/.flow/install.log`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/migrate-prompt.md`, `~/.flow/scorecards/`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version`, `~/.flow/skills-update.json`, and every `~/.flow/wiki/<tool>/downloads/`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/wiki/`, `~/.flow/research/`, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/` and `~/.flow/machines/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed, so it travels with the repository.
+These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/logs/`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/migrate-prompt.md`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version`, `~/.flow/skills-update.json`, and every `~/.flow/wiki/<tool>/downloads/`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/wiki/`, `~/.flow/research/`, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/` and `~/.flow/machines/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed, so it travels with the repository.

@@ -65,6 +65,25 @@
             "command": "node \"$HOME/.flow/scripts/changes.js\""
           }
         ]
+      },
+      {
+        "matcher": "^Bash$|^mcp__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/failures.js\""
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/failures.js\""
+          }
+        ]
       }
     ],
     "SubagentStart": [

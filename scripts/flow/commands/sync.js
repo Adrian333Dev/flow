@@ -29,6 +29,7 @@ const { out } = require('../lib/cli');
 const machine = require('../lib/machine');
 const repo = require('../lib/flow-repo');
 const links = require('../lib/skill-links');
+const failures = require('../lib/failures');
 const version = require('../lib/version');
 
 const actions = {};
@@ -40,7 +41,17 @@ actions.sync = {
   run({ flags }) {
     const at = machine.folders(flags.root);
     const mine = version.applied(path.join(at.flow, 'version'));
-    const { came, sent, pushed } = repo.sync(at, mine.state === 'ok' ? mine.number : 0);
+    let result;
+    try {
+      result = repo.sync(at, mine.state === 'ok' ? mine.number : 0);
+    } catch (e) {
+      // A refusal, such as another machine being ahead, is the design working.
+      if (/^(could not|git |committed here)/.test(e.message)) {
+        failures.record(at.flow, { source: 'sync', what: 'flow sync', error: e.message });
+      }
+      throw e;
+    }
+    const { came, sent, pushed } = result;
     out(came ? `came down: ${came} file${came === 1 ? '' : 's'}` : 'nothing new came down.');
     if (came) {
       const done = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });

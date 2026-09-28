@@ -2,7 +2,7 @@
 /**
  * `flow scorecard`: how the rule checks are doing, across every session.
  *
- * Reads every file under ~/.flow/scorecards/, adds the counts, and prints four
+ * Reads every file under ~/.flow/logs/scorecards/, adds the counts, and prints four
  * lists: checks pointing at a rule nobody defines, the rules broken most, the
  * ones ready to stop measuring and start warning, and the ones that load every
  * session and never once apply.

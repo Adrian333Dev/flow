@@ -13,6 +13,8 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { project, run, flow, gitRepo, bareRepo, skillFile, setUp, pathWith, REPO } = require('./helpers/scratch');
+const historyLog = require('../flow/lib/history');
+const failures = require('../flow/lib/failures');
 
 const linkTarget = (p) => fs.readlinkSync(p);
 
@@ -101,7 +103,7 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.match(first.stdout, /One step left: setting up this machine\. Start it from a terminal:\n\n {2}flow setup --root /);
   assert.match(first.stdout, /^Flow is installed: \d+ skills/m, 'a summary comes first');
   assert.doesNotMatch(first.stdout, /^linked: /m, 'every link goes to the log, never the screen');
-  assert.match(fs.readFileSync(path.join(at.flowHome, 'install.log'), 'utf8'), /^linked: .*skills\/flow\/skills\/groundwork$/m);
+  assert.match(fs.readFileSync(path.join(at.flowHome, 'logs', 'install.log'), 'utf8'), /^linked: .*skills\/flow\/skills\/groundwork$/m);
 
   // Where the clone sits: every other clone goes beside this link, and no
   // setting records the path.
@@ -109,7 +111,10 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.ok(!fs.existsSync(path.join(at.flowHome, 'settings.local.json')), 'no clone key');
   assert.match(first.stdout, /could not clone Adrian333Dev\/util: .*Run flow install again once that is fixed\./,
     'a clone that fails is a line of the report, never a stop');
-  const history = fs.readFileSync(path.join(at.flowHome, 'history.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+  const failed = fs.readFileSync(failures.file(at.flowHome), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.ok(failed.some((f) => f.source === 'install' && /^could not clone Adrian333Dev\/util/.test(f.error)),
+    'and a line in the failure log');
+  const history = fs.readFileSync(historyLog.file(at.flowHome), 'utf8').trim().split('\n').map(JSON.parse);
   assert.deepStrictEqual(history.map((h) => [h.type, h.clone]), [['install', REPO]]);
 
   // A skill renamed in the clone leaves a link pointing at nothing.
@@ -264,7 +269,7 @@ test('install clones what is missing, links a skill switched on, and never clone
   assert.match(second.stdout, /Flow is already set up on this machine, so there is nothing more to do\./);
   assert.doesNotMatch(second.stdout, /One step left/);
 
-  const types = fs.readFileSync(path.join(at.flowHome, 'history.jsonl'), 'utf8').trim().split('\n')
+  const types = fs.readFileSync(historyLog.file(at.flowHome), 'utf8').trim().split('\n')
     .map((l) => JSON.parse(l).type);
   assert.deepStrictEqual(types, ['clone', 'clone', 'clone', 'install', 'install']);
 });

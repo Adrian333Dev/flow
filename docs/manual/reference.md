@@ -15,6 +15,7 @@ Every command, skill, setting and file Flow gives you, in one place. Look one up
 - [Overlays](#overlays)
 - [Audit](#audit)
 - [Rule checks](#rule-checks)
+- [The failure log](#the-failure-log)
 - [Sharing findings](#sharing-findings)
 - [The skills](#the-skills)
 - [Agents read files with Read, never `util fs merge`](#agents-read-files-with-read-never-util-fs-merge)
@@ -42,8 +43,8 @@ What one run puts on the machine:
 - **`~/.local/bin/flow` and `fw`**: links to `flow.js`, so both are on your `PATH`. A name Flow used to ship and has since renamed is unlinked here, since its link still resolves and would still run.
 - **`~/.flow/repos/`**: every clone Flow reads. `flow/` is a link to the clone you ran the install from. `util/` and `toolbox/` sit beside it, and `sources/<owner>_<repo>/` holds one clone per skill repository, covered in [Skill discovery](#skill-discovery). Each missing one is cloned, newest commit only. A clone that fails, offline say, prints a line and the install still finishes, so running it again is the fix. `--no-clone` skips every clone.
 - **`~/.local/bin/util` and `u`**: made by util's own installer, which the install runs from `~/.flow/repos/util/`.
-- **`~/.flow/history.jsonl`**: one line saying the install ran. Every change Flow makes to the machine adds a line here, and nothing rewrites one.
-- **`~/.flow/install.log`**: every line of the last run. The screen shows a summary, plus each line saying something changed or failed.
+- **`~/.flow/logs/history/<month>.jsonl`**: one line saying the install ran. Every change Flow makes to the machine adds a line here, and nothing rewrites one.
+- **`~/.flow/logs/install.log`**: every line of the last run. The screen shows a summary, plus each line saying something changed or failed. A line saying something failed also goes to [the failure log](#the-failure-log).
 - **`~/.flow/originals/machine/`**: every path in this list as it was before Flow, copied before anything is created. [Migrations and the original](#migrations-and-the-original) covers it. Only a machine Flow was never on gets one, because on any other the paths are already Flow's own.
 
 `--root <dir>` puts the whole install under `<dir>` in place of your home folder: `<dir>/.agents`, `<dir>/.claude`, `<dir>/.flow`, `<dir>/.local/bin` and the global git config, `<dir>/.gitconfig`. It is how the tests and the scratch session build a machine inside `tmp/`. One flag covers every folder, so no run can redirect part of the install and write the rest to the real machine.
@@ -272,7 +273,7 @@ The laptop's `flow up` migrates the laptop's own copy, with everything it wrote 
 
 The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.`
 
-**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `history.jsonl`, `install.log`, `skills-update.json` and its lock, `scorecards/`, `audit/`, `changes/`, and each wiki tool's `downloads/`.
+**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `audit/`, `changes/`, and each wiki tool's `downloads/`.
 
 ### `flow uninstall`
 
@@ -380,7 +381,7 @@ machine                   7 paths   written 2026-09-18T21:30:05   closed
 
 Puts every path in one original back the way it was, the newest entry first, with its old time. A path recorded as absent is deleted. Each needs no agent and no session, so both work from a plain shell after a migration that broke Claude Code itself.
 
-The original survives a restore, so the same command runs again and lands in the same place. Each restore adds a line to `~/.flow/history.jsonl`:
+The original survives a restore, so the same command runs again and lands in the same place. Each restore adds a line to the history log, `~/.flow/logs/history/<month>.jsonl`:
 
 ```json
 {"at":"2026-09-25T10:04:31Z","type":"restore","paths":7}
@@ -705,13 +706,20 @@ What each command refuses, and what it says instead:
 
 `on --machine` and `on --global` say what they cost as they go: every session on the machine loads that skill's description, in a project it has nothing to do with too. The first link into a skills folder that did not exist needs a Claude Code restart, since Claude Code only watches a skills folder that existed when the session started. A line naming a skill no source holds shows under `ls` as `missing`, with the `drop` that removes it.
 
-Every switch, clone and pull adds a line to `~/.flow/history.jsonl`:
+Every switch, clone and pull adds a line to the history log, `~/.flow/logs/history/<month>.jsonl`:
 
 ```json
 {"at":"2026-09-24T09:12:05Z","type":"skill","name":"react","state":"on","level":"project","by":"flow skills on"}
 ```
 
 **The clones update themselves when a session opens.** The skills are links into them, so a pull makes every project holding one current at once. [`skillsAutoUpdate`](settings.md#skillsautoupdate) covers the pull, the 2 guards that stop it, and the switch.
+
+**A skill from someone else's repository is either used whole or harvested.** The agent reads it before switching it on, and picks one:
+
+- **Used whole**: switched on as its publisher wrote it, and updated by every pull. Mostly a skill from the tool's own makers. `flow skills add <owner/repo> <name>`.
+- **Harvested**: never switched on. Its repository is cloned so the skill can be read, together with your findings about the tool and any other skill on it, and written into a skill of your own in `domain-skills`. `flow skills add <owner/repo>`, with no name.
+
+`references/knowledge.md` in the clone holds the whole of it: the review, the 2 states, plugins and MCP servers.
 
 ## Overlays
 
@@ -759,7 +767,7 @@ Run a read-only SQL query against the index. Only `SELECT` and `WITH` are allowe
 
 Whether the rules Flow writes are actually being followed. A **rule check** is one JavaScript file at `scripts/rule-checks/<id>.js`, named after the rule id it enforces. Two hooks feed it, both wired in `home/settings.json`:
 
-- `rule-check.js` runs on `PreToolUse` for Edit and Write. It runs every check against the edit and appends one line per result to `~/.flow/scorecards/<session>.jsonl`.
+- `rule-check.js` runs on `PreToolUse` for Edit and Write. It runs every check against the edit and appends one line per result to `~/.flow/logs/scorecards/<session>.jsonl`.
 - `instructions-loaded.js` runs on `InstructionsLoaded`, recording which `CLAUDE.md` and rule files entered context. A warning names the rule id when the rule's file is loaded, and carries the rule's whole text when it is not.
 
 Each check declares its own `tier`. `measure` records and interrupts nothing, `warn` puts a line in front of the agent, `block` refuses the edit. Every check starts at `measure`. `/flow:file-findings`' `references/write-checks.md` states the full export contract.
@@ -777,6 +785,22 @@ A result recorded before a check's `since` date is dropped, so rewriting a check
 **Never violated is not a dead rule.** A rule only gets written after a real mistake, so zero violations means the fix took. The `never applied` list is the demotion signal: the situation the rule governs stopped arising.
 
 The command only reads. Acting on it means editing a check file, which needs approval like any change.
+
+## The failure log
+
+Every failure of something Flow built or chose, one JSON line each, in `~/.flow/logs/failures/<month>.jsonl`. A new month starts a new file, and nothing moves or trims an old one. The log stays on this machine. You read it, or ask an agent to, when something keeps breaking.
+
+```json
+{"at":"2026-09-27T14:02:11Z","source":"hook","what":"mcp__supabase__list_tables","error":"401 Unauthorized","project":"/home/me/code/shop","session":"b81748eb-…","call":"toolu_01…"}
+```
+
+3 writers put lines there:
+
+- **The `failures.js` hook**, on `PostToolUseFailure` and `StopFailure`: an MCP tool that returned an error, a Flow command or bundled script that exited with an error, and an API error that ended a turn, such as a rate limit. A command of the agent's own, such as a `grep` that found nothing, is never logged, and neither is a call you interrupted.
+- **Flow's scripts**, for what runs where no session sees it: a clone `flow install` could not make, a pull or fetch the background update could not finish, a `flow sync` git could not complete. `source` names the script.
+- **The agent**, for what no hook can see, such as a subagent that changed files and sent no change record. `source` is `agent`.
+
+`session` and `call` point into the session's transcript under `~/.claude/projects/`, where the whole failure is. The line keeps the first 500 characters of the error, enough to group repeats.
 
 ## Sharing findings
 
@@ -848,7 +872,7 @@ Two files, and Flow contributes to one of them.
 
 **`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `flow setup` merges Flow's keys into it, key by key. Flow contributes four keys:
 
-- **`hooks`**: 7 jobs. `guard.js` asks you before a shell command that could destroy work: a delete outside the project, a download piped into a shell, a write into a shell startup file, or a git command that throws work away. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
+- **`hooks`**: 8 jobs. `guard.js` asks you before a shell command that could destroy work: a delete outside the project, a download piped into a shell, a write into a shell startup file, or a git command that throws work away. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `failures.js` writes a line into the failure log whenever an MCP tool, a Flow command or an API call fails. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
 - **`permissions`**: an allow list and a deny list. The allow list covers edits, reads, web lookups and the everyday shell commands, such as `mv`, `node`, `npm test` and `flow`, so every other command asks you, every git write included. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `su`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first

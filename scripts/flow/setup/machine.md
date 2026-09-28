@@ -66,6 +66,8 @@ A section left with no line goes, heading included. `## Flow's skills` always st
 - **Installed by `npx skills`** → Flow's `flow skills add <owner/repo> <name> --machine`, the repository read from `~/.agents/.skill-lock.json`. Its lines: delete both copies, run the add, then write the lock file with that entry removed. Only taken-over entries leave the lock file.
 - **A real folder copied in by hand** → moved into `~/.flow/private-skills/<name>/`, then `flow skills on <name> --machine`.
 
+Each line says whether the skill is used whole or harvested, sorted by `~/.flow/references/knowledge.md` → `## An outside skill`. A harvested one is added with no name, so nothing switches on.
+
 ## Harvesting
 
 Every line of every rule file found goes in 1 of 3 places:

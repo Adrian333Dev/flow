@@ -16,6 +16,7 @@ const path = require('path');
 const { SCRATCH, run, write, gitRepo, skillFile, setUp } = require('./helpers/scratch');
 const render = require('../flow/lib/render');
 const skills = require('../flow/lib/skills');
+const historyLog = require('../flow/lib/history');
 
 /** A machine with one project, and 2 repositories waiting to be added. */
 function place(name) {
@@ -50,7 +51,7 @@ function place(name) {
 }
 
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
-const history = (home) => fs.readFileSync(path.join(home, 'history.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+const history = (home) => fs.readFileSync(historyLog.file(home), 'utf8').trim().split('\n').map(JSON.parse);
 const target = (p) => fs.readlinkSync(p);
 
 /** Flow's own rows, read off the tree, so a new skill never breaks a literal. */

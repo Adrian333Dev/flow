@@ -61,7 +61,7 @@ const edit = (file, added, session = 's1', cwd = '/tmp/demo') =>
   JSON.stringify({ session_id: session, cwd, tool_name: 'Write', tool_input: { file_path: file, content: added } });
 
 function lines(dir, session = 's1') {
-  const file = path.join(dir, 'flow-home', 'scorecards', `${session}.jsonl`);
+  const file = path.join(dir, 'flow-home', 'logs', 'scorecards', `${session}.jsonl`);
   if (!fs.existsSync(file)) return [];
   return fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
 }

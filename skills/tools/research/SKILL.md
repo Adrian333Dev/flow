@@ -35,23 +35,23 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
    - **Every skill Flow can reach:** `flow skills ls <pattern>`. Each pattern is a regular expression over the name and the description, and a skill shows when it matches every one. It covers your private skills, the domain-skills repository and every other skill repository Flow has. `flow skills ls --source domain-skills` lists one repository whole.
    - **The toolbox**, a catalog of outside tools with notes from real use, at `~/.flow/repos/toolbox/`. Read its `README.md`, then search the folders that could hold an answer, the way it says. No folder there → `flow install` clones it.
    - **skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill.
-2. **A skill `flow skills ls` found needs no judging.** Turn it on: `flow skills on <name>`.
+2. **A skill `flow skills ls` found in `domain-skills` or your private skills needs no judging.** Turn it on: `flow skills on <name>`. One from any other repository is judged in step 4 first.
 3. **When nothing from step 1 fits, search outward:**
    - **Skills on GitHub:** `gh search code <word> --filename SKILL.md`
    - **Plugin marketplaces:** `gh search code <word> --filename marketplace.json`
    - **MCP servers:** `curl 'https://registry.modelcontextprotocol.io/v0/servers?search=<word>'`
    - **The web.** For a chosen tool, name it with the words `skill`, `plugin` and `mcp`.
    - **Still nothing:** write a level 4 prompt, below, and name ChatGPT for it. It searches GitHub well.
-4. **Judge what comes back.** Prefer material carrying knowledge: a reference, a database, a set of conventions. Weigh anything carrying process, because a skill with its own build order competes with `/flow:execute` and nothing arbitrates between them. For a skill:
-   - **Read its `SKILL.md`** before recommending it.
+4. **Judge what comes back by `~/.flow/references/knowledge.md`.** A skill → `## An outside skill`: the review, then used whole or harvested. A service → `## Reach a service through a command`. Pick which to read first:
    - **Rank by publisher first:** the tool's own maker beats anyone else. Then the repo's stars and last push.
    - **Weigh install counts least.** The CLI reports them anonymously, and nothing verifies them.
+   - **Read the top 3** in full before recommending one, and name what the others lose on.
 5. **Write down what you found, including finding nothing**, wherever this question's report goes, under `## Where it goes`. The next session asking the same question reads that instead of searching again.
 
 **Adopting a skill:**
 
-- From any skill repository → `flow skills add <owner/repo> <name>`, which clones the repository and turns the skill on for this project. `--machine` turns it on for this machine.
-- It needs a change → copy the edited skill into the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository with a note naming its upstream repository, commit and license, then `flow skills on <name>` wherever it is wanted. Only when its license allows republishing
+- Used whole → `flow skills add <owner/repo> <name>`, which clones the repository and turns the skill on for this project.
+- Harvested → `flow skills add <owner/repo>`, no name, which clones it and switches nothing. Tell the user it waits for the harvest.
 
 ## How deep to go
 

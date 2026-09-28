@@ -181,7 +181,7 @@ function putBack(base, entry) {
 /**
  * Put a whole place back, newest entry first. The original itself survives, so
  * the same restore runs again and lands in the same state. Adds one line to
- * ~/.flow/history.jsonl.
+ * the history log, ~/.flow/logs/history/.
  */
 function restore(at, project = null) {
   const base = dir(at, project);

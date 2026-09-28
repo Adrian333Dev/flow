@@ -40,6 +40,7 @@ When you first open the repository, the split that matters has four parts:
 - `changes.js` records what each subagent changed, under its agent id, and hands the parent a diff per file when the subagent finishes. `flow/lib/changes.js` holds the logic.
 - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
 - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
+- `failures.js` is the `PostToolUseFailure` and `StopFailure` hook. It writes a line into `~/.flow/logs/failures/<month>.jsonl` for a failed MCP tool, a failed Flow command or bundled script, and an API error that ended a turn. `flow/lib/failures.js` holds which calls count, and `flow/lib/logs.js` the one file per month every log under `~/.flow/logs/` uses.
 - `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill whose ticket id matches nothing, before the skill loads.
 - `reminder.js` is the `UserPromptSubmit` hook that prints `references/reminder.md` beside every message, unless `"reminder": false` in `~/.flow/settings.json` silences it.
 - `context-check.js` is the `PostToolBatch` and `UserPromptSubmit` hook that tells the agent to hand off once the conversation passes `"wrapUpAt"` tokens, 150,000 by default, and again every 20,000 past it. It reads the size off the session file. `"wrapUp": false` silences it.
@@ -51,7 +52,7 @@ When you first open the repository, the split that matters has four parts:
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
-**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, with `write-rules.md` beside it for a rule file and `write-docs.md` for a documentation page, `workflow.md` describes how the pieces fit, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message, and `harnesses/<name>.md` says where one harness keeps its own files, Claude Code's first. Symlinked as `~/.flow/references`.
+**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, with `write-rules.md` beside it for a rule file and `write-docs.md` for a documentation page, `workflow.md` describes how the pieces fit, `knowledge.md` maps how skills, plugins, MCP servers and findings arrive and grow, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message, and `harnesses/<name>.md` says where one harness keeps its own files, Claude Code's first. Symlinked as `~/.flow/references`.
 
 **`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.agents/skills/flow/skills/`, so the only group names read outside this tree are `drafts/`, which never installs, and `dev/`, whose skills switch.
 

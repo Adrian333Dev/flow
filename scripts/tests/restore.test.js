@@ -10,6 +10,7 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert');
+const historyLog = require('../flow/lib/history');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -94,7 +95,7 @@ test('the first setup writes the original, and restoring it puts every path back
   const applied = applyAt(dir, root, id);
   assert.strictEqual(applied.code, 0, applied.stderr);
   assert.match(applied.stdout, /Put this machine back with flow restore machine$/m);
-  const logged = JSON.parse(read(path.join(root, '.flow', 'history.jsonl')).trim().split('\n').pop());
+  const logged = JSON.parse(read(historyLog.file(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([logged.type, logged.id, logged.lines], ['setup-machine', id, 6]);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
   assert.strictEqual(read(path.join(root, '.claude/rules/one.md')), 'rule one\n');
@@ -129,7 +130,7 @@ test('the first setup writes the original, and restoring it puts every path back
   assert.strictEqual(original(root).entries.length, 7, 'the original never grows after the first setup');
 
   originals.restore(folders(root), null);
-  const restored = JSON.parse(read(path.join(root, '.flow', 'history.jsonl')).trim().split('\n').pop());
+  const restored = JSON.parse(read(historyLog.file(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([restored.type, restored.paths, restored.project], ['restore', 7, undefined]);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n');
   assert.ok(!exists(path.join(root, '.claude/rules')), 'what the migration created is removed');
@@ -251,7 +252,7 @@ test('a project setup opens its own original, stops part-way, and carries on aft
   ]);
 
   originals.restore(folders(root), proj);
-  const restored = JSON.parse(read(path.join(root, '.flow', 'history.jsonl')).trim().split('\n').pop());
+  const restored = JSON.parse(read(historyLog.file(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([restored.type, restored.project], ['restore', proj], 'a project restore names the project');
   assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), 'old project rules\n');
   assert.strictEqual(read(path.join(proj, 'docs/work/one.md')), 'one\n');
