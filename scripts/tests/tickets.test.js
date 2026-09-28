@@ -182,6 +182,21 @@ test('parking stores the resume status, and reviving restores it', () => {
   assert.strictEqual(revived.data.resume || '', '');
 });
 
+test('a field Flow does not know survives a move', () => {
+  const dir = project('tickets-unknown-field');
+
+  flow(dir, ['new', 'Build the widget']);
+  const [t] = ticket(dir);
+  const file = ticketFile(dir, t.id);
+  fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/^---\n/, '---\nassignee: sam\nlabels: [ui, api]\n'));
+
+  flow(dir, ['build', t.id]);
+  const moved = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
+  assert.strictEqual(moved.data.status, 'building');
+  assert.strictEqual(moved.data.assignee, 'sam');
+  assert.deepStrictEqual(moved.data.labels, ['ui', 'api']);
+});
+
 test('flow done refuses on a parent with open children', () => {
   const dir = project('tickets-done-children');
 

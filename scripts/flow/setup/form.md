@@ -26,11 +26,12 @@ type: setup-machine
 
 - Flow's rules, read at the start of every session. `~/.agents/AGENTS.md`, loaded by `~/.claude/CLAUDE.md`
 - Flow's hooks: guard.js, changes.js, rule-check.js, instructions-loaded.js, check-ticket.js, reminder.js, context-check.js, session-check.js. `hooks`
-- Commands that can destroy work always ask you first: a delete outside the project, a download run straight as a script, a change to your shell's startup file, and git commands that throw work away. `guard.js`
+- Commands that can do harm always ask you first: losing work git cannot give back, sending data off the machine, a deploy or a database wipe, a global install, and running a downloaded script. `guard.js`
 - Claude sees exactly what each helper agent changed, even with several working at once. `changes.js`
 - The file list after `@` comes from Flow, which stays fast in big projects. `fileSuggestion`
-- Edits, file reads, web pages and web search run without asking. So do the everyday shell commands: moving and copying files, searching text, running a script in node, python, bash or sh, running tests, and Flow's own commands. `permissions.allow`
-- Every session starts in Manual mode: Claude asks before anything the line above doesn't cover. `permissions.defaultMode`
+- Edits, file reads, web pages, web search and every shell command run without asking. `permissions.allow: Edit, Read, WebFetch, WebSearch, Bash`
+- A git commit, a git push and publishing a package ask you every time. `permissions.ask`
+- Every session starts in Manual mode: Claude asks before anything the 2 lines above don't cover. `permissions.defaultMode`
 - Claude can't run the commands that undo Flow. Only you can. `permissions.deny: Bash(flow restore …), Bash(flow uninstall …)`
 - Claude can't run commands as the system's admin or as another user, format a disk, or start a copy of itself that never asks. `permissions.deny: Bash(sudo *), Bash(su *), Bash(mkfs*), Bash(* --dangerously-skip-permissions *)`
 

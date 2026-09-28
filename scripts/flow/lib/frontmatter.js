@@ -97,10 +97,17 @@ function quoteIfNeeded(s) {
   return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
 }
 
-/** Serializes in `keyOrder`; empty strings and empty arrays are omitted entirely. */
+/**
+ * Serializes in `keyOrder`, then every other key in the order it was read.
+ * Empty strings and empty arrays are omitted entirely.
+ *
+ * A key Flow does not know is kept, never dropped: a field a newer Flow, a
+ * teammate or a hand edit added survives the next write.
+ */
 function serialize(data, keyOrder) {
   const lines = ['---'];
-  for (const key of keyOrder) {
+  const keys = [...keyOrder, ...Object.keys(data).filter((k) => !keyOrder.includes(k))];
+  for (const key of keys) {
     const v = data[key];
     if (v === undefined || v === null) continue;
     if (Array.isArray(v)) {

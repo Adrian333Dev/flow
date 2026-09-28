@@ -1,130 +1,53 @@
 # Handoff
 
-Written 2026-09-27. Read this once, then rewrite it whole next time.
+Written 2026-09-28, mid-build, for a compaction. Read this once, then rewrite it whole next time.
 
-## Next: 1 conversation, then the final sweep
+## Next: finish the guard rebuild, then send one reply
 
-**The management skill is built apart from `/flow:help`, which is parked until the manual is rewritten.** The small batch, the second machine and the research redesign are built, below. What is left, in the order recommended to the user:
+The user approved rebuilding `scripts/guard.js`, now that every shell command is allowed. The code and the tests are done: 9 tests in `scripts/tests/guard.test.js` pass. What is left, in order:
 
-1. **1 conversation**: who reads `~/.flow/workflow-notes.md`. The other 3 of the 4, filling `## The user` and `## Preferences`, wrapping up when the context gets large, and a bare `/flow:start`, are built, below.
-2. **The final sweep.** The user warned it is much bigger than it looks.
+1. **`docs/manual/settings.md` → `### hooks`**: rewrite the guard section, which still lists the old 4 dangers, for the 5 families below. The `#### allow` list's first bullet links `[4 dangers](#hooks)`, so fix that link's words too.
+2. **Guard lines elsewhere**: `README.md` → `### The guard`, `docs/manual/reference.md` → the `hooks` bullet near line 879, `docs/dev/layout.md` → the `guard.js` bullet ("asks before 4 commands"), `scripts/flow/setup/form.md` → the `guard.js` line, `lab/context/state.md` → the `guard.js` bullet under `## 18 hooks`.
+3. **Writing pass on each markdown file**, `references/style.md` and `references/write-docs.md` read already.
+4. **`npm test --prefix scripts`**: the whole suite, 199 before this build plus the new guard tests. Rerun `node tmp/guard-holes.js`, the 17 commands the old guard let through: all ask except `git restore src` and `rm -rf src`, which lose nothing in this repo, since it has no `src`.
+5. **One reply**: what the guard now catches, the files changed, the test count, and the calls made mid-build listed below, since the user has not seen them.
 
-## Built 2026-09-27: a handoff in a project always goes into a ticket
+## The guard as built
 
-`lab/context/state.md` → the bullet of the same name holds the mechanism. The decisions, each the user's or agreed:
+`scripts/guard.js`, 1,409 lines. It never answers `allow`.
 
-- **A project's work lives in tickets**, the user's ruling: a handoff outside a ticket should not exist where Flow is set up. That closes the backlog item on a bare `/flow:start` loading nothing, with no code: the new ticket is in flight, and the board already puts work in flight first.
-- **Work with no ticket gets one at its handoff**, rather than the handoff refusing: a conversation that reached the wrap-up is real work.
-- **`.flow/handoff.md` is gone**, and so is the `handoff.md` inside a loose groundwork folder. A `handoff.md` stays only for a folder with no `.flow/`, which keeps Flow usable outside projects.
+- **A shell reader, `parse()`**: quotes, `$(…)`, backticks, `<(…)`, `$((…))`, `${…}`, here-docs, comments, every operator, subshell parens. Each word keeps its parts (text, `~`, a named variable, or unknown) and its `raw` text, which is read again for `bash -c`, `eval`, `watch` and `env -S`.
+- **`unwrap()`** peels keywords, assignments and wrappers: `env`, `command`, `exec`, `nohup`, `time`, `nice`, `ionice`, `timeout`, `stdbuf`, `sudo`, `flock`, `watch`, `bundle exec`, `xargs` (its input becomes an unknown argument). Variables set by `x=…`, `export` and `for` are tracked, and so is `cd`, with subshells restoring it.
+- **Family 1, losing work**: `rm`, `unlink`, `shred`, `rimraf` and the rest ask outside the project, on an unknown target, on the project or an ancestor of it or of home, on a whole git repository, and inside the project over files `git status` lists as changed, staged or new. Outside git, a delete asks unless it sits in a rebuilt folder such as `node_modules` or `dist`. `find -delete` and `find -exec rm` run a dry run of the same find with `-print0`, then check exactly what matched. The git discards: force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, tag and ref deletes, `reflog`, `gc --prune`, `stash drop`/`clear`, and `checkout`/`restore`/`switch -f`/`rm -f` only over uncommitted changes. `git config --global` writes.
+- **Family 2, off the machine**: `curl`/`wget`/`httpie` sending data to a host that is not local, `scp`/`rsync` to a remote destination, `sftp`, every `ssh`.
+- **Family 3, shared systems**: 21 deploy and cloud tools ask unless a word reads and none changes (`READS`, `CHANGES`); `gh api` by its method and fields; bare `vercel`; `docker push`, volume deletes, `compose down -v`; `DROP`/`TRUNCATE`/`FLUSHALL` in a database client's arguments, here-doc or piped input; `dropdb`; `prisma migrate reset`; `rails db:drop`; django `flush`.
+- **Family 4, the machine**: global installs (`npm -g`, `pip` outside a virtual environment or `--user`, `uv tool`, `pipx`, `cargo`/`go`/`gem install`, `brew`), `crontab`, `systemctl`, `launchctl`, `pkill`, `killall`.
+- **Family 5, outside code and Flow's switches**: a download piped or substituted into a shell or interpreter, `npx`/`bunx`/`pnpm dlx`/`yarn dlx` of a package the project lacks (checked in `node_modules` and `package.json`), and any write into `~/.ssh`, shell startup files, `~/.gitconfig`, `~/.claude`, `~/.flow`, `~/.agents` or the project's `.claude/settings*.json`, by redirect, `tee`, `cp`, `mv`, `ln`, `install`, `sed -i`, `perl -i`, `truncate`, `chmod`/`chown` or `dd`.
+- **When it cannot tell**: an unknown delete target or program asks. A command bash would refuse, such as an unclosed quote, stays silent. A crash asks when the command mentions a risky program.
 
-Checked in scratch: `flow new --type topic --from-groundwork <folder> --body -` moves the folder and writes the body; `flow get <path>` reads a file in a folder with no `.flow/`. Never seen in a live session. `lab/scripts/test-projects/unfinished-work/` still builds a loose `notes/handoff.md` inside a project, the shape this ruling retires.
+**Calls made mid-build, to report to the user:**
 
-## Built 2026-09-27: the wrap-up at 150k
+- A named delete in `/tmp` passes, and a glob there asks.
+- Deleting a new file git does not ignore asks, such as a scratch file outside `tmp/`.
+- A plain `rm` outside the project now asks, where the old guard asked only for `-r` or `-f`.
+- `find` deleting runs a dry run first, capped at 3 seconds.
+- `ssh` always asks, even with no command after the host.
+- `git push` without force, and `git commit`, stay with the `ask` rules, so deleting one from settings still lets it run.
 
-`lab/context/state.md` → the `context-check.js` bullet holds the mechanism. The decisions, each the user's or agreed:
+## Decided 2026-09-28: permissions
 
-- **The limit is 150,000 tokens**, the user's number: answers degrade past about 140k, and the agent runs 10k to 20k past the limit reaching a checkpoint. `"wrapUpAt"` moves it, `"wrapUp": false` silences it.
-- **It speaks again every 20,000 past the limit, firmer**, naming the step in hand, since an agent deep in a build tends to finish the whole job. The user raised it, and accepted the first version as fine for now.
-- **The checkpoints are `capture-at-checkpoints`' list**, plus a plan step landed and verified, never one list per phase. `/flow:handoff` runs the sweep, so the wrap-up needs no sweep of its own.
-- **Its own script, never folded into `reminder.js`**, which the proposal named: `"reminder": false` would otherwise silence the wrap-up too.
+- **Every shell command is allowed**: a bare `Bash` in `permissions.allow`, and `permissions.ask` holds `git commit`, `git push`, and `npm`/`pnpm`/`yarn`/`cargo publish`. Both `home/settings.json` and this repo's `.claude/settings.json`. `docs/manual/settings.md` → `#### Why every shell command is allowed`, `#### ask: 6 commands that always ask` and `#### Modes` record the reasons.
+- **`approve.js` was built and deleted the same day**: its first live session asked on `wc -l < "$f"` inside a loop, and the user refused to patch shapes forever.
+- **Auto mode ruled out by the user**: extra cost, reviews failing with no verdict, and blocking actions the conversation already agreed. **The sandbox ruled out** for what it breaks, and its retries outside the wall.
+- The "switch to auto mode" option in prompts is gone, since the prompts left all come from a hook or an ask rule.
 
-The suite passed 193 of 193. Never seen in a live session.
+## Decided 2026-09-28: tickets and teams
 
-## Built 2026-09-27: capture sweeps at checkpoints, and `/capture`
+- **Saving a ticket keeps fields Flow does not know**: `scripts/flow/lib/frontmatter.js`, with a test in `tickets.test.js`.
+- **Mode 1 for teams keeps ticket records in a database** on a server, with plans in the repo; a solo developer keeps files. The board's columns: Todo, In progress (phase as a label), Review, Done, Parked, Dropped. `lab/context/teams.md`.
+- **2 ticket rules ride on the `scripts/` cleanup** in `lab/backlog/before-beta.md`: id parsing and every ticket read and write stay inside `store.js`.
+- **Not recorded yet**: the idea of one developer using Flow on a team repo, with Flow's files kept out of git through `.git/info/exclude`. A proposal only.
 
-`lab/context/state.md` → the capture and `commands/capture.md` bullets hold the mechanism. The decisions, each the user's or agreed:
+## Scratch
 
-- **Capture moves from "the moment it surfaces" to a sweep at checkpoints.** The user's idea: mid-work, the agent misses things. The sweep reads the conversation in context, never the transcript file.
-- **`/flow:handoff` runs the sweep first**, since a handoff comes before `/clear`.
-- **The reminder names sections, never a file**: naming `~/.agents/AGENTS.md` invites a second read of a file already loaded. The user rejected a sentence saying the rules are loaded, since a later rule file would make it false.
-- **`/capture` is a command, not a skill**, the user's call, typed with no prefix. Flow's first command; `commands/` installs per file.
-- **The profile push**: under 10 lines in a section, write on the first sign; after that, on the second; a sharper line replaces the one it sharpens.
-
-The suite passed 188 of 188. Never seen in a live session: `/capture` typed, and a handoff running the sweep.
-
-## Built 2026-09-27: `try.sh` starts from seeds
-
-**Every new run had failed since 2026-09-25** with `... is not a Flow project yet`. Commit `44addaa` deleted `project-template/.flow/overlays/.info`, the only reason the practice project had a `.flow/` folder, and every `flow` command refuses a project without one. `try.sh` now writes `.flow/settings.json` and `.flow/version` into the practice project, as `flow setup project` leaves them.
-
-**Then the user simplified the commands.** The decisions, each the user's or agreed:
-
-- **A saved computer is a seed**, picked with `--seed`, `before-flow` by default. `--case` and the `empty` case are gone.
-- **`--save <name>` saves a run's computer as a seed**: the last run opened, or the one `--name` names. The practice project, session files and logins stay behind. A run from a set-up seed skips the install and setup, and makes its `remote.git` from the seed's `~/.flow/`.
-- **The practice project builders moved to `lab/scripts/test-projects/`**, each `seed.sh` renamed `build.sh`, since "seed" now means a computer. `--project` is unchanged.
-- **The practice projects were renamed for what they hold**: `expense-tracker` (the default), `broken-board`, `unfinished-work`. `empty` became `not-set-up`: the expense tracker's code committed with no `.flow/`, the one project that tests `flow setup project`. A folder with no `build.sh` arrives that way.
-- **`save-computer.sh` saves the real computer alone.**
-- **`tmp/computers/` is the user's to back up.** No file in this repo says where, and `try.sh` never pushes.
-- **Testing 2 machines** is possible later, 2 runs sharing one `remote.git`, and not wanted yet.
-
-Checked: all 4 practice projects build, and `flow setup project check` accepts `not-set-up`; a run from `before-flow` installed inside the sandbox, was stamped with `flow setup finish`, saved with `--save`, and a run from that seed opened with no install, 9 tickets, and `flow sync` sending to its own `remote.git` alone. No set-up seed exists yet: the user runs setup once in a `before-flow` run, then `--save`s it.
-
-The same edit moved `scripts/flow/setup/project.md` and `project-form.md` to the research redesign: a lesson about a tool found while setting up a project goes to `~/.flow/wiki/<tool>/findings/`.
-
-## Built 2026-09-27: the research redesign
-
-Every step of `lab/context/knowledge-base.md` → `## The build plan`, with the 3 open points approved as recommended. `lab/context/state.md` → the paragraph under the 12 skills holds the mechanism, and `docs/manual/research-and-capture.md` explains it to a user. The suite passed 188 of 188 after it; no script under `scripts/` changed.
-
-- **One folder per outside tool, `~/.flow/wiki/<tool>/`**, shared by every project: `index.md`, `research/`, `findings/`, and `downloads/`, which never syncs.
-- **Context7 through `context7.sh`**, never an MCP server. Trials ran against the real service: search, an unpinned and a pinned question, the id saved and reused, a stale line rewritten, a bad id, an unreachable address, an HTTP 500.
-- **`fetch-docs.sh` downloads into the tool's folder** and logs the tool's latest release. Trials: Next.js, Context7 with a clone and a pull, a site with no `llms.txt`.
-- **Both scripts ran inside a `try.sh` sandbox** after a real install: a Context7 search and question, the id saved, the zod docs downloaded, and git in the pretend Flow home seeing `index.md` alone. `/flow:research` itself has never run in a live session. A `claude -p` try stopped before the model ran, because its `!`flow overlays research`` line needs `Bash(flow *)`, which only the setup session copies into `~/.claude/settings.json`, and that try skipped setup.
-- **Each script call prompts**, since `home/settings.json` allows no `bash ~/.agents/skills/...` command. The same held for `fetch-docs.sh` before. Nobody has decided whether it should.
-
-## Built 2026-09-27: every machine after the first joins the Flow home
-
-The user's words for `~/.flow/` in this design are "the Flow home" and "the private flow repo". The suite passed 188 of 188 on the last whole run. `lab/context/state.md` → the `setup` bullet holds the mechanism. The decisions, each the user's or agreed:
-
-- **The repository is always `<login>/flow-home`, found through `gh`, never renamed.** `--repo` and the address question are gone. `gh` is the 4th prerequisite. `FLOW_HOME_REMOTE` is for the tests and `try.sh` alone.
-- **`gh` signs in with a pasted classic token**, since the browser sign-in fails on WSL. Scopes `repo`, `read:org`, `gist`, which the user tested; `delete_repo` stays off.
-- **A new machine installs the release the Flow home is on**, read from the machine records. The user's idea.
-- **A machine behind another's record syncs nothing until `flow up`.** The user wanted it to stop working entirely; the agreed version stops only sync, and sessions show a line. Each machine migrates its own copy, then git merges the two. The earlier idea of upgrade guides in 2 parts was dropped.
-- **Records hold `name`, `joined`, `flowVersion`.** `lastSync` was proposed and left out: writing it on every sync would make every sync send a change.
-- **`scorecards/`, `audit/` and `changes/` joined the ignore list.** The manual already said they stay, and the list said otherwise.
-- **Install checks everything before it links anything**: sign-in, repository, records, version, files in the way, name. The user's idea. The checks stay in `flow install`, never `install.sh`, which only checks the 4 programs.
-- **The name offered is `<type>-<system>`, `desktop-wsl`**, numbered on a clash with a record, and claimed by sending the record up at install. The prompt is `Machine name (default: desktop-wsl):`, the user's wording. A rebuilt machine takes its old name back through `<name> is taken. Replace it? (y/N)`. Dead machines' records stay: no command removes one.
-- **The name is git's `flow.machine`**, the user's call. util reads it where `util.machine` is missing, changed in the `lab/util` submodule, where util is worked on, and committed by the user. `~/code/util` is the clone this machine runs, which pulls from GitHub, and is never edited. This machine's `util.machine = me-kmkw` came from testing, and the user will drop it before the clean install; `util uninstall` leaves git config alone. It also makes util's test *git work refuses to send from a machine with no name* fail on this machine only: 54 of 54 pass with an empty global config.
-- **The Flow home carries a README**, 2 short paragraphs saying Flow manages it and a hand edit can break sync, with no list of files: the user cut the lists twice. The repository's description says `Managed by Flow. Never rename, edit or make public.`
-- **Every line Flow prints stays short, with no explanation.** The user's rule, raised again this session: the manual explains, the CLI never does. Backlog item 5 of the writing passes is where the rules for printed lines get written.
-
-Never seen for real: the `gh` sign-in, `gh repo create`, the tag switch and rerun inside `flow install`, the background fetch in a live session, the PowerShell chassis read inside an install, the taken-name question.
-
-## Built 2026-09-26
-
-**A test run made a commit in this repository**: `54272df start`, author `t <t@t>`, holding 13 of today's files as they stood at 14:24. 10 copies of `changes.test.js` shared one scratch folder, one deleted another's `.git`, and that copy's `git commit` climbed up to Flow's repository. Nothing was pushed. The user was told and committed the rest on top of it as `2c23bc9`. Both tests that commit now set `GIT_CEILING_DIRECTORIES`.
-
-- **The session check never takes the home folder for a project.** `scripts/session-check.js` → `projectRoot()`. Before, a session opened outside a project unlinked every skill switched on for the whole machine. Test in `session-check.test.js`, shown failing on the old hook first.
-- **`flow restore machine` offers the projects first**: `restore` for all, `machine` for the machine alone. `confirm.word()` takes a list of words. `docs/manual/reference.md` shows the prompt. The user ran it at a real terminal on a pretend machine, `node tmp/restore-try/build.js`, typed `restore`, and all 3 paths came back. The printed layout is messy, filed in `backlog.md` → `` `flow`, the tool ``.
-- **A session opened in a git repository with no `.flow/` suggests `flow setup project`**, as a `systemMessage` the user sees and the agent is never told to act on. The user refused `AskUserQuestion`, switched off on this machine, and wanted no instruction to the agent. `"setupReminder": false` turns it off, `"setupReminderSkip"` lists folders it never shows in. `flow settings off setupReminder` writes the folder list for the repository it is typed in, and `--machine` or `--global` the key, the levels `flow skills` uses. The user wants the line shorter still, and accepted it for now. The home folder and `~/.flow/` never get it. Whether Claude Code shows the line at session start was read in the docs, never seen in a live session.
-- **`/flow:groundwork`'s 6 `### When` cases** were moved to a reference file, then moved back the same day at the user's call: 52 lines saved cost a second read, and `references/style.md` §4 puts material some runs need in `### When` sections.
-- **`flow sync`**: the first sync to an empty remote no longer refuses, and a refused pull prints git's real reason. `sync.test.js` runs a round trip through a bare repository.
-- **`scripts/flow/lib/changes.js` → `snapshot()`** keeps the real index's modified time on its copy, which fixed the test that failed 1 run in 5. A new test forces the same-second timing and failed 3 of 3 before the fix.
-- **`lab/research/claude-code-docs/`** fetched again, 3 pages added, 3 citations repointed.
-- `references/workflow.md` → `Migration` says `flow restore` is the undo. The backlog moved 5 items that need Flow in real use to `## After V1`.
-
-## Facts established
-
-- **Bash output reaches the agent up to about 30,000 characters in total**, then a 2,000-character preview and a saved file.
-- **Read returns 25,000 tokens per page**, and at most 2,000 lines by default, with `offset` and `limit`.
-- **`--setting-sources user` skips project instructions at any depth, skills, commands, subagents, settings and `.mcp.json`.** Probed in `tmp/probe-sources/`.
-- **The `util` on PATH runs `~/code/util`, an older copy than `lab/util/`.** Its tree shows no line counts.
-- **A test's scratch folder sits inside Flow's repository**, so git finds Flow above a folder never initialised. `GIT_CEILING_DIRECTORIES` stops it, as the setup and update tests do.
-- **`/doctor prompt-audit` needs Anthropic's bundled `claude-api` skill**, and `home/settings.json` sets `disableBundledSkills: true`, as does this machine's own `~/.claude/settings.json`. The user ran it 2026-09-26 and got that refusal. It stays filed under After V1, to run once Flow is installed.
-- **`flow restore` and `flow uninstall` refuse inside any session**, this one included, since the lock looks for any running `claude` process on the machine.
-
-## How to reply to this user
-
-- **Feedback arrives dictated.** It is thinking unless it names a change and says to build.
-- **Keep designs simple.** Goals and tips over procedure, no rules on how to use subagents, few options for the user.
-- **Flow must stay flexible**: not every folder is a project, and nothing may force one to be. Said 2026-09-26.
-- **Explain every term the first time**, in plain words, and answer every topic.
-- **Push back once with the deciding argument** when the user's idea loses.
-- **Never `cd` in a command.** Use absolute paths.
-
-## Loose ends nobody has raised
-
-- `scripts/flow/setup/` holds the update session's text too, so its name undersells it.
-- util's test `git work refuses to send from a machine with no name` fails on this machine, since the global git config sets `util.machine`.
-- `docs/manual/reference.md` has a heading `# Delapse into Flow` in the middle of `## Migrations and the original`, not written by this work.
-- The scorecard records use a `kind` field.
-- Claude Code now has `syncClaudeAiSkills`, which downloads the skills enabled on the claude.ai account into `~/.claude/skills/synced/`. Flow's setup does not know it exists. `settings-reference.md` → `### syncClaudeAiSkills`.
-- Scratch to clear some day: `tmp/read-calls/`, `tmp/guard-probe/`, `tmp/merge-try/`, `tmp/open-example/`, `tmp/docs-fetch/`, `tmp/probe-sources/`, `tmp/ps.md`.
+`tmp/guard-holes.js` feeds the guard 17 commands and prints ask or RUNS. Nothing is committed.

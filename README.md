@@ -101,11 +101,19 @@ Two more fire on a situation:
 
 ### The guard ([`scripts/guard.js`](scripts/guard.js))
 
-A `PreToolUse` hook that runs before every shell command the agent executes. It asks you about 4 dangers a permission pattern cannot see, because each sits past the command's first word: a recursive or forced delete outside the working directory, a download piped into a shell, a write into a shell startup file, and a git command that throws work away, such as a force push or `reset --hard`. Each one asks every time, even after you saved a rule allowing that command. The guard never allows anything, so a bug in it cannot let through more than the settings do.
+A `PreToolUse` hook that runs before every shell command the agent executes. It reads the whole command the way bash splits it, loops, `$(…)`, `bash -c` and `xargs` included, and asks you before 5 kinds of harm:
+
+- **Losing work**: a delete outside the project, a delete of files git cannot give back, or a git command that throws work away, such as a force push or `reset --hard`
+- **Sending data off the machine**: `curl` posting a file, `scp` to another host, `ssh`
+- **Touching shared systems**: a deploy or cloud tool doing more than read, such as `kubectl delete` or `terraform apply`, and a database wipe
+- **Changing the machine**: a global install, a scheduled job, a write into `~/.ssh` or a shell startup file
+- **Running outside code, or switching Flow off**: a download piped into a shell, an `npx` of a package the project lacks, a write into Claude Code's or Flow's own settings
+
+Each one asks every time, even after you saved a rule allowing that command. The guard never allows anything, so a bug in it cannot let through more than the settings do. [Settings](docs/manual/settings.md#hooks) lists what each kind covers.
 
 ### Permissions
 
-Flow's settings allow the routine work: edits, file reads, web lookups, and the everyday shell commands, such as moving files, running a script, running tests and Flow's own commands. Everything else asks, every git write included. "Yes, don't ask again" saves a pattern such as `Bash(git commit *)` for that project, so a command you approve once stops asking. `sudo`, `su`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright.
+Flow's settings allow edits, file reads, web lookups and every shell command, so a loop or a variable never stops for a yes. A shell command asks only when the guard asks, or when it commits, pushes or publishes a package. Those 3 ask every time. Listing safe commands was tried twice and dropped: Claude writes shell in endless shapes, and each shape a list missed asked again. `sudo`, `su`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright. [Settings](docs/manual/settings.md#why-every-shell-command-is-allowed) records why, and why auto mode and the sandbox lost.
 
 ### Subagent verification by change record ([`scripts/changes.js`](scripts/changes.js))
 

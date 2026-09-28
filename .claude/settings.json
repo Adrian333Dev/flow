@@ -5,6 +5,19 @@
     "**/toolbox/**/CLAUDE.md",
     "**/project-template/CLAUDE.md"
   ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/guard.js\""
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [
@@ -12,40 +25,15 @@
       "Read",
       "WebFetch",
       "WebSearch",
-      "Bash(mkdir *)",
-      "Bash(touch *)",
-      "Bash(mv *)",
-      "Bash(cp *)",
-      "Bash(rm *)",
-      "Bash(ln *)",
-      "Bash(chmod *)",
-      "Bash(node *)",
-      "Bash(python3 *)",
-      "Bash(bash *)",
-      "Bash(sh *)",
-      "Bash(grep *)",
-      "Bash(awk *)",
-      "Bash(sed *)",
-      "Bash(perl *)",
-      "Bash(echo *)",
-      "Bash(flow *)",
-      "Bash(fw *)",
-      "Bash(util *)",
-      "Bash(npm test *)",
-      "Bash(npm run *)",
-      "Bash(pnpm test *)",
-      "Bash(pnpm run *)",
-      "Bash(yarn test *)",
-      "Bash(yarn run *)",
-      "Bash(bun test *)",
-      "Bash(bun run *)",
-      "Bash(pytest *)",
-      "Bash(cargo test *)",
-      "Bash(go test *)",
-      "Bash(git status *)",
-      "Bash(git diff *)",
-      "Bash(git log *)",
-      "Bash(git show *)"
+      "Bash"
+    ],
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(npm publish *)",
+      "Bash(pnpm publish *)",
+      "Bash(yarn publish *)",
+      "Bash(cargo publish *)"
     ]
   }
 }
