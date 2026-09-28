@@ -150,4 +150,5 @@ All in `lab/context/`, flat. 20 files were merged into 9 on 2026-09-16, and `rej
 - **`rules.md`**: the enforcement bridge, the conduct rules, the negation split, and the user's feedback on how a loaded file is written.
 - **`skills.md`**: when a long skill takes an argument, how a plugin is switched on per project, why an outside skill is used whole or harvested (2026-09-28), the `domain-skills` pipeline, browser tooling and the toolbox.
 - **`failure-log.md`**: why the failure log records only what Flow built or chose, why it has no reading command, and why `~/.flow/logs/` starts a file per month. Designed 2026-09-27, built 2026-09-28.
+- **`teams.md`**: the user's vision of Flow for teams, raised 2026-09-28 and left for research after V1, with the positions the agent argued and none settled. The tracker research alone runs before the beta: `lab/research/trackers.md`.
 - **`state.md`**: this file.

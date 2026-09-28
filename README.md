@@ -186,11 +186,12 @@ Flow coexists with skill set plugins. The rules and the guard apply regardless o
 
 The [backlog](lab/backlog/) tracks every open item, one file per phase: before the beta, the beta, and after V1. What the beta still needs, in order:
 
-1. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it, compressing every skill, and rewriting every file
-2. **A cleanup of the scripts, and wider tests** over the ticket commands
-3. **The manual**, with a real captured example on every page
-4. **`/flow:help`**, answering a question about Flow with the manual page that covers it
-5. **A README and an install path** a stranger can follow
+1. **Research into how issue trackers model a ticket**, so Flow's tickets can later convert to a team's tracker
+2. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it, compressing every skill, and rewriting every file
+3. **A cleanup of the scripts, and wider tests** over the ticket commands
+4. **The manual**, with a real captured example on every page
+5. **`/flow:help`**, answering a question about Flow with the manual page that covers it
+6. **A README and an install path** a stranger can follow
 
 The beta is Flow installed on the author's machine and used for real work for 2 to 3 weeks, with the manual open to anyone who wants to read it.
 

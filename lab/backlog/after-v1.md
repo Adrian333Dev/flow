@@ -2,6 +2,10 @@
 
 What waits until the beta ends, one section per area, the lowest priority last. The beta may pull any item forward. How an item is written: `docs/dev/layout.md`, the `backlog/` entry.
 
+## Flow for teams
+
+- [ ] **A version of Flow any software team can use**, of any size: a ticket system with the fields a team needs, connected to the tracker the team already uses, a secured server with roles, and a lead seeing who works on what. The user's biggest goal after V1. Research comes first, run through `/flow:groundwork` and `/flow:research` once Flow is installed: how teams work in 2026, and what they want. **talk first**. `teams.md`
+
 ## The skill system
 
 Flow keeps Claude Code's skills and adds 3 things: a group folder, a hook handing each skill its project's overlay, and a rule that a skill invoked over and over stays short. `skills.md` carries every argument.
