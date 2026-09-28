@@ -421,7 +421,7 @@ flow <command> [id]... [--flags]
 
 The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
-Six groups carry their own actions: `cases`, `skills`, `overlays`, `audit`, `restore`, `setup`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow overlays groundwork` is `flow overlays get groundwork`.
+6 groups carry their own actions: `cases`, `skills`, `settings`, `audit`, `restore`, `setup`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow skills react` is `flow skills ls react`.
 
 Before the first install, the command is typed by path:
 
@@ -717,21 +717,25 @@ Every switch, clone and pull adds a line to the history log, `~/.flow/logs/histo
 **A skill from someone else's repository is either used whole or harvested.** The agent reads it before switching it on, and picks one:
 
 - **Used whole**: switched on as its publisher wrote it, and updated by every pull. Mostly a skill from the tool's own makers. `flow skills add <owner/repo> <name>`.
-- **Harvested**: never switched on. Its repository is cloned so the skill can be read, together with your findings about the tool and any other skill on it, and written into a skill of your own in `domain-skills`. `flow skills add <owner/repo>`, with no name.
+- **Harvested**: never switched on. Its repository is cloned so the skill can be read, together with your findings about the tool and any other skill on it, and written into a skill of your own in `domain-skills`. `flow skills add <owner/repo>`, with no name. The harvest ends with `flow skills drop <owner/repo>`, since your skill never follows the one it read. The next harvest starts from fresh research.
 
 `references/knowledge.md` in the clone holds the whole of it: the review, the 2 states, plugins and MCP servers.
 
 ## Overlays
 
-A project extends a global skill by writing `.flow/overlays/<name>.md`. That content is appended to the skill's body when the skill loads in that project.
+A project extends a skill by writing `.flow/overlays/<name>.md`. Each time the skill loads in that project, a hook hands the agent the file right after the skill's text.
 
 Every project shares the machine's one copy of a skill, so a project changes a skill here and never edits it. Removing works by adding too: "skip phase 3 here" is enough, because the overlay arrives after the phase it changes.
 
-### `flow overlays get <name>`
+**Every skill takes one**: Flow's, a standalone skill, a plugin's. The file is named for the skill without its plugin's prefix:
 
-Print the overlay for a skill. Prints nothing when no overlay file exists, which is the normal case and not an error. This is the default action: `flow overlays groundwork` is `flow overlays get groundwork`.
+- **`/flow:execute`** → `.flow/overlays/execute.md`
+- **`nestjs-expert`** → `.flow/overlays/nestjs-expert.md`
+- **`supabase:supabase-postgres-best-practices`** → `.flow/overlays/supabase-postgres-best-practices.md`
 
-Every skill runs this at its end, so the overlay arrives after the skill's own content.
+It arrives whether you type the skill or the agent loads it, a subagent included. The one miss is a subagent whose definition preloads the skill through a `skills:` line. [The overlay](settings.md#the-overlay) covers the hook.
+
+List a project's overlays with `util fs tree .flow/overlays`.
 
 ## Audit
 
@@ -872,7 +876,7 @@ Two files, and Flow contributes to one of them.
 
 **`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `flow setup` merges Flow's keys into it, key by key. Flow contributes four keys:
 
-- **`hooks`**: 8 jobs. `guard.js` asks you before a shell command that could destroy work: a delete outside the project, a download piped into a shell, a write into a shell startup file, or a git command that throws work away. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `failures.js` writes a line into the failure log whenever an MCP tool, a Flow command or an API call fails. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
+- **`hooks`**: 9 jobs. `guard.js` asks you before a shell command that could destroy work: a delete outside the project, a download piped into a shell, a write into a shell startup file, or a git command that throws work away. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill whose ticket id matches nothing, before the skill loads. `overlays.js` hands the agent the project's overlay each time a skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `failures.js` writes a line into the failure log whenever an MCP tool, a Flow command or an API call fails. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
 - **`permissions`**: an allow list and a deny list. The allow list covers edits, reads, web lookups and the everyday shell commands, such as `mv`, `node`, `npm test` and `flow`, so every other command asks you, every git write included. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `su`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first

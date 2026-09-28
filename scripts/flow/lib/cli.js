@@ -99,7 +99,7 @@ let before = null;
  *
  * A group may name a default action, and the same rule then runs one level
  * down: a word naming no action is that action's argument, which is what makes
- * `flow overlays debug` reach `flow overlays get debug`.
+ * `flow cases <ref>` reach `flow cases get <ref>`.
  */
 function dispatch(argv, { commands, groups, fallback, sections, title, notes, check }) {
   before = check || null;

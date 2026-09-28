@@ -54,6 +54,15 @@
             "timeout": 86400
           }
         ]
+      },
+      {
+        "matcher": "^Skill$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/overlays.js\""
+          }
+        ]
       }
     ],
     "PostToolUseFailure": [
@@ -125,6 +134,14 @@
             "command": "node \"$HOME/.flow/scripts/check-ticket.js\""
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/overlays.js\""
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -180,7 +197,6 @@
       "Read",
       "WebFetch",
       "WebSearch",
-      "mcp__context7__*",
       "Bash(mkdir *)",
       "Bash(touch *)",
       "Bash(mv *)",
@@ -190,6 +206,12 @@
       "Bash(chmod *)",
       "Bash(node *)",
       "Bash(python3 *)",
+      "Bash(bash *)",
+      "Bash(sh *)",
+      "Bash(grep *)",
+      "Bash(awk *)",
+      "Bash(sed *)",
+      "Bash(perl *)",
       "Bash(flow *)",
       "Bash(fw *)",
       "Bash(util *)",

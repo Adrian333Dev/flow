@@ -53,5 +53,3 @@ Never copy a whole spec section in. One live copy of anything: the ticket points
 Report the ids, the titles, and which spec sections are now covered. Then `flow next` shows what is workable.
 
 Never annotate the spec with ticket ids. That mapping goes stale the first time a ticket is dropped, and `flow` already holds it.
-
-!`flow overlays tickets-from-spec`

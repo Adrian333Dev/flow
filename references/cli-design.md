@@ -25,7 +25,7 @@ Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build t
 
 - **The board**: `get` bare, `next`, `check`, `ls`, `tree`. Each answers a question about the work as a whole. `get` with `--files` is the session opener: `/flow:start` runs it, so the branching lives in tested code instead of shell inside a markdown file.
 - **One ticket**: `<id>`, `new`, `edit`, `dep`, `file`, `drop`, and the status verbs. Each names a ticket and acts on it.
-- **A group**: `cases`, `skills`, `overlays`, `git`, `audit`, `restore`. A different stored thing, carrying its own actions behind its own name.
+- **A group**: `cases`, `skills`, `settings`, `audit`, `restore`, `setup`. A different stored thing, carrying its own actions behind its own name.
 - **Setup**: `install` and `doctor`. Neither needs a project: `install` writes outside the project, into `~/.agents`, `~/.claude`, `~/.flow` and `~/.local/bin`, and `doctor` reads the same places back. `install` is also the one command run before `flow` is a command at all: on a machine that has just cloned Flow it is typed by path, and it makes the link that lets everything else be typed by name.
 
 All 4 share one flat namespace, so a name is available exactly once. Help prints them in sections, which is the only place the distinction shows.
@@ -44,7 +44,7 @@ Every stored thing gets these 5:
 
 - **Extra commands are allowed, and one test decides.** `edit` sets one field, on one ticket, to a value you typed. An extra command earns its place by breaking one of those three: `drop` re-points every ticket that depended on this one, `file` stamps several tickets at once, `dep` edits a list and so takes `--on` and `--off` rather than a value. `tree` writes nothing at all.
 - **A missing action is deliberate, and the file says why.** Cases have no `drop`, because a recorded failure is never removed: keeping it is the point of writing it down.
-- **A group names its most typed action the default, and that word can be left out.** `flow overlays groundwork` is `flow overlays get groundwork`. It is the rule the flat namespace already runs one level up, where a word naming no command is read as a ticket id.
+- **A group names its most typed action the default, and that word can be left out.** `flow skills react` is `flow skills ls react`. It is the rule the flat namespace already runs one level up, where a word naming no command is read as a ticket id.
 - **A bare group name prints help, unless its default action needs no argument.** Then the bare form runs that action: `flow skills` answers, `flow cases` helps. Nothing new declares which. An action with no `args`, or with `args` in brackets such as `[words...]`, cannot be missing one, so the bare form is always a complete call: `flow domain-skills` lists.
 - **`work` names no default**, because its `get` replays a stored copy over the folder you are standing in. A mistyped action falling through to a write of your working tree is the one worth refusing.
 

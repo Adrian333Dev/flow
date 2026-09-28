@@ -82,5 +82,3 @@ A prototype covering a whole system answers nothing precisely. A generated-video
 Wiring those prototypes together into something that runs end to end is fine, and often the point. It stays a set of naive parts, and the real version gets written afterwards from the spec.
 
 **Spans more than one session → split it.**
-
-!`flow overlays prototype`

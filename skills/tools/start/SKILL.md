@@ -37,5 +37,3 @@ Its `type:` line picks the skill, and `feature` and `chore` read `status:` too. 
 **Open decisions are what send a ticket to `/flow:groundwork`**, never a long body, and never code left to read. A cleanup chore with nothing settled goes there like anything else. A ticket cut from a spec is the one that does not: its body already carries what to build and the decisions behind it, so route it to `/flow:execute`, which opens it at `planning`.
 
 Route, and stop there. Whether this ticket splits, and whether it is worth building at all, are answers a map produces: `/flow:groundwork` owns both.
-
-!`flow overlays start`

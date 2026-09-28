@@ -18,7 +18,6 @@ const cli = require('./lib/cli');
 const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
-const overlays = require('./commands/overlays');
 const skills = require('./commands/skills');
 const install = require('./commands/install');
 const doctor = require('./commands/doctor');
@@ -120,9 +119,8 @@ switch  a skill is on where its link exists. "skills": { "react": "on" } in
         flow skills on, off and drop write the line and fix the links
 overlay a project adds to a skill without editing it, because one copy of that
         skill is shared by every project on the machine. Write
-        .flow/overlays/<name>.md and every session in that project reads it as
-        part of the skill. The line runs at the bottom of the skill, so a
-        project with no overlay file prints nothing
+        .flow/overlays/<name>.md and a hook adds it each time the skill
+        loads in that project: Flow's skills, outside ones and plugins' alike
 share   a finding for a domain skill waits in .flow/findings/<skill>/, where
         /flow:file-findings moves it on a yes. flow contribute opens one pull
         request per skill through gh api, forking first where you cannot
@@ -153,10 +151,9 @@ setting every on/off setting Flow reads: the lines it prints by itself and
         the skill pull. flow settings lists them, and on or off switches one
         for this folder, --machine or --global, the levels flow skills uses.
         Only a setting with a folder list works per folder
-default cases and overlays each read a bare word as an argument to their
-        most used action: flow overlays groundwork is flow overlays get
-        groundwork. skills defaults to ls, so flow skills react lists the
-        skills naming react
+default cases reads a bare word as an argument to its most used action.
+        skills defaults to ls, so flow skills react lists the skills naming
+        react
 audit   what Claude Code did, read back afterwards. It reads the transcripts
         Claude Code already writes at ~/.claude/projects/ and derives an index
         at ~/.flow/audit/audit.db; nothing is recorded and nothing is
@@ -179,7 +176,7 @@ checks  a rule check is one file in ~/.flow/scripts/rule-checks/, named after
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, skills, settings: settingsCommand, overlays, audit, restore, setup },
+    groups: { cases, skills, settings: settingsCommand, audit, restore, setup },
     check: (action, flags) => (action.anywhere ? null : machine.requireSetup(flags.root)),
     fallback: tickets.fallback,
     sections: SECTIONS,

@@ -1,60 +1,71 @@
 'use strict';
 /**
- * `flow overlays get`: the command every skill's last line runs.
+ * overlays.js, the hook that hands a skill its project overlay, typed or
+ * loaded by the agent, Flow's or anybody's.
  *
- * Its two silences matter more than its output. A skill loads in projects that
+ * Its silences matter as much as its output. A skill loads in projects that
  * carry no overlay and in folders that are not projects at all, and neither may
- * put an error where the skill body goes.
+ * put an error into the session.
  */
 
 const { test } = require('node:test');
 const assert = require('node:assert');
 const path = require('path');
-const { project, write, run, flow, REPO } = require('./helpers/scratch');
+const { project, write, run, REPO } = require('./helpers/scratch');
 
-test('an overlay prints whole, and its absence prints nothing', () => {
-  const dir = project('overlay-get');
-
-  const missing = flow(dir, ['overlays', 'get', 'groundwork']);
-  assert.strictEqual(missing.code, 0, missing.stderr);
-  assert.strictEqual(missing.stdout, '', 'no overlay file means no output');
-
-  write(dir, '.flow/overlays/groundwork.md', '## Overrides\n\nSkip phase 3 here.');
-
-  const found = flow(dir, ['overlays', 'get', 'groundwork']);
-  assert.strictEqual(found.code, 0, found.stderr);
-  assert.strictEqual(found.stdout, '## Overrides\n\nSkip phase 3 here.\n');
-
-  // get is the default, which is the form every skill's last line runs.
-  const short = flow(dir, ['overlays', 'groundwork']);
-  assert.strictEqual(short.code, 0, short.stderr);
-  assert.strictEqual(short.stdout, found.stdout);
-});
-
-test('outside a git repository it prints nothing and succeeds', () => {
-  const dir = project('overlay-no-repo');
-
-  // The scratch folder sits inside the Flow repo, so git would find that one.
-  // A ceiling stops the search below it, which is the state a skill invoked in
-  // a loose folder actually meets.
-  const result = run('flow/flow.js', ['overlays', 'get', 'groundwork'], {
+const hook = (dir, call, env = {}) =>
+  run('overlays.js', [], {
     cwd: dir,
-    env: { ...process.env, FLOW_HOME: path.join(dir, 'flow-home'), GIT_CEILING_DIRECTORIES: path.join(REPO, 'tmp') },
+    env: { ...process.env, FLOW_PROJECT: dir, ...env },
+    input: JSON.stringify({ cwd: dir, session_id: 's1', ...call }),
   });
 
-  assert.strictEqual(result.code, 0, result.stderr);
-  assert.strictEqual(result.stdout, '');
-  assert.strictEqual(result.stderr, '');
+const typed = (name) => ({ hook_event_name: 'UserPromptExpansion', command_name: name, command_args: '' });
+const loaded = (name) => ({ hook_event_name: 'PostToolUse', tool_name: 'Skill', tool_input: { skill: name } });
+
+const context = (ran) => {
+  assert.strictEqual(ran.code, 0, ran.stderr);
+  return ran.stdout ? JSON.parse(ran.stdout).hookSpecificOutput : null;
+};
+
+test('a typed skill and a loaded one both get the overlay, prefix or none', () => {
+  const dir = project('overlay-hook');
+  write(dir, '.flow/overlays/execute.md', 'Skip phase 3 here.\n');
+  write(dir, '.flow/overlays/postgres.md', 'This project uses RLS on every table.\n');
+
+  const first = context(hook(dir, typed('flow:execute')));
+  assert.strictEqual(first.hookEventName, 'UserPromptExpansion');
+  assert.strictEqual(
+    first.additionalContext,
+    '# Overlay\n\nSkip phase 3 here.',
+  );
+
+  const second = context(hook(dir, loaded('supabase:postgres')));
+  assert.strictEqual(second.hookEventName, 'PostToolUse');
+  assert.match(second.additionalContext, /^# Overlay\n\n[\s\S]*RLS on every table/);
+
+  // A standalone outside skill carries no prefix at all.
+  write(dir, '.flow/overlays/nestjs-expert.md', 'Modules live under src/modules.\n');
+  assert.match(context(hook(dir, loaded('nestjs-expert'))).additionalContext, /src\/modules/);
 });
 
-test('a missing name and a path both fail', () => {
-  const dir = project('overlay-bad-name');
+test('no overlay file, an empty one, or a name shaped like a path prints nothing', () => {
+  const dir = project('overlay-hook-silent');
+  write(dir, '.flow/overlays/debug.md', '  \n');
+  assert.strictEqual(context(hook(dir, typed('flow:groundwork'))), null);
+  assert.strictEqual(context(hook(dir, typed('flow:debug'))), null);
+  assert.strictEqual(context(hook(dir, loaded('../../etc/passwd'))), null);
+  assert.strictEqual(context(hook(dir, { hook_event_name: 'PostToolUse', tool_name: 'Skill' })), null);
+});
 
-  const bare = flow(dir, ['overlays', 'get']);
-  assert.notStrictEqual(bare.code, 0);
-  assert.match(bare.stderr, /usage: flow overlays get/);
+test('outside a project, or on input it cannot read, it prints nothing and exits 0', () => {
+  const dir = project('overlay-hook-no-repo');
+  write(dir, '.flow/overlays/execute.md', 'never read\n');
+  // The scratch folder sits inside the Flow repo, so git would find that one.
+  // A ceiling stops the search below it.
+  const loose = hook(dir, typed('flow:execute'), { FLOW_PROJECT: '', GIT_CEILING_DIRECTORIES: path.join(REPO, 'tmp') });
+  assert.deepStrictEqual([loose.code, loose.stdout, loose.stderr], [0, '', '']);
 
-  const traversal = flow(dir, ['overlays', 'get', '../../etc/passwd']);
-  assert.notStrictEqual(traversal.code, 0);
-  assert.match(traversal.stderr, /skill name, not a path/);
+  const garbage = run('overlays.js', [], { cwd: dir, input: 'not json' });
+  assert.deepStrictEqual([garbage.code, garbage.stdout, garbage.stderr], [0, '', '']);
 });

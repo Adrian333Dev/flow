@@ -336,6 +336,15 @@ function checkProject(at) {
 }
 
 /**
+ * End the run: run.json, and the prompt the session started on, which nothing
+ * reads after the session opens and the next launch writes again.
+ */
+function endRun(at) {
+  fs.rmSync(runFile(at));
+  fs.rmSync(path.join(at.flow, 'setup-prompt.md'), { force: true });
+}
+
+/**
  * `flow setup project finish`: stamp the project's .flow/version and end the
  * run. The project comes from run.json, so it works from any folder.
  */
@@ -346,7 +355,7 @@ function finishProject(at, clone) {
   }
   // The project was set up already, and its stamp is flow up's to move.
   if (run.memoryOnly) {
-    fs.rmSync(runFile(at));
+    endRun(at);
     out(`folded in: this machine's old memory for ${show(run.project)}.`);
     return 0;
   }
@@ -355,7 +364,7 @@ function finishProject(at, clone) {
   const file = path.join(run.project, '.flow', 'version');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${newest}\n`);
-  fs.rmSync(runFile(at));
+  endRun(at);
   out(`stamped: ${show(file)} is ${newest}. This project is set up.`);
   return 0;
 }
@@ -399,7 +408,7 @@ actions.finish = {
     fs.writeFileSync(path.join(at.flow, 'version'), `${newest}\n`);
     // The record the other machines read, sent up by the next flow sync.
     flowRepo.writeRecord(at, newest);
-    fs.rmSync(runFile(at));
+    endRun(at);
     out(`stamped: ${show(path.join(at.flow, 'version'))} is ${newest}. This machine is set up.`);
     return 0;
   },

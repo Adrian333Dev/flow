@@ -152,5 +152,3 @@ A dispatched job ends by saying its answers back in its final message, and by wr
 - **Never run a command this job does not need.**
 - **Write at a clean point.** Finish the task, land the edit, run the verification, then write. Half-states are what make a handoff unreliable, with no room left for that, describe the half-state honestly.
 - **Verify every path before writing it down.**
-
-!`flow overlays handoff`

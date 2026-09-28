@@ -29,7 +29,7 @@ type: setup-machine
 - Commands that can destroy work always ask you first: a delete outside the project, a download run straight as a script, a change to your shell's startup file, and git commands that throw work away. `guard.js`
 - Claude sees exactly what each helper agent changed, even with several working at once. `changes.js`
 - The file list after `@` comes from Flow, which stays fast in big projects. `fileSuggestion`
-- Edits, file reads, web pages, web search and context7 (a library docs lookup) run without asking. So do the everyday shell commands: moving and copying files, running node or python, running tests and scripts, and Flow's own commands. `permissions.allow`
+- Edits, file reads, web pages and web search run without asking. So do the everyday shell commands: moving and copying files, searching text, running a script in node, python, bash or sh, running tests, and Flow's own commands. `permissions.allow`
 - Every session starts in Manual mode: Claude asks before anything the line above doesn't cover. `permissions.defaultMode`
 - Claude can't run the commands that undo Flow. Only you can. `permissions.deny: Bash(flow restore …), Bash(flow uninstall …)`
 - Claude can't run commands as the system's admin or as another user, format a disk, or start a copy of itself that never asks. `permissions.deny: Bash(sudo *), Bash(su *), Bash(mkfs*), Bash(* --dangerously-skip-permissions *)`

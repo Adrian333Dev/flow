@@ -92,6 +92,7 @@ test('up finish stamps the machine, then the project behind it gets its own run'
   assert.strictEqual(machineDone.code, 0, machineDone.stderr);
   assert.strictEqual(fs.readFileSync(path.join(m.flowHome, 'version'), 'utf8'), `${NEWEST}\n`);
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
+  assert.ok(!fs.existsSync(path.join(m.flowHome, 'migrate-prompt.md')), 'the prompt goes with the run');
   assert.match(fs.readFileSync(path.join(m.flowHome, 'README.md'), 'utf8'), /^# flow-home\n/, 'a new release\'s README goes up with the next sync');
 
   const started = m.up();

@@ -159,5 +159,3 @@ Write each prompt into its own research file before presenting it, then hand ove
 **A question reading can answer never becomes a ticket of its own.** Answering one produces a report and no code, so it runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a `prototype` ticket, and `/flow:groundwork` cuts it.
 
 Level 1 answers inline, no file. Level 2 and up always writes one: the synthesis has to survive compaction.
-
-!`flow overlays research`

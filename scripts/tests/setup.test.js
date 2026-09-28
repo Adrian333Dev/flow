@@ -74,10 +74,13 @@ test('setup finish stamps the version and ends the run, and only a running setup
   assert.match(early.stderr, /no setup is running/);
 
   flow(m.dir, ['setup', '--root', m.root]);
+  const prompt = path.join(m.flowHome, 'setup-prompt.md');
+  assert.ok(fs.existsSync(prompt), 'the launch writes the prompt the session starts on');
   const done = flow(m.dir, ['setup', 'finish', '--root', m.root]);
   assert.strictEqual(done.code, 0, done.stderr);
   assert.strictEqual(fs.readFileSync(path.join(m.flowHome, 'version'), 'utf8'), `${version.newest(REPO)}\n`);
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
+  assert.ok(!fs.existsSync(prompt), 'the prompt goes with the run');
   const records = fs.readdirSync(path.join(m.flowHome, 'machines'));
   assert.strictEqual(records.length, 1, 'the record the other machines read');
   const record = JSON.parse(fs.readFileSync(path.join(m.flowHome, 'machines', records[0]), 'utf8'));
@@ -147,6 +150,7 @@ test('setup project finish stamps .flow/version, and a machine run blocks a proj
   assert.strictEqual(done.code, 0, done.stderr);
   assert.strictEqual(fs.readFileSync(path.join(m.proj, '.flow', 'version'), 'utf8'), `${version.newest(REPO)}\n`);
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
+  assert.ok(!fs.existsSync(path.join(m.flowHome, 'setup-prompt.md')));
   assert.match(m.setup().stdout, /is already set up/);
 
   const other = projectCase('setup-project-busy');

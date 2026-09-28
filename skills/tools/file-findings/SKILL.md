@@ -101,5 +101,3 @@ Appending a line to a skill that already exists needs none of it.
 Where no function can tell violations apart, the rule ships without a check. Nothing records the decision and nothing needs to.
 
 **Read `references/write-checks.md`** before writing one, changing one, or moving one between tiers. It carries the file shape, how to find what separates a violation from clean output, how to test it, and how to read `flow scorecard`.
-
-!`flow overlays file-findings`

@@ -128,5 +128,3 @@ Then start a subagent with `Run /flow:debug on <id>`. Pass on every question it 
 - **Never write the regression test here.** Where the failing check is already a test, the fix is covered. Where it is not, name the test that should exist and hand it to the ticket. Building a test seam mid-fix is the widening this skill just banned.
 - **Delete every debug print you added.** Tag them all with one unique prefix as you write them, so removing them is one grep.
 - **Keep observed apart from supposed.** Observed means a command ran and here is its output. Every sentence that drives the next action traces back to observed output.
-
-!`flow overlays debug`

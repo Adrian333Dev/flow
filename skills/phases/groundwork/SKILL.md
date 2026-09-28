@@ -293,5 +293,3 @@ Nothing read this run → no section. Phase 4 splits the list across the tickets
 - **Every map carries branches nobody raised.** None of them → widen didn't run. Go back.
 - **Never print the map to the user.** It's a file.
 - **Never start building before the map closes.** "Just do it" mid-map → check whether the design is actually clear; if it is, close the map first, then act.
-
-!`flow overlays groundwork`

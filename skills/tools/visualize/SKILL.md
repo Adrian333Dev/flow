@@ -251,5 +251,3 @@ Other shapes adapt. A *mechanism* explanation ends with "what this means for us,
 Use the sentences the material actually needs: no padding, and no artificial squeezing. Only the opener is deliberately short.
 
 `references/worked-example.md` runs this shape once end to end, on a real architecture, and shows how much depth the load-bearing rule gets.
-
-!`flow overlays visualize`

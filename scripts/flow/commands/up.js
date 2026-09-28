@@ -257,6 +257,9 @@ function finish(at) {
     flowRepo.writeReadme(at);
   }
   fs.rmSync(runFile(at));
+  // Nothing reads the prompt after the session opens, and the next launch
+  // writes it again.
+  fs.rmSync(path.join(at.flow, 'migrate-prompt.md'), { force: true });
   out(`stamped: ${show(file)} is ${run.to}. ${run.project ? 'This project' : 'This machine'} is up to date.`);
   return 0;
 }

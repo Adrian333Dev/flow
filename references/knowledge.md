@@ -11,7 +11,7 @@ The map of everything an agent draws on past Flow's rules and its own training: 
 - **An MCP server**: a running program that hands the agent extra tools. Configured per project in `.mcp.json`.
 - **The wiki**: `~/.flow/wiki/<tool>/`, one folder per outside tool, every project's: docs shortcuts, research reports, findings, downloads. `~/.flow/references/wiki.md` holds its layout. Never loads by itself: `/flow:research` opens it.
 - **Findings**: one file per thing learned. About an outside tool → the wiki. Anything else → the project's `.flow/findings/`.
-- **An overlay**: `.flow/overlays/<skill>.md` in a project, text a Flow skill adds to its end when it loads there.
+- **An overlay**: `.flow/overlays/<skill>.md`, a project's additions to any skill, handed over as it loads. No plugin prefix in the name.
 
 ## Everything starts on for one project
 
@@ -45,7 +45,7 @@ Install counts and stars only pick which 3 to read. Neither says which fits.
 - **Used whole**: runs as its publisher wrote it and updates by itself. A disagreement goes where `## Adding to a skill the user does not own` says. Take it for a skill from the tool's own makers, which changes with each release, once the review finds nothing structural against it.
 - **Harvested**: never switched on. The harvest reads it, with the tool's findings and any other skill on the subject, and writes the user's own skill. The default. One general skill per tool runs, and it is the user's.
 
-**The harvest** is `/flow:write-skill` (user only), not built yet. Until then, run it by hand when the user asks, by `~/.agents/skills/flow/skills/file-findings/references/write-skills.md`.
+**The harvest** is `/flow:write-skill` (user only), not built yet. Until then, run it by hand when the user asks, by `~/.agents/skills/flow/skills/file-findings/references/write-skills.md`. It ends with `flow skills drop <owner/repo>` per input, unless a skill there is used whole.
 
 **How each arrives:**
 
@@ -57,6 +57,7 @@ Install counts and stars only pick which 3 to read. Neither says which fits.
 
 - **A skill repository** → the background job pulls every clone at most every 6 hours, fast-forward only. A skill used whole is current after the pull.
 - **A plugin** → Claude Code's own plugin update. Flow never touches one.
+- **A harvested skill** → never follows its inputs. A new harvest starts from fresh research.
 
 ## What the user builds up
 
@@ -73,6 +74,5 @@ Where a finding goes first is `~/.agents/AGENTS.md` → `## Capture`. From there
 
 ## Adding to a skill the user does not own
 
-- **A Flow skill** → an overlay, `.flow/overlays/<name>.md`, in the project.
-- **A skill used whole, or a plugin's** → a line in the project's `AGENTS.md`, until overlays reach outside skills.
+- **A disagreement in one project** → an overlay, `.flow/overlays/<name>.md`, in the project.
 - **A disagreement true in every project** → harvest the skill instead.

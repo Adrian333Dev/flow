@@ -885,6 +885,8 @@ curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/<tag>/install.sh 
 
 What the setup form's `permissions` lines install. Claude Code's settings hold every rule a pattern can state, and `guard.js` keeps only the checks that read inside a command.
 
+- **`bash *` and `sh *` joined the allow list 2026-09-28**, beside `node *` and `python3 *`, which already ran any code. The user asked why a script still asked: `bash` had never been on the list, and a saved answer kept the script's path word for word. `mcp__context7__*` left the same day, since Context7 is a script now.
+- **`grep *`, `awk *`, `sed *` and `perl *` joined 2026-09-28**, after `state.md`'s probe showed each asking whenever Claude Code could not read the command, and saving it word for word. This repo's `.claude/settings.local.json` held about 15 such `grep` lines.
 - **`Read` is allowed everywhere**, ruled 2026-09-24, and denied under `~/.ssh` and `~/.aws`. An asked-for read taught the agent that `cat` was the quiet way.
 - **The bare `Bash` allow goes**, replaced by 23 patterns: `mkdir`, `touch`, `mv`, `cp`, `rm`, `ln`, `chmod`, `node`, `python3`, `flow`, `fw`, `util`, `npm test` and `npm run` with the same pair for pnpm, yarn and bun, `pytest`, `cargo test`, `go test`. The user approved the first 14, then asked for the other package managers and the other languages' test commands. A command the list misses asks once, and "don't ask again" saves a pattern for that project.
 - **The deny list gains `sudo *`, `su *`, `mkfs*` and `* --dangerously-skip-permissions *`.** `mkfs*` has no space, to catch `mkfs.ext4`. `su *` was added 2026-09-25, since the old guard denied `su` beside `sudo`.

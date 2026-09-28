@@ -137,6 +137,43 @@ The matcher accepts the name with or without the prefix. Flow's skills load as a
 
 It fires only on what the user types. A skill the agent invokes, as `/flow:start` does when it routes, carries no id and never reaches it.
 
+#### The overlay
+
+```json
+"UserPromptExpansion": [ …the ticket check…, { "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/overlays.js\"" } ] } ],
+"PostToolUse":         [ …the change record…, { "matcher": "^Skill$", "hooks": [ "…the same" ] } ]
+```
+
+Runs `scripts/overlays.js` each time a skill loads, and hands the agent the project's overlay for it. An overlay is `.flow/overlays/<name>.md`, a file where one project adds to a skill every project shares. [Overlays](reference.md#overlays) covers writing one.
+
+A skill loads 2 ways, and each fires its own event:
+
+- **You type it**, `/flow:execute`: `UserPromptExpansion`, with no matcher, so every typed skill reaches the script
+- **The agent loads it**, a subagent included: `PostToolUse` on the `Skill` tool
+
+The script drops a plugin's prefix from the name, so `/flow:execute` reads `execute.md` and `supabase:postgres` reads `postgres.md`. It works the same for Flow's skills, a standalone skill and a plugin's. The overlay arrives right after the skill's text, under one heading:
+
+```text
+# Overlay
+
+Skip phase 3 here.
+```
+
+**No overlay prints nothing**, and so does a folder outside any project, or an error of the script's own. A skill must never break over a missing overlay.
+
+**A subagent that preloads a skill gets no overlay.** A subagent definition's `skills:` line loads a skill when the subagent starts, with no `Skill` call for the hook to see. Flow ships no subagent that does.
+
+#### The failure log
+
+```json
+"PostToolUseFailure": [ …the change record…, { "matcher": "^Bash$|^mcp__", "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/failures.js\"" } ] } ],
+"StopFailure":        [ { "hooks": [ "…the same" ] } ]
+```
+
+Runs `scripts/failures.js` when a tool call fails, and when an API error ends a turn. It adds one line to `~/.flow/logs/failures/<year>-<month>.jsonl` for a failed MCP tool, a failed Flow command or bundled script, and the API error. Every other shell command and every built-in tool is skipped, since a `grep` that finds nothing also exits with an error. It prints nothing and never stops the session. [The failure log](reference.md#the-failure-log) shows a line and says what else writes one.
+
 #### The reminder
 
 ```json
@@ -259,9 +296,9 @@ Rules evaluate **deny → ask → allow**, first match wins. A broad deny beats 
 | `Read` | every file read, in any folder |
 | `WebFetch` | every domain |
 | `WebSearch` | every search |
-| `mcp__context7__*` | every tool from the context7 MCP server |
 | `Bash(mkdir *)`, `Bash(touch *)`, `Bash(mv *)`, `Bash(cp *)`, `Bash(rm *)`, `Bash(ln *)`, `Bash(chmod *)` | making, moving, copying, linking and deleting files, and changing a file's permissions |
-| `Bash(node *)`, `Bash(python3 *)` | running a script |
+| `Bash(node *)`, `Bash(python3 *)`, `Bash(bash *)`, `Bash(sh *)` | running a script: Flow's, one bundled in any skill, or the project's own |
+| `Bash(grep *)`, `Bash(awk *)`, `Bash(sed *)`, `Bash(perl *)` | searching and slicing text. `grep` alone already runs unasked, until a pattern holds `\|` or a backtick: Claude Code then asks, and saves the whole command word for word |
 | `Bash(flow *)`, `Bash(fw *)`, `Bash(util *)` | Flow's own commands |
 | `Bash(npm test *)`, `Bash(npm run *)`, and the same 2 for `pnpm`, `yarn` and `bun` | a project's tests and scripts |
 | `Bash(pytest *)`, `Bash(cargo test *)`, `Bash(go test *)` | tests in Python, Rust and Go |

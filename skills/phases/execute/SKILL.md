@@ -200,5 +200,3 @@ They tested it and it is not what they wanted, not a list of corrections, a diff
 - **`groundwork/map.md`**: `/flow:groundwork`. Every decision and its reasoning.
 - **`issues.md`**: whoever builds. What the build taught, and it stays true after the ticket closes. Created the first time there is something; absent from every ticket that produces none.
 - **`reports/`**: whichever skill answered something. Absent where nothing was answered.
-
-!`flow overlays execute`

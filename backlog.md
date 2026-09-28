@@ -48,15 +48,13 @@ Routed out of `lab/context/management.md` on 2026-09-17, the last phase of the g
 
 ### The skill system
 
-- [ ] **Overlays for outside skills**, through 2 hooks adding `.flow/overlays/<name>.md` as context: `UserPromptExpansion` for a typed skill, `PostToolUse` on the `Skill` tool for one the agent loads. A skill used whole, a plugin's above all, takes a project's disagreements this way instead of a line in `AGENTS.md`. `skills.md` → `## Outside skills: review, then used whole or harvested`
-
-- [ ] **The update job reports a harvested input that changed**: after the pull, compare the clone's commit with the one the harvest recorded, and print the skill whose folder changed. Settle first how a harvested skill records its inputs, which `references/knowledge.md` leaves as "the skill's folder names each input". `skills.md` → `## Outside skills: review, then used whole or harvested`
+- [x] **Overlays for every skill**: **built 2026-09-28 as `scripts/overlays.js`, never run in a live session.** 2 hooks hand the agent `.flow/overlays/<name>.md` as context: `UserPromptExpansion` for a typed skill, `PostToolUse` on the `Skill` tool for one the agent loads. It replaced the shell line at the end of Flow's skills, so one mechanism serves Flow's, standalone and plugin skills. `skills.md` → `## Outside skills: review, then used whole or harvested`
 
 - [ ] **Plugins are a fourth install state Flow does not control**: off by default. `extraKnownMarketplaces` in the committed settings, `enabledPlugins` in `.claude/settings.local.json`, and a flip takes effect next session. `skillOverrides` is not an off switch: it leaves the commands and the hooks running
 
 ### Individual skills
 
-- [ ] **`/flow:write-skill`, the harvest**, user only: reads a subject's sources whole and writes its skill. For an outside tool, the sources are `~/.flow/wiki/<tool>/`, where capture sends every finding about the tool since 2026-09-27, and every outside skill cloned to be harvested. It writes in its own words, records each input's commit, and deletes the findings it wrote in. Built after a first run done by hand. `skills.md` → `### /flow:write-skill`, `knowledge-base.md` → `### Capture and the harvest`
+- [ ] **`/flow:write-skill`, the harvest**, user only: reads a subject's sources whole and writes its skill. For an outside tool, the sources are `~/.flow/wiki/<tool>/`, where capture sends every finding about the tool since 2026-09-27, and every outside skill cloned to be harvested. It writes in its own words, records each input's commit, deletes the findings it wrote in, and drops each input's clone with `flow skills drop <owner/repo>` unless a skill there is used whole. Built after a first run done by hand. `skills.md` → `### /flow:write-skill`, `knowledge-base.md` → `### Capture and the harvest`
 
 - [ ] **`/grill`**: a skill fired at a finished artifact, `disable-model-invocation: true`, never model-invoked. Decided and undesigned. One form hands the stripped mechanism to subagents that never saw the conversation, so none of them can defend it. **talk first**
 
@@ -70,7 +68,7 @@ Routed out of `lab/context/management.md` on 2026-09-17, the last phase of the g
 
 - [ ] **`scripts/` needs a cleanup and a new layout.** Every script was written for the job at hand and never reviewed as a whole, and the folder's structure confuses. Refactor for clean code without adding complexity. Raised by the user 2026-09-26.
 
-- [ ] **An overlay reaches a `SKILL.md` and nothing else.** The mechanism is a shell line at the bottom of a skill body, ``!`flow overlays <name>` ``, and 10 skills carry one. A `references/` page under a skill has no place to run a command, and neither does a file in `rules/`, so a project cannot extend either one. Raised by the user 2026-09-11, designing the management skill. **talk first**
+- [ ] **An overlay reaches a `SKILL.md` and nothing else.** The mechanism is a hook that fires when a skill loads, `scripts/overlays.js`. A `references/` page the skill opens later is read with `Read`, and a file in `rules/` loads with no event, so a project cannot extend either one. Raised by the user 2026-09-11, designing the management skill. **talk first**
 
 ### Rules and always-loaded files
 
