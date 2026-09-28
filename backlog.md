@@ -70,6 +70,8 @@ Routed out of `lab/context/management.md` on 2026-09-17, the last phase of the g
 
 - [ ] **An overlay reaches a `SKILL.md` and nothing else.** The mechanism is a hook that fires when a skill loads, `scripts/overlays.js`. A `references/` page the skill opens later is read with `Read`, and a file in `rules/` loads with no event, so a project cannot extend either one. Raised by the user 2026-09-11, designing the management skill. **talk first**
 
+- [ ] **A skill a subagent preloads gets no overlay.** A subagent definition's `skills:` line loads the skill with no `Skill` call, so `scripts/overlays.js` never fires. Flow ships no such subagent. A `SubagentStart` hook can add context, so it could hand over the overlays of the skills that definition names. Approved 2026-09-28. `skills.md` → `## Outside skills: review, then used whole or harvested`
+
 ### Rules and always-loaded files
 
 - [ ] **The reminder varies with the work.** `scripts/reminder.js` prints one fixed line from `references/reminder.md`, pointing at `## The reply`, and it is a script now, so a condition has somewhere to go. A second text, by phase or by loaded skill, waits until one is needed. What a condition can read: the message text, the transcript (skills run, the model on every reply, token counts) and the ticket status under `cwd`. The hook gets no effort level. **talk first**
@@ -137,7 +139,7 @@ Routed out of `lab/context/management.md` on 2026-09-17, the last phase of the g
 
 ### The skill system
 
-Flow keeps Claude Code's skills and adds 3 things: a group folder, one shell line per skill for overlays, and a rule that a skill invoked over and over stays short. `skills.md` carries every argument.
+Flow keeps Claude Code's skills and adds 3 things: a group folder, a hook handing each skill its project's overlay, and a rule that a skill invoked over and over stays short. `skills.md` carries every argument.
 
 - [ ] **How a design plugin gets used**: what fires it, whether design work is its own phase, what happens when 2 of them disagree, the boundary with `/flow:visualize`, what comes back into Flow afterwards. **Decided after the first real run in a project**, never before. Not essential; Flow works without one. **talk first**
 

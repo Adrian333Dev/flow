@@ -298,7 +298,7 @@ Rules evaluate **deny → ask → allow**, first match wins. A broad deny beats 
 | `WebSearch` | every search |
 | `Bash(mkdir *)`, `Bash(touch *)`, `Bash(mv *)`, `Bash(cp *)`, `Bash(rm *)`, `Bash(ln *)`, `Bash(chmod *)` | making, moving, copying, linking and deleting files, and changing a file's permissions |
 | `Bash(node *)`, `Bash(python3 *)`, `Bash(bash *)`, `Bash(sh *)` | running a script: Flow's, one bundled in any skill, or the project's own |
-| `Bash(grep *)`, `Bash(awk *)`, `Bash(sed *)`, `Bash(perl *)` | searching and slicing text. `grep` alone already runs unasked, until a pattern holds `\|` or a backtick: Claude Code then asks, and saves the whole command word for word |
+| `Bash(grep *)`, `Bash(awk *)`, `Bash(sed *)`, `Bash(perl *)`, `Bash(echo *)` | searching, slicing and printing text. `grep` alone already runs unasked, until a pattern holds `\|` or a backtick: Claude Code then asks, and saves the whole command word for word |
 | `Bash(flow *)`, `Bash(fw *)`, `Bash(util *)` | Flow's own commands |
 | `Bash(npm test *)`, `Bash(npm run *)`, and the same 2 for `pnpm`, `yarn` and `bun` | a project's tests and scripts |
 | `Bash(pytest *)`, `Bash(cargo test *)`, `Bash(go test *)` | tests in Python, Rust and Go |
