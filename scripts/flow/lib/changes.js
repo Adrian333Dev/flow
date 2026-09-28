@@ -71,6 +71,23 @@ function sleep(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
+/**
+ * Milliseconds on the system's steady clock, for every time one hook process
+ * compares with another's. The wall clock can step back when the system
+ * corrects it: WSL2 does every 30 seconds or so, by about 2.5 seconds, and an
+ * edit then looked older than the worker that made it. The steady clock never
+ * steps, and every process on the machine reads the same one, on Linux, macOS
+ * and Windows alike.
+ */
+const now = () => Number(process.hrtime.bigint() / 1000000n);
+
+/**
+ * A time read back from disk. The steady clock starts again at every boot, so
+ * a time saved before a restart would read as the future. It counts as the
+ * earliest time instead: older than anything since, and still after "never".
+ */
+const saved = (time) => (Number(time) > now() ? 1 : Number(time) || 0);
+
 // ------------------------------------------------------------------ git
 
 function git(args, cwd, { env, input } = {}) {
@@ -214,7 +231,8 @@ function readEvents(dir, agent) {
   for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
     if (!line.trim()) continue;
     try {
-      events.push(JSON.parse(line));
+      const event = JSON.parse(line);
+      events.push({ ...event, start: saved(event.start), end: saved(event.end) });
     } catch {
       // A line cut short by a crash. The rest of the record still stands.
     }
@@ -310,7 +328,7 @@ function beforeCall(data) {
   const root = repoRoot(data.cwd);
   if (!root) return picked;
 
-  const open = { tool: data.tool_name, start: Date.now() };
+  const open = { tool: data.tool_name, start: now() };
   if (FILE_TOOLS.includes(data.tool_name)) {
     const file = (data.tool_input || {}).file_path;
     if (!file) return picked;
@@ -326,7 +344,7 @@ function beforeCall(data) {
 
 /** The files a call changed, from what was stored before it. */
 function finish(root, dir, open) {
-  const event = { type: open.tree ? 'command' : 'edit', tool: open.tool, start: open.start, end: Date.now(), files: [] };
+  const event = { type: open.tree ? 'command' : 'edit', tool: open.tool, start: saved(open.start), end: now(), files: [] };
   if (open.tree) {
     event.command = open.command;
     event.files = changedPaths(root, open.tree, snapshot(root, dir));
@@ -356,7 +374,7 @@ function workerStarted(data) {
   prune();
   const dir = sessionDir(data.session_id);
   markRunning(dir, data.agent_id, true);
-  writeJson(path.join(agentDir(dir, data.agent_id), 'start.json'), { at: Date.now(), tree: snapshot(root, dir) });
+  writeJson(path.join(agentDir(dir, data.agent_id), 'start.json'), { at: now(), tree: snapshot(root, dir) });
 }
 
 function workerStopped(data) {
@@ -383,12 +401,12 @@ function workerStopped(data) {
   fs.mkdirSync(path.dirname(outbox), { recursive: true });
   fs.writeFileSync(outbox, text || '');
   fs.mkdirSync(folder, { recursive: true });
-  fs.writeFileSync(path.join(folder, 'reported'), String(Date.now()));
+  fs.writeFileSync(path.join(folder, 'reported'), String(now()));
 
   // An empty record only tells the waiter to stop, and a waiter polls every
   // 250 ms, so it needs far less time.
-  const deadline = Date.now() + (text ? HANDOFF_MS : 2 * POLL_MS + 100);
-  while (fs.existsSync(outbox) && Date.now() < deadline) sleep(50);
+  const deadline = now() + (text ? HANDOFF_MS : 2 * POLL_MS + 100);
+  while (fs.existsSync(outbox) && now() < deadline) sleep(50);
   if (!fs.existsSync(outbox)) {
     // Taken. A moment more lets the record reach the parent ahead of the notice.
     sleep(300);
@@ -403,7 +421,7 @@ function workerStopped(data) {
  */
 function buildRecord(root, dir, agent, type) {
   const folder = agentDir(dir, agent);
-  const since = Number(readJson(path.join(folder, 'reported'))) || 0;
+  const since = saved(readJson(path.join(folder, 'reported')));
   const mine = readEvents(dir, agent).filter((e) => e.end > since);
   const others = listDir(path.join(dir, 'agents'))
     .filter((name) => name !== safe(agent))
@@ -438,8 +456,9 @@ function buildRecord(root, dir, agent, type) {
   // The safety net: a file that changed during the run with no call behind it.
   const start = readJson(path.join(folder, 'start.json'));
   fs.rmSync(path.join(folder, 'start.json'), { force: true });
-  if (start && start.at > since) {
-    const touched = new Set([...mine, ...others].filter((e) => e.end >= start.at).flatMap((e) => e.files.map((f) => f.path)));
+  const startedAt = start && saved(start.at);
+  if (start && startedAt > since) {
+    const touched = new Set([...mine, ...others].filter((e) => e.end >= startedAt).flatMap((e) => e.files.map((f) => f.path)));
     for (const file of changedPaths(root, start.tree, snapshot(root, dir))) {
       if (!touched.has(file.path)) items.push({ ...file, group: 'unexplained' });
     }
@@ -538,13 +557,13 @@ function waitForRecord(data) {
 
   // A foreground run has already finished, so its record is there or never comes.
   const once = response.status === 'completed';
-  const started = Date.now();
+  const started = now();
   const outbox = path.join(dir, 'outbox', safe(id));
   const reported = path.join(agentDir(dir, id), 'reported');
-  while (Date.now() < started + WAIT_MS) {
+  while (now() < started + WAIT_MS) {
     // Read before the outbox, so a record written just after this check is
     // still found below.
-    const finished = (Number(readJson(reported)) || 0) >= started;
+    const finished = saved(readJson(reported)) >= started;
     const text = take(`${outbox}.txt`);
     if (text) return { code: 2, text };
     if (take(`${outbox}.none`) !== null) return { code: 0 };

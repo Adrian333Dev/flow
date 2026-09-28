@@ -65,7 +65,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`commands/`** holds commands, one markdown file each, typed by the file name with no `flow:` prefix: `capture.md` is `/capture`. Each file is symlinked into `~/.claude/commands/`. A command is for a manual trigger only the user types, so each carries `disable-model-invocation: true` and costs no context until typed.
 
-**`project-template/`** is what a new project starts with: an `AGENTS.md` with a `## Project` section, a `CLAUDE.md` holding the one line `@AGENTS.md`, a `.gitignore` and a `.work-include`. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.work-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git work send`.
+**`project-template/`** is what a new project starts with: an `AGENTS.md` with a `## Project` section, a `CLAUDE.md` holding the one line `@AGENTS.md`, a `.gitignore` and a `.uncommitted-include`. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.uncommitted-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git uncommitted send`.
 
 ## What belongs to the repository
 

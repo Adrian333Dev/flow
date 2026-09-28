@@ -69,7 +69,7 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 ├─ AGENTS.md
 ├─ CLAUDE.md                      one line: @AGENTS.md
 ├─ .gitignore
-├─ .work-include
+├─ .uncommitted-include
 ├─ .claude/
 │  ├─ settings.json
 │  └─ skills/<name>
@@ -165,7 +165,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 - **`AGENTS.md`**: rules for this project alone. It starts from `project-template/`, and you and the sessions fill it in.
 - **`CLAUDE.md`**: one line, `@AGENTS.md`, from the template, so Claude Code loads the same rules.
 - **`.gitignore`**: from the template. It ignores the skill symlinks, and keeps everything in `.flow/` committed.
-- **`.work-include`**: from the template, empty. It names the gitignored files that travel with `util git work send`.
+- **`.uncommitted-include`**: from the template, empty. It names the gitignored files that travel with `util git uncommitted send`.
 
 ### `.claude/`
 

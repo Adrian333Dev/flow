@@ -132,6 +132,23 @@ test('2 workers at once each get only their own file, and the parent\'s edit goe
   assert.doesNotMatch(two.stderr, /a\.txt|parent\.txt/);
 });
 
+// Times are kept on the steady clock, which starts again at every boot. A time
+// saved before a restart is larger than any time after it.
+test('a worker whose last record came before a restart still hands over its next edit', async () => {
+  const ctx = repo('changes-restart');
+  start(ctx, 'w1');
+  const waiting = await waiter(ctx, 'w1');
+  const reported = path.join(ctx.home, 'changes', 's1', 'agents', 'w1', 'reported');
+  write(path.dirname(reported), 'reported', String(Number(process.hrtime.bigint() / 1000000n) + 1e12));
+  edit(ctx, 'w1', 'c1', 'keep.txt', 'one\nTWO\n');
+  stop(ctx, 'w1');
+
+  const { code, stderr } = await waiting.done;
+  assert.strictEqual(code, 2, 'the edit counts as newer than a record from before the restart');
+  assert.match(stderr, /-two\n\+TWO/);
+  assert.doesNotMatch(stderr, /by no tool call a hook saw/);
+});
+
 test('a change no hooked call explains comes back marked as unexplained', async () => {
   const ctx = repo('changes-unexplained');
   start(ctx, 'w1');

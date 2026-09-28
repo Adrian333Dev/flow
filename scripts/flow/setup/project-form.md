@@ -87,7 +87,7 @@ For every project, not only this one. `~/.flow/AGENTS.md`
 - write .claude/settings.json: superpowers switched off, the lint hook removed
 - delete .claude/skills/tdd: a skill ticked above
 - write .gitignore: Flow's lines added to yours
-- write .work-include: gitignored files that travel between your machines
+- write .uncommitted-include: gitignored files that travel between your machines
 - write .flow/settings.json: marks this project as Flow's
 - write .flow/tickets: 14 tickets
 - write .flow/inbox.md: 3 ideas

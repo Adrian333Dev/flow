@@ -88,7 +88,7 @@ Every new version goes under `files/<full path>`, beside the form. `project-temp
 - **`.claude/settings.json`**: the project's file with the template's keys added, and what the form removes taken out.
 - **`.claude/settings.local.json`**: the same, where one exists.
 - **`.gitignore`**: the project's lines, then each line of the template's it lacks.
-- **`.work-include`**: the template's, where the project has none.
+- **`.uncommitted-include`**: the template's, where the project has none.
 - **`.flow/settings.json`**: `{}`. `flow` reads a project by this folder existing.
 - **`.flow/tickets/`**: made by `flow new` once `.flow/settings.json` is written, run with `FLOW_PROJECT` set to the project's folder under `files/`, so every ticket has the format and number `flow` gives it.
 - **`.flow/inbox.md`**, **`.flow/findings/`**, **`docs/context/`**: where there is something to put in them.
