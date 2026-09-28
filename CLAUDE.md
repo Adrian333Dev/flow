@@ -6,6 +6,8 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 
 **`read-state-first`** Read `lab/context/state.md` before touching skills installation, the scripts, or the docs tree. It says what is built and which design record covers what. `docs/dev/layout.md` maps the tree. This file carries neither status nor a map.
 
+**`drain-workflow-notes`** Before choosing the next work, read `~/.flow/workflow-notes.md` and the current month of `~/.flow/logs/failures/`. File each note into `lab/backlog/beta.md` → `## Found in use`, or join it to the item it repeats, then delete the note. A failure worth fixing gets an item the same way, and the log stays untouched.
+
 ## The turn
 
 One user message, your work, one reply. In that order, every time.
@@ -140,9 +142,9 @@ The decisions neither page carries:
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
 - **`type-never-kind`** A field saying what sort of thing a record is gets called `type`.
 - **`no-skill-under-lab`** Flow's own skills live in `skills/`. A skill from another repository lives in that repository. Never let a `lab/` path leak into a skill, `home/`, or `project-template/`.
-- **`lab-records-are-history`** Disk wins where a record and the tree disagree. `lab/context/state.md` is the one exception: it is maintained as the work moves, so where it disagrees with disk, the file is the bug.
+- **`lab-records-are-history`** Disk wins where a record and the tree disagree. `lab/context/state.md` and `lab/backlog/` are the exceptions: both are maintained as the work moves, so where one disagrees with disk, the record is the bug.
 - **`context-files-are-flat`** Every context file lives in `lab/context/`, flat.
 - **`read-repos-with-cat`** `repos/` is read with `cat`, never with `Read`. Other people's clones, never edited.
 - **`home-files-exist-twice`** The copy here is the template, public. The copy at `~/.agents/AGENTS.md` is personalized. Never write personal content into this repo. A rule worth shipping is carried across by hand.
 - **`placeholder-comments-are-deleted`** A placeholder comment goes the first time its section is filled in. It holds a shape and an example, never a rule.
-- **`no-status-in-claude-md`** No counts, no dates and no build status. Status goes in `lab/context/state.md`, open work in `backlog.md`. A date only where the date is the point.
+- **`no-status-in-claude-md`** No counts, no dates and no build status. Status goes in `lab/context/state.md`, open work in `lab/backlog/`. A date only where the date is the point.

@@ -52,7 +52,7 @@ Opened as a map on 2026-09-16, by the groundwork method run in conversation. **E
 
 ## Routed into a build order, 2026-09-17
 
-The last phase of the method, after the walk closed all 8 branches and the attack ran against this machine. Every decision below is now a line in `backlog.md` → `## V1` → `### The management skill, in build order`, in the order the pieces have to be built: 3 sweeps over the repo, then `flow snapshot`, `flow install`, the changelog, `flow doctor`, `~/.flow/settings.json`, the `SessionStart` hook and the domain-skills pull, then `references/prerequisites.md` and the 3 skill bodies, then `flow up`. **Open work lives on those lines and not here**, by `backlog.md`'s own rule that an item lives in one place; this file keeps the argument behind each one.
+The last phase of the method, after the walk closed all 8 branches and the attack ran against this machine. Every decision below became a line of the backlog's build order, in the order the pieces had to be built: 3 sweeps over the repo, then `flow snapshot`, `flow install`, the changelog, `flow doctor`, `~/.flow/settings.json`, the `SessionStart` hook and the domain-skills pull, then `references/prerequisites.md` and the 3 skill bodies, then `flow up`. What is still open lives in `lab/backlog/`: `/flow:help` in `before-beta.md`, and the install and the first real `flow up` in `beta.md`. This file keeps the argument behind each one.
 
 **One thing the route found.** `CHANGELOG.md` has been suspended since 2026-08-09, and a migration's whole input is the entries newer than the date in `~/.flow/version`. So the file has to come back before `/flow:migrate` can ship, and lifting the suspension is the user's call.
 
@@ -334,7 +334,7 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 - **The carve is not dangerous.** The 2 sections are named headings, so taking each from its heading to the next `##` is deterministic, and the snapshot holds the original file anyway. Calling it the one destructive step in the migration was an overstatement.
 - **`install.js:125` still has to be fixed.** It leaves an existing `~/.claude/CLAUDE.md` untouched rather than rewriting it around the 2 sections, so no migration can ship a new template until it changes.
 - **Flow proposes every change to the 2 sections and never edits them silently.** Step 3 of a migration compares them against what the changelog entries removed. A line naming a removed feature becomes a line in `migration.md`, such as `stale: "always run the scorecard before closing" -> the scorecard was removed on 2026-08-14`, with a replacement proposed. Raised by the user 2026-09-17.
-- **Open, and deferred to the Codex work.** Two harnesses means 2 inline copies, and a capture in one does not reach the other. Nothing is built for it while Claude Code is the only harness. `backlog.md` -> **Flow on another harness and on another model** carries it.
+- **Open, and deferred to the Codex work.** Two harnesses means 2 inline copies, and a capture in one does not reach the other. Nothing is built for it while Claude Code is the only harness. `lab/backlog/after-v1.md` -> **Flow on another harness and on another model** carries it.
 
 That closes 4.0.
 
@@ -373,7 +373,7 @@ Said by the user 2026-09-17. `skills/dev/` holds what a maintainer runs, and bot
 - Built under `tmp/try/home/skills/` by `lab/scripts/try.sh`: one folder named `flow:probe-b`, one named `probe-a` carrying `name: flow:probe-a` in its frontmatter.
 - The session listed `flow:probe-b` and `probe-a`. **The folder name is the command name**, and the frontmatter `name` did not override it.
 - `/flow:probe-b` typed into `claude --print` ran the skill. Asked in words for "the skill that prints bravo", the model invoked `flow:probe-b` by itself. Both ways work.
-- The one cost is native Windows, where a colon is illegal in a filename, so the clone would not check out. Windows outside WSL is already excluded under `## Which operating systems`, and the item to lift it sits in `backlog.md` -> `## After V1`.
+- The one cost is native Windows, where a colon is illegal in a filename, so the clone would not check out. Windows outside WSL is already excluded under `## Which operating systems`, and the item to lift it sits in `lab/backlog/after-v1.md`.
 - Undocumented behavior, so `flow doctor`'s existing check that every skill name resolves is what catches a version that takes it away.
 
 ### All 4 are typed, never model-invoked
@@ -506,7 +506,7 @@ Both commands undo the machine, so the agent may never run either.
 - **Syncing covers `~/.flow/` and never a project**, the user's call 2026-09-20.
 - **7 things never travel**, and `~/.flow/.gitignore` names them: `version`, `run.json`, `originals/`, `settings.local.json`, the `scripts` and `references` links, and each wiki tool's `downloads/`. The 2 links were added on 2026-09-20: both point into this machine's clone, which sits somewhere else on the other machine.
 - **A setting holding a path lives in `settings.local.json`**, which stays on the machine. `lib/settings.js` reads the pair as one file, the local one winning key by key, and `globalKey()` says which of the 2 holds a setting for a message that has to name a file. `domainSkills` and `clone` are the 2 paths there today.
-- **Uncommitted work travels by `util git work`, on the user's own command.** The agent never runs it, ruled 2026-09-20. Its rename to `util git uncommitted` and the `get <machine> --branch` fix are in `lab/util/backlog.md`.
+- **Uncommitted work travels by `util git work`, on the user's own command.** The agent never runs it, ruled 2026-09-20. Its rename to `util git uncommitted` and the `get <machine> --branch` fix are in `lab/backlog/`.
 - **Built 2026-09-20**: `scripts/flow/lib/flow-repo.js` and `scripts/flow/commands/sync.js`, tested in `scripts/tests/sync.test.js` against a local folder. The round trip through a real GitHub remote is proved by nothing yet, and `backlog.md` carries that gap.
 
 ### `flow install` asks 2 questions, and only at a terminal
@@ -1049,7 +1049,7 @@ Phase 3 of the method: one real case run end to end against this machine, which 
 ## Faults found in the code, verified 2026-09-11
 
 - **`flow install` does nothing on a machine that already has `~/.claude/CLAUDE.md`.** `install.js:125` copies Flow's rule file only when none is there, and otherwise prints `kept: CLAUDE.md, yours, already here`. Every skill still links, so the machine looks installed while none of Flow's rules load. `doctor.js:248` then reports success, because it checks the file exists and whether it still holds template placeholders, never whose file it is. Every real machine arrives this way. Branch 3 owns it.
-- **An overlay reaches a `SKILL.md` and nothing else.** A `references/` page under a skill has nowhere to run a command, and neither does a file in `rules/`. In `backlog.md`, deliberately not designed here.
+- **An overlay reaches a `SKILL.md` and nothing else.** A `references/` page under a skill has nowhere to run a command, and neither does a file in `rules/`. In `lab/backlog/after-v1.md`, deliberately not designed here.
 - **Flow has no uninstall.** Branch 1 owns it.
 
 ## Jobs recorded before the map, each under a branch now

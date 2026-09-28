@@ -184,19 +184,21 @@ Flow coexists with skill set plugins. The rules and the guard apply regardless o
 
 ## What is next
 
-The [backlog](backlog.md) tracks every open item. What the first release still needs, in order:
+The [backlog](lab/backlog/) tracks every open item, one file per phase: before the beta, the beta, and after V1. What the beta still needs, in order:
 
-1. **The management skill**: installing Flow on a machine, migrating it and its projects through every update, and answering the user who does not know what to do next
-2. **A profile of the user**, filled by an interview at install and kept current as the agent learns
-3. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it, compressing every skill, and rewriting every file
-4. **The manual**, with a real captured example on every page
-5. **Tests over the ticket commands**
+1. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it, compressing every skill, and rewriting every file
+2. **A cleanup of the scripts, and wider tests** over the ticket commands
+3. **The manual**, with a real captured example on every page
+4. **`/flow:help`**, answering a question about Flow with the manual page that covers it
+5. **A README and an install path** a stranger can follow
+
+The beta is Flow installed on the author's machine and used for real work for 2 to 3 weeks, with the manual open to anyone who wants to read it.
 
 ## Status
 
 What works today: every rule, every skill, the CLI, the permission guard, the project scaffold, and two test suites.
 
-What is unfinished: the user manual, the management skill, multi-agent portability, and the ASCII rendering engine.
+What is unfinished: the user manual, `/flow:help`, multi-agent portability, and the ASCII rendering engine.
 
 Flow currently runs on Claude Code, on Linux, macOS and WSL. Native Windows is not supported: every hook is a shell line. The core workflow is designed to be portable.
 
@@ -204,4 +206,4 @@ Flow currently runs on Claude Code, on Linux, macOS and WSL. Native Windows is n
 
 - **[The manual](docs/manual/README.md)**: how to use Flow. Reference is every command, skill and setting in one place, Where everything lives is every folder Flow uses, and Tickets is the shape of the only thing Flow builds.
 - **[Developing Flow](docs/dev/README.md)**: how to change Flow. The repository layout, the two checkouts, the scratch session, the tests, adding a skill, and the agents Claude Code runs.
-- **[Backlog](backlog.md)**: every open item and the reasoning behind each.
+- **[Backlog](lab/backlog/)**: every open item, one file per phase.

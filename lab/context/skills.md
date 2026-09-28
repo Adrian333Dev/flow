@@ -2,7 +2,7 @@
 
 Four records merged on 2026-09-16, all about where knowledge lives outside a rule file. `docs/dev/skills.md` says how Flow files and writes a skill, and [What Claude Code does](../../docs/dev/claude-code.md) holds every tested fact about what the platform does with one. Neither is restated here: this record holds only the arguments still open.
 
-`backlog.md` → `### The skill system` and `### Individual skills` carry the open items.
+`lab/backlog/after-v1.md` → `## The skill system` and `## Individual skills` carry the open items.
 
 ## Arguments and plugins
 
@@ -94,7 +94,7 @@ A **domain skill** holds knowledge about a subject: a framework, a library, a se
 
 ### CI on the repository
 
-Waits for the first contributor other than the user. `lab/domain-skills/backlog.md` carries it.
+Waits for the first contributor other than the user. `lab/backlog/after-v1.md` → `## domain-skills` carries it.
 
 **CI checks form** on every pull request:
 
@@ -121,7 +121,7 @@ Several pipelines under one subject are several pages.
 
 ### Branches
 
-**The workflow supports one branch at a time to start with.** Ruled by the user 2026-09-13. The walk below is recorded so the multi-branch work starts from it. `backlog.md` → `### Subagents and dispatch` carries the item.
+**The workflow supports one branch at a time to start with.** Ruled by the user 2026-09-13. The walk below is recorded so the multi-branch work starts from it. `lab/backlog/after-v1.md` → `## Subagents and dispatch` carries the item.
 
 Project files fall into 2 kinds when the branch changes:
 

@@ -2,7 +2,7 @@
 
 Everything behind `/flow:visualize`, Flow's drawing skill. Two records merged on 2026-09-16: the rework that produced the skill, and the engine idea raised at the end of it. They are one subject, and the second only makes sense against the measurement in the first.
 
-`skills/tools/visualize/SKILL.md` and its `references/` carry every drawing rule and the measured table of characters an agent may use. `backlog.md` → `### Drawing` carries the 3 open items.
+`skills/tools/visualize/SKILL.md` and its `references/` carry every drawing rule and the measured table of characters an agent may use. `lab/backlog/after-v1.md` → `## Drawing` carries the 3 open items.
 
 ## The rework: what is settled, and what `canvas.js` measured
 

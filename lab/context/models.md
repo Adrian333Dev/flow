@@ -2,7 +2,7 @@
 
 Two questions, neither locked: which model produced a piece of work, and whether Flow runs anywhere but Claude Code on an Anthropic model. Researched 2026-09-06 and 2026-09-07. Merged into one record on 2026-09-16, because the same measurement answers both: no rule has a violation rate per model, so nothing yet says whether a rule that binds one model binds the next.
 
-`backlog.md` → `### Other people, other models` carries the open item. Model ids and prices below move monthly, so they are dated findings rather than facts.
+`lab/backlog/after-v1.md` → `## Other people, other models` carries the open item. Model ids and prices below move monthly, so they are dated findings rather than facts.
 
 ## Which model produced the work
 
@@ -61,7 +61,7 @@ The alternative is every hook parsing the transcript backwards for the last assi
 Researched against Anthropic's gateway and model-configuration documentation, OpenAI's Codex
 documentation, and provider pricing as it stood on 2026-09-07.
 
-Open items are in `backlog.md` → `## Other people, other models`.
+Open items are in `lab/backlog/after-v1.md` → `## Other people, other models`.
 
 ### What is in scope
 

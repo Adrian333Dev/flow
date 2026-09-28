@@ -18,7 +18,7 @@ Installing creates symlinks from your machine into this clone, so most files are
 When you first open the repository, the split that matters has four parts:
 
 - **Eight folders install**: `home/`, `scripts/`, `references/`, `skills/`, `agents/`, `rules/`, `commands/`, and `project-template/`
-- **Eight entries belong to the repository**: `CLAUDE.md`, `README.md`, `install.sh`, `backlog.md`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
+- **Seven entries belong to the repository**: `CLAUDE.md`, `README.md`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
 - **`lab/` is the design record**: installed nowhere, never deleted
 - **`repos/` and `tmp/` are gitignored**: either can be thrown away at any moment
 
@@ -75,8 +75,6 @@ When you first open the repository, the split that matters has four parts:
 
 **`install.sh`** is what the one pasted install line runs, `curl -fsSL <address>/install.sh | bash`. It checks for git, node, claude and gh, clones Flow into `~/.flow/repos/flow/`, then hands over to `flow install`, which does every other step. A clone that exists is never cloned again, so running it twice changes nothing. `--use <folder>` skips the clone and uses that folder as Flow.
 
-**`backlog.md`** holds every open item in Flow, one line each: `## V1` in build order, then `## After V1` by area. The only place an open item lives. `lab/context/` holds the reasoning behind them. Each submodule under `lab/` keeps its own `backlog.md` in the same shape.
-
 **`CHANGELOG.md`** holds one entry per change in how Flow behaves, numbered from 1, newest first. An entry's number is Flow's version, and `~/.flow/version` holds the number a machine last applied. Nothing is written into it until Flow is installed on a machine, since a migration is the only reader an entry has.
 
 **`upgrades/`** holds one guide per entry, `12.md` being the step from 11 to 12. The session `flow up` opens reads every guide above the machine's number and writes one migration from them, and `upgrades/README.md` says what a guide holds. Nothing here is symlinked: the session reads the guides out of this clone, through `~/.flow/repos/flow`.
@@ -89,7 +87,7 @@ When you first open the repository, the split that matters has four parts:
 
 `lab/` holds the reasoning this repository was built from. It ships nowhere and is never deleted. It shrinks to what is still live.
 
-**Every record under `lab/` is history, and the skills on disk win wherever the two disagree.** Git holds the change history, which nothing here restates. `state.md` is the one exception: it is maintained as the work moves, so where state.md disagrees with disk, the file is the bug.
+**Every record under `lab/` is history, and the skills on disk win wherever the two disagree.** Git holds the change history, which nothing here restates. `context/state.md` and `backlog/` are the exceptions: both are maintained as the work moves, so where one disagrees with disk, the record is the bug.
 
 Every context file sits in `lab/context/`, flat:
 
@@ -99,6 +97,12 @@ Every context file sits in `lab/context/`, flat:
 
 Everything beside `context/` is a folder:
 
+- **`backlog/`**: every open item, for Flow and for the 3 submodules below, one file per phase. The only place an open item lives, and `context/` holds the reasoning behind each.
+  - `before-beta.md`: what has to be true before Flow installs on the author's machine, in build order.
+  - `beta.md`: `## Checklist`, what real use tries once, and `## Found in use`, what it turns up. Notes from `~/.flow/workflow-notes.md` land in the second.
+  - `after-v1.md`: the rest, one section per area, the lowest priority last.
+
+  An item is one line: what it is, then the file in `context/` holding the argument. A finished item is deleted, never checked off. An item about a submodule opens with its name, as in `**util**:`. A marker on the line says what else holds it back: **talk first** needs its own conversation, **parked** waits for a real case, and **half done** marks a started item.
 - **`util/`**: the `util` CLI, a submodule: [Adrian333Dev/util](https://github.com/Adrian333Dev/util). Edited here, committed from inside the folder, and the new pointer committed here afterwards.
 - **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/flow:research` clones it into `tmp/` to search it.
 - **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
@@ -115,7 +119,7 @@ Neither survives a fresh clone, and nothing at runtime reads either one.
 ## Where a new file goes
 
 - A note about why something was decided → `lab/context/`, flat, one file per decision
-- An open item → `backlog.md`, one line, with a pointer to the argument. An item about a submodule alone → that submodule's `backlog.md`
+- An open item → the file in `lab/backlog/` for its phase, one line, with a pointer to the argument
 - A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`. `lab/scripts/test-projects/<name>/` is a board for the practice project, `files/` copied in and `build.sh` run, picked with `try.sh --project <name>`
 - A rule check → `scripts/rule-checks/<rule-id>.js`, named after the rule it enforces. Nothing registers it
 - A change in how Flow behaves, once Flow is installed somewhere → one entry in `CHANGELOG.md`, plus `upgrades/<number>.md` where the change moves a path on a machine

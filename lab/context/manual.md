@@ -1,6 +1,6 @@
 # Flow's manual: what `docs/manual/` is, and the pages still planned
 
-Designed 2026-08-29, and renamed from `design-public-docs.md` on 2026-09-16. 4 pages have shipped since: `reference.md`, `settings.md`, `tickets.md` and `where-everything-lives.md`. Git holds what else this record carried: the three scopes of `references/style.md`, the move of Flow's working files from `docs/` to `.flow/`, the `docs/dev/` split and the `~/.flow/` rule, all built. Cut on 2026-09-15 to what the manual items in `backlog.md` still need.
+Designed 2026-08-29, and renamed from `design-public-docs.md` on 2026-09-16. 4 pages have shipped since: `reference.md`, `settings.md`, `tickets.md` and `where-everything-lives.md`. Git holds what else this record carried: the three scopes of `references/style.md`, the move of Flow's working files from `docs/` to `.flow/`, the `docs/dev/` split and the `~/.flow/` rule, all built. Cut on 2026-09-15 to what the manual item in `lab/backlog/before-beta.md` still needs.
 
 ## What `docs/manual/` is
 
@@ -58,7 +58,7 @@ Dropped on the evidence: **`llms.txt`**, since 97% of sites get no traffic from 
 
 ## Rejected, and staying rejected
 
-- **A test over the examples in `docs/`.** Raised twice. Hand-written examples cover the obvious tenth of the scenarios and miss every tricky one, so a green suite reports a safety nobody has. **Do not raise it a third time.** Examples captured by running the real command are a different thing, and `backlog.md` → `## V1` asks for them.
+- **A test over the examples in `docs/`.** Raised twice. Hand-written examples cover the obvious tenth of the scenarios and miss every tricky one, so a green suite reports a safety nobody has. **Do not raise it a third time.** Examples captured by running the real command are a different thing, and `lab/backlog/before-beta.md` asks for them.
 - **A generated command reference.** A command may be explained in several places where it is reached for. Docs get updated inside the change that touched the CLI.
 - **Grouping decisions by component**, such as `skills.md` and `subagents.md`.
 

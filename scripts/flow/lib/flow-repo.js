@@ -54,7 +54,7 @@
  *
  * `flow sync` is typed, and `flow install` connects the repository once. A
  * download when a session opens and an upload when something changed are
- * both parked in `backlog.md`. The one thing that runs by itself is a fetch
+ * both parked in `lab/backlog/beta.md`. The one thing that runs by itself is a fetch
  * from `skills-pull.js`, so a session can say another machine moved ahead.
  */
 

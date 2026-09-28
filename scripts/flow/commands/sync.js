@@ -11,7 +11,7 @@
  *
  * Typed, never automatic. The user asked for the smallest version that works,
  * so nothing downloads when a session opens and nothing uploads when a file
- * changes. Both of those are parked in `backlog.md`.
+ * changes. Both of those are parked in `lab/backlog/beta.md`.
  *
  * A machine on a lower changelog entry than another machine's record syncs
  * nothing until `flow up` brings it level: each machine migrates its own copy,

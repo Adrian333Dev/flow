@@ -2,7 +2,7 @@
 
 Everything behind Flow's rule files: `home/CLAUDE.md`, this repository's `CLAUDE.md`, and `rules/comments.md`. Three records merged on 2026-09-16, because they answer 3 halves of one question. How a rule is made to bind is the enforcement machinery. How a rule is worded decides whether it binds at all, and that splits again into the shape of the sentence and the writing the user will accept.
 
-`backlog.md` → `### Rules and always-loaded files` carries every open item, and `references/style.md` is the live house style this record produced.
+`lab/backlog/after-v1.md` → `## Rules and always-loaded files` carries every open item, and `references/style.md` is the live house style this record produced.
 
 ## Enforcement: the bridge, the conduct rules, and how a rule file loads
 
@@ -10,7 +10,7 @@ Locked across 5 sessions ending 2026-09-05, and built 2026-09-04 to 2026-09-07: 
 
 ### Locked decisions: the enforcement bridge
 
-The **enforcement bridge** connects a rule written in a file to a check that runs while the agent works. Its design holds for every check written from here on. `backlog.md` → `### The audit` carries scoring a session, which extends it to conduct.
+The **enforcement bridge** connects a rule written in a file to a check that runs while the agent works. Its design holds for every check written from here on. `lab/backlog/after-v1.md` → `## The audit` carries scoring a session, which extends it to conduct.
 
 #### The three tiers
 
@@ -136,7 +136,7 @@ Verified against `code.claude.com/docs/en/memory` on 2026-09-05. `docs/dev/claud
 
 ## Compression: the negation split
 
-The compression pass was locked 2026-08-18 and applied to every skill. Its rules became `references/style.md` §6, §7 and §9, and git holds the rest. Cut on 2026-09-15 to the one idea still open, which `backlog.md` → `### Rules and always-loaded files` carries as a talk-first item.
+The compression pass was locked 2026-08-18 and applied to every skill. Its rules became `references/style.md` §6, §7 and §9, and git holds the rest. Cut on 2026-09-15 to the one idea still open, which `lab/backlog/after-v1.md` → `## Rules and always-loaded files` carries as a talk-first item.
 
 **Write a prohibition for a rule the agent breaks under pressure. Write a positive recipe where the output comes out the wrong shape.** Never soften either with an "unless it matters" clause.
 

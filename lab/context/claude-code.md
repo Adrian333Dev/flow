@@ -2,7 +2,7 @@
 
 What the platform is missing, and what has been filed about it. Everything Claude Code *does* do is on the public page [What Claude Code does](../../docs/dev/claude-code.md), which replaced this record's sibling on 2026-09-16.
 
-**A record, not a work list.** `backlog.md` holds every open item in Flow, and nothing here is one, because none of it is Flow's to build. Assembled 2026-09-10, and every entry names where the argument already lives.
+**A record, not a work list.** `lab/backlog/` holds every open item in Flow, and nothing here is one, because none of it is Flow's to build. Assembled 2026-09-10, and every entry names where the argument already lives.
 
 ## Filed
 
