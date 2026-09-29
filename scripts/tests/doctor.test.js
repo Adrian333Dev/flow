@@ -56,7 +56,7 @@ function doctor(m, { bin, utilHome, inProject } = {}) {
   // Without this, doctor resolves the Flow repo itself, which has no .flow/,
   // and reports on the machine alone.
   if (inProject) env.FLOW_PROJECT = inProject;
-  const args = ['doctor', '--root', m.root, '--no-bin', '--no-tests'];
+  const args = ['doctor', '--root', m.root, '--no-bin'];
   return run('flow/flow.js', args, { env });
 }
 

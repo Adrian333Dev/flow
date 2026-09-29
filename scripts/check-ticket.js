@@ -10,11 +10,15 @@
  * own first line, so a bad id would otherwise print a refusal and then load
  * the whole skill on top of it, hundreds of lines spent on a typo.
  *
- * It blocks 3 things, and the 2 setup checks run first, whatever was typed. A
- * machine where `flow setup` never finished has no rules loaded and no
- * other hook installed, so this is the only gate a typed skill passes through.
- * A project flow setup project never ran in is the same case one level down.
- * Both messages come from flow's own libraries rather than a copy here.
+ * It blocks 3 things. The machine check runs first, whatever was typed: a
+ * machine where `flow setup` never finished has no rules loaded and no other
+ * hook installed, so this is the only gate a typed skill passes through.
+ *
+ * The project check runs only where a project is needed: a ticket id, or
+ * /flow:start with nothing after it, which shows the project's board. A phase
+ * skill with free text, or /flow:start with a path, works in any folder, so
+ * groundwork in an empty folder and a loose handoff.md both get through. Both
+ * messages come from flow's own libraries rather than a copy here.
  *
  * Then the ticket. The first word typed is the only thing judged. A word that
  * is not shaped like a ticket id passes untouched, so free text after the skill
@@ -38,11 +42,11 @@ const ID = /^t\d/;
 
 const block = (reason) => process.stdout.write(JSON.stringify({ decision: 'block', reason }));
 
-/** The machine, then the project. Returns the refusal to show, or null. */
-function notSetUp() {
+/** The machine, then the project where one is needed. Returns the refusal to show, or null. */
+function notSetUp(needsProject) {
   try {
     machine.requireSetup();
-    projectRoot();
+    if (needsProject) projectRoot();
     return null;
   } catch (e) {
     return e.message;
@@ -53,13 +57,15 @@ try {
   const call = JSON.parse(fs.readFileSync(0, 'utf8'));
   if (call.cwd) process.chdir(call.cwd);
 
-  const refusal = notSetUp();
+  const first = String(call.command_args || '').trim().split(/\s+/)[0] || '';
+  const board = !first && /(^|:)start$/.test(String(call.command_name || ''));
+
+  const refusal = notSetUp(ID.test(first) || board);
   if (refusal) {
     block(refusal);
     process.exit(0);
   }
 
-  const first = String(call.command_args || '').trim().split(/\s+/)[0] || '';
   if (ID.test(first)) {
     const result = spawnSync(process.execPath, [path.join(__dirname, 'flow', 'flow.js'), 'get', first], {
       cwd: call.cwd || process.cwd(),

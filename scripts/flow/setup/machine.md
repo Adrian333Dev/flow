@@ -87,7 +87,7 @@ Anything else is dropped too. Both boxes start empty, and most machines leave `#
   - `hooks`: `home/settings.json`'s, plus each hook of the user's that stayed.
   - `permissions`: the machine's `allow` and `deny` with the template's added, and the template's `defaultMode` and `disableBypassPermissionsMode`.
   - Every other key in `home/settings.json`: the template's value.
-  - `skillOverrides`: `"batch": "off"`, plus `"off"` for each synced skill ticked.
+  - `skillOverrides`: `"off"` for each synced skill ticked.
   - `enabledPlugins`: left for `claude plugin uninstall` to change. Its `run` line comes after this file's `write` line.
   - Every key the template does not name stays exactly as it is.
 - **`~/.agents/.skill-lock.json`**, where a takeover changes it.

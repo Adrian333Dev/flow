@@ -18,7 +18,7 @@ It knows the repo. It knows nothing about this conversation.
 Decide this first. Everything else follows from it.
 
 - **Working a ticket** → `## State` inside that ticket's `ticket.md`.
-- **Work with no ticket, in a project with `.flow/`** → a new ticket, `flow new "…" --type <what the work is> --body -`, then the command its last line prints, which puts it in flight. The body: one paragraph on the job and why, then `## State`. Loose groundwork adds `--type topic --from-groundwork <its folder>`, which moves the folder into the ticket.
+- **Work with no ticket, in a project with `.flow/`** → a new ticket, `flow new "…" --type <what the work is> --body -`, then move it to the status the work has reached: `flow build <id>` for code in progress, `flow groundwork <id>` while decisions are still open. The body: one paragraph on the job and why, then `## State`. Loose groundwork adds `--type topic --from-groundwork <its folder>`, which moves the folder into the ticket.
 - **Handing a job to a session that reports back** → a new ticket, `flow new "…" --body -`. A child of the ticket that dispatched it, where one exists.
 - **A subagent starting right now** → the prompt. It reads that and nothing else, so a file would be a second copy that goes stale the moment either one changes.
 - **No `.flow/` here** → `handoff.md`, beside the work. A path the user names beats all of it.
@@ -128,7 +128,7 @@ Durable knowledge went to its own home in the sweep: `## Capture` in `~/.agents/
 
 Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`, `/flow:debug` and `/flow:prototype` `reports/`, and whoever created the ticket the body paragraph. `## Done when` moves only when a skill re-decides what the ticket is.
 
-**At `review`, empty `Found` before deleting the section.** Anything in it still true goes to `docs/context/<subject>.md`, or into `## References` as a line. Then the section goes: "step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
+**At `review`, empty `Found` before deleting the section.** Anything in it still true goes to the ticket's `issues.md`, where `/flow:file-findings` files it later. Then the section goes: "step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
 
 **In a file**: `handoff.md` beside the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
 
@@ -138,7 +138,7 @@ Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`,
 
 **Anything listed in prose rather than in the block, read in one parallel batch.** The decisions in the document are settled.
 
-**Where `## State` disagrees with anything else in the ticket, it wins.** It is the newer of the two.
+**Where `## State` and the files on disk disagree about what exists, the files win.** A session can end without a handoff, and the work moves on after it. **On decisions and what is still open, `## State` wins over the rest of the ticket.** It is the newer record.
 
 A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, the research file `/flow:research` names for a question. `## State` carries the job's progress, never its answer.
 

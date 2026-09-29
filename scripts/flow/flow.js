@@ -47,7 +47,9 @@ const TITLE = 'flow: tickets, computed from .flow/tickets/';
  * name of their own: `flow ls`, `flow build t047`. `cases` keeps a group of
  * its own, being a different stored thing and typed a tenth as often.
  *
- * The order inside each section is the order help prints it.
+ * The order inside each section is the order help prints it. A command whose
+ * section is missing here still runs and never prints: `contribute` waits
+ * there for the one sharing command that replaces it after V1.
  */
 const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...up, ...sync, ...uninstall, ...scorecard, ...contribute };
 
@@ -57,7 +59,6 @@ const SECTIONS = [
   { key: 'status', title: 'status, the move is the command' },
   { key: 'setup', title: 'setup, this machine and its projects' },
   { key: 'rules', title: 'rules, whether the checks are catching anything' },
-  { key: 'share', title: 'sharing, what this project learned' },
 ];
 
 const NOTES = `shape   flow <command> [id] [--flags]. A word naming no command is read as a
@@ -115,18 +116,16 @@ switch  a skill is on where its link exists. "skills": { "react": "on" } in
         a settings file says which: <project>/.flow/settings.json for the
         project, ~/.flow/settings.local.json for this machine, and
         ~/.flow/settings.json for every machine, the nearest winning. Flow's
-        own skills start on and have no project level; the rest start off.
+        own skills start on and have no project level, except the 2 in dev/,
+        which start off like the rest.
         flow skills on, off and drop write the line and fix the links
 overlay a project adds to a skill without editing it, because one copy of that
         skill is shared by every project on the machine. Write
         .flow/overlays/<name>.md and a hook adds it each time the skill
         loads in that project: Flow's skills, outside ones and plugins' alike
 share   a finding for a domain skill waits in .flow/findings/<skill>/, where
-        /flow:file-findings moves it on a yes. flow contribute opens one pull
-        request per skill through gh api, forking first where you cannot
-        push, and deletes each file once sent. A pull request is never
-        merged: /flow:apply-domain-findings rewrites the skill from it and
-        closes it with what went in
+        /flow:file-findings moves it on a yes. It stays there until Flow's
+        sharing command ships, after V1
 migrate a change to where Flow and the harnesses keep their files, written
         by flow setup, flow setup project or flow up into
         ~/.flow/migrations/<machine or project>/<time>/: migration.md lists

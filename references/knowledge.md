@@ -43,7 +43,9 @@ Install counts and stars only pick which 3 to read. Neither says which fits.
 **The 2 states:**
 
 - **Used whole**: runs as its publisher wrote it and updates by itself. A disagreement goes where `## Adding to a skill the user does not own` says. Take it for a skill from the tool's own makers, which changes with each release, once the review finds nothing structural against it.
-- **Harvested**: never switched on. The harvest reads it, with the tool's findings and any other skill on the subject, and writes the user's own skill. The default. One general skill per tool runs, and it is the user's.
+- **Harvested**: never switched on. The harvest reads it, with the tool's findings and any other skill on the subject, and writes the user's own skill. One general skill per tool runs, and it is the user's.
+
+**Used whole is the default until `/flow:write-skill` ships.** Harvested becomes the default then. A skill harvested before that waits switched off for a harvest the user runs by hand.
 
 **The harvest** is `/flow:write-skill` (user only), not built yet. Until then, run it by hand when the user asks, by `~/.agents/skills/flow/skills/file-findings/references/write-skills.md`. It ends with `flow skills drop <owner/repo>` per input, unless a skill there is used whole.
 
@@ -65,7 +67,7 @@ Where a finding goes first is `~/.agents/AGENTS.md` → `## Capture`. From there
 
 - **A finding about an outside tool** → waits in `~/.flow/wiki/<tool>/findings/` → the harvest writes it into the tool's skill and deletes it.
 - **A project finding** → `.flow/findings/` → `/flow:file-findings` (user only) turns it into a skill, a rule or a check.
-- **A change to a skill in `domain-skills`** → `flow contribute` opens a pull request → `/flow:apply-domain-findings` (user only) writes it in.
+- **A change to a skill in `domain-skills`** → waits in `.flow/findings/<skill>/` until Flow's sharing command opens a pull request → `/flow:apply-domain-findings` (user only) writes it in.
 - **A new skill** → `~/.flow/private-skills/<name>/`, published by copying it into `domain-skills`.
 
 **A tool's skill holds what the agent gets wrong without it:** changes since its training, traps the docs never warn about, the user's choices. The tool's docs stay in the wiki, downloaded per version. For a tool the agent has never seen, the skill adds how the tool thinks, in a page, and where its docs are.

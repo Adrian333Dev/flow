@@ -9,6 +9,8 @@ disable-model-invocation: true
 
 **A refusal, or nothing** → say why and stop. The id matched no ticket, the path matched no file, or a status move hit a guard.
 
+**Nothing named, and the board says `no tickets yet`** → say so, and point to `/flow:groundwork` for the first piece of work.
+
 **Nothing named**: the board is above. Recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
 
 **A file is above and no ticket**: loose work. Carry on from whatever that file says comes next.
@@ -21,19 +23,21 @@ disable-model-invocation: true
 
 **No such line means nothing has moved.** The skill you route to writes the status, after it opens the phase's own artifact.
 
-Its `type:` line picks the skill, and `feature` and `chore` read `status:` too. Read nothing else first, then invoke it with no argument: the skill loads here, in this session, and the ticket is already above.
+Pick the skill, say in one line what decided it, then invoke it with no argument: the skill loads here, in this session, and the ticket is already above.
 
 - `issue` → `/flow:debug`
 - `prototype` → `/flow:prototype`
 - `topic` → `/flow:groundwork`
-- `feature`, `chore`: the status decides:
-  - `todo`, `groundwork` → `/flow:groundwork`
-  - `planning`, `building`, `review` → `/flow:execute`
+- `feature`, `chore`: read the body, the `map:` line and `## State`. What they leave open decides:
+  - decisions still open → `/flow:groundwork`
+  - decided, nothing built → `/flow:execute`, which opens it at `planning`
+  - code in progress, or waiting on review → `/flow:execute`
+  - too little written to tell → the status: `todo`, `groundwork` → `/flow:groundwork`; `planning`, `building`, `review` → `/flow:execute`
 
 **`status: parked`** → route on the `resumes at:` line, which names the status the ticket left. The command that revives it prints underneath.
 
 **`status: done` or `dropped`** → say the ticket is closed, and stop. Reopening is the user's call.
 
-**Open decisions are what send a ticket to `/flow:groundwork`**, never a long body, and never code left to read. A cleanup chore with nothing settled goes there like anything else. A ticket cut from a spec is the one that does not: its body already carries what to build and the decisions behind it, so route it to `/flow:execute`, which opens it at `planning`.
+**Open decisions are what send a ticket to `/flow:groundwork`**, never a long body, and never code left to read. A cleanup chore with nothing settled goes there like anything else.
 
 Route, and stop there. Whether this ticket splits, and whether it is worth building at all, are answers a map produces: `/flow:groundwork` owns both.

@@ -178,7 +178,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 - **`tickets/archive/`**: finished tickets, moved whole. Nothing is deleted.
 - **`groundwork/<slug>/`**: groundwork that is not a ticket yet, holding `map.md`. `/flow:groundwork` writes it, and `flow new --from-groundwork` moves it into a ticket. A session that stops halfway moves it the same way, since a handoff in a project always goes into a ticket.
 - **`inbox.md`**: raw notes with no obvious home yet. Sessions append to it, and `/flow:file-findings` drains it.
-- **`findings/`**: one file per lesson a session learned, other than a lesson about an outside tool, which goes to `~/.flow/wiki/<tool>/findings/`. `/flow:file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for `flow contribute`.
+- **`findings/`**: one file per lesson a session learned, other than a lesson about an outside tool, which goes to `~/.flow/wiki/<tool>/findings/`. `/flow:file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for Flow's sharing command, due after V1.
 - **`overlays/<skill>.md`**: text this project adds to a skill, Flow's or anyone's, handed to the agent each time the skill loads. You or a session write it.
 - **`settings.json`**: the skills switched on or off for this project, committed, so a fresh clone gets them back. `flow skills on` and `off` write it with no flag.
 

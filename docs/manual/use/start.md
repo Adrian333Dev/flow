@@ -31,7 +31,9 @@ nothing ready. 1 todo ticket blocked:
         t002 is building
 ```
 
-The agent recommends one ticket and says what decided it. The order is fixed: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then it waits. You pick, by typing `/flow:start` again with the id.
+A project with no tickets yet prints `no tickets yet.`, and the agent points you to `/flow:groundwork` for the first piece of work.
+
+With tickets, the agent recommends one and says what decided it. The order is fixed: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then it waits. You pick, by typing `/flow:start` again with the id.
 
 ## With a ticket id: one ticket, then its phase
 
@@ -83,13 +85,18 @@ function setBudget(category, amount) {
 ```
 ````
 
-Then the `type:` line picks the phase skill, and for a feature or a chore the `status:` line does:
+Then the agent picks the phase skill and says in one line what decided it. The `type:` line decides for 3 types:
 
 - `issue` → `/flow:debug`
 - `prototype` → `/flow:prototype`
 - `topic` → `/flow:groundwork`
-- `feature` or `chore` at `todo` or `groundwork` → `/flow:groundwork`
-- `feature` or `chore` at `planning`, `building` or `review` → `/flow:execute`
+
+A feature or a chore is decided by reading the ticket: its body, the `map:` line counting the groundwork questions answered, and `## State`. What they leave open picks the skill:
+
+- **Decisions still open** → `/flow:groundwork`.
+- **Decided, and nothing built yet** → `/flow:execute`, which starts by writing the plan. A ticket cut from a written spec usually lands here, even at `todo`.
+- **Code in progress, or waiting on your review** → `/flow:execute`.
+- **Too little written to tell** → the status decides: `todo` or `groundwork` goes to `/flow:groundwork`, and `planning`, `building` or `review` to `/flow:execute`.
 
 `/flow:start` invokes that skill in the same session, with no argument, since the ticket is already on screen. `/flow:start` moves nothing: the phase skill writes the status once it has read the ticket, and [Who moves the status](status.md) says when.
 

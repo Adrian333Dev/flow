@@ -10,7 +10,7 @@ The map: every place in the workflow and the routes between them. Never the proc
 - **Design**: the shape of one solution, its parts and how they talk. Written in one pass when groundwork closes, beside its map or in `docs/spec/tech.md`. Only earned when the answer was a structure.
 - **Plan**: the numbered steps that build one ticket, in `plan.md` inside that ticket's folder. Written at pickup, and each step's detail fills in as the build reaches it.
 - **Spec**: what the product is and why it is that way, in `docs/spec/`. Any groundwork run can create or edit it, and it outlives every ticket that came out of it.
-- **Prototype**: runnable code written to answer one question, in `protos/`. Thrown away or promoted; never the product itself.
+- **Prototype**: runnable code written to answer one question, in `protos/`. Never promoted: the real build reads it as a reference and starts again.
 
 ## The chain
 
@@ -44,7 +44,7 @@ There are no modes. Any run, any size, routes what it decided, often to more tha
 
 `.flow/tickets/` stays flat on disk: the hierarchy is `parent:` in frontmatter, and `flow` renders it on demand.
 
-**A ticket is named by its id, never a path.** `t047`, `47`, `parser` and `t047-parser-split` all resolve, because the number is the identity and the label is decoration.
+**A ticket is named by its id, never a path.** `t047`, `47`, `parser` and `t047-parser-split` all resolve in `flow`, because the number is the identity and the label is decoration. A skill typed with an id loads the ticket only for a word starting `t` and a digit.
 
 Pickup is where a ticket's shape gets decided, and it is the one real decision in the system. `/flow:start` walks it: it routes on `type:` and `status:`, and nothing else happens there. **The ticket does not move at pickup**, the skill that takes it writes the status, after opening the phase's own artifact. `/flow:groundwork` settles what the ticket is; `/flow:execute` plans, builds and reviews it.
 
@@ -58,10 +58,10 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 
 **Two roots.** `docs/` holds the project's own documents, and a project that had a `docs/` folder before Flow keeps whatever was in it. `.flow/` holds Flow's working store, out of `docs/` so an existing documentation folder stays the project's, and out of any folder a site generator publishes.
 
-- **`.flow/tickets/t047-slug/`**: `ticket.md` (frontmatter, body, and whichever of `## References`, `## Done when` and `## State` the work has written) and `groundwork/`, both from birth; `intake/` when material for this job gets dropped in; `plan.md` and `reports/` appear when the work writes them, one report per thing answered, named after what it answers. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `.flow/tickets/archive/`.
+- **`.flow/tickets/t047-slug/`**: `ticket.md` (frontmatter, body, and whichever of `## References`, `## Done when` and `## State` the work has written) and `groundwork/`, both from birth; `intake/` when material for this job gets dropped in; `plan.md` and `reports/` appear when the work writes them, one report per thing answered, named after what it answers. `issues.md` appears when the build learns something that stays true after the ticket closes. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `.flow/tickets/archive/`.
 - **`.flow/groundwork/<slug>/`**: `map.md`, every branch and decision in one file, plus a detail file per branch that actually grew, plus `design.md` when one was earned. Nothing else.
 - **`docs/spec/`.** `product.md`: every behavior, every version, each marked V1 / next / later / never. `tech.md`: stack, repo layout, components, the decisions that constrain implementation. `decisions.md`: why each call was made, what was refused, what the whole thing bets on, what is still open. Markdown only. More files as the project needs them, and an index once there are more than three.
-- **`protos/`**: at repo root, never under `docs/`; a prototype is runnable code, and `docs/` stops being documentation once code lives in it. Flat, one folder each, named by what it proves. A prototype born in loose groundwork sits in that folder instead, linked from it.
+- **`protos/`**: at repo root, never under `docs/`; a prototype is runnable code, and `docs/` stops being documentation once code lives in it. Flat, one folder each, named by what it proves.
 - **`docs/research/`**: research true only for this project, and research nobody could place. Flat, subject-named, one set for the whole project. Research about an outside tool goes to `~/.flow/wiki/<tool>/research/`, and research about no single tool to `~/.flow/research/`.
 - **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.
 - **`docs/context/<subject>.md`**: durable project facts, one file per subject: a verified command, a path, a settled convention.

@@ -20,8 +20,11 @@
  * `--root` reads the whole install under a scratch folder in place of the home
  * folder, the same as `flow install --root`. `--no-bin` matches
  * `flow install --no-bin` (a scratch install writes no names into
- * ~/.local/bin, so there are none to check), and `--no-tests` drops the 2
- * suites, which are the only slow part of this.
+ * ~/.local/bin, so there are none to check).
+ *
+ * The 2 suites run only with `--tests`. They take about 14 seconds and hold a
+ * test that fails now and then on its own, and the setup and update sessions
+ * run this command, where a flaky failure reads as a broken install.
  */
 
 const fs = require('fs');
@@ -699,11 +702,11 @@ function report(checks) {
 actions.doctor = {
   section: 'setup',
   anywhere: true,
-  summary: 'verify this machine: version, links, PATH, util, skills, hooks, both suites',
+  summary: 'verify this machine: version, links, PATH, util, skills, hooks, and both suites with --tests',
   flags: {
     root: { arg: '<dir>' },
     'no-bin': { bool: true },
-    'no-tests': { bool: true },
+    tests: { bool: true },
     updates: { bool: true },
     prereq: { bool: true },
   },
@@ -743,9 +746,9 @@ actions.doctor = {
       checkFlowHome(clone, at.flow),
       checkOriginals(at),
       checkSkills(at),
-      flags['no-tests']
-        ? { name: 'tests', skipped: '--no-tests' }
-        : checkTests(clone, { bin }),
+      flags.tests
+        ? checkTests(clone, { bin })
+        : { name: 'tests', skipped: 'add --tests to run both suites' },
     ].filter(Boolean);
 
     return report(checks);

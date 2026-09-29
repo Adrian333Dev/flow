@@ -121,7 +121,7 @@ Several pipelines under one subject are several pages.
 
 ### Branches
 
-**The workflow supports one branch at a time to start with.** Ruled by the user 2026-09-13. The walk below is recorded so the multi-branch work starts from it. `lab/backlog/after-v1.md` → `## Subagents and dispatch` carries the item.
+**The workflow supports one branch at a time to start with.** Ruled by the user 2026-09-13. The walk below is recorded so the multi-branch work starts from it. On 2026-09-29 the user decided to move project records to a `flow` branch, which lifts the limit: `ticket-store.md` holds it.
 
 Project files fall into 2 kinds when the branch changes:
 

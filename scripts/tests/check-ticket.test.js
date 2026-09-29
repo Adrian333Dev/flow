@@ -66,7 +66,19 @@ test('check-ticket blocks before the ticket check when setup never ran', () => {
 
   fs.writeFileSync(path.join(dir, 'flow-home', 'version'), '2026-09-20\n');
   fs.rmSync(path.join(dir, '.flow'), { recursive: true });
-  const inProject = check('groundwork', 'write the map', dir);
-  assert.strictEqual(inProject.code, 0);
-  assert.match(inProject.stdout, /not a Flow project yet.*flow setup project/, 'a message with no ticket id still blocks');
+  for (const [name, args] of [['groundwork', 't1'], ['flow:start', '']]) {
+    const inProject = check(name, args, dir);
+    assert.strictEqual(inProject.code, 0);
+    assert.match(inProject.stdout, /not a Flow project yet.*flow setup project/, `no project refusal for /${name} ${args}`);
+  }
+});
+
+test('check-ticket passes free text and a path outside a Flow project', () => {
+  const dir = project('check-ticket-loose');
+  fs.rmSync(path.join(dir, '.flow'), { recursive: true });
+  for (const [name, args] of [['groundwork', 'write the map for pricing'], ['groundwork', ''], ['flow:start', 'notes/handoff.md'], ['debug', '']]) {
+    const result = check(name, args, dir);
+    assert.strictEqual(result.code, 0);
+    assert.strictEqual(result.stdout.trim(), '', `blocked /${name} ${args}`);
+  }
 });

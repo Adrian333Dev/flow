@@ -41,7 +41,7 @@ When you first open the repository, the split that matters has four parts:
 - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
 - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
 - `failures.js` is the `PostToolUseFailure` and `StopFailure` hook. It writes a line into `~/.flow/logs/failures/<month>.jsonl` for a failed MCP tool, a failed Flow command or bundled script, and an API error that ended a turn. `flow/lib/failures.js` holds which calls count, and `flow/lib/logs.js` the one file per month every log under `~/.flow/logs/` uses.
-- `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill whose ticket id matches nothing, before the skill loads.
+- `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill before it loads: on a machine not set up, in a folder with no project where an id needs one, or on an id that matches nothing.
 - `overlays.js` is the `UserPromptExpansion` hook and the `PostToolUse` hook on `Skill`. Each time a skill loads, typed or loaded by the agent, it hands the agent the project's `.flow/overlays/<name>.md`, for every skill, Flow's or not.
 - `reminder.js` is the `UserPromptSubmit` hook that prints `references/reminder.md` beside every message, unless `"reminder": false` in `~/.flow/settings.json` silences it.
 - `context-check.js` is the `PostToolBatch` and `UserPromptSubmit` hook that tells the agent to hand off once the conversation passes `"wrapUpAt"` tokens, 150,000 by default, and again every 20,000 past it. It reads the size off the session file. `"wrapUp": false` silences it.

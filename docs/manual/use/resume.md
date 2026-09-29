@@ -30,7 +30,7 @@ src/budgets.js:14-24   # setBudget, where step 3 goes
 
 Three parts. `Now` is where the work stands. `Found` is what this session learned that no other file records. The `open` block lists the files the next session must have in front of it, with a line range where one part matters, and the next session loads them before its first turn. A decision made out loud and written nowhere is state, and this section is the only thing that carries it.
 
-The section is rewritten whole each time, never appended to. At `review` it is deleted: anything in `Found` still true moves to a durable file first.
+`Now` is rewritten whole each time, since it describes this second. `Found` is only added to, and a line leaves it when it stops being true, so something learned 3 sessions ago survives. 2 more labels appear when the work needs them: `Open` for decisions half made, kept like `Found`, and `Touched` for files changed outside the plan, rewritten like `Now`. At `review` the section is deleted: anything in `Found` still true moves to a durable file first.
 
 ## The 3 steps
 
@@ -38,7 +38,7 @@ The section is rewritten whole each time, never appended to. At `review` it is d
 2. `/clear`. The context empties. The ticket file holds everything.
 3. `/flow:execute t002`, or `/flow:start t002` to let the type and status pick the skill. Either loads the ticket, its `## State` and every file in the `open` block, in one step, before the skill's first word.
 
-Where `## State` disagrees with anything else in the ticket, `## State` wins. It is the newer of the two.
+Where `## State` and the files on disk disagree about what exists, the files win. A new session can be started without `/flow:handoff`, and then `## State` describes an older point than the code. On decisions and what is still open, `## State` wins over the rest of the ticket, since it is the newer record.
 
 ## Groundwork closed, moving to execute
 

@@ -34,6 +34,8 @@ Each line is tried once in real use, then deleted.
 
 - [ ] **How a design plugin gets used**, decided after its first real run in a project: what fires it, whether design work is its own phase, what happens when 2 of them disagree, the boundary with `/flow:visualize`, what comes back into Flow afterwards. Flow works without one. `skills.md`
 
+- [ ] **About 10 rule checks before V1**, chosen from rules real sessions break, per the workflow notes and the failure log, and only where a script can decide from the edit alone. Writing them tests the guide, `skills/tools/file-findings/references/write-checks.md`. Asked by the user 2026-09-29. `docs/manual/rule-checks.md`
+
 ## Found in use
 
 What the beta turns up. A note from `~/.flow/workflow-notes.md` lands here as an item, or joins the item it repeats.

@@ -39,7 +39,6 @@ type: setup-machine
 
 - Plan mode: Claude can switch into a mode where it can't edit files, and Flow's planning writes files. `permissions.deny: EnterPlanMode, ExitPlanMode`
 - Worktrees: Claude works in a separate copy of your project, without the uncommitted changes Flow's debugging looks at. `permissions.deny: EnterWorktree, Agent(isolation:worktree)`, `worktree.bgIsolation`
-- /batch, Claude Code's skill for big changes: it needs worktrees. `skillOverrides`
 - Bypass mode: Claude could switch off Flow's checks without asking you. `permissions.disableBypassPermissionsMode`
 - {plugins that override Flow}, such as: superpowers plugin: at the start of every session it tells Claude to run one of its skills before replying, which overrides Flow's rules. `claude plugin uninstall`
 

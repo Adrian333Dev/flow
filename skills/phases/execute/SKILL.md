@@ -29,7 +29,7 @@ Never build a child's work in its parent. `flow ls --parent t047` lists them; th
 
 **`/flow:start` already moved it only where the user named the status**, and a line like `planning → building` above says so. Take the row for where it landed.
 
-- **`todo`**: the ticket arrived decided, cut from a spec → `flow plan t047`, then Phase 2
+- **`todo`**: `/flow:start` found the ticket decided → `flow plan t047`, then Phase 2
 - **`planning`**: open `plan.md`. Written and approved → `flow build t047`, then Phase 3. Otherwise finish writing it
 - **`building`**: open `plan.md`. Every step `[x]` → Phase 4. Otherwise resume at the first `[ ]`; `flow t047` prints the count
 - **`review`**: the work is with the user, and their notes start `### When the user sends review notes`
@@ -106,7 +106,7 @@ The worker spends its own context on the repetition instead of yours. A step nee
 
 **A step may touch several files and still be one step.** Step boundaries come from finishable-and-checkable; the file count only decides who types it.
 
-**A job a separate session picks up is a child ticket instead**: `/flow:handoff` writes it with `--parent t047`. Several run at once, and closing this ticket refuses while any is open. A worker dispatched for a step never needs one.
+**A job a separate session picks up is a child ticket instead**: `/flow:handoff` writes it with `--parent t047`. Several can be open at once, and one session edits the working folder at a time. Closing this ticket refuses while any is open. A worker dispatched for a step never needs one.
 
 ### Dispatching a step
 

@@ -151,6 +151,8 @@ Records what each subagent changed, and hands the parent a diff per file when th
 
 Runs `scripts/check-ticket.js` when one of the 5 skills that take a ticket id is typed, before the skill's text is built. The script reads the first word typed. A word shaped like a ticket id, which is `t` then a digit, so `t047`, `t47` or the folder name `t047-parser-split`, is checked with `flow get`; when nothing matches, the command is blocked and `flow`'s own message is shown, so a typo costs one line instead of the whole skill. Any other first word passes untouched, which is what lets instructions be typed after the skill name.
 
+Before the ticket, it checks setup. A machine where `flow setup` never finished is refused whatever was typed, since no other hook is installed there to catch it. A folder with no `.flow/` is refused only where a project is needed: a ticket id, or `/flow:start` with nothing after it, which shows the project's board. `/flow:groundwork` with free text and `/flow:start` with a path work in any folder.
+
 The matcher accepts the name with or without the prefix. Flow's skills load as a plugin named `flow`, so the command reads `/flow:execute`, and the hook is handed the bare name `execute`. The optional `flow:` group means the hook still fires if a future Claude Code version passes the full name instead.
 
 It fires only on what the user types. A skill the agent invokes, as `/flow:start` does when it routes, carries no id and never reaches it.
@@ -268,7 +270,9 @@ Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json
 
 ```text
 Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.
-``` [`flow doctor`](reference.md#flow-doctor) stays the full check, since it runs both test suites and takes seconds.
+```
+
+[`flow doctor`](reference.md#flow-doctor) stays the full check of the machine, and `flow doctor --tests` adds both test suites.
 
 **A stopped run silences the other version lines.** Each of them reads a version stamp that the stopped run was in the middle of moving, so finishing the run is the only thing worth saying about Flow's own version. A skill repository's line is a separate record and still prints.
 
@@ -456,10 +460,10 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 ### `skillOverrides`
 
 ```json
-"skillOverrides": { "batch": "off" }
+"skillOverrides": { "code-reviewer": "off" }
 ```
 
-**Claude Code's key for hiding a skill from the model.** Set to `off`, a skill's description never enters a session, and typing it fails with *disabled via skillOverrides*. `home/settings.json` ships no entry. `flow setup` writes one for each skill it switches off: Claude Code's own `/batch`, which needs worktrees, and a skill synced from your Claude account that works against Flow's rules.
+**Claude Code's key for hiding a skill from the model.** Set to `off`, a skill's description never enters a session, and typing it fails with *disabled via skillOverrides*. `home/settings.json` ships no entry. `flow setup` writes one for each skill synced from your Claude account that works against Flow's rules. Claude Code's own skills, `/batch` among them, are already off through `disableBundledSkills`.
 
 **[`flow skills`](reference.md#flow-skills) never writes it.** Flow switches its own skills, and the ones from skill repositories, by adding and removing links. 2 reasons decided against this key:
 
