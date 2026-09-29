@@ -8,6 +8,7 @@ const path = require('path');
 const graph = require('./graph');
 const store = require('./store');
 const statuses = require('./statuses');
+const ticketHistory = require('./ticket-history');
 
 /** Aligned columns with no header row: the tree needs the padding without one. */
 function columns(rows) {
@@ -113,6 +114,18 @@ const blockedLines = (entries) =>
     `  ${ticket.id}  ${ticket.data.title}\n` + unmet.map((u) => `        ${blockText(u)}`).join('\n')
   ).join('\n');
 
+/**
+ * The code branch the ticket's work is on. Where a live ticket's branch is not
+ * the one checked out, the line says so, since building it here would put the
+ * work on the wrong branch.
+ */
+function branchLine(ticket, root) {
+  const { branch } = ticket.data;
+  if (!branch) return null;
+  const here = statuses.TERMINAL.has(ticket.data.status) ? '' : ticketHistory.currentBranch(root);
+  return `branch:     ${branch}${here && here !== branch ? `   (checked out here: ${here})` : ''}`;
+}
+
 function show(ticket, tickets, root) {
   const index = graph.indexById(tickets);
   const unmet = graph.unmetDeps(ticket, index);
@@ -126,6 +139,8 @@ function show(ticket, tickets, root) {
   const header = [
     `${ticket.id}  ${ticket.data.title}`,
     `status: ${ticket.data.status}   type: ${ticket.data.type}   parent: ${ticket.data.parent || '-'}`,
+    ticket.data.was ? `was:        ${ticket.data.was}` : null,
+    branchLine(ticket, root),
     // The one place inheritance is spelled out, so "which ticket do I edit to
     // change this" has an answer somewhere. The daily lists stay uncluttered.
     `priority:   ${priorityLine(ticket, index)}`,

@@ -2,10 +2,10 @@
 
 Flow reads 4 settings files. This page explains every key in each: what it does, the values Flow rejected, and why.
 
-- **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `flow setup` merges them in.
+- **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `flow install` merges them in.
 - **`~/.flow/settings.json`** belongs to Flow, and travels to your other machines with the rest of `~/.flow/`.
 - **`~/.flow/settings.local.json`** belongs to Flow and to this machine alone. git ignores it.
-- **`<project>/.flow/settings.json`** belongs to one project, and is committed with it.
+- **`<project>/.flow/settings.json`** belongs to one project, and is committed on its branch `flow`.
 
 Flow reads its 2 machine files as one, and the local one wins key by key.
 
@@ -32,10 +32,11 @@ All 4 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`wrapUp`](#wrapup)
   - [`wrapUpAt`](#wrapupat)
   - [`fileSuggestionIgnore`](#filesuggestionignore)
+  - [`ticketPrefix`](#ticketprefix)
 
 ## Claude Code's settings file
 
-`home/settings.json` is the template, and `flow setup` merges its keys into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
+`home/settings.json` is the template, and `flow install` merges its keys into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
 
 Settings load at startup. **Restart Claude Code after any change.**
 
@@ -62,7 +63,7 @@ Runs `scripts/guard.js` before every Bash call. The script reads the pending com
 4. **Changing the machine outside the project.** A global install, such as `npm install -g` or a `pip install` outside a virtual environment. `crontab`, `systemctl`, `pkill`. A write into `~/.ssh`, a shell startup file such as `~/.bashrc`, or `~/.gitconfig`.
 5. **Running outside code, or switching Flow off.** A download run straight away: `curl -fsSL https://example.com/install.sh | sh`. An `npx` of a package the project does not have. A write into `~/.claude`, `~/.flow`, `~/.agents` or the project's `.claude/settings.json`, where the guard itself is switched on.
 
-**Inside the project, a delete asks only when nothing can bring the files back.** The guard asks `git status` which files under the target are changed, staged, new or ignored. None → the delete runs, since a committed file comes back with `git checkout`. An ignored file asks too, unless it sits in a folder a build or an install makes again: `node_modules/`, `dist/`, `build/`, `.next/`, a cache or a virtual environment. `tmp/` is left off that list on purpose, since scratch work there has no other copy. Outside git, the same list decides. 4 more calls:
+**Inside the project, a delete asks only when nothing can bring the files back.** The guard asks `git status` which files under the target are changed, staged, new or ignored. None → the delete runs, since a committed file comes back with `git checkout`. An ignored file asks too, unless it sits in a folder a build or an install makes again: `node_modules/`, `dist/`, `build/`, `.next/`, a cache or a virtual environment. A delete inside the project's own `tmp/` never asks, since that folder is the agent's scratch space. A path ending in `/` that runs through a link is judged by where the link leads, since `rm -rf link/` empties that folder. Outside git, the same list decides. 4 more calls:
 
 - **Every delete outside the project asks**, with or without `-r` or `-f`, `/tmp` included.
 - **A loop over plain words is read word by word.** `for f in notes.md; do rm "$f"; done` asks about `notes.md` by name. A loop over `$(…)` asks, since its words are only known when it runs.
@@ -149,9 +150,9 @@ Records what each subagent changed, and hands the parent a diff per file when th
   "command": "node \"$HOME/.flow/scripts/check-ticket.js\"" } ] } ]
 ```
 
-Runs `scripts/check-ticket.js` when one of the 5 skills that take a ticket id is typed, before the skill's text is built. The script reads the first word typed. A word shaped like a ticket id, which is `t` then a digit, so `t047`, `t47` or the folder name `t047-parser-split`, is checked with `flow get`; when nothing matches, the command is blocked and `flow`'s own message is shown, so a typo costs one line instead of the whole skill. Any other first word passes untouched, which is what lets instructions be typed after the skill name.
+Runs `scripts/check-ticket.js` when one of the 5 skills that take a ticket id is typed, before the skill's text is built. The script reads the first word typed. A word shaped like a ticket id, a number or a prefix, a dash and a number, so `47`, `exp-47` or the folder name `exp-47-parser-split`, is checked with `flow get`; when nothing matches, the command is blocked and `flow`'s own message is shown, so a typo costs one line instead of the whole skill. Any other first word passes untouched, which is what lets instructions be typed after the skill name.
 
-Before the ticket, it checks setup. A machine where `flow setup` never finished is refused whatever was typed, since no other hook is installed there to catch it. A folder with no `.flow/` is refused only where a project is needed: a ticket id, or `/flow:start` with nothing after it, which shows the project's board. `/flow:groundwork` with free text and `/flow:start` with a path work in any folder.
+Before the ticket, it checks setup. A machine where `flow install` never finished is refused whatever was typed, since no other hook is installed there to catch it. A folder with no `.flow/` is refused only where a project is needed: a ticket id other than a `home-` one, or `/flow:start` with nothing after it, which shows the project's board. `/flow:groundwork` with free text and `/flow:start` with a path work in any folder.
 
 The matcher accepts the name with or without the prefix. Flow's skills load as a plugin named `flow`, so the command reads `/flow:execute`, and the hook is handed the bare name `execute`. The optional `flow:` group means the hook still fires if a future Claude Code version passes the full name instead.
 
@@ -258,9 +259,9 @@ The context is at 171k, past the 150k limit. Stop at the step you are on: finish
 Prints one line when this machine or this project needs attention, and nothing at all when neither does:
 
 ```text
-Flow: this machine is at changelog entry 3, and 5 is the newest. Run flow up in a terminal to catch up.
-Flow: delapse is at changelog entry 3, and this machine is at 5. Run flow up in a terminal, inside it.
-Flow: a migrate run stopped after step 4, so this machine is part way through a change. To carry on, run flow up in a terminal. flow doctor names the way back.
+Flow: this machine is at changelog entry 3, and 5 is the newest. Run flow update in a terminal to catch up.
+Flow: delapse is at changelog entry 3, and this machine is at 5. Run flow update in a terminal, inside it.
+Flow: a migrate run stopped after step 4, so this machine is part way through a change. To carry on, run flow update in a terminal. flow doctor names the way back.
 Flow: domain-skills is behind. 2 skills changed: react, sql. Update it when you want them, or set "skillsAutoUpdate": true.
 ```
 
@@ -269,7 +270,7 @@ Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json
 **Another machine on a newer release gets its own line**, since [`flow sync`](reference.md#flow-sync) waits until this machine catches up:
 
 ```text
-Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.
+Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow update in a terminal.
 ```
 
 [`flow doctor`](reference.md#flow-doctor) stays the full check of the machine, and `flow doctor --tests` adds both test suites.
@@ -279,7 +280,7 @@ Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow s
 **In a git repository Flow is not set up in, it suggests setting Flow up**, as a line shown to you and never to the agent:
 
 ```text
-Flow: not set up here. Run flow setup project to add it, or flow settings off setupReminder to stop this.
+Flow: not set up here. Run flow init to add it, or flow settings off setupReminder to stop this.
 ```
 
 It shows in every session opened there, anywhere inside the repository, until the project is set up or a setting stops it. Not every folder is a project, so a folder git does not track never gets it, and neither do the home folder and `~/.flow/`, which are repositories and never projects. [`setupReminder`](#setupreminder) turns it off everywhere, and [`setupReminderSkip`](#setupreminderskip) in chosen folders. [`flow settings`](reference.md#flow-settings) writes either one for you.
@@ -287,14 +288,32 @@ It shows in every session opened there, anywhere inside the repository, until th
 **In a project set up on another machine, it suggests folding in this machine's old memory**, when Claude Code kept memory for the project here before Flow. The line is shown to you alone, and the same 2 settings stop it:
 
 ```text
-Flow: old Claude Code memory here. Run flow setup project to fold it in.
+Flow: old Claude Code memory here. Run flow init to fold it in.
 ```
 
 **It also makes every skill link match the settings.** A switch you made on another machine arrives through [`flow sync`](reference.md#flow-sync) as a line in `~/.flow/settings.json`, and the next session start makes the link. When a link changed, it asks Claude Code to scan the skill folders again. [`skills`](#skills) covers the lines.
 
 **It also sends every skill repository to update itself**, by starting `~/.flow/scripts/skills-pull.js` in the background and returning at once. The same job fetches your Flow home's repository, at most every 6 hours, which is where the line about another machine comes from. It fetches only: [`flow sync`](reference.md#flow-sync) is what brings the files down. A session never waits for the network, and whatever that pull finds is printed by the session after it. [`skillsAutoUpdate`](#skillsautoupdate) covers the pull, its 2 guards and the switch.
 
+**In a project whose tickets are on the branch `flow`, it also brings them up to date**, by starting `~/.flow/scripts/records-sync.js` in the background. The other people's tickets come down, and whatever this machine left unsent goes up. [A project's tickets](reference.md#a-projects-tickets) says when else they are sent.
+
 `"sessionCheck": false` in `~/.flow/settings.json` silences it, and [`sessionCheck`](#sessioncheck) covers the switch.
+
+#### The ticket sends
+
+```json
+"Stop":       [ { "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/records-sync.js\" --hook stop", "async": true } ] } ],
+"SessionEnd": [ { "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/records-sync.js\" --hook end" } ] } ]
+```
+
+Send the project's tickets, and `~/.flow/`, with nobody typing `flow sync`.
+
+- **`Stop`** runs after every reply. It sends a place only where something changed and the last send was 30 minutes ago or more, so an edit you made by hand leaves the machine within half an hour. `async` runs it in the background, so a reply never waits on the network.
+- **`SessionEnd`** runs as the session closes. Claude Code gives these hooks 1.5 seconds between them, too short for a push, so the hook starts a separate process and returns at once.
+
+`~/.flow/records-sync.json` holds when each place last sent, and never leaves the machine. Offline, a send fails quietly and the next one tries again. Any other failure goes to [the failure log](#the-failure-log).
 
 #### Why worktree isolation is off
 
@@ -463,7 +482,7 @@ Six of them, cycled with Shift+Tab and overridable for one session with `--permi
 "skillOverrides": { "code-reviewer": "off" }
 ```
 
-**Claude Code's key for hiding a skill from the model.** Set to `off`, a skill's description never enters a session, and typing it fails with *disabled via skillOverrides*. `home/settings.json` ships no entry. `flow setup` writes one for each skill synced from your Claude account that works against Flow's rules. Claude Code's own skills, `/batch` among them, are already off through `disableBundledSkills`.
+**Claude Code's key for hiding a skill from the model.** Set to `off`, a skill's description never enters a session, and typing it fails with *disabled via skillOverrides*. `home/settings.json` ships no entry. `flow install` writes one for each skill synced from your Claude account that works against Flow's rules. Claude Code's own skills, `/batch` among them, are already off through `disableBundledSkills`.
 
 **[`flow skills`](reference.md#flow-skills) never writes it.** Flow switches its own skills, and the ones from skill repositories, by adding and removing links. 2 reasons decided against this key:
 
@@ -553,7 +572,7 @@ Claude Code can skip the script without a warning and use its own list: in a fol
 
 **Which file a key goes in is decided by one question: would the value still be true on your other machines?** `~/.flow/` is one git repository shared between your machines, so `settings.json` travels and `settings.local.json` is the part git ignores.
 
-A project has one file of its own, `.flow/settings.json`. It holds the project's [`skills`](#skills) lines and is committed, so a fresh clone of the project gets its skills back.
+A project has one file of its own, `.flow/settings.json`. It holds the project's [`skills`](#skills) lines and its [`ticketPrefix`](#ticketprefix), and is committed on the project's branch `flow`, so a fresh clone of the project gets both back.
 
 A change applies on the next command, with nothing to restart.
 
@@ -583,7 +602,7 @@ Which skills are switched on or off, one line per skill name that differs from i
 
 **3 files hold this key, and the nearest one wins, name by name.**
 
-- **One project**: `<project>/.flow/settings.json`, committed with the project
+- **One project**: `<project>/.flow/settings.json`, committed on the project's branch `flow`
 - **This machine**: `~/.flow/settings.local.json`
 - **Every machine**: `~/.flow/settings.json`
 
@@ -653,7 +672,7 @@ It silences the printing alone, the setup line and the memory line included. The
 
 ### `setupReminder`
 
-Whether a session opened in a git repository with no `.flow/` suggests `flow setup project`, and whether one opened in a project set up on another machine suggests folding in this machine's old memory. Write `false` to turn both off everywhere:
+Whether a session opened in a git repository with no `.flow/` suggests `flow init`, and whether one opened in a project set up on another machine suggests folding in this machine's old memory. Write `false` to turn both off everywhere:
 
 ```json
 "setupReminder": false
@@ -714,3 +733,17 @@ Folders and files the `@` list never offers, beyond the fixed ones [`fileSuggest
 **3 files can hold it, and their lists add up**: the project's `.flow/settings.json`, `~/.flow/settings.local.json` and `~/.flow/settings.json`. Unlike [`skills`](#skills), no level replaces another, since a nearer file never needs to bring back a path a farther one hid.
 
 A change shows once the next walk has run, a few seconds at most.
+
+---
+
+### `ticketPrefix`
+
+The word every ticket id in a project starts with, so its tickets read `exp-1`, `exp-2`:
+
+```json
+"ticketPrefix": "exp"
+```
+
+**Only the project's `.flow/settings.json` holds it.** `flow init` asks for it once, and offers the first 3 letters of the folder name. A prefix is 2 to 8 lowercase letters, and never `home`, which names the tickets in `~/.flow/`.
+
+**Changing it later renames nothing.** Tickets made before the change keep their ids, and a command reaches them by the whole id, `exp-12`. New tickets take the new word, counting from 1, and a bare number means one of those.

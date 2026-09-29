@@ -34,7 +34,7 @@ function machine(name) {
   assert.strictEqual(installed.code, 0, installed.stderr);
 
   // Install is half a machine. The rule file and the line importing it come
-  // from flow setup, an agent's run, so the test writes them itself.
+  // from flow install, an agent's run, so the test writes them itself.
   setupMachine(root);
 
   // `flow install` stops short of settings.json on purpose, so the merge a real
@@ -67,7 +67,7 @@ test('a fresh install passes every check', () => {
   assert.strictEqual(report.code, 0, report.stdout + report.stderr);
   assert.match(report.stdout, /nothing to fix\./);
   assert.match(report.stdout, /util: fs tree, fs open all run/);
-  assert.match(report.stdout, /18 hooks registered, every file they name on disk, sessions start in "default" mode/);
+  assert.match(report.stdout, /20 hooks registered, every file they name on disk, sessions start in "default" mode/);
 });
 
 test('a machine with nothing installed says so once, rather than failing every check', () => {
@@ -82,7 +82,7 @@ test('a machine with nothing installed says so once, rather than failing every c
 test('a run that stopped part-way is reported first, and names both ways out', () => {
   const m = machine('doctor-run');
 
-  // What flow up leaves behind when its session stops: the step it finished,
+  // What flow update leaves behind when its session stops: the step it finished,
   // and the migration folder it opened.
   fs.writeFileSync(path.join(m.flowHome, 'run.json'), JSON.stringify({
     started: '2026-09-20T10:12:40',
@@ -96,7 +96,7 @@ test('a run that stopped part-way is reported first, and names both ways out', (
   assert.strictEqual(report.code, 1);
   assert.strictEqual(report.stdout.split('\n')[0], 'fail  run.json:', 'it comes before every other check');
   assert.match(report.stdout, /a migrate run stopped after step 4, started 2026-09-20T10:12:40/);
-  assert.match(report.stdout, /carry on: run flow up, which reads/);
+  assert.match(report.stdout, /carry on: run flow update, which reads/);
   assert.match(report.stdout, /go back: type flow restore machine/);
 });
 
@@ -109,7 +109,7 @@ test('a machine behind the changelog is a note, and one above it fails', () => {
   fs.writeFileSync(stamp, `${newest - 1}\n`);
   const behind = doctor(m, { bin });
   assert.strictEqual(behind.code, 0, 'being behind still leaves a machine that works');
-  assert.match(behind.stdout, new RegExp(`this machine is at entry ${newest - 1}, 1 entry behind the changelog: run flow up`));
+  assert.match(behind.stdout, new RegExp(`this machine is at entry ${newest - 1}, 1 entry behind the changelog: run flow update`));
 
   fs.writeFileSync(stamp, `${newest + 5}\n`);
   const ahead = doctor(m, { bin });
@@ -133,7 +133,7 @@ test('a project behind the machine it sits on is named, and the clone is not fet
 
   assert.strictEqual(report.code, 0, 'a project a migration never reached still works');
   assert.match(report.stdout, new RegExp(`${path.basename(m.dir)} is at entry ${newest - 1} and this machine is at ${newest}`));
-  assert.match(report.stdout, /run flow up inside it/);
+  assert.match(report.stdout, /run flow update inside it/);
 
   // The tag comparison is the one check that goes to the network, so nothing
   // here reaches it. --updates is proved by typing it.

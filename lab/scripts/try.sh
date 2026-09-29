@@ -287,13 +287,15 @@ if [ "$built" = 0 ]; then
   if [ -e "$projects/$project/build.sh" ]; then
     cp -r "$root/project-template/." "$proj/"
     [ -d "$projects/$project/files" ] && cp -r "$projects/$project/files/." "$proj/"
-    # The project arrives set up, as flow setup project leaves one: .flow/ with
-    # settings.json and the version stamp. Without .flow/ every flow command in
-    # build.sh refuses the project.
+    # The project arrives set up, as flow init leaves one: .flow/ is the branch
+    # flow, checked out, holding settings.json with the prefix exp and the
+    # version stamp. Without .flow/ every flow command in build.sh refuses the
+    # project. There is no remote, so every commit stays in the sandbox.
     newest="$(node -e 'console.log(require(process.argv[1]).newest(process.argv[2]))' \
       "$root/scripts/flow/lib/version.js" "$root")"
-    mkdir -p "$proj/.flow"
-    echo '{}' > "$proj/.flow/settings.json"
+    git -C "$proj" worktree add --quiet --orphan -b flow .flow
+    printf '.flow/\n' >> "$proj/.gitignore"
+    echo '{ "ticketPrefix": "exp" }' > "$proj/.flow/settings.json"
     echo "$newest" > "$proj/.flow/version"
     # build.sh runs outside the sandbox, where Flow is not set up and every flow
     # command refuses. A ~/.flow of its own, holding only the version stamp, lets
@@ -304,10 +306,12 @@ if [ "$built" = 0 ]; then
     FLOW_HOME="$build_home" FLOW_JS="$root/scripts/flow/flow.js" FLOW_PROJECT="$proj" PROJ="$proj" \
       bash "$projects/$project/build.sh"
     rm -rf "$build_home"
+    git -C "$proj/.flow" add -A
+    git -C "$proj/.flow" -c user.name=try -c user.email=try@localhost commit --quiet -m "the practice board"
   else
     # A project with no build.sh arrives the way a real one does before Flow:
     # its files committed, with no template, no .flow/ and no tickets, for
-    # flow setup project to bring in.
+    # flow init to bring in.
     cp -r "$projects/$project/files/." "$proj/"
     git -C "$proj" add -A
     git -C "$proj" -c user.name=try -c user.email=try@localhost commit --quiet -m "start"

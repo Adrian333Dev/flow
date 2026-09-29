@@ -99,8 +99,8 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.ok(!fs.existsSync(path.join(at.agents, 'AGENTS.md')), 'no rule file yet');
   assert.ok(!fs.existsSync(path.join(at.claude, 'CLAUDE.md')), 'no import line yet');
   assert.ok(!fs.existsSync(path.join(root, '.codex')), 'nothing under ~/.codex at all');
-  // A scratch root hands the rest to flow setup, which has its own tests.
-  assert.match(first.stdout, /One step left: setting up this machine\. Start it from a terminal:\n\n {2}flow setup --root /);
+  // A scratch root hands the rest to flow install, which has its own tests.
+  assert.match(first.stdout, /One step left: setting up this machine\. Start it from a terminal:\n\n {2}flow install --root /);
   assert.match(first.stdout, /^Flow is installed: \d+ skills/m, 'a summary comes first');
   assert.doesNotMatch(first.stdout, /^linked: /m, 'every link goes to the log, never the screen');
   assert.match(fs.readFileSync(path.join(at.flowHome, 'logs', 'install.log'), 'utf8'), /^linked: .*skills\/flow\/skills\/groundwork$/m);

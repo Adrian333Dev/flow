@@ -126,6 +126,8 @@ Durable knowledge went to its own home in the sweep: `## Capture` in `~/.agents/
 
 **In a ticket**: `## State` at the bottom of `ticket.md`, plus a line in `## References` for anything this session read that the build will need. While `map.md` is still open its own `## References` holds those, and Phase 4 splits them into the tickets it cuts.
 
+Then `flow handoff <id>`, which adds this session to the ticket's `history.md`, so the next session can find this conversation again.
+
 Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`, `/flow:debug` and `/flow:prototype` `reports/`, and whoever created the ticket the body paragraph. `## Done when` moves only when a skill re-decides what the ticket is.
 
 **At `review`, empty `Found` before deleting the section.** Anything in it still true goes to the ticket's `issues.md`, where `/flow:file-findings` files it later. Then the section goes: "step 4 in progress" is false forever once the ticket closes, and git keeps the old one.

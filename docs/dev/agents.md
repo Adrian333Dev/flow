@@ -60,7 +60,7 @@ Left to its defaults, it moves into its own worktree before its first edit: a se
 It writes the question as its last message and stops. The message reaches the parent like any report, and the parent passes it on in one line:
 
 ```text
-t052 asks: Should the importer skip rows with no date, or stop? Answer in its row below the prompt.
+exp-52 asks: Should the importer skip rows with no date, or stop? Answer in its row below the prompt.
 ```
 
 You press `↓`, select the row, press `Enter`, and type the answer. The subagent resumes with its history intact and carries on. The parent answers nothing itself: it never saw the ticket's reasoning, and a relayed guess reads like your decision.
@@ -70,11 +70,11 @@ Each question costs the parent one turn, which is how the question reaches you.
 ## What Flow uses, and where
 
 - **`/flow:execute` → a worker per mechanical step**: `haiku-worker`, when every edit is already decided and the step spans roughly 5 or more files or 10 or more near-identical edits. Several may run at once where the agent decides it helps; the skill never pushes it.
-- **`/flow:groundwork` → `/flow:prototype`**: a question only running code can answer gets a `prototype` ticket, then a `general-purpose` subagent told `Run /flow:prototype on t052`. The session that asked the question never builds the answer, because it would accept a vague question it already understands.
+- **`/flow:groundwork` → `/flow:prototype`**: a question only running code can answer gets a `prototype` ticket, then a `general-purpose` subagent told `Run /flow:prototype on exp-52`. The session that asked the question never builds the answer, because it would accept a vague question it already understands.
 - **`/flow:debug` → a fresh hunt**: when the hypotheses run out, a subagent takes the hunt from the report, free of the hypotheses this session already killed.
 - **`/flow:research` and `/flow:groundwork` → readers**: a landscape too big to read in the session goes to a subagent, which writes its report where `/flow:research` files it.
 
-A prototype or a hunt keeps its place in its ticket: the status stays `building`, and `## State` in `ticket.md` says where the work stopped. A session that ends mid-run loses the subagent and keeps the ticket, and `/flow:start t052` picks it up.
+A prototype or a hunt keeps its place in its ticket: the status stays `building`, and `## State` in `ticket.md` says where the work stopped. A session that ends mid-run loses the subagent and keeps the ticket, and `/flow:start exp-52` picks it up.
 
 ## What a subagent changed
 

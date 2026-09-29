@@ -1,10 +1,10 @@
 # This session brings Flow up to date
 
-`flow up` pulled Flow's clone and opened this session. `~/.flow/run.json` names the place, `project` for a project and nothing for the machine, the entry it is at, `from`, the entry it moves to, `to`, and the migration folder under `~/.flow/migrations/`. This run reads what changed between the 2 entries and writes one form, `migration.md`, which the user approves once. Nothing outside `~/.flow/` changes before that yes.
+`flow update` pulled Flow's clone and opened this session. `~/.flow/run.json` names the place, `project` for a project and nothing for the machine, the entry it is at, `from`, the entry it moves to, `to`, and the migration folder under `~/.flow/migrations/`. This run reads what changed between the 2 entries and writes one form, `migration.md`, which the user approves once. Nothing outside `~/.flow/` changes before that yes.
 
 The rules and hooks loaded here are the ones from before this update. Where a guide disagrees with a loaded rule, the guide wins.
 
-Edits inside `~/.flow/` go through without asking. So do `flow up`, `flow doctor`, `flow audit`, `util fs tree`, `claude -p` and `node ~/.flow/scripts/apply-migration.js`, typed exactly so.
+Edits inside `~/.flow/` go through without asking. So do `flow update`, `flow doctor`, `flow audit`, `util fs tree`, `claude -p` and `node ~/.flow/scripts/apply-migration.js`, typed exactly so.
 
 One edit asks anyway. Claude Code asks before every write to a path holding a `.claude` folder, and `files/` mirrors `.claude/` folders. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
 
@@ -12,10 +12,10 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/`, `proje
 
 ## Steps
 
-0. **`flow up check`.** A failure → print what it said and stop. It lists every changelog entry between the 2 numbers, and the guide each one names.
+0. **`flow update check`.** A failure → print what it said and stop. It lists every changelog entry between the 2 numbers, and the guide each one names.
    - `step` in `run.json` above 0 → a run stopped part way. Carry on from the step after it, and tell the user in one line.
    - Rewrite `step` in `run.json` as each step below finishes.
-1. **Read what changed**: every guide `flow up check` listed, lowest number first, then every file in `~/.flow/references/harnesses/`.
+1. **Read what changed**: every guide `flow update check` listed, lowest number first, then every file in `~/.flow/references/harnesses/`.
    - No entry has a guide → nothing on disk changes. Tell the user in one line, then step 7.
 2. **Read the place.** Every live file a guide names. Then compare Flow's own files with their templates, to find what the user changed by hand:
    - The machine: `~/.flow/AGENTS.md` against `home/AGENTS.md`, outside `## The user` and `## Preferences`, and `~/.claude/settings.json` against `home/settings.json`.
@@ -35,7 +35,7 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/`, `proje
 7. **Check it**: `flow doctor`, then each guide's `Proof`.
    - The migration changed a hook, the rule file or the skills → start a new session on the new files: `claude -p --output-format json "ok"` from the place's folder. Then `flow audit index` and `flow audit session <session_id>` show what that session loaded and which hooks ran.
    - A problem → name it, with its fix, in the last message. It never holds back the stamp.
-8. **Stamp it**: `flow up finish`.
+8. **Stamp it**: `flow update finish`.
 9. **The last message**: what changed, in the form's own words; for a project, that nothing is committed; then "Quit this session and start `claude` again: the new rules and hooks load when a session starts."
 
 ## The form

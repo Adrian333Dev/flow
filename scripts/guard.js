@@ -530,11 +530,12 @@ function uncommitted(spec, untracked) {
 const DELETERS = new Set(['rm', 'unlink', 'shred', 'srm', 'trash', 'trash-put', 'rimraf']);
 
 // Folders a build or an install makes again. A delete in one, ignored by git or outside it, has nothing to lose.
-// `tmp/` is missing on purpose: scratch work there has no other copy.
 const REBUILT = new Set(['node_modules', 'dist', 'build', 'out', 'target', '.next', '.nuxt', '.svelte-kit', '.cache',
   'coverage', '__pycache__', '.pytest_cache', '.turbo', '.parcel-cache', '.venv', 'venv']);
 
-const rebuilt = (p, ctx) => path.relative(ctx.root, p).split(path.sep).some((part) => REBUILT.has(part));
+// The project's own `tmp/` is scratch: the agent makes it, and clears it without asking.
+const scratch = (p, ctx) => isInside(path.join(ctx.root, 'tmp'), p);
+const rebuilt = (p, ctx) => scratch(p, ctx) || path.relative(ctx.root, p).split(path.sep).some((part) => REBUILT.has(part));
 const shown = (files, ctx) => listed(files.map((f) => path.relative(ctx.root, f) || '.'));
 
 const WHY_LOST = {
@@ -566,8 +567,10 @@ function locate(one, glob, ctx) {
   if (!path.isAbsolute(one) && ctx.dir === null) return { reason: `Deletes ${one}, in a folder the guard lost track of` };
   const full = path.resolve(ctx.dir ?? '/', one);
   const base = glob ? full.slice(0, full.search(/[*?[]/)).replace(/[^/]*$/, '') || '/' : full;
-  // A link is deleted, not what it points at, so only the folder above it resolves.
-  const real = glob || base.endsWith('/') ? realpathish(base) : path.join(realpathish(path.dirname(base)), path.basename(base));
+  // A link is deleted, not what it points at, so only the folder above it
+  // resolves. Typed with a trailing `/`, the delete empties what it points at.
+  const follows = glob || base.endsWith('/') || /\/\.?$/.test(one);
+  const real = follows ? realpathish(base) : path.join(realpathish(path.dirname(base)), path.basename(base));
 
   if (real === ctx.root) return { reason: 'Deletes this whole project', whole: true };
   if (real === path.parse(real).root || isInside(real, HOME) || isInside(real, ctx.root)) {
@@ -575,6 +578,7 @@ function locate(one, glob, ctx) {
   }
   if (!isInside(ctx.root, real)) return { reason: `Deletes ${tilde(one)}, outside this project` };
   if (!glob && !fs.existsSync(real)) return {};
+  if (scratch(real, ctx)) return {};
   if (!glob && fs.existsSync(path.join(real, '.git'))) return { reason: `Deletes ${one}, a whole git repository`, whole: true };
   return { real, spec: glob ? path.join(real, path.relative(base, full)) : real };
 }

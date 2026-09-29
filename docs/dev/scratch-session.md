@@ -82,7 +82,7 @@ seeds
   set-up               set up
 ```
 
-- **`before-flow`**: this computer as it was on 2026-09-23, before Flow, with its plugins, skills, rule files and settings. A run from it tests the install and `flow setup` on a computer that already has its own setup.
+- **`before-flow`**: this computer as it was on 2026-09-23, before Flow, with its plugins, skills, rule files and settings. A run from it tests `flow install` on a computer that already has its own setup.
 - **A seed saved from a run** that finished setup: the session opens set up, with no install and no setup. This is the seed for testing every other skill.
 
 A seed with no Flow starts at `install.sh`, the script behind Flow's one pasted install line, the way a new user's first step does. It runs from this checkout, with `--use` pointing at it, so the test covers edits you have not committed. It is the real install: util, the toolbox and the skill repositories are cloned from GitHub into the run's `~/.flow/repos/`, and util links its own names. `--drafts` is added, for the reason [Why it is not an install](#why-it-is-not-an-install) gives, and `FLOW_HOME_REMOTE` points the install at the run's `remote.git` in place of GitHub.
@@ -160,7 +160,7 @@ Codex has no Flow hooks yet. The scratch `~/.codex/` carries the seed's settings
 
 Skills and agents are symlinked into the pretend computer, so `SKILL.md` there is the file in your clone. Write, save, invoke: the running session reads what you just wrote.
 
-`settings.json` is a copy. A change to it, or to `install.sh` or `flow install`, needs a new run from a seed with no Flow, or `--fresh` on the old one. A change to the setup's instructions in `scripts/flow/setup/` needs the setup session opened again: `flow setup` inside the run rewrites `~/.flow/setup-prompt.md`, the copy the session reads.
+`settings.json` is a copy. A change to it, or to `install.sh` or `flow install`, needs a new run from a seed with no Flow, or `--fresh` on the old one. A change to the setup's instructions in `scripts/flow/setup/` needs the setup session opened again: `flow install` inside the run rewrites `~/.flow/setup-prompt.md`, the copy the session reads.
 
 ## The practice project
 
@@ -168,7 +168,7 @@ Each run has its own project at `home/code/<project>`, seen inside as `~/code/<p
 
 **A folder under `lab/scripts/test-projects/` fills it when the run is built.** `--project <name>` picks one for a new run. A new scenario is a new folder, and `try.sh` never changes.
 
-- **A folder with a `build.sh` arrives set up.** Its `files/` folder is copied in over the project template, with `.flow/settings.json` and `.flow/version` as `flow setup project` leaves them, since every `flow` command refuses a project without `.flow/`. Then `build.sh` creates tickets with `flow new` and moves them with the verbs, so every status is `flow`'s own.
+- **A folder with a `build.sh` arrives set up.** Its `files/` folder is copied in over the project template, with `.flow/settings.json` and `.flow/version` as `flow init` leaves them, since every `flow` command refuses a project without `.flow/`. Then `build.sh` creates tickets with `flow new` and moves them with the verbs, so every status is `flow`'s own.
 - **A folder with no `build.sh` arrives not set up.** Its `files/` folder is copied in and committed, with no template, no `.flow/` and no tickets.
 
 The 4 projects:
@@ -176,19 +176,19 @@ The 4 projects:
 - **`expense-tracker`**, the default: a small expense tracker with tests, and 9 tickets that fit it. A parent at groundwork with one question left open, a child mid-build whose plan names real files with 2 of 4 steps in the code, a child blocked by it, an issue with a real bug one command reproduces, a topic half walked with the prototype it cut, a parked feature, a chore at review, a feature done. `docs/spec/expense.md` holds 2 features not yet cut. Every phase skill runs against code here, and the captured examples in `docs/manual/use/` come from this board.
 - **`broken-board`**: every refusal has a ticket to hit, and `flow check` finds 3 faults written by hand. `GUARDS.md` in the project lists the commands that refuse.
 - **`unfinished-work`**: a ticket at every status a handoff can leave, each with a `## State` and an `open` block, and a loose `notes/handoff.md` beside a draft.
-- **`not-set-up`**: the expense tracker's code as a project looks before Flow, for `flow setup project` and the reminder a session shows in a folder not set up. Its `files` is a link to `expense-tracker/files`. Once set up, its board is empty, which is where `flow new` and a bare `/flow:start` get tried.
+- **`not-set-up`**: the expense tracker's code as a project looks before Flow, for `flow init` and the reminder a session shows in a folder not set up. Its `files` is a link to `expense-tracker/files`. Once set up, its board is empty, which is where `flow new` and a bare `/flow:start` get tried.
 
 The `expense-tracker` board, as `flow tree` prints it:
 
 ```text
-t001  Budgets per category                                                           groundwork  -  0/2 done
-├── t002  Store budgets and set them                                                 building    -
-└── t003  Show what is left in the report                                            todo        -  blocked by t002
-t004  Report merges January to September into one month                              building    -
-t005  Move the store from JSON to SQLite                                             groundwork  -  0/1 done
-└── t006  Does node:sqlite ship in the installed Node, and does it survive 10k rows  building    -
-t007  Recurring expenses                                                             parked      -  waits on the store decision in t005: a rule is a row in SQLite and a second file in JSON
-t008  Test that add refuses a negative amount                                        review      -
+exp-1  Budgets per category                                                           groundwork  -  0/2 done
+├── exp-2  Store budgets and set them                                                 building    -
+└── exp-3  Show what is left in the report                                            todo        -  blocked by exp-2
+exp-4  Report merges January to September into one month                              building    -
+exp-5  Move the store from JSON to SQLite                                             groundwork  -  0/1 done
+└── exp-6  Does node:sqlite ship in the installed Node, and does it survive 10k rows  building    -
+exp-7  Recurring expenses                                                             parked      -  waits on the store decision in exp-5: a rule is a row in SQLite and a second file in JSON
+exp-8  Test that add refuses a negative amount                                        review      -
 
 8 tickets, 1 done or dropped hidden: flow tree --all
 ```
@@ -203,6 +203,6 @@ It is a git repository of its own, and it has to be: `flow` finds a project root
 
 ## What it is for, and what it is not
 
-It is the only way to test a change to `settings.json`, a hook, or the install without installing. It is also the way to test anything that reads or changes the computer, and `flow setup` is tested there against a saved computer. It is how the `skillOverrides` values were verified against a real Claude Code release.
+It is the only way to test a change to `settings.json`, a hook, or the install without installing. It is also the way to test anything that reads or changes the computer, and `flow install` is tested there against a saved computer. It is how the `skillOverrides` values were verified against a real Claude Code release.
 
 It is not a way to try a single skill. Editing a skill is already live everywhere, which is the property [the two checkouts](checkout.md) exist to manage.

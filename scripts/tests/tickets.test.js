@@ -12,7 +12,7 @@ const ticket = (dir) => {
   const folders = fs.readdirSync(base).filter((f) => f !== 'archive');
   const files = folders.map((f) => path.join(base, f, 'ticket.md'));
   return folders.map((f, i) => ({
-    id: f.split('-')[0],
+    id: f.match(/^[a-z]+-\d+/)[0],
     folder: f,
     ...frontmatter.parse(fs.readFileSync(files[i], 'utf8')),
   }));
@@ -23,7 +23,7 @@ const ticketFile = (dir, id) => {
   const archive = path.join(base, 'archive');
   for (const root of [base, archive]) {
     if (!fs.existsSync(root)) continue;
-    const hit = fs.readdirSync(root).find((f) => f.startsWith(id));
+    const hit = fs.readdirSync(root).find((f) => f.startsWith(`${id}-`));
     if (hit) return path.join(root, hit, 'ticket.md');
   }
   return null;
@@ -59,9 +59,9 @@ test('flow new with --deps validates that each dep exists', () => {
   const dir = project('tickets-new-deps');
 
   flow(dir, ['new', 'First ticket']);
-  const bad = flow(dir, ['new', 'Second ticket', '--deps', 't999']);
+  const bad = flow(dir, ['new', 'Second ticket', '--deps', 'exp-999']);
   assert.notStrictEqual(bad.code, 0);
-  assert.match(bad.stderr, /t999/);
+  assert.match(bad.stderr, /exp-999/);
 });
 
 test('flow new with --from-groundwork moves the folder', () => {

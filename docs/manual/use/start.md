@@ -18,17 +18,17 @@ This page assumes a project with tickets in it. [Tickets](../tickets.md) says wh
 
 ```text
 in flight (6), finish these before starting more:
-  ID    STATUS      TYPE       PRI  PARENT  TITLE
-  t001  groundwork  feature    -    -       Budgets per category
-  t002  building    feature    -    t001    Store budgets and set them
-  t004  building    issue      -    -       Report merges January to September into one month
-  t005  groundwork  topic      -    -       Move the store from JSON to SQLite
-  t006  building    prototype  -    t005    Does node:sqlite ship in the installed Node, and does it survive 10k rows
-  t008  review      chore      -    -       Test that add refuses a negative amount
+  ID     STATUS      TYPE       PRI  PARENT  TITLE
+  exp-1  groundwork  feature    -    -       Budgets per category
+  exp-2  building    feature    -    exp-1   Store budgets and set them
+  exp-4  building    issue      -    -       Report merges January to September into one month
+  exp-5  groundwork  topic      -    -       Move the store from JSON to SQLite
+  exp-6  building    prototype  -    exp-5   Does node:sqlite ship in the installed Node, and does it survive 10k rows
+  exp-8  review      chore      -    -       Test that add refuses a negative amount
 
 nothing ready. 1 todo ticket blocked:
-  t003  Show what is left in the report
-        t002 is building
+  exp-3  Show what is left in the report
+        exp-2 is building
 ```
 
 A project with no tickets yet prints `no tickets yet.`, and the agent points you to `/flow:groundwork` for the first piece of work.
@@ -37,16 +37,16 @@ With tickets, the agent recommends one and says what decided it. The order is fi
 
 ## With a ticket id: one ticket, then its phase
 
-`/flow:start t002` loads the ticket in full, and every file its `open` block names. The `open` block is the list of files a handoff left for the next session, and [Stopping and picking up](resume.md) says how it gets written.
+`/flow:start exp-2` loads the ticket in full, and every file its `open` block names. The `open` block is the list of files a handoff left for the next session, and [Stopping and picking up](resume.md) says how it gets written.
 
 ````md
-t002  Store budgets and set them
-status: building   type: feature   parent: t001
+exp-2  Store budgets and set them
+status: building   type: feature   parent: exp-1
 priority:   normal
 deps:       -
-dependents: t003 (todo)
+dependents: exp-3 (todo)
 plan:       plan.md   2/4 steps
-path:       .flow/tickets/t002-budget-store/ticket.md
+path:       .flow/tickets/exp-2-budget-store/ticket.md
 ------------------------------------------------------------
 # Store budgets and set them
 
@@ -70,7 +70,7 @@ src/budgets.js:14-24   # setBudget, where step 3 goes
 ------------------------------------------------------------
 open: 2 files, 32 lines
 
-``` .flow/tickets/t002-budget-store/plan.md
+``` .flow/tickets/exp-2-budget-store/plan.md
 # Store budgets and set them: plan
 ...
 3. [ ] **Refuse a category with no records**: `src/budgets.js`, `src/store.js`
@@ -102,7 +102,7 @@ A feature or a chore is decided by reading the ticket: its body, the `map:` line
 
 A parked ticket routes on its `resumes at:` line, which names the status it left. A ticket at `done` or `dropped` stops here: reopening is your call, never the agent's.
 
-The id takes 3 forms, and all 3 resolve to the same ticket: `t002`, `t2`, or the folder name `t002-budget-store`. The number is the identity and the label is decoration.
+The id takes 3 forms, and all 3 resolve to the same ticket: `exp-2`, `2`, or the folder name `exp-2-budget-store`. The id is the identity and the label is decoration.
 
 ## With a path: loose work
 
@@ -112,14 +112,14 @@ Inside a project, work with no ticket gets one when it is handed off, so it show
 
 ## Skipping `/flow:start`
 
-The 4 phase skills take the same id. `/flow:execute t002` loads the ticket exactly as `/flow:start t002` does, and opens the phase without the routing step. Use it when you already know which phase the ticket is in. [The 4 phase skills](phases.md) says what each accepts.
+The 4 phase skills take the same id. `/flow:execute exp-2` loads the ticket exactly as `/flow:start exp-2` does, and opens the phase without the routing step. Use it when you already know which phase the ticket is in. [The 4 phase skills](phases.md) says what each accepts.
 
 ## A misspelt id costs one line
 
-`/flow:start t047` with no such ticket prints `flow`'s refusal and loads nothing:
+`/flow:start exp-47` with no such ticket prints `flow`'s refusal and loads nothing:
 
 ```text
-flow: no ticket t047.
+flow: no ticket exp-47.
 ```
 
 The check runs before the skill's text is built, so a typo never spends the context the skill would have taken. The same check guards the 4 phase skills. [Settings](../settings.md) describes the hook that runs it.

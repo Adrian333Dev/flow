@@ -8,8 +8,8 @@ folder() { ls -d "$PROJ"/.flow/tickets/"$1"-*; }
 state() { cat >> "$(folder "$1")/ticket.md"; }
 
 flow new "At groundwork, 2 questions walked" --type feature --label "at groundwork"
-flow groundwork t001
-cat > "$(folder t001)/groundwork/map.md" <<'MD'
+flow groundwork exp-1
+cat > "$(folder exp-1)/groundwork/map.md" <<'MD'
 # At groundwork, 2 questions walked: groundwork
 
 - [x] 0: Which file holds the setting?
@@ -24,7 +24,7 @@ cat > "$(folder t001)/groundwork/map.md" <<'MD'
 
 On every call. The file is small, and a long-running process that caches it would miss an edit.
 MD
-state t001 <<'MD'
+state exp-1 <<'MD'
 
 ## State
 
@@ -37,8 +37,8 @@ src/config.js
 MD
 
 flow new "At planning, the plan half written" --type feature --label "at planning"
-flow plan t002
-cat > "$(folder t002)/plan.md" <<'MD'
+flow plan exp-2
+cat > "$(folder exp-2)/plan.md" <<'MD'
 # At planning, the plan half written: plan
 
 ## Now
@@ -50,7 +50,7 @@ cat > "$(folder t002)/plan.md" <<'MD'
 1. [ ] **Validate the shape**: `src/config.js`
        Check: `node --test tests/config.test.js`
 MD
-state t002 <<'MD'
+state exp-2 <<'MD'
 
 ## State
 
@@ -62,9 +62,9 @@ plan.md
 MD
 
 flow new "At building, step 2 of 3" --type feature --label "at building"
-flow plan t003
-flow build t003
-cat > "$(folder t003)/plan.md" <<'MD'
+flow plan exp-3
+flow build exp-3
+cat > "$(folder exp-3)/plan.md" <<'MD'
 # At building, step 2 of 3: plan
 
 ## Now
@@ -80,7 +80,7 @@ cat > "$(folder t003)/plan.md" <<'MD'
 3. [ ] **The README**: `README.md`
        Check: `set` appears in the example block
 MD
-state t003 <<'MD'
+state exp-3 <<'MD'
 
 ## State
 
@@ -95,10 +95,10 @@ src/cli.js:8-20   # where step 2 stopped
 MD
 
 flow new "At review, waiting on the user" --type chore --label "at review"
-flow plan t004
-flow build t004
-flow review t004
-state t004 <<'MD'
+flow plan exp-4
+flow build exp-4
+flow review exp-4
+state exp-4 <<'MD'
 
 ## State
 
@@ -112,14 +112,14 @@ plan.md
 MD
 
 flow new "Parked at building" --type feature --label "parked"
-flow plan t005
-flow build t005
-flow park t005 --reason "waits on the config shape in t001"
-state t005 <<'MD'
+flow plan exp-5
+flow build exp-5
+flow park exp-5 --reason "waits on the config shape in exp-1"
+state exp-5 <<'MD'
 
 ## State
 
-Now: step 1 of 2 passes. Step 2 reads the config shape, which t001 has not settled.
+Now: step 1 of 2 passes. Step 2 reads the config shape, which exp-1 has not settled.
 
 ```open
 plan.md

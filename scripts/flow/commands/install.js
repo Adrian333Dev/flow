@@ -13,7 +13,7 @@
  * This is half of putting Flow on a machine: links into the clone, which
  * `lib/installed.js` lists, and the clones Flow reads, which `lib/repos.js`
  * lists. `lib/machine.js` says which folder holds what. The other half is
- * `flow setup`, which this starts at the end: a Claude Code session that
+ * the setup session this opens at the end: a Claude Code session that
  * writes the rule file and the import line, merges Flow's hooks into
  * `~/.claude/settings.json`, and closes the original. A rule file written here
  * would be the template with nothing of the user in it, so this writes none.
@@ -88,14 +88,22 @@ const actions = {};
 actions.install = {
   section: 'setup',
   anywhere: true,
-  summary: 'link Flow into ~/.agents, ~/.claude, ~/.flow and ~/.local/bin, and clone what it reads',
+  args: '[check|finish]',
+  summary: 'put Flow on this machine: the links, the clones, then the setup session; check and finish are that session\'s own steps',
   flags: {
     root: { arg: '<dir>' },
     'no-bin': { bool: true },
     'no-clone': { bool: true },
     drafts: { bool: true },
   },
-  run({ flags }) {
+  run({ positional, flags }) {
+    const [word, ...extra] = positional;
+    if (extra.length || (word && !['check', 'finish'].includes(word))) {
+      throw new FlowError('usage: flow install [check|finish]');
+    }
+    if (word === 'check') return setup.check(machine.folders(flags.root));
+    if (word === 'finish') return setup.finish(machine.folders(flags.root));
+
     const clone = cloneRoot();
     const at = machine.folders(flags.root);
     const newest = version.newest(clone);
@@ -263,14 +271,16 @@ actions.install = {
       out('\nFlow is already set up on this machine, so there is nothing more to do.');
       return 0;
     }
-    // A scratch root is never the machine a session would read, so the
-    // session is left for the test to open through flow setup itself.
-    if (flags.root) {
-      out(`\nOne step left: setting up this machine. Start it from a terminal:\n\n  flow setup --root ${flags.root}`);
+    // A scratch root, or a test's install skipping the clones or the links,
+    // can leave what the session's check refuses. The next full run opens it.
+    if ((flags.root || flags['no-clone'] || flags['no-bin']) && setup.readiness(at).length) {
+      out(`\nOne step left: setting up this machine. Start it from a terminal:\n\n  flow install${flags.root ? ` --root ${flags.root}` : ''}`);
       return 0;
     }
+    // A scratch root is never the machine a session would read, so there
+    // the session's command line is printed rather than run.
     out('');
-    return setup.start(at, clone, null);
+    return setup.start(at, clone, flags.root);
   },
 };
 

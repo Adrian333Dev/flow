@@ -16,13 +16,13 @@ const { FlowError } = require('./error');
 
 /**
  * A project Flow has been set up in, or a refusal naming the skill that does
- * it. `.flow/` is what flow setup project writes, so its absence means the
+ * it. `.flow/` is what flow init writes, so its absence means the
  * project was never brought in, and every command reading a ticket, an overlay
  * or a skill list goes through here.
  */
 function inFlow(root) {
   if (fs.existsSync(path.join(root, '.flow'))) return root;
-  throw new FlowError(`${root} is not a Flow project yet. Type flow setup project to bring it in.`);
+  throw new FlowError(`${root} is not a Flow project yet. Type flow init to bring it in.`);
 }
 
 function projectRoot() {
@@ -36,11 +36,19 @@ function projectRoot() {
   }
 
   try {
-    return inFlow(execFileSync('git', ['rev-parse', '--show-toplevel'], {
+    const top = execFileSync('git', ['rev-parse', '--show-toplevel'], {
       cwd: process.cwd(),
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim());
+    }).trim();
+    // Inside `.flow/` itself, git answers with the checkout of the `flow`
+    // branch, which is its own top folder. The project is the one around it.
+    const around = path.dirname(top);
+    if (path.basename(top) === '.flow' && path.resolve(around, '.flow') === path.resolve(top)
+        && fs.existsSync(path.join(top, '.git'))) {
+      return inFlow(around);
+    }
+    return inFlow(top);
   } catch (e) {
     if (e instanceof FlowError) throw e;
     throw new FlowError(

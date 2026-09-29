@@ -3,19 +3,28 @@
  * The ticket model on disk. One entity: a ticket absorbs what used to be a
  * separate "topic", so a ticket that decomposes just has children.
  *
- *   .flow/tickets/t047-daemon-detection/ticket.md    folder from birth, constant inner name
+ *   .flow/tickets/exp-47-daemon-detection/ticket.md    folder from birth, constant inner name
  *
  * Frontmatter is owned by these commands; the body is written by hand. That is
  * why templates hold body only: the frontmatter is generated, never templated.
+ *
+ * An id is a word and a number, `exp-47`. The word names the place the ticket
+ * lives: one per project, set when the project is set up, and `home` for the
+ * tickets in ~/.flow/, which belong to no project. 2 places therefore never
+ * produce the same id, and an id typed anywhere says where to look.
  */
 
 const fs = require('fs');
 const path = require('path');
 const frontmatter = require('./frontmatter');
 const statuses = require('./statuses');
+const settings = require('./settings');
 const { FlowError } = require('./error');
 
-const TICKET_KEYS = ['id', 'title', 'status', 'type', 'priority', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
+// `was` is the id a ticket held before `flow move` took it to another place,
+// or before a clash renumbered it, so the old id still finds it. `branch` is
+// the code branch the work is built on, written once: see ticket-history.js.
+const TICKET_KEYS = ['id', 'was', 'title', 'status', 'type', 'priority', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
 
 // The vocabulary and every property of it live in one table: see statuses.js.
 const TICKET_STATUSES = statuses.NAMES;
@@ -69,40 +78,106 @@ const REASON_STATUSES = [...statuses.NEEDS_REASON];
 const TERMINAL_STATUSES = [...statuses.TERMINAL];
 const ARCHIVE = 'archive';
 
-const ID_WIDTH = 3;
 const SLUG_MAX = 48;
 
-// The label on the end of an id: `t047-parser-split`. Short enough to read at
-// a glance in a list, and long enough to say what the ticket is. The number
+// The label on the end of an id: `exp-47-parser-split`. Short enough to read
+// at a glance in a list, and long enough to say what the ticket is. The number
 // stays the identity, so a label that goes stale breaks nothing.
 const LABEL_WORDS = 3;
 
-const ticketsDir = (root) => path.join(root, '.flow', 'tickets');
-const archiveDir = (root) => path.join(root, '.flow', 'tickets', ARCHIVE);
+// ---------------------------------------------------------------- places
+
+const HOME_WORD = 'home';
+
+// 2 to 8 lowercase letters. A digit or a dash would make `exp2-4` or `my-app-4`
+// ambiguous to read back.
+const WORD = /^[a-z]{2,8}$/;
+
+// A word typed after a skill's name that is shaped like a ticket id: a number,
+// or a place's word, a dash and a number, with a folder's label allowed after
+// it. `47`, `exp-47` and `exp-47-parser-split` all match; `start` does not.
+const ID_SHAPE = /^([a-z]{2,8}-)?\d+(-|$)/i;
 
 /**
- * t47 / 47 / T047 all normalize to t047. Returns null for anything else.
- * Past t999 the id simply grows a digit: padStart never truncates.
+ * The folder holding a place's records. A project keeps them in `.flow/`. The
+ * home place is ~/.flow/ itself, reached either as its own root or as the home
+ * folder with `.flow/` under it, which is how `FLOW_PROJECT=$HOME` has always
+ * named it.
  */
-function normalizeId(ref) {
-  const m = String(ref || '').trim().match(/^t?(\d+)$/i);
-  if (!m) return null;
-  return 't' + String(parseInt(m[1], 10)).padStart(ID_WIDTH, '0');
+function recordsDir(root) {
+  const home = path.resolve(settings.flowHome());
+  if (path.resolve(root) === home) return home;
+  return path.join(root, '.flow');
 }
 
-/** Sort key. String compare puts t182 between t1819 and t1820 once ids pass 999. */
+const isHome = (root) => path.resolve(recordsDir(root)) === path.resolve(settings.flowHome());
+
+/** The root `home-4` lives under. */
+const homeRoot = () => path.resolve(settings.flowHome());
+
+const ticketsDir = (root) => path.join(recordsDir(root), 'tickets');
+const archiveDir = (root) => path.join(recordsDir(root), 'tickets', ARCHIVE);
+
+/**
+ * The word a folder name offers, before the user picks: the first 3 letters of
+ * it, `expense-tracker` → `exp`. Under 2 letters, `flow`.
+ */
+function offerWord(folder) {
+  const letters = path.basename(path.resolve(folder)).toLowerCase().replace(/[^a-z]/g, '');
+  const word = letters.slice(0, 3);
+  return word.length >= 2 && word !== HOME_WORD ? word : 'flow';
+}
+
+/** The refusal for a word that cannot be one, or null. */
+function badWord(word) {
+  if (!WORD.test(String(word))) return `"${word}" cannot be a ticket prefix: use 2 to 8 lowercase letters.`;
+  if (word === HOME_WORD) return '"home" is the prefix of the tickets in ~/.flow/, so no project can take it.';
+  return null;
+}
+
+/**
+ * The word this place's ids start with. A project's sits in `.flow/settings.json`
+ * as `ticketPrefix`, written by `flow init`; a project set up before that key
+ * existed gets the word its folder offers, so its ids are stable either way.
+ */
+function prefixOf(root) {
+  if (isHome(root)) return HOME_WORD;
+  const saved = settings.read(settings.projectFile(root)).ticketPrefix;
+  return saved && !badWord(saved) ? saved : offerWord(root);
+}
+
+/**
+ * `exp-47`, `EXP-47` and `47` all normalize to `exp-47` in a place whose word
+ * is `exp`. A word other than the place's own stays as typed, lowercased, so
+ * the caller can send it to the place that owns it. Null for anything else.
+ */
+function normalizeId(ref, prefix) {
+  const s = String(ref || '').trim().toLowerCase();
+  const bare = s.match(/^(\d+)$/);
+  if (bare) return prefix ? `${prefix}-${parseInt(bare[1], 10)}` : null;
+  const full = s.match(/^([a-z]{2,8})-(\d+)$/);
+  return full ? `${full[1]}-${parseInt(full[2], 10)}` : null;
+}
+
+/** The word of an id, `exp` for `exp-47`, or null. */
+const wordOf = (id) => (String(id).match(/^([a-z]{2,8})-\d+$/) || [])[1] || null;
+
+/** Sort key. String compare puts exp-182 between exp-1819 and exp-1820. */
 function idNumber(id) {
-  const m = String(id).match(/^t(\d+)$/);
+  const m = String(id).match(/-(\d+)$/);
   return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
 }
 
 const byId = (a, b) => idNumber(a.id) - idNumber(b.id) || String(a.id).localeCompare(String(b.id));
 
-function requireId(ref) {
-  const id = normalizeId(ref);
+function requireId(ref, prefix) {
+  const id = normalizeId(ref, prefix);
   if (!id) throw new FlowError(`not a ticket id: ${ref}`);
   return id;
 }
+
+/** The id at the front of a folder name, `exp-47` from `exp-47-parser-split`. */
+const idOfFolder = (name) => (String(name).match(/^([a-z]{2,8}-\d+)(?:-|$)/) || [])[1] || null;
 
 /** Local date, not UTC: a date stamped a day behind the user's own calendar
  *  is wrong in the only way this field can be wrong. */
@@ -143,8 +218,8 @@ function labelize(text) {
   return (kept.length ? kept : words).slice(0, LABEL_WORDS).join('-');
 }
 
-/** The label part of a folder name, with the number stripped off. */
-const labelOf = (t) => t.dirName.replace(/^t\d+-/, '');
+/** The label part of a folder name, with the id stripped off. */
+const labelOf = (t) => t.dirName.slice(t.id.length).replace(/^-/, '');
 
 /**
  * Renames the folder, and only the folder. Nothing stores a label: `deps` and
@@ -167,26 +242,32 @@ function relabel(t, given) {
   return { from, to };
 }
 
-function toIdList(v) {
+function toIdList(v, prefix) {
   if (v === undefined || v === null || v === '') return [];
   const raw = Array.isArray(v) ? v : String(v).split(',');
   return raw
     .map((x) => String(x).trim())
     .filter(Boolean)
-    .map((x) => normalizeId(x) || x); // keep unparseable entries so `check` can report them
+    .map((x) => normalizeId(x, prefix) || x); // keep unparseable entries so `check` can report them
 }
 
 // ---------------------------------------------------------------- tickets
 
+/**
+ * Every ticket in one place. The list carries the place's word as `prefix`,
+ * so a caller holding the list can read an id typed without one.
+ */
 function readTickets(root) {
+  const prefix = prefixOf(root);
   const tickets = [];
-  scanTicketDir(ticketsDir(root), root, tickets);
-  scanTicketDir(archiveDir(root), root, tickets);
+  scanTicketDir(ticketsDir(root), root, prefix, tickets);
+  scanTicketDir(archiveDir(root), root, prefix, tickets);
   tickets.sort(byId);
+  tickets.prefix = prefix;
   return tickets;
 }
 
-function scanTicketDir(dir, root, out) {
+function scanTicketDir(dir, root, prefix, out) {
   if (!fs.existsSync(dir)) return;
 
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -195,11 +276,13 @@ function scanTicketDir(dir, root, out) {
     if (!fs.existsSync(file)) continue;
 
     const { data, body } = frontmatter.parse(fs.readFileSync(file, 'utf8'));
-    data.id = normalizeId(data.id) || entry.name.split('-')[0];
-    data.deps = toIdList(data.deps);
+    data.id = normalizeId(data.id, prefix) || idOfFolder(entry.name) || entry.name;
+    data.was = data.was ? String(data.was).trim() : '';
+    data.branch = data.branch ? String(data.branch).trim() : '';
+    data.deps = toIdList(data.deps, prefix);
     // One parent at most: the ticket this one was split out of. Unparseable
     // values survive as written so `check` can report them.
-    data.parent = data.parent ? (normalizeId(data.parent) || String(data.parent).trim()) : '';
+    data.parent = data.parent ? (normalizeId(data.parent, prefix) || String(data.parent).trim()) : '';
     data.status = data.status || 'todo';
     data.type = data.type || 'feature';
     data.priority = toPriority(data.priority);
@@ -212,13 +295,14 @@ function scanTicketDir(dir, root, out) {
   }
 }
 
-function nextId(tickets) {
+/** The highest number in the place, plus 1. A ticket that moved away keeps no claim on its number. */
+function nextId(tickets, prefix = tickets.prefix) {
   let max = 0;
   for (const t of tickets) {
-    const n = idNumber(t.id);
-    if (n !== Number.MAX_SAFE_INTEGER) max = Math.max(max, n);
+    if (wordOf(t.id) !== prefix) continue;
+    max = Math.max(max, idNumber(t.id));
   }
-  return 't' + String(max + 1).padStart(ID_WIDTH, '0');
+  return `${prefix}-${max + 1}`;
 }
 
 /** Writes the file, relocating the folder first if the status changed bucket.
@@ -263,17 +347,19 @@ function moveFolder(from, to) {
  * thousand tickets a second scan is the most expensive thing a command does.
  */
 function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, fromGroundwork, label }) {
-  const id = nextId(tickets || readTickets(root));
+  const id = nextId(tickets || readTickets(root), prefixOf(root));
   const slug = labelize(label || title);
   const dir = path.join(ticketsDir(root), `${id}-${slug}`);
   if (fs.existsSync(dir)) throw new FlowError(`${dir} already exists.`);
 
   const data = {
     id,
+    was: '',
     title: String(title).trim(),
     status: 'todo',
     type: type || 'feature',
     priority: toPriority(priority),
+    branch: '',
     parent: parent || '',
     deps: deps || [],
     reason: '',
@@ -376,11 +462,14 @@ const reportFiles = (t) => {
   return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort();
 };
 
-/** Resolves an id (t047, t47, 47), a slug, or a folder name. */
+/**
+ * Resolves an id (exp-47, 47), an id the ticket held before it moved, a
+ * label, or a folder name, within one place's list.
+ */
 function findTicket(tickets, ref) {
-  const id = normalizeId(ref);
+  const id = normalizeId(ref, tickets.prefix);
   if (id) {
-    const hit = tickets.find((t) => t.id === id);
+    const hit = tickets.find((t) => t.id === id) || tickets.find((t) => t.data.was === id);
     if (!hit) throw new FlowError(`no ticket ${id}.`);
     return hit;
   }
@@ -388,7 +477,7 @@ function findTicket(tickets, ref) {
   const needle = String(ref || '').trim();
   if (!needle) throw new FlowError('which ticket? give an id or a slug.');
 
-  const slugOf = (t) => t.dirName.replace(/^t\d+-/, '');
+  const slugOf = (t) => labelOf(t);
   const exact = tickets.filter((t) => slugOf(t) === needle || t.dirName === needle);
   if (exact.length === 1) return exact[0];
   if (exact.length > 1) throw new FlowError(ambiguous(needle, exact));
@@ -416,10 +505,10 @@ function renderTemplate(name, vars) {
 }
 
 module.exports = {
-  TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES,
-  ticketsDir, archiveDir,
+  TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES, HOME_WORD, ID_SHAPE,
+  recordsDir, isHome, homeRoot, ticketsDir, archiveDir, offerWord, badWord, prefixOf, wordOf, idOfFolder,
   normalizeId, idNumber, requireId, slugify, labelize, labelOf, relabel, toIdList, toPriority, today, now,
-  readTickets, nextId, writeTicket, createTicket, findTicket,
+  readTickets, nextId, writeTicket, createTicket, findTicket, moveFolder,
   hasPlan, planSteps, hasMap, mapQuestions, reportFiles,
   renderTemplate, // cases.js borrows this, slugify and today; nothing else is shared
 };

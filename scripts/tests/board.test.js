@@ -24,7 +24,7 @@ test('flow ls filters by --status, --type, and --parent', () => {
   assert.ok(!chores.stdout.includes('Feature one'));
 
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const parentId = folders[0].split('-')[0];
+  const parentId = folders[0].match(/^[a-z]+-\d+/)[0];
   flow(dir, ['new', 'Child', '--parent', parentId]);
 
   const children = flow(dir, ['ls', '--parent', parentId]);
@@ -38,7 +38,7 @@ test('flow ls --unfiled shows only done tickets without a filed date', () => {
   flow(dir, ['new', 'Alpha', '--type', 'issue']);
   flow(dir, ['new', 'Beta', '--type', 'issue']);
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const [id1, id2] = folders.map((f) => f.split('-')[0]);
+  const [id1, id2] = folders.map((f) => f.match(/^[a-z]+-\d+/)[0]);
 
   flow(dir, ['build', id1]);
   flow(dir, ['done', id1]);
@@ -73,7 +73,7 @@ test('flow next shows in-flight tickets above the ready list', () => {
   flow(dir, ['new', 'Ready ticket']);
   flow(dir, ['new', 'In progress', '--type', 'issue']);
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const issueId = folders.find((f) => !f.includes('ready')).split('-')[0];
+  const issueId = folders.find((f) => !f.includes('ready')).match(/^[a-z]+-\d+/)[0];
 
   flow(dir, ['build', issueId]);
 
@@ -91,7 +91,7 @@ test('flow next shows blocked tickets when nothing is ready', () => {
   flow(dir, ['new', 'Blocker', '--type', 'issue']);
   flow(dir, ['new', 'Blocked']);
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const [id1, id2] = folders.map((f) => f.split('-')[0]);
+  const [id1, id2] = folders.map((f) => f.match(/^[a-z]+-\d+/)[0]);
 
   flow(dir, ['dep', id2, '--on', id1]);
   flow(dir, ['build', id1]);
@@ -107,7 +107,7 @@ test('flow tree nests children under their parent', () => {
 
   flow(dir, ['new', 'Parent feature']);
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const parentId = folders[0].split('-')[0];
+  const parentId = folders[0].match(/^[a-z]+-\d+/)[0];
 
   flow(dir, ['new', 'Child A', '--parent', parentId]);
   flow(dir, ['new', 'Child B', '--parent', parentId]);
@@ -124,18 +124,18 @@ test('flow check reports cycles, dangling deps, and dropped blockers', () => {
 
   // Dangling dep: write a ticket that depends on a non-existent id.
   const base = path.join(dir, '.flow', 'tickets');
-  write(dir, '.flow/tickets/t001-real/ticket.md',
-    '---\nid: t001\ntitle: Real ticket\nstatus: todo\ntype: feature\ndeps: [t999]\n---\n\nBody.\n');
+  write(dir, '.flow/tickets/exp-1-real/ticket.md',
+    '---\nid: exp-1\ntitle: Real ticket\nstatus: todo\ntype: feature\ndeps: [exp-999]\n---\n\nBody.\n');
 
   const r = flow(dir, ['check']);
   assert.strictEqual(r.code, 1, 'check should exit 1 on problems');
-  assert.match(r.stdout, /t999/);
+  assert.match(r.stdout, /exp-999/);
 
   // Cycle: two tickets depending on each other.
-  write(dir, '.flow/tickets/t002-alpha/ticket.md',
-    '---\nid: t002\ntitle: Alpha\nstatus: todo\ntype: feature\ndeps: [t003]\n---\n\n');
-  write(dir, '.flow/tickets/t003-beta/ticket.md',
-    '---\nid: t003\ntitle: Beta\nstatus: todo\ntype: feature\ndeps: [t002]\n---\n\n');
+  write(dir, '.flow/tickets/exp-2-alpha/ticket.md',
+    '---\nid: exp-2\ntitle: Alpha\nstatus: todo\ntype: feature\ndeps: [exp-3]\n---\n\n');
+  write(dir, '.flow/tickets/exp-3-beta/ticket.md',
+    '---\nid: exp-3\ntitle: Beta\nstatus: todo\ntype: feature\ndeps: [exp-2]\n---\n\n');
 
   const r2 = flow(dir, ['check']);
   assert.strictEqual(r2.code, 1);
@@ -145,15 +145,15 @@ test('flow check reports cycles, dangling deps, and dropped blockers', () => {
 test('flow check reports a status outside the 8', () => {
   const dir = project('board-check-status');
 
-  write(dir, '.flow/tickets/t001-typo/ticket.md',
-    '---\nid: t001\ntitle: Typo\nstatus: buildng\ntype: feature\ndeps: []\n---\n\n');
+  write(dir, '.flow/tickets/exp-1-typo/ticket.md',
+    '---\nid: exp-1\ntitle: Typo\nstatus: buildng\ntype: feature\ndeps: []\n---\n\n');
   const r = flow(dir, ['check']);
   assert.strictEqual(r.code, 1, 'check should exit 1 on an unknown status');
   assert.match(r.stdout, /unknown statuses \(1\)/);
-  assert.match(r.stdout, /t001 has status buildng/);
+  assert.match(r.stdout, /exp-1 has status buildng/);
 
-  write(dir, '.flow/tickets/t001-typo/ticket.md',
-    '---\nid: t001\ntitle: Typo\nstatus: building\ntype: feature\ndeps: []\n---\n\n');
+  write(dir, '.flow/tickets/exp-1-typo/ticket.md',
+    '---\nid: exp-1\ntitle: Typo\nstatus: building\ntype: feature\ndeps: []\n---\n\n');
   const clean = flow(dir, ['check']);
   assert.strictEqual(clean.code, 0, clean.stdout);
 });
@@ -162,15 +162,15 @@ test('priority inheritance flows through the parent chain', () => {
   const dir = project('board-priority');
 
   flow(dir, ['new', 'Grandparent', '--priority', 'high']);
-  const gp = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive')[0].split('-')[0];
+  const gp = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive')[0].match(/^[a-z]+-\d+/)[0];
 
   flow(dir, ['new', 'Middle child', '--parent', gp]);
   const folders2 = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const mid = folders2.find((f) => !f.startsWith(gp)).split('-')[0];
+  const mid = folders2.find((f) => !f.startsWith(`${gp}-`)).match(/^[a-z]+-\d+/)[0];
 
   flow(dir, ['new', 'Grandchild', '--parent', mid]);
   const folders3 = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const gc = folders3.find((f) => !f.startsWith(gp) && !f.startsWith(mid)).split('-')[0];
+  const gc = folders3.find((f) => !f.startsWith(`${gp}-`) && !f.startsWith(`${mid}-`)).match(/^[a-z]+-\d+/)[0];
 
   const r = flow(dir, [gc]);
   assert.strictEqual(r.code, 0, r.stderr);

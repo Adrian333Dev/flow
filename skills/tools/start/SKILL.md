@@ -19,6 +19,8 @@ disable-model-invocation: true
 
 **An `open` block already loaded the files it names**, so the phase's artifact may be on screen. Read what is there before opening anything.
 
+**A `branch:` line saying `checked out here:` another branch** → tell the user which branch the work is on before routing, and wait. Building here would put the work on the wrong branch.
+
 **A line reading `planning → building` means the user named that move and `flow` made it.** Take the ticket at the status it now holds, and never move it again.
 
 **No such line means nothing has moved.** The skill you route to writes the status, after it opens the phase's own artifact.

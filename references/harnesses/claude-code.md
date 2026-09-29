@@ -1,6 +1,6 @@
 # Claude Code: where it keeps its files
 
-One file per harness, in `~/.flow/references/harnesses/`. `flow setup`, `flow setup project` and `flow up` open sessions that read every file in that folder, so a second harness is a file written here and no instructions edited.
+One file per harness, in `~/.flow/references/harnesses/`. `flow install`, `flow init` and `flow update` open sessions that read every file in that folder, so a second harness is a file written here and no instructions edited.
 
 Claude Code's own paths, never Flow's. `flow doctor` reports what Flow owns, and `scripts/flow/lib/installed.js` is the list behind it.
 
@@ -33,7 +33,7 @@ Under the config folder, except the last 2.
 
 ## A session that loads no project files
 
-`claude --setting-sources user --strict-mcp-config`, started in the project. `flow setup project` opens its session this way, loading `~/.claude` alone:
+`claude --setting-sources user --strict-mcp-config`, started in the project. `flow init` opens its session this way, loading `~/.claude` alone:
 
 - **`--setting-sources user`** skips every project path above: the rules files at any depth, `.claude/` and `.mcp.json`.
 - **`--strict-mcp-config`** skips every MCP server not passed with `--mcp-config`, the ones `~/.claude.json` holds for this project included.

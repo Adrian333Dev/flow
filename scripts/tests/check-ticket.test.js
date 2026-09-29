@@ -33,22 +33,22 @@ function check(name, args, dir, env = {}) {
 
 test('check-ticket blocks an id that matches nothing, bare or with a label, and says which', () => {
   const dir = project('check-ticket-miss');
-  for (const args of ['t999', 't999-old-label', 't999 and some text']) {
+  for (const args of ['exp-999', 'exp-999-old-label', 'exp-999 and some text']) {
     const result = check('groundwork', args, dir);
     assert.strictEqual(result.code, 0);
     assert.match(result.stdout, /"decision":"block"/, `no block for "${args}"`);
-    assert.match(result.stdout, /t999/);
+    assert.match(result.stdout, /exp-999/);
   }
 });
 
-test('check-ticket passes a real id, free text, an id followed by text, and nothing', () => {
+test('check-ticket passes a real id, a bare number, free text, an id followed by text, and nothing', () => {
   const dir = project('check-ticket-pass');
   const made = flow(dir, ['new', 'a ticket to find']);
   assert.strictEqual(made.code, 0, made.stderr);
-  const id = made.stdout.match(/t\d+/)[0];
+  const id = made.stdout.match(/exp-\d+/)[0];
 
-  const label = made.stdout.match(/t\d+-[a-z-]+/)[0];
-  for (const args of [id, label, `${id} focus on the auth part`, 'write the map for the login flow', '47', '']) {
+  const label = made.stdout.match(/exp-\d+-[a-z-]+/)[0];
+  for (const args of [id, label, `${id} focus on the auth part`, 'write the map for the login flow', '1', '']) {
     const result = check('groundwork', args, dir);
     assert.strictEqual(result.code, 0);
     assert.strictEqual(result.stdout.trim(), '', `no verdict for "${args}"`);
@@ -62,14 +62,14 @@ test('check-ticket blocks before the ticket check when setup never ran', () => {
   const machine = check('groundwork', '', dir);
   assert.strictEqual(machine.code, 0);
   assert.match(machine.stdout, /"decision":"block"/);
-  assert.match(machine.stdout, /not set up on this machine\. Run flow setup\./);
+  assert.match(machine.stdout, /not set up on this machine\. Run flow install\./);
 
   fs.writeFileSync(path.join(dir, 'flow-home', 'version'), '2026-09-20\n');
   fs.rmSync(path.join(dir, '.flow'), { recursive: true });
-  for (const [name, args] of [['groundwork', 't1'], ['flow:start', '']]) {
+  for (const [name, args] of [['groundwork', 'exp-1'], ['flow:start', '']]) {
     const inProject = check(name, args, dir);
     assert.strictEqual(inProject.code, 0);
-    assert.match(inProject.stdout, /not a Flow project yet.*flow setup project/, `no project refusal for /${name} ${args}`);
+    assert.match(inProject.stdout, /not a Flow project yet.*flow init/, `no project refusal for /${name} ${args}`);
   }
 });
 

@@ -1,8 +1,8 @@
 # This session sets up this machine
 
-`flow install` made Flow's links, cloned what Flow reads, and opened this session through `flow setup`. This run does the rest: Flow's rule file, the line loading it, Flow's keys in `~/.claude/settings.json`, and whatever the machine already holds that works against Flow. It asks the user nothing. Everything goes into one form, `migration.md`, which the user reads, edits and approves once. Nothing on disk outside `~/.flow/` changes before that yes.
+`flow install` made Flow's links, cloned what Flow reads, and opened this session. This run does the rest: Flow's rule file, the line loading it, Flow's keys in `~/.claude/settings.json`, and whatever the machine already holds that works against Flow. It asks the user nothing. Everything goes into one form, `migration.md`, which the user reads, edits and approves once. Nothing on disk outside `~/.flow/` changes before that yes.
 
-The session runs in safe mode, so no skill, plugin or hook of the machine's is loaded, Flow's included. It starts in the home folder, so reading anything under `~` asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow setup`, `flow doctor`, `util fs tree` and `node ~/.flow/scripts/apply-migration.js`, typed exactly so.
+The session runs in safe mode, so no skill, plugin or hook of the machine's is loaded, Flow's included. It starts in the home folder, so reading anything under `~` asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow install`, `flow doctor`, `util fs tree` and `node ~/.flow/scripts/apply-migration.js`, typed exactly so.
 
 One edit asks anyway. Claude Code asks before every write to a path holding a `.claude` folder, `~/.flow/` or not, and `files/` mirrors `~/.claude/`. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
 
@@ -10,7 +10,7 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 
 ## Steps
 
-0. **`flow setup check`.** A failure → print what it said and stop. `~/.flow/version` exists → say this machine is already set up, and stop.
+0. **`flow install check`.** A failure → print what it said and stop. `~/.flow/version` exists → say this machine is already set up, and stop.
    - `~/.flow/run.json` has a `step` above 0 → a run stopped part way. Carry on from the step after it, and tell the user in one line.
    - Rewrite `step` in `run.json` as each step below finishes.
 1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, `home/AGENTS.md`, `home/CLAUDE.md`, `home/settings.json`, and the form's template, `~/.flow/scripts/flow/setup/form.md`.
@@ -24,9 +24,9 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 7. **Carry the form into the files.** `## After the yes` below.
 8. **Apply it**: `node ~/.flow/scripts/apply-migration.js machine/<folder>`. A refusal → print it whole and stop. It stopped part way → say which line and why, and stop: running it again carries on from that line.
 9. **Check it**: `flow doctor`.
-   - A problem that says to run `flow setup` means this run left something undone. Fix it with a second migration in a new folder, shown to the user the same way, then check again.
+   - A problem that says to run `flow install` means this run left something undone. Fix it with a second migration in a new folder, shown to the user the same way, then check again.
    - Any other problem → name it, with the fix doctor gives, in the last message. It never holds back the stamp.
-10. **Stamp it**: `flow setup finish`.
+10. **Stamp it**: `flow install finish`.
 11. **The last message**: what changed, in the form's own words; the 2 commands that undo it, `flow restore machine` for the whole setup and `flow uninstall` for all of Flow; then "Quit this session and start `claude` again: Flow's rules and hooks load when a session starts."
 
 ## What to look at
@@ -38,7 +38,7 @@ The harness files name every path. Read `CLAUDE_CONFIG_DIR` before any of them. 
 3. **Skills, by all 4 routes**: a real folder in `~/.claude/skills/`, a link there into `~/.agents/skills/` (installed by `npx skills`, which names its repository in `~/.agents/.skill-lock.json`), the account-synced tree under `~/.claude/skills/synced/`, and plugins, read from `~/.claude/plugins/installed_plugins.json`. A plugin's skills, hooks and agents sit in its `installPath`.
 4. **`~/.claude/settings.json`**, key by key, and `~/.claude/agents/`, `commands/` and `output-styles/`.
 
-Never open a project, or a project's memory under `~/.claude/projects/`. `flow setup project` reads those. Never open a transcript, a cache or the login.
+Never open a project, or a project's memory under `~/.claude/projects/`. `flow init` reads those. Never open a transcript, a cache or the login.
 
 ## What goes in the form
 

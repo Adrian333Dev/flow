@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow up`: which place it finds behind, the run it writes, the line that
+ * `flow update`: which place it finds behind, the run it writes, the line that
  * opens the session, and the stamp at its end. Every case runs on a scratch
  * machine through `--root`, which never pulls the real clone. The session
  * itself is an agent's run, and lab/scripts/try.sh is where it is tried.
@@ -35,7 +35,7 @@ function place(name, { machine, project } = {}) {
   const env = { ...process.env, GIT_CEILING_DIRECTORIES: dir };
   delete env.FLOW_PROJECT;
   delete env.FLOW_HOME;
-  const up = (...args) => run('flow/flow.js', ['up', ...args, '--root', root], { cwd: proj, env });
+  const up = (...args) => run('flow/flow.js', ['update', ...args, '--root', root], { cwd: proj, env });
   const runFile = () => JSON.parse(fs.readFileSync(path.join(root, '.flow', 'run.json'), 'utf8'));
   return { root, proj: fs.realpathSync(proj), flowHome: path.join(root, '.flow'), up, runFile };
 }
@@ -44,7 +44,7 @@ test('up refuses a machine never set up, and says so where nothing is behind', (
   const bare = place('up-bare');
   const refused = bare.up();
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /Flow is not set up on this machine\. Run flow setup first/);
+  assert.match(refused.stderr, /Flow is not set up on this machine\. Run flow install first/);
 
   const current = place('up-current', { machine: NEWEST, project: NEWEST });
   const done = current.up();
@@ -54,16 +54,16 @@ test('up refuses a machine never set up, and says so where nothing is behind', (
 
   const unset = place('up-unset', { machine: NEWEST });
   fs.mkdirSync(path.join(unset.proj, '.flow'));
-  assert.match(unset.up().stdout, /was never set up\. Run flow setup project inside it/);
+  assert.match(unset.up().stdout, /was never set up\. Run flow init inside it/);
 });
 
 test('up takes the machine first, and prints the session it opens', () => {
   const m = place('up-machine', { machine: NEWEST - 1, project: NEWEST - 1 });
   const started = m.up();
   assert.strictEqual(started.code, 0, started.stderr);
-  assert.match(started.stdout, /claude --permission-mode acceptEdits --add-dir \S+ --allowedTools 'Bash\(flow up:\*\)'/);
+  assert.match(started.stdout, /claude --permission-mode acceptEdits --add-dir \S+ --allowedTools 'Bash\(flow update:\*\)'/);
   assert.match(started.stdout, /--append-system-prompt-file \S+migrate-prompt\.md 'Bring this machine up to date\.'$/m);
-  assert.match(started.stdout, /run flow up again in \S+ for the project/);
+  assert.match(started.stdout, /run flow update again in \S+ for the project/);
 
   const prompt = fs.readFileSync(path.join(m.flowHome, 'migrate-prompt.md'), 'utf8');
   assert.match(prompt, /^# This session brings Flow up to date$/m);
@@ -111,6 +111,6 @@ test('up waits for a setup that stopped part way', () => {
   fs.writeFileSync(path.join(m.flowHome, 'run.json'), JSON.stringify({ type: 'setup-project', project: '/somewhere/shop', step: 2 }));
   const refused = m.up();
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /says a setup-project run stopped part way\. Finish that first: in \/somewhere\/shop, run flow setup project/);
+  assert.match(refused.stderr, /says a setup-project run stopped part way\. Finish that first: in \/somewhere\/shop, run flow init/);
   assert.strictEqual(m.up('check').code, 1);
 });

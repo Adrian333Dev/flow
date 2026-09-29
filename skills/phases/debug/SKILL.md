@@ -4,7 +4,7 @@ description: Finds the cause by evidence, proves it, fixes it.
 argument-hint: '[ticket-id]'
 ---
 
-!`case "$0" in t[0-9]*) flow get $0 --files 2>&1 || true;; esac`
+!`flow load "$0"`
 
 $ARGUMENTS
 
@@ -108,7 +108,7 @@ Stop fixing. 3 failed fixes means the hypothesis was never the problem: the shap
 - **What would settle it**: the evidence still missing
 
 ```bash
-flow new "<what failed>" --type issue --parent t047 --body - <<'EOF'
+flow new "<what failed>" --type issue --parent exp-47 --body - <<'EOF'
 <the 3 things>
 EOF
 ```

@@ -89,7 +89,7 @@ What one run puts on the machine:
   cloned: Adrian333Dev/domain-skills into ~/.flow/repos/sources/Adrian333Dev_domain-skills
   ```
 
-**A new machine installs the release your Flow home is on.** Each machine keeps a record in the repository, `machines/<name>.json`, holding the changelog entry it is on (see [flow sync](#flow-sync)). Where the highest entry there differs from the clone the install came from, the install switches the clone to that release's tag, `v<number>`, before linking anything, and runs again from it. Your machines then move to a newer release together, through [flow up](#flow-up). A clone you ran the install from by path is never switched: the install stops and names the tag to switch it to.
+**A new machine installs the release your Flow home is on.** Each machine keeps a record in the repository, `machines/<name>.json`, holding the changelog entry it is on (see [flow sync](#flow-sync)). Where the highest entry there differs from the clone the install came from, the install switches the clone to that release's tag, `v<number>`, before linking anything, and runs again from it. Your machines then move to a newer release together, through [flow update](#flow-update). A clone you ran the install from by path is never switched: the install stops and names the tag to switch it to.
 
 **It refuses 3 things, each before anything is made:**
 
@@ -99,71 +99,99 @@ What one run puts on the machine:
 
 A repository already connected is kept, and running the install again asks nothing.
 
-**Installing is half of putting Flow on a machine.** The other half is [`flow setup`](#flow-setup), and the install runs it as its last step.
+**The links are half of putting Flow on a machine.** The other half is a Claude Code session that reads what the machine already holds, and `flow install` opens it as its last step. [The setup session](#the-setup-session) covers it.
 
-**Every `flow` command refuses until the setup has finished**, except `install`, `setup`, `doctor`, `restore` and `uninstall`. `~/.flow/version` is what says the setup finished, and a command that finds it missing answers `Flow is not set up on this machine. Run flow setup.` A setup that is running passes too, since its own form runs `flow skills`.
+**Every `flow` command refuses until the setup has finished**, except `install`, `doctor`, `restore` and `uninstall`. `~/.flow/version` is what says the setup finished, and a command that finds it missing answers `Flow is not set up on this machine. Run flow install.` A setup that is running passes too, since its own form runs `flow skills`.
 
 **util comes with the install.** `util` is a separate command-line tool holding Flow's general-purpose commands, in its own repository. Flow's rules name `util fs tree` for looking at directory structure, and `flow get --files` runs `util fs open` to assemble context files. A machine without `util` still works: `flow get --files` prints that `util` is not on `PATH` where the files would have been, and carries on.
 
-### `flow setup`
+### The setup session
 
-Sets Flow up on this machine: the rule file, the line loading it, Flow's keys in `~/.claude/settings.json`, and whatever the machine already holds that works against Flow. `flow install` runs it as its last step. Typed again, it carries on a setup that stopped part way.
+The setup session sets Flow up on this machine: the rule file, the line loading it, Flow's keys in `~/.claude/settings.json`, and whatever the machine already holds that works against Flow. `flow install` opens it as its last step. Typed again, `flow install` carries on a setup that stopped part way.
 
 It opens a Claude Code session in safe mode, which loads none of your own rules, skills, plugins or hooks, so nothing already on the machine argues with the setup. The session is handed Flow's rules and the setup's instructions, `scripts/flow/setup/machine.md` in the clone. It reads what your machine already holds, then lists every change in one form for you to check. Nothing outside `~/.flow/` changes before you say go.
 
-After your yes, it writes the rule file `~/.flow/AGENTS.md`, makes `~/.agents/AGENTS.md` a link to it, and replaces `~/.claude/CLAUDE.md` with the one line `@~/.agents/AGENTS.md`. It also merges Flow's hooks and permission rules into `~/.claude/settings.json`, key by key, because that file already holds your model, your plugins and your effort level. A rule file written before that form would be the template with nothing of yours in it, which is why `flow install` writes none of the 3.
+After your yes, it writes the rule file `~/.flow/AGENTS.md`, makes `~/.agents/AGENTS.md` a link to it, and replaces `~/.claude/CLAUDE.md` with the one line `@~/.agents/AGENTS.md`. It also merges Flow's hooks and permission rules into `~/.claude/settings.json`, key by key, because that file already holds your model, your plugins and your effort level. A rule file written before that form would be the template with nothing of yours in it, which is why the links half writes none of the 3.
 
 **The form shows only what saying go would change.** A setting is judged by its value, so memory already switched off gets no line. An installed plugin or skill that works against Flow is judged by being there, so it gets a line even when it is switched off: it could be switched back on. A plugin goes by `claude plugin uninstall`.
 
-**The session runs in its own permission mode**, whatever yours is. It starts in your home folder, so reading your setup asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow setup`, `flow doctor`, `util fs tree` and the script that applies the form. Anything else asks you first. Auto mode's own check refused the setup's first write in testing, which is why the setup never runs under it.
+**The session runs in its own permission mode**, whatever yours is. It starts in your home folder, so reading your setup asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow install`, `flow doctor`, `util fs tree` and the script that applies the form. Anything else asks you first. Auto mode's own check refused the setup's first write in testing, which is why the setup never runs under it.
 
 **Claude Code asks you once, partway through.** It asks before any write to a path with a `.claude` folder in it, and the form keeps its new `~/.claude/settings.json` under `~/.flow/migrations/`, at a path that ends in `.claude/settings.json`. No setting skips that question. The session tells you it is coming, and answering **allow Claude to edit its own settings for this session** covers every later one.
 
 **On a machine that joined your Flow home, your profile is kept.** `~/.flow/AGENTS.md` came down from your other machine before the session opened. Its `## The user` and `## Preferences` sections start as they arrived, and anything new this machine's own rule files say is added to them, in the same form.
 
-**It refuses to start on an unfinished install.** `flow setup check` runs the same check on its own: `node`, `git`, `claude` and `gh`; `flow`, `fw`, `util` and `u` in `~/.local/bin`; every clone in `~/.flow/repos/`; and the repository `~/.flow/` lives in. Any one missing is named, and `flow install` is the fix for all of them.
+**It refuses to start on an unfinished install.** `flow install check` runs the same check on its own: `node`, `git`, `claude` and `gh`; `flow`, `fw`, `util` and `u` in `~/.local/bin`; every clone in `~/.flow/repos/`; and the repository `~/.flow/` lives in. Any one missing is named, and `flow install` is the fix for all of them.
 
-Run where no terminal is attached, or with `--root`, it prints the line that starts the session instead:
+Run where no terminal is attached, or with `--root`, it prints the line that starts the session instead. A run with `--root`, `--no-clone` or `--no-bin` that left a piece missing prints `flow install` instead, with the same `--root`. That run puts the missing pieces in place first.
 
 ```text
 One step left: setting up this machine. Start it from a terminal:
 
-  cd /home/me && claude --safe-mode --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow setup:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this machine.'
+  cd /home/me && claude --safe-mode --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow install:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this machine.'
 ```
 
 - **`~/.flow/setup-prompt.md`**: Flow's rules followed by the setup's instructions, rewritten each time the session starts.
-- **`~/.flow/run.json`**: how far the setup got, and the folder its form goes in. `flow setup` writes it, the session updates it after each step, and the next `flow setup` carries on from there:
+- **`~/.flow/run.json`**: how far the setup got, and the folder its form goes in. `flow install` writes it, the session updates it after each step, and the next `flow install` carries on from there:
 
   ```json
   { "started": "2026-09-24T01:45:46.858Z", "type": "setup-machine", "migration": "machine/2026-09-24T04-45-46", "step": 4 }
   ```
-- **`flow setup finish`**: the session's last step. It stamps `~/.flow/version`, writes this machine's record into `~/.flow/machines/`, and deletes `run.json`.
+- **`flow install finish`**: the session's last step. It stamps `~/.flow/version`, writes this machine's record into `~/.flow/machines/`, and deletes `run.json`.
 
-### `flow setup project`
+### `flow init`
 
-Sets up the project you are in: Flow's rule file `AGENTS.md`, a `CLAUDE.md` loading it, `.flow/`, and tickets for the open work the project already lists. Type it in the project's folder, on a machine `flow setup` finished. Typed again, it carries on a setup that stopped part way.
+Sets up the project you are in: its tickets, Flow's rule file `AGENTS.md`, and a `CLAUDE.md` loading it. Type it in the project's folder, on a machine `flow install` finished. Typed again, it carries on a setup that stopped part way.
 
-It opens a normal Claude Code session, which loads Flow's rules and hooks and nothing of the project's: no `CLAUDE.md`, no skill, no setting and no MCP server. The launch does this with 2 flags, `--setting-sources user` and `--strict-mcp-config`. The session follows `scripts/flow/setup/project.md` in the clone. It reads the project's rule files, its docs, its code and its Claude Code memory, then lists every change in one form, `migration.md`. Nothing in the project changes before you say go.
+It checks each of these in order, and does only what applies:
+
+- **No git repository** → it runs `git init`. Inside a repository it never does.
+- **Typed in a subfolder** → it works at the repository's top folder, and says so.
+- **A teammate set the project up**, so the branch `flow` is on the remote → it checks that branch out at `.flow/`, and the project is set up.
+- **No branch `flow`** → it makes one and checks it out at `.flow/`. The branch holds the tickets and shares no history with the code. `.flow/` goes into `.gitignore`, so every code branch ignores the tickets and nothing on the branch is ever merged into the code. [Where everything lives](where-everything-lives.md#flow-flows-working-store) has the whole of it.
+- **The ticket prefix** is asked once, and the first 3 letters of the folder name are offered: `Ticket prefix, so its tickets read sho-1, sho-2 (default: sho):`. `--prefix shop` answers it. A prefix is 2 to 8 lowercase letters, and never `home`, which names the tickets in `~/.flow/`.
+- **Nothing competes with Flow's rules** → it writes the project template at once, and opens no session. Code, a README and a `package.json` compete with nothing.
+- **Files compete with Flow's rules** → it opens the setup session, for those files. A competing file tells Claude Code or another agent how to work here: `CLAUDE.md`, `AGENTS.md`, `.claude/settings.json`, `.cursorrules` and the like, or Claude Code's memory for this folder.
+- **A `.gitignore` already exists** → Flow's lines are added, and nothing is replaced.
+
+With nothing competing, the whole run is one command:
+
+```text
+$ flow init --prefix shop
+.flow/: a new flow branch, sharing no history with the code, checked out
+.gitignore: .flow/ added
+wrote: .claude/settings.json
+wrote: .gitignore
+wrote: .uncommitted-include
+wrote: AGENTS.md
+wrote: CLAUDE.md
+
+set up: ~/code/shop is on entry 3. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
+```
+
+**`--local` keeps Flow to your own copy of a repository** that other people keep, such as a client's, for as long as you work on it. `.flow/` is then a plain folder listed in `.git/info/exclude`, git's ignore list for one clone. That file is never committed, so nothing appears in `git status` and nothing reaches the other people's copies. Nothing else in the repository changes: no rule file, no `.gitignore` line, no session. The tickets are yours alone, and never leave the clone. Your other projects can still use the full setup.
+
+The setup session is a normal Claude Code session, which loads Flow's rules and hooks and nothing of the project's: no `CLAUDE.md`, no skill, no setting and no MCP server. The launch does this with 2 flags, `--setting-sources user` and `--strict-mcp-config`. The session follows `scripts/flow/setup/project.md` in the clone. It reads the project's rule files, its docs, its code and its Claude Code memory, then lists every change in one form, `migration.md`. Nothing in the project changes before you say go.
 
 **The form holds decisions, and the content sits beside it.** Each line says what happens and where, with a count: `9 rules → AGENTS.md`. The new version of every file is under `files/` beside the form, and `dropped.md` lists each line left behind with the Flow rule that already does its job. Anything that works against Flow is under `🔴 Removed unless you untick it`. Lines it finds about you, rather than the project, go into your own rules in `~/.flow/AGENTS.md`.
 
 **The code wins over the docs.** Where a doc says something the code contradicts, that becomes a ticket. Every project gets 2 more tickets where they apply: "Write the product spec", listing the docs that hold your plans today, and "Find skills, plugins and MCP servers for this stack". The setup writes no spec: a spec is your intent, and the setup asks you nothing.
 
-**In a project set up already, it folds in this machine's old memory.** A project set up on your other machine arrives through its own repository, stamped. The Claude Code memory this machine kept for it before Flow, under `~/.claude/projects/<project>/memory/`, has never been read. `flow setup project` then opens the same session with a smaller job: read that folder, sort each line into Flow's places, and remove the folder once you say go. `run.json` carries `"memoryOnly": true`, and `flow setup project finish` leaves the project's version alone. A session opened in such a project shows you `Flow: old Claude Code memory here. Run flow setup project to fold it in.` An empty memory folder counts as none.
+**In a project set up already, it folds in this machine's old memory.** A project set up on your other machine arrives through its own repository, stamped. The Claude Code memory this machine kept for it before Flow, under `~/.claude/projects/<project>/memory/`, has never been read. `flow init` then opens the same session with a smaller job: read that folder, sort each line into Flow's places, and remove the folder once you say go. `run.json` carries `"memoryOnly": true`, and `flow init finish` leaves the project's version alone. A session opened in such a project shows you `Flow: old Claude Code memory here. Run flow init to fold it in.` An empty memory folder counts as none.
 
-**It refuses where it can't start**: a machine `flow setup` never finished, a folder outside a git repository, or another setup stopped part way. `flow setup project check` runs the same check on its own. An empty repository gets the project template and nothing more.
+**It refuses where it can't start**: a machine `flow install` never finished, a `.flow/` already holding files that are not the branch `flow`, or another setup stopped part way. `flow init check` runs the same check on its own.
 
 Run where no terminal is attached, or with `--root`, it prints the line that starts the session instead:
 
 ```text
 Setting up ~/code/shop runs in its own session. Start it from a terminal:
 
-  cd /home/me/code/shop && claude --setting-sources user --strict-mcp-config --permission-mode acceptEdits --add-dir /home/me/.flow --add-dir /home/me/.claude/projects/-home-me-code-shop/memory --allowedTools 'Bash(flow setup:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' 'Bash(git ls-files:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this project.'
+  cd /home/me/code/shop && claude --setting-sources user --strict-mcp-config --permission-mode acceptEdits --add-dir /home/me/.flow --add-dir /home/me/.claude/projects/-home-me-code-shop/memory --allowedTools 'Bash(flow init:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' 'Bash(git ls-files:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this project.'
 ```
 
 - **`--add-dir`**: `~/.flow`, where the form is written, and the project's memory folder, where one exists, so neither asks each time.
 - **`~/.flow/run.json`**: the same file as the machine's setup, with `type` `setup-project`, the project's path and its memory folder.
-- **`flow setup project finish`**: the session's last step. It stamps the project's `.flow/version` and deletes `run.json`.
+- **`flow init finish`**: the session's last step. It stamps the project's `.flow/version`, commits the tickets on the branch, and deletes `run.json`.
 - **`flow restore project`** puts the project back as it was before, `.flow/` deleted with it.
 
 ### `flow doctor`
@@ -171,7 +199,7 @@ Setting up ~/code/shop runs in its own session. Start it from a terminal:
 Everything about an installed machine a function can decide. It writes nothing, prints one line per area when that area is clean and one line per problem when it is not, and exits 1 if anything failed. Run it after installing, and again whenever something behaves as though it were not installed.
 
 - **A run that stopped part-way**: `~/.flow/run.json` exists only while a setup or a migration is running, so a file left on disk means the machine is half way through a change. It is reported before anything else, naming the step it stopped at and both ways out: carry on by typing the command that started it, or put the place back to how it was before Flow.
-- **How current the machine is**: the entry number in `~/.flow/version` against the newest entry in `CHANGELOG.md`, and a project's `.flow/version` against the machine's. Being behind is a note suggesting `flow up`, because the machine still works. A number above the newest entry is a failure, since only a clone that moved backwards produces one.
+- **How current the machine is**: the entry number in `~/.flow/version` against the newest entry in `CHANGELOG.md`, and a project's `.flow/version` against the machine's. Being behind is a note suggesting `flow update`, because the machine still works. A number above the newest entry is a failure, since only a clone that moved backwards produces one.
 - **The clone**: every submodule sits on the commit the clone points at. With `--updates` it also reads the newest `v<number>` tag the remote carries, which is the one check here that touches the network.
 - **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, and `~/.local/bin` is on your `PATH`.
 - **The programs Flow shells out to**: `node`, `git`, `claude` and `gh` are on your `PATH`.
@@ -199,7 +227,7 @@ Setting Flow up and migrating it both start here, and both stop when it exits 1.
 
 `flow check` is the other verification command and answers a different question: the ticket graph in the project you are standing in.
 
-### `flow up`
+### `flow update`
 
 Brings Flow up to date in one word: this machine, and the project you type it in. Every change to how Flow behaves gets a numbered entry in `CHANGELOG.md`, and that number is Flow's version. `~/.flow/version` holds the entry this machine last applied, and a project's `.flow/version` holds its own.
 
@@ -217,29 +245,29 @@ Flow is up to date: this machine is at entry 3, and so is ~/code/shop.
 
 **The form keeps your own edits.** Before writing the new version of a file Flow owns, the session compares your copy with Flow's template. A line in your copy that neither the template nor a guide explains is yours. It is carried into the new file, and the form lists it under `Your own lines, kept` with a ticked box. Untick it to drop the line.
 
-**One form per place.** Typed in a project that is behind along with the machine, `flow up` opens the machine's session first. Once that session stamps the machine, the project's opens. Quit a session part way and `flow up` carries it on, without pulling again.
+**One form per place.** Typed in a project that is behind along with the machine, `flow update` opens the machine's session first. Once that session stamps the machine, the project's opens. Quit a session part way and `flow update` carries it on, without pulling again.
 
 Run where no terminal is attached, or with `--root`, it prints the line that starts the session instead. `--root` never pulls.
 
 ```text
 Bringing this machine from entry 2 to 3 runs in its own session. Start it from a terminal:
 
-  cd /home/me && claude --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow up:*)' 'Bash(flow doctor:*)' 'Bash(flow audit:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' 'Bash(claude -p:*)' --append-system-prompt-file /home/me/.flow/migrate-prompt.md 'Bring this machine up to date.'
+  cd /home/me && claude --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow update:*)' 'Bash(flow doctor:*)' 'Bash(flow audit:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' 'Bash(claude -p:*)' --append-system-prompt-file /home/me/.flow/migrate-prompt.md 'Bring this machine up to date.'
 ```
 
 - **`~/.flow/run.json`**: the same file the setups write, with `type` `migrate`, the project where there is one, and the 2 entry numbers, `from` and `to`.
-- **`flow up check`**: the session's first step. It lists every entry between the 2 numbers and the guide each one names:
+- **`flow update check`**: the session's first step. It lists every entry between the 2 numbers and the guide each one names:
 
   ```text
   ready: this machine goes from entry 2 to 3.
     3, 2026-11-02: /home/me/code/flow/upgrades/3.md
   ```
-- **`flow up finish`**: the session's last step. It stamps `to` into the version file and deletes `run.json`. For the machine, it also writes `to` into this machine's record under `~/.flow/machines/`, which the next `flow sync` sends to your other machines.
+- **`flow update finish`**: the session's last step. It stamps `to` into the version file and deletes `run.json`. For the machine, it also writes `to` into this machine's record under `~/.flow/machines/`, which the next `flow sync` sends to your other machines.
 - **Proof**: where the update changed a hook, the rule file or the skills, the session starts a second one with `claude -p`, which loads the new files, and reads back through `flow audit` what it loaded.
 
 ### `flow sync`
 
-`~/.flow/` is one private git repository, and that repository is the whole of how Flow reaches your other machines. Everything of yours that should travel already lives there: the rules, the workflow notes, the study cases, the private skills, the wiki and the tickets that belong to no project. A project travels through its own repository, and Flow leaves it alone. Any number of machines can share it.
+`~/.flow/` is one private git repository, and that repository is the whole of how Flow reaches your other machines. Everything of yours that should travel already lives there: the rules, the workflow notes, the study cases, the private skills, the wiki and the tickets that belong to no project. A project's tickets travel on the project's own branch `flow`, covered in [A project's tickets](#a-projects-tickets). Any number of machines can share it.
 
 `flow sync` does 3 things in order:
 
@@ -247,7 +275,7 @@ Bringing this machine from entry 2 to 3 runs in its own session. Start it from a
 2. **It brings the other machines' work down**, merging it with git. The same file changed on 2 machines merges fine where the changes touch different lines.
 3. **It sends the result up.**
 
-Nothing runs by itself. You type it.
+It also runs by itself, after a reply once 30 minutes have passed since the last send and something changed, and at session end. Typing it sends at once.
 
 ```text
 $ flow sync
@@ -263,17 +291,53 @@ went up: desktop-wsl: 3 files
 { "name": "laptop-mac", "joined": "2026-09-27", "flowVersion": 12 }
 ```
 
-`flowVersion` is the changelog entry the machine is on, written by `flow setup finish` and `flow up finish`. Say your desktop moves to entry 12 with `flow up`, and your laptop is still on 11. The desktop's update migrates its own copy of `~/.flow/`, then sends it up. On the laptop, `flow sync` reads the desktop's record before anything moves, and stops:
+`flowVersion` is the changelog entry the machine is on, written by `flow install finish` and `flow update finish`. Say your desktop moves to entry 12 with `flow update`, and your laptop is still on 11. The desktop's update migrates its own copy of `~/.flow/`, then sends it up. On the laptop, `flow sync` reads the desktop's record before anything moves, and stops:
 
 ```text
-your Flow home is on changelog entry 12, since desktop-wsl moved to it, and this machine is on 11. Nothing was synced. Run flow up first.
+your Flow home is on changelog entry 12, since desktop-wsl moved to it, and this machine is on 11. Nothing was synced. Run flow update first.
 ```
 
-The laptop's `flow up` migrates the laptop's own copy, with everything it wrote while it was cut off. Both copies then have the same shape, and the next `flow sync` merges them. Without the stop, the laptop would download a shape its Flow does not know, or send its old shape back up.
+The laptop's `flow update` migrates the laptop's own copy, with everything it wrote while it was cut off. Both copies then have the same shape, and the next `flow sync` merges them. Without the stop, the laptop would download a shape its Flow does not know, or send its old shape back up.
 
-The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow up in a terminal.`
+The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow update in a terminal.`
 
 **What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `audit/`, `changes/`, and each wiki tool's `downloads/`.
+
+**Tickets in `~/.flow/` are sent with everything else there**, not when they are made. 2 machines can therefore give out the same `home-` number between syncs. The one that reached the repository first keeps it, and the other takes the next free number, keeping its old id as `was:`, so the old id still finds it:
+
+```text
+  home-4 is now home-5: another machine took home-4 first.
+```
+
+#### A project's tickets
+
+Typed inside a project, `flow sync` does the same for the project's branch `flow`, checked out at `.flow/`, and adds one line:
+
+```text
+shop's tickets: 2 files came down, 1 commit went up.
+```
+
+It rarely needs typing. Every command that changes a ticket commits it on the branch, and the branch reaches the remote by itself:
+
+- **A status move** sends it in the background, so the move never waits on the network.
+- **A new ticket** is sent before its id is shown.
+- **After a reply**, it is sent once 30 minutes have passed since the last send and something changed.
+- **At session end**, it is sent one last time.
+- **At session start**, the other people's tickets come down.
+
+Offline, a send fails quietly and the next one tries again.
+
+**A new ticket needs the remote.** Its number is given out only once the remote has it, so a number never changes after you have seen it. Offline, `flow new` makes no ticket:
+
+```text
+flow: no ticket was made: the remote could not be reached. A number is given out only once the remote has it, so try again once it answers.
+```
+
+A project with no remote, and a [local](#flow-init) one, give numbers out on the spot, since nobody else can take one.
+
+**2 people creating a ticket in the same moment is the one clash a folder per ticket can't avoid.** The ticket that reached the remote first keeps the number. The other is renumbered to the next free one before its id is shown, so neither person ever sees a number change.
+
+**The same lines of one ticket changed on 2 machines stop the pull.** The pull is undone, and this machine's version stays committed in `.flow/`, for you to merge by hand.
 
 ### `flow uninstall`
 
@@ -293,13 +357,13 @@ The same 4 locks as `flow restore` guard it, the first 2 being every Claude Code
 
 ## Migrations and the original
 
-A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 things write one: `flow setup` moves your machine onto Flow, `flow setup project` moves a project, and `flow up` moves either one to a newer Flow.
+A migration is a change to where Flow, Claude Code and Codex keep their files. Only 3 things write one: `flow install` moves your machine onto Flow, `flow init` moves a project, and `flow update` moves either one to a newer Flow.
 
 The original is every path as it was before Flow first touched it. There is one per place, a place being this machine or one project, and putting it back is how you undo Flow.
 
 A migration is not a ticket. A ticket is your project's own work, and git undoes it. A migration changes files git never sees, such as `~/.claude/`, so the original undoes it.
 
-**The original is written in one window, and nothing is ever added to it afterwards.** `flow install` opens the machine's and copies every path it is about to create. The first `flow setup` adds each path its migration changes, and closing the window is the last thing that run does. A project's window opens and closes inside its first `flow setup project`. After that, a migration months later copies nothing: a file you made last week is yours, not part of the machine you had before Flow, and nothing on disk can tell the two apart.
+**The original is written in one window, and nothing is ever added to it afterwards.** `flow install` opens the machine's and copies every path it is about to create. Its setup session adds each path its migration changes, and closing the window is the last thing that session does. A project's window opens and closes inside its first `flow init`. After that, a migration months later copies nothing: a file you made last week is yours, not part of the machine you had before Flow, and nothing on disk can tell the two apart.
 
 **What it is for is the first week or two**, where you try Flow and decide against it. Undoing one migration is a different job, and Flow does not do it.
 
@@ -324,7 +388,7 @@ A migration of the machine goes in `machine/`. A project's goes in a folder name
 
 Claude writes the migration, then stops for your yes. You read `migration.md`, delete any line you refuse, and say go. Claude never writes a real path itself. The session runs `apply-migration.js`, which carries out `migration.md` one line at a time, so a path the migration leaves out is never touched.
 
-`migration.md` opens with 2 frontmatter fields. `type` names what wrote it: `setup-machine` for `flow setup`, `setup-project` for `flow setup project`, and `migrate` for `flow up`. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
+`migration.md` opens with 2 frontmatter fields. `type` names what wrote it: `setup-machine` for `flow install`, `setup-project` for `flow init`, and `migrate` for `flow update`. `project` is the project's path, left out for the machine. A line starting with one of 4 verbs is an action, and everything else in the file is for you to read:
 
 - **`- write <path>: <why>`**: the copy at `files/<full path>` replaces it, a file or a whole folder.
 - **`- delete <path>: <why>`**: removes a file or a whole folder.
@@ -419,7 +483,7 @@ With no project set up, it asks for `restore` alone.
 flow <command> [id]... [--flags]
 ```
 
-The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow t047` and `flow get t047` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
+The command sits at position 1, always. A word naming no command is read as a ticket id, so `flow exp-47` and `flow get exp-47` do the same thing. Flags take two dashes and the full name: `--status`, never `-s` or `--stat`.
 
 6 groups carry their own actions: `cases`, `skills`, `settings`, `audit`, `restore`, `setup`. Each is spelled `flow <group> <action>`, and each names a default action that can be left out. `flow skills react` is `flow skills ls react`.
 
@@ -452,7 +516,7 @@ Flags: `--limit <n>` (show at most n ready tickets, default 10), `--all` (no lim
 Integrity problems in the ticket graph. Exits 0 when clean, 1 when problems exist. Reports:
 
 - **Unknown statuses**: a ticket's status is none of the 8, such as `buildng` typed by hand
-- **Dependency cycles**: t001 → t002 → t001
+- **Dependency cycles**: exp-1 → exp-2 → exp-1
 - **Dangling deps**: a ticket depends on an id that does not exist
 - **Dropped blockers**: a ticket depends on a dropped ticket, so it can never become ready
 - **Dangling parents**: a ticket names a parent that does not exist
@@ -483,12 +547,12 @@ Commands that name a ticket and act on it.
 Three shapes:
 
 - **`flow get`**: the board: counts across every status, last closed ticket, in-flight work, ready tickets, parked tickets, and unfiled tickets. `flow <id>` is a shorthand for `flow get <id>`.
-- **`flow get <id>`**: one ticket in full. Prints every field: status, type, priority (own and inherited), parent, deps (with their statuses), dependents, children (with a progress count), map questions and plan steps where those files exist, reports, closed and filed dates, the pickup command, and the ticket body.
+- **`flow get <id>`**: one ticket in full. Prints every field: status, type, priority (own and inherited), parent, deps (with their statuses), dependents, children (with a progress count), the code branch its work is on, map questions and plan steps where those files exist, reports, closed and filed dates, the pickup command, and the ticket body.
 - **`flow get <path>`**: reads a file (a handoff, a spec, loose notes) and loads any `open` block it contains.
 
-An id is a number and a label: `t047-parser-split`. The number is the identity. Any unambiguous part resolves it: `t047`, `47`, `parser`, or the whole thing.
+An id is the project's prefix and a number, `exp-47`, and the folder adds a label: `exp-47-parser-split`. The id is the identity. Any unambiguous part resolves it: `exp-47`, `47`, `parser`, or the whole thing. A bare number means the project you are in, and `home-4` names a ticket in `~/.flow/` from anywhere.
 
-`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/flow:start` passes `--files` explicitly, and so does each phase skill when typed with a ticket id.
+`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/flow:start` passes `--files` explicitly. A phase skill runs [`flow load`](#flow-load-word), which does the same for a ticket id.
 
 **The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
 
@@ -512,6 +576,8 @@ Flags:
 - `--from-groundwork <path>`: move an existing groundwork folder in as this ticket's own
 
 Every ticket gets a `groundwork/` folder with a `map.md` from birth. The folder exists whether groundwork is needed or not, because a ticket's path is fixed for life.
+
+In a project whose tickets are on the branch `flow`, the new ticket is sent to the remote before its id is printed. Where the remote can't be reached, no ticket is made: [A project's tickets](#a-projects-tickets) says why.
 
 ### `flow edit <id>`
 
@@ -545,6 +611,38 @@ The danger is what depended on it. `deps` is stored on one side only, so droppin
 
 `--by` and `--force` are mutually exclusive. `--by` refuses a dropped replacement (those dependents could never become ready) and refuses when re-pointing would close a cycle.
 
+### `flow move <id>... <home|folder>`
+
+Moves tickets to another place: `home`, the tickets in `~/.flow/` that belong to no project, or another project's folder. Each takes the next number there, keeps its old id as `was:`, and carries its whole folder, the files a prototype installed included.
+
+```text
+$ flow move exp-3 home
+exp-3 → home-2   Budget page
+
+the old id still finds it from the project: flow exp-3
+```
+
+Links among the moved tickets are rewritten to their new ids. A link from a ticket staying behind refuses the move and names the ticket, since a link across 2 places could never be followed: move both, or remove the link first.
+
+### `flow load <word>`
+
+What the first line of each phase skill runs. A line in a skill that starts with `` !` `` is a shell command: Claude Code runs it as the skill loads, and pastes what it prints into the skill. `$0` is the first word you typed after the skill's name, so each phase skill opens with:
+
+```md
+!`flow load "$0"`
+```
+
+A word shaped like a ticket id, `47`, `exp-47` or `exp-47-parser-split`, prints the ticket and its open files, as `flow get <id> --files` does. Any other word starts an instruction, `/flow:groundwork start from the migration cost`, and prints nothing. A refusal prints as text and exits 0, so it lands in the skill instead of breaking it.
+
+### `flow handoff <id>`
+
+Adds a line to the ticket's `history.md` saying this session handed the work on. `/flow:handoff` runs it after writing the ticket's `## State`, so the history names every session the work passed through, not only the ones that moved its status.
+
+```text
+$ flow handoff exp-2
+exp-2  handoff noted in .flow/tickets/exp-2-budget-store/history.md
+```
+
 ## Status verbs
 
 Every status is a command, named for where the ticket lands:
@@ -563,6 +661,20 @@ The lifecycle runs left to right: `todo → groundwork → planning → building
 
 There is no `flow dropped` command. Dropping uses `flow drop` instead, because it must also repair or cascade dependents.
 
+### What a move records
+
+Tickets live on their own branch, apart from the code, so a ticket records the rest itself:
+
+- **`branch:`** in `ticket.md`: the code branch checked out when the ticket first reaches `building` or `review`. Written once. `flow <id>` adds `(checked out here: main)` to the line where you are on another branch, and `/flow:start` stops to tell you before routing.
+- **`history.md`** in the ticket's folder: one line per move, and per [`flow handoff`](#flow-handoff-id). Each holds the date, the move, the Claude Code session, its title, and the branch:
+
+```text
+2026-09-29 14:02  todo → building   a1b2c3d4-…  "Budget page"   feature/budgets
+2026-09-30 09:40  handoff           e5f6a7b8-…  "Budget tests"  feature/budgets
+```
+
+The session id comes from `CLAUDE_CODE_SESSION_ID`, which Claude Code sets for every command it runs. `claude --resume <id>` reopens that conversation, on the machine that ran it. The title is the one `/rename` gave the session, or else the one Claude Code made up. A move typed in a terminal outside a session writes `-` for both.
+
 ### Entry status
 
 Where a ticket starts depends on its type:
@@ -570,13 +682,13 @@ Where a ticket starts depends on its type:
 - **Features, chores, topics** open at `groundwork`: questions to settle first
 - **Issues and prototypes** open at `building`: no separate groundwork phase, the investigation happens while building
 
-`flow <id>` prints the pickup command: `pick up with: flow groundwork t047` or `pick up with: flow build t047`.
+`flow <id>` prints the pickup command: `pick up with: flow groundwork exp-47` or `pick up with: flow build exp-47`.
 
 ### Parking and reviving
 
 `flow park <id> --reason "<why>"` stores the status the ticket was in before parking. Reviving means typing the verb for that stored status: a feature parked at `building` is revived with `flow build <id>`, and it comes back at `building` rather than restarting at `groundwork`. The reason is cleared on revival.
 
-`flow <id>` prints the revive command: `pick up with: flow build t047`.
+`flow <id>` prints the revive command: `pick up with: flow build exp-47`.
 
 ### What blocks a move
 
@@ -593,7 +705,7 @@ Four guards, each refused with a message explaining what to do:
 
 A ticket with no priority inherits the nearest ancestor's through the parent chain. Marking one parent `high` lifts a whole feature without touching any child. An explicit value always beats an inherited one, so a `low` chore under a `high` feature stays `low`.
 
-`flow get <id>` spells out the inheritance: `priority: high (inherited from t012)`.
+`flow get <id>` spells out the inheritance: `priority: high (inherited from exp-12)`.
 
 ## Cases
 
@@ -666,7 +778,7 @@ The commands:
 
 **The level comes from a flag.** No flag is this project, `--machine` this machine, and `--global` every machine. Each level is one settings file, holding a `skills` key with a line per name switched:
 
-- **This project**: `<project>/.flow/settings.json`, committed with the project, so a fresh clone of it gets its skills back.
+- **This project**: `<project>/.flow/settings.json`, committed on the project's branch `flow`, so a fresh clone of it gets its skills back.
 - **This machine**: `~/.flow/settings.local.json`, which stays on this machine.
 - **Every machine**: `~/.flow/settings.json`, which [`flow sync`](#flow-sync) carries to your other machines.
 
@@ -835,11 +947,11 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 
 **The `flow:` in front of every one comes from a single file.** `skills/.claude-plugin/plugin.json` in the clone holds the one word `flow`. `flow install` links the whole set into `~/.agents/skills/flow/`, beside a copy of that file, and links `~/.claude/skills/flow` to the same folder. Both Claude Code and Codex read the file and offer every skill below it as `flow:<name>`, so no folder and no `SKILL.md` in the clone carries a prefix. Codex spells the same command `$flow:groundwork`. Changing the word in the manifest renames every command at once. [`flow skills on review --machine`](#flow-skills) adds one of the 2 `dev/` skills to every session on the machine.
 
-**`phases/`, the four states a piece of work passes through.** Shown in every session. Each takes a ticket id, `/flow:execute t047`, and loads the ticket and its files itself. Typed bare, it loads nothing.
+**`phases/`, the four states a piece of work passes through.** Shown in every session. Each takes a ticket id, `/flow:execute exp-47`, and loads the ticket and its files itself. Typed bare, it loads nothing.
 
 - **`/flow:groundwork`**: refines the idea and designs the solution, walking every open decision including the ones nobody raised
 - **`/flow:execute`**: builds one ticket, plan through review
-- **`/flow:prototype`**: throwaway code answering one question, and a report of what it found. Naive on purpose
+- **`/flow:prototype`**: naive code answering one question, kept in its ticket beside a report of what it found. Never promoted
 - **`/flow:debug`**: finds the cause by evidence, proves it, fixes it
 
 **`tools/`, the jobs that fit no phase.** Shown in every session.
@@ -876,14 +988,14 @@ Flow's rules send every file an agent opens through Read, Claude Code's own tool
 
 Two files, and Flow contributes to one of them.
 
-**`~/.claude/settings.json`** is Claude Code's, and `flow install` never writes it. `flow setup` merges Flow's keys into it, key by key. Flow contributes four keys:
+**`~/.claude/settings.json`** is Claude Code's. The links half of `flow install` never writes it, and the setup session merges Flow's keys into it, key by key. Flow contributes 4 keys:
 
 - **`hooks`**: 9 jobs. `guard.js` asks you before a shell command that could do harm: losing work git cannot give back, sending data off the machine, changing a shared system such as a deploy or a database, changing the machine outside the project, or running downloaded code. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill before it loads: on a machine not set up, outside a project where a ticket id needs one, and on an id that matches nothing. `overlays.js` hands the agent the project's overlay each time a skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `failures.js` writes a line into the failure log whenever an MCP tool, a Flow command or an API call fails. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
 - **`permissions`**: an allow list, an ask list and a deny list. The allow list covers edits, reads, web lookups and every shell command. The ask list makes a commit, a push and a package publish ask you every time. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `su`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first
 
-A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. `flow setup` also writes `skillOverrides`, Claude Code's key for hiding a skill, for each skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
+A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. The setup session also writes `skillOverrides`, Claude Code's key for hiding a skill, for each skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
 
 **`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your other machines: `~/.flow/` is one git repository they all share, and the local file is the part git ignores. Together they hold 10 keys:
 
@@ -891,7 +1003,7 @@ A project overrides any of them in its own `.claude/settings.json`, and the two 
 - **`skills`**: which skills are switched on or off, a line per name, in either file and in a project's `.flow/settings.json`. The nearest file wins, name by name. `flow skills` writes it
 - **`reminder`**: whether the reminder prints beside every message, in the shared file. `false` silences it, and every line Flow prints by itself gets a key like it
 - **`sessionCheck`**: whether the line naming what needs attention prints when a session opens, in the shared file. `false` silences it
-- **`setupReminder`**: whether a session opened in a git repository with no `.flow/` suggests `flow setup project`, in the shared file. `false` turns it off
+- **`setupReminder`**: whether a session opened in a git repository with no `.flow/` suggests `flow init`, in the shared file. `false` turns it off
 - **`setupReminderSkip`**: folders that line never shows in, each with everything below it, in the local file
 - **`skillsAutoUpdate`**: whether every skill repository pulls itself when a session opens, in the shared file. `false` turns each pull into a fetch that names what is waiting
 - **`wrapUp`**: whether the agent is told to hand off once the conversation passes a size, in the shared file. `false` silences it
@@ -916,7 +1028,7 @@ flow settings on setupReminder             # undoes the first
 setting           state  level
 reminder          on                  a line beside every message, pointing Claude at the reply rules
 sessionCheck      on                  what needs attention, when a session opens
-setupReminder     off    this folder  suggests flow setup project where a repository or old memory needs it
+setupReminder     off    this folder  suggests flow init where a repository or old memory needs it
 skillsAutoUpdate  on                  each skill repository updates itself when a session opens
 wrapUp            on                  tells Claude to hand off once the conversation passes wrapUpAt tokens
 ```

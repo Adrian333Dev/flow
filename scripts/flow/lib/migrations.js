@@ -1,7 +1,7 @@
 'use strict';
 /**
  * Migrations: a change to where Flow and the harnesses keep their files,
- * written by `flow setup`, `flow setup project` or `flow up`.
+ * written by `flow install`, `flow init` or `flow update`.
  *
  *   ~/.flow/migrations/<machine or project>/<date-time>/
  *   ├─ migration.md   one line per change: write, delete, move or run
@@ -80,9 +80,9 @@ function run(at) {
  */
 function resume(found) {
   const inside = found.project ? `in ${found.project.replace(os.homedir(), '~')}, ` : '';
-  if (found.type === 'setup-machine') return 'run flow setup';
-  if (found.type === 'setup-project') return `${inside}run flow setup project`;
-  if (found.type === 'migrate') return 'run flow up';
+  if (found.type === 'setup-machine') return 'run flow install';
+  if (found.type === 'setup-project') return `${inside}run flow init`;
+  if (found.type === 'migrate') return 'run flow update';
   return 'open the run that wrote it again';
 }
 

@@ -27,7 +27,7 @@ const audit = require('./commands/audit');
 const scorecard = require('./commands/scorecard');
 const contribute = require('./commands/contribute');
 const restore = require('./commands/restore');
-const setup = require('./commands/setup');
+const init = require('./commands/init');
 const up = require('./commands/up');
 const settingsCommand = require('./commands/settings');
 
@@ -44,14 +44,16 @@ const TITLE = 'flow: tickets, computed from .flow/tickets/';
 
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
- * name of their own: `flow ls`, `flow build t047`. `cases` keeps a group of
+ * name of their own: `flow ls`, `flow build exp-47`. `cases` keeps a group of
  * its own, being a different stored thing and typed a tenth as often.
  *
  * The order inside each section is the order help prints it. A command whose
  * section is missing here still runs and never prints: `contribute` waits
  * there for the one sharing command that replaces it after V1.
  */
-const commands = { ...board, ...tickets.actions, ...install, ...doctor, ...up, ...sync, ...uninstall, ...scorecard, ...contribute };
+const commands = {
+  ...board, ...tickets.actions, ...install, ...init, ...up, ...sync, ...doctor, ...uninstall, ...scorecard, ...contribute,
+};
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
@@ -62,14 +64,16 @@ const SECTIONS = [
 ];
 
 const NOTES = `shape   flow <command> [id] [--flags]. A word naming no command is read as a
-        ticket id, which is what makes flow t047 show one
-ids     t047-parser-split. The number is the identity and the label is
-        decoration, so t047, 47, parser and the whole thing all resolve. A
-        ticket is never renamed, so a label that goes stale breaks nothing
+        ticket id, which is what makes flow exp-47 show one
+ids     exp-47-parser-split: the project's prefix, a number, then a label.
+        The id is the identity and the label is decoration, so exp-47, 47,
+        parser and the whole thing all resolve. A bare number is the current
+        place's ticket, and home-4 is one in ~/.flow/. A ticket is never
+        renamed, so a label that goes stale breaks nothing
 layout  .flow/tickets/<id>-<label>/: ticket.md and groundwork/ from birth,
-        plan.md and reports/ written by the work. One report per thing
-        answered, named after what it answers, whether a hunt found it or a
-        prototype did. Done and dropped tickets move to .flow/tickets/archive/
+        plan.md, reports/ and protos/<name>/ written by the work. One report
+        per thing answered, named after what it answers, whether a hunt
+        found it or a prototype did. Done and dropped tickets move to .flow/tickets/archive/
         and move back if reopened
 steps   flow <id> counts the checkboxes in plan.md and in groundwork/map.md
         each time it prints, so neither count can drift from its file. The
@@ -87,7 +91,7 @@ resume  flow get --files reads the ticket, then every file named in its
         src/parser.js:40-120. Nothing is truncated
 park    parking stores the status it left, and reviving is the verb for that
         status. A feature parked at building comes back at building
-parent  a ticket split out of another carries parent: t047. Disk stays flat;
+parent  a ticket split out of another carries parent: exp-47. Disk stays flat;
         the hierarchy is frontmatter. A parent waits while its children are
         open (it leaves flow next, and picking it up refuses) then returns
         for whatever work no child holds
@@ -127,7 +131,7 @@ share   a finding for a domain skill waits in .flow/findings/<skill>/, where
         /flow:file-findings moves it on a yes. It stays there until Flow's
         sharing command ships, after V1
 migrate a change to where Flow and the harnesses keep their files, written
-        by flow setup, flow setup project or flow up into
+        by flow install, flow init or flow update into
         ~/.flow/migrations/<machine or project>/<time>/: migration.md lists
         each change, files/ holds each new version. After your yes the session
         runs ~/.flow/scripts/apply-migration.js, which never touches a path
@@ -175,7 +179,7 @@ checks  a rule check is one file in ~/.flow/scripts/rule-checks/, named after
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, skills, settings: settingsCommand, audit, restore, setup },
+    groups: { cases, skills, settings: settingsCommand, audit, restore },
     check: (action, flags) => (action.anywhere ? null : machine.requireSetup(flags.root)),
     fallback: tickets.fallback,
     sections: SECTIONS,

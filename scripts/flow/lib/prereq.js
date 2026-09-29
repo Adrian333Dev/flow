@@ -8,7 +8,7 @@
  * treated as a wall. util is one of those: `flow install` clones and links it.
  *
  * Two callers, and a failure stops both. The check each session Flow opens
- * runs first, `flow setup check` and `flow up check`, runs this list: one
+ * runs first, `flow install check` and `flow update check`, runs this list: one
  * command with an exit code, in place of an agent typing shell lines and
  * reading them back. `apply-migration.js` runs the same list again before it
  * changes its first path, so a session that skipped its check still writes

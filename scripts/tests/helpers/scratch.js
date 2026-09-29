@@ -42,11 +42,16 @@ process.env.FLOW_HOME_REMOTE = process.env.FLOW_HOME_REMOTE || path.join(SCRATCH
 // hardware, and PowerShell under WSL, what sort of computer this is.
 process.env.FLOW_MACHINE_DEFAULT = process.env.FLOW_MACHINE_DEFAULT || 'test-machine';
 
-/** A fresh empty project folder, already in Flow. `name` keeps tests apart. */
+/**
+ * A fresh empty project folder, already in Flow, whose tickets are `exp-1`,
+ * `exp-2`. `name` keeps tests apart. Its `.flow/` is a plain folder, the way
+ * `flow init --local` keeps it, so no command here commits.
+ */
 function project(name) {
   const dir = path.join(SCRATCH, name);
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(path.join(dir, '.flow'), { recursive: true });
+  fs.writeFileSync(path.join(dir, '.flow', 'settings.json'), '{\n  "ticketPrefix": "exp"\n}\n');
   setUp(path.join(dir, 'flow-home'));
   return dir;
 }
@@ -64,7 +69,7 @@ function setUp(home) {
 }
 
 /**
- * The half of a machine `flow setup` writes: the rule file, the one
+ * The half of a machine `flow install` writes: the rule file, the one
  * line importing it, and the version stamp its last step leaves behind.
  *
  * `flow install` stopped writing all 3 on 2026-09-20, because the rule file is

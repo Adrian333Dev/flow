@@ -1,6 +1,6 @@
 # This session sets up this project
 
-`flow setup project` opened this session in the project's folder. This run reads the project, sorts everything worth keeping into Flow's places, and writes one form, `migration.md`, which the user reads and approves once. It asks the user nothing. Nothing in the project changes before that yes.
+`flow init` opened this session in the project's folder. This run reads the project, sorts everything worth keeping into Flow's places, and writes one form, `migration.md`, which the user reads and approves once. It asks the user nothing. Nothing in the project changes before that yes.
 
 Flow's rules and hooks are loaded. Nothing of the project's is: no `CLAUDE.md`, no skill, no setting, no MCP server. `~/.flow/run.json` names the project, its Claude Code memory folder, and the migration folder under `~/.flow/migrations/`. Edits inside `~/.flow/` go through without asking.
 
@@ -17,7 +17,7 @@ A message starting `Carry on` is the same job, stopped part way.
 
 ## Steps
 
-0. **`flow setup project check`.** A failure → print what it said and stop.
+0. **`flow init check`.** A failure → print what it said and stop.
    - `step` in `run.json` above 0 → a run stopped part way. Carry on from the step after it, and tell the user in one line.
    - Rewrite `step` in `run.json` as each step below finishes.
 1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, every file in `project-template/`, and the form's template, `~/.flow/scripts/flow/setup/project-form.md`.
@@ -30,8 +30,8 @@ A message starting `Carry on` is the same job, stopped part way.
 6. **Carry the form into the files.** `## After the yes` below.
 7. **Apply it**: `node ~/.flow/scripts/apply-migration.js <migration>`. A refusal → print it whole and stop. It stopped part way → say which line and why, and stop: running it again carries on from that line.
 8. **Check it**: `flow doctor`. Its `run.json` line is expected until step 9. Any other problem → name it, with the fix doctor gives, in the last message. It never holds back the stamp.
-9. **Stamp it**: `flow setup project finish`.
-10. **The last message**: what changed, in the form's own words; that nothing is committed; `flow restore project` to undo it all; then "Quit this session and start `claude` again: this project's new rules load when a session starts."
+9. **Stamp it**: `flow init finish`.
+10. **The last message**: what changed, in the form's own words; that nothing in the code is committed, while the tickets are saved on the branch `flow`; `flow restore project` to undo it all; then "Quit this session and start `claude` again: this project's new rules load when a session starts."
 
 ## Reading the project
 
@@ -89,7 +89,7 @@ Every new version goes under `files/<full path>`, beside the form. `project-temp
 - **`.claude/settings.local.json`**: the same, where one exists.
 - **`.gitignore`**: the project's lines, then each line of the template's it lacks.
 - **`.uncommitted-include`**: the template's, where the project has none.
-- **`.flow/settings.json`**: `{}`. `flow` reads a project by this folder existing.
+- **`.flow/settings.json`**: a copy of the project's own, which `flow init` wrote before this session opened. It holds `ticketPrefix`, the word every ticket id here starts with, and `flow` reads a project by this folder existing.
 - **`.flow/tickets/`**: made by `flow new` once `.flow/settings.json` is written, run with `FLOW_PROJECT` set to the project's folder under `files/`, so every ticket has the format and number `flow` gives it.
 - **`.flow/inbox.md`**, **`.flow/findings/`**, **`docs/context/`**: where there is something to put in them.
 - **`~/.flow/AGENTS.md`**: the machine's file, with the user's new lines added.
@@ -124,4 +124,4 @@ Every `write` line still needs its file under `files/`, and every `delete` line 
 - **Step 2**: read the memory folder `run.json` names, and the project's own `AGENTS.md` and `docs/context/`, to know what is already kept. Nothing else.
 - **Step 3**: sort each memory line by `## Where each finding goes`. Skip a line the project's files already say. No ticket from the 2 always-written ones.
 - **The form** holds only the sections with a line, and the memory folder's box under `## 🔴 Removed unless you untick it`.
-- **Step 9 is `flow setup project finish` all the same.** It ends the run and leaves the project's version alone.
+- **Step 9 is `flow init finish` all the same.** It ends the run and leaves the project's version alone.

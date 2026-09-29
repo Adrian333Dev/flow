@@ -4,7 +4,7 @@ description: Builds one ticket, plan through review.
 argument-hint: '[ticket-id]'
 ---
 
-!`case "$0" in t[0-9]*) flow get $0 --files 2>&1 || true;; esac`
+!`flow load "$0"`
 
 $ARGUMENTS
 
@@ -19,9 +19,9 @@ groundwork → planning → building → review → done
              Phase 1–2   Phase 3   Phase 4
 ```
 
-Each move is one command, named after where it lands: `flow plan t047`, `flow build t047`, `flow review t047`, `flow done t047`. **2 gates, both the user's**: the plan before `building`, the work before `done`. Nothing else in the loop stops.
+Each move is one command, named after where it lands: `flow plan exp-47`, `flow build exp-47`, `flow review exp-47`, `flow done exp-47`. **2 gates, both the user's**: the plan before `building`, the work before `done`. Nothing else in the loop stops.
 
-Never build a child's work in its parent. `flow ls --parent t047` lists them; the parent keeps whatever none of them holds, and picking it up or planning it refuses until they close.
+Never build a child's work in its parent. `flow ls --parent exp-47` lists them; the parent keeps whatever none of them holds, and picking it up or planning it refuses until they close.
 
 ## Phase 1: pick up
 
@@ -29,14 +29,14 @@ Never build a child's work in its parent. `flow ls --parent t047` lists them; th
 
 **`/flow:start` already moved it only where the user named the status**, and a line like `planning → building` above says so. Take the row for where it landed.
 
-- **`todo`**: `/flow:start` found the ticket decided → `flow plan t047`, then Phase 2
-- **`planning`**: open `plan.md`. Written and approved → `flow build t047`, then Phase 3. Otherwise finish writing it
-- **`building`**: open `plan.md`. Every step `[x]` → Phase 4. Otherwise resume at the first `[ ]`; `flow t047` prints the count
+- **`todo`**: `/flow:start` found the ticket decided → `flow plan exp-47`, then Phase 2
+- **`planning`**: open `plan.md`. Written and approved → `flow build exp-47`, then Phase 3. Otherwise finish writing it
+- **`building`**: open `plan.md`. Every step `[x]` → Phase 4. Otherwise resume at the first `[ ]`; `flow exp-47` prints the count
 - **`review`**: the work is with the user, and their notes start `### When the user sends review notes`
 
 Then read the ticket body and its `## State` where one exists.
 
-**A `map:` count short of its own total is groundwork that never closed.** Say which questions are open, run `flow groundwork t047`, and hand it to `/flow:groundwork`. No `map:` line is normal: a ticket cut from a spec never had a map.
+**A `map:` count short of its own total is groundwork that never closed.** Say which questions are open, run `flow groundwork exp-47`, and hand it to `/flow:groundwork`. No `map:` line is normal: a ticket cut from a spec never had a map.
 
 **A ticket born in conversation often has no `## Done when`**: `--body` replaces the template outright, so whether the section exists depends on who wrote it. No check → write it here and show it with the plan. A ticket cut from a spec arrived with one.
 
@@ -106,7 +106,7 @@ The worker spends its own context on the repetition instead of yours. A step nee
 
 **A step may touch several files and still be one step.** Step boundaries come from finishable-and-checkable; the file count only decides who types it.
 
-**A job a separate session picks up is a child ticket instead**: `/flow:handoff` writes it with `--parent t047`. Several can be open at once, and one session edits the working folder at a time. Closing this ticket refuses while any is open. A worker dispatched for a step never needs one.
+**A job a separate session picks up is a child ticket instead**: `/flow:handoff` writes it with `--parent exp-47`. Several can be open at once, and one session edits the working folder at a time. Closing this ticket refuses while any is open. A worker dispatched for a step never needs one.
 
 ### Dispatching a step
 
@@ -151,11 +151,11 @@ Something turns up mid-build that the plan did not account for. 4 outcomes, and 
 - **Rewrite the plan in place**: the discovery changes how _this_ ticket gets built. Yours, and say what changed.
 - **New ticket**: the work is genuinely separable: finishable and checkable without this one. Propose it.
 - **Back to `groundwork`**: what you built changed what this ticket should be. **When the built thing is wrong**, in Phase 4.
-- **Drop this ticket**: the discovery invalidates it. Propose it; on a yes, `flow drop t047 --reason "<why>" --by <id>` re-points anything that depended on it.
+- **Drop this ticket**: the discovery invalidates it. Propose it; on a yes, `flow drop exp-47 --reason "<why>" --by <id>` re-points anything that depended on it.
 
 ## Phase 4: review and finish
 
-Every step `[x]` → run the full suite Pass 1 named → review it → `flow review t047`.
+Every step `[x]` → run the full suite Pass 1 named → review it → `flow review exp-47`.
 
 **Verification is fresh or it does not count.** Run the suite in the turn you report it; a pass from 3 steps ago says nothing about the step you just finished.
 
@@ -174,9 +174,9 @@ Read the whole list before touching anything. **Anything you do not understand s
 
 Check each note against the code. A note that would break something gets said so, once, with the reason.
 
-**Then `flow build t047`, before the first edit.** A ticket left in `review` while its code is being rewritten reports itself as waiting on the user. Every ticket depending on it then reads as ready, so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps; the old ones are all `[x]` and record none of it.
+**Then `flow build exp-47`, before the first edit.** A ticket left in `review` while its code is being rewritten reports itself as waiting on the user. Every ticket depending on it then reads as ready, so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps; the old ones are all `[x]` and record none of it.
 
-Then `flow done t047`, once the user says it is done.
+Then `flow done exp-47`, once the user says it is done.
 
 **Then offer `/flow:file-findings`, and wait for a yes.** It is what turns this ticket into a skill, a rule or a check, and nothing else drains the inbox. Offering is the whole job here: never invoke it unasked.
 
@@ -188,7 +188,7 @@ They tested it and it is not what they wanted, not a list of corrections, a diff
 
 1. **Write what building it taught into `issues.md`**, before anything moves. The reopened map runs on it, and left in the conversation it is gone by the next session.
 2. **Ask what happens to the code**: kept as reference, or reverted. Print the git command; the user runs it. A rejected implementation left in the tree is what the next build starts from.
-3. **`flow groundwork t047`**, then `/flow:groundwork`. Read what it prints: leaving `review` stops satisfying other tickets' `deps`, so work that was ready stops being ready.
+3. **`flow groundwork exp-47`**, then `/flow:groundwork`. Read what it prints: leaving `review` stops satisfying other tickets' `deps`, so work that was ready stops being ready.
 4. **`plan.md` is replaced, never extended.** Every step is `[x]` and all of them describe the old shape. Phase 1 writes the new one against the code as it stands that day.
 
 ## The ticket folder

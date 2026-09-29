@@ -19,13 +19,15 @@
  * applies here. When that changed a link it asks Claude Code to scan the skill
  * folders again (`reloadSkills`), so the first prompt already sees the change.
  *
- * The one thing it starts is scripts/skills-pull.js, detached, which brings
- * every skill repository up to date in the background, and fetches the Flow
- * home's repository so a machine another one moved ahead of says so. Starting a process is
- * not waiting for one: the hook returns before the pull has reached the
- * network, and what the pull finds is printed by the session after it.
+ * It starts 2 things, both detached. scripts/skills-pull.js brings every skill
+ * repository up to date in the background, and fetches the Flow home's
+ * repository so a machine another one moved ahead of says so. In a project on
+ * a `flow` branch, scripts/records-sync.js pulls the tickets and sends what
+ * this machine left unsent. Starting a process is not waiting for one: the
+ * hook returns before either has reached the network, and what the skills
+ * pull finds is printed by the session after it.
  *
- * In a git repository with no `.flow/` it also suggests `flow setup project`,
+ * In a git repository with no `.flow/` it also suggests `flow init`,
  * to the user alone, and in a project set up elsewhere whose old Claude Code
  * memory sits on this machine. `setupReminder()` holds the rules.
  *
@@ -40,6 +42,7 @@ const { cloneRoot } = require('./flow/lib/clone');
 const flowRepo = require('./flow/lib/flow-repo');
 const machine = require('./flow/lib/machine');
 const migrations = require('./flow/lib/migrations');
+const records = require('./flow/lib/records');
 const settings = require('./flow/lib/settings');
 const links = require('./flow/lib/skill-links');
 const skills = require('./flow/lib/skills');
@@ -99,15 +102,15 @@ function attention(at, cwd) {
   const other = mine.state === 'ok' ? flowRepo.ahead(at, mine.number) : null;
 
   if (mine.state === 'missing') {
-    out.push('this machine carries no version stamp, so flow setup never reached its last step. Run flow setup.');
+    out.push('this machine carries no version stamp, so flow install never reached its last step. Run flow install.');
   } else if (mine.state === 'unreadable') {
     out.push(`~/.flow/version holds "${mine.text}", and it holds one changelog entry number and nothing else. Run flow doctor.`);
   } else if (newest !== null && mine.number > newest) {
     out.push(`this machine is at entry ${mine.number} and the changelog stops at ${newest}, so the clone moved backwards. Run flow doctor.`);
   } else if (other) {
-    out.push(`${other.name} is on changelog entry ${other.number}, and this machine is on ${mine.number}, so flow sync waits. Run flow up in a terminal.`);
+    out.push(`${other.name} is on changelog entry ${other.number}, and this machine is on ${mine.number}, so flow sync waits. Run flow update in a terminal.`);
   } else if (newest !== null && mine.number < newest) {
-    out.push(`this machine is at changelog entry ${mine.number}, and ${newest} is the newest. Run flow up in a terminal to catch up.`);
+    out.push(`this machine is at changelog entry ${mine.number}, and ${newest} is the newest. Run flow update in a terminal to catch up.`);
   }
 
   const root = projectRoot(cwd, at);
@@ -116,11 +119,11 @@ function attention(at, cwd) {
   const name = path.basename(root);
   const theirs = version.applied(path.join(root, '.flow', 'version'));
   if (theirs.state === 'missing') {
-    out.push(`${name} carries no version stamp, so flow setup project never reached its last step. Type flow setup project.`);
+    out.push(`${name} carries no version stamp, so flow init never reached its last step. Type flow init.`);
   } else if (theirs.state === 'unreadable') {
     out.push(`${name}/.flow/version holds "${theirs.text}", and it holds one changelog entry number and nothing else. Run flow doctor.`);
   } else if (mine.state === 'ok' && theirs.number < mine.number) {
-    out.push(`${name} is at changelog entry ${theirs.number}, and this machine is at ${mine.number}. Run flow up in a terminal, inside it.`);
+    out.push(`${name} is at changelog entry ${theirs.number}, and this machine is at ${mine.number}. Run flow update in a terminal, inside it.`);
   } else if (mine.state === 'ok' && theirs.number > mine.number) {
     out.push(`${name} is at entry ${theirs.number} and this machine is at ${mine.number}, so the project is ahead of the machine. Run flow doctor.`);
   }
@@ -146,7 +149,7 @@ function skipped(at, cwd) {
 }
 
 /**
- * The line suggesting `flow setup project`, or null.
+ * The line suggesting `flow init`, or null.
  *
  * It needs a git repository, since not every folder is a project and a folder
  * git does not track rarely becomes one. The home folder and `~/.flow/` are
@@ -173,14 +176,14 @@ function setupReminder(at, cwd) {
     } catch {
       // No memory for this project on this machine.
     }
-    return held.length ? 'Flow: old Claude Code memory here. Run flow setup project to fold it in.' : null;
+    return held.length ? 'Flow: old Claude Code memory here. Run flow init to fold it in.' : null;
   }
 
   const git = spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd, encoding: 'utf8' });
   if (git.status !== 0) return null;
   const repo = real(git.stdout.trim());
   if (repo === real(at.base) || repo === real(at.flow)) return null;
-  return 'Flow: not set up here. Run flow setup project to add it, or flow settings off setupReminder to stop this.';
+  return 'Flow: not set up here. Run flow init to add it, or flow settings off setupReminder to stop this.';
 }
 
 /**
@@ -206,6 +209,22 @@ function relink(at, cwd) {
 function startPull(at) {
   if (!update.due(at) && !flowRepo.fetchDue(at)) return;
   const child = spawn(process.execPath, [path.join(__dirname, 'skills-pull.js')], {
+    detached: true,
+    stdio: 'ignore',
+  });
+  child.unref();
+}
+
+/**
+ * Bring the project's tickets up to date, and send what this machine left
+ * unsent, without waiting: `records-sync.js` runs the pull and the push on the
+ * project's `flow` branch, detached. A local project, or a folder with no
+ * branch, starts nothing.
+ */
+function startRecordsPull(at, cwd) {
+  const root = projectRoot(cwd, at);
+  if (!root || !records.onBranch(root)) return;
+  const child = spawn(process.execPath, [path.join(__dirname, 'records-sync.js'), '--project', root, '--now'], {
     detached: true,
     stdio: 'ignore',
   });
@@ -251,6 +270,7 @@ try {
   }
 
   startPull(at);
+  startRecordsPull(at, cwd);
 } catch {
   // A session opens whatever this finds. Silence is the whole fallback.
 }

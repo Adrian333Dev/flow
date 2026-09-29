@@ -27,7 +27,7 @@ const settings = require('../lib/settings');
 const SETTINGS = [
   { key: 'reminder', says: 'a line beside every message, pointing Claude at the reply rules' },
   { key: 'sessionCheck', says: 'what needs attention, when a session opens' },
-  { key: 'setupReminder', says: 'suggests flow setup project where a repository or old memory needs it', skip: 'setupReminderSkip' },
+  { key: 'setupReminder', says: 'suggests flow init where a repository or old memory needs it', skip: 'setupReminderSkip' },
   { key: 'skillsAutoUpdate', says: 'each skill repository updates itself when a session opens' },
   { key: 'wrapUp', says: 'tells Claude to hand off once the conversation passes wrapUpAt tokens' },
 ];

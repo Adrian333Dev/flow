@@ -1,6 +1,6 @@
 # Upgrade guides
 
-One guide per changelog entry, holding everything the session `flow up` opens needs to move a machine or a project from the entry before it to this one. `CHANGELOG.md` says what changed, in a sentence, for a user reading it. The guide says how to do it, and the agent works nothing out for itself.
+One guide per changelog entry, holding everything the session `flow update` opens needs to move a machine or a project from the entry before it to this one. `CHANGELOG.md` says what changed, in a sentence, for a user reading it. The guide says how to do it, and the agent works nothing out for itself.
 
 ## Where they live
 
@@ -13,7 +13,7 @@ One guide per changelog entry, holding everything the session `flow up` opens ne
 A machine at 8 reads `9.md`, `10.md`, `11.md` and `12.md`, in that order, and writes one `migration.md` from the 4.
 
 - **A guide names the state each path ends in, never a patch to apply.** Where 2 guides name one path, the later one is the answer and there is nothing to reconcile. Patches applied in sequence break on any line that moved in between.
-- **The newest steps always run.** `flow up` pulls the clone before it opens the session, so a guide never has to allow for older migration steps.
+- **The newest steps always run.** `flow update` pulls the clone before it opens the session, so a guide never has to allow for older migration steps.
 - **An entry that moves nothing on a machine or in a project gets no guide**, and that is most of them. A guide is written in the same edit as its entry, never later.
 
 ## What a guide holds

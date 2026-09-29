@@ -15,8 +15,8 @@ A ticket's status is one line in its header, `status: building`, and it is the o
 The status is never edited by hand. Each move is a `flow` command named for where the ticket lands, and the command prints the move it made:
 
 ```sh
-$ flow review t008
-t008  building → review   Rename the auth folder
+$ flow review exp-8
+exp-8  building → review   Rename the auth folder
 ```
 
 The line of statuses runs `todo → groundwork → planning → building → review → done`, and every ticket walks a part of it in that order. Off the line: `flow park` with a reason, and `flow drop`. A move that a guard refuses, such as building a ticket whose dependency is still open, exits with a message naming the flag that overrides it. [Reference](../reference.md) lists the verbs and the guards.
@@ -25,8 +25,8 @@ The line of statuses runs `todo → groundwork → planning → building → rev
 
 The agent runs the verb as part of the phase, never at the end of a session:
 
-- **`/flow:groundwork`** runs `flow groundwork t001` when it opens the map, `flow plan t001` when the map closes and the ticket goes to `/flow:execute`, and `flow done t005` on a topic, where the map was the deliverable.
-- **`/flow:execute`** runs `flow plan t002` when it starts writing the plan, `flow build t002` once you approve the steps, `flow review t002` once every step is checked and the suite passes, and `flow done t002` once you say it is done.
+- **`/flow:groundwork`** runs `flow groundwork exp-1` when it opens the map, `flow plan exp-1` when the map closes and the ticket goes to `/flow:execute`, and `flow done exp-5` on a topic, where the map was the deliverable.
+- **`/flow:execute`** runs `flow plan exp-2` when it starts writing the plan, `flow build exp-2` once you approve the steps, `flow review exp-2` once every step is checked and the suite passes, and `flow done exp-2` once you say it is done.
 - **`/flow:debug`** and **`/flow:prototype`** run `flow build` on arrival. An issue and a prototype have no phase before building.
 
 The agent reads the ticket first and moves it second. A ticket already at the right status gets no command.
@@ -35,8 +35,8 @@ The agent reads the ticket first and moves it second. A ticket already at the ri
 
 The same verbs work from your keyboard, and the agent reads the result the same way. Two places to type one:
 
-- **Shell mode, inside the session.** A line starting with `!` runs as a shell command and its output lands in the conversation: `! flow build t002`. The agent sees the move on its next turn.
-- **A second terminal.** `flow build t002` there writes the same line. The agent sees it the next time it reads the ticket, which every phase skill does on arrival.
+- **Shell mode, inside the session.** A line starting with `!` runs as a shell command and its output lands in the conversation: `! flow build exp-2`. The agent sees the move on its next turn.
+- **A second terminal.** `flow build exp-2` there writes the same line. The agent sees it the next time it reads the ticket, which every phase skill does on arrival.
 
 Both write the same `status:` line, so it never matters who moved it. The next skill reads only that line.
 
@@ -46,4 +46,4 @@ Both write the same `status:` line, so it never matters who moved it. The next s
 
 ## The files outrank the status
 
-The status is a claim somebody wrote. The ticket folder is the evidence: a `plan.md` with unchecked steps, a `map.md` with open questions. Where the two disagree, the skill picking the ticket up trusts the files, says which one disagreed, and writes the correcting command. `flow t002` shows both at once: the status line, and `plan: plan.md 2/4 steps` counted from the file.
+The status is a claim somebody wrote. The ticket folder is the evidence: a `plan.md` with unchecked steps, a `map.md` with open questions. Where the two disagree, the skill picking the ticket up trusts the files, says which one disagreed, and writes the correcting command. `flow exp-2` shows both at once: the status line, and `plan: plan.md 2/4 steps` counted from the file.

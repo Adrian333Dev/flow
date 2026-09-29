@@ -6,7 +6,7 @@
 # It clones Flow into ~/.flow/repos/flow/, then hands over to `flow install`,
 # which does every other step. Running it again changes nothing: a clone that
 # exists is never cloned again, and `flow install` leaves a set-up machine
-# alone. Updating Flow is `flow up`, never this.
+# alone. Updating Flow is `flow update`, never this.
 #
 #   bash install.sh --use <folder>   use that folder as Flow and clone nothing
 #

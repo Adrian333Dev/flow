@@ -34,9 +34,13 @@
  *                 change Flow made, every failure, every rule check
  *   skills-update.*   what this machine's source clones are behind by, and
  *                 the lock the job that reads it holds
+ *   records-sync.json   when this machine last sent each project's tickets
+ *                 and this folder, which paces the Stop hook's sends
  *   audit/, changes/   what this machine's sessions left: the transcript
  *                 index, and what each subagent changed
  *   a wiki tool's downloads   pages fetched once per machine
+ *   node_modules/   what a prototype in a ticket installed, fetched again
+ *                 wherever it runs
  *
  * Each machine keeps one record in the repository, `machines/<name>.json`:
  * its name, the day it joined, and the changelog entry it is on. `flow install`
@@ -44,18 +48,19 @@
  * another machine can be offered it. The highest
  * entry among them is the entry the Flow home is on. A machine below it has
  * not run the migration another machine already ran on its own copy, so it
- * neither sends nor fetches until `flow up` brings it level.
+ * neither sends nor fetches until `flow update` brings it level.
  *
  * A commit is named for the machine that made it, `desktop: 2 files`, so a
  * line in a note can be traced to where it was written.
  *
  * `README.md` warns whoever opens the repository on GitHub. The first machine
- * sends it with the first commit, and `flow up` rewrites it.
+ * sends it with the first commit, and `flow update` rewrites it.
  *
- * `flow sync` is typed, and `flow install` connects the repository once. A
- * download when a session opens and an upload when something changed are
- * both parked in `lab/backlog/beta.md`. The one thing that runs by itself is a fetch
- * from `skills-pull.js`, so a session can say another machine moved ahead.
+ * `flow sync` can be typed, and `flow install` connects the repository once.
+ * It also runs by itself, from scripts/records-sync.js: after a status move on
+ * a ticket here, after a reply once 30 minutes have passed, and when a session
+ * ends. `skills-pull.js` fetches it too, so a session can say another machine
+ * moved ahead.
  */
 
 const fs = require('fs');
@@ -89,9 +94,11 @@ const IGNORED = [
   'logs/',
   'skills-update.json',
   'skills-update.lock',
+  'records-sync.json',
   'audit/',
   'changes/',
   'wiki/*/downloads/',
+  'node_modules/',
   '',
 ].join('\n');
 
@@ -422,7 +429,7 @@ function sync(at, mine) {
     const top = highest(at, 'origin/main');
     if (top && top.number > mine) {
       throw new FlowError(`your Flow home is on changelog entry ${top.number}, since ${top.name} moved to it, ` +
-        `and this machine is on ${mine}. Nothing was synced. Run flow up first.`);
+        `and this machine is on ${mine}. Nothing was synced. Run flow update first.`);
     }
   }
 

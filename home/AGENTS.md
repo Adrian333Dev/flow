@@ -83,7 +83,7 @@ One phase at a time:
 
 `util` and `flow` are commands on the `PATH`, run through Bash. `flow` alone and `util ls` print every command with its options.
 
-- `flow <id>`: one ticket in full, such as `flow t047`. `flow` is the ticket system and the only writer of ticket frontmatter.
+- `flow <id>`: one ticket in full, such as `flow exp-47`. `flow` is the ticket system and the only writer of ticket frontmatter.
 - `flow new "<title>"`: create a ticket.
 - `util fs tree [path]`: a folder as a tree, with each file's line count.
 

@@ -95,6 +95,27 @@
         ]
       }
     ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/records-sync.js\" --hook stop",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/records-sync.js\" --hook end"
+          }
+        ]
+      }
+    ],
     "SubagentStart": [
       {
         "hooks": [

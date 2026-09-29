@@ -1,14 +1,15 @@
 'use strict';
 /**
- * `flow setup`: the second half of putting Flow on a machine, after
- * `flow install` made its links.
+ * The setup sessions: the half of putting Flow on a machine or a project that
+ * reads what is already there. `flow install` and `flow init` call into this
+ * file, and it has no command of its own.
  *
- * It opens a Claude Code session that reads the machine and writes one form,
- * a migration the user checks before anything outside `~/.flow/migrations/`
- * changes. `setup/machine.md` beside this folder is what that session follows,
- * and `setup/form.md` the form it fills in. Neither is a skill: the session
- * runs in safe mode, which loads no skill at all, Flow's included, so the text
- * reaches it as an appended system prompt instead.
+ * `start` opens a Claude Code session that reads the machine and writes one
+ * form, a migration the user checks before anything outside
+ * `~/.flow/migrations/` changes. `setup/machine.md` beside this folder is what
+ * that session follows, and `setup/form.md` the form it fills in. Neither is a
+ * skill: the session runs in safe mode, which loads no skill at all, Flow's
+ * included, so the text reaches it as an appended system prompt instead.
  *
  * Safe mode, because it switches off the machine's own rules, skills, plugins
  * and hooks. A plugin such as superpowers tells Claude at the start of every
@@ -18,26 +19,27 @@
  * The permission mode is set too, because the user's own may be auto mode,
  * whose check refused the session's first write in the scratch session of
  * 2026-09-24. acceptEdits lets edits inside `~/.flow/` through, where every
- * file the session writes before the yes lives, and the 3 commands below run
+ * file the session writes before the yes lives, and the commands below run
  * without asking. Anything else asks.
  *
  * `flow install` calls `start` as its last step. Typed again, it carries on
  * a setup that stopped part way, since `~/.flow/run.json` says how far it got.
  *
- * `flow setup project` does the same for one project, typed inside it. In a
- * project already set up, on another machine as a rule, it folds in only the
- * Claude Code memory this machine kept for it from before Flow. That
- * session is a normal one, not safe mode: it needs Flow's rules and hooks,
- * which the machine's setup put in `~/.claude`. `--setting-sources user` and
- * `--strict-mcp-config` keep everything of the project's out, so nothing in
- * the project changes before the user's yes. `setup/project.md` is its text.
+ * `startProject` does the same for one project, where `flow init` finds files
+ * competing with Flow's rules. In a project already set up, on another
+ * machine as a rule, it folds in only the Claude Code memory this machine
+ * kept for it from before Flow. That session is a normal one, not safe mode:
+ * it needs Flow's rules and hooks, which the machine's setup put in
+ * `~/.claude`. `--setting-sources user` and `--strict-mcp-config` keep
+ * everything of the project's out, so nothing in the project changes before
+ * the user's yes. `setup/project.md` is its text.
  *
- *   flow setup                   open the session
- *   flow setup check             what a finished install has, checked
- *   flow setup finish            stamp ~/.flow/version, the session's last step
- *   flow setup project           the same 3, for the project you are in
- *   flow setup project check
- *   flow setup project finish    stamp .flow/version
+ *   flow install          the links, then this session
+ *   flow install check    what a finished install has, checked
+ *   flow install finish   stamp ~/.flow/version, the session's last step
+ *   flow init             the project's session, where one is needed
+ *   flow init check
+ *   flow init finish      stamp .flow/version
  */
 
 const fs = require('fs');
@@ -52,23 +54,25 @@ const installed = require('../lib/installed');
 const machine = require('../lib/machine');
 const originals = require('../lib/originals');
 const prereq = require('../lib/prereq');
+const records = require('../lib/records');
 const repos = require('../lib/repos');
 const version = require('../lib/version');
 
 const show = machine.shorten;
-const root = { arg: '<dir>' };
 
-/** The commands the session runs without asking. Each is Flow's own. */
-const ALLOWED = [
-  'Bash(flow setup:*)',
+/** The commands both sessions run without asking. Each is Flow's own. */
+const SHARED = [
   'Bash(flow doctor:*)',
   'Bash(node ~/.flow/scripts/apply-migration.js:*)',
   // Flow's rules send every look at a folder through this, never ls.
   'Bash(util fs tree:*)',
 ];
 
-/** What the project session runs without asking: the same, plus git's list of what it keeps. */
-const PROJECT_ALLOWED = [...ALLOWED, 'Bash(git ls-files:*)'];
+/** What the machine's session runs without asking. */
+const ALLOWED = ['Bash(flow install:*)', ...SHARED];
+
+/** What the project session runs without asking: its own command, and git's list of what the project keeps. */
+const PROJECT_ALLOWED = ['Bash(flow init:*)', ...SHARED, 'Bash(git ls-files:*)'];
 
 /** util's names, which util's own installer links beside Flow's. */
 const UTIL_BIN = ['util', 'u'];
@@ -150,7 +154,7 @@ function start(at, clone, rootFlag) {
   if (problems.length) {
     throw new FlowError(
       `the install is not finished, so setup has not started:\n${problems.map((p) => `  ${p}`).join('\n')}\n` +
-      '  Run flow install, which puts every one of these in place, then flow setup.'
+      '  Run flow install again, which puts every one of these in place, then opens the session.'
     );
   }
 
@@ -229,7 +233,7 @@ function holdsFiles(dir) {
 }
 
 /**
- * What a project needs, where `flow setup project` is typed: `setup`, the
+ * What a project needs, where `flow init` is typed: `setup`, the
  * whole setup; `memory`, only this machine's old Claude Code memory folded
  * into a project set up already, which happens when it was set up on another
  * machine; or null, nothing at all.
@@ -243,7 +247,7 @@ function projectNeeds(at, project) {
 function projectProblems(at, project) {
   const problems = [];
   if (!fs.existsSync(path.join(at.flow, 'version'))) {
-    problems.push('Flow is not set up on this machine. Run flow setup first');
+    problems.push('Flow is not set up on this machine. Run flow install first');
   }
   if (!project) problems.push('this folder is not a git repository. Run git init here first');
   const run = readRun(at);
@@ -316,7 +320,7 @@ function startProject(at, clone, rootFlag) {
   return 0;
 }
 
-/** `flow setup project check`: exit 0 where the project can be set up. */
+/** `flow init check`: exit 0 where the project can be set up. */
 function checkProject(at) {
   const project = projectTop();
   const needs = projectNeeds(at, project);
@@ -345,7 +349,7 @@ function endRun(at) {
 }
 
 /**
- * `flow setup project finish`: stamp the project's .flow/version and end the
+ * `flow init finish`: stamp the project's .flow/version and end the
  * run. The project comes from run.json, so it works from any folder.
  */
 function finishProject(at, clone) {
@@ -353,7 +357,7 @@ function finishProject(at, clone) {
   if (!run || run.type !== 'setup-project') {
     throw new FlowError(`no project setup is running: ${show(runFile(at))} does not name one.`);
   }
-  // The project was set up already, and its stamp is flow up's to move.
+  // The project was set up already, and its stamp is flow update's to move.
   if (run.memoryOnly) {
     endRun(at);
     out(`folded in: this machine's old memory for ${show(run.project)}.`);
@@ -364,76 +368,41 @@ function finishProject(at, clone) {
   const file = path.join(run.project, '.flow', 'version');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${newest}\n`);
+  records.commit(run.project, 'flow init finish');
+  records.syncLater(run.project, at.flow);
   endRun(at);
   out(`stamped: ${show(file)} is ${newest}. This project is set up.`);
   return 0;
 }
 
-const actions = {};
-
-actions.start = {
-  anywhere: true,
-  summary: 'open the Claude Code session that sets this machine up, or carry one on',
-  flags: { root },
-  run: ({ flags }) => start(machine.folders(flags.root), cloneRoot(), flags.root),
-};
-
-actions.check = {
-  anywhere: true,
-  summary: 'check the install left everything setup needs',
-  flags: { root },
-  run({ flags }) {
-    const problems = readiness(machine.folders(flags.root));
-    if (!problems.length) {
-      out('ready: every program, name, clone and the repository are in place');
-      return 0;
-    }
-    out(`not ready:\n${problems.map((p) => `  ${p}`).join('\n')}\n  Run flow install, which puts every one of these in place.`);
-    return 1;
-  },
-};
-
-actions.finish = {
-  anywhere: true,
-  summary: 'stamp ~/.flow/version and end the setup, its last step',
-  flags: { root },
-  run({ flags }) {
-    const at = machine.folders(flags.root);
-    const run = readRun(at);
-    if (!run || run.type !== 'setup-machine') {
-      throw new FlowError(`no setup is running: ${show(runFile(at))} does not name one.`);
-    }
-    const newest = version.newest(cloneRoot());
-    if (newest === null) throw new FlowError('CHANGELOG.md holds no entry, so there is no version to stamp.');
-    fs.writeFileSync(path.join(at.flow, 'version'), `${newest}\n`);
-    // The record the other machines read, sent up by the next flow sync.
-    flowRepo.writeRecord(at, newest);
-    endRun(at);
-    out(`stamped: ${show(path.join(at.flow, 'version'))} is ${newest}. This machine is set up.`);
+/** `flow install check`: exit 0 where the install left everything the session leans on. */
+function check(at) {
+  const problems = readiness(at);
+  if (!problems.length) {
+    out('ready: every program, name, clone and the repository are in place');
     return 0;
-  },
-};
+  }
+  out(`not ready:\n${problems.map((p) => `  ${p}`).join('\n')}\n  Run flow install, which puts every one of these in place.`);
+  return 1;
+}
 
-actions.project = {
-  anywhere: true,
-  args: '[check|finish]',
-  summary: 'set up the project you are in: open its session, check it can start, or stamp .flow/version',
-  flags: { root },
-  run({ positional, flags }) {
-    const at = machine.folders(flags.root);
-    const [word, ...extra] = positional;
-    if (extra.length || (word && !['check', 'finish'].includes(word))) {
-      throw new FlowError('usage: flow setup project [check|finish]');
-    }
-    if (word === 'check') return checkProject(at);
-    if (word === 'finish') return finishProject(at, cloneRoot());
-    return startProject(at, cloneRoot(), flags.root);
-  },
-};
+/** `flow install finish`: stamp ~/.flow/version and end the session, its last step. */
+function finish(at) {
+  const run = readRun(at);
+  if (!run || run.type !== 'setup-machine') {
+    throw new FlowError(`no setup is running: ${show(runFile(at))} does not name one.`);
+  }
+  const newest = version.newest(cloneRoot());
+  if (newest === null) throw new FlowError('CHANGELOG.md holds no entry, so there is no version to stamp.');
+  fs.writeFileSync(path.join(at.flow, 'version'), `${newest}\n`);
+  // The record the other machines read, sent up by the next flow sync.
+  flowRepo.writeRecord(at, newest);
+  endRun(at);
+  out(`stamped: ${show(path.join(at.flow, 'version'))} is ${newest}. This machine is set up.`);
+  return 0;
+}
 
 module.exports = {
-  summary: 'set this machine up, or a project, through one form you check',
-  default: 'start',
-  actions,
-  start,
+  start, readiness, check, finish, readRun, runFile, projectTop, memoryDir, holdsFiles, quote,
+  startProject, checkProject, finishProject, PROJECT_ALLOWED,
 };

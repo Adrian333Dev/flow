@@ -89,8 +89,6 @@ test('a delete asks outside the project, and inside it only over work nothing ca
     '(cd src && rm changed.js)',
     'unlink notes.md',
     'rm .env',
-    'rm tmp/scratch.txt',
-    'rm -rf tmp',
     'rm /tmp/some-file.txt',
   ], [
     'rm -rf dist',
@@ -99,6 +97,23 @@ test('a delete asks outside the project, and inside it only over work nothing ca
     'rm -rf build',
     'rm -rf node_modules',
     '(cd src && rm clean.js)',
+  ]);
+});
+
+test('a delete inside the project\'s tmp/ never asks, unless a link leads out of it', () => {
+  const w = world('guard-scratch');
+  spawnSync('git', ['init', '-q', path.join(w.dir, 'tmp', 'repo')]);
+  fs.symlinkSync(path.join(w.dir, 'src'), path.join(w.dir, 'tmp', 'code'));
+  expect(w, [
+    'rm -rf tmp/code/',
+    'rm -rf tmp/../notes.md',
+  ], [
+    'rm tmp/scratch.txt',
+    'rm -rf tmp',
+    'rm -rf tmp/repo',
+    'rm -rf tmp/*',
+    'rm tmp/code',
+    'find tmp -name "*.txt" -delete',
   ]);
 });
 

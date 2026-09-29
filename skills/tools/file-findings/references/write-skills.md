@@ -34,6 +34,7 @@ Both names are needed because the two harnesses read opposite halves: Claude Cod
 
 - **`references/`**: markdown read on some runs and not others. `SKILL.md` stays lean and the reference loads on demand. Split by how often a part is read, never by length.
 - **`scripts/`**: runnable code, so the agent never rewrites it per run.
+- **A `` !` `` line in `SKILL.md`**: a shell command Claude Code runs as the skill loads, its output pasted in. Run one named command or script there, never a pattern test and a chain of `&&`: the name is what tells a reader what the line prints.
 - **`knowledge/`**: accumulated facts, one file per topic. Let the layout emerge; never design it up front.
 
 One file until one file stops working.

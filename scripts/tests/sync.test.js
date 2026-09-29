@@ -63,9 +63,11 @@ test('what belongs to one machine is what the ignore file names', () => {
     'logs/',
     'skills-update.json',
     'skills-update.lock',
+    'records-sync.json',
     'audit/',
     'changes/',
     'wiki/*/downloads/',
+    'node_modules/',
   ]);
   assert.strictEqual(repo.isRepo(m.at), false, 'writing the ignore file makes no repository');
   assert.strictEqual(repo.changed(m.at), null, 'and nothing counts as changed');
@@ -84,7 +86,7 @@ test('sync refuses on a machine where setup never finished', () => {
 
   const refused = sync(m);
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /not set up on this machine\. Run flow setup\./);
+  assert.match(refused.stderr, /not set up on this machine\. Run flow install\./);
 
   // A setup part way through runs flow commands of its own, and stamps the
   // version only at its end, so its run.json lets them through.
@@ -154,7 +156,7 @@ test('a machine behind another machine\'s record syncs nothing until it catches 
   fs.writeFileSync(path.join(b.at.flow, 'workflow-notes.md'), 'from b\n');
   const refused = sync(b);
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, new RegExp(`your Flow home is on changelog entry ${NEWEST + 1}, since sync-ahead moved to it, and this machine is on ${NEWEST}\\. Nothing was synced\\. Run flow up first\\.`));
+  assert.match(refused.stderr, new RegExp(`your Flow home is on changelog entry ${NEWEST + 1}, since sync-ahead moved to it, and this machine is on ${NEWEST}\\. Nothing was synced\\. Run flow update first\\.`));
   assert.strictEqual(repo.git(b.at.flow, ['rev-list', '--count', 'HEAD']).out, '1', 'nothing was committed');
 
   // The session check reads the same record, from the fetch alone.

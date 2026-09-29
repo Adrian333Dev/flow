@@ -9,7 +9,7 @@ if (command === 'get') {
   if (!(name in config)) { console.error(name); process.exit(1); }
   console.log(config[name]);
 } else if (command === 'set') {
-  // step 2 of t003: parse, then write. The write is not called yet.
+  // step 2 of exp-3: parse, then write. The write is not called yet.
   console.log(`would set ${name} to ${value}`);
 } else {
   console.error('config: get <name> | set <name> <value>');

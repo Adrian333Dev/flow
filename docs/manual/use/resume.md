@@ -36,21 +36,21 @@ Three parts. `Now` is where the work stands. `Found` is what this session learne
 
 1. `/flow:handoff`. The agent writes `## State` and shows it.
 2. `/clear`. The context empties. The ticket file holds everything.
-3. `/flow:execute t002`, or `/flow:start t002` to let the type and status pick the skill. Either loads the ticket, its `## State` and every file in the `open` block, in one step, before the skill's first word.
+3. `/flow:execute exp-2`, or `/flow:start exp-2` to let the type and status pick the skill. Either loads the ticket, its `## State` and every file in the `open` block, in one step, before the skill's first word.
 
 Where `## State` and the files on disk disagree about what exists, the files win. A new session can be started without `/flow:handoff`, and then `## State` describes an older point than the code. On decisions and what is still open, `## State` wins over the rest of the ticket, since it is the newer record.
 
 ## Groundwork closed, moving to execute
 
-`/flow:groundwork` ends by cutting tickets for what the map decided and running `flow plan t001` on the one going to `/flow:execute`. The map is the handoff: every decision and its reasoning already sit in `groundwork/map.md`, so `/flow:handoff` here adds a `## State` only where something outside the map is true, such as a file the plan must start from.
+`/flow:groundwork` ends by cutting tickets for what the map decided and running `flow plan exp-1` on the one going to `/flow:execute`. The map is the handoff: every decision and its reasoning already sit in `groundwork/map.md`, so `/flow:handoff` here adds a `## State` only where something outside the map is true, such as a file the plan must start from.
 
-Then `/clear` and `/flow:execute t001`. The skill finds the ticket at `planning`, reads the map, and starts writing `plan.md` from it. It never re-derives a decision the map already made.
+Then `/clear` and `/flow:execute exp-1`. The skill finds the ticket at `planning`, reads the map, and starts writing `plan.md` from it. It never re-derives a decision the map already made.
 
 ## Context filled mid-phase
 
 The same 3 steps, at a clean point: the current step finished, its check run, the edit landed. A handoff written mid-edit describes a state that no longer exists once the edit lands.
 
-`/flow:execute t002` then reads the status and lands on it. At `building` it opens `plan.md` and resumes at the first unchecked step. `## State` says how far that step got. `/flow:debug t004` reads `## State` for the hypotheses already killed and resumes at the first one still standing, never restarting the loop.
+`/flow:execute exp-2` then reads the status and lands on it. At `building` it opens `plan.md` and resumes at the first unchecked step. `## State` says how far that step got. `/flow:debug exp-4` reads `## State` for the hypotheses already killed and resumes at the first one still standing, never restarting the loop.
 
 ## Work with no ticket gets one
 

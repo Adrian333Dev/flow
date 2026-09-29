@@ -9,15 +9,15 @@ flow <command> [id]... [--flags]
 ```
 
 - **The command always sits at position 1**, in every command, without exception. A target is often absent (`ls`, `next` and `new` take none) so putting the target first would move the command between positions 1 and 2.
-- **A word naming no command is a ticket id.** `flow t047` shows one; `flow get t047` is the same thing spelled out.
+- **A word naming no command is a ticket id.** `flow exp-47` shows one; `flow get exp-47` is the same thing spelled out.
 - **Positionals name what the command acts on**: one id, several ids, or the title for `new`, where no ticket exists yet to point at.
-- **A positional names one target, never two things.** `get` takes one id or one path. The status verbs each take one id. Cut 2026-09-04, having carried `flow get t047 build` since 2026-08-24: the combined form added a second path into `transition` and saved nothing the agent needs, `flow build t047` then `flow get t047` is two commands and no ambiguity.
+- **A positional names one target, never two things.** `get` takes one id or one path. The status verbs each take one id. Cut 2026-09-04, having carried `flow get exp-47 build` since 2026-08-24: the combined form added a second path into `transition` and saved nothing the agent needs, `flow build exp-47` then `flow get exp-47` is two commands and no ambiguity.
 - **A path positional is allowed only on `get`.** `flow get notes/handoff.md` reads a file and loads any `open` block it contains, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
 - **Everything else is a flag.**
 
 ## One default noun
 
-Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build t047`. Every other stored thing keeps a group and reads `flow <things> <action>`: `flow cases ls`, `flow cases new "…"`.
+Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build exp-47`. Every other stored thing keeps a group and reads `flow <things> <action>`: `flow cases ls`, `flow cases new "…"`.
 
 **Exactly one stored thing goes unnamed, and it is the most typed.** Tickets are written 9 times for every case across the skills, so the common form gets the short spelling and the rare one gets the explicit prefix. A second unnamed noun would collide the moment both wanted `ls`.
 
@@ -50,7 +50,7 @@ Every stored thing gets these 5:
 
 ## Status verbs
 
-**Every status is a command, named after where it lands.** `flow build t047`, `flow review t047`, `flow park t047 --reason "…"`.
+**Every status is a command, named after where it lands.** `flow build exp-47`, `flow review exp-47`, `flow park exp-47 --reason "…"`.
 
 - **The verb comes off the status table, never hand-written.** One column beside the name, so a new status arrives with its command already working. A hand-written set costs new code per status, and the day that step gets skipped the status exists with nothing that reaches it.
 - **Every verb runs the same move**, through the one function holding every refusal. A verb cannot walk past a guard, because it carries no logic of its own beyond naming a target.
@@ -59,7 +59,7 @@ Every stored thing gets these 5:
 
 ## Print the command, never perform it
 
-**No command computes a status from something it read.** `flow <id>` prints `pick up with: flow groundwork t047` and stops there.
+**No command computes a status from something it read.** `flow <id>` prints `pick up with: flow groundwork exp-47` and stops there.
 
 The move belongs to the skill that picks the ticket up, after it opens the phase's own artifact. A command that both reports a ticket and moves it runs the move first (Claude Code executes an injected shell line before the model reads a word) so the ticket advances on the strength of nothing.
 
@@ -101,9 +101,11 @@ Adding a status means adding a row and nothing else. The one thing a row cannot 
 
 ## Ticket ids
 
-An id is a number and a label: `t047-parser-split`.
+An id is the project's prefix and a number: `exp-47`. The folder adds a label: `exp-47-parser-split`.
 
-- **The number is the identity; the label is decoration.** A reference stored as `t047-old-label` still resolves, so a stale label can never break one.
+- **The prefix names the place.** 2 to 8 lowercase letters, `ticketPrefix` in the project's `.flow/settings.json`, and `home` for the tickets in `~/.flow/`. A bare number means the current place's ticket.
+
+- **The number is the identity; the label is decoration.** A reference stored as `exp-47-old-label` still resolves, so a stale label can never break one.
 - **Write the label as 1 to 3 words**, lowercase, joined by hyphens, generated from the title and editable afterwards. Generating one drops `the`, `of`, `to` and the rest of that list first, so a 3 word label never spends a word on one.
-- **Any unambiguous part of an id resolves it**: `t047`, `47`, `parser`, or the whole thing. Ambiguity fails and lists the matches.
-- **Changing a label renames the folder and nothing else**: `flow edit t047 --label parser-split`, and in practice only just after creation. There is nothing to chase: `deps` and `parent` hold bare numbers, so no stored reference carries a label. A retitle leaves the label alone, so an id never drifts by accident.
+- **Any unambiguous part of an id resolves it**: `exp-47`, `47`, `parser`, or the whole thing. Ambiguity fails and lists the matches.
+- **Changing a label renames the folder and nothing else**: `flow edit exp-47 --label parser-split`, and in practice only just after creation. There is nothing to chase: `deps` and `parent` hold the id alone, so no stored reference carries a label. A retitle leaves the label alone, so an id never drifts by accident.

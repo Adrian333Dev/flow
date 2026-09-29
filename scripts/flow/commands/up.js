@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow up`: bring Flow up to date, on this machine and in the project you are
+ * `flow update`: bring Flow up to date, on this machine and in the project you are
  * in, with one word.
  *
  * It pulls the clone and its submodules, then compares version numbers. A
@@ -18,7 +18,7 @@
  *
  * The session is a normal one: Flow's rules and hooks are already on this
  * machine, and nothing in a Flow project competes with them. The permission
- * mode and the allowed commands are set the way `flow setup` sets them, for
+ * mode and the allowed commands are set the way `flow install` sets them, for
  * the reason that file gives.
  *
  * The machine goes first, since a project's number is compared with the
@@ -26,9 +26,9 @@
  * opens once the machine's has finished. A run that stopped part way is
  * carried on, with no pull, so the guides cannot change under it.
  *
- *   flow up            pull, then open the session for whatever is behind
- *   flow up check      the entries and guides the running migration covers
- *   flow up finish     stamp the version, the session's last step
+ *   flow update            pull, then open the session for whatever is behind
+ *   flow update check      the entries and guides the running migration covers
+ *   flow update finish     stamp the version, the session's last step
  */
 
 const fs = require('fs');
@@ -50,7 +50,7 @@ const root = { arg: '<dir>' };
 
 /** The commands the session runs without asking. Each is Flow's own, or reads. */
 const ALLOWED = [
-  'Bash(flow up:*)',
+  'Bash(flow update:*)',
   'Bash(flow doctor:*)',
   'Bash(flow audit:*)',
   'Bash(node ~/.flow/scripts/apply-migration.js:*)',
@@ -79,7 +79,7 @@ function projectTop() {
 /**
  * What is behind, machine first: `{ project, from, to }`, with `project` null
  * for the machine. Null where nothing is. A project never stamped is left to
- * `flow setup project`, and `notes` says so.
+ * `flow init`, and `notes` says so.
  */
 function behind(at, clone, project, notes) {
   const newest = version.newest(clone);
@@ -92,7 +92,7 @@ function behind(at, clone, project, notes) {
 
   const theirs = version.applied(path.join(project, '.flow', 'version'));
   if (theirs.state === 'missing') {
-    notes.push(`${show(project)} was never set up. Run flow setup project inside it.`);
+    notes.push(`${show(project)} was never set up. Run flow init inside it.`);
     return null;
   }
   if (theirs.state !== 'ok') throw new FlowError(`${show(project)}/.flow/version does not hold a version. Run flow doctor.`);
@@ -161,10 +161,10 @@ function open(at, clone, run, { carryOn, printOnly }) {
   return true;
 }
 
-/** `flow up`. */
+/** `flow update`. */
 function up(at, clone, rootFlag) {
   if (!fs.existsSync(path.join(at.flow, 'version'))) {
-    throw new FlowError('Flow is not set up on this machine. Run flow setup first.');
+    throw new FlowError('Flow is not set up on this machine. Run flow install first.');
   }
   // A scratch machine never pulls the real clone, and never opens a session.
   const printOnly = Boolean(rootFlag) || !process.stdout.isTTY || !confirm.hasTerminal();
@@ -176,7 +176,7 @@ function up(at, clone, rootFlag) {
   if (run) {
     if (!open(at, clone, run, { carryOn: true, printOnly })) return 0;
     if (readRun(at)) {
-      out('The update stopped part way. flow up carries it on.');
+      out('The update stopped part way. flow update carries it on.');
       return 0;
     }
   } else if (!rootFlag) {
@@ -195,7 +195,7 @@ function up(at, clone, rootFlag) {
       return 0;
     }
     if (last && last.project === next.project) {
-      out(`${next.project ? show(next.project) : 'This machine'} is still at entry ${next.from}: the session ended without stamping it. Run flow up again.`);
+      out(`${next.project ? show(next.project) : 'This machine'} is still at entry ${next.from}: the session ended without stamping it. Run flow update again.`);
       return 1;
     }
     last = next;
@@ -206,24 +206,24 @@ function up(at, clone, rootFlag) {
     fs.writeFileSync(runFile(at), JSON.stringify(run, null, 2) + '\n');
 
     if (!open(at, clone, run, { carryOn: false, printOnly })) {
-      if (!next.project && project && printOnly) out(`\nOnce it has finished, run flow up again in ${show(project)} for the project.`);
+      if (!next.project && project && printOnly) out(`\nOnce it has finished, run flow update again in ${show(project)} for the project.`);
       return 0;
     }
     if (readRun(at)) {
-      out('The update stopped part way. flow up carries it on.');
+      out('The update stopped part way. flow update carries it on.');
       return 0;
     }
   }
 }
 
 /**
- * `flow up check`: what the running migration covers. Each entry between the
+ * `flow update check`: what the running migration covers. Each entry between the
  * 2 numbers, and the guide it names, which is what the session reads.
  */
 function check(at, clone) {
   const run = readRun(at);
   if (!run || run.type !== 'migrate') {
-    out(`not ready: no update is running. ${show(runFile(at))} does not name one. Type flow up in a terminal.`);
+    out(`not ready: no update is running. ${show(runFile(at))} does not name one. Type flow update in a terminal.`);
     return 1;
   }
   const missing = prereq.problems();
@@ -241,7 +241,7 @@ function check(at, clone) {
   return 0;
 }
 
-/** `flow up finish`: stamp the version the run reached, then end the run. */
+/** `flow update finish`: stamp the version the run reached, then end the run. */
 function finish(at) {
   const run = readRun(at);
   if (!run || run.type !== 'migrate') {
@@ -266,7 +266,7 @@ function finish(at) {
 
 const actions = {};
 
-actions.up = {
+actions.update = {
   section: 'setup',
   anywhere: true,
   args: '[check|finish]',
@@ -276,7 +276,7 @@ actions.up = {
     const at = machine.folders(flags.root);
     const [word, ...extra] = positional;
     if (extra.length || (word && !['check', 'finish'].includes(word))) {
-      throw new FlowError('usage: flow up [check|finish]');
+      throw new FlowError('usage: flow update [check|finish]');
     }
     if (word === 'check') return check(at, cloneRoot());
     if (word === 'finish') return finish(at);

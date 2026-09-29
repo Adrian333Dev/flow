@@ -6,7 +6,7 @@
  * original's window is open. `flow/lib/migrations.js` says what a migration
  * is, and `flow/lib/originals.js` what an original holds and when it closes.
  *
- * The sessions `flow setup`, `flow setup project` and `flow up` open run it, after the
+ * The sessions `flow install`, `flow init` and `flow update` open run it, after the
  * user's yes and never before. It is not a flow command and not on PATH: bare
  * `flow <verb> <id>` acts on a ticket, and a migration typed by hand weeks
  * later changes the machine as it was then.

@@ -21,19 +21,28 @@ const store = require('../lib/store');
 const graph = require('../lib/graph');
 const render = require('../lib/render');
 const statuses = require('../lib/statuses');
+const records = require('../lib/records');
+const ticketHistory = require('../lib/ticket-history');
 
 function load() {
   const root = projectRoot();
   return { root, tickets: store.readTickets(root) };
 }
 
+/** The home place: the tickets in ~/.flow/, which belong to no project. */
+function loadHome() {
+  const root = store.homeRoot();
+  return { root, tickets: store.readTickets(root) };
+}
+
 const rel = (root, p) => path.relative(root, p) || p;
 
 /**
- * `flow t047` and `flow get t047` both land on the same lookup. The first got
- * here because `t047` matched no command, which means a mistyped command,
- * `flow buidl t047`, arrives here too and would fail with a message about
- * tickets. `unnamed` is passed on that path only, and says what else it tried.
+ * `flow exp-47` and `flow get exp-47` both land on the same lookup. The first
+ * got here because `exp-47` matched no command, which means a mistyped
+ * command, `flow buidl exp-47`, arrives here too and would fail with a message
+ * about tickets. `unnamed` is passed on that path only, and says what else it
+ * tried.
  */
 function find(tickets, ref, unnamed) {
   try {
@@ -42,6 +51,31 @@ function find(tickets, ref, unnamed) {
     if (unnamed && e instanceof FlowError) {
       throw new FlowError(`${e.message}\n  "${ref}" is not a command either: flow help lists them.`);
     }
+    throw e;
+  }
+}
+
+/**
+ * The place a ticket lives, its tickets, and the ticket. The id's word picks
+ * the place: `home-4` is read from ~/.flow/ wherever this runs, and anything
+ * else from the project this runs in. A project's id missing there may belong
+ * to a ticket `flow move` took home, which kept it as `was:`.
+ */
+function locate(ref, unnamed) {
+  const word = store.wordOf(String(ref || '').trim().toLowerCase());
+  if (word === store.HOME_WORD) {
+    const place = loadHome();
+    return { ...place, t: find(place.tickets, ref, unnamed) };
+  }
+
+  const place = load();
+  try {
+    return { ...place, t: find(place.tickets, ref, unnamed) };
+  } catch (e) {
+    const id = store.normalizeId(ref, place.tickets.prefix);
+    const home = id && fs.existsSync(store.ticketsDir(store.homeRoot())) ? loadHome() : null;
+    const moved = home && home.tickets.find((t) => t.data.was === id);
+    if (moved) return { ...home, t: moved };
     throw e;
   }
 }
@@ -138,8 +172,15 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
   // `building` came back at `groundwork`: losing two phases, on the command
   // the tool printed for it. The status it left is the only thing that knows.
   t.data.resume = status === 'parked' ? from : '';
+  // The code branch is written once, when code work starts on the ticket.
+  if (status === 'building' || status === 'review') ticketHistory.claimBranch(t);
 
   const moved = store.writeTicket(t);
+  ticketHistory.append(t, `${from} → ${status}`);
+  // A status move is a checkpoint: saved on the `flow` branch now, and sent
+  // in the background, so the move never waits on the network.
+  records.commit(root, `${t.id}: ${from} → ${status}`);
+  records.syncLater(root);
   out(`${t.id}  ${from} → ${status}   ${t.data.title}`);
   if (t.data.reason) out(`      reason: ${t.data.reason}`);
   if (moved) out(`      moved → ${rel(root, moved.to)}`);
@@ -189,7 +230,7 @@ actions.ls = {
     if (flags.status) list = list.filter((t) => t.data.status === flags.status);
     if (flags.type) list = list.filter((t) => t.data.type === flags.type);
     if (flags.parent) {
-      const parent = store.requireId(flags.parent);
+      const parent = store.requireId(flags.parent, tickets.prefix);
       list = list.filter((t) => t.data.parent === parent);
     }
     // The filing pass runs this first, to get the ids it will sweep. Done only:
@@ -310,8 +351,7 @@ actions.get = {
       return 0;
     }
 
-    const { root, tickets } = load();
-    const t = find(tickets, first, unnamed);
+    const { root, tickets, t } = locate(first, unnamed);
 
     out(render.show(t, tickets, root));
     if (flags.files) {
@@ -320,6 +360,74 @@ actions.get = {
     return 0;
   },
 };
+
+/**
+ * `flow load <word>`: what a phase skill's first line runs. Claude Code runs a
+ * skill line starting with `!` as the skill loads, and pastes what it prints
+ * into the skill, with `$0` the first word typed after the skill's name.
+ *
+ * A word shaped like a ticket id prints the ticket and its open files, as
+ * `flow get <id> --files` does. Any other word is the start of an instruction,
+ * `/flow:groundwork start from the migration cost`, and prints nothing. A
+ * refusal prints as text and exits 0, so it lands in the skill rather than
+ * breaking its load.
+ */
+actions.load = {
+  section: 'tickets',
+  args: '<word>',
+  summary: 'a phase skill\'s first line: the ticket and its files, where the word is an id',
+  run({ positional }) {
+    const [word = ''] = positional;
+    if (!store.ID_SHAPE.test(word)) return 0;
+    try {
+      const { root, tickets, t } = locate(word);
+      out(render.show(t, tickets, root));
+      loadOpen(t.file, root);
+    } catch (e) {
+      if (!(e instanceof FlowError)) throw e;
+      out(`flow: ${e.message}`);
+    }
+    return 0;
+  },
+};
+
+/**
+ * `flow handoff <id>`: a line in the ticket's `history.md` saying this session
+ * handed the work on. `/flow:handoff` runs it after writing `## State`, so the
+ * history names every session the work passed through, not only the ones that
+ * moved its status.
+ */
+actions.handoff = {
+  section: 'tickets',
+  args: '<id>',
+  summary: 'note in the ticket\'s history that this session handed it on',
+  run({ positional, usage }) {
+    const [ref] = positional;
+    if (!ref) throw new FlowError(`usage: ${usage}`);
+    const { root, t } = locate(ref);
+    ticketHistory.append(t, 'handoff');
+    records.commit(root, `${t.id}: handoff`);
+    out(`${t.id}  handoff noted in ${rel(root, path.join(t.dir, ticketHistory.FILE))}`);
+    return 0;
+  },
+};
+
+/** Why `flow new` made no ticket: the pull or the push behind it failed. */
+function notMade(failed) {
+  const why = failed.offline ? 'the remote could not be reached' : (failed.why || 'the push failed');
+  return `no ticket was made: ${why}. A number is given out only once the remote has it, so try again once it answers.`;
+}
+
+/**
+ * Undo a new ticket whose push never landed: its groundwork goes back where
+ * `--from-groundwork` found it, the folder goes, and the removal is committed,
+ * so the branch holds nothing the remote never agreed to.
+ */
+function takeBack(root, t, fromGroundwork) {
+  if (fromGroundwork) store.moveFolder(path.join(t.dir, 'groundwork'), fromGroundwork);
+  fs.rmSync(t.dir, { recursive: true, force: true });
+  records.commit(root, `${t.id}: taken back, never sent`);
+}
 
 actions.new = {
   section: 'tickets',
@@ -340,16 +448,21 @@ actions.new = {
 
     const body = readBody(flags);
     const root = projectRoot();
+    // The newest numbers first, so this ticket takes one nobody has pushed.
+    // A number is only ever given out where the remote agreed to it, so a
+    // pull that fails makes no ticket.
+    const pulled = records.pull(root);
+    if (!pulled.ok) throw new FlowError(notMade(pulled));
     const tickets = store.readTickets(root);
 
-    const deps = store.toIdList(flags.deps);
+    const deps = store.toIdList(flags.deps, tickets.prefix);
     for (const d of deps) {
       if (!tickets.some((t) => t.id === d)) throw new FlowError(`--deps names ${d}, which does not exist.`);
     }
 
     let parent = '';
     if (flags.parent) {
-      parent = store.requireId(flags.parent);
+      parent = store.requireId(flags.parent, tickets.prefix);
       if (!tickets.some((t) => t.id === parent)) throw new FlowError(`--parent names ${parent}, which does not exist.`);
     }
 
@@ -372,10 +485,20 @@ actions.new = {
       }
     }
 
-    const t = store.createTicket(root, {
+    let t = store.createTicket(root, {
       title, type: flags.type || 'feature', priority: flags.priority || '',
       parent, deps, tickets, body, fromGroundwork, label: flags.label,
     });
+
+    // Pushed before the id is shown, so nobody ever sees a number change. A
+    // refused push means someone took the number first: the ticket is
+    // renumbered and pushed again. A push that never lands takes it back.
+    const claimed = records.claim(root, t.id);
+    if (claimed.id !== t.id) t = store.findTicket(store.readTickets(root), claimed.id);
+    if (!claimed.ok) {
+      takeBack(root, t, fromGroundwork);
+      throw new FlowError(notMade(claimed));
+    }
 
     out(`created ${t.id}  ${t.data.title}`);
     out(`        ${rel(root, t.file)}`);
@@ -408,8 +531,7 @@ actions.edit = {
   run({ positional, flags, usage }) {
     if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--type ...]`);
 
-    const { root, tickets } = load();
-    const t = store.findTicket(tickets, positional[0]);
+    const { root, tickets, t } = locate(positional[0]);
     const changes = [];
 
     if (flags.title !== undefined) {
@@ -429,7 +551,7 @@ actions.edit = {
     }
     if (flags.parent !== undefined) {
       // Empty clears it: `--parent ""` un-splits a ticket.
-      const parent = flags.parent ? store.requireId(flags.parent) : '';
+      const parent = flags.parent ? store.requireId(flags.parent, tickets.prefix) : '';
       if (parent) {
         if (parent === t.id) throw new FlowError('a ticket cannot be its own parent.');
         if (!tickets.some((x) => x.id === parent)) throw new FlowError(`--parent names ${parent}, which does not exist.`);
@@ -455,6 +577,7 @@ actions.edit = {
     }
 
     store.writeTicket(t);
+    records.commit(root, `${t.id}: ${changes.join('; ')}`);
     out(`${t.id}\n  ${changes.join('\n  ')}`);
     if (renamed) out(`\nfolder → ${rel(root, t.dir)}`);
     return 0;
@@ -471,9 +594,8 @@ actions.dep = {
     if (flags.on && flags.off) throw new FlowError('--on and --off are mutually exclusive.');
     if (!flags.on && !flags.off) throw new FlowError(`${usage} needs --on <id> or --off <id>.`);
 
-    const { tickets } = load();
-    const t = store.findTicket(tickets, positional[0]);
-    const dep = store.requireId(flags.off || flags.on);
+    const { root, tickets, t } = locate(positional[0]);
+    const dep = store.requireId(flags.off || flags.on, tickets.prefix);
 
     if (flags.off) {
       if (!t.data.deps.includes(dep)) { out(`${t.id} does not depend on ${dep}.`); return 0; }
@@ -489,6 +611,7 @@ actions.dep = {
     }
 
     store.writeTicket(t);
+    records.commit(root, `${t.id}: deps → [${t.data.deps.join(', ')}]`);
     out(`${t.id}  deps → [${t.data.deps.join(', ')}]`);
     return 0;
   },
@@ -509,7 +632,7 @@ actions.file = {
   run({ positional, flags, usage }) {
     if (!positional.length) throw new FlowError(`usage: ${usage} <id>...`);
 
-    const { tickets } = load();
+    const { root, tickets } = locate(positional[0]);
     const stamp = store.today();
     const targets = positional.map((ref) => store.findTicket(tickets, ref));
 
@@ -524,6 +647,7 @@ actions.file = {
       out(`${t.id}  filed ${stamp}${previous ? ` (was ${previous})` : ''}   ${t.data.title}`);
     }
 
+    records.commit(root, `filed ${targets.map((t) => t.id).join(', ')}`);
     const left = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
     out(left.length
       ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled: flow ls --unfiled`
@@ -556,13 +680,12 @@ actions.drop = {
       throw new FlowError('--by and --force are mutually exclusive: one rescues dependents, the other kills them.');
     }
 
-    const { root, tickets } = load();
-    const t = store.findTicket(tickets, positional[0]);
+    const { root, tickets, t } = locate(positional[0]);
     const reason = String(flags.reason).trim();
 
     let replacement = null;
     if (flags.by) {
-      const byId = store.requireId(flags.by);
+      const byId = store.requireId(flags.by, tickets.prefix);
       if (byId === t.id) throw new FlowError(`${t.id} cannot replace itself.`);
       replacement = tickets.find((x) => x.id === byId);
       if (!replacement) throw new FlowError(`--by names ${byId}, which does not exist.`);
@@ -627,6 +750,8 @@ actions.drop = {
       out(`\nre-pointed to ${replacement.id} (${replacement.data.title}):`);
       for (const d of repointed) out(`  ${d.id}  deps → [${d.data.deps.join(', ')}]`);
       if (!repointed.length) out('  nothing to re-point.');
+      records.commit(root, `${t.id}: dropped, dependents re-pointed to ${replacement.id}`);
+      records.syncLater(root);
       return 0;
     }
 
@@ -640,6 +765,99 @@ actions.drop = {
         store.writeTicket(d);
         out(`  ${d.id}  ${d.data.title}`);
       }
+    }
+    records.commit(root, `${t.id}: dropped`);
+    records.syncLater(root);
+    return 0;
+  },
+};
+
+/**
+ * Move tickets to another place: `home`, the tickets in ~/.flow/, or the
+ * folder of another project. Each takes the next free number there and keeps
+ * its old id as `was:`, so the old id still finds it.
+ *
+ * A dependency or a parent across 2 places could never be resolved, so a
+ * ticket linked to one staying behind is refused. Moving the linked tickets
+ * together is fine: their links are rewritten to the new ids.
+ *
+ * The folder moves whole, files git ignores included, so a prototype's
+ * installed packages go with it.
+ */
+actions.move = {
+  section: 'tickets',
+  args: '<id>... <home|project folder>',
+  summary: 'move tickets to ~/.flow/ or another project, each taking a new number there',
+  run({ positional, usage }) {
+    if (positional.length < 2) throw new FlowError(`usage: ${usage}`);
+    const to = positional[positional.length - 1];
+    const refs = positional.slice(0, -1);
+
+    const from = locate(refs[0]);
+    const moving = refs.map((ref) => store.findTicket(from.tickets, ref));
+    const ids = new Set(moving.map((t) => t.id));
+
+    const target = to.toLowerCase() === store.HOME_WORD ? store.homeRoot() : path.resolve(to);
+    if (!store.isHome(target) && !fs.existsSync(path.join(target, '.flow'))) {
+      throw new FlowError(`${to} is neither home nor a Flow project: no .flow/ in ${target}.`);
+    }
+    if (path.resolve(store.recordsDir(target)) === path.resolve(store.recordsDir(from.root))) {
+      throw new FlowError(`${moving[0].id} already lives there.`);
+    }
+
+    const links = [];
+    for (const t of moving) {
+      for (const d of t.data.deps) if (!ids.has(d)) links.push(`${t.id} depends on ${d}`);
+      if (t.data.parent && !ids.has(t.data.parent)) links.push(`${t.id} has parent ${t.data.parent}`);
+    }
+    for (const other of from.tickets) {
+      if (ids.has(other.id)) continue;
+      for (const d of other.data.deps) if (ids.has(d)) links.push(`${other.id} depends on ${d}`);
+      if (ids.has(other.data.parent)) links.push(`${other.id} has parent ${other.data.parent}`);
+    }
+    if (links.length) {
+      throw new FlowError(
+        `a link across 2 places could never be followed:\n${links.map((l) => `  ${l}`).join('\n')}\n` +
+        '  Move the linked tickets in the same command, or remove the links first with flow dep and flow edit --parent.'
+      );
+    }
+
+    const there = store.readTickets(target);
+    const prefix = store.prefixOf(target);
+    const renamed = new Map();
+    for (const t of [...moving].sort((a, b) => store.idNumber(a.id) - store.idNumber(b.id))) {
+      const next = store.nextId([...there, ...[...renamed.values()].map((id) => ({ id }))], prefix);
+      renamed.set(t.id, next);
+    }
+
+    for (const t of moving) {
+      const id = renamed.get(t.id);
+      const parent = statuses.TERMINAL.has(t.data.status) ? store.archiveDir(target) : store.ticketsDir(target);
+      const folder = path.join(parent, `${id}-${store.labelOf(t)}`);
+      if (fs.existsSync(folder)) throw new FlowError(`${folder} already exists.`);
+      fs.mkdirSync(parent, { recursive: true });
+      store.moveFolder(t.dir, folder);
+      Object.assign(t, { root: target, dir: folder, dirName: path.basename(folder), file: path.join(folder, 'ticket.md') });
+      t.data.was = t.id;
+      t.data.deps = t.data.deps.map((d) => renamed.get(d) || d);
+      t.data.parent = renamed.get(t.data.parent) || t.data.parent;
+      t.data.id = id;
+      store.writeTicket(t);
+      out(`${t.data.was} → ${id}   ${t.data.title}`);
+    }
+
+    const said = [...renamed].map(([a, b]) => `${a} → ${b}`).join(', ');
+    records.commit(from.root, `moved away: ${said}`);
+    records.commit(target, `moved in: ${said}`);
+    records.syncLater(from.root);
+    records.syncLater(target);
+    // Only a project's own id leads home: from inside a project, an id missing
+    // there is looked for among the tickets that moved to ~/.flow/. A ticket
+    // left behind that was renumbered from the same id is found first.
+    if (store.isHome(target)) {
+      const left = store.readTickets(from.root);
+      const leads = [...renamed.keys()].filter((old) => !left.some((t) => t.data.was === old));
+      if (leads.length) out(`\nthe old id still finds it from the project: flow ${leads[0]}`);
     }
     return 0;
   },
@@ -667,8 +885,7 @@ for (const s of statuses.VERBS) {
     },
     run({ positional, flags, usage }) {
       if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
-      const { root, tickets } = load();
-      const t = store.findTicket(tickets, positional[0]);
+      const { root, tickets, t } = locate(positional[0]);
       return transition(t, tickets, root, s.name, {
         force: flags.force,
         reason: flags.reason ? String(flags.reason).trim() : '',

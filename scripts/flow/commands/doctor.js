@@ -284,7 +284,7 @@ function checkAgents(at, catalog) {
 
   const rules = path.join(at.agents, 'AGENTS.md');
   if (!fs.existsSync(rules)) {
-    problems.push(`${shorten(rules)} is missing: run flow setup, which writes it`);
+    problems.push(`${shorten(rules)} is missing: run flow install, which writes it`);
   }
 
   return {
@@ -318,7 +318,7 @@ function checkClaude(clone, at) {
   try {
     text = fs.readFileSync(file, 'utf8');
   } catch {
-    problems.push(`CLAUDE.md is missing, so Claude Code loads no rules: run flow setup`);
+    problems.push(`CLAUDE.md is missing, so Claude Code loads no rules: run flow install`);
   }
   if (text !== null && !text.split('\n').some((l) => l.trim() === line)) {
     problems.push(`CLAUDE.md does not import the rules, so Claude Code never reads them: add the line ${line}`);
@@ -336,7 +336,7 @@ function checkClaude(clone, at) {
 /**
  * settings.json: the one file Flow shares rather than owns.
  *
- * `flow setup` merges Flow's keys into it, key by key, because it
+ * `flow install` merges Flow's keys into it, key by key, because it
  * already holds your model, your plugins and your effort level. A merge that
  * stopped half way is the likeliest state on this whole page.
  */
@@ -352,7 +352,7 @@ function checkSettings(clone, claude, catalog) {
       : `does not parse: ${e.message}`;
     return {
       name: 'settings.json',
-      problems: [`${file} ${why}: run flow setup, which merges ${path.join(clone, 'home', 'settings.json')} into it`],
+      problems: [`${file} ${why}: run flow install, which merges ${path.join(clone, 'home', 'settings.json')} into it`],
     };
   }
 
@@ -364,7 +364,7 @@ function checkSettings(clone, claude, catalog) {
     const match = installed.find((h) => h.event === row.event && h.matcher === row.matcher &&
       h.script && path.basename(h.script) === path.basename(row.script));
     if (!match) {
-      problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: run flow setup, which merges it in`);
+      problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: run flow install, which merges it in`);
       continue;
     }
     const resolved = machine.expandHome(match.script);
@@ -452,7 +452,7 @@ function checkOriginals(at) {
     notes.push('this machine has no original, so flow restore machine has nothing to put back ' +
       'and flow uninstall removes Flow\'s own paths instead of restoring them');
   } else if (!mine.closed) {
-    notes.push('the machine\'s original is still open, so flow setup has not run to the end. ' +
+    notes.push('the machine\'s original is still open, so flow install has not run to the end. ' +
       'It closes the original on its way out');
   }
 
@@ -547,7 +547,7 @@ function checkSkills(at) {
 /**
  * A run that stopped part-way, reported before anything else.
  *
- * `flow setup`, `flow setup project` and `flow up` each write
+ * `flow install`, `flow init` and `flow update` each write
  * ~/.flow/run.json before their first step and delete it at their last, so
  * the file on disk means a run never finished. Every check below it is then
  * reading a machine half way through a change, and reads it wrong.
@@ -599,14 +599,14 @@ function checkVersion(clone, at) {
   const file = path.join(at.flow, 'version');
   const mine = version.applied(file);
   if (mine.state === 'missing') {
-    notes.push(`${shorten(file)} is missing, and the last step of flow setup is what stamps it`);
+    notes.push(`${shorten(file)} is missing, and the last step of flow install is what stamps it`);
   } else if (mine.state === 'unreadable') {
     problems.push(`${shorten(file)} holds "${mine.text}", and it holds one changelog entry number and nothing else`);
   } else if (mine.number > newest) {
     problems.push(`this machine is at entry ${mine.number} and the changelog stops at ${newest}, so the clone moved backwards: ` +
       'every entry between the two counts as applied and never runs');
   } else if (mine.number < newest) {
-    notes.push(`this machine is at entry ${mine.number}, ${count(newest - mine.number, 'entry', 'entries')} behind the changelog: run flow up`);
+    notes.push(`this machine is at entry ${mine.number}, ${count(newest - mine.number, 'entry', 'entries')} behind the changelog: run flow update`);
   }
 
   const parts = [mine.state === 'ok'
@@ -623,14 +623,14 @@ function checkVersion(clone, at) {
     const name = path.basename(root);
     const theirs = version.applied(path.join(root, '.flow', 'version'));
     if (theirs.state === 'missing') {
-      notes.push(`${name} has no .flow/version, and the last step of flow setup project is what stamps it`);
+      notes.push(`${name} has no .flow/version, and the last step of flow init is what stamps it`);
     } else if (theirs.state === 'unreadable') {
       problems.push(`${name}/.flow/version holds "${theirs.text}", and it holds one changelog entry number and nothing else`);
     } else {
       parts.push(`${name} is at entry ${theirs.number}`);
       if (mine.state === 'ok' && theirs.number < mine.number) {
         notes.push(`${name} is at entry ${theirs.number} and this machine is at ${mine.number}, ` +
-          'so the project half of a migration never ran: run flow up inside it');
+          'so the project half of a migration never ran: run flow update inside it');
       } else if (mine.state === 'ok' && theirs.number > mine.number) {
         problems.push(`${name} is at entry ${theirs.number}, above this machine's ${mine.number}, ` +
           'and a project cannot be ahead of the machine it sits on');
@@ -668,7 +668,7 @@ function checkClone(clone, { updates }) {
     const found = /^([-+U ])\S+ (\S+)/.exec(row);
     if (!found || found[1] === ' ') continue;
     off++;
-    notes.push(`${said[found[1]](found[2])}: flow up updates the submodules`);
+    notes.push(`${said[found[1]](found[2])}: flow update updates the submodules`);
   }
   parts.push(`${count(rows.length - off, 'submodule', 'submodules')} on the commit this clone points at`);
 
@@ -682,7 +682,7 @@ function checkClone(clone, { updates }) {
     const here = version.newest(clone);
     if (tags.status !== 0) notes.push(`the remote could not be read, so nothing says whether a newer version exists: ${said2}`);
     else if (highest === null) notes.push('the remote carries no version tag, so there is nothing to compare this clone against');
-    else if (here !== null && highest > here) notes.push(`the remote is tagged v${highest} and this clone stops at entry ${here}: run flow up`);
+    else if (here !== null && highest > here) notes.push(`the remote is tagged v${highest} and this clone stops at entry ${here}: run flow update`);
     else parts.push(`the remote's newest tag is v${highest}`);
   }
 

@@ -21,8 +21,8 @@ test('a ticket is created, moved and archived', () => {
 
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets'));
   assert.strictEqual(folders.length, 1);
-  const id = folders[0].split('-')[0];
-  assert.match(id, /^t\d+$/);
+  const id = folders[0].match(/^[a-z]+-\d+/)[0];
+  assert.match(id, /^exp-\d+$/);
 
   const listed = flow(dir, ['ls']);
   assert.strictEqual(listed.code, 0, listed.stderr);
@@ -41,9 +41,9 @@ test('a ticket is created, moved and archived', () => {
 
 test('an id that does not exist fails rather than printing nothing', () => {
   const dir = project('flow-missing');
-  const result = flow(dir, ['t999']);
+  const result = flow(dir, ['exp-999']);
   assert.notStrictEqual(result.code, 0);
-  assert.match(result.stdout + result.stderr, /t999/);
+  assert.match(result.stdout + result.stderr, /exp-999/);
 });
 
 test('a name is typed in full, never matched by its first letters', () => {

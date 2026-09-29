@@ -46,7 +46,7 @@ actions.ls = {
     const at = machine.folders(flags.root);
     const rows = originals.list(at);
     if (!rows.length) {
-      out('no original. flow install writes the machine\'s, and flow setup project a project\'s.');
+      out('no original. flow install writes the machine\'s, and flow init a project\'s.');
       return 0;
     }
     for (const { manifest } of rows) {
@@ -117,7 +117,7 @@ actions.project = {
     }
     out('');
     report(originals.restore(at, project));
-    out('\nIts .flow/ went with them. Put the project back into Flow with flow setup project');
+    out('\nIts .flow/ went with them. Put the project back into Flow with flow init');
     return 0;
   },
 };

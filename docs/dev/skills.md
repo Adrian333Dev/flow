@@ -11,6 +11,7 @@ This page is how Flow files and writes a skill. What Claude Code itself does wit
 - [The folder](#the-folder)
 - [The groups](#the-groups)
 - [Frontmatter](#frontmatter)
+- [A shell line in the body](#a-shell-line-in-the-body)
 - [Everything below SKILL.md](#everything-below-skillmd)
 - [Where the skills land](#where-the-skills-land)
 - [When an install is needed](#when-an-install-is-needed)
@@ -65,6 +66,18 @@ The description says what the skill is and what it covers. Never the steps, and 
 Under-explaining is the failure to avoid. Cover the subject in enough detail that a reader can tell what the skill reaches. No word count overrides that. A description that summarizes the workflow gets followed in place of the file itself.
 
 `disable-model-invocation: true` makes a skill reachable only when the user types `/<name>`. It also removes the skill from the list a session is handed. The user still finds it in the `/` menu. The model meets it only where a file names it, so a user-only skill named nowhere else is one the model reports as missing. It is marked `(user only)` once, where the model reads it before any bare mention, as `references/style.md` → `### Only in a loaded file` says. Read first, a bare name looks like a skill the model can run.
+
+## A shell line in the body
+
+A line in `SKILL.md` starting with `` !` `` is a shell command. Claude Code runs it while it builds the skill's text, and puts what the command prints in the line's place, so the output is part of the skill before the model reads a word. `$0` in the command is the first word typed after the skill's name, and `$ARGUMENTS` is everything typed. [What Claude Code does](claude-code.md) records the tests behind both.
+
+**A shell line runs one named command, never logic written inline.** The model and the person maintaining the skill both read the line, and a name says what it does where a pattern test and a chain of `&&` and `||` say nothing. The 4 phase skills open with:
+
+```md
+!`flow load "$0"`
+```
+
+`flow load` prints the ticket and its open files where the first word is shaped like a ticket id, and nothing for any other word, so `/flow:groundwork start from the migration cost` loads no ticket. It prints a refusal as text and exits 0, since a failing shell line breaks the skill's load. [`flow load`](../manual/reference.md#flow-load-word) in the reference has the whole of it. A skill needing a new shell line gets a `flow` command or a script under `scripts/` with a name that says what it prints.
 
 ## Everything below SKILL.md
 

@@ -24,21 +24,23 @@ Three things at once:
 - **A status**, saying where the work stopped: undecided, being planned, being built, waiting on a review, finished.
 - **A folder**, holding the plan, the design that produced it, and whatever the work answered along the way.
 
-**A ticket is named by its id**, a `t` and a number: `t047`. The folder gets a readable label after it, `t047-parser-split`, but the number is the identity. `t047`, `47`, `parser` and `t047-parser-split` all name the same ticket to every command.
+**A ticket is named by its id**, the project's prefix and a number: `exp-47`. `flow init` asks for the prefix once, 2 to 8 lowercase letters, and offers the first 3 letters of the folder name. The tickets in `~/.flow/`, which belong to no project, use `home`: `home-4`. The folder gets a readable label after the id, `exp-47-parser-split`, but the id is the identity. `exp-47`, `47`, `parser` and `exp-47-parser-split` all name the same ticket to every command, and a bare number always means the project you are in.
 
 **Not everything is a ticket.** A question somebody wants answered produces a report and no code, so it runs inside whatever work raised it. A decision nobody has made yet is groundwork. A ticket exists once there is committed work.
 
 ## Where a ticket lives
 
 ```text
-.flow/tickets/t047-parser-split/
+.flow/tickets/exp-47-parser-split/
 ├─ ticket.md          what to do, why, and where it stands
+├─ history.md         one line per status move or handoff: when, which session, which branch
 ├─ groundwork/
 │  └─ map.md          every open decision, walked to an answer
 ├─ plan.md            the numbered steps that build it
 ├─ issues.md          what the build taught, still true after it closes
 ├─ intake/            material dropped in for this job
-└─ reports/           one file per question the work answered
+├─ reports/           one file per question the work answered
+└─ protos/<name>/     a prototype's code, one folder per prototype
 ```
 
 `ticket.md` and `groundwork/` exist from the moment the ticket is created. Everything else appears when the work writes it, so a ticket that never needed a report never grows a `reports/` folder.
@@ -49,11 +51,13 @@ Three things at once:
 
 The block at the top of `ticket.md`, between two `---` lines. Hand-editing it is not blocked, but a status written by hand skips the checks that refuse a bad move.
 
-- **`id`**: `t047`. Assigned at creation, never reused.
+- **`id`**: `exp-47`. Assigned at creation, never reused. A project's new ticket reaches the remote before its id is printed, so its id never changes once shown.
+- **`was`**: `exp-12`, the id a ticket had before `flow move` took it to another place, or before another machine's ticket took its `home-` number. The old id still finds it.
 - **`title`**: one line, what the work is.
 - **`status`**: where the work stopped. The 8 values are below.
 - **`type`**: what kind of work it is. The 5 values are below.
 - **`priority`**: `high` or `low`. Absent means normal, which is why most tickets carry no such line.
+- **`branch`**: the code branch the work is built on, written when the ticket first reaches `building`. [What a move records](reference.md#what-a-move-records) covers it with `history.md`.
 - **`parent`**: the id of the ticket this one was split out of. One at most.
 - **`deps`**: ids this ticket cannot start before.
 - **`reason`**: why the ticket was parked or dropped. Required for both.
@@ -86,7 +90,7 @@ Every type walks a subsequence of the same line, never a different order.
 - **`chore`**: the same, usually skipping groundwork. Upkeep rarely has a decision in it.
 - **`issue`**: `todo → building → review → done`. A bug hunt finds the cause and writes the fix as one act.
 - **`topic`**: `todo → groundwork → done`. The map of decisions is the deliverable, and there is nothing to build.
-- **`prototype`**: `todo → building → review → done`. The question arrives with the ticket, and the code is thrown away.
+- **`prototype`**: `todo → building → review → done`. The question arrives with the ticket, and the code stays in it as a reference, never promoted.
 
 ## The body
 
@@ -105,13 +109,13 @@ One in the middle of a build, carrying all four sections. Most tickets carry two
 
 ````markdown
 ---
-id: t047
+id: exp-47
 title: Split the parser into a tokenizer and a builder
 status: building
 type: feature
 priority: high
-parent: t045
-deps: [t046]
+parent: exp-45
+deps: [exp-46]
 ---
 
 # Split the parser into a tokenizer and a builder
@@ -129,7 +133,7 @@ today with the same output.
 
 - `src/parser.js`: the whole thing today, one 600-line pass
 - `docs/spec/tech.md`: the error positions are part of the public API
-- `t046`: added the fixture set this leans on
+- `exp-46`: added the fixture set this leans on
 
 ## State
 
@@ -168,7 +172,7 @@ That prints the ids and paths it made, and the command to pick the ticket up. Se
 **With `--body`, the supplied text replaces that template outright**, which is what lets one command both create and fill a ticket. The template's `## Done when` is gone unless the body wrote one.
 
 ```bash
-flow new "Fix the crash on an empty payload" --type issue --parent t047 --body - <<'EOF'
+flow new "Fix the crash on an empty payload" --type issue --parent exp-47 --body - <<'EOF'
 The importer throws on a payload with no `items` key.
 
 ## Done when
@@ -179,7 +183,7 @@ EOF
 
 ## Moving one
 
-Each move is one command, named after where it lands: `flow groundwork t047`, `flow plan t047`, `flow build t047`, `flow review t047`, `flow done t047`. Off the line: `flow park t047 --reason "…"` and `flow drop t047 --reason "…"`.
+Each move is one command, named after where it lands: `flow groundwork exp-47`, `flow plan exp-47`, `flow build exp-47`, `flow review exp-47`, `flow done exp-47`. Off the line: `flow park exp-47 --reason "…"` and `flow drop exp-47 --reason "…"`.
 
 **A refused move exits non-zero rather than warning.** Starting a ticket whose dependencies are unmet refuses. Closing a ticket with open children refuses. Dropping a ticket that other live tickets depend on refuses, and prints the whole chain before it does. Each refusal names the flag that overrides it.
 

@@ -7,7 +7,3 @@ node_modules
 # track folders. Which skills are on lives in "skills" in .flow/settings.json.
 .claude/skills/*
 !.claude/skills/*/
-
-# .flow/ is Flow's working store: tickets, groundwork, the inbox.
-# It is committed. A hidden folder invites a blanket ignore, and one stray line
-# here loses every ticket the project has.

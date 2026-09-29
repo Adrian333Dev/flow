@@ -47,7 +47,7 @@ function folders(root) {
 }
 
 /**
- * Refuse every command on a machine where `flow setup` never finished.
+ * Refuse every command on a machine where `flow install` never finished.
  *
  * `~/.flow/version` holds the number of the newest changelog entry this
  * machine applied, written by the last step of a setup or a migration, so
@@ -66,10 +66,10 @@ function requireSetup(root) {
   const at = folders(root);
   if (fs.existsSync(path.join(at.flow, 'version'))) return;
   if (settingUp(at)) return;
-  throw new FlowError('Flow is not set up on this machine. Run flow setup.');
+  throw new FlowError('Flow is not set up on this machine. Run flow install.');
 }
 
-/** True while `flow setup` is part way through, read off `~/.flow/run.json`. */
+/** True while `flow install` is part way through, read off `~/.flow/run.json`. */
 function settingUp(at) {
   try {
     return JSON.parse(fs.readFileSync(path.join(at.flow, 'run.json'), 'utf8')).type === 'setup-machine';

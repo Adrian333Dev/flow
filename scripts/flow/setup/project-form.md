@@ -88,7 +88,7 @@ For every project, not only this one. `~/.flow/AGENTS.md`
 - delete .claude/skills/tdd: a skill ticked above
 - write .gitignore: Flow's lines added to yours
 - write .uncommitted-include: gitignored files that travel between your machines
-- write .flow/settings.json: marks this project as Flow's
+- write .flow/settings.json: the ticket prefix flow init chose
 - write .flow/tickets: 14 tickets
 - write .flow/inbox.md: 3 ideas
 - write .flow/findings: 2 lessons

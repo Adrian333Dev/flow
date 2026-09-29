@@ -1,16 +1,16 @@
 ---
 name: prototype
-description: Throwaway code answering one question, and a report of what it found. Naive on purpose, never promoted.
+description: Naive code answering one question, kept in its ticket beside a report of what it found. Never promoted into the real build.
 argument-hint: '[ticket-id]'
 ---
 
-!`case "$0" in t[0-9]*) flow get $0 --files 2>&1 || true;; esac`
+!`flow load "$0"`
 
 $ARGUMENTS
 
 # Prototype
 
-Code written to answer one named question, then deleted.
+Code written to answer one named question, then kept beside its report as a reference.
 
 **Naive on purpose.** No tests, no error handling, no abstractions. The real build reads the prototype as a reference and starts again: nothing written here is ever promoted.
 
@@ -71,9 +71,10 @@ Then say the answers out loud, in the words the question asked for, and stop the
 
 ## Where it lives
 
-- **`protos/<name>/`**: repo root, flat, named by what it proves. Never under `docs/`, which stops being documentation once code lives in it
-- **Committed**: the scripts, and the report wherever it landed. The spec cites them for years
-- **Ignored**: `node_modules/`, model caches, generated media. One harness reached 779 MB
+- **`.flow/tickets/<id>/protos/<name>/`**: inside the ticket that asked, one folder per prototype, named by what it proves. The code sits beside the report citing it, and moves with the ticket
+- **No ticket, inside a project** → `flow new "<question>" --type prototype` first, so the code has a folder. **Outside a project** → the folder the user names, with `REPORT.md` beside the code
+- **Saved**: the scripts and the report, with the ticket. The spec cites them for years
+- **Ignored**: `node_modules/`, which `.flow/.gitignore` already lists. Add a line there for model caches and generated media: one harness reached 779 MB
 
 ## One prototype per unknown
 

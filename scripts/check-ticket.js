@@ -11,7 +11,7 @@
  * the whole skill on top of it, hundreds of lines spent on a typo.
  *
  * It blocks 3 things. The machine check runs first, whatever was typed: a
- * machine where `flow setup` never finished has no rules loaded and no other
+ * machine where `flow install` never finished has no rules loaded and no other
  * hook installed, so this is the only gate a typed skill passes through.
  *
  * The project check runs only where a project is needed: a ticket id, or
@@ -22,11 +22,12 @@
  *
  * Then the ticket. The first word typed is the only thing judged. A word that
  * is not shaped like a ticket id passes untouched, so free text after the skill
- * name is never inspected. Shaped like an id means `t` then a digit, the same
- * test the skill's own first line runs, so `t047`, `t47` and the folder name
- * `t047-parser-split` are all checked with `flow get`, which exits 1 when
- * nothing matches. On that exit the expansion is blocked and flow's own
- * message is shown to the user.
+ * name is never inspected. Shaped like an id means a number, or 2 to 8
+ * letters, a dash and a number, the same test `flow load` runs in the
+ * skill's own first line, so `47`, `exp-47` and the folder name `exp-47-parser-split` are all
+ * checked with `flow get`, which exits 1 when nothing matches. On that exit
+ * the expansion is blocked and flow's own message is shown to the user. A
+ * `home-` id lives in ~/.flow/, so it needs no project.
  *
  * It only ever blocks on a confirmed miss. Any error of its own stays silent,
  * because a typo guard that breaks every typed skill costs more than it saves.
@@ -37,8 +38,9 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const machine = require('./flow/lib/machine');
 const { projectRoot } = require('./flow/lib/root');
+const { ID_SHAPE: ID } = require('./flow/lib/store');
 
-const ID = /^t\d/;
+const HOME = /^home-/i;
 
 const block = (reason) => process.stdout.write(JSON.stringify({ decision: 'block', reason }));
 
@@ -60,7 +62,7 @@ try {
   const first = String(call.command_args || '').trim().split(/\s+/)[0] || '';
   const board = !first && /(^|:)start$/.test(String(call.command_name || ''));
 
-  const refusal = notSetUp(ID.test(first) || board);
+  const refusal = notSetUp((ID.test(first) && !HOME.test(first)) || board);
   if (refusal) {
     block(refusal);
     process.exit(0);
