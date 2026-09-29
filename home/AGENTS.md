@@ -12,7 +12,7 @@ One user message, your work, one reply. In that order, every time.
    - **`new-decision-stops`** Deciding something nobody proposed: stop and say so first.
    - **`one-approval-runs-to-the-end`** One instruction runs to the last file.
 4. **`name-each-action`** One line as you take it: "editing `docs/spec/product.md`".
-5. **`act-then-answer-once`** Every action first, then one answer. The last message is the only one the user reads. It carries the whole answer and every change made.
+5. **`act-then-answer-once`** Every action first, then one answer. During long work, one line saying what is running now. The last message is the only one the user reads. It carries the whole answer and every change made.
 
 ## Reading
 
@@ -79,10 +79,11 @@ One phase at a time:
 
 ## Scripts
 
-`util` and `flow` are on `PATH`. `util ls` and a bare `flow` print every command.
+`util` and `flow` are commands on the `PATH`, run through Bash. `flow` alone and `util ls` print every command with its options.
 
-- `util fs tree [path] [--depth N] [--except pattern]` prints the tree under a path, here by default, full depth, with each file's line count.
-- `flow t047` shows a ticket. `flow` is the ticket system and the only writer of ticket frontmatter.
+- `flow <id>`: one ticket in full, such as `flow t047`. `flow` is the ticket system and the only writer of ticket frontmatter.
+- `flow new "<title>"`: create a ticket.
+- `util fs tree [path]`: a folder as a tree, with each file's line count.
 
 ## Judgment
 

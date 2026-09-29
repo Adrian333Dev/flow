@@ -50,6 +50,8 @@ The alternative is every hook parsing the transcript backwards for the last assi
 - **The loading mechanism, when earned**: a `SessionStart` hook reads the active model and prints that model's overlay file. `UserPromptSubmit`, `UserPromptExpansion` and `SessionStart` are the only 3 events whose output becomes context, and a model with no overlay costs nothing.
 - **Never fork the rule set per model.** 2 full sets drift, and the second one is the one nobody maintains.
 
+**The first candidate for an overlay, 2026-09-29.** `act-then-answer-once` read "Every action first, then one answer", with nothing allowed between the actions. During a prompt audit, Opus 5.5 went quiet long enough for Claude Code to interrupt twice, asking for a status line. The rule gained "During long work, one line saying what is running now", in `CLAUDE.md` and `home/AGENTS.md`. The old wording is the overlay to try on a model that narrates too much.
+
 ### Still open on identifying the model
 
 - **Whether `SessionStart` delivers `model` in practice.** One run answers it.
