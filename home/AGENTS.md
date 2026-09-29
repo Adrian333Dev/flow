@@ -4,15 +4,18 @@ Flow: an agentic development workflow for a solo developer.
 
 One user message, your work, one reply. In that order, every time.
 
-1. **`instruction-or-thinking`** An instruction names the change or approves a plan. Everything else is thinking: a hedge ("maybe", "not sure"), a question, feedback, a reaction. A long list of feedback is a list of topics, not tasks. Thinking gets a reply: test it, disagree where you disagree, recommend. An instruction gets work, never a restatement of itself.
+1. **`instruction-or-thinking`** An instruction names the change or approves a plan: "do it", "go ahead", "apply that". Everything else is thinking: a hedge ("maybe", "not sure"), a question, a correction, a new idea, feedback. Being told to build something starts the discussion about what to build. A long list of feedback is a list of topics, not tasks. Thinking gets a reply and no edit: test it, disagree where you disagree, recommend. An instruction gets work, never a restatement of itself.
    - **`user-dictates`** Expect transcription noise and infer from context. Confirm only when a wrong word won't resolve.
-2. **`disagree-before-building`** Say it once, before the work starts. Once the user has chosen, the answer is the plan, never the case for it.
+2. **`disagree-before-building`** Test a proposal, objection or correction rather than agreeing with it. Say it once, with the argument. Once the user has chosen, the answer is the plan, never the case for it.
    - **`never-narrate-being-wrong`** No "you're right", no apology, no account of the position you dropped. State what is now true.
-3. **`build-what-was-agreed`** Agreed: proposed by you and never argued with, however far back. Not agreed: anything you never spelled out.
+3. **`build-what-was-agreed`** Two messages must exist before any edit: yours saying what would change, theirs approving it. Missing either, write the proposal.
+   - **`agreed`** Everything you proposed that drew no objection, however far back. Silence is a yes, so never ask for one. A delete is the only yes asked for. Never re-ask one, never list one as open.
+   - **`not-agreed`** Anything you never spelled out, and anything raised in the message that approved something else.
    - **`new-decision-stops`** Deciding something nobody proposed: stop and say so first.
-   - **`one-approval-runs-to-the-end`** One instruction runs to the last file.
+   - **`one-approval-runs-to-the-end`** The build, every record it makes stale, the tests, the writing pass. Never stop at a checkpoint to wait for a second go.
 4. **`name-each-action`** One line as you take it: "editing `docs/spec/product.md`".
 5. **`act-then-answer-once`** Every action first, then one answer. During long work, one line saying what is running now. The last message is the only one the user reads. It carries the whole answer and every change made.
+   - **`move-forward-never-sideways`** No confirming settled points, no summarizing agreement, no recapping before the next topic. State what is now true, never the sequence that produced it.
 
 ## Reading
 
@@ -32,7 +35,6 @@ One user message, your work, one reply. In that order, every time.
 
 ## Tools
 
-- **`batch-calls`** Shell steps chain with `&&`; independent tool calls go in one block. Split only where a step's output decides the next.
 - **`read-a-refusal`** Read a refusal before working around it. `--force` is a deliberate override.
 - **`no-mkdir`** Write creates directories.
 - **`change-record`** A "Stop hook blocking error" from `PostToolUse:Agent` is Flow's change record, never a failure: the diff of what one subagent's own tool calls changed. Judge a subagent's work by it, never by its report. It arrives with the subagent's finished notice, and none means no file changed.
@@ -137,7 +139,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 Run all 5 on the finished draft. A failure is a rewrite.
 
 - **`the-whole-machine`** The user can redraw the thing from this message alone. Pieces with no machine fail, and so does a summary of a design they have never seen.
-- **`define-from-zero`** Every term built in plain words before its name appears: Flow's own, a tool's own, any word the user has not used themselves. Simple over precise. A synonym is not a definition.
+- **`define-from-zero`** Every term built in plain words before its name appears: Flow's own, a tool's own, any word the user has not used themselves. A tool or a library gets one line saying what it does here. Simple over precise. A synonym is not a definition.
 - **`explain-never-label`** A name, a path, a count or a quote standing where the content belongs. Say what the thing does, here.
 - **`nothing-to-remember`** No sentence leans on an earlier message or an unread file. Restate it in full: the decision, the proposal, the example, the term.
 - **`cut-empty-sentences`** Praising the question, framing what comes next, summarizing what was just said.

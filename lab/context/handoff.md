@@ -1,53 +1,57 @@
 # Handoff
 
-Written 2026-09-28, mid-build, for a compaction. Read this once, then rewrite it whole next time.
+Written 2026-09-29, before a compaction, with the build approved and not started. Read this once, then rewrite it whole next time.
 
-## Next: finish the guard rebuild, then send one reply
+## Next: 3 edits to `home/AGENTS.md`, then one reply
 
-The user approved rebuilding `scripts/guard.js`, now that every shell command is allowed. The code and the tests are done: 9 tests in `scripts/tests/guard.test.js` pass. What is left, in order:
+The user approved these after the prompt audit of `home/AGENTS.md`. The working tree was clean when this was written.
 
-1. **`docs/manual/settings.md` → `### hooks`**: rewrite the guard section, which still lists the old 4 dangers, for the 5 families below. The `#### allow` list's first bullet links `[4 dangers](#hooks)`, so fix that link's words too.
-2. **Guard lines elsewhere**: `README.md` → `### The guard`, `docs/manual/reference.md` → the `hooks` bullet near line 879, `docs/dev/layout.md` → the `guard.js` bullet ("asks before 4 commands"), `scripts/flow/setup/form.md` → the `guard.js` line, `lab/context/state.md` → the `guard.js` bullet under `## 18 hooks`.
-3. **Writing pass on each markdown file**, `references/style.md` and `references/write-docs.md` read already.
-4. **`npm test --prefix scripts`**: the whole suite, 199 before this build plus the new guard tests. Rerun `node tmp/guard-holes.js`, the 17 commands the old guard let through: all ask except `git restore src` and `rm -rf src`, which lose nothing in this repo, since it has no `src`.
-5. **One reply**: what the guard now catches, the files changed, the test count, and the calls made mid-build listed below, since the user has not seen them.
+1. **Replace `## The turn`** with the text below. It carries across the approval rules the root `CLAUDE.md` gained from 2026-08-08 on, which never reached the shipped file. `approval-exceptions` stays out, since it names this repo's `tmp/`. The dates stay out.
+2. **`## The reply` → `define-from-zero`**: add "A tool or a library gets one line saying what it does here." after "any word the user has not used themselves."
+3. **Delete `batch-calls`** from `## Tools`: Claude Code's own instructions already say it. `scripts/tests/scorecard.test.js` uses the id as fixture text in its own file, so it stays.
+4. **Records**: `lab/context/state.md` → the `home/AGENTS.md` line count. `lab/backlog/before-beta.md` → pass 1 says the audit of `home/AGENTS.md` is next, so mark it done and leave "Then walk the scenarios".
+5. **Writing pass** on both files: `references/style.md` and `references/write-rules.md`.
+6. **`npm test` in `scripts/`**: 207 passed before this build.
+7. **One reply**: what changed, per file.
 
-## The guard as built
+```markdown
+1. **`instruction-or-thinking`** An instruction names the change or approves a plan: "do it", "go ahead", "apply that". Everything else is thinking: a hedge ("maybe", "not sure"), a question, a correction, a new idea, feedback. Being told to build something starts the discussion about what to build. A long list of feedback is a list of topics, not tasks. Thinking gets a reply and no edit: test it, disagree where you disagree, recommend. An instruction gets work, never a restatement of itself.
+   - **`user-dictates`** Expect transcription noise and infer from context. Confirm only when a wrong word won't resolve.
+2. **`disagree-before-building`** Test a proposal, objection or correction rather than agreeing with it. Say it once, with the argument. Once the user has chosen, the answer is the plan, never the case for it.
+   - **`never-narrate-being-wrong`** No "you're right", no apology, no account of the position you dropped. State what is now true.
+3. **`build-what-was-agreed`** Two messages must exist before any edit: yours saying what would change, theirs approving it. Missing either, write the proposal.
+   - **`agreed`** Everything you proposed that drew no objection, however far back. Silence is a yes, so never ask for one. A delete is the only yes asked for. Never re-ask one, never list one as open.
+   - **`not-agreed`** Anything you never spelled out, and anything raised in the message that approved something else.
+   - **`new-decision-stops`** Deciding something nobody proposed: stop and say so first.
+   - **`one-approval-runs-to-the-end`** The build, every record it makes stale, the tests, the writing pass. Never stop at a checkpoint to wait for a second go.
+4. **`name-each-action`** One line as you take it: "editing `docs/spec/product.md`".
+5. **`act-then-answer-once`** Every action first, then one answer. During long work, one line saying what is running now. The last message is the only one the user reads. It carries the whole answer and every change made.
+   - **`move-forward-never-sideways`** No confirming settled points, no summarizing agreement, no recapping before the next topic. State what is now true, never the sequence that produced it.
+```
 
-`scripts/guard.js`, 1,409 lines. It never answers `allow`.
+## Decided 2026-09-29
 
-- **A shell reader, `parse()`**: quotes, `$(…)`, backticks, `<(…)`, `$((…))`, `${…}`, here-docs, comments, every operator, subshell parens. Each word keeps its parts (text, `~`, a named variable, or unknown) and its `raw` text, which is read again for `bash -c`, `eval`, `watch` and `env -S`.
-- **`unwrap()`** peels keywords, assignments and wrappers: `env`, `command`, `exec`, `nohup`, `time`, `nice`, `ionice`, `timeout`, `stdbuf`, `sudo`, `flock`, `watch`, `bundle exec`, `xargs` (its input becomes an unknown argument). Variables set by `x=…`, `export` and `for` are tracked, and so is `cd`, with subshells restoring it.
-- **Family 1, losing work**: `rm`, `unlink`, `shred`, `rimraf` and the rest ask outside the project, on an unknown target, on the project or an ancestor of it or of home, on a whole git repository, and inside the project over files `git status` lists as changed, staged or new. Outside git, a delete asks unless it sits in a rebuilt folder such as `node_modules` or `dist`. `find -delete` and `find -exec rm` run a dry run of the same find with `-print0`, then check exactly what matched. The git discards: force push, `reset --hard`, `clean`, `rebase`, `filter-branch`, `branch -D`, tag and ref deletes, `reflog`, `gc --prune`, `stash drop`/`clear`, and `checkout`/`restore`/`switch -f`/`rm -f` only over uncommitted changes. `git config --global` writes.
-- **Family 2, off the machine**: `curl`/`wget`/`httpie` sending data to a host that is not local, `scp`/`rsync` to a remote destination, `sftp`, every `ssh`.
-- **Family 3, shared systems**: 21 deploy and cloud tools ask unless a word reads and none changes (`READS`, `CHANGES`); `gh api` by its method and fields; bare `vercel`; `docker push`, volume deletes, `compose down -v`; `DROP`/`TRUNCATE`/`FLUSHALL` in a database client's arguments, here-doc or piped input; `dropdb`; `prisma migrate reset`; `rails db:drop`; django `flush`.
-- **Family 4, the machine**: global installs (`npm -g`, `pip` outside a virtual environment or `--user`, `uv tool`, `pipx`, `cargo`/`go`/`gem install`, `brew`), `crontab`, `systemctl`, `launchctl`, `pkill`, `killall`.
-- **Family 5, outside code and Flow's switches**: a download piped or substituted into a shell or interpreter, `npx`/`bunx`/`pnpm dlx`/`yarn dlx` of a package the project lacks (checked in `node_modules` and `package.json`), and any write into `~/.ssh`, shell startup files, `~/.gitconfig`, `~/.claude`, `~/.flow`, `~/.agents` or the project's `.claude/settings*.json`, by redirect, `tee`, `cp`, `mv`, `ln`, `install`, `sed -i`, `perl -i`, `truncate`, `chmod`/`chown` or `dd`.
-- **When it cannot tell**: an unknown delete target or program asks. A command bash would refuse, such as an unclosed quote, stays silent. A crash asks when the command mentions a risky program.
+- **`user-dictates` stays in the public template.** The user's reason: dictation is how most people drive agents now, so the rule is common practice, not a personal detail.
+- **No backlog line about the root `CLAUDE.md` after the install.** The install replaces the root `CLAUDE.md` completely, so the double loading never happens.
+- **Rule files stay lists.** The audit's checklist prefers prose. A list keeps one rule per line with an id that other files cite. A reason gets added only where a rule looks arbitrary without it, in pass 4.
+- **Already built and committed today**: the `act-then-answer-once` status line in both rule files, the old wording kept in `lab/context/models.md` as the first per-model candidate, the `lab/util/` path in `scripts-keep-their-extension`, the `~/.flow/` list replaced by a pointer to `docs/manual/where-everything-lives.md`, and the new `## Scripts` in `home/AGENTS.md`.
 
-**Calls made mid-build, to report to the user:**
+## After this: pass 1 walks the scenarios
 
-- A named delete in `/tmp` passes, and a glob there asks.
-- Deleting a new file git does not ignore asks, such as a scratch file outside `tmp/`.
-- A plain `rm` outside the project now asks, where the old guard asked only for `-r` or `-f`.
-- `find` deleting runs a dry run first, capped at 3 seconds.
-- `ssh` always asks, even with no command after the host.
-- `git push` without force, and `git commit`, stay with the `ask` rules, so deleting one from settings still lets it run.
+`lab/backlog/before-beta.md` → the final sweep, pass 1. Walk each start to finish, reading every skill and script a step touches, and report every failing step with its file and line and a proposed fix. Nothing gets fixed mid-walk.
 
-## Decided 2026-09-28: permissions
+1. A new project: the files Flow adds, then the first `/flow:start`.
+2. One ticket: `/flow:start`, `/flow:groundwork`, `/flow:execute`, `/flow:handoff`.
+3. A bug: `/flow:debug` on an existing ticket.
+4. A throwaway: `/flow:prototype`, and how its result becomes a ticket or is dropped.
+5. A session that died halfway through a ticket, then resumed.
+6. A second machine: `flow restore machine`, with projects moved by `util git uncommitted`.
 
-- **Every shell command is allowed**: a bare `Bash` in `permissions.allow`, and `permissions.ask` holds `git commit`, `git push`, and `npm`/`pnpm`/`yarn`/`cargo publish`. Both `home/settings.json` and this repo's `.claude/settings.json`. `docs/manual/settings.md` → `#### Why every shell command is allowed`, `#### ask: 6 commands that always ask` and `#### Modes` record the reasons.
-- **`approve.js` was built and deleted the same day**: its first live session asked on `wc -l < "$f"` inside a loop, and the user refused to patch shapes forever.
-- **Auto mode ruled out by the user**: extra cost, reviews failing with no verdict, and blocking actions the conversation already agreed. **The sandbox ruled out** for what it breaks, and its retries outside the wall.
-- The "switch to auto mode" option in prompts is gone, since the prompts left all come from a hook or an ask rule.
+## Carried over, not recorded anywhere yet
 
-## Decided 2026-09-28: tickets and teams
-
-- **Saving a ticket keeps fields Flow does not know**: `scripts/flow/lib/frontmatter.js`, with a test in `tickets.test.js`.
-- **Mode 1 for teams keeps ticket records in a database** on a server, with plans in the repo; a solo developer keeps files. The board's columns: Todo, In progress (phase as a label), Review, Done, Parked, Dropped. `lab/context/teams.md`.
-- **2 ticket rules ride on the `scripts/` cleanup** in `lab/backlog/before-beta.md`: id parsing and every ticket read and write stay inside `store.js`.
-- **Not recorded yet**: the idea of one developer using Flow on a team repo, with Flow's files kept out of git through `.git/info/exclude`. A proposal only.
+- **One developer using Flow on a team repository**, with Flow's files kept out of git through `.git/info/exclude`. A proposal only.
+- **The util installed on this machine is older than `lab/util/`**: `util ls` still shows `git work`, since `~/code/util` has not pulled the rename.
 
 ## Scratch
 
-`tmp/guard-holes.js` feeds the guard 17 commands and prints ask or RUNS. Nothing is committed.
+`tmp/audit/` holds the diffs of the sections both rule files share.
