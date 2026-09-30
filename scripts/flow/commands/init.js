@@ -2,20 +2,25 @@
 /**
  * `flow init`: set up the project you are in.
  *
- * What it checks is whether anything competes with Flow's rules, never
- * whether the folder is empty. Code, a README and a package.json change
- * nothing. Each state is checked on its own, in this order:
+ * A file telling Claude how to work here always gets the setup session,
+ * since only reading it can sort its rules into Flow's files. Any other file
+ * gets a question: only the user can tell a project from a folder of scratch
+ * code. Each state is checked on its own, in this order:
  *
  *   no git repository         `git init`, never inside an existing one
  *   typed in a subfolder      works at the repository's top folder, and says so
  *   a run stopped part way    carries it on
  *   already a Flow project    says so and stops, or folds in this machine's old
  *                             Claude Code memory where there is some
+ *   a remote refusing a push  stops before anything is made, offering --local
  *   a teammate set it up      the `flow` branch is on the remote: checks it
  *                             out, and the project is set up
  *   no `flow` branch          makes one, checked out at `.flow/`
- *   no competing files        writes the template at once, with no session
- *   competing files           opens the setup session, for those files only
+ *   competing files           opens the setup session, which sorts them
+ *   other files, or old       asks whether the setup session should read
+ *   Claude Code memory        them; -y answers yes. The default, and the
+ *                             answer with no terminal, is the template
+ *   an empty folder           writes the template at once
  *   an existing .gitignore    Flow's lines are added, and nothing is replaced
  *
  * The project's ticket prefix is asked once, `exp` for an expense app, with
@@ -79,10 +84,24 @@ const RECORDS_IGNORE = [
 ].join('\n');
 
 /** The paths competing with Flow's rules in this project, as found. */
-function competing(at, project) {
-  const found = COMPETING.filter((rel) => fs.existsSync(path.join(project, rel)));
-  if (setup.holdsFiles(setup.memoryDir(at, project))) found.push('Claude Code\'s memory for this folder');
-  return found;
+function competing(project) {
+  return COMPETING.filter((rel) => fs.existsSync(path.join(project, rel)));
+}
+
+/**
+ * Whether the project holds a file of its own: one git keeps, or one it would
+ * keep once added. The `.gitignore` Flow just wrote doesn't count.
+ */
+function hasFiles(project) {
+  const listed = git(project, ['ls-files', '--cached', '--others', '--exclude-standard']).out;
+  return listed.split('\n').some((rel) => rel && rel !== '.gitignore');
+}
+
+/** Whether the user wants the setup session: `-y`, the typed answer, or no. */
+function wantsSession(yes) {
+  if (yes) return true;
+  if (!process.stdout.isTTY || !confirm.hasTerminal()) return false;
+  return /^y(es)?$/i.test(confirm.ask('This folder already has files.\nRead them in a setup session first? (y/N) ', 'n'));
 }
 
 /** The top folder of the repository around `from`, or null outside one. */
@@ -219,6 +238,14 @@ function init(at, clone, flags) {
     return 0;
   }
 
+  // A ticket gets its number only once the remote has it, so a remote that
+  // refuses this clone's pushes would leave the project unable to make one.
+  const push = records.canPush(project);
+  if (!push.ok) {
+    throw new FlowError(`the remote refuses a push from this clone, so no ticket could ever be made here. git said: ${push.why}\n` +
+      'Fix what git names and run flow init again, or run flow init --local to keep the tickets in this clone alone.');
+  }
+
   // The branch before any file lands in `.flow/`: git checks out only into
   // a missing or empty folder.
   if (!records.onBranch(project)) {
@@ -242,11 +269,12 @@ function init(at, clone, flags) {
   }
 
   seedRecords(project, choosePrefix(project, flags.prefix));
-  const rivals = competing(at, project);
-  if (rivals.length) {
+  const rivals = competing(project);
+  const something = hasFiles(project) || setup.holdsFiles(setup.memoryDir(at, project));
+  if (rivals.length || (something && wantsSession(flags.y))) {
     records.commit(project, 'flow init');
-    out(`${done.join('\n')}\n\n${rivals.length} thing${rivals.length === 1 ? '' : 's'} here already tell${rivals.length === 1 ? 's' : ''} ` +
-      `Claude how to work: ${rivals.join(', ')}. The setup session sorts them.\n`);
+    const why = rivals.length ? `\nThis folder already has rules for Claude: ${rivals.join(', ')}. The setup session reads them first.` : '';
+    out(`${done.join('\n')}\n${why}\n`);
     return setup.startProject(at, clone, flags.root);
   }
 
@@ -255,7 +283,8 @@ function init(at, clone, flags) {
   records.commit(project, 'flow init');
   records.syncLater(project, at.flow);
   out(`${done.join('\n')}\n\nset up: ${show(project)} is on entry ${newest}. Nothing in the code is committed: ` +
-    'AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.');
+    'AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.' +
+    (flags.y && !something ? '\nNothing here to read. Describe the project with /flow:groundwork.' : ''));
   return 0;
 }
 
@@ -266,12 +295,12 @@ actions.init = {
   anywhere: true,
   args: '[check|finish]',
   summary: 'set up the project you are in; check and finish are the setup session\'s own steps',
-  flags: { root: { arg: '<dir>' }, prefix: { arg: '<word>' }, local: { bool: true } },
+  flags: { root: { arg: '<dir>' }, prefix: { arg: '<word>' }, local: { bool: true }, y: { bool: true, letter: true } },
   run({ positional, flags }) {
     const at = machine.folders(flags.root);
     const [word, ...extra] = positional;
     if (extra.length || (word && !['check', 'finish'].includes(word))) {
-      throw new FlowError('usage: flow init [check|finish] [--prefix <word>] [--local]');
+      throw new FlowError('usage: flow init [check|finish] [--prefix <word>] [--local] [-y]');
     }
     if (word === 'check') return setup.checkProject(at);
     if (word === 'finish') {

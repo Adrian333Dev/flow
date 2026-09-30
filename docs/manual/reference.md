@@ -152,14 +152,29 @@ It checks each of these in order, and does only what applies:
 
 - **No git repository** → it runs `git init`. Inside a repository it never does.
 - **Typed in a subfolder** → it works at the repository's top folder, and says so.
+- **The remote refuses a push from this clone**, for a missing sign-in or no write access → it stops before making anything, prints what git said, and offers `--local`. A ticket gets its number only once the remote has it, so a project whose remote refuses pushes could never make one. The check is a dry run: it asks the remote and sends nothing.
 - **A teammate set the project up**, so the branch `flow` is on the remote → it checks that branch out at `.flow/`, and the project is set up.
 - **No branch `flow`** → it makes one and checks it out at `.flow/`. The branch holds the tickets and shares no history with the code. `.flow/` goes into `.gitignore`, so every code branch ignores the tickets and nothing on the branch is ever merged into the code. [Where everything lives](where-everything-lives.md#flow-flows-working-store) has the whole of it.
 - **The ticket prefix** is asked once, and the first 3 letters of the folder name are offered: `Ticket prefix, so its tickets read sho-1, sho-2 (default: sho):`. `--prefix shop` answers it. A prefix is 2 to 8 lowercase letters, and never `home`, which names the tickets in `~/.flow/`.
-- **Nothing competes with Flow's rules** → it writes the project template at once, and opens no session. Code, a README and a `package.json` compete with nothing.
-- **Files compete with Flow's rules** → it opens the setup session, for those files. A competing file tells Claude Code or another agent how to work here: `CLAUDE.md`, `AGENTS.md`, `.claude/settings.json`, `.cursorrules` and the like, or Claude Code's memory for this folder.
+- **Files telling Claude Code or another agent how to work here** → it opens the setup session, and asks nothing. These are `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, anything under `.claude/`, `.mcp.json`, and other tools' rule files such as `.cursorrules`. Only reading them can sort their rules into Flow's files:
+
+  ```text
+  This folder already has rules for Claude: CLAUDE.md. The setup session reads them first.
+  ```
+
+- **Any other file, or Claude Code's memory for this folder** → it asks whether the setup session should read them first. Files count whether git keeps them or not. `-y` answers yes before it asks. The template is the default, and the answer where no terminal is attached:
+
+  ```text
+  This folder already has files.
+  Read them in a setup session first? (y/N)
+  ```
+
+- **An empty folder** → it writes the project template at once. With `-y` it adds `Nothing here to read. Describe the project with /flow:groundwork.`
+
+The template's `AGENTS.md` holds 4 sections, each with a comment showing what goes there: `## Project`, `## Commands`, `## Layout` and `## Rules`. Sessions fill them in as the work shows what each one holds, and `/flow:groundwork` writes the title and `## Project` where they are still comments. The setup session fills them from the code.
 - **A `.gitignore` already exists** → Flow's lines are added, and nothing is replaced.
 
-With nothing competing, the whole run is one command:
+In an empty folder, the whole run is one command:
 
 ```text
 $ flow init --prefix shop
@@ -186,7 +201,7 @@ The setup session is a normal Claude Code session, which loads Flow's rules and 
 
 **It refuses where it can't start**: a machine `flow install` never finished, a `.flow/` already holding files that are not the branch `flow`, or another setup stopped part way. `flow init check` runs the same check on its own.
 
-Run where no terminal is attached, or with `--root`, it prints the line that starts the session instead:
+Asked to open the session with `--root` given, or with no terminal to open it in, it prints the line that starts the session instead:
 
 ```text
 Setting up ~/code/shop runs in its own session. Start it from a terminal:
@@ -332,10 +347,11 @@ It rarely needs typing. Every command that changes a ticket commits it on the br
 
 Offline, a send fails quietly and the next one tries again.
 
-**A new ticket needs the remote.** Its number is given out only once the remote has it, so a number never changes after you have seen it. Offline, `flow new` makes no ticket:
+**A new ticket needs the remote.** Its number is given out only once the remote has it, so a number never changes after you have seen it. Where the push fails, offline or signed out, `flow new` makes no ticket, and prints what git said. Here the remote's folder had been moved:
 
 ```text
-flow: no ticket was made: the remote could not be reached. A number is given out only once the remote has it, so try again once it answers.
+flow: no ticket was made: the remote did not take it. git said: fatal: '../shop.git' does not appear to be a git repository fatal: Could not read from remote repository.
+A number is given out only once the remote has it. Fix what git names, or wait until the remote answers, then try again.
 ```
 
 A project with no remote, and a [local](#flow-init) one, give numbers out on the spot, since nobody else can take one.
@@ -582,7 +598,7 @@ Flags:
 
 Every ticket gets a `groundwork/` folder with a `map.md` from birth. The folder exists whether groundwork is needed or not, because a ticket's path is fixed for life.
 
-In a project whose tickets are on the branch `flow`, the new ticket is sent to the remote before its id is printed. Where the remote can't be reached, no ticket is made: [A project's tickets](#a-projects-tickets) says why.
+In a project whose tickets are on the branch `flow`, the new ticket is sent to the remote before its id is printed. Where the push fails, no ticket is made: [A project's tickets](#a-projects-tickets) says why.
 
 ### `flow edit <id>`
 

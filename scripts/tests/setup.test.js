@@ -133,7 +133,7 @@ test('init refuses a machine not set up, and runs git init in a folder outside g
   assert.ok(fs.existsSync(path.join(loose.proj, '.git')));
 });
 
-test('init with nothing competing writes the template at once, and opens no session', () => {
+test('init in an empty folder writes the template at once, and opens no session', () => {
   const m = projectCase('setup-project-plain');
   const done = m.setup('--prefix', 'shop');
   assert.strictEqual(done.code, 0, done.stderr);
@@ -145,7 +145,35 @@ test('init with nothing competing writes the template at once, and opens no sess
   assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(m.proj, '.flow', 'settings.json'), 'utf8')), { ticketPrefix: 'shop' });
 });
 
-test('init writes its run and prints a session that loads nothing of the project, where files compete', () => {
+test('init writes the template where the folder holds files and nobody answers yes, and -y opens the session', () => {
+  const m = projectCase('setup-project-code');
+  fs.writeFileSync(path.join(m.proj, 'app.js'), 'console.log(1);\n');
+  const done = m.setup('--prefix', 'shop');
+  assert.strictEqual(done.code, 0, done.stderr);
+  assert.match(done.stdout, /^wrote: AGENTS\.md$/m);
+  assert.doesNotMatch(done.stdout, /claude /, 'no session');
+  assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
+  assert.strictEqual(fs.readFileSync(path.join(m.proj, '.flow', 'version'), 'utf8'), `${version.newest(REPO)}\n`);
+
+  const yes = projectCase('setup-project-code-yes');
+  fs.writeFileSync(path.join(yes.proj, 'app.js'), 'console.log(1);\n');
+  const started = yes.setup('--prefix', 'shop', '-y');
+  assert.strictEqual(started.code, 0, started.stderr);
+  assert.match(started.stdout, /'Set up this project\.'$/m);
+  assert.ok(!fs.existsSync(path.join(yes.proj, 'AGENTS.md')), 'the session writes it, not the template');
+  assert.strictEqual(yes.setup('--yes').code, 1, '-y has no two-dash form');
+});
+
+test('init -y in an empty folder writes the template, and names /flow:groundwork', () => {
+  const m = projectCase('setup-project-empty-yes');
+  const done = m.setup('--prefix', 'shop', '-y');
+  assert.strictEqual(done.code, 0, done.stderr);
+  assert.match(done.stdout, /^wrote: AGENTS\.md$/m);
+  assert.match(done.stdout, /Nothing here to read\. Describe the project with \/flow:groundwork\./);
+  assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
+});
+
+test('init writes its run and prints a session that loads nothing of the project, where files compete, asking nothing', () => {
   const m = projectCase('setup-project-ready');
   fs.writeFileSync(path.join(m.proj, 'CLAUDE.md'), '# How to work here\n');
   const memory = path.join(m.root, '.claude', 'projects', fs.realpathSync(m.proj).replace(/[^A-Za-z0-9]/g, '-'), 'memory');
@@ -155,7 +183,7 @@ test('init writes its run and prints a session that loads nothing of the project
 
   const started = m.setup('--prefix', 'shop');
   assert.strictEqual(started.code, 0, started.stderr);
-  assert.match(started.stdout, /2 things here already tell Claude how to work: CLAUDE\.md, Claude Code's memory for this folder\./);
+  assert.match(started.stdout, /This folder already has rules for Claude: CLAUDE\.md\. The setup session reads them first\./);
   assert.match(started.stdout, /claude --setting-sources user --strict-mcp-config --permission-mode acceptEdits --add-dir \S+ --add-dir \S+memory --allowedTools 'Bash\(flow init:\*\)'/);
   assert.match(started.stdout, /'Set up this project\.'$/m);
 

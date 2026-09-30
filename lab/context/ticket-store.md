@@ -51,7 +51,7 @@ A project's `.flow/` used to be committed with the code, so every branch carried
 
 `flow new` pulls, takes the next number, commits and pushes. A refused push means someone pushed first: it pulls, renumbers and tries again, up to 5 times, writing no `was:`, since nobody saw the first number. The id shows only after the push lands, so nobody sees a number change.
 
-**Offline, no ticket is made**, decided with the user the same evening. A failed pull refuses before anything is written. A push that never lands takes the ticket back: its folder goes, a `--from-groundwork` folder returns where it was, and the removal is committed. The message: `no ticket was made: the remote could not be reached.` A ticket renumbered after it was shown leaves its old id wherever it was already written, a plan, a commit message, a conversation, which is the argument. Claude Code needs the network anyway. A project with no remote, and a local one, give numbers out on the spot.
+**Offline, no ticket is made**, decided with the user the same evening. A failed pull refuses before anything is written. A push that never lands takes the ticket back: its folder goes, a `--from-groundwork` folder returns where it was, and the removal is committed. Since 2026-09-30 the message prints git's own words, `no ticket was made: the remote did not take it. git said: …`, since a missing sign-in and a network fault had read the same. A ticket renumbered after it was shown leaves its old id wherever it was already written, a plan, a commit message, a conversation, which is the argument. Claude Code needs the network anyway. A project with no remote, and a local one, give numbers out on the spot.
 
 **`~/.flow/` still renumbers with `was:`.** Its tickets are sent every 30 minutes, not when made, so 2 machines can give out one `home-` number between syncs. `flow sync` renumbers the later one and prints `home-4 is now home-5: another machine took home-4 first.`
 
@@ -89,15 +89,17 @@ Each phase skill opened with `` !`[[ "$0" =~ ^([a-zA-Z]{2,8}-)?[0-9]+(-|$) ]] &&
 
 ## What `flow init` checks
 
-The test is whether anything competes with Flow's rules, never whether the folder is empty. Code, a `README` and a `package.json` change nothing. In order:
+The test is whether the folder holds anything for the setup session to read: code, or a file competing with Flow's rules. Until 2026-09-30 code counted for nothing, which left a project with code and no rule file on the bare template: no `## Project`, and no stack ticket. In order:
 
 - **No git repository** → `git init`. Never in an existing one.
 - **Typed in a subfolder of a repository** → works at the top folder, and says so.
 - **A run that stopped part way** → carries on from where it stopped.
 - **Already a Flow project** → says so and stops, or folds in this machine's old Claude Code memory.
 - **`--local`** → the plain folder above, and nothing else.
+- **The remote refuses a dry-run push** → stops before making anything, prints git's reason, and offers `--local`. Added 2026-09-30.
 - **A teammate made the branch** → checks it out, and the project is set up.
 - **No `flow` branch** → creates it, and adds `.flow/` to `.gitignore`.
-- **No competing files** → writes the template at once, with no session.
-- **Competing files present** (`CLAUDE.md`, `AGENTS.md`, `.claude/settings.json`, `.claude/skills/`, Claude Code's memory for the folder, other tools' rule files) → the setup session opens, for those files only.
+- **An empty folder**: no file git keeps or would keep, besides `.gitignore` → writes the template at once, and asks nothing.
+- **Competing files** (`CLAUDE.md`, `AGENTS.md`, `.claude/settings.json`, `.claude/skills/`, `.mcp.json`, other tools' rule files) → the setup session opens, asking nothing: only reading them sorts their rules into Flow's files.
+- **Other files, or Claude Code's memory for the folder** → asks `Read them in a setup session first? (y/N)`. `-y` answers yes. The default, and the answer with no terminal, is the template, which replaces no file already there. Decided 2026-09-30: only the user can tell a project from a folder of scratch code.
 - **An existing `.gitignore`** → Flow's lines are added group by group, and nothing is replaced.

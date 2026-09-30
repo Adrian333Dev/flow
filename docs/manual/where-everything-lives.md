@@ -172,7 +172,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 
 ### The files at the root
 
-- **`AGENTS.md`**: rules for this project alone. It starts from `project-template/`, and you and the sessions fill it in.
+- **`AGENTS.md`**: what every session in this project needs, in 4 sections: `## Project` says what it is, `## Commands` how to install, run, test and check it, `## Layout` the folders that would catch an agent out, and `## Rules` the corrections that hold here alone. It starts from `project-template/`, and the sessions fill it in as the work shows each part.
 - **`CLAUDE.md`**: one line, `@AGENTS.md`, from the template, so Claude Code loads the same rules.
 - **`.gitignore`**: from the template. It ignores the skill symlinks, and `.flow/`, which holds a branch of its own. `flow init` adds the `.flow/` line.
 - **`.uncommitted-include`**: from the template, empty. It names the gitignored files that travel with `util git uncommitted send`.

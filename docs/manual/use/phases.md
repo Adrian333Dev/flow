@@ -76,7 +76,7 @@ Each skill is a long file, and Claude Code adds it to the conversation whole. Ru
 
 ## What each skill produces
 
-Every phase leaves its result in the ticket folder, so a later session reads the file rather than the conversation. [Tickets](../tickets.md) lists the 5 files and their owners.
+Every phase leaves its result in the ticket folder, so a later session reads the file rather than the conversation. [Tickets](../tickets.md) lists every file a ticket folder can hold.
 
 - **`/flow:groundwork`** writes `groundwork/map.md`: every question, settled or open, and the reasoning under each. At the end it cuts tickets for what was decided and hands a feature to `/flow:execute`.
 - **`/flow:execute`** writes `plan.md`, waits for your yes on the steps, builds them, and hands the work back at `review`.

@@ -34,7 +34,7 @@ function team(name) {
   fs.rmSync(dir, { recursive: true, force: true });
   const remote = path.join(dir, 'remote.git');
   const home = setUp(path.join(dir, 'flow-home'));
-  git(dir, 'init', '--quiet', '--bare', remote);
+  git(dir, 'init', '--quiet', '--bare', '--initial-branch=main', remote);
 
   const first = path.join(dir, 'first');
   write(first, 'app.js', 'console.log(1);\n');
@@ -50,7 +50,9 @@ function team(name) {
     return path.join(dir, who);
   };
   const inside = (cwd, ...args) => run('flow/flow.js', args, { cwd, env });
-  return { dir, remote, home, clone, in: inside };
+  // With no terminal to ask in, flow init takes the template over the session.
+  const init = (cwd, ...args) => inside(cwd, 'init', ...args);
+  return { dir, remote, home, clone, in: inside, init };
 }
 
 const idsIn = (dir) => fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive').sort();
@@ -58,9 +60,10 @@ const idsIn = (dir) => fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter
 test('flow init makes the branch flow, and a teammate\'s flow init joins it', () => {
   const t = team('records-init');
   const ana = t.clone('ana');
-  const made = t.in(ana, 'init', '--prefix', 'exp');
+  const made = t.init(ana, '--prefix', 'exp');
   assert.strictEqual(made.code, 0, made.stderr);
   assert.match(made.stdout, /a new flow branch, sharing no history with the code/);
+  assert.match(made.stdout, /^wrote: AGENTS\.md$/m);
 
   assert.strictEqual(git(path.join(ana, '.flow'), 'rev-parse', '--abbrev-ref', 'HEAD').out, 'flow');
   assert.ok(!git(ana, 'merge-base', 'main', 'flow').ok, 'no history shared with the code');
@@ -81,7 +84,7 @@ test('flow init makes the branch flow, and a teammate\'s flow init joins it', ()
 test('offline, flow new makes no ticket, and gives out no number', () => {
   const t = team('records-offline');
   const ana = t.clone('ana');
-  t.in(ana, 'init', '--prefix', 'exp');
+  t.init(ana, '--prefix', 'exp');
   records.sync(ana);
 
   const away = `${t.remote}.away`;
@@ -89,17 +92,30 @@ test('offline, flow new makes no ticket, and gives out no number', () => {
   const offline = t.in(ana, 'new', 'Export csv');
   fs.renameSync(away, t.remote);
   assert.strictEqual(offline.code, 1);
-  assert.match(offline.stderr, /no ticket was made: the remote could not be reached/);
+  assert.match(offline.stderr, /no ticket was made: the remote did not take it\. git said: fatal: .*does not appear to be a git repository/);
   assert.deepStrictEqual(idsIn(ana), []);
   assert.strictEqual(git(path.join(ana, '.flow'), 'status', '--porcelain').out, '', 'nothing left behind');
 
   assert.match(t.in(ana, 'new', 'Export csv').stdout, /created exp-1/);
 });
 
+test('flow init stops before making anything where the remote refuses a push, and offers --local', () => {
+  const t = team('records-refused');
+  const ana = t.clone('ana');
+  git(ana, 'remote', 'set-url', 'origin', path.join(t.dir, 'nowhere.git'));
+  const refused = t.in(ana, 'init', '--prefix', 'exp');
+  assert.strictEqual(refused.code, 1);
+  assert.match(refused.stderr, /the remote refuses a push from this clone, .*git said: fatal: /);
+  assert.match(refused.stderr, /flow init --local/);
+  assert.ok(!fs.existsSync(path.join(ana, '.flow')), 'no .flow/');
+  assert.ok(!fs.existsSync(path.join(ana, '.gitignore')), 'no .gitignore line');
+  assert.ok(!git(ana, 'rev-parse', '--verify', 'flow').ok, 'no branch');
+});
+
 test('2 people taking one number in the same moment: the second is renumbered before anyone sees it', () => {
   const t = team('records-clash');
   const ana = t.clone('ana');
-  t.in(ana, 'init', '--prefix', 'exp');
+  t.init(ana, '--prefix', 'exp');
   records.sync(ana);
   const ben = t.clone('ben');
   t.in(ben, 'init');
@@ -117,7 +133,7 @@ test('2 people taking one number in the same moment: the second is renumbered be
 test('each command that changes a ticket commits it, and flow runs from inside .flow/', () => {
   const t = team('records-commits');
   const ana = t.clone('ana');
-  t.in(ana, 'init', '--prefix', 'exp');
+  t.init(ana, '--prefix', 'exp');
   t.in(ana, 'new', 'Login page');
 
   const moved = t.in(ana, 'groundwork', 'exp-1');
@@ -176,7 +192,7 @@ test('flow move takes tickets home, rewrites their links, keeps was, and carries
 test('a ticket records its code branch when building starts, and a history line per move and handoff', () => {
   const t = team('records-history');
   const ana = t.clone('ana');
-  t.in(ana, 'init', '--prefix', 'exp');
+  t.init(ana, '--prefix', 'exp');
   t.in(ana, 'new', 'Budget page', '--type', 'issue');
   git(ana, 'checkout', '-q', '-b', 'feature/budgets');
 

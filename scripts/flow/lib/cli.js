@@ -31,10 +31,15 @@ function resolve(word, candidates, label, prefix = '') {
  * An undeclared flag fails here. It used to be collected and ignored, so
  * `--statuss building` exited 0 having changed nothing, which reads exactly
  * like success.
+ *
+ * A flag declared with `letter: true` is one letter typed after one dash,
+ * where a wide convention already owns the letter: `-y` answers yes, as in
+ * `npm init -y`. It has no two-dash form.
  */
 function parseArgs(argv, decl = {}) {
   const declared = decl.flags || {};
-  const names = Object.keys(declared);
+  const names = Object.keys(declared).filter((name) => !declared[name].letter);
+  const letters = Object.keys(declared).filter((name) => declared[name].letter);
   const positional = [];
   const flags = {};
 
@@ -42,6 +47,10 @@ function parseArgs(argv, decl = {}) {
     const arg = argv[i];
 
     if (!arg.startsWith('--')) {
+      if (arg.startsWith('-') && letters.includes(arg.slice(1))) {
+        flags[arg.slice(1)] = true;
+        continue;
+      }
       if (arg.startsWith('-') && arg.length > 1) {
         throw new FlowError(`flags take two dashes: "--${arg.replace(/^-+/, '')}", not "${arg}".`);
       }
@@ -149,7 +158,7 @@ const GUTTER = 38;
 
 function flagText(action) {
   return Object.entries(action.flags || {})
-    .map(([name, flag]) => (flag.required ? `--${name} ${flag.arg || '<value>'}` :
+    .map(([name, flag]) => (flag.letter ? `[-${name}]` : flag.required ? `--${name} ${flag.arg || '<value>'}` :
       flag.bool ? `[--${name}]` : `[--${name} ${flag.arg || '<value>'}]`))
     .join(' ');
 }

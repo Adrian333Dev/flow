@@ -193,10 +193,13 @@ They tested it and it is not what they wanted, not a list of corrections, a diff
 
 ## The ticket folder
 
-5 files, 5 owners. Never write a file another skill owns.
+8 entries, each with one owner. Never write a file another skill owns.
 
 - **`ticket.md`**: frontmatter (`flow`), the body, `## References` and `## Done when` (whoever created it), `## State` (`/flow:handoff` owns its shape, whoever works the ticket writes it). `## State` holds work in flight and dies at review; `## References` stays.
 - **`plan.md`**: this skill. What the code looks like now, then the steps, then whatever the build adds under them.
 - **`groundwork/map.md`**: `/flow:groundwork`. Every decision and its reasoning.
 - **`issues.md`**: whoever builds. What the build taught, and it stays true after the ticket closes. Created the first time there is something; absent from every ticket that produces none.
 - **`reports/`**: whichever skill answered something. Absent where nothing was answered.
+- **`protos/`**: `/flow:prototype`. One folder per prototype, the code beside its report.
+- **`history.md`**: `flow`. One line per status move and handoff. Never edited by hand.
+- **`intake/`**: the user. Material dropped in for this job, read and never rewritten.

@@ -84,7 +84,7 @@ function syncProject() {
       `${done.sent ? `${done.sent} commit${done.sent === 1 ? '' : 's'} went up` : 'nothing went up'}.`);
     return 0;
   }
-  out(`${name}'s tickets: not sent, ${done.offline ? 'the remote could not be reached' : done.why}.`);
+  out(`${name}'s tickets: not sent, ${done.offline ? `the remote did not take them. git said: ${done.why}` : `${done.why}.`}`);
   return 1;
 }
 

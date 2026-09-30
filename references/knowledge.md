@@ -9,7 +9,7 @@ The map of everything an agent draws on past Flow's rules and its own training: 
 - **Private skills**: `~/.flow/private-skills/<name>/`, the user's, not yet published.
 - **A plugin**: a bundle from a Claude Code marketplace: skills, often hooks, commands and an MCP server. Claude Code installs and updates it.
 - **An MCP server**: a running program that hands the agent extra tools. Configured per project in `.mcp.json`.
-- **The wiki**: `~/.flow/wiki/<tool>/`, one folder per outside tool, every project's: docs shortcuts, research reports, findings, downloads. `~/.flow/references/wiki.md` holds its layout. Never loads by itself: `/flow:research` opens it.
+- **The wiki**: `~/.flow/wiki/<tool>/`, one folder per outside tool, every project's: docs shortcuts, research reports, findings, downloads. `/flow:research`'s own `references/wiki.md` holds its layout. Never loads by itself: `/flow:research` opens it.
 - **Findings**: one file per thing learned. About an outside tool → the wiki. Anything else → the project's `.flow/findings/`.
 - **An overlay**: `.flow/overlays/<skill>.md`, a project's additions to any skill, handed over as it loads. No plugin prefix in the name.
 

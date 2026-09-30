@@ -51,8 +51,10 @@ A message starting `Carry on` is the same job, stopped part way.
 
 **A line kept is a line the agent would get wrong without it.** Standard practice is never a rule: "all LLM calls go through `LlmService`" is ordinary design a capable agent reads off the code.
 
-- **A rule for working in this project** → `AGENTS.md`. A rule from a subfolder's rule file names that folder.
-- **A lasting fact the code doesn't show quickly** (a verified command, a deploy path, a settled convention) → `docs/context/<subject>.md`, one question per file. Keep each file short.
+- **A rule for working in this project** → `AGENTS.md` → `## Rules`. A rule from a subfolder's rule file names that folder.
+- **How to install, run, test or check the project** → `AGENTS.md` → `## Commands`. Only a command the project's files show working: a script its package file defines, a command its CI runs. Any other command → `docs/context/`.
+- **A folder whose role would catch an agent out** (generated, dead, misleadingly named) → `AGENTS.md` → `## Layout`. Never a map of the tree.
+- **A lasting fact only some work needs** (a deploy path, a service's limit) → `docs/context/<subject>.md`, one question per file. Keep each file short.
 - **Open work from an explicit list** → one ticket per item. Never a ticket for a feature a spec describes.
 - **An idea nobody committed to** → `.flow/inbox.md`, raw.
 - **A lesson about an outside tool** (a library misbehaving, and the workaround) → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, with no detail of the project or its client. `<tool>` is the tool's GitHub repository name.
@@ -83,7 +85,7 @@ A message starting `Carry on` is the same job, stopped part way.
 
 Every new version goes under `files/<full path>`, beside the form. `project-template/` is the base for each file it holds.
 
-- **`AGENTS.md`**: the template's title and `## Project`, filled from the code, then the kept rules.
+- **`AGENTS.md`**: the template's 4 sections. `## Project` is filled from the code, and each other section from what was sorted into it. A section with nothing keeps its template comment. The whole file stays under 100 lines.
 - **`CLAUDE.md`**: the template's, the one line `@AGENTS.md`.
 - **`.claude/settings.json`**: the project's file with the template's keys added, and what the form removes taken out.
 - **`.claude/settings.local.json`**: the same, where one exists.

@@ -216,7 +216,8 @@ Confirm every branch is resolved or deliberately deferred, then send each decisi
 - **A branch that is its own subject** → `flow new "…" --type topic --parent <id>`, one per subject. Phase 2 carries the split rule and what the body holds.
 - **Work already written into `docs/spec/product.md`** → `/flow:tickets-from-spec`. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
 - **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `references/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
-- **A durable fact about this project** → `docs/context/<subject>.md`.
+- **A durable fact about this project** → the project's `AGENTS.md` where most sessions need it, by `## Capture`. Otherwise `docs/context/<subject>.md`.
+- **The project's `AGENTS.md` still holds the template's comments** in its title and `## Project`, as a project set up from the template does → write both from what the map decided, and delete the comments.
 - **Settled and dying with the build**, this build's non-goals included → already written in `map.md`. Leave it there.
 - **Decided, but not now** → `## Deferred` in the map, with the reason.
 - **Nothing** → a legitimate outcome, and deliberate. Say so out loud and say why, in `map.md`. Groundwork that resolves to "not worth doing" did its job.

@@ -67,7 +67,12 @@ One phase at a time:
 
 - Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
 - How the user wants to work → `~/.agents/AGENTS.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: a correction, irritation at a habit, something they said about themselves. Under 10 lines in the section, write on the first sign; after that, on the second. One sentence each, replacing a line it sharpens.
-- Durable project fact (a verified command, a path, a settled convention) → `docs/context/<subject>.md`
+- About this project, needed in most sessions → the project's `AGENTS.md`. A section's first write deletes its template comment.
+  - What it is, once the work shows a real project → `## Project`, rewritten whole
+  - How to install, run, test or check it, once that worked → `## Commands`. Any other command → `docs/context/`
+  - A folder whose role caught you out → `## Layout`
+  - A correction true of this project alone, on its second sign → `## Rules`, one sentence
+- Durable project fact only some work needs (a deploy path, a service's limit) → `docs/context/<subject>.md`
 - An outside tool's behavior (a library quirk, a service's limit, a command's trap) → its own file, `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. The same fact already there → one line at its end: the version and the date it held. Never a detail of the project or its client. Skip what the loaded skill already says.
 - Other reusable knowledge (a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, written the same way. `/flow:file-findings` promotes it to a skill or a rule later.
   - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`
@@ -86,6 +91,8 @@ One phase at a time:
 - `flow <id>`: one ticket in full, such as `flow exp-47`. `flow` is the ticket system and the only writer of ticket frontmatter.
 - `flow new "<title>"`: create a ticket.
 - `util fs tree [path]`: a folder as a tree, with each file's line count.
+
+**`chase-a-failed-command`** A `flow` or `util` command that refuses or fails: read its reason, check what it names (`git remote -v`, `gh auth status`), fix what lies inside the project, and run it again. The rest, such as a sign-in or write access → the cause and the one command that fixes it, to the user. Never work around a ticket that was not made.
 
 ## Judgment
 

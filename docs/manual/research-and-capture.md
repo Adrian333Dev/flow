@@ -119,7 +119,8 @@ A finding is something a session learned the hard way, written down so the next 
 
 - **About an outside tool**: a library's quirk, a service's limit, a command's trap → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, named in 4 to 8 words, such as `middleware-runs-before-static-files.md`. It says what went wrong, what fixed it, the rule that follows, and the version. The same fact learned again adds one line at the end of the file, with the version and the date.
 - **Anything else reusable**: a pattern that works, a rule worth keeping → `.flow/findings/<what-was-learned>.md` in the project, the same way. `/flow:file-findings` later moves it into a skill or a rule.
-- **A fact true only in this project** → `docs/context/<subject>.md`. The test: would the sentence be true in a different project?
+- **A fact true only in this project**, one that most sessions there need → the project's `AGENTS.md`, which every session loads. It has 4 sections: what the project is, how to install, run, test and check it, the folders that would catch an agent out, and the corrections you gave that hold only here. A correction goes in the second time you give it.
+- **A fact true only in this project that only some work needs**, such as how it deploys → `docs/context/<subject>.md`. The test for both: would the sentence be true in a different project?
 
 A finding never holds a detail of the project or its client, since `~/.flow/` goes to GitHub. The repository stays private.
 

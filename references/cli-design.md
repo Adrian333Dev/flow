@@ -45,8 +45,8 @@ Every stored thing gets these 5:
 - **Extra commands are allowed, and one test decides.** `edit` sets one field, on one ticket, to a value you typed. An extra command earns its place by breaking one of those three: `drop` re-points every ticket that depended on this one, `file` stamps several tickets at once, `dep` edits a list and so takes `--on` and `--off` rather than a value. `tree` writes nothing at all.
 - **A missing action is deliberate, and the file says why.** Cases have no `drop`, because a recorded failure is never removed: keeping it is the point of writing it down.
 - **A group names its most typed action the default, and that word can be left out.** `flow skills react` is `flow skills ls react`. It is the rule the flat namespace already runs one level up, where a word naming no command is read as a ticket id.
-- **A bare group name prints help, unless its default action needs no argument.** Then the bare form runs that action: `flow skills` answers, `flow cases` helps. Nothing new declares which. An action with no `args`, or with `args` in brackets such as `[words...]`, cannot be missing one, so the bare form is always a complete call: `flow domain-skills` lists.
-- **`work` names no default**, because its `get` replays a stored copy over the folder you are standing in. A mistyped action falling through to a write of your working tree is the one worth refusing.
+- **A bare group name prints help, unless its default action needs no argument.** Then the bare form runs that action: `flow skills` answers, `flow cases` helps. Nothing new declares which. An action with no `args`, or with `args` in brackets such as `[words...]`, cannot be missing one, so the bare form is always a complete call: `flow restore` lists the originals.
+- **A group names no default where that action would write.** A mistyped action falling through to a write is the one worth refusing.
 
 ## Status verbs
 
@@ -68,6 +68,7 @@ The move belongs to the skill that picks the ticket up, after it opens the phase
 ## Flags
 
 - **Start every flag with two dashes.** One dash means a single letter, and single letters glue together (`-la` is `-l` and `-a`) so one dash followed by a word cannot be read reliably. Two dashes carries no second meaning.
+- **A single letter after one dash only where a wide convention already owns it.** `flow init -y` answers yes to its question, as `npm init -y` and `apt -y` do. Such a flag has no two-dash form.
 - **Type the whole name.** `--stat` reaches nothing. An abbreviation changes meaning the day a flag is added beside it, and tab completion already buys the typing back.
 
 ## Every command declares what it accepts

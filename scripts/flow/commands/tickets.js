@@ -414,8 +414,9 @@ actions.handoff = {
 
 /** Why `flow new` made no ticket: the pull or the push behind it failed. */
 function notMade(failed) {
-  const why = failed.offline ? 'the remote could not be reached' : (failed.why || 'the push failed');
-  return `no ticket was made: ${why}. A number is given out only once the remote has it, so try again once it answers.`;
+  if (!failed.offline) return `no ticket was made: ${failed.why || 'the push failed'}.`;
+  return `no ticket was made: the remote did not take it. git said: ${failed.why}\n` +
+    'A number is given out only once the remote has it. Fix what git names, or wait until the remote answers, then try again.';
 }
 
 /**

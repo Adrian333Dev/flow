@@ -27,8 +27,9 @@
  * A new ticket is pushed before its id is shown, so a number never changes
  * once someone has seen it. 2 people taking the same number in the same
  * moment is the one clash one folder per ticket cannot avoid, and a refused
- * push is how it shows: the ticket is renumbered and pushed again. Offline,
- * `flow new` makes no ticket at all.
+ * push is how it shows: the ticket is renumbered and pushed again. Where the
+ * push fails for any other reason, offline or signed out, `flow new` makes no
+ * ticket at all, and says what git said.
  *
  * Every git call in `.flow/` holds one lock, so the background push and a
  * command typed at the same moment never meet inside git.
@@ -65,6 +66,17 @@ const onBranch = (root) => !store.isHome(root) && fs.existsSync(path.join(record
 function identity(dir) {
   if (git(dir, ['config', '--get', 'user.email']).ok) return [];
   return ['-c', 'user.name=Flow', '-c', 'user.email=flow@localhost'];
+}
+
+/**
+ * What git said went wrong, in one line: its `fatal:`, `error:` and `remote:`
+ * lines, the last line where it printed none. A missing sign-in and a remote
+ * that is down both read as themselves.
+ */
+function reason(err) {
+  const lines = err.split('\n').map((l) => l.trim()).filter(Boolean);
+  const said = lines.filter((l) => /^(fatal|error|remote):/i.test(l));
+  return (said.length ? said : lines.slice(-1)).join(' ') || 'git gave no reason';
 }
 
 const hasRemote = (dir) => git(dir, ['remote']).out.split('\n').includes(REMOTE);
@@ -133,7 +145,7 @@ function pullNow(root) {
   const fetched = git(root, ['fetch', '-q', REMOTE, BRANCH]);
   if (!fetched.ok) {
     if (/couldn't find remote ref/i.test(fetched.err)) return { ok: true, came: 0 };
-    return { ok: false, offline: true, why: fetched.err.split('\n').pop() };
+    return { ok: false, offline: true, why: reason(fetched.err) };
   }
   const before = git(dir, ['rev-parse', 'HEAD']).out;
   const replayed = git(dir, [...identity(dir), 'rebase', '-q', `${REMOTE}/${BRANCH}`]);
@@ -146,7 +158,11 @@ function pullNow(root) {
   return { ok: true, came: diff ? diff.split('\n').length : 0 };
 }
 
-/** Send the branch up. `rejected` means someone pushed first; anything else failing reads as offline. */
+/**
+ * Send the branch up. `rejected` means someone pushed first. Anything else
+ * failing is marked `offline`, which keeps it out of the failure log, and
+ * `why` carries git's own words: a refused sign-in reads as itself.
+ */
 function pushNow(root) {
   const dir = recordsOf(root);
   if (!hasRemote(dir)) return { ok: true, sent: 0 };
@@ -157,7 +173,18 @@ function pushNow(root) {
   const pushed = git(root, ['push', '-q', '-u', REMOTE, `refs/heads/${BRANCH}:refs/heads/${BRANCH}`]);
   if (pushed.ok) return { ok: true, sent: ahead };
   const rejected = /rejected|fetch first|non-fast-forward/i.test(pushed.err);
-  return { ok: false, rejected, offline: !rejected, why: pushed.err.split('\n').pop() };
+  return { ok: false, rejected, offline: !rejected, why: reason(pushed.err) };
+}
+
+/**
+ * Whether the remote takes a push from this clone, asked without sending
+ * anything: a dry run of the code's current commit to a branch name nobody
+ * uses. No remote, or no commit yet to try with, passes.
+ */
+function canPush(root) {
+  if (!hasRemote(root) || !git(root, ['rev-parse', '-q', '--verify', 'HEAD']).ok) return { ok: true };
+  const tried = git(root, ['push', '--dry-run', '-q', REMOTE, 'HEAD:refs/heads/flow-push-check']);
+  return tried.ok ? { ok: true } : { ok: false, why: reason(tried.err) };
 }
 
 /** Commit, pull, push. What the hooks and a status move run. */
@@ -313,5 +340,5 @@ function checkOut(root) {
 }
 
 module.exports = {
-  BRANCH, REMOTE, onBranch, projectAt, commit, pull, sync, syncLater, claim, renumber, checkOut, remoteHasBranch, hasRemote,
+  BRANCH, REMOTE, onBranch, projectAt, commit, pull, sync, syncLater, claim, renumber, checkOut, canPush, remoteHasBranch, hasRemote,
 };
