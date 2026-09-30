@@ -171,7 +171,7 @@ It checks each of these in order, and does only what applies:
 
 - **An empty folder** → it writes the project template at once. With `-y` it adds `Nothing here to read. Describe the project with /flow:groundwork.`
 
-The template's `AGENTS.md` holds 4 sections, each with a comment showing what goes there: `## Project`, `## Commands`, `## Layout` and `## Rules`. Sessions fill them in as the work shows what each one holds, and `/flow:groundwork` writes the title and `## Project` where they are still comments. The setup session fills them from the code.
+The template's `AGENTS.md` holds 2 sections, each with a comment showing what goes there: `## Project`, what the project is, and `## Rules`, the corrections that hold only here. `/flow:groundwork` writes the title and `## Project` where they are still comments, and the setup session writes them from the code. Sessions add anything else most sessions need, wherever it fits.
 - **A `.gitignore` already exists** → Flow's lines are added, and nothing is replaced.
 
 In an empty folder, the whole run is one command:

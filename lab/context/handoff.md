@@ -1,6 +1,6 @@
 # Handoff
 
-Written 2026-09-30, after `flow init`'s session rule and the project's 4-section `AGENTS.md` were built. Read this once, then rewrite it whole next time.
+Written 2026-09-30, after `flow init`'s session rule and the project's `AGENTS.md` template were built. Read this once, then rewrite it whole next time.
 
 ## Where things stand
 
@@ -10,7 +10,7 @@ The final sweep is on pass 1, the walk: `lab/backlog/before-beta.md`, item 1. Ro
 
 - **`flow init` decides the setup session in 3 cases.** A file telling an agent how to work here (`CLAUDE.md`, `AGENTS.md`, anything under `.claude/`, `.mcp.json`, `.cursorrules` and the like) → the session opens, with no question. Any other file, or Claude Code's memory for the folder → `Read them in a setup session first? (y/N)`, with the template the default and the answer with no terminal. An empty folder → the template. The user reversed the earlier rule, a session wherever there is code: only the user can tell a project from scratch code, and a competing rule file can only be sorted by reading it.
 - **`-y` answers the question.** The user's choice, the letter `npm init -y` and `apt -y` use. `lib/cli.js` reads a flag declared `letter: true` after one dash, with no two-dash form. `references/cli-design.md` → `## Flags` records the exception. `-y` in an empty folder writes the template and names `/flow:groundwork`: the setup session asks the user nothing, so it has nothing to do there.
-- **The project's `AGENTS.md` has 4 sections**, each a placeholder comment in `project-template/AGENTS.md`: `## Project`, `## Commands` (install, run, test and check, nothing else), `## Layout` (only folders that would catch an agent out), `## Rules` (corrections true here alone, on the second sign). `home/AGENTS.md` → `## Capture` fills them. `docs/context/` keeps what only some work needs.
+- **The project's `AGENTS.md` starts with 2 sections**, each a placeholder comment in `project-template/AGENTS.md`: `## Project` and `## Rules` (corrections true here alone, on the second sign). The agent decides what else goes in. `home/AGENTS.md` → `## Capture` routes a fact most sessions need there, and `docs/context/` keeps what only some work needs.
 - **The skills ticket lives in the setup file alone**, `scripts/flow/setup/project.md`. The user rejected putting it in capture or in `/flow:groundwork`. A project that took the template gets none.
 - **`chase-a-failed-command`** in `home/AGENTS.md` → `## Scripts`: a failed `flow` or `util` command gets its reason checked, fixed where the fix lies in the project, and handed to the user with its fix otherwise.
 
@@ -18,7 +18,7 @@ The final sweep is on pass 1, the walk: `lab/backlog/before-beta.md`, item 1. Ro
 
 - Reuse what exists. The setup file already held the skills ticket; proposing a new home for it was rejected hard.
 - Match the conventions the user names. They asked for `-y`, and a proposed `--yes` was rejected hard.
-- Keep `home/AGENTS.md` → `## Capture` to routing alone. Nothing that belongs to another file's job.
+- Keep `home/AGENTS.md` → `## Capture` to routing alone, and give the agent room to decide. A line stays only where the agent would do worse without it.
 
 ## Next
 

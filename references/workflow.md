@@ -63,7 +63,7 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 - **`docs/spec/`.** `product.md`: every behavior, every version, each marked V1 / next / later / never. `tech.md`: stack, repo layout, components, the decisions that constrain implementation. `decisions.md`: why each call was made, what was refused, what the whole thing bets on, what is still open. Markdown only. More files as the project needs them, and an index once there are more than three.
 - **`docs/research/`**: research true only for this project, and research nobody could place. Flat, subject-named, one set for the whole project. Research about an outside tool goes to `~/.flow/wiki/<tool>/research/`, and research about no single tool to `~/.flow/research/`.
 - **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.
-- **`AGENTS.md`**: what every session in this project needs: what the project is, how to install, run, test and check it, the folders that would catch an agent out, and its own rules.
+- **`AGENTS.md`**: what every session in this project needs: what the project is, its own rules, and whatever else most sessions would get wrong without.
 - **`docs/context/<subject>.md`**: durable project facts only some work needs, one file per subject: a deploy path, a service's limit, any command past install, run, test and check.
 - **`.flow/inbox.md`**: raw capture, unshaped, drained by `/flow:file-findings`.
 
