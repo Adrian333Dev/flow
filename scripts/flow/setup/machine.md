@@ -35,7 +35,7 @@ The harness files name every path. Read `CLAUDE_CONFIG_DIR` before any of them. 
 
 1. **An older Flow**: any link into a Flow clone that `flow install` did not make just now, and any copy of a Flow rule file or skill. Each one is a `delete` line.
 2. **Rule files**: `~/.claude/CLAUDE.md` and every file it imports with `@`, `~/.claude/rules/`, `~/.agents/AGENTS.md`.
-3. **Skills, by all 4 routes**: a real folder in `~/.claude/skills/`, a link there into `~/.agents/skills/` (installed by `npx skills`, which names its repository in `~/.agents/.skill-lock.json`), the account-synced tree under `~/.claude/skills/synced/`, and plugins, read from `~/.claude/plugins/installed_plugins.json`. A plugin's skills, hooks and agents sit in its `installPath`.
+3. **Skills, by all 4 routes**: a real folder in `~/.claude/skills/`, a link there into `~/.agents/skills/` (installed by `npx skills`, which names its repository in `~/.agents/.skill-lock.json`), the account-synced tree under `~/.claude/skills/synced/`, and plugins, listed by `claude plugin list --json`. The list includes plugins synced from the user's claude.ai account, as `<name>@synced`, which have no line in `installed_plugins.json`. A plugin's skills, hooks and agents sit in its `installPath`.
 4. **`~/.claude/settings.json`**, key by key, and `~/.claude/agents/`, `commands/` and `output-styles/`.
 
 Never open a project, or a project's memory under `~/.claude/projects/`. `flow init` reads those. Never open a transcript, a cache or the login.
@@ -58,6 +58,7 @@ A section left with no line goes, heading included. `## Flow's skills` always st
 - **Synced from the user's Claude account** and overlapping → a box too, removed through `skillOverrides`. Deleting its folder brings it back at the next sync.
 - **Knows a subject Flow does not** (a framework, a service, a file format), or tells Claude how to work where Flow says nothing → it stays. A plugin or a synced skill that stays is named under `Left as they are`. Anything else that stays is left out of the form.
 - **A plugin** goes by `claude plugin uninstall <name>@<marketplace>`. Never switch it off, and never delete its folder.
+- **A plugin synced from the user's claude.ai account** goes by `claude plugin disable <name>@synced`, since uninstall cannot reach it. Its line says it goes from this machine only, and stays on claude.ai. One the user's organization requires cannot be switched off: name it under `Left as they are`, with that reason.
 - **A hook of the user's own**, not from a plugin, goes through the same test. One that stays is written into `hooks` beside Flow's.
 - **An MCP server** stays, and is left out of the form.
 
@@ -88,7 +89,7 @@ Anything else is dropped too. Both boxes start empty, and most machines leave `#
   - `permissions`: the machine's `allow` and `deny` with the template's added, and the template's `defaultMode` and `disableBypassPermissionsMode`.
   - Every other key in `home/settings.json`: the template's value.
   - `skillOverrides`: `"off"` for each synced skill ticked.
-  - `enabledPlugins`: left for `claude plugin uninstall` to change. Its `run` line comes after this file's `write` line.
+  - `enabledPlugins`: left for `claude plugin uninstall` and `claude plugin disable` to change. Their `run` lines come after this file's `write` line.
   - Every key the template does not name stays exactly as it is.
 - **`~/.agents/.skill-lock.json`**, where a takeover changes it.
 

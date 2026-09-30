@@ -137,6 +137,7 @@ Left as they are: {left as they are}, such as: plugins, such as frontend-design,
 - write ~/.claude/CLAUDE.md: one line loading Flow's rules, in place of what it holds now
 - write ~/.claude/settings.json: every key named above. Your own settings, such as model and theme, stay as they are
 - run claude plugin uninstall superpowers@claude-plugins-official: writes ~/.claude/settings.json, ~/.claude/plugins/installed_plugins.json, ~/.claude/plugins/cache/claude-plugins-official/superpowers, ~/.claude/plugins/data/superpowers-claude-plugins-official
+- run claude plugin disable engineering@synced: writes ~/.claude/settings.json. Switched off on this machine only, and still on at claude.ai
 - delete ~/.claude/skills/tdd: a skill ticked above
 - delete ~/.claude/skills/find-skills: the npx skills copy
 - delete ~/.agents/skills/find-skills: the npx skills copy
@@ -146,4 +147,4 @@ Left as they are: {left as they are}, such as: plugins, such as frontend-design,
 - run node ~/.flow/scripts/flow/flow.js skills on my-helper --machine: writes ~/.flow/settings.local.json, ~/.claude/skills/my-helper
 ```
 
-A delete comes before the `skills add` that replaces it, since `add` refuses to put a link where a real folder stands. A plugin's uninstall comes after the `settings.json` write, and names the plugin's `installPath` from `installed_plugins.json` and its data folder, where one exists. A `run` line names every path its command writes, or ends `: writes nothing`.
+A delete comes before the `skills add` that replaces it, since `add` refuses to put a link where a real folder stands. A plugin's uninstall or disable comes after the `settings.json` write. An uninstall names the plugin's `installPath` from `claude plugin list --json` and its data folder, where one exists. A `run` line names every path its command writes, or ends `: writes nothing`.

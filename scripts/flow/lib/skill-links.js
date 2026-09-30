@@ -37,7 +37,9 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const { FlowError } = require('./error');
 const frontmatter = require('./frontmatter');
 const { shorten } = require('./machine');
@@ -310,8 +312,11 @@ function apply({ home, root = null, claude, agents = null }) {
 
 /**
  * What Flow does not manage: skill folders and links another tool put in
- * `~/.claude/skills/`, and the plugins Claude Code installed. `ls` shows them
+ * `~/.claude/skills/`, and the plugins Claude Code loads. `ls` shows them
  * so the list is whole, and switches none of them.
+ *
+ * Plugins come from `claude plugin list --json`, since a plugin synced from
+ * the claude.ai account has no line in `installed_plugins.json`.
  */
 function outside({ home, claude }) {
   const found = [];
@@ -330,10 +335,15 @@ function outside({ home, claude }) {
     found.push({ name, type: 'skill', description: describe(path.join(dir, name, 'SKILL.md')).description });
   }
   try {
-    const listed = JSON.parse(fs.readFileSync(path.join(claude, 'plugins', 'installed_plugins.json'), 'utf8')).plugins || {};
-    for (const id of Object.keys(listed).sort()) found.push({ name: id.split('@')[0], type: 'plugin', description: '' });
+    // Naming the config folder, even the default one, hides the synced plugins.
+    const env = claude === path.join(os.homedir(), '.claude') ? process.env : { ...process.env, CLAUDE_CONFIG_DIR: claude };
+    const listed = JSON.parse(execFileSync('claude', ['plugin', 'list', '--json'], {
+      encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'], env,
+    }));
+    const names = new Set(listed.map((p) => p.id.split('@')[0]));
+    for (const name of [...names].sort()) found.push({ name, type: 'plugin', description: '' });
   } catch {
-    // No plugins, or a file Claude Code changed the shape of. Neither is Flow's.
+    // No `claude` on the path, or output Claude Code changed the shape of. Neither is Flow's.
   }
   return found;
 }
