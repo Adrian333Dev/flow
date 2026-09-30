@@ -5,6 +5,8 @@ description: Reviews how Flow performed. Finds where rules failed, where frictio
 
 # Flow review
 
+!`flow audit index --quiet 2>&1 || true`
+
 2 shapes. A clear failure gets recorded. A suspected flaw gets investigated first.
 
 ## Clear failure
@@ -22,7 +24,7 @@ The artifact is perishable. Write it now, analyse later.
 Friction hit twice, a rule fought the work, or a pattern looks wrong without a concrete failure.
 
 1. Name the suspicion in one sentence.
-2. Investigate. The conversation is evidence when the session holds it. `flow audit read` opens a bounded turn range from any past session. `flow audit sessions` lists what is available. When the audit commands are insufficient, read the raw transcripts at `~/.claude/projects/` directly.
+2. Investigate. The conversation is evidence when the session holds it. `flow audit read` opens a bounded turn range from any past session. `flow audit sessions` lists what is available. Both read an index updated as this skill loaded. When the audit commands are insufficient, read the raw transcripts at `~/.claude/projects/` directly.
 3. Compare what happened against the rules that loaded, by `## Whether a rule loaded`. A rule that loaded and stayed silent is defective. A rule that never loaded is absent: the fault is whatever should have loaded it.
 4. Record the finding in `~/.flow/workflow-notes.md`, dated, with the project.
 

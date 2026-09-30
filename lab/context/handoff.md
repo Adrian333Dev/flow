@@ -1,28 +1,40 @@
 # Handoff
 
-Written 2026-09-30, after `flow init`'s session rule and the project's `AGENTS.md` template were built. Read this once, then rewrite it whole next time.
+Written 2026-09-30, after round 2 of the final sweep walked its 10 areas. Read this once, then rewrite it whole next time.
 
 ## Where things stand
 
-The final sweep is on pass 1, the walk: `lab/backlog/before-beta.md`, item 1. Round 2 is the second walk on paper. It reads and reasons, and runs no live session and no `try.sh`. The user wants no commit suggestions. Nothing is committed.
+The final sweep is `lab/backlog/before-beta.md`, item 1. Round 2 walks on paper: it reads and reasons, and runs no live session and no `try.sh`. The user wants no commit suggestions, and commits themselves. All 221 tests pass.
 
-**Built today, all 221 tests passing:**
+Round 2 walked `/flow:research`, `/flow:visualize`, `/flow:file-findings`, `/flow:tickets-from-spec`, `/flow:review`, `flow audit`, `flow cases`, `flow restore`, `flow uninstall` and `flow update`. Research, visualize, tickets-from-spec, cases and update came out clean.
 
-- **`flow init` decides the setup session in 3 cases.** A file telling an agent how to work here (`CLAUDE.md`, `AGENTS.md`, anything under `.claude/`, `.mcp.json`, `.cursorrules` and the like) → the session opens, with no question. Any other file, or Claude Code's memory for the folder → `Read them in a setup session first? (y/N)`, with the template the default and the answer with no terminal. An empty folder → the template. The user reversed the earlier rule, a session wherever there is code: only the user can tell a project from scratch code, and a competing rule file can only be sorted by reading it.
-- **`-y` answers the question.** The user's choice, the letter `npm init -y` and `apt -y` use. `lib/cli.js` reads a flag declared `letter: true` after one dash, with no two-dash form. `references/cli-design.md` → `## Flags` records the exception. `-y` in an empty folder writes the template and names `/flow:groundwork`: the setup session asks the user nothing, so it has nothing to do there.
-- **The project's `AGENTS.md` starts with 2 sections**, each a placeholder comment in `project-template/AGENTS.md`: `## Project` and `## Rules` (corrections true here alone, on the second sign). The agent decides what else goes in. `home/AGENTS.md` → `## Capture` routes a fact most sessions need there, and `docs/context/` keeps what only some work needs.
-- **The skills ticket lives in the setup file alone**, `scripts/flow/setup/project.md`. The user rejected putting it in capture or in `/flow:groundwork`. A project that took the template gets none.
-- **`chase-a-failed-command`** in `home/AGENTS.md` → `## Scripts`: a failed `flow` or `util` command gets its reason checked, fixed where the fix lies in the project, and handed to the user with its fix otherwise.
+## Next: build the 4 approved fixes
+
+The user approved all 4 on 2026-09-30. One approval runs to the end: build, tests, every stale record, the writing pass.
+
+1. **`flow uninstall` checks `~/.flow/` before deleting it.** `scripts/flow/commands/uninstall.js:117` deletes the folder with no check, while the clone gets `cloneHolds()` at `:51`. Run the same check on `at.flow` before the confirmation. Uncommitted changes or unpushed commits → stop before anything runs, and name `flow sync`. Add a test beside the uninstall tests.
+2. **`/flow:review` updates the audit index as it loads.** The user's idea: put `` !`flow audit index --quiet 2>&1 || true` `` near the top of `skills/dev/review/SKILL.md`, the way `skills/tools/start/SKILL.md:8` runs `flow get`. A stale index silently leaves out recent sessions, and `flow audit sessions` opens it read-only, so it never updates on its own.
+3. **`flow restore` lists every path in its prompt.** `scripts/flow/commands/restore.js:79` (machine) and `:114` (project) print a count alone. List each path with what happens to it (`deleted`, `put back`), marked `changed since` where the path now differs from the original: exists now where it was `absent`, or its content differs from the copy under `files/`. Example agreed:
+
+   ```text
+   Puts 7 paths in ~/code/shop back as they were before Flow.
+     AGENTS.md          deleted, changed since
+     .flow/             deleted
+     .gitignore         put back
+   ```
+
+4. **`/flow:file-findings` routes project facts like capture.** `skills/tools/file-findings/SKILL.md:45` becomes: project fact most sessions need → the project's `AGENTS.md`. One only some work needs → `docs/context/<subject>.md`. `skills-docs-move-together` does not fire: the rule sits in the skill, not in `docs/dev/skills.md`.
+
+Left as it is, by recommendation with no objection: study cases and workflow notes keep verbatim output and the project name, though they go to GitHub.
+
+After the build: record round 2 and its fixes in `lab/backlog/before-beta.md` item 1 and `lab/context/state.md`. Then pass 2 of the sweep: discuss `try.sh` and the practice projects with the user before any delete.
 
 ## How the user wants this work done
 
-- Reuse what exists. The setup file already held the skills ticket; proposing a new home for it was rejected hard.
+- Reuse what exists. A proposal to move the setup file's skills ticket elsewhere was rejected hard.
 - Match the conventions the user names. They asked for `-y`, and a proposed `--yes` was rejected hard.
-- Keep `home/AGENTS.md` → `## Capture` to routing alone, and give the agent room to decide. A line stays only where the agent would do worse without it.
-
-## Next
-
-Round 2 walks the 10 areas the sweep only name-checked: `/flow:research`, `/flow:visualize`, `/flow:file-findings`, `/flow:tickets-from-spec`, `/flow:review`, `flow audit`, `flow cases`, `flow restore`, `flow uninstall`, `flow update`. Report each finding with file:line and a proposed fix. Fix nothing without the user's yes.
+- Keep `home/AGENTS.md` → `## Capture` to routing, and give the agent room to decide. A line stays only where the agent would do worse without it. The project's `AGENTS.md` template now holds `## Project` and `## Rules` alone.
+- Where a skill must run a command every time, run it as the skill loads (`` !`…` ``) rather than asking the agent to.
 
 ## Watch in the beta
 

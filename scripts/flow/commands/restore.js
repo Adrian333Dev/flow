@@ -58,6 +58,22 @@ actions.ls = {
   },
 };
 
+/**
+ * The prompt's first lines: the count, then one line per path saying what the
+ * restore does to it, so nobody types the word blind. A project's paths are
+ * shown from inside it.
+ */
+function listing(at, project) {
+  const rows = originals.plan(at, project);
+  const where = project ? `in ${show(project)}` : 'on this machine';
+  const name = (row) => (project ? path.relative(project, row.path) : show(row.path)) + (row.folder ? '/' : '');
+  const width = Math.max(...rows.map((row) => name(row).length));
+  return [
+    `Puts ${rows.length === 1 ? '1 path' : `${rows.length} paths`} ${where} back as ${rows.length === 1 ? 'it was' : 'they were'} before Flow.`,
+    ...rows.map((row) => `  ${name(row).padEnd(width)}  ${row.removed ? 'deleted' : 'put back'}${row.changed ? ', changed since' : ''}`),
+  ];
+}
+
 /** Print each path a restore touched. */
 function report(done) {
   for (const entry of done) out(`${entry.removed ? 'removed' : 'put back'} ${show(entry.path)}`);
@@ -76,7 +92,7 @@ actions.machine = {
     const projects = originals.list(at).filter((row) => row.manifest.project).map((row) => row.manifest.project);
     const names = joinAnd(projects.map((p) => path.basename(p)));
     const later = `node ${show(path.join(at.flow, 'scripts', 'flow', 'flow.js'))} restore project`;
-    const lines = [`Puts ${found.entries.length} paths on this machine back as they were before Flow.`];
+    const lines = listing(at);
     if (projects.length) {
       lines.push(
         `Flow is also set up in ${names}.`,
@@ -111,7 +127,7 @@ actions.project = {
     if (!found) throw new FlowError(`No original of ${show(project)}. Nothing to put back.`);
     confirm.noSessions();
 
-    if (!confirm.word('restore', [`Puts ${found.entries.length} paths in ${show(project)} back as they were before Flow.`])) {
+    if (!confirm.word('restore', listing(at, project))) {
       out('\nnothing was put back.');
       return 1;
     }

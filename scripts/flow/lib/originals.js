@@ -178,6 +178,40 @@ function putBack(base, entry) {
   else copyEntry(mirror(base, entry.path), entry.path, true);
 }
 
+/** Whether 2 paths hold the same thing: a link's target, a file's bytes, a folder's whole tree. */
+function same(a, b) {
+  const sa = lstat(a);
+  const sb = lstat(b);
+  if (!sa || !sb) return !sa && !sb;
+  if (sa.isSymbolicLink() || sb.isSymbolicLink()) {
+    return sa.isSymbolicLink() && sb.isSymbolicLink() && fs.readlinkSync(a) === fs.readlinkSync(b);
+  }
+  if (sa.isDirectory() !== sb.isDirectory()) return false;
+  if (!sa.isDirectory()) return sa.size === sb.size && fs.readFileSync(a).equals(fs.readFileSync(b));
+  const na = fs.readdirSync(a).sort();
+  const nb = fs.readdirSync(b).sort();
+  return na.length === nb.length && na.every((n, i) => n === nb[i] && same(path.join(a, n), path.join(b, n)));
+}
+
+/**
+ * What a restore would do to each path, before it does it, in the manifest's
+ * order: `removed` where the path was absent, and `changed` where a path put
+ * back differs today from its copy. A path recorded absent is never marked:
+ * everything there now is deleted, whoever wrote it.
+ */
+function plan(at, project = null) {
+  const base = dir(at, project);
+  const manifest = readManifest(base);
+  if (!manifest) return null;
+  return manifest.entries.map((entry) => {
+    const now = lstat(entry.path);
+    const row = { path: entry.path, removed: entry.type === 'absent', folder: Boolean(now && now.isDirectory()) };
+    if (entry.type === 'link') row.changed = !now || !now.isSymbolicLink() || fs.readlinkSync(entry.path) !== entry.target;
+    else if (entry.type !== 'absent') row.changed = !same(mirror(base, entry.path), entry.path);
+    return row;
+  });
+}
+
 /**
  * Put a whole place back, newest entry first. The original itself survives, so
  * the same restore runs again and lands in the same state. Adds one line to
@@ -228,6 +262,7 @@ module.exports = {
   close,
   record,
   putBack,
+  plan,
   restore,
   list,
 };

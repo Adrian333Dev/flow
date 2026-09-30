@@ -340,6 +340,28 @@ test('a program Flow calls that is not on PATH stops the migration before anythi
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
 });
 
+test('a restore plans every path first, and marks each one put back that changed since', () => {
+  const dir = project('restore-plan');
+  const at = folders(path.join(dir, 'root'));
+  const proj = path.join(dir, 'root', 'code', 'shop');
+  write(proj, '.gitignore', 'node_modules\n');
+  write(proj, 'README.md', 'shop\n');
+
+  originals.start(at, proj);
+  for (const p of ['AGENTS.md', '.flow', '.gitignore', 'README.md']) originals.record(at, proj, path.join(proj, p));
+  originals.close(at, proj);
+  write(proj, 'AGENTS.md', 'shop rules\n');
+  write(proj, '.flow/tickets/1/ticket.md', 'a ticket\n');
+  write(proj, 'README.md', 'shop, edited\n');
+
+  assert.deepStrictEqual(originals.plan(at, proj).map((row) => [path.relative(proj, row.path), row.removed, Boolean(row.changed), row.folder]), [
+    ['AGENTS.md', true, false, false],
+    ['.flow', true, false, true],
+    ['.gitignore', false, false, false],
+    ['README.md', false, true, false],
+  ]);
+});
+
 // The 2 locks refuse every test process, so this one runs the command in
 // process with both taken out, and answers the word itself.
 test('a machine restore offers its projects first, and restore takes them all where machine takes one', () => {
@@ -377,6 +399,8 @@ test('a machine restore offers its projects first, and restore takes them all wh
     assert.strictEqual(restore.actions.machine.run({ flags: { root: all.root } }), 0);
     assert.deepStrictEqual(said[0].wanted, ['restore', 'machine']);
     assert.match(said[0].lines.join('\n'), /Flow is also set up in shop\./);
+    assert.match(said[0].lines[0], /^Puts 1 path on this machine back as it was before Flow\.$/);
+    assert.match(said[0].lines[1], /^ {2}\S*\.claude\/notes\.md {2}put back, changed since$/, 'every path is listed before the word');
     assert.strictEqual(read(path.join(all.proj, 'CLAUDE.md')), 'shop rules\n', 'the project went first');
     assert.strictEqual(read(path.join(all.root, '.claude/notes.md')), 'notes\n');
 

@@ -42,7 +42,8 @@ Move at triage speed. Building a skill is the one slow step, and it fires rarely
 - **Rule true everywhere, relevant to one stack or file type** → `rules/<topic>.md` with `paths:` frontmatter
 - **Rule for this project, always relevant** → the project's `AGENTS.md`, in the section that owns the subject. A project with only a `CLAUDE.md` gets it there
 - **Rule for this project, relevant to one stack or file type** → `.claude/rules/<topic>.md` with `paths:` frontmatter
-- **Project-specific fact** → `docs/context/<subject>.md`
+- **Project fact most sessions need** → the project's `AGENTS.md`
+- **Project fact only some work needs** → `docs/context/<subject>.md`
 - **Reusable, no matching skill** → flag in `.flow/inbox.md` as `needs skill: <group>/<subject> (<note>)`. Several flags on one subject earn a skill; one flag is not evidence
 - **Work item** → ticket or stays in inbox
 - **Everything else** → the homes under `## Capture` in `~/.agents/AGENTS.md`

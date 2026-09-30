@@ -370,6 +370,15 @@ Restores delapse, backmark and this machine, then deletes ~/.flow/ and ~/code/fl
 Type uninstall to go on:
 ```
 
+**Work in `~/.flow/` that `flow sync` has not sent stops the uninstall before anything is removed.** Your study cases, notes and tickets live only in that folder until a sync sends them to your GitHub copy, so a changed file or a commit GitHub lacks refuses the command:
+
+```text
+$ flow uninstall
+flow: ~/.flow holds work no other machine has: 2 files are changed and not committed. Nothing was removed. Run flow sync, then uninstall again.
+```
+
+A `~/.flow/` never connected to GitHub has nowhere to send its work, so it never stops the uninstall.
+
 The clone stays where git says it holds something you would lose: a file changed and not committed, or a commit no remote has. The path is printed instead, for you to delete yourself.
 
 A machine with no original is still covered. Every path Flow owns is removed, Flow's hooks come out of `~/.claude/settings.json`, and the import line comes out of `~/.claude/CLAUDE.md`. What those paths held before Flow is gone, which is what the original exists to prevent.
@@ -476,10 +485,24 @@ A project's restore adds its folder as `project`.
 
 Restoring the machine deletes `~/.local/bin/flow` along with everything else `flow install` made, so the last line says how to put Flow back. It leaves `~/.flow/` alone: only `flow uninstall` deletes that.
 
+**Every path is listed before you type the word.** Each line says what the restore does to the path: `deleted` where it was not there before Flow, `put back` where it was. A path put back that differs today from the copy in the original is marked `changed since`, since whatever it holds now is lost. A project's paths are shown from inside the project:
+
+```text
+$ flow restore project
+Puts 3 paths in ~/code/shop back as they were before Flow.
+  AGENTS.md  deleted
+  .flow/     deleted
+  CLAUDE.md  put back, changed since
+Type restore to go on:
+```
+
 **`flow restore machine` offers every project first.** Once `flow` is gone, a project's restore has to be typed through the script's full path, so the machine's restore asks about the projects while `flow` still exists. With Flow set up in 2 projects, it asks:
 
 ```text
-Puts 7 paths on this machine back as they were before Flow.
+Puts 3 paths on this machine back as they were before Flow.
+  ~/.agents/AGENTS.md      deleted
+  ~/.claude/settings.json  put back, changed since
+  ~/.local/bin/flow        deleted
 Flow is also set up in blog and shop.
   restore  puts each one back first, then this machine.
   machine  puts back this machine alone. flow leaves PATH, so blog and shop keep Flow's files until you run, inside each:
@@ -878,7 +901,7 @@ Session history, read back from the transcripts Claude Code writes at `~/.claude
 
 ### `flow audit index`
 
-Walk the transcripts and build the SQLite index at `~/.flow/audit/audit.db`. Resumes from a byte offset, so a second run over an unchanged file opens nothing. `--rebuild` deletes the index and starts over, which is how a schema change lands. `--quiet` suppresses progress output.
+Walk the transcripts and build the SQLite index at `~/.flow/audit/audit.db`. Resumes from a byte offset, so a second run over an unchanged file opens nothing. `--rebuild` deletes the index and starts over, which is how a schema change lands. `--quiet` prints the totals line and the index's path alone. `/flow:review` runs `flow audit index --quiet` each time it opens, so the sessions it reads include the latest.
 
 ### `flow audit sessions`
 

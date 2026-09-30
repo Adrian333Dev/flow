@@ -53,6 +53,16 @@ test('uninstall refuses at the locks, and removes nothing', () => {
   assert.ok(fs.existsSync(REPO), 'the clone is still there');
 });
 
+test('unsent work in ~/.flow stops the uninstall before the locks, and removes nothing', () => {
+  const m = machine('uninstall-unsent');
+  fs.writeFileSync(path.join(m.at.flow, 'workflow-notes.md'), 'A note no other machine has.\n');
+
+  const refused = run('flow/flow.js', ['uninstall', '--root', m.root], { cwd: m.dir });
+  assert.notStrictEqual(refused.code, 0);
+  assert.match(refused.stderr, /holds work no other machine has: .*Run flow sync, then uninstall again\./);
+  assert.ok(exists(path.join(m.at.flow, 'workflow-notes.md')), 'the note is still there');
+});
+
 test('a machine with no original is stripped path by path, and shared files keep what is theirs', () => {
   const m = machine('uninstall-strip');
   const { at } = m;

@@ -21,6 +21,10 @@
  * Before `~/.flow/` goes, every link into it goes too: a source's skill in
  * `~/.claude/skills/` or a project's, and util's names in `~/.local/bin/`.
  *
+ * `~/.flow/` is checked the same way before anything runs. What syncs from it,
+ * study cases, notes and tickets, is on no other machine until `flow sync`
+ * sends it, so unsent work there stops the whole uninstall.
+ *
  * The clone is deleted last, and only when git says it holds nothing the user
  * would lose: uncommitted changes or commits no remote has stop it, and the
  * path is printed instead. Deleting a clone with a day's work in it is not an
@@ -35,7 +39,9 @@ const path = require('path');
 const { out, joinAnd } = require('../lib/cli');
 const { cloneRoot } = require('../lib/clone');
 const confirm = require('../lib/confirm');
-const { git } = require('../lib/flow-repo');
+const { FlowError } = require('../lib/error');
+const flowRepo = require('../lib/flow-repo');
+const { git } = flowRepo;
 const installed = require('../lib/installed');
 const machine = require('../lib/machine');
 const originals = require('../lib/originals');
@@ -43,19 +49,20 @@ const originals = require('../lib/originals');
 const show = machine.shorten;
 
 /**
- * What the clone still holds that nothing else does, or null when it can go.
+ * What a repository still holds that nothing else does, or null when it can
+ * go.
  *
  * Both checks are reads. A clone that is not a repository at all is kept too:
  * nothing here can tell what is in it.
  */
-function cloneHolds(clone) {
-  const status = git(clone, ['status', '--porcelain']);
+function holds(repo) {
+  const status = git(repo, ['status', '--porcelain']);
   if (!status.ok) return 'it is not a git clone, so nothing here can say what is in it';
   if (status.out) {
     const n = status.out.split('\n').length;
     return `${n} file${n === 1 ? ' is' : 's are'} changed and not committed`;
   }
-  const unpushed = git(clone, ['log', '--branches', '--not', '--remotes', '--oneline']);
+  const unpushed = git(repo, ['log', '--branches', '--not', '--remotes', '--oneline']);
   if (unpushed.ok && unpushed.out) {
     const n = unpushed.out.split('\n').length;
     return `${n} commit${n === 1 ? ' is' : 's are'} on no remote`;
@@ -74,6 +81,14 @@ actions.uninstall = {
     const at = machine.folders(flags.root);
     const clone = cloneRoot();
     const bin = path.join(at.base, '.local', 'bin');
+
+    // ~/.flow/ is deleted whole, and its study cases, notes and tickets exist
+    // nowhere else until flow sync sends them. A folder with no remote has
+    // nowhere to send them, so it is not held up.
+    if (flowRepo.isRepo(at) && git(at.flow, ['remote', 'get-url', 'origin']).ok) {
+      const unsent = holds(at.flow);
+      if (unsent) throw new FlowError(`${show(at.flow)} holds work no other machine has: ${unsent}. Nothing was removed. Run flow sync, then uninstall again.`);
+    }
     confirm.noSessions();
 
     const projects = originals.list(at).filter((row) => row.manifest.project);
@@ -82,7 +97,7 @@ actions.uninstall = {
     // A rooted machine is a scratch one built inside tmp/, and it does not own
     // the clone it was built from. Only a real machine can take the clone with
     // it.
-    const keepClone = flags.root ? 'it belongs to this machine, not to --root' : cloneHolds(clone);
+    const keepClone = flags.root ? 'it belongs to this machine, not to --root' : holds(clone);
 
     const places = [...projects.map((row) => path.basename(row.manifest.project)), 'this machine'];
     const lines = [
