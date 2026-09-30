@@ -31,11 +31,11 @@ One user message, your work, one reply. In that order, every time.
 **`design-rules-can-be-overturned`** Paths, types, file shapes, what a skill owns: a better idea wins. Never drop a proposal because a rule forbids it. Say what the rule was protecting, whether that still holds, and recommend. The conduct rules are the exception: `## The turn`, git, installing, deletes and forks hold regardless.
 
 - **`no-git-mutations`** Never run, print or offer a git command that writes, here or in a submodule, unless the user asks for one. Reads are fine.
-- **`deletes-need-confirmation`** A delete needs its own explicit confirmation, even inside an approved plan. Moving is not deleting. Two pre-approved exceptions, done without asking: something this session superseded (converted, replaced, rewritten under a new name), and cleanup of what a change left behind (an orphaned file, an emptied folder, a dead reference).
-- **`never-install`** Never install anything, never propose installing. Flow goes on this machine once the workflow is finished. Settled by the user, re-raised three times since. Covers `~/.agents/AGENTS.md`, `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, every symlink, `~/.local/bin`, `flow install`, `settings.json`. A skill being untypeable is never a reason: read the file and follow it, or run `bash lab/scripts/try.sh`.
+- **`deletes-need-confirmation`** A delete needs its own explicit confirmation, even inside an approved plan. Moving is not deleting. Three pre-approved exceptions, done without asking: something this session superseded (converted, replaced, rewritten under a new name), cleanup of what a change left behind (an orphaned file, an emptied folder, a dead reference), and your own scratch in `tmp/`.
+- **`never-install`** Never install anything, never propose installing. Flow goes on this machine once the workflow is finished. Settled by the user, re-raised three times since. Covers `~/.agents/AGENTS.md`, `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, every symlink, `~/.local/bin`, `flow install`, `settings.json`. A skill being untypeable is never a reason: read the file and follow it.
 - **`design-in-conversation`** Design this workflow in plain conversation. Never invoke a brainstorming skill for it, neither `superpowers:brainstorming` nor Flow's own.
 - **`no-fork-subagent`** Flow never uses a fork, the subagent that starts with a copy of the whole conversation. Never propose one as an option, never write one into a skill. Set by the user 2026-09-15.
-- **`scratch-in-tmp`** Scratch files go in `tmp/`, gitignored. Never `/tmp`, never the repo root.
+- **`scratch-in-tmp`** Scratch files go in `tmp/`, gitignored. Never `/tmp`, never the repo root. Delete what your work put there in the same turn, once its result is written down. `computers/`, `try/` and `tests/` belong to tools and stay.
 - **`tracked-never-means-git`** "Tracked" from the user means the agent maintaining a file as the work moves. A handoff is untracked: read once, left alone, rewritten whole next time. Handoff files are committed like everything else.
 - **`one-sentence-where-one-works`** Skill content can be detailed; a trigger or routing line in a `CLAUDE.md` cannot.
 - **`writing-pass`** Every markdown file gets it, inside the edit that touched it. Read `references/style.md`, plus `write-rules.md` beside it for a rule file and `write-docs.md` for a page under `docs/`. Plan the whole file's sections, then test every sentence you wrote. Editing one section still means planning the whole file. Never leave a file for a later pass.
@@ -125,9 +125,7 @@ The decisions neither page carries:
 
 ## Trying a change
 
-**`try-sh-for-a-live-session`** `bash lab/scripts/try.sh` builds a pretend computer under `tmp/try/<name>/`, runs the real install on it where it has no Flow, and starts a Claude Code session inside it, sandboxed, or a Codex one with `--codex`. `--seed <name>` picks the saved computer a new run starts from, `before-flow` by default, and `--save <name>` saves a run's computer as one. `--name` reopens a run as it was left, `--list` shows them, `--delete` removes one. Run from a session, it builds and prints the start command. Not an install: `~/.agents`, `~/.claude`, `~/.codex` and `~/.flow` are never written.
-
-**`npm-test-in-scripts`** `npm test` inside `scripts/` runs Flow's suite. `lab/util/` has its own, run the same way. `docs/dev/scratch-session.md` and `docs/dev/tests.md` carry both procedures.
+**`npm-test-in-scripts`** `npm test` inside `scripts/` runs Flow's suite. `lab/util/` has its own, run the same way. `docs/dev/tests.md` carries both procedures.
 
 ## Repo rules
 

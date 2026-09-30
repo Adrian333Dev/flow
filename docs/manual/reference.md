@@ -115,7 +115,11 @@ After your yes, it writes the rule file `~/.flow/AGENTS.md`, makes `~/.agents/AG
 
 **The form shows only what saying go would change.** A setting is judged by its value, so memory already switched off gets no line. An installed plugin or skill that works against Flow is judged by being there, so it gets a line even when it is switched off: it could be switched back on. A plugin goes by `claude plugin uninstall`.
 
-**The session runs in its own permission mode**, whatever yours is. It starts in your home folder, so reading your setup asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow install`, `flow doctor`, `util fs tree` and the script that applies the form. Anything else asks you first. Auto mode's own check refused the setup's first write in testing, which is why the setup never runs under it.
+**The session runs with Flow's permissions, for that session only.** Edits and shell commands go through without asking, apart from a commit, a push or a publish. The session writes a different command on every machine, so a short list of allowed commands left it asking all through. Your own settings file stays as it is until the form rewrites it.
+
+**Auto mode is off in that session.** Its check sees each action without the conversation behind it, and it refused the setup's first write in testing as Claude changing its own setup.
+
+**The guard is off too.** The session starts in safe mode, which turns off every hook, Flow's included. `flow install` saved your machine's original before the session opened, so `flow restore machine` puts back anything it changed.
 
 **Claude Code asks you once, partway through.** It asks before any write to a path with a `.claude` folder in it, and the form keeps its new `~/.claude/settings.json` under `~/.flow/migrations/`, at a path that ends in `.claude/settings.json`. No setting skips that question. The session tells you it is coming, and answering **allow Claude to edit its own settings for this session** covers every later one.
 
@@ -128,10 +132,11 @@ Run where no terminal is attached, or with `--root`, it prints the line that sta
 ```text
 One step left: setting up this machine. Start it from a terminal:
 
-  cd /home/me && claude --safe-mode --permission-mode acceptEdits --add-dir /home/me/.flow --allowedTools 'Bash(flow install:*)' 'Bash(flow doctor:*)' 'Bash(node ~/.flow/scripts/apply-migration.js:*)' 'Bash(util fs tree:*)' --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this machine.'
+  cd /home/me && claude --safe-mode --permission-mode acceptEdits --add-dir /home/me/.flow --settings /home/me/.flow/setup-settings.json --append-system-prompt-file /home/me/.flow/setup-prompt.md 'Set up this machine.'
 ```
 
 - **`~/.flow/setup-prompt.md`**: Flow's rules followed by the setup's instructions, rewritten each time the session starts.
+- **`~/.flow/setup-settings.json`**: the session's permissions, for that session alone. Every shell command runs without asking, apart from a commit, a push or a publish, and auto mode is off. Your own `~/.claude/settings.json` is left as it is until the migration rewrites it.
 - **`~/.flow/run.json`**: how far the setup got, and the folder its form goes in. `flow install` writes it, the session updates it after each step, and the next `flow install` carries on from there:
 
   ```json

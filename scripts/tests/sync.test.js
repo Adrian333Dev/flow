@@ -53,6 +53,7 @@ test('what belongs to one machine is what the ignore file names', () => {
     'version',
     'run.json',
     'setup-prompt.md',
+    'setup-settings.json',
     'migrate-prompt.md',
     'originals/',
     'settings.local.json',

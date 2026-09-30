@@ -2,7 +2,7 @@
 
 `flow install` made Flow's links, cloned what Flow reads, and opened this session. This run does the rest: Flow's rule file, the line loading it, Flow's keys in `~/.claude/settings.json`, and whatever the machine already holds that works against Flow. It asks the user nothing. Everything goes into one form, `migration.md`, which the user reads, edits and approves once. Nothing on disk outside `~/.flow/` changes before that yes.
 
-The session runs in safe mode, so no skill, plugin or hook of the machine's is loaded, Flow's included. It starts in the home folder, so reading anything under `~` asks nothing. Edits inside `~/.flow/` go through without asking. So do `flow install`, `flow doctor`, `util fs tree` and `node ~/.flow/scripts/apply-migration.js`, typed exactly so.
+The session runs in safe mode, so no skill, plugin or hook of the machine's is loaded, Flow's included. It starts in the home folder, so reading anything under `~` asks nothing. Edits and shell commands go through without asking, apart from a commit, a push or a publish.
 
 One edit asks anyway. Claude Code asks before every write to a path holding a `.claude` folder, `~/.flow/` or not, and `files/` mirrors `~/.claude/`. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
 

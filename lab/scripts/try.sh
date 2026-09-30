@@ -306,8 +306,12 @@ if [ "$built" = 0 ]; then
     FLOW_HOME="$build_home" FLOW_JS="$root/scripts/flow/flow.js" FLOW_PROJECT="$proj" PROJ="$proj" \
       bash "$projects/$project/build.sh"
     rm -rf "$build_home"
+    # Every flow command commits what it wrote. The files build.sh wrote by hand,
+    # map.md and plan.md among them, ride along with the next command, so only
+    # what the last one left is committed here, if anything.
     git -C "$proj/.flow" add -A
-    git -C "$proj/.flow" -c user.name=try -c user.email=try@localhost commit --quiet -m "the practice board"
+    git -C "$proj/.flow" diff --cached --quiet ||
+      git -C "$proj/.flow" -c user.name=try -c user.email=try@localhost commit --quiet -m "the practice board"
   else
     # A project with no build.sh arrives the way a real one does before Flow:
     # its files committed, with no template, no .flow/ and no tickets, for

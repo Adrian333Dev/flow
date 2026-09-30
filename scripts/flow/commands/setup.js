@@ -16,11 +16,9 @@
  * session to follow its own skills, and would argue with the setup that is
  * about to remove it.
  *
- * The permission mode is set too, because the user's own may be auto mode,
- * whose check refused the session's first write in the scratch session of
- * 2026-09-24. acceptEdits lets edits inside `~/.flow/` through, where every
- * file the session writes before the yes lives, and the commands below run
- * without asking. Anything else asks.
+ * The permissions come in for the session alone, through `--settings`:
+ * acceptEdits, every shell command, and auto mode off. `sessionSettings`
+ * says why.
  *
  * `flow install` calls `start` as its last step. Typed again, it carries on
  * a setup that stopped part way, since `~/.flow/run.json` says how far it got.
@@ -60,16 +58,13 @@ const version = require('../lib/version');
 
 const show = machine.shorten;
 
-/** The commands both sessions run without asking. Each is Flow's own. */
+/** The commands the project's session runs without asking. Each is Flow's own. */
 const SHARED = [
   'Bash(flow doctor:*)',
   'Bash(node ~/.flow/scripts/apply-migration.js:*)',
   // Flow's rules send every look at a folder through this, never ls.
   'Bash(util fs tree:*)',
 ];
-
-/** What the machine's session runs without asking. */
-const ALLOWED = ['Bash(flow install:*)', ...SHARED];
 
 /** What the project session runs without asking: its own command, and git's list of what the project keeps. */
 const PROJECT_ALLOWED = ['Bash(flow init:*)', ...SHARED, 'Bash(git ls-files:*)'];
@@ -130,6 +125,27 @@ function prompt(clone) {
   return `${rules}\n\n${setup}\n`;
 }
 
+/**
+ * The machine session's permissions, for that session alone: Flow's own
+ * allow, ask and deny lists, and auto mode off. The machine's settings file is
+ * left as it is until the migration the user approves rewrites it.
+ *
+ * Every shell command runs unasked, as in any Flow session, since the agent
+ * writes a different command on every machine and no short list covers them.
+ * Safe mode turns the guard off with every other hook, which costs little
+ * here: acceptEdits already lets the session write anywhere in the home
+ * folder, and `flow install` recorded the machine's original first.
+ *
+ * Auto mode's check sees the action without the conversation, and blocked
+ * this session's first write to `run.json` on 2026-09-24 as Claude changing
+ * its own setup. Turned off here, it also leaves the prompts that remain.
+ */
+function sessionSettings(clone) {
+  const flow = JSON.parse(fs.readFileSync(path.join(clone, 'home', 'settings.json'), 'utf8'));
+  const { allow, ask, deny } = flow.permissions;
+  return { permissions: { allow, ask, deny }, disableAutoMode: 'disable' };
+}
+
 /** One word of a shell line, quoted only where it needs it. */
 const quote = (s) => (/^[\w@%+=:,./-]+$/.test(s) ? s : `'${s.replace(/'/g, `'\\''`)}'`);
 
@@ -173,13 +189,13 @@ function start(at, clone, rootFlag) {
 
   const file = path.join(at.flow, 'setup-prompt.md');
   fs.writeFileSync(file, prompt(clone));
-  // --allowedTools takes several values, so a flag taking one comes after it
-  // and ends the list before the first message.
+  const settings = path.join(at.flow, 'setup-settings.json');
+  fs.writeFileSync(settings, JSON.stringify(sessionSettings(clone), null, 2) + '\n');
   const args = [
     '--safe-mode',
     '--permission-mode', 'acceptEdits',
     '--add-dir', at.flow,
-    '--allowedTools', ...ALLOWED,
+    '--settings', settings,
     '--append-system-prompt-file', file,
     run ? 'Carry on setting up this machine.' : 'Set up this machine.',
   ];
@@ -346,6 +362,7 @@ function checkProject(at) {
 function endRun(at) {
   fs.rmSync(runFile(at));
   fs.rmSync(path.join(at.flow, 'setup-prompt.md'), { force: true });
+  fs.rmSync(path.join(at.flow, 'setup-settings.json'), { force: true });
 }
 
 /**

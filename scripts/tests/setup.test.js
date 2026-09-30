@@ -51,7 +51,13 @@ test('install writes its run and its prompt, then prints the session it opens', 
 
   const started = m.setup();
   assert.strictEqual(started.code, 0, started.stderr);
-  assert.match(started.stdout, /cd \S+ && claude --safe-mode --permission-mode acceptEdits --add-dir \S+ --allowedTools 'Bash\(flow install:\*\)'/);
+  assert.match(started.stdout, /cd \S+ && claude --safe-mode --permission-mode acceptEdits --add-dir \S+ --settings \S+setup-settings\.json /);
+
+  // Flow's permissions for this session alone, with auto mode off.
+  const settings = JSON.parse(fs.readFileSync(path.join(m.flowHome, 'setup-settings.json'), 'utf8'));
+  assert.ok(settings.permissions.allow.includes('Bash'), 'every shell command runs unasked');
+  assert.ok(settings.permissions.ask.includes('Bash(git push *)'));
+  assert.strictEqual(settings.disableAutoMode, 'disable');
   assert.match(started.stdout, /--append-system-prompt-file \S+setup-prompt\.md 'Set up this machine\.'$/m);
 
   const prompt = fs.readFileSync(path.join(m.flowHome, 'setup-prompt.md'), 'utf8');
@@ -83,6 +89,7 @@ test('install finish stamps the version and ends the run, and only a running set
   assert.strictEqual(fs.readFileSync(path.join(m.flowHome, 'version'), 'utf8'), `${version.newest(REPO)}\n`);
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
   assert.ok(!fs.existsSync(prompt), 'the prompt goes with the run');
+  assert.ok(!fs.existsSync(path.join(m.flowHome, 'setup-settings.json')), 'and so do its permissions');
   const records = fs.readdirSync(path.join(m.flowHome, 'machines'));
   assert.strictEqual(records.length, 1, 'the record the other machines read');
   const record = JSON.parse(fs.readFileSync(path.join(m.flowHome, 'machines', records[0]), 'utf8'));
