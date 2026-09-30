@@ -1,10 +1,7 @@
 ---
 name: groundwork
 description: Refines the idea and designs the solution. Every open decision, including ones nobody raised, walked to a written answer.
-argument-hint: '[ticket-id]'
 ---
-
-!`flow load "$0"`
 
 $ARGUMENTS
 
@@ -33,7 +30,7 @@ Anything starts a run: one line, 10 paragraphs, a folder of research reports, a 
 - **Any question still `[ ]`** → Phase 2, from the first one
 - **Every question `[x]`** → Phase 4 routes what the map decided
 
-**Then write the status the map just proved**, in one command, saying what the map holds wherever it disagreed with the status: `flow groundwork <id>` while the map is live, `flow plan <id>` at the end of Phase 4 to hand the ticket to `/flow:execute`, `flow done <id>` on a `topic`, where the map was the deliverable. Already matching → no command, and a line like `todo → groundwork` above means `/flow:start` ran it.
+**Then `flow groundwork <id>`** where the ticket holds any other status. Never move it further: a finished map hands over through Phase 4's last line.
 
 **A map that reads both ways stops the run.** Questions ticked with nothing written under them, a section abandoned mid-sentence, a map about another subject: say what you found and ask.
 
@@ -229,7 +226,7 @@ Confirm every branch is resolved or deliberately deferred, then send each decisi
 - Several units, each useful alone → **it stays**, and becomes the design record the tickets link back to.
 - Several units, useless shipped apart → one parent ticket with children, created with the same flag so the folder lands on the parent. **The parent keeps only what no child holds**: the wiring, the integration test, the final suite.
 
-**Then say what happens next.** `flow next` lists what is workable, and **`/flow:execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `/flow:execute`, against the code as it stands that day.
+**Then say what happens next.** `flow next` lists what is workable, and **`/flow:execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `/flow:execute`, against the code as it stands that day. On a `topic`, the map is the deliverable: `flow done <id>` once the user says it is done.
 
 ## Asking questions
 

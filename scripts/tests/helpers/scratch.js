@@ -38,6 +38,11 @@ process.env.FLOW_GIT_BASE = process.env.FLOW_GIT_BASE || `${path.join(SCRATCH, '
 // this at a bare repository of its own, `bareRepo()` below.
 process.env.FLOW_HOME_REMOTE = process.env.FLOW_HOME_REMOTE || path.join(SCRATCH, 'no-remote', 'flow-home.git');
 
+// Claude Code's own folder. Every `flow` command writing a ticket rewrites
+// the ticket skills of ~/.flow/ in its `skills/`, so a test left on the real
+// one would write there. Set outright, since no test may reach the real one.
+process.env.CLAUDE_CONFIG_DIR = path.join(SCRATCH, 'claude-config');
+
 // The name `flow install` offers a machine, fixed so no test asks the
 // hardware, and PowerShell under WSL, what sort of computer this is.
 process.env.FLOW_MACHINE_DEFAULT = process.env.FLOW_MACHINE_DEFAULT || 'test-machine';

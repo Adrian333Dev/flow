@@ -71,13 +71,13 @@ Under-explaining is the failure to avoid. Cover the subject in enough detail tha
 
 A line in `SKILL.md` starting with `` !` `` is a shell command. Claude Code runs it while it builds the skill's text, and puts what the command prints in the line's place, so the output is part of the skill before the model reads a word. `$0` in the command is the first word typed after the skill's name, and `$ARGUMENTS` is everything typed. [What Claude Code does](claude-code.md) records the tests behind both.
 
-**A shell line runs one named command, never logic written inline.** The model and the person maintaining the skill both read the line, and a name says what it does where a pattern test and a chain of `&&` and `||` say nothing. The 4 phase skills open with:
+**A shell line runs one named command, never logic written inline.** The model and the person maintaining the skill both read the line, and a name says what it does where a pattern test and a chain of `&&` and `||` say nothing. `/flow:start` opens with:
 
 ```md
-!`flow load "$0"`
+!`flow get $ARGUMENTS --files 2>&1 || true`
 ```
 
-`flow load` prints the ticket and its open files where the first word is shaped like a ticket id, and nothing for any other word, so `/flow:groundwork start from the migration cost` loads no ticket. It prints a refusal as text and exits 0, since a failing shell line breaks the skill's load. [`flow load`](../manual/reference.md#flow-load-word) in the reference has the whole of it. A skill needing a new shell line gets a `flow` command or a script under `scripts/` with a name that says what it prints.
+`flow get` prints the board, one ticket or a file, whatever was typed. `2>&1 || true` keeps a refusal in the skill as text, since a failing shell line breaks the skill's load. Every [ticket skill](../manual/reference.md#ticket-skills) is the same line with its own id, written by `scripts/flow/lib/ticket-skills.js`. A skill needing a new shell line gets a `flow` command or a script under `scripts/` with a name that says what it prints.
 
 ## Everything below SKILL.md
 

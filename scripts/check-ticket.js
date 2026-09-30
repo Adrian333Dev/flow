@@ -2,81 +2,46 @@
 'use strict';
 /**
  * check-ticket.js: the UserPromptExpansion hook that refuses a typed skill
- * whose ticket id matches nothing.
+ * where Flow was never set up.
  *
  * Claude Code fires this when the user types a slash command, before the
- * skill's text is built. It is registered for the 4 phase skills and /flow:start,
- * the ones that take a ticket id. A phase skill loads the ticket through its
- * own first line, so a bad id would otherwise print a refusal and then load
- * the whole skill on top of it, hundreds of lines spent on a typo.
+ * skill's text is built. It is registered for the 4 phase skills and
+ * /flow:start, the ones that work on tickets.
  *
- * It blocks 3 things. The machine check runs first, whatever was typed: a
+ * It blocks 2 things. The machine check runs first, whatever was typed: a
  * machine where `flow install` never finished has no rules loaded and no other
  * hook installed, so this is the only gate a typed skill passes through.
  *
- * The project check runs only where a project is needed: a ticket id, or
- * /flow:start with nothing after it, which shows the project's board. A phase
- * skill with free text, or /flow:start with a path, works in any folder, so
- * groundwork in an empty folder and a loose handoff.md both get through. Both
- * messages come from flow's own libraries rather than a copy here.
+ * The project check runs only for /flow:start with nothing after it, which
+ * shows the project's board. A phase skill, or /flow:start with a path, works
+ * in any folder, so groundwork in an empty folder and a loose handoff.md both
+ * get through. Both messages come from flow's own libraries rather than a copy
+ * here.
  *
- * Then the ticket. The first word typed is the only thing judged. A word that
- * is not shaped like a ticket id passes untouched, so free text after the skill
- * name is never inspected. Shaped like an id means a number, or 2 to 8
- * letters, a dash and a number, the same test `flow load` runs in the
- * skill's own first line, so `47`, `exp-47` and the folder name `exp-47-parser-split` are all
- * checked with `flow get`, which exits 1 when nothing matches. On that exit
- * the expansion is blocked and flow's own message is shown to the user. A
- * `home-` id lives in ~/.flow/, so it needs no project.
+ * A ticket reaches a phase skill through its own skill, `/flow:execute
+ * /exp-47`, which only lists tickets that exist: lib/ticket-skills.js. An id
+ * typed as text is the agent's to look up, so nothing here reads one.
  *
- * It only ever blocks on a confirmed miss. Any error of its own stays silent,
- * because a typo guard that breaks every typed skill costs more than it saves.
+ * Any error of its own stays silent, because a guard that breaks every typed
+ * skill costs more than it saves.
  */
 
 const fs = require('fs');
-const path = require('path');
-const { spawnSync } = require('child_process');
+const { FlowError } = require('./flow/lib/error');
 const machine = require('./flow/lib/machine');
 const { projectRoot } = require('./flow/lib/root');
-const { ID_SHAPE: ID } = require('./flow/lib/store');
-
-const HOME = /^home-/i;
 
 const block = (reason) => process.stdout.write(JSON.stringify({ decision: 'block', reason }));
-
-/** The machine, then the project where one is needed. Returns the refusal to show, or null. */
-function notSetUp(needsProject) {
-  try {
-    machine.requireSetup();
-    if (needsProject) projectRoot();
-    return null;
-  } catch (e) {
-    return e.message;
-  }
-}
 
 try {
   const call = JSON.parse(fs.readFileSync(0, 'utf8'));
   if (call.cwd) process.chdir(call.cwd);
 
-  const first = String(call.command_args || '').trim().split(/\s+/)[0] || '';
-  const board = !first && /(^|:)start$/.test(String(call.command_name || ''));
+  const board = !String(call.command_args || '').trim() && /(^|:)start$/.test(String(call.command_name || ''));
 
-  const refusal = notSetUp((ID.test(first) && !HOME.test(first)) || board);
-  if (refusal) {
-    block(refusal);
-    process.exit(0);
-  }
-
-  if (ID.test(first)) {
-    const result = spawnSync(process.execPath, [path.join(__dirname, 'flow', 'flow.js'), 'get', first], {
-      cwd: call.cwd || process.cwd(),
-      encoding: 'utf8',
-    });
-    if (result.status !== 0) {
-      block((result.stderr || result.stdout || '').trim() || `flow: no ticket matches "${first}".`);
-    }
-  }
-} catch {
-  // A guard against typos never gets to break a typed skill.
+  machine.requireSetup();
+  if (board) projectRoot();
+} catch (e) {
+  // Only flow's own refusal blocks, since it carries the message to show.
+  if (e instanceof FlowError) block(e.message);
 }

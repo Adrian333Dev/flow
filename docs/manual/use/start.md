@@ -7,10 +7,9 @@ This page assumes a project with tickets in it. [Tickets](../tickets.md) says wh
 ## Table of contents
 
 - [With nothing: the board](#with-nothing-the-board)
-- [With a ticket id: one ticket, then its phase](#with-a-ticket-id-one-ticket-then-its-phase)
+- [With a ticket: one ticket, then its phase](#with-a-ticket-one-ticket-then-its-phase)
 - [With a path: loose work](#with-a-path-loose-work)
 - [Skipping `/flow:start`](#skipping-start)
-- [A misspelt id costs one line](#a-misspelt-id-costs-one-line)
 
 ## With nothing: the board
 
@@ -33,11 +32,13 @@ nothing ready. 1 todo ticket blocked:
 
 A project with no tickets yet prints `no tickets yet.`, and the agent points you to `/flow:groundwork` for the first piece of work.
 
-With tickets, the agent recommends one and says what decided it. The order is fixed: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then it waits. You pick, by typing `/flow:start` again with the id.
+With tickets, the agent recommends one and says what decided it. The order is fixed: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then it waits. You pick, by typing `/flow:start` again with the ticket after it: `/flow:start /exp-2`.
 
-## With a ticket id: one ticket, then its phase
+## With a ticket: one ticket, then its phase
 
-`/flow:start exp-2` loads the ticket in full, and every file its `open` block names. The `open` block is the list of files a handoff left for the next session, and [Stopping and picking up](resume.md) says how it gets written.
+Every open ticket is also a skill you can type, named for its id. Typing `/exp` lists them with their status and title. [Ticket skills](../reference.md#ticket-skills) in the reference says which tickets get one.
+
+`/flow:start /exp-2` loads the ticket in full, and every file its `open` block names. The `open` block is the list of files a handoff left for the next session, and [Stopping and picking up](resume.md) says how it gets written.
 
 ````md
 exp-2  Store budgets and set them
@@ -102,8 +103,6 @@ A feature or a chore is decided by reading the ticket: its body, the `map:` line
 
 A parked ticket routes on its `resumes at:` line, which names the status it left. A ticket at `done` or `dropped` stops here: reopening is your call, never the agent's.
 
-The id takes 3 forms, and all 3 resolve to the same ticket: `exp-2`, `2`, or the folder name `exp-2-budget-store`. The id is the identity and the label is decoration.
-
 ## With a path: loose work
 
 `/flow:start ~/notes/pricing/handoff.md` opens work outside a Flow project, meaning a folder with no `.flow/`: a file beside the thing being worked on. The agent reads it and carries on from whatever the file says comes next.
@@ -112,14 +111,4 @@ Inside a project, work with no ticket gets one when it is handed off, so it show
 
 ## Skipping `/flow:start`
 
-The 4 phase skills take the same id. `/flow:execute exp-2` loads the ticket exactly as `/flow:start exp-2` does, and opens the phase without the routing step. Use it when you already know which phase the ticket is in. [The 4 phase skills](phases.md) says what each accepts.
-
-## A misspelt id costs one line
-
-`/flow:start exp-47` with no such ticket prints `flow`'s refusal and loads nothing:
-
-```text
-flow: no ticket exp-47.
-```
-
-The check runs before the skill's text is built, so a typo never spends the context the skill would have taken. The same check guards the 4 phase skills. [Settings](../settings.md) describes the hook that runs it.
+A ticket skill works after a phase skill too. `/flow:execute /exp-2` loads the ticket exactly as `/flow:start /exp-2` does, and opens the phase without the routing step. Use it when you already know which phase the ticket is in. [The 4 phase skills](phases.md) says what else each accepts.

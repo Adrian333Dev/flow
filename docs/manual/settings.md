@@ -143,25 +143,25 @@ Records what each subagent changed, and hands the parent a diff per file when th
 
 `InstructionsLoaded` has no decision control at all. Claude Code discards its output and ignores its exit code, so it records or it does not.
 
-#### The ticket check
+#### The setup check
 
 ```json
 "UserPromptExpansion": [ { "matcher": "^(flow:)?(groundwork|execute|prototype|debug|start)$", "hooks": [ { "type": "command",
   "command": "node \"$HOME/.flow/scripts/check-ticket.js\"" } ] } ]
 ```
 
-Runs `scripts/check-ticket.js` when one of the 5 skills that take a ticket id is typed, before the skill's text is built. The script reads the first word typed. A word shaped like a ticket id, a number or a prefix, a dash and a number, so `47`, `exp-47` or the folder name `exp-47-parser-split`, is checked with `flow get`; when nothing matches, the command is blocked and `flow`'s own message is shown, so a typo costs one line instead of the whole skill. Any other first word passes untouched, which is what lets instructions be typed after the skill name.
+Runs `scripts/check-ticket.js` when one of the 5 skills that work on tickets is typed, before the skill's text is built. A machine where `flow install` never finished is refused whatever was typed, since no other hook is installed there to catch it. A folder with no `.flow/` is refused only for `/flow:start` with nothing after it, which shows the project's board. A phase skill, and `/flow:start` with a path, work in any folder. Each refusal shows `flow`'s own message.
 
-Before the ticket, it checks setup. A machine where `flow install` never finished is refused whatever was typed, since no other hook is installed there to catch it. A folder with no `.flow/` is refused only where a project is needed: a ticket id other than a `home-` one, or `/flow:start` with nothing after it, which shows the project's board. `/flow:groundwork` with free text and `/flow:start` with a path work in any folder.
+It reads no ticket id. A ticket reaches a phase skill through its own [ticket skill](reference.md#ticket-skills), and the `/` menu lists only tickets that exist.
 
 The matcher accepts the name with or without the prefix. Flow's skills load as a plugin named `flow`, so the command reads `/flow:execute`, and the hook is handed the bare name `execute`. The optional `flow:` group means the hook still fires if a future Claude Code version passes the full name instead.
 
-It fires only on what the user types. A skill the agent invokes, as `/flow:start` does when it routes, carries no id and never reaches it.
+It fires only on what the user types. A skill the agent invokes, as `/flow:start` does when it routes, never reaches it.
 
 #### The overlay
 
 ```json
-"UserPromptExpansion": [ …the ticket check…, { "hooks": [ { "type": "command",
+"UserPromptExpansion": [ …the setup check…, { "hooks": [ { "type": "command",
   "command": "node \"$HOME/.flow/scripts/overlays.js\"" } ] } ],
 "PostToolUse":         [ …the change record…, { "matcher": "^Skill$", "hooks": [ "…the same" ] } ]
 ```

@@ -1,10 +1,7 @@
 ---
 name: execute
 description: Builds one ticket, plan through review.
-argument-hint: '[ticket-id]'
 ---
-
-!`flow load "$0"`
 
 $ARGUMENTS
 
@@ -27,16 +24,14 @@ Never build a child's work in its parent. `flow ls --parent exp-47` lists them; 
 
 **The status says where the work stopped; the artifact says whether that phase finished.** Read the artifact, then move the ticket.
 
-**`/flow:start` already moved it only where the user named the status**, and a line like `planning → building` above says so. Take the row for where it landed.
-
-- **`todo`**: `/flow:start` found the ticket decided → `flow plan exp-47`, then Phase 2
+- **`todo`, `groundwork`**: `flow plan exp-47`, then Phase 2
 - **`planning`**: open `plan.md`. Written and approved → `flow build exp-47`, then Phase 3. Otherwise finish writing it
 - **`building`**: open `plan.md`. Every step `[x]` → Phase 4. Otherwise resume at the first `[ ]`; `flow exp-47` prints the count
 - **`review`**: the work is with the user, and their notes start `### When the user sends review notes`
 
 Then read the ticket body and its `## State` where one exists.
 
-**A `map:` count short of its own total is groundwork that never closed.** Say which questions are open, run `flow groundwork exp-47`, and hand it to `/flow:groundwork`. No `map:` line is normal: a ticket cut from a spec never had a map.
+**A `map:` count short of its own total is groundwork that never closed.** Say which questions are open, and wait: the user decides whether the plan waits for `/flow:groundwork`. No `map:` line is normal: a ticket cut from a spec never had a map.
 
 **A ticket born in conversation often has no `## Done when`**: `--body` replaces the template outright, so whether the section exists depends on who wrote it. No check → write it here and show it with the plan. A ticket cut from a spec arrived with one.
 

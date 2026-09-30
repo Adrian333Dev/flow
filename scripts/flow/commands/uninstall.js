@@ -20,6 +20,7 @@
  *
  * Before `~/.flow/` goes, every link into it goes too: a source's skill in
  * `~/.claude/skills/` or a project's, and util's names in `~/.local/bin/`.
+ * So does every ticket skill in those 2 skills folders.
  *
  * `~/.flow/` is checked the same way before anything runs. What syncs from it,
  * study cases, notes and tickets, is on no other machine until `flow sync`
@@ -45,6 +46,7 @@ const { git } = flowRepo;
 const installed = require('../lib/installed');
 const machine = require('../lib/machine');
 const originals = require('../lib/originals');
+const ticketSkills = require('../lib/ticket-skills');
 
 const show = machine.shorten;
 
@@ -113,6 +115,11 @@ actions.uninstall = {
     }
 
     out('');
+    // The ticket skills are written by flow, never linked, so no original
+    // holds them and nothing below would take them away.
+    const skillDirs = [at.claude, ...projects.map((row) => path.join(row.manifest.project, '.claude'))]
+      .map((d) => path.join(d, 'skills'));
+    for (const folder of ticketSkills.removeAll(skillDirs)) out(`removed ${show(folder)}`);
     for (const row of projects) {
       for (const done of originals.restore(at, row.manifest.project)) {
         out(`${done.removed ? 'removed' : 'put back'} ${show(done.path)}`);
@@ -126,8 +133,6 @@ actions.uninstall = {
       for (const line of installed.strip(clone, at, { bin })) out(line);
     }
 
-    const skillDirs = [at.claude, ...projects.map((row) => path.join(row.manifest.project, '.claude'))]
-      .map((d) => path.join(d, 'skills'));
     for (const line of installed.unlinkInto(at.flow, [...skillDirs, bin])) out(line);
     originals.remove(at.flow);
     out(`removed ${show(at.flow)}`);

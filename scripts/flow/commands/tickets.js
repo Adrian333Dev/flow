@@ -23,6 +23,7 @@ const render = require('../lib/render');
 const statuses = require('../lib/statuses');
 const records = require('../lib/records');
 const ticketHistory = require('../lib/ticket-history');
+const ticketSkills = require('../lib/ticket-skills');
 
 function load() {
   const root = projectRoot();
@@ -356,36 +357,6 @@ actions.get = {
     out(render.show(t, tickets, root));
     if (flags.files) {
       loadOpen(t.file, root);
-    }
-    return 0;
-  },
-};
-
-/**
- * `flow load <word>`: what a phase skill's first line runs. Claude Code runs a
- * skill line starting with `!` as the skill loads, and pastes what it prints
- * into the skill, with `$0` the first word typed after the skill's name.
- *
- * A word shaped like a ticket id prints the ticket and its open files, as
- * `flow get <id> --files` does. Any other word is the start of an instruction,
- * `/flow:groundwork start from the migration cost`, and prints nothing. A
- * refusal prints as text and exits 0, so it lands in the skill rather than
- * breaking its load.
- */
-actions.load = {
-  section: 'tickets',
-  args: '<word>',
-  summary: 'a phase skill\'s first line: the ticket and its files, where the word is an id',
-  run({ positional }) {
-    const [word = ''] = positional;
-    if (!store.ID_SHAPE.test(word)) return 0;
-    try {
-      const { root, tickets, t } = locate(word);
-      out(render.show(t, tickets, root));
-      loadOpen(t.file, root);
-    } catch (e) {
-      if (!(e instanceof FlowError)) throw e;
-      out(`flow: ${e.message}`);
     }
     return 0;
   },
@@ -893,6 +864,39 @@ for (const s of statuses.VERBS) {
         verb: `flow ${s.verb} ${t.id}`,
       });
     },
+  };
+}
+
+// ---------------------------------------------------------------- ticket skills
+
+/**
+ * The `/` list's ticket rows follow every write: `lib/ticket-skills.js`. Once
+ * per command, after it ran, so a command that refused changes nothing. The
+ * project is the one this runs in, and the tickets in ~/.flow/ are always
+ * synced, so a move between the two updates both. A failure here never fails
+ * the command, whose write already landed.
+ */
+function syncSkills() {
+  let project = null;
+  try {
+    project = projectRoot();
+  } catch {
+    // Outside a project: only the tickets in ~/.flow/.
+  }
+  try {
+    ticketSkills.sync({ project });
+  } catch (e) {
+    process.stderr.write(`flow: the ticket skills were not updated: ${e.message}\n`);
+  }
+}
+
+const WRITES = ['new', 'edit', 'dep', 'file', 'drop', 'move', ...statuses.VERBS.map((s) => s.verb)];
+for (const name of WRITES) {
+  const run = actions[name].run;
+  actions[name].run = (call) => {
+    const code = run(call);
+    syncSkills();
+    return code;
   };
 }
 

@@ -26,6 +26,7 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 │  ├─ settings.json
 │  ├─ skills/flow                 → ~/.agents/skills/flow
 │  ├─ skills/<name>               → a skill switched on for the machine
+│  ├─ skills/home-<n>/            a ticket skill, one per open ticket in ~/.flow/
 │  ├─ agents/<file>.md            → <clone>/agents/<file>.md
 │  ├─ rules/<file>.md             → <clone>/rules/<file>.md
 │  └─ projects/                   session transcripts
@@ -73,7 +74,8 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 ├─ .uncommitted-include
 ├─ .claude/
 │  ├─ settings.json
-│  └─ skills/<name>
+│  ├─ skills/<name>
+│  └─ skills/<id>/                a ticket skill, one per open ticket
 ├─ .flow/                         the branch flow, checked out here
 │  ├─ tickets/<id>-<slug>/
 │  │  ├─ ticket.md
@@ -112,6 +114,7 @@ The folder belongs to no one tool. Claude Code reaches it through an import and 
 - **`settings.json`**: Claude Code's settings. The setup session `flow install` opens merges Flow's hooks and permissions into it, and nothing else in Flow writes it. [Settings](settings.md) explains every key.
 - **`skills/flow`**: a symlink to `~/.agents/skills/flow/`. Claude Code never reads `~/.agents/`, so this link is how it finds the same skills. `flow install` makes it.
 - **`skills/<name>`**: a symlink for each skill from a skill repository or `~/.flow/private-skills/` switched on for the whole machine. `flow skills on --machine` or `--global` makes it, and so does the next session start on your other machines.
+- **`skills/home-<n>/`**: a ticket skill for each open ticket in `~/.flow/`, so typing `/home` lists them with their status and title. `flow` writes them after every command that writes a ticket, and at every session start. [Ticket skills](reference.md#ticket-skills) says the rest.
 - **`agents/<file>.md`**: one symlink per subagent definition, such as `haiku-worker.md`. `flow install` makes them.
 - **`rules/<file>.md`**: one symlink per rules file. `flow install` makes them.
 - **`projects/`**: every session's transcript. Claude Code writes it, and `flow audit` reads it.
@@ -181,6 +184,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 
 - **`settings.json`**: this project's Claude Code settings, merged key by key over `~/.claude/settings.json`. You write it.
 - **`skills/<name>`**: a real folder for a skill belonging to this project alone, committed. A symlink for each skill switched on for this project, gitignored, since it holds this machine's path.
+- **`skills/<id>/`**: a ticket skill for each open ticket, such as `skills/exp-47/`, so typing `/exp` lists them with their status and title. `flow init` makes the folder, and `flow` writes the skills. Each carries a `.gitignore` holding `*`, so git never sees it. [Ticket skills](reference.md#ticket-skills) says the rest.
 
 ### `.flow/`, Flow's working store
 

@@ -18,6 +18,7 @@ Every command, skill, setting and file Flow gives you, in one place. Look one up
 - [The failure log](#the-failure-log)
 - [Sharing findings](#sharing-findings)
 - [The skills](#the-skills)
+- [Ticket skills](#ticket-skills)
 - [Agents read files with Read, never `util fs merge`](#agents-read-files-with-read-never-util-fs-merge)
 - [Settings](#settings)
 - [Files](#files)
@@ -596,7 +597,7 @@ Three shapes:
 
 An id is the project's prefix and a number, `exp-47`, and the folder adds a label: `exp-47-parser-split`. The id is the identity. Any unambiguous part resolves it: `exp-47`, `47`, `parser`, or the whole thing. A bare number means the project you are in, and `home-4` names a ticket in `~/.flow/` from anywhere.
 
-`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/flow:start` passes `--files` explicitly. A phase skill runs [`flow load`](#flow-load-word), which does the same for a ticket id.
+`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/flow:start` passes `--files` explicitly, and so does every [ticket skill](#ticket-skills).
 
 **The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
 
@@ -667,16 +668,6 @@ the old id still finds it from the project: flow exp-3
 ```
 
 Links among the moved tickets are rewritten to their new ids. A link from a ticket staying behind refuses the move and names the ticket, since a link across 2 places could never be followed: move both, or remove the link first.
-
-### `flow load <word>`
-
-What the first line of each phase skill runs. A line in a skill that starts with `` !` `` is a shell command: Claude Code runs it as the skill loads, and pastes what it prints into the skill. `$0` is the first word you typed after the skill's name, so each phase skill opens with:
-
-```md
-!`flow load "$0"`
-```
-
-A word shaped like a ticket id, `47`, `exp-47` or `exp-47-parser-split`, prints the ticket and its open files, as `flow get <id> --files` does. Any other word starts an instruction, `/flow:groundwork start from the migration cost`, and prints nothing. A refusal prints as text and exits 0, so it lands in the skill instead of breaking it.
 
 ### `flow handoff <id>`
 
@@ -991,7 +982,7 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 
 **The `flow:` in front of every one comes from a single file.** `skills/.claude-plugin/plugin.json` in the clone holds the one word `flow`. `flow install` links the whole set into `~/.agents/skills/flow/`, beside a copy of that file, and links `~/.claude/skills/flow` to the same folder. Both Claude Code and Codex read the file and offer every skill below it as `flow:<name>`, so no folder and no `SKILL.md` in the clone carries a prefix. Codex spells the same command `$flow:groundwork`. Changing the word in the manifest renames every command at once. [`flow skills on review --machine`](#flow-skills) adds one of the 2 `dev/` skills to every session on the machine.
 
-**`phases/`, the four states a piece of work passes through.** Shown in every session. Each takes a ticket id, `/flow:execute exp-47`, and loads the ticket and its files itself. Typed bare, it loads nothing.
+**`phases/`, the four states a piece of work passes through.** Shown in every session. A ticket arrives through its own [ticket skill](#ticket-skills), typed after the phase: `/flow:execute /exp-47`.
 
 - **`/flow:groundwork`**: refines the idea and designs the solution, walking every open decision including the ones nobody raised
 - **`/flow:execute`**: builds one ticket, plan through review
@@ -1018,6 +1009,26 @@ A skill under `skills/drafts/` installs nowhere. Moving it out of that folder is
 
 - **`/capture`** (user only): sweeps the conversation now and files what it holds, the way a checkpoint does
 
+## Ticket skills
+
+Every open ticket is also a skill, named for its id. Typing `/exp` lists them in Claude Code's `/` menu, each with its status and title:
+
+```text
+/exp-1     Ticket, building: Daemon detection (project)
+/exp-2     Ticket, todo, blocked: Parser split (project)
+```
+
+Picking one prints the ticket and every file its `open` block names, as `flow get exp-1 --files` does. Typed after a phase skill, it opens the phase on that ticket: Claude Code loads both skills from `/flow:execute /exp-1`. Text after the skills reaches both as instructions, so `/flow:groundwork /exp-5 start from the migration cost` works. A `/exp-1` in the middle of a message stays plain text, and Claude looks the ticket up itself.
+
+- **Which tickets**: `todo`, `groundwork`, `planning`, `building` and `review`. A parked, done or dropped ticket has no skill. A ticket waiting on an unfinished dependency says `blocked`.
+- **Where they live**: `<project>/.claude/skills/<id>/` for a project's tickets, and `~/.claude/skills/home-<n>/` for the tickets in `~/.flow/`. Each folder holds a `SKILL.md` and a `.gitignore` holding `*`, so git never sees it. `flow init` makes the project's `.claude/skills/`, since Claude Code notices a new skill without a restart only in a folder that existed when the session started.
+- **Kept current by `flow`**: every command that writes a ticket rewrites the skills, and so does the start of every session. A ticket edited by hand, or pulled from another machine in the background, shows its old row until one of those runs. The skill reads the ticket when you type it, so what it prints is never old.
+- **Only you can run one.** Each is marked `disable-model-invocation: true`, so the list never reaches Claude and costs no context.
+- **Never edit one.** `flow` rewrites or deletes any folder carrying its mark, the comment `<!-- flow: ticket exp-1, ... -->`. A folder without the mark is yours, and `flow` leaves it alone, even under a ticket's id.
+- **`flow uninstall` deletes them all**, in every project and in `~/.claude/skills/`.
+
+This is the only way a skill takes a ticket. A ticket id typed as text is Claude's to look up, with `flow get <id> --files`.
+
 ## Agents read files with Read, never `util fs merge`
 
 Flow's rules send every file an agent opens through Read, Claude Code's own tool for opening a file, and ask for all the files a step needs at once. `util fs merge`, the util command that prints many files as one text, is left out on purpose. Its line in `util ls` says it is not designed for Claude Code.
@@ -1034,7 +1045,7 @@ Two files, and Flow contributes to one of them.
 
 **`~/.claude/settings.json`** is Claude Code's. The links half of `flow install` never writes it, and the setup session merges Flow's keys into it, key by key. Flow contributes 4 keys:
 
-- **`hooks`**: 9 jobs. `guard.js` asks you before a shell command that could do harm: losing work git cannot give back, sending data off the machine, changing a shared system such as a deploy or a database, changing the machine outside the project, or running downloaded code. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill before it loads: on a machine not set up, outside a project where a ticket id needs one, and on an id that matches nothing. `overlays.js` hands the agent the project's overlay each time a skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `failures.js` writes a line into the failure log whenever an MCP tool, a Flow command or an API call fails. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings, and sends every skill repository to update itself in the background
+- **`hooks`**: 9 jobs. `guard.js` asks you before a shell command that could do harm: losing work git cannot give back, sending data off the machine, changing a shared system such as a deploy or a database, changing the machine outside the project, or running downloaded code. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill before it loads on a machine not set up, and a bare `/flow:start` outside a project. `overlays.js` hands the agent the project's overlay each time a skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `failures.js` writes a line into the failure log whenever an MCP tool, a Flow command or an API call fails. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings and every [ticket skill](#ticket-skills) match the tickets, and sends every skill repository to update itself in the background
 - **`permissions`**: an allow list, an ask list and a deny list. The allow list covers edits, reads, web lookups and every shell command. The ask list makes a commit, a push and a package publish ask you every time. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `su`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first

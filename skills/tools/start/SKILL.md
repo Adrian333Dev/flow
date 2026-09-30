@@ -1,13 +1,15 @@
 ---
 name: start
 description: 'Opens a session: the board, one ticket, or a loose file.'
-argument-hint: '[ticket-id] | [path]'
+argument-hint: '[path]'
 disable-model-invocation: true
 ---
 
 !`flow get $ARGUMENTS --files 2>&1 || true`
 
-**A refusal, or nothing** → say why and stop. The id matched no ticket, the path matched no file, or a status move hit a guard.
+**A refusal, or nothing** → say why and stop. The id matched no ticket, or the path matched no file.
+
+**A ticket is above**, printed by its own skill in `/flow:start /exp-47` → route it by `## When a ticket is above`. Never recommend from the board printed beside it.
 
 **Nothing named, and the board says `no tickets yet`** → say so, and point to `/flow:groundwork` for the first piece of work.
 
@@ -21,9 +23,7 @@ disable-model-invocation: true
 
 **A `branch:` line saying `checked out here:` another branch** → tell the user which branch the work is on before routing, and wait. Building here would put the work on the wrong branch.
 
-**A line reading `planning → building` means the user named that move and `flow` made it.** Take the ticket at the status it now holds, and never move it again.
-
-**No such line means nothing has moved.** The skill you route to writes the status, after it opens the phase's own artifact.
+**Nothing has moved.** The skill you route to writes the status, after it opens the phase's own artifact.
 
 Pick the skill, say in one line what decided it, then invoke it with no argument: the skill loads here, in this session, and the ticket is already above.
 

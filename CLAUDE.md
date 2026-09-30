@@ -120,7 +120,7 @@ The decisions neither page carries:
 
 - **`phases-closed-at-4`** `groundwork`, `execute`, `prototype` and `debug`. Set by the user and not reopenable.
 - **`no-code-review-skill`** Review runs in the same session, never a subagent, and the criteria live beside the skill that produced the artifact: `skills/phases/execute/references/review-code.md` for code.
-- **`short-skill-no-arguments`** A skill invoked over and over stays short. A long skill takes an argument only where the argument names what the skill opens, and a bare run renders the same text every time: the 4 phase skills take a ticket id, `/flow:handoff` takes nothing. A differing render is appended whole. Binds Flow's own skills only.
+- **`short-skill-no-arguments`** A skill invoked over and over stays short. A long skill takes an argument only where the argument names what the skill opens, and a bare run renders the same text every time: the 4 phase skills take none, since a ticket arrives through its own skill, and `/flow:handoff` takes none. A differing render is appended whole, and so is every typed run. Binds Flow's own skills only.
 - **`file-findings-density`** `file-findings` is the density to aim for. Style, including the `description`, lives in `references/style.md`.
 - **`plain-words-in-skills`** Plain, common words, with no invented or rare terms. Binds what a skill produces as hard as what it says.
 - **`no-versions-no-manifest`** `flow install` builds symlinks, a copy of `.claude-plugin/plugin.json`, which holds the plugin's name and lists no skill, and the 2 rule files where none exist. No version number, and no record of what installed.

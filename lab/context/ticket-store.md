@@ -75,6 +75,8 @@ Decided by the user and built on 2026-09-29. Tickets left the code branches, so 
 
 Each phase skill opened with `` !`[[ "$0" =~ ^([a-zA-Z]{2,8}-)?[0-9]+(-|$) ]] && flow get "$0" --files 2>&1 || true` ``, which the user could not read. It is now `` !`flow load "$0"` ``: the ticket and its open files where the first word is shaped like an id, nothing for any other word, a refusal printed as text with exit 0. The id pattern lives once, as `store.ID_SHAPE`, which `check-ticket.js` shares. `docs/dev/skills.md` → `## A shell line in the body` holds the rule: a shell line runs one named command.
 
+Removed 2026-09-30, with `ID_SHAPE`: a ticket reaches a phase skill through its own ticket skill now. `ticket-skills.md` → `## Archived` says what `flow load` did and how to bring it back.
+
 ## The setup commands: 7 verbs
 
 - **`flow install [check|finish]`**: puts Flow on this machine, the setup session included.

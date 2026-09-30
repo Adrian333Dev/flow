@@ -49,6 +49,7 @@ const machine = require('../lib/machine');
 const records = require('../lib/records');
 const settings = require('../lib/settings');
 const store = require('../lib/store');
+const ticketSkills = require('../lib/ticket-skills');
 const version = require('../lib/version');
 const setup = require('./setup');
 
@@ -83,9 +84,17 @@ const RECORDS_IGNORE = [
   '',
 ].join('\n');
 
-/** The paths competing with Flow's rules in this project, as found. */
+/**
+ * The paths competing with Flow's rules in this project, as found. A skills
+ * folder holding nothing but Flow's ticket skills is Flow's own.
+ */
 function competing(project) {
-  return COMPETING.filter((rel) => fs.existsSync(path.join(project, rel)));
+  return COMPETING.filter((rel) => {
+    const at = path.join(project, rel);
+    if (!fs.existsSync(at)) return false;
+    if (rel !== '.claude/skills') return true;
+    return fs.readdirSync(at).some((name) => !ticketSkills.isTicketSkill(path.join(at, name)));
+  });
 }
 
 /**
@@ -189,9 +198,16 @@ function stamp(clone, project) {
   return newest;
 }
 
+/**
+ * The folder the ticket skills go in, made now because Claude Code sees a skill
+ * added mid-session only under a folder that existed when the session started.
+ */
+const makeSkillsFolder = (project) => fs.mkdirSync(ticketSkills.folderOf(project), { recursive: true });
+
 /** The records folder's first files: the prefix, and what the branch ignores. */
 function seedRecords(project, prefix) {
   const dir = path.join(project, '.flow');
+  makeSkillsFolder(project);
   fs.mkdirSync(path.join(dir, 'tickets'), { recursive: true });
   const file = settings.projectFile(project);
   settings.write(file, { ...settings.read(file), ticketPrefix: prefix });
@@ -264,6 +280,7 @@ function init(at, clone, flags) {
 
   // A teammate set the project up: the branch brought the stamp down.
   if (fs.existsSync(path.join(records_, 'version'))) {
+    makeSkillsFolder(project);
     out(done.join('\n'));
     return setup.startProject(at, clone, flags.root);
   }

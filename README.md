@@ -59,7 +59,7 @@ Review runs two passes over the same diff: against the plan (every step delivere
 
 `flow` is a full CLI that manages work across sessions. It tracks status, dependencies, parent/child hierarchy, and five ticket types (feature, issue, chore, topic, prototype). Each type walks a subsequence of the same status line (`todo → groundwork → planning → building → review → done`). The system refuses what would break the graph: picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents.
 
-[`/flow:start`](skills/tools/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/flow:groundwork`, a feature at `planning` goes to `/flow:execute`, an issue goes to `/flow:debug`, a prototype goes to `/flow:prototype`. When you already know the phase, type it with the id instead, `/flow:execute t047`: the skill loads the ticket and its files itself.
+[`/flow:start`](skills/tools/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/flow:groundwork`, a feature at `planning` goes to `/flow:execute`, an issue goes to `/flow:debug`, a prototype goes to `/flow:prototype`. When you already know the phase, type it with the ticket after it, `/flow:execute /exp-47`. Every open ticket is a skill of its own, so typing `/exp` lists them with their status and title.
 
 Key commands:
 

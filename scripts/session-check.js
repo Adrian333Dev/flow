@@ -16,8 +16,11 @@
  *
  * It makes every skill link match the settings, the step every `flow skills`
  * command runs, so a switch made on another machine or pulled with a project
- * applies here. When that changed a link it asks Claude Code to scan the skill
- * folders again (`reloadSkills`), so the first prompt already sees the change.
+ * applies here. It makes the ticket skills match the tickets too, which a
+ * ticket edited by hand or pulled from another machine needs:
+ * lib/ticket-skills.js. When either changed a skill it asks Claude Code to
+ * scan the skill folders again (`reloadSkills`), so the first prompt already
+ * sees the change.
  *
  * It starts 2 things, both detached. scripts/skills-pull.js brings every skill
  * repository up to date in the background, and fetches the Flow home's
@@ -46,6 +49,7 @@ const records = require('./flow/lib/records');
 const settings = require('./flow/lib/settings');
 const links = require('./flow/lib/skill-links');
 const skills = require('./flow/lib/skills');
+const ticketSkills = require('./flow/lib/ticket-skills');
 const update = require('./flow/lib/skills-update');
 const version = require('./flow/lib/version');
 
@@ -255,6 +259,11 @@ try {
     reload = relink(at, cwd);
   } catch {
     // A link that cannot be made is flow doctor's to report, never a session's.
+  }
+  try {
+    if (ticketSkills.sync({ project: projectRoot(cwd, at), claude: skills.configDir() })) reload = true;
+  } catch {
+    // The same: a ticket skill that cannot be written never stops a session.
   }
 
   const text = lines.map((line) => `Flow: ${line}`).join('\n');

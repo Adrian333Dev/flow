@@ -1,10 +1,7 @@
 ---
 name: prototype
 description: Naive code answering one question, kept in its ticket beside a report of what it found. Never promoted into the real build.
-argument-hint: '[ticket-id]'
 ---
-
-!`flow load "$0"`
 
 $ARGUMENTS
 
@@ -38,7 +35,7 @@ Code written to answer one named question, then kept beside its report as a refe
 
 **Missing pass and fail → stop and ask.** Criteria written after the run match whatever came out.
 
-**Everything arrived → `flow build <id>`**, then stand it up. Skip the move where a `→ building` line above shows `/flow:start` already made it. A prototype has no phase before building.
+**Everything arrived → `flow build <id>`**, then stand it up. A prototype has no phase before building.
 
 ## 1. Stand it up before testing anything
 

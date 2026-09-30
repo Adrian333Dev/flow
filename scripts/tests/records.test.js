@@ -215,20 +215,3 @@ test('a ticket records its code branch when building starts, and a history line 
   git(ana, 'checkout', '-q', 'main');
   assert.match(t.in(ana, 'exp-1').stdout, /^branch:\s+feature\/budgets   \(checked out here: main\)$/m);
 });
-
-test('flow load prints a ticket for a word shaped like an id, and nothing for any other word', () => {
-  const dir = project('records-load');
-  flow(dir, ['new', 'Parser']);
-  const loaded = flow(dir, ['load', 'exp-1']);
-  assert.strictEqual(loaded.code, 0);
-  assert.match(loaded.stdout, /^exp-1  Parser$/m);
-  assert.strictEqual(flow(dir, ['load', '1-parser']).code, 0);
-
-  const words = flow(dir, ['load', 'start']);
-  assert.strictEqual(words.code, 0);
-  assert.strictEqual(words.stdout, '');
-
-  const missing = flow(dir, ['load', 'exp-9']);
-  assert.strictEqual(missing.code, 0, 'a refusal lands in the skill rather than breaking it');
-  assert.match(missing.stdout, /^flow: no ticket/m);
-});

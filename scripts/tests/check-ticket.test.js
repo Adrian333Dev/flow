@@ -1,15 +1,14 @@
 'use strict';
 /**
  * `check-ticket`: the UserPromptExpansion hook that refuses a typed phase
- * skill on a machine or a project Flow was never set up in, and one whose
- * ticket id matches nothing.
+ * skill on a machine or a project Flow was never set up in.
  */
 
 const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { project, run, flow } = require('./helpers/scratch');
+const { project, run } = require('./helpers/scratch');
 
 /** The shape Claude Code hands a UserPromptExpansion hook on stdin. */
 function typed(command_name, command_args, cwd) {
@@ -31,31 +30,7 @@ function check(name, args, dir, env = {}) {
   });
 }
 
-test('check-ticket blocks an id that matches nothing, bare or with a label, and says which', () => {
-  const dir = project('check-ticket-miss');
-  for (const args of ['exp-999', 'exp-999-old-label', 'exp-999 and some text']) {
-    const result = check('groundwork', args, dir);
-    assert.strictEqual(result.code, 0);
-    assert.match(result.stdout, /"decision":"block"/, `no block for "${args}"`);
-    assert.match(result.stdout, /exp-999/);
-  }
-});
-
-test('check-ticket passes a real id, a bare number, free text, an id followed by text, and nothing', () => {
-  const dir = project('check-ticket-pass');
-  const made = flow(dir, ['new', 'a ticket to find']);
-  assert.strictEqual(made.code, 0, made.stderr);
-  const id = made.stdout.match(/exp-\d+/)[0];
-
-  const label = made.stdout.match(/exp-\d+-[a-z-]+/)[0];
-  for (const args of [id, label, `${id} focus on the auth part`, 'write the map for the login flow', '1', '']) {
-    const result = check('groundwork', args, dir);
-    assert.strictEqual(result.code, 0);
-    assert.strictEqual(result.stdout.trim(), '', `no verdict for "${args}"`);
-  }
-});
-
-test('check-ticket blocks before the ticket check when setup never ran', () => {
+test('check-ticket blocks when setup never ran, and a bare /flow:start outside a project', () => {
   const dir = project('check-ticket-unset');
 
   fs.rmSync(path.join(dir, 'flow-home', 'version'));
@@ -66,17 +41,15 @@ test('check-ticket blocks before the ticket check when setup never ran', () => {
 
   fs.writeFileSync(path.join(dir, 'flow-home', 'version'), '2026-09-20\n');
   fs.rmSync(path.join(dir, '.flow'), { recursive: true });
-  for (const [name, args] of [['groundwork', 'exp-1'], ['flow:start', '']]) {
-    const inProject = check(name, args, dir);
-    assert.strictEqual(inProject.code, 0);
-    assert.match(inProject.stdout, /not a Flow project yet.*flow init/, `no project refusal for /${name} ${args}`);
-  }
+  const board = check('flow:start', '', dir);
+  assert.strictEqual(board.code, 0);
+  assert.match(board.stdout, /not a Flow project yet.*flow init/);
 });
 
-test('check-ticket passes free text and a path outside a Flow project', () => {
+test('check-ticket passes a phase skill, free text, a typed id and a path outside a Flow project', () => {
   const dir = project('check-ticket-loose');
   fs.rmSync(path.join(dir, '.flow'), { recursive: true });
-  for (const [name, args] of [['groundwork', 'write the map for pricing'], ['groundwork', ''], ['flow:start', 'notes/handoff.md'], ['debug', '']]) {
+  for (const [name, args] of [['groundwork', 'write the map for pricing'], ['groundwork', ''], ['execute', 'exp-999'], ['flow:start', 'notes/handoff.md'], ['debug', '']]) {
     const result = check(name, args, dir);
     assert.strictEqual(result.code, 0);
     assert.strictEqual(result.stdout.trim(), '', `blocked /${name} ${args}`);

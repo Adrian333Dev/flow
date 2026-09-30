@@ -1,10 +1,7 @@
 ---
 name: debug
 description: Finds the cause by evidence, proves it, fixes it.
-argument-hint: '[ticket-id]'
 ---
-
-!`flow load "$0"`
 
 $ARGUMENTS
 
@@ -18,7 +15,7 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 **On a ticket** → read `## State` before step 1. It is where the hunt is written, so it says how far this one got: resume at the first hypothesis nothing killed, and never restart the loop. Nothing written there → step 1.
 
-Then `flow build <id>`, unless a `→ building` line above shows `/flow:start` already made the move. An `issue` has no phase before building.
+Then `flow build <id>`. An `issue` has no phase before building.
 
 ## The loop
 

@@ -93,11 +93,6 @@ const HOME_WORD = 'home';
 // ambiguous to read back.
 const WORD = /^[a-z]{2,8}$/;
 
-// A word typed after a skill's name that is shaped like a ticket id: a number,
-// or a place's word, a dash and a number, with a folder's label allowed after
-// it. `47`, `exp-47` and `exp-47-parser-split` all match; `start` does not.
-const ID_SHAPE = /^([a-z]{2,8}-)?\d+(-|$)/i;
-
 /**
  * The folder holding a place's records. A project keeps them in `.flow/`. The
  * home place is ~/.flow/ itself, reached either as its own root or as the home
@@ -505,7 +500,7 @@ function renderTemplate(name, vars) {
 }
 
 module.exports = {
-  TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES, HOME_WORD, ID_SHAPE,
+  TICKET_KEYS, TICKET_STATUSES, TICKET_TYPES, TICKET_PRIORITIES, REASON_STATUSES, TERMINAL_STATUSES, HOME_WORD,
   recordsDir, isHome, homeRoot, ticketsDir, archiveDir, offerWord, badWord, prefixOf, wordOf, idOfFolder,
   normalizeId, idNumber, requireId, slugify, labelize, labelOf, relabel, toIdList, toPriority, today, now,
   readTickets, nextId, writeTicket, createTicket, findTicket, moveFolder,
