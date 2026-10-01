@@ -19,8 +19,16 @@
  * A line from a session names the session and the tool call, which point into
  * the transcript under `~/.claude/projects/`, where the whole failure is. The
  * line carries the first 500 characters of the error, enough to group repeats.
+ *
+ * **An open issue** is a job that runs with nobody watching, whose last run
+ * failed. Its lines carry `job`, which names it: `sync /home/me/code/shop`,
+ * `sync ~/.flow`, `skills obra/superpowers`. The next run of the same job that
+ * works adds a line closing it, `{"job":"sync ~/.flow","cleared":true}`, so an
+ * issue goes away by itself once its cause is fixed. The status line counts
+ * the open ones, and `flow doctor` lists them.
  */
 
+const fs = require('fs');
 const logs = require('./logs');
 
 const NAME = 'failures';
@@ -67,4 +75,47 @@ function record(home, entry) {
   logs.append(home, NAME, { ...entry, error: error.length > ERROR_CHARS ? `${error.slice(0, ERROR_CHARS)}…` : error });
 }
 
-module.exports = { NAME, ERROR_CHARS, file, record, flowCommand, fromHook };
+/** Every line of one month's file that parses. */
+function readLines(file) {
+  let text = '';
+  try {
+    text = fs.readFileSync(file, 'utf8');
+  } catch {
+    return [];
+  }
+  return text.split('\n').flatMap((line) => {
+    try {
+      return line ? [JSON.parse(line)] : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
+/**
+ * Every open issue, oldest first: `{ job, count, since, error }`, where
+ * `count` is the failures since the job last worked and `error` the newest.
+ * Reads this month and the one before, so an issue a month old still shows.
+ */
+function open(home, now = new Date()) {
+  const before = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lines = [before, now].flatMap((date) => readLines(logs.monthFile(home, NAME, date)));
+  const jobs = new Map();
+  for (const line of lines) {
+    if (!line.job) continue;
+    const had = jobs.get(line.job);
+    jobs.delete(line.job);
+    if (line.cleared) continue;
+    jobs.set(line.job, had
+      ? { ...had, count: had.count + 1, error: line.error }
+      : { job: line.job, count: 1, since: line.at, error: line.error });
+  }
+  return [...jobs.values()];
+}
+
+/** A job worked: close its issue, where one is open. */
+function cleared(home, job) {
+  if (open(home).some((issue) => issue.job === job)) logs.append(home, NAME, { job, cleared: true });
+}
+
+module.exports = { NAME, ERROR_CHARS, file, record, open, cleared, flowCommand, fromHook };

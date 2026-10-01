@@ -48,7 +48,7 @@ Decided with the user and built 2026-10-01. A project's tickets live in one of 2
 
 ### Which place `flow init` picks
 
-In order, the first that applies:
+In order, the first that applies. `flow init` syncs the Flow home before it looks, since 2026-10-01, so a second machine that never ran `flow sync` still finds the folder another machine made.
 
 1. `--private`.
 2. A Flow home folder whose `repository` matches: that folder.
@@ -69,7 +69,7 @@ In order, the first that applies:
 
 - **Commit** at every command that writes a ticket. A commit takes the whole folder, so the user's hand edits ride along with the agent's.
 - **Push** at a status move or a drop, in the background; at once for a new ticket; after a reply once 30 minutes have passed and something changed (the `Stop` hook, `async`); and at session end (the `SessionEnd` hook, whose 1.5 seconds only start a detached run). The user asked for more than session end: every half hour at most.
-- **Pull** at session start, in the background, and right before a new ticket takes its number.
+- **Pull** at session start, in the background, and right before a new ticket takes its number. A project linked into the Flow home pulls with a sync of the Flow home at session start, since 2026-10-01.
 - **Offline**, a push skips quietly and the next checkpoint tries again, except for a new ticket, below. Any other failure goes to the failure log.
 - **`flow sync`** stays, for a push by hand. Typed inside a project it syncs the project's branch too, even when `~/.flow/` refuses.
 - **`scripts/records-sync.js`** runs every checkpoint nobody typed. `~/.flow/records-sync.json` holds when each place last sent, and never travels.

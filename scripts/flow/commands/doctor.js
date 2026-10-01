@@ -33,6 +33,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { out } = require('../lib/cli');
 const { cloneRoot } = require('../lib/clone');
+const failures = require('../lib/failures');
 const installed = require('../lib/installed');
 const { markdownFiles } = require('../lib/links');
 const machine = require('../lib/machine');
@@ -471,6 +472,20 @@ function checkOriginals(at) {
 }
 
 /**
+ * The open issues: a job that runs with nobody watching, such as a ticket
+ * sync or a skill repository's pull, whose last run failed. The next run that
+ * works clears one by itself, so each line stays until its cause is fixed.
+ */
+function checkIssues(at) {
+  const problems = failures.open(at.flow).map((issue) => {
+    const times = issue.count === 1 ? 'failed' : `failed ${issue.count} times`;
+    const error = String(issue.error || '').split('\n')[0];
+    return `${issue.job.split(os.homedir()).join('~')}: ${times} since ${issue.since.slice(0, 16).replace('T', ' ')}. ${error}`;
+  });
+  return { name: 'issues', problems, summary: 'every job running in the background worked last time' };
+}
+
+/**
  * The skills Flow switches, read against the settings: every source cloned,
  * every line naming a skill some source holds and none naming an essential
  * one, and every skill switched on linked where it loads from.
@@ -735,6 +750,7 @@ actions.doctor = {
 
     const checks = [
       checkRun(at),
+      checkIssues(at),
       checkVersion(clone, at),
       checkClone(clone, { updates: flags.updates }),
       prereq.checkPrograms(),

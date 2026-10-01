@@ -12,6 +12,8 @@
  *   a run stopped part way    carries it on
  *   already a Flow project    says so and stops, or folds in this machine's old
  *                             Claude Code memory where there is some
+ *   the Flow home's sync      brings in what another machine sent, so the
+ *                             next 2 states see it
  *   --private                 the tickets go to the Flow home: below
  *   the Flow home holds it    another machine put this project in the Flow
  *                             home: links `.flow/` to that folder, and the
@@ -39,6 +41,12 @@
  * Everything else is the branch's: the rule files, the template and the setup
  * session, since a project needs its rules wherever its tickets live.
  *
+ * The project's original, lib/originals.js, opens before the first write, and
+ * every path written here is recorded first, so `flow restore project` undoes
+ * all of it. The template closes it. The setup session leaves it open for
+ * apply-migration.js, which closes it at the end. A `git init` is never
+ * recorded: the history the user commits into it is theirs.
+ *
  *   flow init            set this project up
  *   flow init check      exit 0 where it can be; the setup session's first step
  *   flow init finish     stamp .flow/version; the setup session's last step
@@ -53,6 +61,7 @@ const confirm = require('../lib/confirm');
 const { FlowError } = require('../lib/error');
 const flowRepo = require('../lib/flow-repo');
 const machine = require('../lib/machine');
+const originals = require('../lib/originals');
 const records = require('../lib/records');
 const place = require('../lib/records-place');
 const { projectRoot } = require('../lib/root');
@@ -167,6 +176,22 @@ function askPlace(seen) {
   return answer === '2' ? 'branch' : 'home';
 }
 
+/**
+ * Bring the Flow home level with the other machines first, so a folder
+ * another machine made for this project is found rather than made twice. A
+ * failure is a line in the report, and the setup carries on.
+ */
+function pullHome(at, done) {
+  if (!flowRepo.isRepo(at)) return;
+  const mine = version.applied(path.join(at.flow, 'version'));
+  try {
+    const { theirs } = flowRepo.sync(at, mine.state === 'ok' ? mine.number : 0);
+    records.renumber(at.flow, theirs || 'origin/main');
+  } catch (e) {
+    done.push(`the Flow home did not sync first, so a folder another machine made for this project may be missed: ${e.message.split('\n')[0]}`);
+  }
+}
+
 /** Where this project's tickets go: `branch` or `home`. The file header holds the order. */
 function choosePlace(at, project, flags) {
   if (flags.private || place.findFolder(project, at.flow)) return 'home';
@@ -207,7 +232,7 @@ function linkHome(at, project, done) {
  * rather than copied, and a file already present is never replaced: where one
  * is, the setup session runs instead of this.
  */
-function writeTemplate(clone, project) {
+function writeTemplate(clone, project, keep) {
   const template = path.join(clone, 'project-template');
   const wrote = [];
   const walk = (dir) => {
@@ -224,12 +249,14 @@ function writeTemplate(clone, project) {
         const groups = fs.readFileSync(from, 'utf8').trim().split(/\n\s*\n/);
         const missing = groups.filter((g) => g.split('\n').some((l) => l.trim() && !l.startsWith('#') && !have.has(l.trim())));
         if (missing.length) {
+          keep(to);
           fs.writeFileSync(to, `${had.trimEnd()}${had.trim() ? '\n\n' : ''}${missing.join('\n\n')}\n`);
           wrote.push('.gitignore');
         }
         continue;
       }
       if (fs.existsSync(to)) continue;
+      keep(to);
       fs.mkdirSync(path.dirname(to), { recursive: true });
       fs.copyFileSync(from, to);
       wrote.push(rel);
@@ -293,7 +320,15 @@ function init(at, clone, flags) {
     return setup.startProject(at, clone, flags.root);
   }
 
-  const home = choosePlace(at, project, flags) === 'home' ? linkHome(at, project, done) : null;
+  pullHome(at, done);
+  originals.start(at, project);
+  const keep = (p) => originals.record(at, project, p);
+  keep(records_);
+  keep(ticketSkills.folderOf(project));
+
+  const where = choosePlace(at, project, flags);
+  if (where === 'home') keep(place.excludeFile(project));
+  const home = where === 'home' ? linkHome(at, project, done) : null;
   if (!home) {
     // A ticket gets its number only once the remote has it, so a remote that
     // refuses this clone's pushes would leave the project unable to make one.
@@ -317,12 +352,15 @@ function init(at, clone, flags) {
         ? '.flow/: the flow branch someone already made, checked out'
         : '.flow/: a new flow branch, sharing no history with the code, checked out');
     }
+    keep(path.join(project, '.gitignore'));
     if (addIgnore(project)) done.push('.gitignore: .flow/ added');
   }
 
   // A teammate, or another machine, set the project up: the stamp is there.
   if (fs.existsSync(path.join(records_, 'version'))) {
     makeSkillsFolder(project);
+    // Only old memory to fold in opens a session, and its migration closes the window.
+    if (!setup.holdsFiles(setup.memoryDir(at, project))) originals.close(at, project);
     out(done.join('\n'));
     return setup.startProject(at, clone, flags.root);
   }
@@ -338,8 +376,9 @@ function init(at, clone, flags) {
     return setup.startProject(at, clone, flags.root);
   }
 
-  for (const rel of writeTemplate(clone, project)) done.push(`wrote: ${rel}`);
+  for (const rel of writeTemplate(clone, project, keep)) done.push(`wrote: ${rel}`);
   const newest = stamp(clone, project);
+  originals.close(at, project);
   records.commit(project, 'flow init');
   records.syncLater(project, at.flow);
   out(`${done.join('\n')}\n\nset up: ${show(project)} is on entry ${newest}. Nothing in the code is committed: ` +

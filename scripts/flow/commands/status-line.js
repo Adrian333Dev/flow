@@ -5,6 +5,7 @@
  *
  *   exp-47 building
  *   exp-47 building · 98k of 150k        with --context
+ *   exp-47 building · ⚠ 2 Flow issues: ask Claude to fix them
  *
  * Claude Code runs the status line command after each message, with the
  * session's data on stdin: its id, its folder, its transcript and the size of
@@ -19,14 +20,19 @@
  * its end: `~/.flow/status-line.json` keeps where reading stopped and what
  * it found, per session, so each run reads only what was added.
  *
- * It prints nothing outside a Flow project or before a ticket is picked, and
- * nothing on any failure of its own: a status line that errors shows the
- * error under every message.
+ * The issues are jobs that run with nobody watching and failed last time,
+ * such as a ticket sync: lib/failures.js. They show in every folder, and the
+ * part goes once the same job next works. `flow doctor` lists them.
+ *
+ * It prints nothing outside a Flow project or before a ticket is picked,
+ * where no issue is open, and nothing on any failure of its own: a status
+ * line that errors shows the error under every message.
  */
 
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const failures = require('../lib/failures');
 const settings = require('../lib/settings');
 const store = require('../lib/store');
 const ticketHistory = require('../lib/ticket-history');
@@ -112,6 +118,8 @@ function line(data, withContext) {
     const size = contextOf(data);
     if (size) parts.push(size);
   }
+  const issues = failures.open(settings.flowHome()).length;
+  if (issues) parts.push(`⚠ ${issues} Flow issue${issues === 1 ? '' : 's'}: ask Claude to fix them`);
   return parts.join(' · ');
 }
 

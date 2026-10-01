@@ -92,3 +92,23 @@ test('a hook call it cannot read writes nothing and exits 0', () => {
   assert.strictEqual(ran.code, 0);
   assert.ok(!fs.existsSync(logs.dir(home)));
 });
+
+test('a background job that failed stays an open issue until the same job works again', () => {
+  const home = flowHome('failures-open');
+  failures.record(home, { source: 'records', what: 'sync /p', job: 'sync /p', error: 'merge conflict' });
+  failures.record(home, { source: 'records', what: 'sync /p', job: 'sync /p', error: 'merge conflict, again' });
+  failures.record(home, { source: 'skills-pull', what: 'git fetch in a/b', job: 'skills a/b', error: 'denied' });
+  failures.record(home, { source: 'hook', what: 'flow new', error: 'x' });
+
+  const open = failures.open(home);
+  assert.deepStrictEqual(open.map((i) => [i.job, i.count, i.error]),
+    [['sync /p', 2, 'merge conflict, again'], ['skills a/b', 1, 'denied']], 'a line with no job is never an issue');
+
+  failures.cleared(home, 'sync /p');
+  failures.cleared(home, 'sync /elsewhere');
+  assert.deepStrictEqual(failures.open(home).map((i) => i.job), ['skills a/b']);
+  assert.strictEqual(read(home).filter((l) => l.cleared).length, 1, 'a job with nothing open writes no line');
+
+  const line = run('flow/flow.js', ['status-line'], { env: { ...process.env, FLOW_HOME: home }, input: '{}' });
+  assert.strictEqual(line.stdout, '⚠ 1 Flow issue: ask Claude to fix them\n');
+});

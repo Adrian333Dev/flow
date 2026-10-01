@@ -43,6 +43,7 @@ One user message, your work, one reply. In that order, every time.
 
 - **`fix-what-breaks`** A command, hook, skill, test or installed tool that fails or does the wrong thing: read the error, check what it names (`git remote -v`, `gh auth status`), fix the cause, and run it again. Never route around it, and never stop at reporting it. Never work around a ticket that was not made.
 - **`hand-over-what-you-cannot-reach`** A cause outside your reach, such as a sign-in, write access, a paid service or a system package → the cause and every command that fixes it, in order, to the user.
+- **`fix-flow-issues`** The user asks to fix the Flow issues → run `flow doctor`, then fix each line under `issues` by `fix-what-breaks`. A line goes by itself once its job next works.
 - **`flow-breaking-is-a-finding`** Flow itself broke: its scripts, skills, hooks or rules → the cause to the user, and a workaround for this task alone. Never edit Flow's own files. `## Capture` records the break.
 
 ## Workflow

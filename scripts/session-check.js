@@ -26,7 +26,8 @@
  * repository up to date in the background, and fetches the Flow home's
  * repository so a machine another one moved ahead of says so. In a project on
  * a `flow` branch, scripts/records-sync.js pulls the tickets and sends what
- * this machine left unsent. Starting a process is not waiting for one: the
+ * this machine left unsent, and in a project linked into the Flow home it
+ * syncs the Flow home. Starting a process is not waiting for one: the
  * hook returns before either has reached the network, and what the skills
  * pull finds is printed by the session after it.
  *
@@ -221,14 +222,19 @@ function startPull(at) {
 
 /**
  * Bring the project's tickets up to date, and send what this machine left
- * unsent, without waiting: `records-sync.js` runs the pull and the push on the
- * project's `flow` branch, detached. A project in the Flow home, or a folder
- * with no branch, starts nothing.
+ * unsent, without waiting: `records-sync.js` runs it detached. On the
+ * project's `flow` branch it pulls and pushes the branch. Where `.flow/` links
+ * into the Flow home it syncs the Flow home. A folder with neither starts
+ * nothing.
  */
 function startRecordsPull(at, cwd) {
   const root = projectRoot(cwd, at);
-  if (!root || !records.onBranch(root)) return;
-  const child = spawn(process.execPath, [path.join(__dirname, 'records-sync.js'), '--project', root, '--now'], {
+  if (!root) return;
+  let args = null;
+  if (records.onBranch(root)) args = ['--project', root, '--now'];
+  else if (records.linkedAt(root)) args = ['--home', '--in', root, '--now'];
+  if (!args) return;
+  const child = spawn(process.execPath, [path.join(__dirname, 'records-sync.js'), ...args], {
     detached: true,
     stdio: 'ignore',
   });

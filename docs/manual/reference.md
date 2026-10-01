@@ -244,7 +244,9 @@ set up: ~/code/shop is on entry 3. Nothing in the code is committed: AGENTS.md, 
 Its tickets are private, in your Flow home, and flow sync carries them to your other machines.
 ```
 
-**Your other machine finds the folder by itself.** The folder's `settings.json` keeps the repository's address, `github.com/<owner>/<repo>`, and `flow init` in a clone of the same repository links to that folder rather than asking.
+**Your other machine finds the folder by itself.** The folder's `settings.json` keeps the repository's address, `github.com/<owner>/<repo>`. `flow init` syncs your Flow home first, then links a clone of the same repository to that folder rather than asking. Where the sync fails, the report says so, and the folder may be missed.
+
+**A session opened in the project syncs your Flow home in the background**, so the other machine's tickets come down without a `flow sync`.
 
 **Tickets in your Flow home get their number on the spot**, the way `~/.flow/`'s own tickets do. 2 machines can give out the same number between syncs, and `flow sync` renumbers one of them, keeping the old id as `was:`.
 
@@ -278,6 +280,7 @@ shop's tickets live on the project's flow branch. Everyone who can read the repo
 Everything about an installed machine a function can decide. It writes nothing, prints one line per area when that area is clean and one line per problem when it is not, and exits 1 if anything failed. Run it after installing, and again whenever something behaves as though it were not installed.
 
 - **A run that stopped part-way**: `~/.flow/run.json` exists only while a setup or a migration is running, so a file left on disk means the machine is half way through a change. It is reported before anything else, naming the step it stopped at and both ways out: carry on by typing the command that started it, or put the place back to how it was before Flow.
+- **Background failures**: a job that runs with nobody watching, such as a ticket sync or a skill repository's pull, whose last run failed. One line each, with how often it failed since it last worked and git's own words. The next run of the same job that works clears it. [The failure log](#the-failure-log) holds them.
 - **How current the machine is**: the entry number in `~/.flow/version` against the newest entry in `CHANGELOG.md`, and a project's `.flow/version` against the machine's. Being behind is a note suggesting `flow update`, because the machine still works. A number above the newest entry is a failure, since only a clone that moved backwards produces one.
 - **The clone**: every submodule sits on the commit the clone points at. With `--updates` it also reads the newest `v<number>` tag the remote carries, which is the one check here that touches the network.
 - **The names you type**: `flow`, `fw`, `util` and `u` are links that resolve, `flow` runs this clone rather than an older one, and `~/.local/bin` is on your `PATH`.
@@ -380,7 +383,7 @@ The laptop's `flow update` migrates the laptop's own copy, with everything it wr
 
 The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow update in a terminal.`
 
-**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `restore.md`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `records-sync.json`, `status-line.json`, `audit/`, `changes/`, each wiki tool's `downloads/`, and `node_modules/`.
+**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `restore.md`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `records-sync.json`, `status-line.json`, `audit/`, `changes/`, each wiki tool's `downloads/`, and `node_modules/`. Each name counts only at the top of `~/.flow/`, so a project's own `version` under `projects/`, and a `docs/` or `scripts/` folder inside a ticket, still travel. `node_modules/` is the exception, left out wherever it sits.
 
 **Tickets in `~/.flow/` are sent with everything else there**, not when they are made, and so are the tickets of a project kept there. 2 machines can therefore give out the same number between syncs. The one that reached the repository first keeps it, and the other takes the next free number, keeping its old id as `was:`, so the old id still finds it:
 
@@ -676,6 +679,12 @@ The ticket this session works on, and its status, for the line Claude Code shows
 
 ```text
 exp-47 building · 98k of 150k
+```
+
+A failed background job adds a warning, in every folder, until the same job next works. Asking Claude to fix it runs [`flow doctor`](#flow-doctor), which lists each one:
+
+```text
+exp-47 building · 98k of 150k · ⚠ 1 Flow issue: ask Claude to fix them
 ```
 
 The ticket is the last one you typed a skill for in this session, `/exp-47` or `/flow:execute /exp-47`. Where you typed none, it is the ticket a skill last moved for this session. It prints an empty line outside a Flow project, before a ticket is picked, and on any failure of its own. A run takes about a tenth of a second, and nothing it prints reaches Claude.
@@ -1051,6 +1060,14 @@ Every failure of something Flow built or chose, one JSON line each, in `~/.flow/
 - **The agent**, for what no hook can see, such as a subagent that changed files and sent no change record. `source` is `agent`.
 
 `session` and `call` point into the session's transcript under `~/.claude/projects/`, where the whole failure is. The line keeps the first 500 characters of the error, enough to group repeats.
+
+**A failed background job stays open until the same job works.** The ticket sync, the Flow home's sync and each skill repository's pull name their job in `job`. The next run of that job that works adds a line closing it:
+
+```json
+{"at":"2026-09-27T14:32:40Z","job":"sync ~/.flow","cleared":true}
+```
+
+Until then, the [status line](#flow-status-line) warns, and [`flow doctor`](#flow-doctor) lists the job under `issues`. Ask Claude to fix it, and it runs `flow doctor` and works through each line.
 
 ## Sharing findings
 

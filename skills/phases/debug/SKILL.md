@@ -114,7 +114,7 @@ EOF
 
 **No ticket system here** → the report is already beside the work, and the subagent gets its path instead of an id.
 
-Then start a subagent with `Run /flow:debug on <id>`. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. When a fix comes back, re-run the failing check yourself: someone else's verification output is their claim, not yours. A session that ends first leaves the ticket in `building`, and `/flow:start <id>` picks it up.
+Then start a subagent with `Run /flow:debug on <id>`. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. When a fix comes back, re-run the failing check yourself: someone else's verification output is their claim, not yours. A session that ends first leaves the ticket in `building`, and `/flow:debug /exp-12` picks it up.
 
 ## Hard rules
 

@@ -44,36 +44,47 @@ function connect(m, remote) {
 const sync = (m) => run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
 const read = (file) => fs.readFileSync(file, 'utf8');
 
-test('what belongs to one machine is what the ignore file names', () => {
+test('what belongs to one machine is what the ignore file names, at the top of ~/.flow/ alone', () => {
   const m = machine('sync-ignore');
   repo.writeIgnore(m.at);
 
   const lines = read(path.join(m.at.flow, '.gitignore')).split('\n').filter((l) => l && !l.startsWith('#'));
   assert.deepStrictEqual(lines, [
-    'version',
-    'run.json',
-    'setup-prompt.md',
-    'setup-settings.json',
-    'migrate-prompt.md',
-    'originals/',
-    'restore.md',
-    'settings.local.json',
-    'scripts',
-    'references',
-    'docs',
-    'repos/',
-    'logs/',
-    'skills-update.json',
-    'skills-update.lock',
-    'records-sync.json',
-    'status-line.json',
-    'audit/',
-    'changes/',
-    'wiki/*/downloads/',
+    '/version',
+    '/run.json',
+    '/setup-prompt.md',
+    '/setup-settings.json',
+    '/migrate-prompt.md',
+    '/originals/',
+    '/restore.md',
+    '/settings.local.json',
+    '/scripts',
+    '/references',
+    '/docs',
+    '/repos/',
+    '/logs/',
+    '/skills-update.json',
+    '/skills-update.lock',
+    '/records-sync.json',
+    '/status-line.json',
+    '/audit/',
+    '/changes/',
+    '/wiki/*/downloads/',
     'node_modules/',
   ]);
   assert.strictEqual(repo.isRepo(m.at), false, 'writing the ignore file makes no repository');
   assert.strictEqual(repo.changed(m.at), null, 'and nothing counts as changed');
+
+  // A private project's stamp and a prototype's docs/ travel, though their
+  // names match a line: every line but node_modules/ holds at the top alone.
+  connect(m, bareRepo('sync-ignore-remote'));
+  const ignored = (rel) => repo.git(m.at.flow, ['check-ignore', '-q', '--no-index', rel]).ok;
+  assert.ok(ignored('version'));
+  assert.ok(ignored('docs/manual/README.md'));
+  assert.ok(ignored('projects/shop/tickets/exp-3-tts/protos/a/node_modules/x.js'));
+  assert.ok(!ignored('projects/shop/version'), "a private project's stamp travels");
+  assert.ok(!ignored('projects/shop/tickets/exp-3-tts/protos/a/docs/notes.md'));
+  assert.ok(!ignored('projects/shop/tickets/exp-3-tts/protos/a/scripts/run.sh'));
 });
 
 test('sync on a ~/.flow that is not a repository says so and stops', () => {

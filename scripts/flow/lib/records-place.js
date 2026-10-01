@@ -118,14 +118,19 @@ function link(root, dir) {
   exclude(root);
 }
 
+/** This clone's `.git/info/exclude`, which a worktree shares with its main clone. */
+function excludeFile(root) {
+  const common = git(root, ['rev-parse', '--git-common-dir']).out || '.git';
+  return path.resolve(root, common, 'info', 'exclude');
+}
+
 /**
  * List `.flow` in `.git/info/exclude`, git's ignore list for one clone, which
  * is never committed. Without the slash, so it matches the link as well as a
  * folder.
  */
 function exclude(root) {
-  const common = git(root, ['rev-parse', '--git-common-dir']).out || '.git';
-  const file = path.resolve(root, common, 'info', 'exclude');
+  const file = excludeFile(root);
   const had = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
   if (had.split('\n').some((l) => ['.flow', '/.flow'].includes(l.trim()))) return;
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -164,5 +169,6 @@ function ticketFolders(dir) {
 }
 
 module.exports = {
-  PROJECTS, shelf, repositoryOf, visibility, placeOf, findFolder, newFolder, link, exclude, remember, copyRecords, ticketFolders,
+  PROJECTS, shelf, repositoryOf, visibility, placeOf, findFolder, newFolder, link, exclude, excludeFile, remember,
+  copyRecords, ticketFolders,
 };

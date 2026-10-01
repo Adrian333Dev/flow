@@ -16,6 +16,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { SCRATCH, project, setUp, write, run, flow } = require('./helpers/scratch');
 const records = require('../flow/lib/records');
+const place = require('../flow/lib/records-place');
 const store = require('../flow/lib/store');
 
 /** git in `dir`, with a name to commit under. Returns the trimmed output. */
@@ -162,6 +163,70 @@ test('flow init --private links .flow/ into the Flow home, hidden from git, and 
   assert.ok(fs.existsSync(path.join(dir, 'tickets')), 'the ticket landed in the Flow home folder');
   assert.strictEqual(git(ana, 'status', '--porcelain', '--', '.flow').out, '', 'git never sees .flow');
   assert.ok(!git(ana, 'rev-parse', '--verify', 'flow').ok, 'no branch');
+});
+
+test('flow init records the original before its first write, so restoring it leaves the project as it was', () => {
+  const originals = require('../flow/lib/originals');
+  const t = team('records-original');
+  for (const how of [[], ['--private']]) {
+    const ana = t.clone(`ana${how.length}`);
+    fs.writeFileSync(path.join(ana, '.gitignore'), 'dist/\n');
+    const made = t.in(ana, 'init', '--prefix', 'exp', ...how);
+    assert.strictEqual(made.code, 0, made.stderr);
+
+    const at = { flow: t.home };
+    const manifest = originals.read(at, ana);
+    assert.ok(manifest && manifest.closed, `the template closes the window ${how}`);
+    const recorded = manifest.entries.map((e) => [path.relative(ana, e.path), e.type]);
+    assert.deepStrictEqual(recorded.find(([p]) => p === '.flow'), ['.flow', 'absent']);
+    assert.deepStrictEqual(recorded.find(([p]) => p === '.gitignore'), ['.gitignore', 'file']);
+    assert.ok(recorded.some(([p]) => p === 'AGENTS.md'), 'each template file');
+
+    originals.restore(at, ana);
+    assert.strictEqual(fs.readFileSync(path.join(ana, '.gitignore'), 'utf8'), 'dist/\n');
+    for (const gone of ['.flow', 'AGENTS.md', 'CLAUDE.md', '.claude']) {
+      assert.ok(!fs.existsSync(path.join(ana, gone)), `${gone} is gone ${how}`);
+    }
+    assert.strictEqual(fs.readFileSync(path.join(ana, 'app.js'), 'utf8'), 'console.log(1);\n', 'the code stays');
+    if (how.length) assert.doesNotMatch(fs.readFileSync(place.excludeFile(ana), 'utf8'), /^\.flow$/m);
+  }
+});
+
+test('flow init on a second machine syncs the Flow home first, so it joins the private folder the first machine made', () => {
+  const repo = require('../flow/lib/flow-repo');
+  const t = team('records-second-machine');
+  const remote = path.join(t.dir, 'flow-home.git');
+  git(t.dir, 'init', '--quiet', '--bare', '--initial-branch=main', remote);
+  const number = Number(fs.readFileSync(path.join(t.home, 'version'), 'utf8'));
+  const machineAt = (home, name) => {
+    const at = { flow: home, base: path.dirname(home) };
+    repo.connect(at, remote);
+    repo.git(home, ['config', 'flow.machine', name]);
+    return at;
+  };
+
+  const desk = machineAt(t.home, 'desk');
+  repo.writeIgnore(desk);
+  repo.sync(desk, number);
+  const laptop = machineAt(setUp(path.join(t.dir, 'laptop-home')), 'laptop');
+  repo.inspect(laptop, null);
+  repo.join(laptop);
+
+  // The desk's flow init sends the new folder up by itself, in the background.
+  const ana = t.clone('ana');
+  assert.strictEqual(t.in(ana, 'init', '--private', '--prefix', 'exp').code, 0);
+  const sent = () => git(t.dir, '--git-dir', remote, 'cat-file', '-e', 'main:projects/ana/version').ok;
+  for (let waited = 0; !sent() && waited < 100; waited++) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+  assert.ok(sent(), "the desk's stamp reached the Flow home's remote");
+
+  // A private repository takes the branch unasked, unless the Flow home already holds it.
+  const ben = t.clone('ben');
+  const env = { ...t.env, FLOW_HOME: laptop.flow, FLOW_VISIBILITY: 'private' };
+  const joined = run('flow/flow.js', ['init'], { cwd: ben, env });
+  assert.strictEqual(joined.code, 0, joined.stderr);
+  assert.match(joined.stdout, /where another machine put this project's tickets/);
+  assert.strictEqual(fs.readlinkSync(path.join(ben, '.flow')), path.join(laptop.flow, 'projects', 'ana'));
+  assert.ok(!git(ben, 'rev-parse', '--verify', 'flow').ok, 'no branch');
 });
 
 test('flow init --private: the folder carries the repository, so another clone of it joins the same tickets', () => {

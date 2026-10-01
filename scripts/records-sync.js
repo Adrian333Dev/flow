@@ -22,7 +22,8 @@
  *                            seconds, so it starts a detached run and returns
  *
  * Offline, a run fails quietly and the next checkpoint tries again. Every
- * other failure goes to the failure log, never to the session.
+ * other failure goes to the failure log as an open issue, which the status
+ * line counts, and the next run that works closes it: lib/failures.js.
  */
 
 const fs = require('fs');
@@ -36,6 +37,9 @@ const settings = require('./flow/lib/settings');
 const version = require('./flow/lib/version');
 
 const DUE_AFTER = 30 * 60 * 1000;
+
+/** The Flow home's sync, as the failure log names the job. */
+const HOME_JOB = 'sync ~/.flow';
 
 /** When each place last sent, `~/.flow/records-sync.json`. It describes this machine alone, so it never travels. */
 const stampFile = (at) => path.join(at.flow, 'records-sync.json');
@@ -51,9 +55,14 @@ function markSent(at, key) {
 }
 
 function syncProject(at, root) {
+  const job = `sync ${root}`;
   const done = records.sync(root, 'saved');
-  if (done.ok) markSent(at, root);
-  else if (!done.offline) failures.record(at.flow, { source: 'records', what: `sync ${root}`, error: done.why || 'failed' });
+  if (done.ok) {
+    markSent(at, root);
+    failures.cleared(at.flow, job);
+  } else if (!done.offline) {
+    failures.record(at.flow, { source: 'records', what: job, job, error: done.why || 'failed' });
+  }
   return done;
 }
 
@@ -66,9 +75,10 @@ function syncHome(at, linked) {
     records.renumber(at.flow, theirs || 'origin/main');
     if (linked) records.renumber(linked, theirs || 'origin/main');
     markSent(at, 'home');
+    failures.cleared(at.flow, HOME_JOB);
   } catch (e) {
     if (!/could not read from remote|unable to access|could not resolve/i.test(e.message)) {
-      failures.record(at.flow, { source: 'records', what: 'sync ~/.flow', error: e.message });
+      failures.record(at.flow, { source: 'records', what: HOME_JOB, job: HOME_JOB, error: e.message });
     }
   }
 }

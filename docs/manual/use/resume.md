@@ -34,15 +34,17 @@ Three parts. `Now` is where the work stands. `Found` is what this session learne
 
 ## The 3 steps
 
-1. `/flow:handoff`. The agent writes `## State`, shows it, and ends on the 2 lines you type next:
+1. `/flow:handoff`. The agent writes `## State`, shows it, and ends on the lines you type next:
 
    ```text
    /clear
-   /exp-2
+   /flow:execute /exp-2
    ```
 
 2. `/clear`. The context empties. The ticket file holds everything.
-3. `/exp-2`, the ticket's own skill. It loads the ticket, its `## State` and every file in the `open` block, in one step, before Claude's first word. `/flow:execute /exp-2` loads the same and opens the phase, and `/flow:start /exp-2` lets the type and status pick the phase.
+3. `/flow:execute /exp-2`: the phase the work was in, then the ticket's own skill. Together they load the ticket, its `## State` and every file in the `open` block before Claude's first word, and the phase picks up where it stopped. The handoff names the phase the work was in, `/flow:debug /exp-4` for a bug hunt. Where no phase was running it names `/flow:start /exp-2`, which picks one from the ticket's type and status. The handoff adds words after the line only for an instruction the ticket does not hold.
+
+The ticket's skill typed alone, `/exp-2`, prints the ticket and asks for nothing, so Claude waits for you to say what to do.
 
 Where `## State` and the files on disk disagree about what exists, the files win. A new session can be started without `/flow:handoff`, and then `## State` describes an older point than the code. On decisions and what is still open, `## State` wins over the rest of the ticket, since it is the newer record.
 

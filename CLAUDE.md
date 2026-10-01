@@ -72,7 +72,8 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 1. **`plan-before-writing`** Name every section and its order before the first sentence. One section per topic the user raised, in their order. Where the topics are parts of one thing, the first section says the thing whole.
    - **`topic-by-topic`** Never drop one, never rank them. Two with one answer share a section, headed by both. Each section reads on its own. Where the user's words fit more than one thing in the repo, name the file and the place in it.
 2. **`size-by-worth`** Length comes from how complicated the thing is, and from what the topic is worth to the user. Never from the work behind it, never from wanting to justify a choice.
-   - **`short-is-the-default`** The user is always in a rush. Cut the output, never the thinking, the walk or the design.
+   - **`short-is-the-default`** The user is always in a rush. A small question gets 1 to 5 lines. Go longer only where the topic cannot be said in less. Cut the output, never the thinking, the walk or the design.
+   - **`short-beats-the-checks`** Never let a check under `### Before sending` stretch a reply past what its topic is worth. Define a term in a clause. Restate only what the user needs to decide.
    - **`findings-stay-out`** A walk's findings stay out of the reply unless one changes what the user decides.
    - **`depth-matches-weight`** A minor point gets a line. 20 topics get 20 answers. The main idea gets the why, and why the obvious alternative fails.
 3. **`whole-then-parts`** Open with the thing whole, then its parts.

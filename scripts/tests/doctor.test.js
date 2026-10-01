@@ -100,6 +100,19 @@ test('a run that stopped part-way is reported first, and names both ways out', (
   assert.match(report.stdout, /go back: type flow restore machine/);
 });
 
+test('a background job whose last run failed is named until the same job works', () => {
+  const failures = require('../flow/lib/failures');
+  const m = machine('doctor-issues');
+  failures.record(m.flowHome, { source: 'records', what: 'sync ~/.flow', job: 'sync ~/.flow', error: 'another machine changed the same lines' });
+
+  const report = doctor(m, { bin: utilStub(m.dir) });
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /^fail {2}issues:\n {8}sync ~\/\.flow: failed since \d{4}-\d\d-\d\d \d\d:\d\d\. another machine changed the same lines$/m);
+
+  failures.cleared(m.flowHome, 'sync ~/.flow');
+  assert.match(doctor(m, { bin: utilStub(m.dir) }).stdout, /^ok {4}issues: every job running in the background worked last time$/m);
+});
+
 test('a machine behind the changelog is a note, and one above it fails', () => {
   const m = machine('doctor-version');
   const bin = utilStub(m.dir);

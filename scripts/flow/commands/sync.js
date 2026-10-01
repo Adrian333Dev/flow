@@ -49,13 +49,14 @@ actions.sync = {
     } catch (e) {
       // A refusal, such as another machine being ahead, is the design working.
       if (/^(could not|git |committed here)/.test(e.message)) {
-        failures.record(at.flow, { source: 'sync', what: 'flow sync', error: e.message });
+        failures.record(at.flow, { source: 'sync', what: 'flow sync', job: 'sync ~/.flow', error: e.message });
       }
       // The project's tickets never wait on ~/.flow/.
       syncProject();
       throw e;
     }
     const { came, sent, pushed, theirs } = result;
+    failures.cleared(at.flow, 'sync ~/.flow');
     out(came ? `came down: ${came} file${came === 1 ? '' : 's'}` : 'nothing new came down.');
     if (came) {
       const done = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });

@@ -214,7 +214,7 @@ function lock(at) {
 
 /** A pull or a fetch git refused: a line in the failure log, and the clone's note. */
 function blocked(at, clone, verb, err) {
-  failures.record(at.flow, { source: 'skills-pull', what: `git ${verb} in ${clone.id}`, error: err });
+  failures.record(at.flow, { source: 'skills-pull', what: `git ${verb} in ${clone.id}`, job: `skills ${clone.id}`, error: err });
   return { state: 'blocked', why: firstLine(err), clone: clone.name };
 }
 
@@ -229,6 +229,7 @@ function one(at, clone) {
     const before = repos.head(root);
     const pulled = git(root, ['pull', '--ff-only', '--quiet']);
     if (!pulled.ok) return blocked(at, clone, 'pull', pulled.err);
+    failures.cleared(at.flow, `skills ${clone.id}`);
     const after = repos.head(root);
     if (before && after && before !== after) {
       history.record(at.flow, { type: 'pull', source: clone.id, from: before, to: after, changed: skillsIn(root, `${before}..${after}`) });
@@ -238,6 +239,7 @@ function one(at, clone) {
 
   const fetched = git(root, ['fetch', '--quiet']);
   if (!fetched.ok) return blocked(at, clone, 'fetch', fetched.err);
+  failures.cleared(at.flow, `skills ${clone.id}`);
   const found = behind(root);
   if (!found || !found.count) return null;
   return { state: 'behind', ...found, clone: name };

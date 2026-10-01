@@ -33,6 +33,13 @@ The Claude Code docs settled the one open question before the build: a Bash comm
 
 `flow failures` was proposed and rejected by the user: the agent can read the file. A session-start line counting new failures went with it, since it needed a record of what was last read.
 
+**A failed background job is shown, since 2026-10-01**, asked for by the user: a failure nobody watches has to reach the user, and the agent should fix it on request. A sync failing on every run had stayed silent, so a second machine lacked the tickets with nobody knowing.
+
+- **An open issue is a job whose last run failed.** The background ticket sync, the Flow home's sync and each skill repository's pull carry `job`. The next run that works appends `{"job":"sync ~/.flow","cleared":true}`. Nothing records what was last read, so the objection above no longer holds.
+- **The status line shows the count**, `⚠ 2 Flow issues: ask Claude to fix them`, in every folder. A hook can't type into the input box, and the job fails after its hook has returned, so no hook could show it mid-session.
+- **`flow doctor` lists them** under `issues`, and `home/AGENTS.md` → `fix-flow-issues` runs it when the user asks. A skill for it was rejected: it would only say "run `flow doctor`, fix each line".
+- **A session-start line was rejected** for the status line, which shows the failure moments after it happens, mid-session too.
+
 ## `~/.flow/logs/`
 
 The user asked for one folder for everything that records what happened. `logs/` won over `records/`, which clashes with the machine records in `machines/`, and over `reports/`, which fits only some of the files.

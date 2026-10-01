@@ -82,29 +82,34 @@ const DESCRIPTION = 'Managed by Flow. Never rename, edit or make public.';
 /** The first line of the ignore file, which is how a Flow home is told apart. */
 const MARK = '# What belongs to this machine alone.';
 
-/** What stays on the machine it was written on. */
+/**
+ * What stays on the machine it was written on. Each path starts with `/`,
+ * since git matches a bare name at any depth: `version` alone would also hide
+ * a private project's `projects/shop/version`, and `docs` a ticket's
+ * `docs/`. `node_modules/` is the one meant at any depth.
+ */
 const IGNORED = [
   MARK,
-  'version',
-  'run.json',
-  'setup-prompt.md',
-  'setup-settings.json',
-  'migrate-prompt.md',
-  'originals/',
-  'restore.md',
-  'settings.local.json',
-  'scripts',
-  'references',
-  'docs',
-  'repos/',
-  'logs/',
-  'skills-update.json',
-  'skills-update.lock',
-  'records-sync.json',
-  'status-line.json',
-  'audit/',
-  'changes/',
-  'wiki/*/downloads/',
+  '/version',
+  '/run.json',
+  '/setup-prompt.md',
+  '/setup-settings.json',
+  '/migrate-prompt.md',
+  '/originals/',
+  '/restore.md',
+  '/settings.local.json',
+  '/scripts',
+  '/references',
+  '/docs',
+  '/repos/',
+  '/logs/',
+  '/skills-update.json',
+  '/skills-update.lock',
+  '/records-sync.json',
+  '/status-line.json',
+  '/audit/',
+  '/changes/',
+  '/wiki/*/downloads/',
   'node_modules/',
   '',
 ].join('\n');

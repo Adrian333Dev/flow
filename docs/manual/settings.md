@@ -574,7 +574,7 @@ The line under the box you type in. Claude Code runs the command after each mess
 exp-47 building · 98k of 150k
 ```
 
-[`flow status-line`](reference.md#flow-status-line) says how it finds the ticket. Nothing a status line prints reaches Claude, so it costs no tokens.
+[`flow status-line`](reference.md#flow-status-line) says how it finds the ticket. A job that failed in the background, such as a ticket sync, adds `⚠ 1 Flow issue: ask Claude to fix them` until the same job next works. Nothing a status line prints reaches Claude, so it costs no tokens.
 
 **The setup writes it only where you have no status line of your own.** One you already have stays as it is.
 

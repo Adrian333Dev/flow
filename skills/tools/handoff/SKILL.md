@@ -136,16 +136,19 @@ Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`,
 
 ## 5. End on what to type
 
-End the reply with the 2 lines the user types to carry on, the second opening what you wrote:
+End the reply with what the user types to carry on: `/clear`, then the line that picks the work up where it stopped.
 
 ```text
 /clear
-/exp-47
+/flow:debug /exp-4
 ```
 
-- **A ticket** → its own skill, `/exp-47`.
+- **A ticket mid-phase** → that phase's skill, then the ticket's: `/flow:groundwork /exp-47`, `/flow:execute /exp-47`, `/flow:debug /exp-4`, `/flow:prototype /exp-9`.
+- **A ticket with no phase running** → `/flow:start /exp-47`, which picks the phase from its type and status.
 - **A `handoff.md`** → `/flow:start` with its path.
-- **A job handed to another session** → the child ticket's skill alone, typed in a new session. This one carries on.
+- **A job handed to another session** → the same line, typed in a new session. This one carries on.
+
+Add words after the line only for an instruction the ticket does not hold.
 
 ## Booting from one
 
@@ -157,7 +160,7 @@ End the reply with the 2 lines the user types to carry on, the second opening wh
 
 A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, the research file `/flow:research` names for a question. `## State` carries the job's progress, never its answer.
 
-**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through `/flow:start` and already knows the loop. A file may be all a fresh session is handed, so it says at the top what the first action is.
+**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through a phase skill or `/flow:start`, and already knows the loop. A file may be all a fresh session is handed, so it says at the top what the first action is.
 
 ## Hard rules
 
