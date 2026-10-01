@@ -9,11 +9,10 @@ One test, asked of each decision: **does it outlive the thing being built?**
 - **No, it dies with the build** → `design.md` beside `map.md`, or `groundwork/design.md` in the ticket that owns it.
 - **Yes, and it says what the product must do** → `docs/spec/product.md`.
 - **Yes, and it says how the system is built** → `docs/spec/tech.md`.
-- **Yes, and it says why a call was made** → `docs/spec/decisions.md`.
 
 One run usually writes 2 of these. Create `docs/spec/` where there is none.
 
-`product.md` and `tech.md` are the base pair. `decisions.md` appears the moment something is locked with a reason worth keeping, which at project start is immediately.
+**A decision carries its reason in the file it lands in**, so whoever reads the call reads why: `### Every decision carries its reason`.
 
 A subject gets its own file beside them only when all 3 hold: no fact appears in 2 files, the boundary is statable in one sentence, and it isn't a section of an existing file. Past 3 files, add an index naming each and what it holds.
 
@@ -56,13 +55,14 @@ Then only what a branch actually covered. Most specs use 3 or 4 of these, and a 
 - **Constraints that are not code**: money, law, privacy, policy.
 - **What it competes against**, and why this holds up. The survey itself belongs in `docs/research/`.
 - **The glossary**: every term invented here.
+- **`## Bets`**: what the whole thing rests on that nobody has checked.
 
 **Every behavior carries a mark**, one of 4:
 
 - **V1**: ships first. The only mark tickets are created from.
 - **next**: committed, not yet.
 - **later**: wanted, no commitment.
-- **never**: deliberately refused. The reason goes in `decisions.md`.
+- **never**: deliberately refused, with the reason on the same line.
 
 The spec is finished when every behavior carries a mark, never when the thinking feels done.
 
@@ -81,21 +81,23 @@ Same skeleton at both scopes. `tech.md` is the whole system and outlives every f
 5. **One real case, end to end**: followed part by part, start to finish. One request from click to stored row. One video from idea to published. One customer from first ad to money in the account. A design that looks fine as a diagram falls apart here first.
 6. **How it fails**: every way it goes wrong, and what happens on each.
 7. **How you know it worked**: the observable outcome, the check, the number. A design with no answer here produces work nobody can call finished.
-8. **What is locked**: one line per decision. The reasoning stays where it was written.
+8. **What is locked**: one line per decision, with its reason.
 
 `tech.md` adds 2 things, and only because its scope is the whole system:
 
 - **The stack and the repo layout**: what each piece is for, which folders exist, what lives in them.
 - **The parts are the system's parts**: backend, frontend, services, workers, packages. Never one feature's.
 
-### Why it is this way: `decisions.md`
+### Every decision carries its reason
 
-Only for reasoning that outlives the build. A ticket-sized call stays in `map.md`, which sits beside the work and gets read there.
+Written under the decision, in whichever file holds it. A reason in another file goes unread, and the call gets argued again.
 
-- **Each locked decision, with its reason.** Dated, newest last.
-- **What was refused, and why.** The reason is the point. Without it the same idea comes back every quarter.
-- **The bets**: Phase 3 names them. A risk is a bet already known to be shaky, so it goes here too, with what happens if it fires.
-- **What is still open**: grouped by kind, each saying what would settle it.
+- **The reason**: a line or two, dated. Longer reasoning stays in `map.md`, named from the line.
+- **What was refused, and why**, under the decision it lost to. Without the reason, the same idea comes back every quarter.
+- **The bets** → `product.md` → `## Bets`. Phase 3 names them. A risk is a bet already known to be shaky, so it goes there too, with what happens if it fires.
+- **What is still open** → a ticket each, once the spec is approved: `## 5. Show it and stop`.
+
+A ticket-sized call stays in `map.md`, which sits beside the work and gets read there.
 
 ## 4. Review it yourself
 
@@ -116,15 +118,17 @@ Give the paths. The user reads and approves before anything is created from it.
 
 **An objection is not new groundwork.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
 
-Approved, with work to cut → `/flow:tickets-from-spec`. **Never create a ticket from here.**
+Approved, with questions still open → one ticket per question: `flow new "<the question>" --type topic --body -`, the body saying what would settle it.
+
+Approved, with work to cut → `/flow:tickets-from-spec`. **Never cut a work ticket from here.**
 
 ## Editing a spec that already exists
 
 Same steps, scoped to what changed.
 
 - **A behavior changed** → edit it in place. Never append a second version of it elsewhere.
-- **A behavior was refused** → move it to `never` and write the reason in `decisions.md`. Never delete it; deleting is how "why not X" comes back.
-- **The direction changed** → say plainly what it was and what it is now, in the section it belongs to. The spec states the present, and the old direction survives in `decisions.md`.
+- **A behavior was refused** → move it to `never`, with the reason. Never delete it; deleting is how "why not X" comes back.
+- **The direction changed** → say plainly what it is now, in the section it belongs to. The old direction becomes a refused option under the new one, with why it lost.
 - **A section was replaced wholesale** in a file too large to reread → leave one line saying what replaced it and where.
 
 ## What stays out
@@ -132,8 +136,8 @@ Same steps, scoped to what changed.
 - the deliberation
 - the options weighed and dropped mid-discussion
 - the history of the conversation
-- anything still open, which goes in `decisions.md`
+- anything still open, which becomes a ticket
 
-Reasoning that outlives the build goes to `decisions.md`. Everything else stays in `map.md`. `product.md` says what the thing **is**, and `tech.md` says how it is **built**.
+A reason that outlives the build goes under its decision. Everything else stays in `map.md`. `product.md` says what the thing **is**, and `tech.md` says how it is **built**.
 
 **No fact in 2 files.** One live copy, a pointer everywhere else. A decision resting on evidence (a research report, a prototype, a drawing) names it **inline, on that decision**, plus a short reference list at the end of the file. No global index.

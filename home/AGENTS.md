@@ -79,7 +79,7 @@ One phase at a time:
 - Other reusable knowledge (a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, written the same way. `/flow:file-findings` promotes it to a skill or a rule later.
   - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`
 - A warning from a rule check that was wrong → `.flow/findings/scorecard.md`
-- A decision the user confirmed with no open threads → `docs/spec/decisions.md`, or the groundwork map that owns the subject. Batched, never mid-discussion.
+- A decision the user confirmed with no open threads → `docs/spec/product.md` or `tech.md`, with its reason, or the groundwork map that owns the subject. Batched, never mid-discussion.
 - Flow itself failed (a rule that didn't fire, friction that repeated, output the user rejected) → `/flow:review`, if it's in your skill list
 - Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
 - Everything else → `.flow/inbox.md`, raw. Never shape it. Past 200 lines, offer `/flow:file-findings`.

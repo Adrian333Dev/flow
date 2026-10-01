@@ -110,7 +110,7 @@ Every report is one file per question: the question or prompt at the top, the fi
 2 examples. A report on how Context7 finds and ranks docs is about one tool, so it goes to `~/.flow/wiki/context7/research/`. A report comparing Context7 with the services competing with it is about no single tool, so it goes to `~/.flow/research/`.
 
 - **A question about 2 tools** goes to the folder of the tool it is mostly about, and the other tool's `index.md` gets a line pointing to it.
-- **A survey run to make a project decision splits.** The survey goes to `~/.flow/`. The decision goes to the project's `docs/spec/decisions.md`.
+- **A survey run to make a project decision splits.** The survey goes to `~/.flow/`. The decision goes to the project's `docs/spec/product.md` or `tech.md`, with a reason that names the survey.
 - **Research done with another AI**, such as ChatGPT's deep research, follows the same list. Its prompt and the pasted report share one file.
 
 ## How a finding is captured

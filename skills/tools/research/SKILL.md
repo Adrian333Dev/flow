@@ -151,7 +151,7 @@ Write each prompt into its own research file before presenting it, then hand ove
 **Never write a project's or a client's details into `~/.flow/`.** It goes to GitHub, and every project reads it.
 
 - **A question about 2 tools** → the folder of the tool it is mostly about, with a line in the other tool's `index.md`.
-- **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to `docs/spec/decisions.md`. A decision never goes in the report.
+- **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to `docs/spec/product.md` or `tech.md`, its reason naming the survey. A decision never goes in the report.
 - **Research done with an outside LLM** is no separate kind: its prompt and the pasted report go wherever the list puts the question.
 
 `docs/research/` and `~/.flow/research/` are **flat**. Never put a report inside a ticket or a groundwork folder: the same question gets asked again by different work, and a report buried in one ticket is a report nobody finds.
