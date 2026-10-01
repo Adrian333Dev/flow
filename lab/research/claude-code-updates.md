@@ -1,10 +1,16 @@
-Last checked: 2.1.286 (2026-10-01)
+Last checked: 2.1.287 (2026-10-01)
 
 # Claude Code releases, read against Flow
 
 Line 1 is the newest release read. `bash lab/scripts/claude-code-changes.sh` prints every release after it, and the root `CLAUDE.md` → `check-claude-code-updates` says how to read them. A release with nothing for Flow gets no entry. Newest first.
 
 Each entry names the change, then what it touches in Flow, then the action: none, a backlog item, or a tool to use.
+
+## 2.1.287, read 2026-10-01
+
+- **2.1.287: a skill name typed mid-message, `disable-model-invocation` ones included, now reaches Claude as a skill.** Every ticket skill, `/exp-47`, is user-only. Whether `/flow:execute /exp-47` still loads both skills, or now tells Claude that `/exp-47` is a skill without loading it, the release does not say. Action: none. Check the stacked form on the beta install, beside the `/flow:start /home-4` watch item in `lab/context/handoff.md`.
+- **2.1.287: an `asyncRewake` hook whose script file is missing is reported once, instead of waking Claude over and over.** `changes.js --wait` runs through `asyncRewake`. Action: none.
+- **2.1.287: Claude Mods, plugins registering hooks as JavaScript functions that run inside Claude Code and can draw in its interface.** `hooks.md`, downloaded again the same day, says command hooks keep working beside them. Action: none. Flow's hooks are command hooks.
 
 ## 2.1.286, read 2026-10-01
 

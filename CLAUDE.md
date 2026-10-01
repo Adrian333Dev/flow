@@ -8,7 +8,7 @@ Flow is a Claude Code workflow for a solo developer: global rules, a skill set, 
 
 **`drain-workflow-notes`** Before choosing the next work, read `~/.flow/workflow-notes.md` and the current month of `~/.flow/logs/failures/`. File each note into `lab/backlog/beta.md` → `## Found in use`, or join it to the item it repeats, then delete the note. A failure worth fixing gets an item the same way, and the log stays untouched.
 
-**`check-claude-code-updates`** Before choosing the next work, run `bash lab/scripts/claude-code-changes.sh`. Read each release it prints against Flow. Write what touches Flow into `lab/research/claude-code-updates.md`, give each needed change a backlog item, then set line 1 to the newest release read. Download again any page in `lab/research/claude-code-docs/` whose topic a release changed.
+**`check-claude-code-updates`** When the user asks, run `bash lab/scripts/claude-code-changes.sh`. Read each release it prints against Flow. Write what touches Flow into `lab/research/claude-code-updates.md`, give each needed change a backlog item, then set line 1 to the newest release read. Download again any page in `lab/research/claude-code-docs/` whose topic a release changed.
 
 ## The turn
 
