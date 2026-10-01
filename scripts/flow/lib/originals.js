@@ -24,7 +24,8 @@
  *
  * A path that was not there is recorded `absent`, so putting the original back
  * deletes it. That is why restoring a project's original deletes its whole
- * `.flow/`, which the user ruled correct on 2026-09-19.
+ * `.flow/`, which the user ruled correct on 2026-09-19. Which paths go back is
+ * the user's choice, made in `lib/restore-form.js`.
  *
  * Nothing under `~/.flow/` is ever recorded. Only `flow uninstall` deletes that
  * folder, so putting the machine's original back leaves the user's notes,
@@ -213,16 +214,18 @@ function plan(at, project = null) {
 }
 
 /**
- * Put a whole place back, newest entry first. The original itself survives, so
- * the same restore runs again and lands in the same state. Adds one line to
- * the history log, ~/.flow/logs/history/.
+ * Put a place back, newest entry first: every path, or those in `only`, the
+ * paths ticked in `lib/restore-form.js`. The original itself survives, so the
+ * same restore runs again and lands in the same state. Adds one line to the
+ * history log, ~/.flow/logs/history/.
  */
-function restore(at, project = null) {
+function restore(at, project = null, only = null) {
   const base = dir(at, project);
   const manifest = readManifest(base);
   if (!manifest) return null;
   const done = [];
   for (const entry of [...manifest.entries].reverse()) {
+    if (only && !only.has(entry.path)) continue;
     putBack(base, entry);
     done.push({ path: entry.path, removed: entry.type === 'absent' });
   }

@@ -1,10 +1,14 @@
-Last checked: 2.1.285 (2026-09-30)
+Last checked: 2.1.286 (2026-10-01)
 
 # Claude Code releases, read against Flow
 
 Line 1 is the newest release read. `bash lab/scripts/claude-code-changes.sh` prints every release after it, and the root `CLAUDE.md` → `check-claude-code-updates` says how to read them. A release with nothing for Flow gets no entry. Newest first.
 
 Each entry names the change, then what it touches in Flow, then the action: none, a backlog item, or a tool to use.
+
+## 2.1.286, read 2026-10-01
+
+- **2.1.286: ctrl+enter while a skill's own shell command runs moves the command to the background instead of ending it.** `/flow:review` runs `flow audit index --quiet` as it loads. Sent early, the review can read an index the command has not finished. Action: none. The review still reads the last full index.
 
 ## 2.1.214 to 2.1.285, read 2026-09-30
 

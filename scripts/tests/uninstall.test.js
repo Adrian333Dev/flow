@@ -113,3 +113,28 @@ test('every link into ~/.flow goes before the folder does, and nothing else is t
   assert.ok(exists(path.join(skills, 'real')), 'a real folder stays');
   assert.ok(exists(path.join(skills, 'flow')), 'the plugin link points into ~/.agents, so it stays for the restore');
 });
+
+// The 2 locks refuse every test process, so this runs the command in process
+// with both taken out, and answers the word itself. --root keeps the clone.
+test('uninstall hands over the same form as restore, then deletes ~/.flow whatever it says', () => {
+  const confirm = require('../flow/lib/confirm');
+  const uninstall = require('../flow/commands/uninstall');
+  const m = machine('uninstall-form');
+  const kept = { noSessions: confirm.noSessions, word: confirm.word };
+  const said = [];
+  confirm.noSessions = () => {};
+  confirm.word = (wanted, lines) => {
+    said.push({ wanted, lines, form: fs.readFileSync(path.join(m.at.flow, 'restore.md'), 'utf8') });
+    return 'uninstall';
+  };
+  try {
+    assert.strictEqual(uninstall.uninstall.run({ flags: { root: m.root } }), 0);
+  } finally {
+    Object.assign(confirm, kept);
+  }
+  assert.strictEqual(said[0].wanted, 'uninstall');
+  assert.match(said[0].lines[1], /^Then \S+\.flow is deleted\.$/, '--root keeps the clone');
+  assert.match(said[0].form, /^## Done whatever the boxes say\n\n- \S+\.flow is deleted\.\n- \S+ stays: it belongs to this machine, not to --root\.$/m);
+  assert.ok(!exists(m.at.flow), '~/.flow is gone, the form with it');
+  assert.ok(fs.existsSync(REPO), 'the clone is still there');
+});

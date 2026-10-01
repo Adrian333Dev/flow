@@ -127,27 +127,7 @@ function findAll(dirs) {
   return found;
 }
 
-/** Delete every marked folder in these folders of skills: `flow uninstall`'s step, and `flow restore`'s. */
+/** Delete every marked folder in these folders of skills: `flow uninstall`'s step on a machine with no original. */
 const removeAll = (dirs) => findAll(dirs).filter(remove);
 
-/**
- * Clear one place's ticket skills: every marked folder, then a project's
- * `.claude/skills/` and `.claude/` where that left them empty. `flow init`
- * makes both before the project's original is written, so no original holds
- * them, and an empty folder holds nothing to lose. Returns each path deleted.
- */
-function clear(dir, project = null) {
-  const gone = removeAll([dir]);
-  if (!project) return gone;
-  for (const empty of [dir, path.join(project, '.claude')]) {
-    try {
-      fs.rmdirSync(empty);
-      gone.push(empty);
-    } catch {
-      // Not empty, or not there: either way it stays.
-    }
-  }
-  return gone;
-}
-
-module.exports = { sync, findAll, removeAll, clear, folderOf, isTicketSkill: marked };
+module.exports = { sync, findAll, remove, removeAll, folderOf, isTicketSkill: marked };

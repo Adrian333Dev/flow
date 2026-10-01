@@ -1,45 +1,39 @@
 # Handoff
 
-Written 2026-09-30, after round 2 of the final sweep walked its 10 areas. Read this once, then rewrite it whole next time.
+Written 2026-10-01. Read this once, then rewrite it whole next time.
 
 ## Where things stand
 
-The final sweep is `lab/backlog/before-beta.md`, item 1. Round 2 walks on paper: it reads and reasons, and runs no live session and no `try.sh`. The user wants no commit suggestions, and commits themselves. All 221 tests pass.
+The restore form is built and every test passes, 230 of 230. `flow restore machine`, `flow restore project` and `flow uninstall` each write `~/.flow/restore.md`, one box per path Flow changed, and the script reads the ticks itself. `scripts/flow/lib/restore-form.js` holds the form, its strict reading, the unsent-ticket refusal and `apply()`. A project's `AGENTS.md`, `CLAUDE.md` and `docs/` start unticked. `lab/context/state.md` → `**restore**` and `docs/manual/reference.md` → `### flow restore machine and flow restore project` describe it as built. The user wants no commit suggestions, and commits themselves.
 
-Round 2 walked `/flow:research`, `/flow:visualize`, `/flow:file-findings`, `/flow:tickets-from-spec`, `/flow:review`, `flow audit`, `flow cases`, `flow restore`, `flow uninstall` and `flow update`. Research, visualize, tickets-from-spec, cases and update came out clean.
+**The restore commands stay as built.** Ruled by the user 2026-10-01:
 
-## Next: build the 4 approved fixes
+- `flow restore machine` lists the machine and every project, so it already covers restoring everything.
+- `flow restore project` covers the current project alone.
+- Bare `flow restore` keeps running `flow restore ls`, which only reads. A bare form with ticks set by where it runs was proposed and dropped: each of its two cases repeats one of the commands above.
 
-The user approved all 4 on 2026-09-30. One approval runs to the end: build, tests, every stale record, the writing pass.
+## Next: pass 2 of the final sweep
 
-1. **`flow uninstall` checks `~/.flow/` before deleting it.** `scripts/flow/commands/uninstall.js:117` deletes the folder with no check, while the clone gets `cloneHolds()` at `:51`. Run the same check on `at.flow` before the confirmation. Uncommitted changes or unpushed commits → stop before anything runs, and name `flow sync`. Add a test beside the uninstall tests.
-2. **`/flow:review` updates the audit index as it loads.** The user's idea: put `` !`flow audit index --quiet 2>&1 || true` `` near the top of `skills/dev/review/SKILL.md`, the way `skills/tools/start/SKILL.md:8` runs `flow get`. A stale index silently leaves out recent sessions, and `flow audit sessions` opens it read-only, so it never updates on its own.
-3. **`flow restore` lists every path in its prompt.** `scripts/flow/commands/restore.js:79` (machine) and `:114` (project) print a count alone. List each path with what happens to it (`deleted`, `put back`), marked `changed since` where the path now differs from the original: exists now where it was `absent`, or its content differs from the copy under `files/`. Example agreed:
+`lab/backlog/before-beta.md` item 1: simplify. 3 candidates, each **talk first**, in the recommended order:
 
-   ```text
-   Puts 7 paths in ~/code/shop back as they were before Flow.
-     AGENTS.md          deleted, changed since
-     .flow/             deleted
-     .gitignore         put back
-   ```
-
-4. **`/flow:file-findings` routes project facts like capture.** `skills/tools/file-findings/SKILL.md:45` becomes: project fact most sessions need → the project's `AGENTS.md`. One only some work needs → `docs/context/<subject>.md`. `skills-docs-move-together` does not fire: the rule sits in the skill, not in `docs/dev/skills.md`.
-
-Left as it is, by recommendation with no objection: study cases and workflow notes keep verbatim output and the project name, though they go to GitHub.
-
-After the build: record round 2 and its fixes in `lab/backlog/before-beta.md` item 1 and `lab/context/state.md`. Then pass 2 of the sweep: discuss `try.sh` and the practice projects with the user before any delete.
+1. Split `docs/spec/decisions.md` 3 ways and delete it, after walking 3 real Delapse examples.
+2. Context engineering: keep what loads small, and stop a skill loading mid-session from breaking the cache. `/skill-doctor` and `/cost` show it.
+3. Whether `lab/scripts/try.sh` and the practice projects go. The `expense-tracker` board is the thing to weigh. A delete needs its own yes.
 
 ## How the user wants this work done
 
 - Reuse what exists. A proposal to move the setup file's skills ticket elsewhere was rejected hard.
 - Match the conventions the user names. They asked for `-y`, and a proposed `--yes` was rejected hard.
-- Keep `home/AGENTS.md` → `## Capture` to routing, and give the agent room to decide. A line stays only where the agent would do worse without it. The project's `AGENTS.md` template now holds `## Project` and `## Rules` alone.
+- Keep `home/AGENTS.md` → `## Capture` to routing, and give the agent room to decide.
 - Where a skill must run a command every time, run it as the skill loads (`` !`…` ``) rather than asking the agent to.
+- Judge a command by the user's intent when they type it. A command whose cases repeat existing ones goes.
+- The user dictates by voice, thinks out loud, and approves with "go" or "approve". A message ending in a question is thinking.
 
 ## Watch in the beta
 
 - **`flow init`'s push check is a dry run**, tested only against a missing remote folder. Whether GitHub refuses a dry run from someone signed out, or without write access, is unchecked.
 - **Whether `claude plugin list`, run from inside the safe-mode setup session, still lists synced plugins.** The docs do not say.
+- **The restore form has never met a real terminal.** Tests answer the word in process. Check the prompt reads well, and that saving the form in an editor and typing the word works as written.
 
 ## Open findings, only if `try.sh` survives pass 2
 

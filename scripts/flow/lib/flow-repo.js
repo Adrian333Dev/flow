@@ -25,6 +25,8 @@
  *                 or an update session was handed, rebuilt each run
  *   originals/    this machine's disk as it was before Flow. Putting another
  *                 machine's back would write its files over this one's
+ *   restore.md    the form `flow restore` and `flow uninstall` hand over,
+ *                 about this machine's paths, deleted once read
  *   settings.local.json   every setting holding a path, the clone included
  *   scripts, references, docs   links into this machine's clone, which sits
  *                 somewhere else on the other machine
@@ -87,6 +89,7 @@ const IGNORED = [
   'setup-settings.json',
   'migrate-prompt.md',
   'originals/',
+  'restore.md',
   'settings.local.json',
   'scripts',
   'references',

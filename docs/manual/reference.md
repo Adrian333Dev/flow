@@ -213,7 +213,7 @@ Setting up ~/code/shop runs in its own session. Start it from a terminal:
 - **`--add-dir`**: `~/.flow`, where the form is written, and the project's memory folder, where one exists, so neither asks each time.
 - **`~/.flow/run.json`**: the same file as the machine's setup, with `type` `setup-project`, the project's path and its memory folder.
 - **`flow init finish`**: the session's last step. It stamps the project's `.flow/version`, commits the tickets on the branch, and deletes `run.json`.
-- **`flow restore project`** puts the project back as it was before, `.flow/` deleted with it.
+- **`flow restore project`** puts back what Flow changed in the project, one box per path in a form. The project's `AGENTS.md`, `CLAUDE.md` and `docs/` stay unless you tick them.
 
 ### `flow doctor`
 
@@ -322,7 +322,7 @@ The laptop's `flow update` migrates the laptop's own copy, with everything it wr
 
 The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow update in a terminal.`
 
-**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `audit/`, `changes/`, and each wiki tool's `downloads/`.
+**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `restore.md`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `audit/`, `changes/`, and each wiki tool's `downloads/`.
 
 **Tickets in `~/.flow/` are sent with everything else there**, not when they are made. 2 machines can therefore give out the same `home-` number between syncs. The one that reached the repository first keeps it, and the other takes the next free number, keeping its old id as `was:`, so the old id still finds it:
 
@@ -363,12 +363,16 @@ A project with no remote, and a [local](#flow-init) one, give numbers out on the
 
 ### `flow uninstall`
 
-Takes Flow off this machine and leaves it as it was. It puts each project's original back, then the machine's, then deletes `~/.flow/` and the clone. It does all of that itself rather than asking you to run `flow restore` first, because putting the machine's original back deletes `~/.local/bin/flow` and a second command would have nothing left to type.
+Takes Flow off this machine. It puts back what Flow changed in each project and on the machine, then deletes `~/.flow/` and the clone. It does all of that itself rather than asking you to run `flow restore` first, because putting the machine back deletes `~/.local/bin/flow` and a second command would have nothing left to type.
+
+It hands over the same form as `flow restore machine`, one box per path, so a project's `AGENTS.md`, `CLAUDE.md` and `docs/` stay unless you tick them. Deleting `~/.flow/` and the clone has no box, since that is what uninstalling is. The form lists both under `## Done whatever the boxes say`:
 
 ```text
 $ flow uninstall
-Restores delapse, backmark and this machine, then deletes ~/.flow/ and ~/code/flow.
-Type uninstall to go on:
+Wrote ~/.flow/restore.md: one box per path Flow changed in delapse, backmark and this machine.
+Then ~/.flow and ~/code/flow are deleted.
+Untick what should stay as it is now, and save the file.
+Type uninstall:
 ```
 
 **Work in `~/.flow/` that `flow sync` has not sent stops the uninstall before anything is removed.** Your study cases, notes and tickets live only in that folder until a sync sends them to your GitHub copy, so a changed file or a commit GitHub lacks refuses the command:
@@ -474,7 +478,7 @@ machine                   7 paths   written 2026-09-18T21:30:05   closed
 
 ### `flow restore machine` and `flow restore project`
 
-Puts every path in one original back the way it was, the newest entry first, with its old time. A path recorded as absent is deleted. Each needs no agent and no session, so both work from a plain shell after a migration that broke Claude Code itself.
+Puts the paths in one original back the way they were, the newest entry first, with their old time. A path recorded as absent is deleted. Which paths go back is yours to choose, in a form. Each needs no agent and no session, so both work from a plain shell after a migration that broke Claude Code itself.
 
 The original survives a restore, so the same command runs again and lands in the same place. Each restore adds a line to the history log, `~/.flow/logs/history/<month>.jsonl`:
 
@@ -486,37 +490,62 @@ A project's restore adds its folder as `project`.
 
 Restoring the machine deletes `~/.local/bin/flow` along with everything else `flow install` made, so the last line says how to put Flow back. It leaves `~/.flow/` alone: only `flow uninstall` deletes that.
 
-**Every path is listed before you type the word.** Each line says what the restore does to the path: `deleted` where it was not there before Flow, `put back` where it was. A path put back that differs today from the copy in the original is marked `changed since`, since whatever it holds now is lost. A project's paths are shown from inside the project:
+**You choose each path in a form before you type the word.** The restore writes `~/.flow/restore.md`, with one box per path Flow changed, and waits:
 
 ```text
 $ flow restore project
-Puts 3 paths in ~/code/shop back as they were before Flow.
-  AGENTS.md  deleted
-  .flow/     deleted
-  CLAUDE.md  put back, changed since
-Type restore to go on:
+Wrote ~/.flow/restore.md: one box per path Flow changed in ~/code/shop.
+Untick what should stay as it is now, and save the file.
+Type restore:
 ```
 
-**`flow restore machine` offers every project first.** Once `flow` is gone, a project's restore has to be typed through the script's full path, so the machine's restore asks about the projects while `flow` still exists. With Flow set up in 2 projects, it asks:
+A ticked path goes back to how it was before Flow, or is deleted where it did not exist. An unticked path stays as it is now. The text after each path says what ticking it does:
+
+```md
+## Flow's files in ~/code/shop
+
+- [x] `.flow/`: deleted, with every ticket in it. Tickets sent to GitHub stay on the project's flow branch.
+- [x] `.gitignore`: put back. Changed since setup, so those changes are lost.
+- [x] `.claude/skills/shop-12/`: deleted. Flow wrote it to list one of your tickets.
+
+## What ~/code/shop knows
+
+These work without Flow: Claude Code reads AGENTS.md on its own.
+
+- [ ] `AGENTS.md`: deleted. It was not there before Flow.
+- [ ] `CLAUDE.md`: put back. Changed since setup, so those changes are lost.
+- [ ] `docs/`: deleted. It was not there before Flow.
+```
+
+**A project's knowledge starts unticked**: its `AGENTS.md`, `CLAUDE.md` and `docs/`. They hold what you and Claude learned about the project, and they work without Flow. Tick them all and the project is exactly as it was before Flow.
+
+**Only the boxes are read, and strictly.** The script reads the form itself, with no agent, so a box is one exact line shape: `- [x]` or `- [ ]`, then the path in backticks, letter for letter as written. Any box that is off stops the restore before anything changes, and names the line. Fix the line, save, and type the word again in the same run:
 
 ```text
-Puts 3 paths on this machine back as they were before Flow.
-  ~/.agents/AGENTS.md      deleted
-  ~/.claude/settings.json  put back, changed since
-  ~/.local/bin/flow        deleted
-Flow is also set up in blog and shop.
-  restore  puts each one back first, then this machine.
-  machine  puts back this machine alone. flow leaves PATH, so blog and shop keep Flow's files until you run, inside each:
-           node ~/.flow/scripts/flow/flow.js restore project
-Type restore or machine:
+restore.md line 9 has [y]. A box is [x] or [ ]. Nothing was changed. Fix the line and save.
+Type restore:
 ```
 
-With no project set up, it asks for `restore` alone.
+The form is deleted once it is read, or once you type anything other than the word.
+
+**A ticked `.flow/` holding tickets GitHub lacks stops the restore.** A project's `.flow/` is a checkout of the project's `flow` branch, so tickets already sent survive on GitHub. A changed ticket or a commit not yet pushed would be lost with the folder:
+
+```text
+flow: ~/code/shop/.flow holds ticket changes not yet sent to GitHub. Nothing was changed. Run flow sync inside ~/code/shop, then try again.
+```
+
+A `.flow/` made with `flow init --local` is never sent anywhere, so it never stops a restore. Its box says its tickets exist nowhere else.
+
+**`flow restore machine` puts every project in the same form**, each project's paths above the machine's. Once `flow` is gone, a project's restore has to be typed through the script's full path, so the machine's restore offers the projects while `flow` still exists. Untick a project's `.flow/` and the project keeps Flow. The last lines then say how to restore it later:
+
+```text
+shop still holds Flow. Put it back from inside it with node ~/.flow/scripts/flow/flow.js restore project
+```
 
 **4 locks stand in front of both, and in front of `flow uninstall`.** Each one alone stops an agent, and together they mean this only ever happens because you typed it:
 
 1. **Every session closed.** A running `claude` or `codex` process refuses the command outright. Claude Code also rewrites `~/.claude.json` as it goes, and would write its own copy over the one just put back.
-2. **A word typed at the terminal.** `restore`, `machine` or `uninstall`, read from `/dev/tty` rather than from the input, so a pipe, a heredoc and `yes |` all miss it. A command run by an agent has no terminal at all.
+2. **A word typed at the terminal.** `restore` or `uninstall`, read from `/dev/tty` rather than from the input, so a pipe, a heredoc and `yes |` all miss it. A command run by an agent has no terminal at all.
 3. **No flag skips the prompt.** There is nothing to paste and nothing to pull out of your shell history.
 4. **`deny` rules in `~/.claude/settings.json`** covering `flow`, `fw` and the script's own path.
 
@@ -1025,7 +1054,7 @@ Picking one prints the ticket and every file its `open` block names, as `flow ge
 - **Kept current by `flow`**: every command that writes a ticket rewrites the skills, and so does the start of every session. A ticket edited by hand, or pulled from another machine in the background, shows its old row until one of those runs. The skill reads the ticket when you type it, so what it prints is never old.
 - **Only you can run one.** Each is marked `disable-model-invocation: true`, so the list never reaches Claude and costs no context.
 - **Never edit one.** `flow` rewrites or deletes any folder carrying its mark, the comment `<!-- flow: ticket exp-1, ... -->`. A folder without the mark is yours, and `flow` leaves it alone, even under a ticket's id.
-- **`flow uninstall` and `flow restore` delete them**, each listed in the restore's prompt with the other paths. No original holds a ticket skill, since `flow` writes them after setup. A project's `.claude/skills/` and `.claude/` go too where that leaves them empty, since `flow init` made them.
+- **`flow uninstall` and `flow restore` delete them**, each a box in the restore's form with the other paths. No original holds a ticket skill, since `flow` writes them after setup. A project's `.claude/skills/` and `.claude/` go too where that leaves them empty, since `flow init` made them.
 
 This is the only way a skill takes a ticket. A ticket id typed as text is Claude's to look up, with `flow get <id> --files`.
 

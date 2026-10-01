@@ -17,13 +17,16 @@
  * `flow install` made, which is why the last line says how to put Flow back.
  * It leaves `~/.flow/` alone: only `flow uninstall` deletes that.
  *
- * The ticket skills go too, listed in the prompt with the rest: no original
- * holds them, since `flow` writes them after the window shuts.
+ * Neither puts everything back blind. Each writes a form, `~/.flow/restore.md`,
+ * with one box per path, and the user unticks what stays as it is now before
+ * typing the word. A project's knowledge, its `AGENTS.md`, `CLAUDE.md` and
+ * `docs/`, starts unticked. `lib/restore-form.js` holds the form and the
+ * strict reading of it, and the ticket skills, which no original holds.
  *
- * A machine restore offers every project first. Once `flow` is gone from PATH
- * a project's restore is typed through the script's path in `~/.flow/`, which
- * nobody remembers, so the word `restore` puts the projects back in the same
- * run and `machine` takes the machine alone.
+ * A machine restore puts its projects in the same form. Once `flow` is gone
+ * from PATH a project's restore is typed through the script's path in
+ * `~/.flow/`, which nobody remembers, so the projects are offered while
+ * `flow` still exists.
  */
 
 const path = require('path');
@@ -34,7 +37,7 @@ const { projectRoot } = require('../lib/root');
 const confirm = require('../lib/confirm');
 const machine = require('../lib/machine');
 const originals = require('../lib/originals');
-const ticketSkills = require('../lib/ticket-skills');
+const form = require('../lib/restore-form');
 
 const show = machine.shorten;
 const root = { arg: '<dir>' };
@@ -62,43 +65,12 @@ actions.ls = {
   },
 };
 
-/**
- * The prompt's first lines: the count, then one line per path saying what the
- * restore does to it, so nobody types the word blind. A project's paths are
- * shown from inside it.
- */
-function listing(at, project) {
-  const skills = ticketSkills.findAll([skillsDir(at, project)]).map((p) => ({ path: p, removed: true, folder: true }));
-  const rows = [...originals.plan(at, project), ...skills];
-  const where = project ? `in ${show(project)}` : 'on this machine';
-  const name = (row) => (project ? path.relative(project, row.path) : show(row.path)) + (row.folder ? '/' : '');
-  const width = Math.max(...rows.map((row) => name(row).length));
-  return [
-    `Puts ${rows.length === 1 ? '1 path' : `${rows.length} paths`} ${where} back as ${rows.length === 1 ? 'it was' : 'they were'} before Flow.`,
-    ...rows.map((row) => `  ${name(row).padEnd(width)}  ${row.removed ? 'deleted' : 'put back'}${row.changed ? ', changed since' : ''}`),
-  ];
-}
-
-/** Print each path a restore touched. */
-function report(done) {
-  for (const entry of done) out(`${entry.removed ? 'removed' : 'put back'} ${show(entry.path)}`);
-}
-
-/** The folder a place's ticket skills sit in: `lib/ticket-skills.js`. */
-const skillsDir = (at, project) => (project ? ticketSkills.folderOf(project) : path.join(at.claude, 'skills'));
-
-/**
- * Put one place back: its ticket skills first, which no original holds, then
- * every path the original does.
- */
-function putBack(at, project = null) {
-  for (const p of ticketSkills.clear(skillsDir(at, project), project)) out(`removed ${show(p)}`);
-  report(originals.restore(at, project));
-}
+/** Print each path one place's restore changed. */
+const report = (at, project, ticked) => form.apply(at, project, ticked).forEach((line) => out(line));
 
 actions.machine = {
   anywhere: true,
-  summary: 'put this machine back as it was before Flow, its projects first if you say so, leaving ~/.flow/ alone',
+  summary: 'put this machine back as it was before Flow, and any of its projects, leaving ~/.flow/ alone',
   flags: { root },
   run({ flags }) {
     const at = machine.folders(flags.root);
@@ -107,35 +79,29 @@ actions.machine = {
     confirm.noSessions();
 
     const projects = originals.list(at).filter((row) => row.manifest.project).map((row) => row.manifest.project);
-    const names = joinAnd(projects.map((p) => path.basename(p)));
-    const later = `node ${show(path.join(at.flow, 'scripts', 'flow', 'flow.js'))} restore project`;
-    const lines = listing(at);
-    if (projects.length) {
-      lines.push(
-        `Flow is also set up in ${names}.`,
-        `  restore  puts ${projects.length === 1 ? 'it' : 'each one'} back first, then this machine.`,
-        `  machine  puts back this machine alone. flow leaves PATH, so ${names} keep${projects.length === 1 ? 's' : ''} Flow's files until you run, inside each:`,
-        `           ${later}`,
-      );
-    }
-    const answer = confirm.word(projects.length ? ['restore', 'machine'] : 'restore', lines);
-    if (!answer) {
+    const parts = [...projects.flatMap((p) => form.sections(at, p)), ...form.sections(at, null)];
+    const where = projects.length ? `this machine, and ${joinAnd(projects.map((p) => path.basename(p)))}` : 'this machine';
+    const ticked = form.ask(at, 'restore', parts, [], [`one box per path Flow changed on ${where}.`]);
+    if (!ticked) {
       out('\nnothing was put back.');
       return 1;
     }
+    form.refuseUnsent(projects, ticked);
 
     out('');
-    if (answer === 'restore') for (const project of projects) putBack(at, project);
-    putBack(at);
-    if (answer === 'machine' && projects.length) out(`\n${names} still hold${projects.length === 1 ? 's' : ''} Flow. Put ${projects.length === 1 ? 'it' : 'each one'} back from inside it with ${later}`);
-    out(`\nflow and fw went with them. Put Flow back with node ${cloneRoot()}/scripts/flow/flow.js install`);
+    for (const project of projects) report(at, project, ticked);
+    report(at, null, ticked);
+    const later = `node ${show(path.join(at.flow, 'scripts', 'flow', 'flow.js'))} restore project`;
+    const kept = projects.filter((p) => form.keepsFlow(p, ticked));
+    if (kept.length) out(`\n${joinAnd(kept.map((p) => path.basename(p)))} still hold${kept.length === 1 ? 's' : ''} Flow. Put ${kept.length === 1 ? 'it' : 'each one'} back from inside it with ${later}`);
+    if (ticked.has(path.join(at.base, '.local', 'bin', 'flow'))) out(`\nflow and fw went with them. Put Flow back with node ${cloneRoot()}/scripts/flow/flow.js install`);
     return 0;
   },
 };
 
 actions.project = {
   anywhere: true,
-  summary: 'put this project back as it was before Flow, .flow/ deleted with it',
+  summary: 'put this project back as it was before Flow, its own knowledge kept unless you say',
   flags: { root },
   run({ flags }) {
     const at = machine.folders(flags.root);
@@ -144,13 +110,15 @@ actions.project = {
     if (!found) throw new FlowError(`No original of ${show(project)}. Nothing to put back.`);
     confirm.noSessions();
 
-    if (!confirm.word('restore', listing(at, project))) {
+    const ticked = form.ask(at, 'restore', form.sections(at, project, true), [], [`one box per path Flow changed in ${show(project)}.`]);
+    if (!ticked) {
       out('\nnothing was put back.');
       return 1;
     }
+    form.refuseUnsent([project], ticked);
     out('');
-    putBack(at, project);
-    out('\nIts .flow/ went with them. Put the project back into Flow with flow init');
+    report(at, project, ticked);
+    if (!form.keepsFlow(project, ticked)) out('\nIts .flow/ went with them. Put the project back into Flow with flow init');
     return 0;
   },
 };

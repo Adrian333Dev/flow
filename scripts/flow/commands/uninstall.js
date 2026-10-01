@@ -18,9 +18,13 @@
  * and its `strip` removes each one, plus Flow's own lines from the 2 files
  * that are the user's.
  *
+ * What goes back is the user's choice: the same form as `flow restore`,
+ * `lib/restore-form.js`, with one box per path in every original. A project's
+ * `AGENTS.md`, `CLAUDE.md` and `docs/` start unticked, so its knowledge stays.
+ * Deleting `~/.flow/` and the clone has no box: that is what uninstalling is.
+ *
  * Before `~/.flow/` goes, every link into it goes too: a source's skill in
  * `~/.claude/skills/` or a project's, and util's names in `~/.local/bin/`.
- * So does every ticket skill in those 2 skills folders.
  *
  * `~/.flow/` is checked the same way before anything runs. What syncs from it,
  * study cases, notes and tickets, is on no other machine until `flow sync`
@@ -46,6 +50,7 @@ const { git } = flowRepo;
 const installed = require('../lib/installed');
 const machine = require('../lib/machine');
 const originals = require('../lib/originals');
+const form = require('../lib/restore-form');
 const ticketSkills = require('../lib/ticket-skills');
 
 const show = machine.shorten;
@@ -101,39 +106,33 @@ actions.uninstall = {
     // it.
     const keepClone = flags.root ? 'it belongs to this machine, not to --root' : holds(clone);
 
-    const places = [...projects.map((row) => path.basename(row.manifest.project)), 'this machine'];
-    const lines = [
-      `${mine ? 'Restores' : 'Strips Flow from'} ${joinAnd(places)}, then deletes ${show(at.flow)}` +
-      `${keepClone ? '.' : ` and ${show(clone)}.`}`,
+    const parts = [...projects.flatMap((row) => form.sections(at, row.manifest.project)), ...(mine ? form.sections(at, null) : [])];
+    const always = [
+      ...(mine ? [] : ['Every path Flow made on this machine is removed. This machine has no original, so what those paths held before Flow is gone.']),
+      `${show(at.flow)} is deleted.`,
+      keepClone ? `${show(clone)} stays: ${keepClone}.` : `${show(clone)} is deleted.`,
     ];
-    if (!mine) lines.push('This machine has no original, so what those paths held before Flow is gone.');
-    if (keepClone) lines.push(`${show(clone)} stays: ${keepClone}.`);
-
-    if (!confirm.word('uninstall', lines)) {
+    const places = [...projects.map((row) => path.basename(row.manifest.project)), 'this machine'];
+    const ticked = form.ask(at, 'uninstall', parts, always, [
+      `one box per path Flow changed in ${joinAnd(places)}.`,
+      `Then ${show(at.flow)}${keepClone ? ' is' : ` and ${show(clone)} are`} deleted.`,
+    ]);
+    if (!ticked) {
       out('\nnothing was removed.');
       return 1;
     }
+    form.refuseUnsent(projects.map((row) => row.manifest.project), ticked);
 
     out('');
-    // The ticket skills are written by flow, never linked, so no original
-    // holds them and nothing below would take them away.
     const skillDirs = [at.claude, ...projects.map((row) => path.join(row.manifest.project, '.claude'))]
       .map((d) => path.join(d, 'skills'));
-    const cleared = [
-      ...ticketSkills.clear(skillDirs[0]),
-      ...projects.flatMap((row) => ticketSkills.clear(ticketSkills.folderOf(row.manifest.project), row.manifest.project)),
-    ];
-    for (const folder of cleared) out(`removed ${show(folder)}`);
-    for (const row of projects) {
-      for (const done of originals.restore(at, row.manifest.project)) {
-        out(`${done.removed ? 'removed' : 'put back'} ${show(done.path)}`);
-      }
-    }
+    for (const row of projects) form.apply(at, row.manifest.project, ticked).forEach((line) => out(line));
     if (mine) {
-      for (const done of originals.restore(at)) {
-        out(`${done.removed ? 'removed' : 'put back'} ${show(done.path)}`);
-      }
+      form.apply(at, null, ticked).forEach((line) => out(line));
     } else {
+      // No original holds the ticket skills, and with no form box for them
+      // nothing below would take them away.
+      for (const folder of ticketSkills.removeAll([skillDirs[0]])) out(`removed ${show(folder)}`);
       for (const line of installed.strip(clone, at, { bin })) out(line);
     }
 

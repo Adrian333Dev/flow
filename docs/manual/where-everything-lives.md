@@ -58,6 +58,7 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 │  ├─ research/<question>.md
 │  ├─ migrations/<place>/<time>/
 │  ├─ originals/<place>/
+│  ├─ restore.md                  only while a restore waits for its word
 │  ├─ groundwork/<slug>/
 │  └─ tickets/
 ├─ .util/sources
@@ -153,6 +154,7 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 - **`research/<question>.md`**: research reports about no single tool, true in any project, such as a comparison of services. `/flow:research` writes them.
 - **`migrations/<place>/<time>/`**: one folder per migration, a change to where Flow and Claude Code keep their files. It holds `migration.md`, one line per change, and `files/`, the new version of each file it writes. `flow install`, `flow init` and `flow update` write it. `<place>` is `machine`, or the project's full path with every character that is not a letter or a digit turned into `-`, and `<time>` is when it was written. [Migrations and the original](reference.md#migrations-and-the-original) has the whole of it.
 - **`originals/<place>/`**: every path as it was before Flow first touched that place, one folder per place and no date anywhere. `flow install` starts the machine's and its first setup session finishes it. A project's is started and finished by its first `flow init`. Nothing is added after that. `flow restore` puts one back.
+- **`restore.md`**: the form `flow restore` and `flow uninstall` write, one box per path Flow changed. It exists only while the command waits for you to type its word, and is deleted once read.
 - **`groundwork/<slug>/`**: groundwork run outside any project. `/flow:groundwork` writes it.
 - **`tickets/`**: tickets made outside any project, with `FLOW_PROJECT=$HOME flow new "<title>"`. Their ids start with `home`, such as `home-4`, and `flow move` brings a project's ticket here. Same shape as a project's.
 
@@ -212,4 +214,4 @@ Flow sessions write into these and own none of them.
 
 ## What stays on one machine
 
-These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/logs/`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/setup-settings.json`, `~/.flow/migrate-prompt.md`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/settings.local.json`, `~/.flow/version`, `~/.flow/skills-update.json`, `~/.flow/records-sync.json`, and every `~/.flow/wiki/<tool>/downloads/`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/wiki/`, `~/.flow/research/`, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/` and `~/.flow/machines/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed on the branch `flow`, so it travels with the repository, and a local project's `.flow/` stays in its one clone.
+These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/logs/`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/setup-settings.json`, `~/.flow/migrate-prompt.md`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/restore.md`, `~/.flow/settings.local.json`, `~/.flow/version`, `~/.flow/skills-update.json`, `~/.flow/records-sync.json`, and every `~/.flow/wiki/<tool>/downloads/`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/wiki/`, `~/.flow/research/`, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/` and `~/.flow/machines/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed on the branch `flow`, so it travels with the repository, and a local project's `.flow/` stays in its one clone.

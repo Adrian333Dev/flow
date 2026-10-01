@@ -362,65 +362,164 @@ test('a restore plans every path first, and marks each one put back that changed
   ]);
 });
 
-// The 2 locks refuse every test process, so this one runs the command in
-// process with both taken out, and answers the word itself.
-test('a machine restore offers its projects first, and restore takes them all where machine takes one', () => {
+test('a restore form reads its boxes strictly, and names the first line that is off', () => {
+  const form = require('../flow/lib/restore-form');
+  const parts = [{ heading: 'x', rows: [{ path: '/a', ticked: true }, { path: '/b', ticked: false }], name: (r) => r.path.slice(1) }];
+  const text = form.render(parts);
+  assert.match(text, /^- \[x\] `a`: put back\.$/m);
+  assert.match(text, /^- \[ \] `b`: put back\.$/m);
+  assert.deepStrictEqual([...form.parse(text, parts)], ['/a']);
+  assert.deepStrictEqual([...form.parse(text.replace('[ ] `b`', '[X] `b`'), parts)], ['/a', '/b']);
+
+  const fails = (edited, why) => assert.throws(() => form.parse(edited, parts), why);
+  fails(text.replace('[x] `a`', '[y] `a`'), /line \d+ has \[y\]\. A box is \[x\] or \[ \]\./);
+  fails(text.replace('`b`', '`c`'), /`c` is not a path this form was written with/);
+  fails(text.replace(/^- \[ \] `b`.*$/m, ''), /has no box for `b`/);
+  fails(`${text}- [x] \`a\`: again\n`, /`a` has a box already/);
+  fails(text.replace('- [x] `a`', '- [x] a'), /is not a box/);
+});
+
+// The 2 locks refuse every test process, so these run the command in process
+// with both taken out. The word is answered here, and `edit` stands in for the
+// user changing the form before typing it.
+function answering(said, ...answers) {
   const confirm = require('../flow/lib/confirm');
-  const restore = require('../flow/commands/restore');
   const kept = { noSessions: confirm.noSessions, word: confirm.word };
+  confirm.noSessions = () => {};
+  confirm.word = (wanted, lines) => {
+    const file = path.join(said.flow, 'restore.md');
+    const next = answers.shift();
+    said.push({ wanted, lines, form: read(file) });
+    if (next && next.edit) fs.writeFileSync(file, next.edit(read(file)));
+    return next ? next.word : null;
+  };
+  return () => Object.assign(confirm, kept);
+}
+
+/** A machine and one project, both set up through their first migrations. */
+function place(name) {
+  const dir = project(name);
+  const root = path.join(dir, 'root');
+  write(root, '.claude/notes.md', 'notes\n');
+  const id = migration(root, 'machine', '---\ntype: setup-machine\n---\n- write ~/.claude/notes.md: x\n',
+    { [path.join(root, '.claude/notes.md')]: 'Flow\'s notes\n' });
+  assert.strictEqual(applyAt(dir, root, id).code, 0);
+  const proj = path.join(root, 'code', 'shop');
+  write(proj, 'CLAUDE.md', 'shop rules\n');
+  write(proj, '.gitignore', 'node_modules\n');
+  const pid = migration(root, originals.place(proj), `---\ntype: setup-project\nproject: ${proj}\n---\n- write CLAUDE.md: x\n- write .gitignore: x\n`,
+    { [path.join(proj, 'CLAUDE.md')]: '@AGENTS.md\n', [path.join(proj, '.gitignore')]: 'node_modules\n.flow/\n' }, new Date(Date.now() + 1000));
+  assert.strictEqual(applyAt(dir, root, pid).code, 0);
+  const ticketSkill = (at, id) => write(path.join(at, id), 'SKILL.md', `---\nname: ${id}\n---\n<!-- flow: ticket ${id}, rewritten by flow on every ticket change -->\n`);
+  ticketSkill(path.join(root, '.claude', 'skills'), 'home-4');
+  ticketSkill(path.join(proj, '.claude', 'skills'), 'exp-47');
+  return { root, proj };
+}
+
+test('a machine restore hands over one form, and the project keeps its knowledge unless ticked', () => {
+  const restore = require('../flow/commands/restore');
   const said = [];
 
-  function place(name) {
-    const dir = project(name);
-    const root = path.join(dir, 'root');
-    write(root, '.claude/notes.md', 'notes\n');
-    const id = migration(root, 'machine', '---\ntype: setup-machine\n---\n- write ~/.claude/notes.md: x\n',
-      { [path.join(root, '.claude/notes.md')]: 'Flow\'s notes\n' });
-    assert.strictEqual(applyAt(dir, root, id).code, 0);
-    const proj = path.join(root, 'code', 'shop');
-    write(proj, 'CLAUDE.md', 'shop rules\n');
-    const pid = migration(root, originals.place(proj), `---\ntype: setup-project\nproject: ${proj}\n---\n- write CLAUDE.md: x\n`,
-      { [path.join(proj, 'CLAUDE.md')]: '@AGENTS.md\n' }, new Date(Date.now() + 1000));
-    assert.strictEqual(applyAt(dir, root, pid).code, 0);
-    return { root, proj };
-  }
-
-  const answering = (answer) => {
-    confirm.noSessions = () => {};
-    confirm.word = (wanted, lines) => {
-      said.push({ wanted, lines });
-      return answer;
-    };
-  };
-
+  const plain = place('restore-machine-plain');
+  said.flow = path.join(plain.root, '.flow');
+  let undo = answering(said, { word: 'restore' });
   try {
-    const all = place('restore-machine-all');
-    const ticketSkill = (dir, id) => write(path.join(dir, id), 'SKILL.md', `---\nname: ${id}\n---\n<!-- flow: ticket ${id}, rewritten by flow on every ticket change -->\n`);
-    ticketSkill(path.join(all.root, '.claude', 'skills'), 'home-4');
-    ticketSkill(path.join(all.proj, '.claude', 'skills'), 'exp-47');
-    answering('restore');
-    assert.strictEqual(restore.actions.machine.run({ flags: { root: all.root } }), 0);
-    assert.match(said[0].lines.join('\n'), /skills\/home-4\/ +deleted$/m, 'a ticket skill is listed before the word');
-    assert.ok(!exists(path.join(all.root, '.claude', 'skills', 'home-4')), "the machine's ticket skill is gone");
-    assert.ok(!exists(path.join(all.proj, '.claude')), "the project's ticket skill went, and the folders it left empty");
-    assert.deepStrictEqual(said[0].wanted, ['restore', 'machine']);
-    assert.match(said[0].lines.join('\n'), /Flow is also set up in shop\./);
-    assert.match(said[0].lines[0], /^Puts 2 paths on this machine back as they were before Flow\.$/);
-    assert.match(said[0].lines[1], /^ {2}\S*\.claude\/notes\.md +put back, changed since$/, 'every path is listed before the word');
-    assert.strictEqual(read(path.join(all.proj, 'CLAUDE.md')), 'shop rules\n', 'the project went first');
-    assert.strictEqual(read(path.join(all.root, '.claude/notes.md')), 'notes\n');
-
-    const alone = place('restore-machine-alone');
-    answering('machine');
-    assert.strictEqual(restore.actions.machine.run({ flags: { root: alone.root } }), 0);
-    assert.strictEqual(read(path.join(alone.proj, 'CLAUDE.md')), '@AGENTS.md\n', 'the project keeps Flow');
-    assert.strictEqual(read(path.join(alone.root, '.claude/notes.md')), 'notes\n');
-
-    const refused = place('restore-machine-no');
-    answering(null);
-    assert.strictEqual(restore.actions.machine.run({ flags: { root: refused.root } }), 1);
-    assert.strictEqual(read(path.join(refused.root, '.claude/notes.md')), 'Flow\'s notes\n', 'no word, nothing put back');
+    assert.strictEqual(restore.actions.machine.run({ flags: { root: plain.root } }), 0);
   } finally {
-    Object.assign(confirm, kept);
+    undo();
+  }
+  const { lines, form } = said[0];
+  assert.match(lines[0], /^Wrote \S*restore\.md: one box per path Flow changed on this machine, and shop\.$/);
+  assert.match(form, /^## Flow's files in \S*shop$/m);
+  assert.match(form, /^- \[x\] `\S*shop\/\.gitignore`: put back\. Changed since setup, so those changes are lost\.$/m);
+  assert.match(form, /^- \[ \] `\S*shop\/CLAUDE\.md`: put back\. Changed since setup/m, "the project's knowledge starts unticked");
+  assert.match(form, /^- \[x\] `\S*skills\/home-4\/`: deleted\. Flow wrote it to list one of your tickets\.$/m);
+  assert.strictEqual(read(path.join(plain.proj, 'CLAUDE.md')), '@AGENTS.md\n', 'an unticked path stays as it is now');
+  assert.strictEqual(read(path.join(plain.proj, '.gitignore')), 'node_modules\n');
+  assert.strictEqual(read(path.join(plain.root, '.claude/notes.md')), 'notes\n');
+  assert.ok(!exists(path.join(plain.root, '.claude', 'skills', 'home-4')), "the machine's ticket skill is gone");
+  assert.ok(!exists(path.join(plain.proj, '.claude')), "the project's ticket skill went, and the folders it left empty");
+  assert.ok(!exists(path.join(said.flow, 'restore.md')), 'the form is deleted once read');
+
+  const edited = place('restore-machine-edited');
+  said.length = 0;
+  said.flow = path.join(edited.root, '.flow');
+  undo = answering(said, {
+    word: 'restore',
+    edit: (text) => text.replace(/- \[ \] (`\S*CLAUDE\.md`)/, '- [x] $1').replace(/- \[x\] (`\S*notes\.md`)/, '- [ ] $1').replace(/- \[x\] (`\S*exp-47\/`)/, '- [ ] $1'),
+  });
+  try {
+    assert.strictEqual(restore.actions.machine.run({ flags: { root: edited.root } }), 0);
+  } finally {
+    undo();
+  }
+  assert.strictEqual(read(path.join(edited.proj, 'CLAUDE.md')), 'shop rules\n', 'a ticked knowledge file goes back');
+  assert.strictEqual(read(path.join(edited.root, '.claude/notes.md')), 'Flow\'s notes\n', 'an unticked machine path stays');
+  assert.ok(exists(path.join(edited.proj, '.claude', 'skills', 'exp-47')), 'an unticked ticket skill stays');
+
+  const broken = place('restore-machine-broken');
+  said.length = 0;
+  said.flow = path.join(broken.root, '.flow');
+  undo = answering(said, { word: 'restore', edit: (text) => text.replace('- [x]', '- [y]') }, { word: 'restore', edit: (text) => text.replace('- [y]', '- [x]') });
+  try {
+    assert.strictEqual(restore.actions.machine.run({ flags: { root: broken.root } }), 0);
+  } finally {
+    undo();
+  }
+  assert.match(said[1].lines[0], /^restore\.md line \d+ has \[y\]\. A box is \[x\] or \[ \]\. Nothing was changed\. Fix the line and save\.$/);
+  assert.strictEqual(read(path.join(broken.root, '.claude/notes.md')), 'notes\n', 'once fixed, the same run carries on');
+
+  const refused = place('restore-machine-no');
+  said.length = 0;
+  said.flow = path.join(refused.root, '.flow');
+  undo = answering(said);
+  try {
+    assert.strictEqual(restore.actions.machine.run({ flags: { root: refused.root } }), 1);
+  } finally {
+    undo();
+  }
+  assert.strictEqual(read(path.join(refused.root, '.claude/notes.md')), 'Flow\'s notes\n', 'no word, nothing put back');
+  assert.ok(!exists(path.join(said.flow, 'restore.md')));
+});
+
+test('a project restore refuses while its ticked .flow/ holds tickets not sent to GitHub', () => {
+  const restore = require('../flow/commands/restore');
+  const records = require('../flow/lib/records');
+  const { bareRepo } = require('./helpers/scratch');
+  const { spawnSync } = require('child_process');
+  const dir = project('restore-project-unsent');
+  const root = path.join(dir, 'root');
+  const at = folders(root);
+  const proj = path.join(root, 'code', 'shop');
+  const git = (...args) => spawnSync('git', ['-C', proj, '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { encoding: 'utf8' });
+  write(proj, 'README.md', 'shop\n');
+  git('init', '-q', '-b', 'main');
+  git('add', '-A');
+  git('commit', '-q', '-m', 'one');
+  git('remote', 'add', 'origin', bareRepo('restore-project-unsent'));
+  fs.mkdirSync(at.flow, { recursive: true });
+
+  originals.start(at, proj);
+  originals.record(at, proj, path.join(proj, '.flow'));
+  originals.close(at, proj);
+  assert.ok(records.checkOut(proj).ok);
+  write(proj, '.flow/tickets/1/ticket.md', 'a ticket\n');
+
+  const said = [];
+  said.flow = at.flow;
+  const before = process.env.FLOW_PROJECT;
+  process.env.FLOW_PROJECT = proj;
+  const undo = answering(said, { word: 'restore' }, { word: 'restore', edit: (text) => text.replace('- [x] `.flow/`', '- [ ] `.flow/`') });
+  try {
+    assert.throws(() => restore.actions.project.run({ flags: { root } }), /\.flow holds ticket changes not yet sent to GitHub\. Nothing was changed\. Run flow sync inside \S*shop, then try again\./);
+    assert.match(said[0].form, /^- \[x\] `\.flow\/`: deleted, with every ticket in it\. Tickets sent to GitHub stay on the project's flow branch\.$/m);
+    assert.ok(exists(path.join(proj, '.flow/tickets/1/ticket.md')), 'the ticket is still there');
+
+    assert.strictEqual(restore.actions.project.run({ flags: { root } }), 0, 'unticked, the .flow/ stays and nothing is checked');
+    assert.ok(exists(path.join(proj, '.flow/tickets/1/ticket.md')));
+  } finally {
+    undo();
+    if (before === undefined) delete process.env.FLOW_PROJECT;
+    else process.env.FLOW_PROJECT = before;
   }
 });
