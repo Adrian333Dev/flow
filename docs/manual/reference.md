@@ -1025,7 +1025,7 @@ Picking one prints the ticket and every file its `open` block names, as `flow ge
 - **Kept current by `flow`**: every command that writes a ticket rewrites the skills, and so does the start of every session. A ticket edited by hand, or pulled from another machine in the background, shows its old row until one of those runs. The skill reads the ticket when you type it, so what it prints is never old.
 - **Only you can run one.** Each is marked `disable-model-invocation: true`, so the list never reaches Claude and costs no context.
 - **Never edit one.** `flow` rewrites or deletes any folder carrying its mark, the comment `<!-- flow: ticket exp-1, ... -->`. A folder without the mark is yours, and `flow` leaves it alone, even under a ticket's id.
-- **`flow uninstall` deletes them all**, in every project and in `~/.claude/skills/`.
+- **`flow uninstall` and `flow restore` delete them**, each listed in the restore's prompt with the other paths. No original holds a ticket skill, since `flow` writes them after setup. A project's `.claude/skills/` and `.claude/` go too where that leaves them empty, since `flow init` made them.
 
 This is the only way a skill takes a ticket. A ticket id typed as text is Claude's to look up, with `flow get <id> --files`.
 

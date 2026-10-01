@@ -395,12 +395,18 @@ test('a machine restore offers its projects first, and restore takes them all wh
 
   try {
     const all = place('restore-machine-all');
+    const ticketSkill = (dir, id) => write(path.join(dir, id), 'SKILL.md', `---\nname: ${id}\n---\n<!-- flow: ticket ${id}, rewritten by flow on every ticket change -->\n`);
+    ticketSkill(path.join(all.root, '.claude', 'skills'), 'home-4');
+    ticketSkill(path.join(all.proj, '.claude', 'skills'), 'exp-47');
     answering('restore');
     assert.strictEqual(restore.actions.machine.run({ flags: { root: all.root } }), 0);
+    assert.match(said[0].lines.join('\n'), /skills\/home-4\/ +deleted$/m, 'a ticket skill is listed before the word');
+    assert.ok(!exists(path.join(all.root, '.claude', 'skills', 'home-4')), "the machine's ticket skill is gone");
+    assert.ok(!exists(path.join(all.proj, '.claude')), "the project's ticket skill went, and the folders it left empty");
     assert.deepStrictEqual(said[0].wanted, ['restore', 'machine']);
     assert.match(said[0].lines.join('\n'), /Flow is also set up in shop\./);
-    assert.match(said[0].lines[0], /^Puts 1 path on this machine back as it was before Flow\.$/);
-    assert.match(said[0].lines[1], /^ {2}\S*\.claude\/notes\.md {2}put back, changed since$/, 'every path is listed before the word');
+    assert.match(said[0].lines[0], /^Puts 2 paths on this machine back as they were before Flow\.$/);
+    assert.match(said[0].lines[1], /^ {2}\S*\.claude\/notes\.md +put back, changed since$/, 'every path is listed before the word');
     assert.strictEqual(read(path.join(all.proj, 'CLAUDE.md')), 'shop rules\n', 'the project went first');
     assert.strictEqual(read(path.join(all.root, '.claude/notes.md')), 'notes\n');
 

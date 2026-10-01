@@ -39,6 +39,12 @@ One user message, your work, one reply. In that order, every time.
 - **`no-mkdir`** Write creates directories.
 - **`change-record`** A "Stop hook blocking error" from `PostToolUse:Agent` is Flow's change record, never a failure: the diff of what one subagent's own tool calls changed. Judge a subagent's work by it, never by its report. It arrives with the subagent's finished notice, and none means no file changed.
 
+## When something breaks
+
+- **`fix-what-breaks`** A command, hook, skill, test or installed tool that fails or does the wrong thing: read the error, check what it names (`git remote -v`, `gh auth status`), fix the cause, and run it again. Never route around it, and never stop at reporting it. Never work around a ticket that was not made.
+- **`hand-over-what-you-cannot-reach`** A cause outside your reach, such as a sign-in, write access, a paid service or a system package → the cause and every command that fixes it, in order, to the user.
+- **`flow-breaking-is-a-finding`** Flow itself broke: its scripts, skills, hooks or rules → the cause to the user, and a workaround for this task alone. Never edit Flow's own files. `## Capture` records the break.
+
 ## Workflow
 
 One phase at a time:
@@ -88,8 +94,6 @@ One phase at a time:
 - `flow get <id> --files`: the ticket plus every file its `open` block names. Run it for a ticket id typed in the user's message.
 - `flow new "<title>"`: create a ticket.
 - `util fs tree [path]`: a folder as a tree, with each file's line count.
-
-**`chase-a-failed-command`** A `flow` or `util` command that refuses or fails: read its reason, check what it names (`git remote -v`, `gh auth status`), fix what lies inside the project, and run it again. The rest, such as a sign-in or write access → the cause and the one command that fixes it, to the user. Never work around a ticket that was not made.
 
 ## Judgment
 

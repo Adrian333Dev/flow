@@ -119,7 +119,11 @@ actions.uninstall = {
     // holds them and nothing below would take them away.
     const skillDirs = [at.claude, ...projects.map((row) => path.join(row.manifest.project, '.claude'))]
       .map((d) => path.join(d, 'skills'));
-    for (const folder of ticketSkills.removeAll(skillDirs)) out(`removed ${show(folder)}`);
+    const cleared = [
+      ...ticketSkills.clear(skillDirs[0]),
+      ...projects.flatMap((row) => ticketSkills.clear(ticketSkills.folderOf(row.manifest.project), row.manifest.project)),
+    ];
+    for (const folder of cleared) out(`removed ${show(folder)}`);
     for (const row of projects) {
       for (const done of originals.restore(at, row.manifest.project)) {
         out(`${done.removed ? 'removed' : 'put back'} ${show(done.path)}`);

@@ -114,17 +114,40 @@ function sync({ project, claude = skills.configDir() } = {}) {
   return changed;
 }
 
-/** Delete every marked folder in these folders of skills: `flow uninstall`'s step. */
-function removeAll(dirs) {
-  const gone = [];
+/** Every marked folder in these folders of skills, so a prompt can list them before they go. */
+function findAll(dirs) {
+  const found = [];
   for (const dir of dirs) {
     if (!fs.existsSync(dir)) continue;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const folder = path.join(dir, entry.name);
-      if (entry.isDirectory() && marked(folder) && remove(folder)) gone.push(folder);
+      if (entry.isDirectory() && marked(folder)) found.push(folder);
+    }
+  }
+  return found;
+}
+
+/** Delete every marked folder in these folders of skills: `flow uninstall`'s step, and `flow restore`'s. */
+const removeAll = (dirs) => findAll(dirs).filter(remove);
+
+/**
+ * Clear one place's ticket skills: every marked folder, then a project's
+ * `.claude/skills/` and `.claude/` where that left them empty. `flow init`
+ * makes both before the project's original is written, so no original holds
+ * them, and an empty folder holds nothing to lose. Returns each path deleted.
+ */
+function clear(dir, project = null) {
+  const gone = removeAll([dir]);
+  if (!project) return gone;
+  for (const empty of [dir, path.join(project, '.claude')]) {
+    try {
+      fs.rmdirSync(empty);
+      gone.push(empty);
+    } catch {
+      // Not empty, or not there: either way it stays.
     }
   }
   return gone;
 }
 
-module.exports = { sync, removeAll, folderOf, isTicketSkill: marked };
+module.exports = { sync, findAll, removeAll, clear, folderOf, isTicketSkill: marked };

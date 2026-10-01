@@ -17,6 +17,9 @@
  * `flow install` made, which is why the last line says how to put Flow back.
  * It leaves `~/.flow/` alone: only `flow uninstall` deletes that.
  *
+ * The ticket skills go too, listed in the prompt with the rest: no original
+ * holds them, since `flow` writes them after the window shuts.
+ *
  * A machine restore offers every project first. Once `flow` is gone from PATH
  * a project's restore is typed through the script's path in `~/.flow/`, which
  * nobody remembers, so the word `restore` puts the projects back in the same
@@ -31,6 +34,7 @@ const { projectRoot } = require('../lib/root');
 const confirm = require('../lib/confirm');
 const machine = require('../lib/machine');
 const originals = require('../lib/originals');
+const ticketSkills = require('../lib/ticket-skills');
 
 const show = machine.shorten;
 const root = { arg: '<dir>' };
@@ -64,7 +68,8 @@ actions.ls = {
  * shown from inside it.
  */
 function listing(at, project) {
-  const rows = originals.plan(at, project);
+  const skills = ticketSkills.findAll([skillsDir(at, project)]).map((p) => ({ path: p, removed: true, folder: true }));
+  const rows = [...originals.plan(at, project), ...skills];
   const where = project ? `in ${show(project)}` : 'on this machine';
   const name = (row) => (project ? path.relative(project, row.path) : show(row.path)) + (row.folder ? '/' : '');
   const width = Math.max(...rows.map((row) => name(row).length));
@@ -77,6 +82,18 @@ function listing(at, project) {
 /** Print each path a restore touched. */
 function report(done) {
   for (const entry of done) out(`${entry.removed ? 'removed' : 'put back'} ${show(entry.path)}`);
+}
+
+/** The folder a place's ticket skills sit in: `lib/ticket-skills.js`. */
+const skillsDir = (at, project) => (project ? ticketSkills.folderOf(project) : path.join(at.claude, 'skills'));
+
+/**
+ * Put one place back: its ticket skills first, which no original holds, then
+ * every path the original does.
+ */
+function putBack(at, project = null) {
+  for (const p of ticketSkills.clear(skillsDir(at, project), project)) out(`removed ${show(p)}`);
+  report(originals.restore(at, project));
 }
 
 actions.machine = {
@@ -108,8 +125,8 @@ actions.machine = {
     }
 
     out('');
-    if (answer === 'restore') for (const project of projects) report(originals.restore(at, project));
-    report(originals.restore(at));
+    if (answer === 'restore') for (const project of projects) putBack(at, project);
+    putBack(at);
     if (answer === 'machine' && projects.length) out(`\n${names} still hold${projects.length === 1 ? 's' : ''} Flow. Put ${projects.length === 1 ? 'it' : 'each one'} back from inside it with ${later}`);
     out(`\nflow and fw went with them. Put Flow back with node ${cloneRoot()}/scripts/flow/flow.js install`);
     return 0;
@@ -132,7 +149,7 @@ actions.project = {
       return 1;
     }
     out('');
-    report(originals.restore(at, project));
+    putBack(at, project);
     out('\nIts .flow/ went with them. Put the project back into Flow with flow init');
     return 0;
   },
