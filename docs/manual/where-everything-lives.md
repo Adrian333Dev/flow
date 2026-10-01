@@ -60,7 +60,6 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 │  ├─ migrations/<place>/<time>/
 │  ├─ originals/<place>/
 │  ├─ restore.md                  only while a restore waits for its word
-│  ├─ groundwork/<slug>/
 │  ├─ tickets/
 │  └─ projects/<project>/         a project's tickets, kept in your Flow home
 ├─ .util/sources
@@ -87,7 +86,6 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 │  │  ├─ reports/
 │  │  └─ protos/<name>/
 │  ├─ tickets/archive/
-│  ├─ groundwork/<slug>/
 │  ├─ inbox.md
 │  ├─ findings/
 │  ├─ overlays/<skill>.md
@@ -158,8 +156,7 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 - **`migrations/<place>/<time>/`**: one folder per migration, a change to where Flow and Claude Code keep their files. It holds `migration.md`, one line per change, and `files/`, the new version of each file it writes. `flow install`, `flow init` and `flow update` write it. `<place>` is `machine`, or the project's full path with every character that is not a letter or a digit turned into `-`, and `<time>` is when it was written. [Migrations and the original](reference.md#migrations-and-the-original) has the whole of it.
 - **`originals/<place>/`**: every path as it was before Flow first touched that place, one folder per place and no date anywhere. `flow install` starts the machine's and its first setup session finishes it. A project's is started and finished by its first `flow init`. Nothing is added after that. `flow restore` puts one back.
 - **`restore.md`**: the form `flow restore` and `flow uninstall` write, one box per path Flow changed. It exists only while the command waits for you to type its word, and is deleted once read.
-- **`groundwork/<slug>/`**: groundwork run outside any project. `/flow:groundwork` writes it.
-- **`tickets/`**: tickets made outside any project, with `FLOW_PROJECT=$HOME flow new "<title>"`. Their ids start with `home`, such as `home-4`, and `flow move` brings a project's ticket here. Same shape as a project's.
+- **`tickets/`**: tickets made outside any project, with `FLOW_PROJECT=$HOME flow new "<title>"`, including every phase skill run outside one. Their ids start with `home`, such as `home-4`, and `flow move` brings a project's ticket here. Same shape as a project's.
 - **`projects/<project>/`**: the whole `.flow/` of a project kept in your Flow home, which the project's `.flow/` links to. `flow init --private` and `flow store private` make it, and `flow sync` carries it to your other machines. Its `settings.json` names the repository, so `flow init` in another clone finds it.
 
 ### `~/.util/` and `~/.local/bin/`
@@ -200,13 +197,12 @@ In a project kept in your Flow home, `.flow/` is a link to `~/.flow/projects/<pr
 
 - **`tickets/<id>-<slug>/`**: one folder per ticket, such as `exp-12-login-page/`, holding `ticket.md`, `groundwork/`, `history.md` with one line per status move or handoff, and whatever the work writes: `reports/` for what a phase found, and `protos/<name>/` for a prototype's code, one folder per prototype. `flow new` makes it, and sessions fill it. [Tickets](tickets.md) shows the shape.
 - **`tickets/archive/`**: finished tickets, moved whole. Nothing is deleted.
-- **`groundwork/<slug>/`**: groundwork that is not a ticket yet, holding `map.md`. `/flow:groundwork` writes it, and `flow new --from-groundwork` moves it into a ticket. A session that stops halfway moves it the same way, since a handoff in a project always goes into a ticket.
 - **`inbox.md`**: raw notes with no obvious home yet. Sessions append to it, and `/flow:file-findings` drains it.
 - **`findings/`**: one file per lesson a session learned, other than a lesson about an outside tool, which goes to `~/.flow/wiki/<tool>/findings/`. `/flow:file-findings` files each into a skill or a rule. A finding about a domain skill waits in `findings/<skill>/` for Flow's sharing command, due after V1.
 - **`overlays/<skill>.md`**: text this project adds to a skill, Flow's or anyone's, handed to the agent each time the skill loads. You or a session write it.
 - **`settings.json`**: the skills switched on or off for this project, and `ticketPrefix`, the word every id here starts with, such as `exp`. Committed on the branch, so a fresh clone gets both back. In your Flow home it also holds `repository`, the address `flow init` finds the folder by. `flow skills on` and `off` write the skills with no flag, and `flow init` the prefix.
 - **`version`**: the newest `CHANGELOG.md` entry this project has applied. `flow init` writes it.
-- **`.gitignore`**: what the branch never takes: `node_modules/`, which a prototype installs. A prototype adds a line for model caches and generated media.
+- **`.gitignore`**: what the branch never takes: `node_modules/`, which a prototype installs. A prototype ignores its model caches and generated media in a `.gitignore` of its own, inside `protos/<name>/`.
 
 ### `docs/`, the project's own
 

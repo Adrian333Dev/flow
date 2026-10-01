@@ -20,6 +20,10 @@ Never build a child's work in its parent. `flow ls --parent exp-47` lists them; 
 
 ## Phase 1: pick up
 
+**No ticket, and the user described the work** → `flow new "<what to build>" --body -`, the body saying what and why, then pick it up below.
+
+**No ticket, and nothing described** → run `flow next` and recommend one ticket: work in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
+
 **The status says where the work stopped; the artifact says whether that phase finished.** Read the artifact, then move the ticket.
 
 - **`todo`, `groundwork`**: `flow plan exp-47`, then Phase 2

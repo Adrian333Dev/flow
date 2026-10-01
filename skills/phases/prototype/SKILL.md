@@ -23,7 +23,7 @@ Code written to answer one named question, then kept beside its report as a refe
 
 ## What the ticket must carry
 
-`/flow:groundwork` writes these into the ticket body. Whoever builds it checks they arrived, and stops if they did not. Handed over without a ticket, it is the same 3 wherever the handoff put them.
+`/flow:groundwork` writes these into the ticket body. Whoever builds it checks they arrived, and stops if they did not.
 
 - **The question, in one sentence.** 3 at most: past 3 it is a project.
 - **Pass and fail**, for a question that can come out false. What each answer means, and what each one changes. Skip a question whose 2 answers lead to the same decision.
@@ -55,7 +55,7 @@ Build nothing that serves a second purpose. Cut tests, error handling past runna
 
 **The report is the deliverable, never the code.**
 
-**`reports/<question>.md` in the ticket folder**, named after what it answers, one file per question. No ticket → `REPORT.md` beside the code.
+**`reports/<question>.md` in the ticket folder**, named after what it answers, one file per question.
 
 - **Measured** → top-line answers first, in the words the question used. Give the numbers. A verdict alone rots: "timestamps are fine" means nothing in 6 months, "ratio 0.83 to 1.01, no desync" still does. Keep the raw output beside it and cite the code by its `protos/` path.
 - **Judged** → show the variants. Attach no recommendation until the user has looked.
@@ -67,9 +67,9 @@ Then say the answers out loud, in the words the question asked for, and stop the
 ## Where it lives
 
 - **`.flow/tickets/<id>/protos/<name>/`**: inside the ticket that asked, one folder per prototype, named by what it proves. The code sits beside the report citing it, and moves with the ticket
-- **No ticket, inside a project** → `flow new "<question>" --type prototype` first, so the code has a folder. **Outside a project** → the folder the user names, with `REPORT.md` beside the code
+- **No ticket** → `flow new "<question>" --type prototype` first, so the code has a folder. Outside a project the ticket lives in `~/.flow/tickets/`
 - **Saved**: the scripts and the report, with the ticket. The spec cites them for years
-- **Ignored**: `node_modules/`, which `.flow/.gitignore` already lists. Add a line there for model caches and generated media: one harness reached 779 MB
+- **Ignored**: `node_modules/`, already, at any depth. Model caches and generated media → a `.gitignore` inside `protos/<name>/`, so the line travels with the ticket: one harness reached 779 MB
 
 ## One prototype per unknown
 

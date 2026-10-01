@@ -45,6 +45,7 @@ One user message, your work, one reply. In that order, every time.
 - **`docs-before-experiment`** Never run an experiment to answer what the documentation answers. `lab/research/claude-code-docs/` holds pages on disk, its `llms.md` indexes every page Anthropic publishes, and `WebFetch` reaches the rest. A probe decides only what the docs leave open.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found. A question the tree answers is never handed back as a decision.
 - **`write-locked-decisions`** User-confirmed with no open threads, batched.
+  - **`write-dropped-proposals`** A proposal dropped, whoever dropped it, goes into the backlog item it belongs to, with why, in the same turn. Set by the user 2026-10-01.
 
 ## Judgment
 

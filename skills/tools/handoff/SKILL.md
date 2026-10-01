@@ -18,21 +18,20 @@ It knows the repo. It knows nothing about this conversation.
 Decide this first. Everything else follows from it.
 
 - **Working a ticket** → `## State` inside that ticket's `ticket.md`.
-- **Work with no ticket, in a project with `.flow/`** → a new ticket, `flow new "…" --type <what the work is> --body -`, then move it to the status the work has reached: `flow build <id>` for code in progress, `flow groundwork <id>` while decisions are still open. The body: one paragraph on the job and why, then `## State`. Loose groundwork adds `--type topic --from-groundwork <its folder>`, which moves the folder into the ticket.
+- **Work with no ticket** → a new ticket, `flow new "…" --type <what the work is> --body -`, then move it to the status the work has reached: `flow build <id>` for code in progress, `flow groundwork <id>` while decisions are still open. The body: one paragraph on the job and why, then `## State`.
 - **Handing a job to a session that reports back** → a new ticket, `flow new "…" --body -`. A child of the ticket that dispatched it, where one exists.
 - **A subagent starting right now** → the prompt. It reads that and nothing else, so a file would be a second copy that goes stale the moment either one changes.
-- **No `.flow/` here** → `handoff.md`, beside the work. A path the user names beats all of it.
 
 **Inside a ticket the state is a living section.** Write to it as the work moves, every time something becomes true that no other file records: after every thing you learned or were told, never after every edit. **A sentence from the user counts**: a constraint, a correction, a leaning they have not locked. Running this skill at the end is then a check rather than a reconstruction, which is what makes it affordable at the one moment context is scarce. It also survives a session that dies before anyone runs anything.
 
-**Everywhere else it is written once**, read once, and rewritten whole next time. Never updated in place. **The rewrite carries forward whatever the old file still holds true**: one written only from this session's memory drops everything the last session found.
+**A child ticket's body and a subagent's prompt are written once**, read once, and never updated in place.
 
 ## 2. Gather only what this job needs
 
 Nothing here runs by default. Pick what the next session will trip over.
 
 - **Mid-build** → name the files this session changed, and what changed in each. Nothing hurts more than a fresh session editing on top of changes it never saw. `git status --short` gets you that in a repo committed regularly; on a tree nobody has committed for weeks it returns everything and separates nothing.
-- **Inside a ticket system** → `flow get`, for what is in flight.
+- **Other tickets in flight** → `flow next`, for what else is moving.
 - **Handing a job over** → whatever waits for the receiving session: a server already listening, a half-finished install, a folder that is read-only.
 - **Groundwork, or a prototype question** → nothing. A question about how a library behaves gains nothing from the working tree.
 
@@ -42,9 +41,9 @@ Nothing here runs by default. Pick what the next session will trip over.
 
 ### The `open` block
 
-`/flow:start` runs `flow get --files`, which finds this block and loads every file it names **before the session's first turn**. A path here is not a reading list. It is content, already in context when the reader wakes up.
+Every ticket's own skill, `/exp-47`, runs `flow get --files`, which finds this block and loads every file it names **before the session's first turn**. A path here is not a reading list. It is content, already in context when the reader wakes up.
 
-Write it fenced, inside `## State` on a ticket and near the top of a `handoff.md`:
+Write it fenced, inside `## State`:
 
 ```open
 plan.md
@@ -84,9 +83,9 @@ What is left is what nobody wrote down, under 4 labels:
 
 A fat state section on a build ticket means the plan carries too little.
 
-### In a file: `handoff.md`
+### Handing a job over: a child ticket's body
 
-No ticket, so nothing else holds anything and this document carries all of it:
+The receiving session knows nothing of this one, so the body carries all of it:
 
 - **The job**: what's being done and why, current tense.
 - **The state**: done, in flight, broken, half-applied.
@@ -96,9 +95,7 @@ No ticket, so nothing else holds anything and this document carries all of it:
 - **What was found**: versions, endpoints, exact payloads, traps already hit. Write out anything that cost real effort, source or no source.
 - **The first action**: concrete enough to start on. Name the skill when one applies.
 
-### Handing a job over: a child ticket's body
-
-Every section above, written into the ticket body instead of a file, plus 4 that exist because someone is waiting on an answer:
+Plus 4 that exist because someone is waiting on an answer:
 
 - **What turns on the answer**: the decision waiting on it, and what changes if it comes back no. Without this, a marginal result reads like a decisive one.
 - **What done looks like**: written before the work starts, as the ticket's `## Done when`. Criteria written afterwards match whatever came out.
@@ -124,15 +121,13 @@ Durable knowledge went to its own home in the sweep: `## Capture` in `~/.agents/
 
 ## 4. Land it
 
-**In a ticket**: `## State` at the bottom of `ticket.md`, plus a line in `## References` for anything this session read that the build will need. While `map.md` is still open its own `## References` holds those, and Phase 4 splits them into the tickets it cuts.
+**`## State` goes at the bottom of `ticket.md`**, plus a line in `## References` for anything this session read that the build will need. While `map.md` is still open its own `## References` holds those, and Phase 4 splits them into the tickets it cuts.
 
 Then `flow handoff <id>`, which adds this session to the ticket's `history.md`, so the next session can find this conversation again.
 
 Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`, `/flow:debug` and `/flow:prototype` `reports/`, and whoever created the ticket the body paragraph. `## Done when` moves only when a skill re-decides what the ticket is.
 
 **At `review`, empty `Found` before deleting the section.** Anything in it still true goes to the ticket's `issues.md`, where `/flow:file-findings` files it later. Then the section goes: "step 4 in progress" is false forever once the ticket closes, and git keeps the old one.
-
-**In a file**: `handoff.md` beside the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
 
 ## 5. End on what to type
 
@@ -145,7 +140,6 @@ End the reply with what the user types to carry on: `/clear`, then the line that
 
 - **A ticket mid-phase** → that phase's skill, then the ticket's: `/flow:groundwork /exp-47`, `/flow:execute /exp-47`, `/flow:debug /exp-4`, `/flow:prototype /exp-9`.
 - **A ticket with no phase running** → `/flow:start /exp-47`, which picks the phase from its type and status.
-- **A `handoff.md`** → `/flow:start` with its path.
 - **A job handed to another session** → the same line, typed in a new session. This one carries on.
 
 Add words after the line only for an instruction the ticket does not hold.
@@ -159,8 +153,6 @@ Add words after the line only for an instruction the ticket does not hold.
 **Where `## State` and the files on disk disagree about what exists, the files win.** A session can end without a handoff, and the work moves on after it. **On decisions and what is still open, `## State` wins over the rest of the ticket.** It is the newer record.
 
 A dispatched job ends by saying its answers back in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, the research file `/flow:research` names for a question. `## State` carries the job's progress, never its answer.
-
-**A file needs boot lines; a ticket does not.** Whoever opens a ticket arrived through a phase skill or `/flow:start`, and already knows the loop. A file may be all a fresh session is handed, so it says at the top what the first action is.
 
 ## Hard rules
 

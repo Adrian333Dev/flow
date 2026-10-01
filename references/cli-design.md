@@ -11,8 +11,8 @@ flow <command> [id]... [--flags]
 - **The command always sits at position 1**, in every command, without exception. A target is often absent (`ls`, `next` and `new` take none) so putting the target first would move the command between positions 1 and 2.
 - **A word naming no command is a ticket id.** `flow exp-47` shows one; `flow get exp-47` is the same thing spelled out.
 - **Positionals name what the command acts on**: one id, several ids, or the title for `new`, where no ticket exists yet to point at.
-- **A positional names one target, never two things.** `get` takes one id or one path. The status verbs each take one id. Cut 2026-09-04, having carried `flow get exp-47 build` since 2026-08-24: the combined form added a second path into `transition` and saved nothing the agent needs, `flow build exp-47` then `flow get exp-47` is two commands and no ambiguity.
-- **A path positional is allowed only on `get`.** `flow get notes/handoff.md` reads a file and loads any `open` block it contains, since loose work has no ticket id to name. Everything else finds the root from the current directory and takes no path.
+- **A positional names one target, never two things.** `get` takes one id. The status verbs each take one id. Cut 2026-09-04, having carried `flow get exp-47 build` since 2026-08-24: the combined form added a second path into `transition` and saved nothing the agent needs, `flow build exp-47` then `flow get exp-47` is two commands and no ambiguity.
+- **No path names what a command acts on.** Every command finds the root from the current directory, and `flow move`'s last word is where the tickets go. `flow get <path>` read a loose handoff file until 2026-10-01, cut once every piece of work had a ticket.
 - **Everything else is a flag.**
 
 ## One default noun
@@ -23,7 +23,7 @@ Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build e
 
 ## The four kinds of command
 
-- **The board**: `get` bare, `next`, `check`, `ls`, `tree`. Each answers a question about the work as a whole. `get` with `--files` is the session opener: `/flow:start` runs it, so the branching lives in tested code instead of shell inside a markdown file.
+- **The board**: `next`, `check`, `ls`, `tree`. Each answers a question about the work as a whole. `next` is the session opener: `/flow:start` runs it. `get` printed the same board with no id until 2026-10-01, cut once `/flow:start` stopped passing it what was typed.
 - **One ticket**: `<id>`, `new`, `edit`, `dep`, `file`, `drop`, and the status verbs. Each names a ticket and acts on it.
 - **A group**: `cases`, `skills`, `settings`, `audit`, `restore`, `setup`. A different stored thing, carrying its own actions behind its own name.
 - **Setup**: `install` and `doctor`. Neither needs a project: `install` writes outside the project, into `~/.agents`, `~/.claude`, `~/.flow` and `~/.local/bin`, and `doctor` reads the same places back. `install` is also the one command run before `flow` is a command at all: on a machine that has just cloned Flow it is typed by path, and it makes the link that lets everything else be typed by name.

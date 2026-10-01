@@ -324,8 +324,8 @@ function relocate(t) {
 
 /**
  * A rename, or a copy then a delete where the 2 paths sit on different
- * filesystems. A groundwork under ~/.flow/ can move into a project on another
- * disk, and a rename across disks throws EXDEV.
+ * filesystems. `flow move` can take a ticket from ~/.flow/ into a project on
+ * another disk, and a rename across disks throws EXDEV.
  */
 function moveFolder(from, to) {
   try {
@@ -341,7 +341,7 @@ function moveFolder(from, to) {
  * `tickets` is passed in when the caller already read the pool: at a few
  * thousand tickets a second scan is the most expensive thing a command does.
  */
-function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, fromGroundwork, label }) {
+function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, label }) {
   const id = nextId(tickets || readTickets(root), prefixOf(root));
   const slug = labelize(label || title);
   const dir = path.join(ticketsDir(root), `${id}-${slug}`);
@@ -373,20 +373,13 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
   // whether groundwork will split a ticket, so its location must never
   // depend on that outcome, and a ticket's path is fixed for life.
   const groundworkDir = path.join(dir, 'groundwork');
-  if (fromGroundwork) {
-    // A loose groundwork that turned out to be exactly one unit of work moves
-    // in whole and leaves nothing behind, so there is never a second copy to
-    // drift.
-    moveFolder(fromGroundwork, groundworkDir);
-  } else {
-    fs.mkdirSync(groundworkDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(groundworkDir, 'map.md'),
-      renderTemplate('map.md', { id, title: data.title })
-    );
-  }
+  fs.mkdirSync(groundworkDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(groundworkDir, 'map.md'),
+    renderTemplate('map.md', { id, title: data.title })
+  );
 
-  return { id, dirName: `${id}-${slug}`, dir, file, data, body, root, movedFrom: fromGroundwork || null };
+  return { id, dirName: `${id}-${slug}`, dir, file, data, body, root };
 }
 
 /**

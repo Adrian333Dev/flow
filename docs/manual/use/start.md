@@ -1,6 +1,6 @@
 # Opening a session
 
-Every session opens with `/flow:start`. It is a skill only you can start, and it does one of 3 things depending on what follows it: shows the board, loads one ticket, or opens a loose file. Whichever it did, it ends by handing the work to the right phase skill.
+Every session opens with `/flow:start`. It is a skill only you can start, and it does one of 2 things depending on what follows it: shows the board, or loads one ticket. Either way, it ends by handing the work to the right phase skill.
 
 This page assumes a project with tickets in it. [Tickets](../tickets.md) says what a ticket is and how one gets made.
 
@@ -8,27 +8,33 @@ This page assumes a project with tickets in it. [Tickets](../tickets.md) says wh
 
 - [With nothing: the board](#with-nothing-the-board)
 - [With a ticket: one ticket, then its phase](#with-a-ticket-one-ticket-then-its-phase)
-- [With a path: loose work](#with-a-path-loose-work)
 - [Skipping `/flow:start`](#skipping-start)
 
 ## With nothing: the board
 
-`/flow:start` alone prints the board, which is what `flow next` prints: the tickets in flight, then the ones ready to pick up, then the ones blocked and why.
+`/flow:start` alone prints the board, which is what `flow next` prints: how many tickets sit at each status, the ticket closed last, the tickets in flight, then the ones cut out of work in flight, then the ones ready to pick up. Where nothing is in flight or ready, the blocked tickets print, each with why. Parked tickets come last.
 
 ```text
-in flight (6), finish these before starting more:
-  ID     STATUS      TYPE       PRI  PARENT  TITLE
-  exp-1  groundwork  feature    -    -       Budgets per category
-  exp-2  building    feature    -    exp-1   Store budgets and set them
-  exp-4  building    issue      -    -       Report merges January to September into one month
-  exp-5  groundwork  topic      -    -       Move the store from JSON to SQLite
-  exp-6  building    prototype  -    exp-5   Does node:sqlite ship in the installed Node, and does it survive 10k rows
-  exp-8  review      chore      -    -       Test that add refuses a negative amount
+tickets: 9   todo 1   groundwork 2   planning 0   building 3   review 1   done 1   parked 1   dropped 0
 
-nothing ready. 1 todo ticket blocked:
-  exp-3  Show what is left in the report
-        exp-2 is building
+last closed  exp-9  Show the report by category
+
+in flight (4), finish these before starting more:
+  ID     STATUS    TYPE       PRI  PARENT  TITLE
+  exp-2  building  feature    -    exp-1   Store budgets and set them
+  exp-4  building  issue      -    -       Report merges January to September into one month
+  exp-6  building  prototype  -    exp-5   Does node:sqlite ship in the installed Node, and does it survive 10k rows
+  exp-8  review    chore      -    -       Test that add refuses a negative amount
+
+unfiled: 1 closed ticket not yet filed   (flow ls --unfiled)
+         run file-findings to sweep them
+
+parked (1):
+  ID     TITLE               REASON
+  exp-7  Recurring expenses  waits on the store decision in exp-5: a rule is a row in SQLite and a second file in JSON
 ```
+
+**A parent with open children is left out of `in flight`.** exp-1 and exp-5 are both at `groundwork`, and neither shows: each waits on its children, and picking one up refuses until they close. Its children stand in for it, in flight themselves like exp-2 and exp-6, or under `continues open work` while they wait to start.
 
 A project with no tickets yet prints `no tickets yet.`, and the agent points you to `/flow:groundwork` for the first piece of work.
 
@@ -102,12 +108,6 @@ A feature or a chore is decided by reading the ticket: its body, the `map:` line
 `/flow:start` invokes that skill in the same session, with no argument, since the ticket is already on screen. `/flow:start` moves nothing: the phase skill writes the status once it has read the ticket, and [Who moves the status](status.md) says when.
 
 A parked ticket routes on its `resumes at:` line, which names the status it left. A ticket at `done` or `dropped` stops here: reopening is your call, never the agent's.
-
-## With a path: loose work
-
-`/flow:start ~/notes/pricing/handoff.md` opens work outside a Flow project, meaning a folder with no `.flow/`: a file beside the thing being worked on. The agent reads it and carries on from whatever the file says comes next.
-
-Inside a project, work with no ticket gets one when it is handed off, so it shows on the board. [Stopping and picking up](resume.md) says how.
 
 ## Skipping `/flow:start`
 

@@ -85,6 +85,24 @@ test('flow next shows in-flight tickets above the ready list', () => {
   assert.ok(flightPos < readyPos, 'in-flight section should appear before ready tickets');
 });
 
+test('a parent with open children leaves in flight, and its children continue it', () => {
+  const dir = project('board-parent-waits');
+
+  write(dir, '.flow/tickets/exp-1-pricing/ticket.md',
+    '---\nid: exp-1\ntitle: Pricing\nstatus: groundwork\ntype: feature\ndeps: []\n---\n\n');
+  write(dir, '.flow/tickets/exp-2-tiers/ticket.md',
+    '---\nid: exp-2\ntitle: Tiers\nstatus: todo\ntype: feature\nparent: exp-1\ndeps: []\n---\n\n');
+  write(dir, '.flow/tickets/exp-3-other/ticket.md',
+    '---\nid: exp-3\ntitle: Other work\nstatus: building\ntype: feature\ndeps: []\n---\n\n');
+
+  const r = flow(dir, ['next']);
+  assert.strictEqual(r.code, 0, r.stderr);
+  const flight = r.stdout.slice(r.stdout.indexOf('in flight'), r.stdout.indexOf('continues open work'));
+  assert.match(flight, /Other work/);
+  assert.ok(!flight.includes('Pricing'), 'the waiting parent should not be in flight');
+  assert.match(r.stdout, /continues open work \(1\):\n.*\n.*Tiers/);
+});
+
 test('flow next shows blocked tickets when nothing is ready', () => {
   const dir = project('board-next-blocked');
 
@@ -94,7 +112,7 @@ test('flow next shows blocked tickets when nothing is ready', () => {
   const [id1, id2] = folders.map((f) => f.match(/^[a-z]+-\d+/)[0]);
 
   flow(dir, ['dep', id2, '--on', id1]);
-  flow(dir, ['build', id1]);
+  flow(dir, ['park', id1, '--reason', 'waiting on the vendor']);
 
   const r = flow(dir, ['next']);
   assert.strictEqual(r.code, 0, r.stderr);

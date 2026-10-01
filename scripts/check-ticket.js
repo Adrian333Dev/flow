@@ -13,10 +13,10 @@
  * hook installed, so this is the only gate a typed skill passes through.
  *
  * The project check runs only for /flow:start with nothing after it, which
- * shows the project's board. A phase skill, or /flow:start with a path, works
- * in any folder, so groundwork in an empty folder and a loose handoff.md both
- * get through. Both messages come from flow's own libraries rather than a copy
- * here.
+ * shows the project's board. A phase skill works in any folder, since outside
+ * a project it keeps its ticket in ~/.flow/tickets/, so groundwork in an empty
+ * folder gets through. Both messages come from flow's own libraries rather
+ * than a copy here.
  *
  * A ticket reaches a phase skill through its own skill, `/flow:execute
  * /exp-47`, which only lists tickets that exist: lib/ticket-skills.js. An id

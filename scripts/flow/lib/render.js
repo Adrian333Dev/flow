@@ -266,7 +266,7 @@ function status(tickets, limit) {
 }
 
 /**
- * The session opener, printed by `flow get` with no argument. Four questions
+ * The session opener, printed by `flow next`. Four questions
  * what did I finish last, what is still open, what continues it, what could
  * start. Read-only on purpose: this is the view for not knowing what is next,
  * and picking is a separate act.
@@ -285,7 +285,10 @@ function brief(tickets, limit) {
     out.push('');
   }
 
-  const inFlight = tickets.filter((t) => graph.IN_FLIGHT.has(t.data.status));
+  // A parent with open children waits on them, and picking it up refuses, so
+  // its children stand in for it: in flight themselves, or continuing it below.
+  const inFlight = tickets.filter((t) =>
+    graph.IN_FLIGHT.has(t.data.status) && !graph.hasOpenChildren(tickets, t.id));
   if (inFlight.length) {
     out.push(`in flight (${inFlight.length}), finish these before starting more:`);
     out.push(indent(ticketTable(graph.rank(inFlight, tickets), tickets)));

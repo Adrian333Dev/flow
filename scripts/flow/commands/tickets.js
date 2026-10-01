@@ -280,10 +280,6 @@ actions.tree = {
 // ---------------------------------------------------------------- one ticket
 
 const RULE = '-'.repeat(60);
-const NEXT_LIMIT = 10;
-
-const looksLikePath = (word) =>
-  word.includes('/') || word.includes('\\') || word.endsWith('.md') || fs.existsSync(word);
 
 /**
  * The files a document names in its own `open` block, printed under a rule.
@@ -316,41 +312,14 @@ function loadOpen(file, cwd) {
   out(`\n${RULE}\n${printed.trimEnd()}`);
 }
 
-function nextLimit(flags) {
-  if (flags.all) return Infinity;
-  if (flags.limit === undefined) return NEXT_LIMIT;
-  const n = Number(flags.limit);
-  if (!Number.isInteger(n) || n < 1) {
-    throw new FlowError(`--limit takes a whole number of tickets (got "${flags.limit}")`);
-  }
-  return n;
-}
-
 actions.get = {
   section: 'tickets',
-  args: '[<id>|<path>]',
-  summary: 'one ticket, or the board with nothing named',
-  flags: {
-    files: { bool: true },
-    limit: { arg: '<n>' },
-    all: { bool: true },
-  },
+  args: '<id>',
+  summary: 'one ticket in full',
+  flags: { files: { bool: true } },
   run({ positional, flags, unnamed }) {
     const [first] = positional;
-
-    if (!first) {
-      out(render.status(store.readTickets(projectRoot()), nextLimit(flags)));
-      return 0;
-    }
-
-    if (looksLikePath(first)) {
-      if (!fs.existsSync(first)) throw new FlowError(`no file at "${first}".`);
-      const abs = path.resolve(first);
-      const content = fs.readFileSync(abs, 'utf8');
-      out(content.trimEnd());
-      loadOpen(abs, process.cwd());
-      return 0;
-    }
+    if (!first) throw new FlowError('flow get takes a ticket id, such as flow get exp-47. The board is flow next.');
 
     const { root, tickets, t } = locate(first, unnamed);
 
@@ -391,12 +360,10 @@ function notMade(failed) {
 }
 
 /**
- * Undo a new ticket whose push never landed: its groundwork goes back where
- * `--from-groundwork` found it, the folder goes, and the removal is committed,
- * so the branch holds nothing the remote never agreed to.
+ * Undo a new ticket whose push never landed: the folder goes, and the removal
+ * is committed, so the branch holds nothing the remote never agreed to.
  */
-function takeBack(root, t, fromGroundwork) {
-  if (fromGroundwork) store.moveFolder(path.join(t.dir, 'groundwork'), fromGroundwork);
+function takeBack(root, t) {
   fs.rmSync(t.dir, { recursive: true, force: true });
   records.commit(root, `${t.id}: taken back, never sent`);
 }
@@ -412,7 +379,6 @@ actions.new = {
     deps: { arg: '<id,id>' },
     label: { arg: '<1-3 words>' },
     body: { arg: '<text|->' },
-    'from-groundwork': { arg: '<path>' },
   },
   run({ positional, flags, usage }) {
     const title = positional.join(' ').trim();
@@ -438,28 +404,9 @@ actions.new = {
       if (!tickets.some((t) => t.id === parent)) throw new FlowError(`--parent names ${parent}, which does not exist.`);
     }
 
-    // `--from-groundwork` moves an existing loose groundwork in as this
-    // ticket's own, for when the groundwork resolved to exactly one unit of work.
-    let fromGroundwork = '';
-    if (flags['from-groundwork'] != null) {
-      const given = String(flags['from-groundwork']).trim();
-      if (!given) throw new FlowError('--from-groundwork expects the path of an existing groundwork folder.');
-      fromGroundwork = path.resolve(given);
-      if (!fs.existsSync(fromGroundwork) || !fs.statSync(fromGroundwork).isDirectory()) {
-        throw new FlowError(`--from-groundwork names ${given}, which is not a folder.`);
-      }
-      if (!fs.existsSync(path.join(fromGroundwork, 'map.md'))) {
-        throw new FlowError(`${given} holds no map.md, so it is not a groundwork folder.`);
-      }
-      const live = store.ticketsDir(root);
-      if (fromGroundwork === live || fromGroundwork.startsWith(live + path.sep)) {
-        throw new FlowError(`${given} is inside .flow/tickets/, so it already belongs to a ticket.`);
-      }
-    }
-
     let t = store.createTicket(root, {
       title, type: flags.type || 'feature', priority: flags.priority || '',
-      parent, deps, tickets, body, fromGroundwork, label: flags.label,
+      parent, deps, tickets, body, label: flags.label,
     });
 
     // Pushed before the id is shown, so nobody ever sees a number change. A
@@ -468,14 +415,13 @@ actions.new = {
     const claimed = records.claim(root, t.id);
     if (claimed.id !== t.id) t = store.findTicket(store.readTickets(root), claimed.id);
     if (!claimed.ok) {
-      takeBack(root, t, fromGroundwork);
+      takeBack(root, t);
       throw new FlowError(notMade(claimed));
     }
 
     out(`created ${t.id}  ${t.data.title}`);
     out(`        ${rel(root, t.file)}`);
     out(`        ${rel(root, path.join(t.dir, 'groundwork', 'map.md'))}`);
-    if (t.movedFrom) out(`        moved  ${rel(root, t.movedFrom)}/ → groundwork/`);
     if (t.data.priority) out(`        priority: ${t.data.priority}`);
     if (parent) out(`        parent: ${parent}`);
     if (deps.length) out(`        deps: ${deps.join(', ')}`);
@@ -704,6 +650,7 @@ actions.drop = {
     t.data.resume = '';
     t.data.closed = store.now();
     const moved = store.writeTicket(t);
+    ticketHistory.append(t, `${from} → dropped`);
     out(`${t.id}  ${from} → dropped   ${t.data.title}`);
     out(`      reason: ${reason}`);
     if (moved) out(`      moved → ${rel(root, moved.to)}`);
@@ -730,11 +677,13 @@ actions.drop = {
     if (flags.force && affected.length) {
       out(`\ndropped with it (${affected.length}):`);
       for (const d of affected) {
+        const was = d.data.status;
         d.data.status = 'dropped';
         d.data.reason = `dropped with ${t.id} (${t.data.title}), which it depended on`;
         d.data.resume = '';
         d.data.closed = store.now();
         store.writeTicket(d);
+        ticketHistory.append(d, `${was} → dropped`);
         out(`  ${d.id}  ${d.data.title}`);
       }
     }

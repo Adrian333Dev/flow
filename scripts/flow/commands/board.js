@@ -12,7 +12,6 @@ const { projectRoot } = require('../lib/root');
 const store = require('../lib/store');
 const graph = require('../lib/graph');
 const render = require('../lib/render');
-const statuses = require('../lib/statuses');
 
 const load = () => store.readTickets(projectRoot());
 
@@ -34,45 +33,16 @@ function nextLimit(flags) {
 const board = {};
 
 /**
- * Two questions, one answer: what is already open, and what could be started.
- *
- * The in-flight block leads because this used to list todos only, so a ticket
- * you were in the middle of was invisible in the one place you looked before
- * picking up the next thing.
+ * The board, which `/flow:start` opens a session on. `next` once ranked with
+ * logic of its own, beside the board `flow get` printed with nothing named,
+ * and the 2 disagreed about the child of open work.
  */
 board.next = {
   section: 'board',
   summary: 'what to work on, ranked',
   flags: { limit: { arg: '<n>' }, all: { bool: true } },
   run({ flags }) {
-    const limit = nextLimit(flags);
-    const tickets = load();
-
-    const inFlight = tickets.filter((t) => statuses.IN_FLIGHT.has(t.data.status));
-    if (inFlight.length) {
-      out(`in flight (${inFlight.length}), finish these before starting more:`);
-      out(render.indent(render.ticketTable(graph.rank(inFlight, tickets), tickets)));
-      out('');
-    }
-
-    const ready = graph.readyTickets(tickets);
-    if (ready.length) {
-      const shown = graph.rank(ready, tickets).slice(0, limit);
-      out(render.ticketTable(shown, tickets));
-      out(shown.length < ready.length
-        ? `\n${shown.length} of ${ready.length} ready: flow next --all`
-        : `\n${ready.length} ready.`);
-      return 0;
-    }
-
-    const blocked = graph.blockedTickets(tickets);
-    if (blocked.length === 0) {
-      out(tickets.length ? 'nothing ready and nothing blocked: no todo tickets left.' : 'no tickets yet.');
-      return 0;
-    }
-    out(`nothing ready. ${blocked.length} todo ticket${blocked.length === 1 ? '' : 's'} blocked:\n`);
-    out(render.blockedLines(blocked.slice(0, 8)));
-    if (blocked.length > 8) out(`\n  … and ${blocked.length - 8} more (flow ls --status todo)`);
+    out(render.status(load(), nextLimit(flags)));
     return 0;
   },
 };

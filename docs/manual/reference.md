@@ -636,13 +636,13 @@ Commands that answer a question about the work as a whole.
 
 ### `flow next`
 
-What to work on, ranked by priority.
+What to work on: the board, which `/flow:start` opens a session on. A line of counts across every status, then the ticket closed last, then these, each only when it has content:
 
-Three sections, in order. Each appears only when it has content:
-
-1. **In flight**: tickets someone is already working on (groundwork, planning, building, review). Shown first so a new session finishes existing work before starting more.
-2. **Ready**: todo tickets whose dependencies are all satisfied and whose children (if any) are all closed. Ranked by effective priority: a child inherits its nearest ancestor's priority when it has none of its own.
-3. **Blocked**: shown only when nothing is ready. Lists todo tickets with unsatisfied dependencies and names what each one waits on.
+1. **In flight**: tickets someone is already working on (groundwork, planning, building, review). Shown first so a new session finishes existing work before starting more. A parent with open children is left out: it waits on them, and picking it up refuses until they close.
+2. **Continues open work**: ready tickets whose parent is in flight, such as the children groundwork split off. Unfinished work beats new work, so these come before the rest.
+3. **Ready**: todo tickets whose dependencies are all satisfied and whose children (if any) are all closed. Ranked by effective priority: a child inherits its nearest ancestor's priority when it has none of its own.
+4. **Blocked**: shown only when nothing is in flight or ready. Lists todo tickets with unsatisfied dependencies and names what each one waits on.
+5. **Unfiled** closed tickets, a problem in the ticket graph, and the parked tickets with their reasons.
 
 Flags: `--limit <n>` (show at most n ready tickets, default 10), `--all` (no limit).
 
@@ -695,23 +695,19 @@ Flow's settings make it the whole status line where you have none of your own. [
 
 Commands that name a ticket and act on it.
 
-### `flow <id>` / `flow get`
+### `flow <id>` / `flow get <id>`
 
-Three shapes:
-
-- **`flow get`**: the board: counts across every status, last closed ticket, in-flight work, ready tickets, parked tickets, and unfiled tickets. `flow <id>` is a shorthand for `flow get <id>`.
-- **`flow get <id>`**: one ticket in full. Prints every field: status, type, priority (own and inherited), parent, deps (with their statuses), dependents, children (with a progress count), the code branch its work is on, map questions and plan steps where those files exist, reports, closed and filed dates, the pickup command, and the ticket body.
-- **`flow get <path>`**: reads a file (a handoff, a spec, loose notes) and loads any `open` block it contains.
+One ticket in full. `flow <id>` is a shorthand for `flow get <id>`. Prints every field: status, type, priority (own and inherited), parent, deps (with their statuses), dependents, children (with a progress count), the code branch its work is on, map questions and plan steps where those files exist, reports, closed and filed dates, the pickup command, and the ticket body.
 
 An id is the project's prefix and a number, `exp-47`, and the folder adds a label: `exp-47-parser-split`. The id is the identity. Any unambiguous part resolves it: `exp-47`, `47`, `parser`, or the whole thing. A bare number means the project you are in, and `home-4` names a ticket in `~/.flow/` from anywhere.
 
-`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. `/flow:start` passes `--files` explicitly, and so does every [ticket skill](#ticket-skills).
+`--files` loads every file named in the ticket's `open` block, by running `util fs open --files-only` on `ticket.md` from the repo root. Off by default, so a second `get` in the same session never double-loads context. Every [ticket skill](#ticket-skills) passes `--files` explicitly.
 
 **The block format is util's, not Flow's.** `util fs open` parses it, resolves each path and merges the files. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it. Flow supplies only the working directory, which is what makes a path resolve beside the ticket first and then from the repo root.
 
 **`--files-only` is why the ticket is not printed twice.** Run bare, `util fs open` prints the document first and then the files it names, because whoever opens a document cold needs both. `get` has already printed the ticket by the time it shells out, so it asks for the files alone.
 
-Flags: `--files` (load the `open` block), `--limit <n>` and `--all` (for the bare-board shape).
+Flags: `--files` (load the `open` block). With no id, `flow get` refuses and names [`flow next`](#flow-next), which prints the board.
 
 ### `flow new "<title>"`
 
@@ -726,7 +722,6 @@ Flags:
 - `--label "<words>"`: 1-3 words for the folder name. Generated from the title when absent
 - `--body "<text>"`: the ticket body, replacing the template
 - `--body -`: read the body from stdin, so creating and filling a ticket is one command
-- `--from-groundwork <path>`: move an existing groundwork folder in as this ticket's own
 
 Every ticket gets a `groundwork/` folder with a `map.md` from birth. The folder exists whether groundwork is needed or not, because a ticket's path is fixed for life.
 
@@ -1107,7 +1102,7 @@ A skill is a folder under `skills/<group>/` holding a `SKILL.md`. Type `/flow:na
 
 **`tools/`, the jobs that fit no phase.** Shown in every session.
 
-- **`/flow:start`** (user only): opens a session on the board, one ticket, or a loose file
+- **`/flow:start`** (user only): opens a session on the board, or on one ticket
 - **`/flow:handoff`**: writes what a session that was not here needs, the state itself rather than a reading list
 - **`/flow:file-findings`** (user only): files a session's findings into skills, rules and checks
 - **`/flow:research`**: reads what an external tool actually does, from its own documentation and source. It keeps what it learns in one folder per tool, `~/.flow/wiki/<tool>/`: [Research and capture](research-and-capture.md)

@@ -18,6 +18,8 @@ The map: every place in the workflow and the routes between them. Never the proc
 
 Not every job walks the whole chain. A small fix is a ticket with a plan and no groundwork. A question is neither.
 
+**Every phase works on a ticket.** A phase skill started with none creates one first, typed for the work, and outside a project it lives in `~/.flow/tickets/`. Only a small task asked in chat, a `/flow:research` question and a subagent's job run without one: the subagent works under the ticket that sent it.
+
 ## Where groundwork's answers go
 
 There are no modes. Any run, any size, routes what it decided, often to more than one place at once, sometimes to none:
@@ -25,10 +27,10 @@ There are no modes. Any run, any size, routes what it decided, often to more tha
 - committed work → tickets, each carrying a `## References` section pointing at what the build has to read
 - anything settled that outlives the build → `docs/spec/`, created if absent
 - the shape of one thing, dying when that thing is built → a design document beside the map
-- a durable fact about the project → `docs/context/<subject>.md`
+- a durable fact about the project → its `AGENTS.md` where most sessions need it, otherwise `docs/context/<subject>.md`
 - decided but not now, and anything else that dies with the build → the map itself
 
-**Groundwork lives where the thinking happens**: inside its ticket, in `.flow/groundwork/<slug>/`, or in `~/.flow/groundwork/<slug>/` where there is no project. A global run routes nothing to `docs/`, because there is no product to hold a spec.
+**Groundwork lives in its ticket's `groundwork/`.** A run outside a project routes nothing to `docs/`, because there is no product to hold a spec.
 
 ## Tickets
 
@@ -44,13 +46,13 @@ There are no modes. Any run, any size, routes what it decided, often to more tha
 
 `.flow/tickets/` stays flat on disk: the hierarchy is `parent:` in frontmatter, and `flow` renders it on demand.
 
-**A ticket is named by its id, never a path.** `exp-47`, `47`, `parser` and `exp-47-parser-split` all resolve in `flow`, because the id is the identity and the label is decoration. A skill typed with an id loads the ticket only for a word shaped like one: a number, or a prefix, a dash and a number.
+**A ticket is named by its id, never a path.** `exp-47`, `47`, `parser` and `exp-47-parser-split` all resolve in `flow`, because the id is the identity and the label is decoration. A ticket reaches a skill through its own skill, typed after it: `/flow:execute /exp-47`.
 
 Pickup is where a ticket's shape gets decided, and it is the one real decision in the system. `/flow:start` walks it: it routes on `type:` and `status:`, and nothing else happens there. **The ticket does not move at pickup**, the skill that takes it writes the status, after opening the phase's own artifact. `/flow:groundwork` settles what the ticket is; `/flow:execute` plans, builds and reviews it.
 
 **The artifact decides the phase, and the status is corrected to match.** A status is a claim a command wrote. `map.md`, `plan.md` and the hunt in `## State` are what the work left behind, so the artifact wins wherever the two disagree. Every phase skill opens its own artifact first, says the disagreement out loud, and writes the correcting command. Evidence that reads both ways is a question for the user, never a guess.
 
-**An `open` block loads a ticket's files before the session's first turn.** `/flow:handoff` writes it, fenced, inside `## State`, or near the top of a `handoff.md` in a folder with no `.flow/`; `flow get --files` reads it, and `/flow:start` runs that command. **It is content, not a reading list**, which is why arriving at a resumed ticket costs no tool calls. A ticket nobody has worked carries no block, so its artifact gets opened by hand. The format is `util fs open`'s, not Flow's, and works on any document, ticket or not. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it.
+**An `open` block loads a ticket's files before the session's first turn.** `/flow:handoff` writes it, fenced, inside `## State`; `flow get --files` reads it, and every ticket's own skill runs that command. **It is content, not a reading list**, which is why arriving at a resumed ticket costs no tool calls. A ticket nobody has worked carries no block, so its artifact gets opened by hand. The format is `util fs open`'s, not Flow's, and works on any document, ticket or not. [The `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it.
 
 **`## References` is not that block.** It is durable: whoever cut the ticket wrote what the build has to respect, and it survives to `done`. `## State` holds work in flight, and both it and its block are deleted at review.
 
@@ -59,7 +61,7 @@ Pickup is where a ticket's shape gets decided, and it is the one real decision i
 **Two roots.** `docs/` holds the project's own documents, and a project that had a `docs/` folder before Flow keeps whatever was in it. `.flow/` holds Flow's working store, out of `docs/` so an existing documentation folder stays the project's, and out of any folder a site generator publishes.
 
 - **`.flow/tickets/exp-47-slug/`**: `ticket.md` (frontmatter, body, and whichever of `## References`, `## Done when` and `## State` the work has written) and `groundwork/`, both from birth; `intake/` when material for this job gets dropped in; `plan.md` and `reports/` appear when the work writes them, one report per thing answered, named after what it answers. `protos/` holds a prototype's code, one folder per prototype. `history.md` gets a line from `flow` at each status move and handoff: the session and the code branch. `issues.md` appears when the build learns something that stays true after the ticket closes. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `.flow/tickets/archive/`.
-- **`.flow/groundwork/<slug>/`**: `map.md`, every branch and decision in one file, plus a detail file per branch that actually grew, plus `design.md` when one was earned. Nothing else.
+- **`.flow/tickets/exp-47-slug/groundwork/`**: `map.md`, every branch and decision in one file, plus a detail file per branch that actually grew, plus `design.md` when one was earned. Nothing else.
 - **`docs/spec/`.** `product.md`: every behavior, every version, each marked V1 / next / later / never, plus what the whole thing bets on. `tech.md`: stack, repo layout, components, the decisions that constrain implementation. Each decision carries its reason and what it refused, in the file that holds it. Markdown only. More files as the project needs them, and an index once there are more than three.
 - **`docs/research/`**: research true only for this project, and research nobody could place. Flat, subject-named, one set for the whole project. Research about an outside tool goes to `~/.flow/wiki/<tool>/research/`, and research about no single tool to `~/.flow/research/`.
 - **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.

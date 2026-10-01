@@ -1,21 +1,18 @@
 ---
 name: start
-description: 'Opens a session: the board, one ticket, or a loose file.'
-argument-hint: '[path]'
+description: 'Opens a session: the board, or one ticket.'
 disable-model-invocation: true
 ---
 
-!`flow get $ARGUMENTS --files 2>&1 || true`
-
-**A refusal, or nothing** → say why and stop. The id matched no ticket, or the path matched no file.
+!`flow next 2>&1 || true`
 
 **A ticket is above**, printed by its own skill in `/flow:start /exp-47` → route it by `## When a ticket is above`. Never recommend from the board printed beside it.
 
-**Nothing named, and the board says `no tickets yet`** → say so, and point to `/flow:groundwork` for the first piece of work.
+**A refusal, and no ticket** → say why and stop.
 
-**Nothing named**: the board is above. Recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
+**The board says `no tickets yet`** → say so, and point to `/flow:groundwork` for the first piece of work.
 
-**A file is above and no ticket**: loose work. Carry on from whatever that file says comes next.
+**The board is above**: recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
 
 ## When a ticket is above
 

@@ -74,7 +74,7 @@ Each question costs the parent one turn, which is how the question reaches you.
 - **`/flow:debug` → a fresh hunt**: when the hypotheses run out, a subagent takes the hunt from the report, free of the hypotheses this session already killed.
 - **`/flow:research` and `/flow:groundwork` → readers**: a landscape too big to read in the session goes to a subagent, which writes its report where `/flow:research` files it.
 
-A prototype or a hunt keeps its place in its ticket: the status stays `building`, and `## State` in `ticket.md` says where the work stopped. A session that ends mid-run loses the subagent and keeps the ticket, and `/flow:start /exp-52` picks it up.
+A prototype or a hunt keeps its place in its ticket: the status stays `building` while it runs, and `## State` in `ticket.md` says where the work stopped. A session that ends mid-run loses the subagent and keeps the ticket, and `/flow:start /exp-52` picks it up. The parent closes the ticket once the answer is in: `/flow:groundwork` once you accept a prototype's answer, and `/flow:debug` once the failing check passes in the parent session.
 
 ## What a subagent changed
 

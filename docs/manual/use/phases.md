@@ -7,6 +7,7 @@ A phase skill is one you type to work a ticket through one phase: `/flow:groundw
 - [How a ticket reaches a phase](#how-a-ticket-reaches-a-phase)
 - [What a ticket skill loads](#what-a-ticket-skill-loads)
 - [Text after the skills is an instruction](#text-after-the-skills-is-an-instruction)
+- [A phase with no ticket creates one](#a-phase-with-no-ticket-creates-one)
 - [What each skill produces](#what-each-skill-produces)
 
 ## How a ticket reaches a phase
@@ -21,7 +22,7 @@ Typing `/exp` lists every open ticket with its status and title, so you pick one
 
 - **A ticket skill after the phase**: the ticket loads, then the phase opens on it.
 - **Nothing**: the phase opens on whatever is already in the conversation. This is how `/flow:start` invokes a phase, since it has already loaded the ticket.
-- **Words**: the phase opens with no ticket, and the words are an instruction to it. A ticket id among them, `/flow:execute exp-2`, is looked up by Claude, one step later.
+- **Words**: the words are an instruction to the phase. With no ticket loaded, the phase creates one from them, as [A phase with no ticket creates one](#a-phase-with-no-ticket-creates-one) says. A ticket id among them, `/flow:execute exp-2`, is looked up by Claude, one step later.
 
 ## What a ticket skill loads
 
@@ -71,15 +72,28 @@ Anything typed after the skills reaches every one of them as your first message.
 /flow:groundwork we need to decide where uploads are stored
 ```
 
-The first loads exp-5 and then reads the instruction. The second opens groundwork with no ticket, which is normal: a topic often starts as a sentence and becomes a ticket in the skill's last phase.
+The first loads exp-5 and then reads the instruction. The second opens groundwork with no ticket, which is normal: a subject often starts as a sentence, and the skill creates its ticket first.
 
 Each skill is a long file, and every run you type adds it to the conversation whole, even one identical to an earlier run.
+
+## A phase with no ticket creates one
+
+Every phase works on a ticket, so the work shows on the board and a later session can pick it up. A phase opened without one creates it first, from what you typed, before any other step:
+
+- **`/flow:groundwork`**: a `topic`. Its last phase turns the topic into a feature where the answer is one piece of work, gives it children where the answer is several, or closes it where the answer was the point.
+- **`/flow:debug`**: an `issue`, before the first hypothesis.
+- **`/flow:prototype`**: a `prototype`, so the code has a folder to live in.
+- **`/flow:execute`**: a `feature`, from the work you described. Typed with nothing to build, it prints the board instead, recommends one ticket and waits for your pick.
+
+Outside a project the ticket goes to the tickets in `~/.flow/`, numbered `home-1`, `home-2`, and its id works from any folder. Where the work turns out to belong to a project, `flow move` takes the ticket there. [Where everything lives](../where-everything-lives.md) shows both places.
+
+A small task asked in chat with no skill gets no ticket, and neither does a `/flow:research` question or a subagent's job: the subagent works under the ticket that sent it.
 
 ## What each skill produces
 
 Every phase leaves its result in the ticket folder, so a later session reads the file rather than the conversation. [Tickets](../tickets.md) lists every file a ticket folder can hold.
 
-- **`/flow:groundwork`** writes `groundwork/map.md`: every question, settled or open, and the reasoning under each. At the end it cuts tickets for what was decided and hands a feature to `/flow:execute`.
+- **`/flow:groundwork`** writes `groundwork/map.md`: every question, settled or open, and the reasoning under each. At the end it shapes the ticket from what was decided, a feature or a parent of several, and hands a feature to `/flow:execute`.
 - **`/flow:execute`** writes `plan.md`, waits for your yes on the steps, builds them, and hands the work back at `review`.
-- **`/flow:debug`** writes `reports/<failure>.md`: the failing check, the hypotheses, the one that held, and the fix.
+- **`/flow:debug`** writes `reports/<failure>.md`: the failing check, the hypotheses, the one that held, and the fix. A fixed bug moves to `review`, and closes once you confirm the fix.
 - **`/flow:prototype`** writes `reports/<question>.md`: what was built, what it showed, and the answer. The code stays beside it in `protos/<name>/`, as a reference the real build reads and never copies.

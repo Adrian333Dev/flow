@@ -20,7 +20,9 @@ Same 4 phases at any size. A long message fills more of the map in advance, neve
 
 Anything starts a run: one line, 10 paragraphs, a folder of research reports, a design someone already drafted. Phase 1 takes all of it the same way.
 
-**No ticket** → nothing has a status, so no `flow` command runs before Phase 4. Start at Phase 1.
+**No ticket** → the ticket already open on this subject, where `flow ls` shows one, since one subject never gets a second map. Otherwise `flow new "<subject>" --type topic`. Either way the map is that ticket's `groundwork/map.md`, opened below.
+
+**Outside a project the ticket lives in `~/.flow/tickets/`**, and nothing the run decides reaches `docs/`, because there is no product here to hold a spec. Phase 4's `docs/` routes land under `~/.flow/` instead. Never create a project to have somewhere to write. **Work that turns out to belong to a project moves there once**: `flow move <id> <project folder>`. Same move when the folder you are standing in becomes a project mid-run.
 
 **On a ticket, open `map.md` before anything else.** It is what the work produced, so it decides which phase this is. The status is a claim somebody wrote, and it can be wrong.
 
@@ -34,21 +36,7 @@ Anything starts a run: one line, 10 paragraphs, a folder of research reports, a 
 
 ## Phase 1: build the map
 
-### 1. Pick the folder
-
-- Belongs to a ticket → that ticket's `groundwork/`, created with the ticket.
-- Inside a project, belongs to nothing yet → `.flow/groundwork/<slug>/`.
-- No project here → `~/.flow/groundwork/<slug>/`, the global store. Never create a project to have somewhere to write, and never leave the folder where you happen to be standing.
-
-**A global run stays global.** Nothing it decides reaches `docs/`, because there is no product here to hold a spec: Phase 4's `docs/` routes land under `~/.flow/` instead, and the rest lands in the ticket. Commands take the root: `FLOW_PROJECT=$HOME flow new "…"` writes to `~/.flow/tickets/`, on its own id sequence.
-
-**Work that turns out to belong to a project moves there, once.** The folder goes to that project's `.flow/groundwork/<slug>/` and leaves nothing behind. Same move when the directory you are standing in becomes a project mid-run.
-
-Never pick the folder from a guess at how the work ends.
-
-Folder already there for this subject → continue it. Never start a second map on one subject.
-
-### 2. Extract
+### 1. Extract
 
 Read what is already here in the area this touches: code, documents, whatever there is. Follow how it is built, or say why not.
 
@@ -67,7 +55,7 @@ Then list 4 things:
 
 Sharpen vague input: what was tried already, and what forced this now.
 
-### 3. Widen
+### 2. Widen
 
 **Generate options nobody raised.** A map built only from what the user said writes down their thinking instead of mapping the decision. Runs every session, detailed input included: 10 paragraphs is one person's view stated at length.
 
@@ -94,7 +82,7 @@ Sharpen vague input: what was tried already, and what forced this now.
 
 **Name the new options in prose**: "you haven't mentioned X". Never a label. Seeing what they'd have missed is most of the value.
 
-### 4. Propose
+### 3. Propose
 
 State 3 things and confirm all 3 before walking: **3–N top-level branches**, **the order you'll walk them**, **where the answers will land**.
 
@@ -140,7 +128,7 @@ A feature rarely spawns one. A whole product usually spawns several, because its
 - **What already exists here** → read it. Never burn a branch on what it already says.
 - **Something documented elsewhere** → **invoke `/flow:research`**, levels 1–2.
 - **Past what the documentation says** → **invoke `/flow:research`**, level 3: get the source and read it. **This is the case that sinks plans**, committing to a tool's internals unread produces a design that dies 4 steps into the build.
-- **Nothing written can answer it** → run something. A cheap check (one command, a 10-second script) runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a ticket typed `prototype`** carrying the question and its pass and fail. Make it a child of this work where there is one: `flow new "<question>" --type prototype --parent <id>`. **Never build it here.** Start a subagent with `Run /flow:prototype on <id>`, and carry on with the walk. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. This groundwork resumes from the finding in the ticket's `reports/`. When nothing else on the map can move, say it waits on that ticket and stop. A session that ends first leaves the ticket in `building`, and `/flow:prototype /exp-12` picks it up.
+- **Nothing written can answer it** → run something. A cheap check (one command, a 10-second script) runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a child ticket typed `prototype`** carrying the question and its pass and fail: `flow new "<question>" --type prototype --parent <id>`. **Never build it here.** Start a subagent with `Run /flow:prototype on <id>`, and carry on with the walk. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. This groundwork resumes from the finding in the ticket's `reports/`, and closes that ticket with `flow done <id>` once the user accepts the answer. When nothing else on the map can move, say it waits on that ticket and stop. A session that ends first leaves the ticket in `building`, and `/flow:prototype /exp-12` picks it up.
 
 **A landscape too big to read here goes to a subagent**, never a ticket: reading asks no questions back, so nothing needs to watch it. `/flow:research` owns the brief. The branch stays `[ ]` until the report lands where `/flow:research` files it, and the walk carries on meanwhile. A whole product is where this fires.
 
@@ -207,7 +195,7 @@ Run at 3 moments, not at every close:
 
 Confirm every branch is resolved or deliberately deferred, then send each decision to the file that owns it. **Every route is conditional**: most runs use 1 or 2, several at once is normal.
 
-- **Work committed to here** → a ticket per unit of work, `flow new "…"`, each carrying what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list**: `/flow:execute` reads every one of them, and a ticket pointed at everything is pointed at nothing. **Record order that matters as `deps`**; the order you walked the branches in carries none. **Create and fill in one command**: `--body -` takes the body on stdin. Never create, then edit.
+- **Work committed to here** → this ticket, or its children, shaped by the list below. Each carries what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list**: `/flow:execute` reads every one of them, and a ticket pointed at everything is pointed at nothing. **Record order that matters as `deps`**; the order you walked the branches in carries none. **Create and fill a child in one command**: `flow new "…" --parent <id> --body -` takes the body on stdin. Never create, then edit.
 - **A branch that is its own subject** → `flow new "…" --type topic --parent <id>`, one per subject. Phase 2 carries the split rule and what the body holds.
 - **Work already written into `docs/spec/product.md`** → `/flow:tickets-from-spec`. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
 - **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `references/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
@@ -216,15 +204,15 @@ Confirm every branch is resolved or deliberately deferred, then send each decisi
 - **Settled and dying with the build**, this build's non-goals included → already written in `map.md`. Leave it there.
 - **Decided, but not now** → `## Deferred` in the map, with the reason.
 - **Nothing** → a legitimate outcome, and deliberate. Say so out loud and say why, in `map.md`. Groundwork that resolves to "not worth doing" did its job.
-- **Not worth building, on a ticket** → propose dropping it. On a yes, `flow drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: a parked ticket satisfies nothing, so its dependents wait for the revival.
+- **Not worth building** → propose dropping the ticket. On a yes, `flow drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: a parked ticket satisfies nothing, so its dependents wait for the revival.
 
-**Then move the folder, once, and only here:**
+**Then shape the ticket, once, and only here:**
 
-- Exactly 1 unit of work → `flow new "…" --from-groundwork <path>`. The tool moves the folder in as that ticket's `groundwork/` and leaves nothing behind. Never move it by hand.
-- Several units, each useful alone → **it stays**, and becomes the design record the tickets link back to.
-- Several units, useless shipped apart → one parent ticket with children, created with the same flag so the folder lands on the parent. **The parent keeps only what no child holds**: the wiring, the integration test, the final suite.
+- Exactly 1 unit of work → this ticket. A `topic` becomes a feature: `flow edit <id> --type feature`.
+- Several units, useless shipped apart → children of this ticket, which becomes a `feature` where it is a `topic`. **The parent keeps only what no child holds**: the wiring, the integration test, the final suite.
+- Several units, each useful alone → children of this ticket, which becomes a `topic` where it is not one. It closes after them, so the map they link back to keeps its path out of `archive/`.
 
-**Then say what happens next.** `flow next` lists what is workable, and **`/flow:execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `/flow:execute`, against the code as it stands that day. On a `topic`, the map is the deliverable: `flow done <id>` once the user says it is done.
+**Then say what happens next.** `flow next` lists what is workable, and **`/flow:execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `/flow:execute`, against the code as it stands that day. On a `topic`, the map is the deliverable: `flow done <id>` once the user says it is done, or after its last child closes. A `topic` whose answer is no closes the same way, since the answer is what it delivered.
 
 ## Asking questions
 

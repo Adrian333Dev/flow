@@ -11,9 +11,11 @@ Find the cause by evidence, prove it, then fix it. The fix is the cheap part.
 
 Usually it is one command you run yourself. Where the failure lives out of reach, in a browser, a phone or a service behind a login, the check is a short sequence the user runs and reports back. Write it as exact and as repeatable as a command.
 
-**On a ticket** → read `## State` before step 1. It is where the hunt is written, so it says how far this one got: resume at the first hypothesis nothing killed, and never restart the loop. Nothing written there → step 1.
+**On a ticket, read `## State` before step 1.** It is where the hunt is written, so it says how far this one got: resume at the first hypothesis nothing killed, and never restart the loop. Nothing written there → step 1.
 
-Then `flow build <id>`. An `issue` has no phase before building.
+- **Sent from `/flow:execute` mid-build** → move no status. `/flow:execute` owns the moves.
+- **Any other ticket** → `flow build <id>`. An `issue` has no phase before building.
+- **No ticket** → `flow new "<what failed>" --type issue`, then `flow build <id>`, before the first hypothesis.
 
 ## The loop
 
@@ -39,11 +41,16 @@ Then `flow build <id>`. An `issue` has no phase before building.
 
 4. **Fix the cause, then re-run the failing check.** Nothing else verifies it. A fix checked against a different command, a manual click, or your own reading of the diff is unverified.
 
-**Write the hunt down as it runs**: the failing check, every hypothesis and how it died, what survived. That is the ticket's `## State`. **No ticket, inside a project** → `flow new "<what failed>" --type issue` first, before the first hypothesis. Outside a project, `/flow:handoff` writes a file. Nothing else records any of it, which makes an interrupted hunt the most expensive thing in Flow to lose.
+**Write the hunt down as it runs**: the failing check, every hypothesis and how it died, what survived. That is the ticket's `## State`. Nothing else records any of it, which makes an interrupted hunt the most expensive thing in Flow to lose.
 
-**When the hunt ends, write the report**: `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the failing check, which hypotheses died and how, the cause, the fix, and the output that proves it. Outside a project → `REPORT-<failure>.md` beside the work. `## State` is deleted when the ticket closes and this is not, a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely, a verified command, a settled convention, goes where `## Capture` sends it as well.
+**When the hunt ends, write the report**: `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the failing check, which hypotheses died and how, the cause, the fix, and the output that proves it. `## State` is deleted when the ticket closes and this is not, a cause found once is worth finding again, because the same bug returns wearing a different symptom. A fact that outlives the bug entirely, a verified command, a settled convention, goes where `## Capture` sends it as well.
 
 **Open it with a status**, so the answer is the first line a week later: `FIXED`, `FOUND_NOT_FIXED` where the cause is proved and the fix needs a decision nobody gave, or `UNPROVEN` where the hypotheses ran out. `UNPROVEN` is a real result, what got ruled out is the whole deliverable then, and it is worth as much as a fix.
+
+**Then move the ticket by that status**, unless `/flow:execute` sent you here:
+
+- **`FIXED`** → `flow review <id>`, then `flow done <id>` once the user confirms the fix. Then offer `/flow:file-findings`, and wait for a yes. A ticket a parent session handed you stops at `review`: the parent closes it.
+- **`FOUND_NOT_FIXED`, `UNPROVEN`** → it stays `building`. The user decides whether the hunt carries on, parks or drops.
 
 ### When the failure is somewhere you cannot reach
 
@@ -89,7 +96,7 @@ Stop fixing. 3 failed fixes means the hypothesis was never the problem: the shap
 
 **Hunt here.** The fix lands in code this session already knows, and anyone new re-derives all of that first.
 
-3 things end the hunt here:
+2 things end the hunt here:
 
 - **The fix needs a decision nobody gave**, and 3 failed fixes always mean one → ask the user, here, and carry on with the answer.
 - **The hypotheses ran out** → a fresh subagent takes the hunt. This session keeps reaching for the hypotheses it already killed. The subagent reads the evidence without them.
@@ -108,11 +115,9 @@ flow new "<what failed>" --type issue --parent exp-47 --body - <<'EOF'
 EOF
 ```
 
-**The ticket is what makes this safe:** it carries a status, and the parent refuses to close around it while it is open, which a file nobody marks finished could never do.
+**The ticket is what makes this safe:** it carries a status, and the parent refuses to close around it while it is open.
 
-**No ticket system here** → the report is already beside the work, and the subagent gets its path instead of an id.
-
-Then start a subagent with `Run /flow:debug on <id>`. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. When a fix comes back, re-run the failing check yourself: someone else's verification output is their claim, not yours. A session that ends first leaves the ticket in `building`, and `/flow:debug /exp-12` picks it up.
+Then start a subagent with `Run /flow:debug on <id>`. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. When a fix comes back, re-run the failing check yourself: someone else's verification output is their claim, not yours. It passes → `flow done <id>` closes the child. A session that ends first leaves the ticket in `building`, and `/flow:debug /exp-12` picks it up.
 
 ## Hard rules
 

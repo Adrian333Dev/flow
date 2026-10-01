@@ -4,38 +4,31 @@ Written 2026-10-01. Read this once, then rewrite it whole next time.
 
 ## Where things stand
 
-The restore form is built and every test passes, 230 of 230. `flow restore machine`, `flow restore project` and `flow uninstall` each write `~/.flow/restore.md`, one box per path Flow changed, and the script reads the ticks itself. `scripts/flow/lib/restore-form.js` holds the form, its strict reading, the unsent-ticket refusal and `apply()`. A project's `AGENTS.md`, `CLAUDE.md` and `docs/` start unticked. `lab/context/state.md` → `**restore**` and `docs/manual/reference.md` → `### flow restore machine and flow restore project` describe it as built. The user wants no commit suggestions, and commits themselves.
+Pass 2 of the final sweep, simplify, ran a second time on 2026-10-01, and everything it proposed is built. `lab/backlog/before-beta.md` → pass 2 records each item:
 
-**The restore commands stay as built.** Ruled by the user 2026-10-01:
+- **Every phase skill works on a ticket.** A phase skill finding none creates one first, outside a project in `~/.flow/tickets/`. `.flow/groundwork/`, `~/.flow/groundwork/`, `flow new --from-groundwork`, `flow get <path>`, `/flow:start <path>`, `handoff.md` and the `REPORT` files are gone.
+- **4 fixes**: `/flow:debug` moves its own ticket to `review` and `done`, and the parent session closes a hunt or a prototype it handed to a subagent. The board leaves a parent with open children out of `in flight`. `flow next` prints the board, `/flow:start` runs it, and `flow get` needs an id. `flow drop` writes its `history.md` line.
 
-- `flow restore machine` lists the machine and every project, so it already covers restoring everything.
-- `flow restore project` covers the current project alone.
-- Bare `flow restore` keeps running `flow restore ls`, which only reads. A bare form with ticks set by where it runs was proposed and dropped: each of its two cases repeats one of the commands above.
+`npm test` in `scripts/` passed, 246 of 246. Nothing is committed.
 
-## Next: pass 2 of the final sweep
+## Next: pass 3, compress every skill
 
-`lab/backlog/before-beta.md` item 1: simplify. 3 candidates, each **talk first**, in the recommended order:
-
-1. Split `docs/spec/decisions.md` 3 ways and delete it, after walking 3 real Delapse examples.
-2. Context engineering: keep what loads small, and stop a skill loading mid-session from breaking the cache. `/skill-doctor` and `/cost` show it.
-3. Whether `lab/scripts/try.sh` and the practice projects go. The `expense-tracker` board is the thing to weigh. A delete needs its own yes.
+Pass 2 is finished, so `lab/backlog/before-beta.md` → pass 3 comes next: cut the detail and explanation an agent does not need, pass after pass, until the user is happy. `/flow:groundwork` is the user's example of a skill that over-explains. Run `drain-workflow-notes` and `check-claude-code-updates` from `CLAUDE.md` first.
 
 ## How the user wants this work done
 
-- Reuse what exists. A proposal to move the setup file's skills ticket elsewhere was rejected hard.
-- Match the conventions the user names. They asked for `-y`, and a proposed `--yes` was rejected hard.
-- Keep `home/AGENTS.md` → `## Capture` to routing, and give the agent room to decide.
-- Where a skill must run a command every time, run it as the skill loads (`` !`…` ``) rather than asking the agent to.
-- Judge a command by the user's intent when they type it. A command whose cases repeat existing ones goes.
+- Reason extensively before proposing anything. Weigh each candidate against what it is for, and never re-raise one recorded as kept.
+- Record every dropped proposal in its backlog item, with why, in the same turn: `CLAUDE.md` → `write-dropped-proposals`.
+- Keep replies short. The user is always in a rush.
+- Reuse what exists, and match the conventions the user names.
 - The user dictates by voice, thinks out loud, and approves with "go" or "approve". A message ending in a question is thinking.
+- The user commits. Never suggest a commit.
 
 ## Watch in the beta
 
+- **`/flow:start /home-4` outside a project may be refused.** `scripts/check-ticket.js` refuses a bare `/flow:start` outside a project, and whether Claude Code hands it an empty `command_args` when a ticket's skill follows it is unchecked. A phase skill with the ticket, `/flow:groundwork /home-4`, always gets through.
 - **`flow init`'s push check is a dry run**, tested only against a missing remote folder. Whether GitHub refuses a dry run from someone signed out, or without write access, is unchecked.
 - **Whether `claude plugin list`, run from inside the safe-mode setup session, still lists synced plugins.** The docs do not say.
 - **The restore form has never met a real terminal.** Tests answer the word in process. Check the prompt reads well, and that saving the form in an editor and typing the word works as written.
-
-## Open findings, only if `try.sh` survives pass 2
-
 - **The practice project's code was never committed.** `try.sh` builds `expense-tracker` with all its code untracked.
 - **A `try.sh` build that fails partway leaves a run `--fresh` cannot clear.** The run has no `seed` file yet, so it has to be deleted by hand.

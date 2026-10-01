@@ -26,7 +26,7 @@ Three things at once:
 
 **A ticket is named by its id**, the project's prefix and a number: `exp-47`. `flow init` asks for the prefix once, 2 to 8 lowercase letters, and offers the first 3 letters of the folder name. The tickets in `~/.flow/`, which belong to no project, use `home`: `home-4`. The folder gets a readable label after the id, `exp-47-parser-split`, but the id is the identity. `exp-47`, `47`, `parser` and `exp-47-parser-split` all name the same ticket to every command, and a bare number always means the project you are in.
 
-**Not everything is a ticket.** A question somebody wants answered produces a report and no code, so it runs inside whatever work raised it. A decision nobody has made yet is groundwork. A ticket exists once there is committed work.
+**Every phase works on a ticket.** A phase skill started without one creates it first, so a decision nobody has made yet starts as a `topic` ticket, and a bug as an `issue`. 3 things run without one: a small task asked in chat with no skill, a question for `/flow:research`, which produces a report and runs inside whatever work raised it, and a subagent's job, done under the ticket that sent it.
 
 ## Where a ticket lives
 
@@ -157,7 +157,7 @@ Every ticket is created by a command, because the id, the folder and the frontma
 flow new "Split the parser into a tokenizer and a builder"
 ```
 
-That prints the ids and paths it made, and the command to pick the ticket up. Seven flags shape it:
+That prints the ids and paths it made, and the command to pick the ticket up. Six flags shape it:
 
 - **`--type <type>`**: one of the 5 above. Defaults to `feature`.
 - **`--priority <level>`**: `high`, `normal` or `low`. Only `high` and `low` are stored.
@@ -165,7 +165,6 @@ That prints the ids and paths it made, and the command to pick the ticket up. Se
 - **`--deps <id,id>`**: ids this cannot start before, comma separated.
 - **`--label <1-3 words>`**: the readable half of the folder name, where the title makes a poor one.
 - **`--body <text|->`**: the whole body, or `-` to read it from standard input.
-- **`--from-groundwork <path>`**: move a loose groundwork folder in as this ticket's `groundwork/`.
 
 **Without `--body`, the ticket gets a template**: the title, a comment where the paragraph goes, and a `## Done when` heading.
 

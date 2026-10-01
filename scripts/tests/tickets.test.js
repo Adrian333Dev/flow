@@ -64,40 +64,25 @@ test('flow new with --deps validates that each dep exists', () => {
   assert.match(bad.stderr, /exp-999/);
 });
 
-test('flow new with --from-groundwork moves the folder', () => {
-  const dir = project('tickets-from-gw');
-  const gwDir = path.join(dir, 'loose-groundwork');
-  fs.mkdirSync(gwDir, { recursive: true });
-  fs.writeFileSync(path.join(gwDir, 'map.md'), '# Map\nopen questions here\n');
-
-  const r = flow(dir, ['new', 'Parse the config', '--from-groundwork', gwDir]);
-  assert.strictEqual(r.code, 0, r.stderr);
-  assert.ok(!fs.existsSync(gwDir), 'original folder should be gone');
-
-  const [t] = ticket(dir);
-  const mapFile = path.join(dir, '.flow', 'tickets', t.folder, 'groundwork', 'map.md');
-  assert.ok(fs.existsSync(mapFile), 'map.md should exist in ticket groundwork');
-  assert.match(fs.readFileSync(mapFile, 'utf8'), /open questions/);
-});
-
-test('a groundwork folder on another disk is copied in, then deleted', () => {
+test('a folder on another disk is copied across, then deleted', () => {
   const store = require('../flow/lib/store');
-  const dir = project('tickets-from-gw-other-disk');
-  const gwDir = write(dir, 'elsewhere/groundwork/map.md', '# Map\nsettled here\n');
+  const dir = project('tickets-move-other-disk');
+  const from = path.dirname(write(dir, 'elsewhere/exp-1-parser/ticket.md', '# Parser\n'));
+  const to = path.join(dir, 'there', 'exp-1-parser');
+  fs.mkdirSync(path.dirname(to), { recursive: true });
 
   // A real second filesystem is not available to a test, so the rename fails
   // the way it does across disks.
   const rename = fs.renameSync;
   fs.renameSync = () => { throw Object.assign(new Error('cross-device link'), { code: 'EXDEV' }); };
-  let t;
   try {
-    t = store.createTicket(dir, { title: 'Moved across disks', fromGroundwork: path.dirname(gwDir) });
+    store.moveFolder(from, to);
   } finally {
     fs.renameSync = rename;
   }
 
-  assert.ok(!fs.existsSync(path.dirname(gwDir)), 'the original folder is gone');
-  assert.match(fs.readFileSync(path.join(t.dir, 'groundwork', 'map.md'), 'utf8'), /settled here/);
+  assert.ok(!fs.existsSync(from), 'the original folder is gone');
+  assert.match(fs.readFileSync(path.join(to, 'ticket.md'), 'utf8'), /Parser/);
 });
 
 test('flow edit changes title, type, priority, and label', () => {
@@ -278,8 +263,11 @@ test('flow drop --force cascades to transitive dependents', () => {
   assert.strictEqual(r.code, 0, r.stderr);
 
   for (const id of [t1.id, t2.id, t3.id]) {
-    const fm = frontmatter.parse(fs.readFileSync(ticketFile(dir, id), 'utf8'));
+    const file = ticketFile(dir, id);
+    const fm = frontmatter.parse(fs.readFileSync(file, 'utf8'));
     assert.strictEqual(fm.data.status, 'dropped', `${id} should be dropped`);
+    const history = fs.readFileSync(path.join(path.dirname(file), 'history.md'), 'utf8');
+    assert.match(history, /todo → dropped/, `${id} should record the drop in history.md`);
   }
 });
 
@@ -314,6 +302,13 @@ test('flow file stamps a closed ticket, and --force re-stamps', () => {
   const forced = flow(dir, ['file', t.id, '--force']);
   assert.strictEqual(forced.code, 0, forced.stderr);
   assert.match(forced.stdout, /filed/);
+});
+
+test('flow get needs an id: the board is flow next', () => {
+  const dir = project('tickets-get-needs-id');
+  const r = flow(dir, ['get']);
+  assert.strictEqual(r.code, 1);
+  assert.match(r.stderr, /takes a ticket id.*The board is flow next/);
 });
 
 test('flow <id> counts the map questions, and an untouched map has none', () => {

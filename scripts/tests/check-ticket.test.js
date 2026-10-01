@@ -46,10 +46,10 @@ test('check-ticket blocks when setup never ran, and a bare /flow:start outside a
   assert.match(board.stdout, /not a Flow project yet.*flow init/);
 });
 
-test('check-ticket passes a phase skill, free text, a typed id and a path outside a Flow project', () => {
+test('check-ticket passes a phase skill, free text and a typed id outside a Flow project', () => {
   const dir = project('check-ticket-loose');
   fs.rmSync(path.join(dir, '.flow'), { recursive: true });
-  for (const [name, args] of [['groundwork', 'write the map for pricing'], ['groundwork', ''], ['execute', 'exp-999'], ['flow:start', 'notes/handoff.md'], ['debug', '']]) {
+  for (const [name, args] of [['groundwork', 'write the map for pricing'], ['groundwork', ''], ['execute', 'exp-999'], ['debug', '']]) {
     const result = check(name, args, dir);
     assert.strictEqual(result.code, 0);
     assert.strictEqual(result.stdout.trim(), '', `blocked /${name} ${args}`);

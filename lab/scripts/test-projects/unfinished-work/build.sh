@@ -135,25 +135,3 @@ flow new "Cut from the spec, never picked up" --type feature --label "from spec"
 
 `node src/cli.js get name` prints the value, and `get nope` exits 1 printing `nope`.
 MD
-
-mkdir -p "$PROJ/notes"
-cat > "$PROJ/notes/pricing.md" <<'MD'
-# Pricing
-
-3 tiers or 2. The draft below argues for 2.
-
-## Draft
-
-Free: 100 records. Paid: unlimited, one price. A middle tier splits the paid users without adding a reason to upgrade.
-MD
-cat > "$PROJ/notes/handoff.md" <<'MD'
-# Handoff: pricing
-
-First action: read the draft in `pricing.md` and write the counter-case for 3 tiers under it, 5 lines at most. The user asked for both cases side by side before deciding.
-
-Now: the 2-tier case is written. The 3-tier case is not.
-
-```open
-pricing.md
-```
-MD

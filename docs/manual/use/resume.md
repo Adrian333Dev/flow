@@ -50,7 +50,7 @@ Where `## State` and the files on disk disagree about what exists, the files win
 
 ## Groundwork closed, moving to execute
 
-`/flow:groundwork` ends by cutting tickets for what the map decided, then points to `/flow:execute`. It never moves a ticket on to `planning` itself. The map is the handoff: every decision and its reasoning already sit in `groundwork/map.md`, so `/flow:handoff` here adds a `## State` only where something outside the map is true, such as a file the plan must start from.
+`/flow:groundwork` ends by shaping the ticket from what the map decided, a feature or a parent of several, then points to `/flow:execute`. It never moves a ticket on to `planning` itself. The map is the handoff: every decision and its reasoning already sit in `groundwork/map.md`, so `/flow:handoff` here adds a `## State` only where something outside the map is true, such as a file the plan must start from.
 
 Then `/clear` and `/flow:execute /exp-1`. The skill moves the ticket to `planning`, reads the map, and starts writing `plan.md` from it. It never re-derives a decision the map already made.
 
@@ -62,9 +62,9 @@ The same 3 steps, at a clean point: the current step finished, its check run, th
 
 ## Work with no ticket gets one
 
-A conversation can start with no ticket: a design question, a quick fix that grew. In a project, `/flow:handoff` then creates a ticket for it with `flow new`. The ticket's body says what the job is and why, and its `## State` carries the rest. The new ticket is moved in flight, so a bare `/flow:start` after `/clear` shows it on the board and recommends it. Loose groundwork, a `.flow/groundwork/<slug>/` folder with no ticket, moves into the new ticket as its `groundwork/`.
+Every phase skill creates its ticket before it starts, so only work done with no skill reaches a handoff without one: a design question asked in chat, a quick fix that grew. `/flow:handoff` then creates a ticket for it with `flow new`. The ticket's body says what the job is and why, and its `## State` carries the rest. The new ticket is moved in flight, so a bare `/flow:start` after `/clear` shows it on the board and recommends it.
 
-Only a folder with no `.flow/` gets a `handoff.md` file instead, picked up with `/flow:start <path>`.
+Outside a project the ticket goes to the tickets in `~/.flow/`, numbered `home-1`, and the line the handoff ends on names it, such as `/flow:groundwork /home-1`. A handoff always lands in a ticket. Flow writes no handoff file.
 
 ## `/flow:handoff` replaces `/compact`
 

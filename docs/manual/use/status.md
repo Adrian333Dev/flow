@@ -25,9 +25,10 @@ The line of statuses runs `todo → groundwork → planning → building → rev
 
 The agent runs the verb as part of the phase, never at the end of a session:
 
-- **`/flow:groundwork`** runs `flow groundwork exp-1` when it opens, whatever status the ticket held, and never moves it further. A finished map ends by pointing to `/flow:execute`, which makes the next move. On a topic, where the map was the deliverable, it runs `flow done exp-5` once you say it is done.
+- **`/flow:groundwork`** runs `flow groundwork exp-1` when it opens, whatever status the ticket held, and never moves it further. A finished map ends by pointing to `/flow:execute`, which makes the next move. On a topic, where the map was the deliverable, it runs `flow done exp-5` once you say it is done. It closes a prototype it handed to a subagent, `flow done exp-6`, once you accept the answer.
 - **`/flow:execute`** runs `flow plan exp-2` when it picks up a ticket at `todo` or `groundwork`. A map with questions still open is reported to you, and the plan waits for your call. Then `flow build exp-2` once you approve the steps, `flow review exp-2` once every step is checked and the suite passes, and `flow done exp-2` once you say it is done.
-- **`/flow:debug`** and **`/flow:prototype`** run `flow build` on arrival. An issue and a prototype have no phase before building.
+- **`/flow:debug`** and **`/flow:prototype`** run `flow build` on arrival. An issue and a prototype have no phase before building. A fixed bug goes to `flow review exp-4` once its failing check passes, and `flow done exp-4` once you confirm the fix. A bug found but not fixed, or not found, stays at `building`, and you decide whether the hunt carries on. Run from inside `/flow:execute`, `/flow:debug` moves nothing.
+- **A skill opened with no ticket** creates one first, with `flow new`, before its first move.
 
 The agent reads the ticket first and moves it second. A ticket already at the right status gets no command.
 
