@@ -9,7 +9,7 @@ A session ends, or its context fills, and the work has to carry on in a new one.
 - [Groundwork closed, moving to execute](#groundwork-closed-moving-to-execute)
 - [Context filled mid-phase](#context-filled-mid-phase)
 - [Work with no ticket gets one](#work-with-no-ticket-gets-one)
-- [`/flow:handoff` against `/compact`](#handoff-against-compact)
+- [`/flow:handoff` replaces `/compact`](#flowhandoff-replaces-compact)
 
 ## What `/flow:handoff` writes
 
@@ -34,9 +34,15 @@ Three parts. `Now` is where the work stands. `Found` is what this session learne
 
 ## The 3 steps
 
-1. `/flow:handoff`. The agent writes `## State` and shows it.
+1. `/flow:handoff`. The agent writes `## State`, shows it, and ends on the 2 lines you type next:
+
+   ```text
+   /clear
+   /exp-2
+   ```
+
 2. `/clear`. The context empties. The ticket file holds everything.
-3. `/flow:execute /exp-2`, or `/flow:start /exp-2` to let the type and status pick the skill. Either loads the ticket, its `## State` and every file in the `open` block, in one step, before the skill's first word.
+3. `/exp-2`, the ticket's own skill. It loads the ticket, its `## State` and every file in the `open` block, in one step, before Claude's first word. `/flow:execute /exp-2` loads the same and opens the phase, and `/flow:start /exp-2` lets the type and status pick the phase.
 
 Where `## State` and the files on disk disagree about what exists, the files win. A new session can be started without `/flow:handoff`, and then `## State` describes an older point than the code. On decisions and what is still open, `## State` wins over the rest of the ticket, since it is the newer record.
 
@@ -58,6 +64,8 @@ A conversation can start with no ticket: a design question, a quick fix that gre
 
 Only a folder with no `.flow/` gets a `handoff.md` file instead, picked up with `/flow:start <path>`.
 
-## `/flow:handoff` against `/compact`
+## `/flow:handoff` replaces `/compact`
 
-`/compact` is Claude Code's own command. It summarizes the whole conversation and keeps the session going. `/flow:handoff` writes only what the next session would get wrong without, into a file that outlives the session. Use `/compact` to keep working in the same session. Use `/flow:handoff` then `/clear` when the session is ending, or when the summary would carry more than the work needs.
+`/compact` is Claude Code's own command. It swaps the conversation for Claude Code's summary of it, and the session carries on from the summary. Flow refuses it: a typed `/compact` stops and names `/flow:handoff`, then `/clear`, in its place. Claude Code never compacts by itself either.
+
+A summary keeps a little of everything, and lives only inside that one conversation. `/flow:handoff` writes only what the next session would get wrong without, into the ticket, which outlives the session. `"compact": true` in `~/.flow/settings.json` lets a typed `/compact` run, and [Settings](../settings.md#the-compact-refusal) covers both switches.

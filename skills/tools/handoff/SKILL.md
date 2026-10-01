@@ -134,6 +134,19 @@ Everything else has an owner: `flow` the frontmatter, `/flow:execute` `plan.md`,
 
 **In a file**: `handoff.md` beside the file in front of you. **One per folder, overwritten every time.** A stale one describes a state that no longer exists.
 
+## 5. End on what to type
+
+End the reply with the 2 lines the user types to carry on, the second opening what you wrote:
+
+```text
+/clear
+/exp-47
+```
+
+- **A ticket** → its own skill, `/exp-47`.
+- **A `handoff.md`** → `/flow:start` with its path.
+- **A job handed to another session** → the child ticket's skill alone, typed in a new session. This one carries on.
+
 ## Booting from one
 
 **Whatever the block named is already loaded.** `flow get --files` read it before this session's first turn, so it is on screen above. Start on the first action; open something else only when the work reaches it.

@@ -12,6 +12,8 @@
  *                            and the session start run it, detached
  *   --home --now             `flow sync`'s save for ~/.flow/, the same
  *                            checkpoint for the tickets that belong to no project
+ *   --home --in <root> --now   the same, for a project whose `.flow/` links into
+ *                            the Flow home, renumbering its clashes after
  *   --hook stop              the Stop hook, run with `async`, after every reply.
  *                            Sends only where something changed and the last
  *                            send was 30 minutes ago or more, so the user's own
@@ -56,12 +58,13 @@ function syncProject(at, root) {
 }
 
 /** `flow sync`'s own save. A machine another one moved ahead of waits for `flow update`, as `flow sync` does. */
-function syncHome(at) {
+function syncHome(at, linked) {
   if (!repo.isRepo(at)) return;
   const mine = version.applied(path.join(at.flow, 'version'));
   try {
-    repo.sync(at, mine.state === 'ok' ? mine.number : 0);
-    records.renumber(at.flow, 'origin/main');
+    const { theirs } = repo.sync(at, mine.state === 'ok' ? mine.number : 0);
+    records.renumber(at.flow, theirs || 'origin/main');
+    if (linked) records.renumber(linked, theirs || 'origin/main');
     markSent(at, 'home');
   } catch (e) {
     if (!/could not read from remote|unable to access|could not resolve/i.test(e.message)) {
@@ -102,16 +105,17 @@ try {
   if (flag('--project')) {
     syncProject(at, path.resolve(value('--project')));
   } else if (flag('--home')) {
-    syncHome(at);
+    syncHome(at, flag('--in') ? path.resolve(value('--in')) : null);
   } else if (flag('--hook')) {
     const event = readHook();
     const root = records.projectAt(event.cwd || process.cwd());
+    const linked = records.linkedAt(event.cwd || process.cwd());
     if (value('--hook') === 'end') {
       if (root) later(['--project', root, '--now']);
-      later(['--home', '--now']);
+      later(['--home', ...(linked ? ['--in', linked] : []), '--now']);
     } else if (value('--hook') === 'stop') {
       if (root && waiting(root) && Date.now() - lastSent(at, root) >= DUE_AFTER) syncProject(at, root);
-      if (repo.changed(at) && Date.now() - lastSent(at, 'home') >= DUE_AFTER) syncHome(at);
+      if (repo.changed(at) && Date.now() - lastSent(at, 'home') >= DUE_AFTER) syncHome(at, linked);
     }
   }
 } catch {

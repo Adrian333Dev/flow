@@ -30,6 +30,7 @@ const restore = require('./commands/restore');
 const init = require('./commands/init');
 const up = require('./commands/up');
 const settingsCommand = require('./commands/settings');
+const statusLine = require('./commands/status-line');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -52,7 +53,7 @@ const TITLE = 'flow: tickets, computed from .flow/tickets/';
  * there for the one sharing command that replaces it after V1.
  */
 const commands = {
-  ...board, ...tickets.actions, ...install, ...init, ...up, ...sync, ...doctor, ...uninstall, ...scorecard, ...contribute,
+  ...board, ...statusLine, ...tickets.actions, ...install, ...init, ...up, ...sync, ...doctor, ...uninstall, ...scorecard, ...contribute,
 };
 
 const SECTIONS = [

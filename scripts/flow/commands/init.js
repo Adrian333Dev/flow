@@ -12,9 +12,15 @@
  *   a run stopped part way    carries it on
  *   already a Flow project    says so and stops, or folds in this machine's old
  *                             Claude Code memory where there is some
- *   a remote refusing a push  stops before anything is made, offering --local
+ *   --home, --machine-only    the tickets go to the Flow home: below
+ *   the Flow home holds it    another machine put this project in the Flow
+ *                             home: links `.flow/` to that folder
  *   a teammate set it up      the `flow` branch is on the remote: checks it
  *                             out, and the project is set up
+ *   a public repository       asks where the tickets live, since the branch
+ *                             would publish them. gh failing to tell asks too.
+ *                             With no terminal, the Flow home
+ *   a remote refusing a push  stops before anything is made, offering --home
  *   no `flow` branch          makes one, checked out at `.flow/`
  *   competing files           opens the setup session, which sorts them
  *   other files, or old       asks whether the setup session should read
@@ -26,16 +32,17 @@
  * The project's ticket prefix is asked once, `exp` for an expense app, with
  * the first letters of the folder offered. `--prefix` answers it.
  *
- * `--local` is for a repository other people keep, such as a client's or a
- * team's that never adopted Flow, for as long as the user works on it. `.flow/`
- * is a plain folder listed in `.git/info/exclude`, git's ignore list for one
- * clone, which is never committed. Nothing else in the repository is touched:
- * no rule file, no `.gitignore` line, no session. The tickets are the user's
- * alone, and never leave the clone.
+ * In the Flow home, `.flow/` is a link to ~/.flow/projects/<name>/, or to
+ * ~/.flow/projects-local/<name>/ with `--machine-only`, and lib/records-place.js
+ * holds how. It suits a repository the user cannot or should not add Flow
+ * to, such as a client's, so nothing else in the repository is touched: no
+ * rule file, no `.gitignore` line, no session. The link is listed in
+ * `.git/info/exclude`, git's ignore list for one clone.
  *
  *   flow init            set this project up
  *   flow init check      exit 0 where it can be; the setup session's first step
  *   flow init finish     stamp .flow/version; the setup session's last step
+ *   flow store           where the tickets live; `project` or `home` moves them
  */
 
 const fs = require('fs');
@@ -47,6 +54,8 @@ const { FlowError } = require('../lib/error');
 const flowRepo = require('../lib/flow-repo');
 const machine = require('../lib/machine');
 const records = require('../lib/records');
+const place = require('../lib/records-place');
+const { projectRoot } = require('../lib/root');
 const settings = require('../lib/settings');
 const store = require('../lib/store');
 const ticketSkills = require('../lib/ticket-skills');
@@ -142,14 +151,70 @@ function addIgnore(project) {
   return true;
 }
 
-/** List `.flow/` in `.git/info/exclude`, the ignore list of this one clone. */
-function excludeLocally(project) {
-  const common = git(project, ['rev-parse', '--git-common-dir']).out || '.git';
-  const file = path.resolve(project, common, 'info', 'exclude');
-  const had = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  if (had.split('\n').some((l) => l.trim() === '.flow/')) return;
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, `${had}${had && !had.endsWith('\n') ? '\n' : ''}# Flow, local here: this clone's own tickets\n.flow/\n`);
+/**
+ * Where nothing chose a place and the repository is public, or gh could not
+ * tell: the question. With no terminal, the Flow home, since the branch
+ * would publish the tickets.
+ */
+function askPlace(seen) {
+  if (!process.stdout.isTTY || !confirm.hasTerminal()) return 'home';
+  const open = seen === 'public';
+  const answer = confirm.ask(
+    `${open ? 'This repository is public.' : 'Flow could not tell whether this repository is public.'} Where should its tickets live?\n` +
+    '  1. Your Flow home: private, on all your machines   (default)\n' +
+    '  2. Your Flow home, this machine only: private, never leaves this computer\n' +
+    `  3. The project's flow branch: ${open ? 'PUBLIC, anyone can read them' : 'anyone who can read the repository reads them'}\n` +
+    'Type 1, 2 or 3: ', '1').trim();
+  if (answer === '2') return 'machine';
+  if (answer === '3') return 'branch';
+  return 'home';
+}
+
+/** Where this project's tickets go: `branch`, `home` or `machine`. The file header holds the order. */
+function choosePlace(at, project, flags) {
+  if (flags['machine-only']) return 'machine';
+  if (flags.home) return 'home';
+  const found = place.findFolder(project, at.flow);
+  if (found) return path.dirname(found) === place.shelf(at.flow, true) ? 'machine' : 'home';
+  if (git(project, ['rev-parse', '-q', '--verify', `refs/heads/${records.BRANCH}`]).ok) return 'branch';
+  if (records.hasRemote(project)) {
+    git(project, ['fetch', '-q', records.REMOTE, records.BRANCH]);
+    if (records.remoteHasBranch(project)) return 'branch';
+  }
+  const seen = place.visibility(project);
+  return ['public', 'unknown'].includes(seen) ? askPlace(seen) : 'branch';
+}
+
+/** `flow init` where the tickets go to the Flow home. */
+function initHome(at, clone, project, machineOnly, flags, done) {
+  const records_ = path.join(project, '.flow');
+  const now = place.placeOf(project, at.flow);
+  if (now && now.type === 'branch') {
+    throw new FlowError(`${show(records_)} is a checkout of the flow branch. Run flow store home to move its tickets.`);
+  }
+  if (now && now.dir === records_ && fs.readdirSync(records_).length) {
+    throw new FlowError(`${show(records_)} already holds files. Move them out, run flow init, then move them back.`);
+  }
+  const found = place.findFolder(project, at.flow);
+  const dir = found || (now && now.type !== 'folder' ? now.dir : place.newFolder(project, machineOnly, at.flow));
+  if (now && now.dir === records_) fs.rmdirSync(records_);
+  place.link(project, dir);
+
+  if (fs.existsSync(path.join(dir, 'version'))) {
+    makeSkillsFolder(project);
+    done.push(`.flow/: linked to ${show(dir)}, where another machine put this project's tickets`);
+    out(done.join('\n'));
+    return setup.startProject(at, clone, flags.root);
+  }
+  seedRecords(project, choosePrefix(project, flags.prefix));
+  place.remember(project, dir);
+  const newest = stamp(clone, project);
+  done.push(`.flow/: a link to ${show(dir)}, listed in .git/info/exclude, so git never sees it`);
+  const where = path.dirname(dir) === place.shelf(at.flow, true)
+    ? 'Its tickets stay on this machine alone.'
+    : 'Its tickets are private, and flow sync carries them to your other machines.';
+  out(`${done.join('\n')}\n\nset up in your Flow home: ${show(project)} is on entry ${newest}. ${where} Nothing in the repository changed.`);
+  return 0;
 }
 
 /**
@@ -220,7 +285,6 @@ function init(at, clone, flags) {
 
   let project = topOf(here);
   if (!project) {
-    if (flags.local) throw new FlowError('--local hides .flow/ from a git repository, and this folder is not one. Run flow init without it.');
     const made = git(here, ['init', '-q']);
     if (!made.ok) throw new FlowError(`could not run git init in ${show(here)}: ${made.err}`);
     project = here;
@@ -244,22 +308,15 @@ function init(at, clone, flags) {
     return setup.startProject(at, clone, flags.root);
   }
 
-  if (flags.local) {
-    fs.mkdirSync(records_, { recursive: true });
-    excludeLocally(project);
-    seedRecords(project, choosePrefix(project, flags.prefix));
-    const newest = stamp(clone, project);
-    done.push('.flow/ made, and listed in .git/info/exclude, so git never sees it');
-    out(`${done.join('\n')}\n\nset up locally: ${show(project)} is on entry ${newest}. Its tickets are yours alone and never leave this clone.`);
-    return 0;
-  }
+  const chosen = choosePlace(at, project, flags);
+  if (chosen !== 'branch') return initHome(at, clone, project, chosen === 'machine', flags, done);
 
   // A ticket gets its number only once the remote has it, so a remote that
   // refuses this clone's pushes would leave the project unable to make one.
   const push = records.canPush(project);
   if (!push.ok) {
     throw new FlowError(`the remote refuses a push from this clone, so no ticket could ever be made here. git said: ${push.why}\n` +
-      'Fix what git names and run flow init again, or run flow init --local to keep the tickets in this clone alone.');
+      'Fix what git names and run flow init again, or run flow init --home to keep the tickets in your private Flow home.');
   }
 
   // The branch before any file lands in `.flow/`: git checks out only into
@@ -312,12 +369,14 @@ actions.init = {
   anywhere: true,
   args: '[check|finish]',
   summary: 'set up the project you are in; check and finish are the setup session\'s own steps',
-  flags: { root: { arg: '<dir>' }, prefix: { arg: '<word>' }, local: { bool: true }, y: { bool: true, letter: true } },
+  flags: {
+    root: { arg: '<dir>' }, prefix: { arg: '<word>' }, home: { bool: true }, 'machine-only': { bool: true }, y: { bool: true, letter: true },
+  },
   run({ positional, flags }) {
     const at = machine.folders(flags.root);
     const [word, ...extra] = positional;
     if (extra.length || (word && !['check', 'finish'].includes(word))) {
-      throw new FlowError('usage: flow init [check|finish] [--prefix <word>] [--local] [-y]');
+      throw new FlowError('usage: flow init [check|finish] [--prefix <word>] [--home] [--machine-only] [-y]');
     }
     if (word === 'check') return setup.checkProject(at);
     if (word === 'finish') {
@@ -328,6 +387,143 @@ actions.init = {
       throw new FlowError('Flow is not set up on this machine. Run flow install first.');
     }
     return init(at, cloneRoot(), flags);
+  },
+};
+
+// ------------------------------------------------------------ flow store
+
+/** One line saying where the tickets live now, and who reads them. */
+function describe(found, project) {
+  const name = path.basename(project);
+  if (found.type === 'branch') return `${name}'s tickets live on the project's flow branch. Everyone who can read the repository reads them.`;
+  if (found.type === 'home') return `${name}'s tickets live in your Flow home, ${show(found.dir)}: private, and carried to your other machines by flow sync.`;
+  if (found.type === 'machine') return `${name}'s tickets live in ${show(found.dir)}, on this machine alone.`;
+  return `${name}'s tickets live in ${show(found.dir)}, in this clone alone.`;
+}
+
+/** From the branch, or a plain folder, to a new Flow home folder. */
+function intoHome(at, project, found, machineOnly) {
+  const records_ = path.join(project, '.flow');
+  const already = place.findFolder(project, at.flow);
+  if (already) throw new FlowError(`${show(already)} already holds this project's tickets. Move or delete it first.`);
+  const dir = place.newFolder(project, machineOnly, at.flow);
+  if (found.type === 'branch') records.commit(project, 'saved before moving to the Flow home');
+  place.copyRecords(records_, dir);
+  if (found.type === 'branch') {
+    const removed = git(project, ['worktree', 'remove', '--force', records_]);
+    if (!removed.ok) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      throw new FlowError(`could not take the flow branch's checkout away from .flow/: ${removed.err}`);
+    }
+  } else {
+    fs.rmSync(records_, { recursive: true, force: true });
+  }
+  place.link(project, dir);
+  place.remember(project, dir);
+  const lines = [`moved: ${path.basename(project)}'s tickets now live in ${show(dir)}.`];
+  if (found.type === 'branch') {
+    lines.push('The flow branch keeps the tickets as they were, here and on the remote, and anyone who read the repository may hold a copy.',
+      'To delete it: git branch -D flow, then git push origin --delete flow.');
+  }
+  return lines;
+}
+
+/** Between the Flow home and this machine alone: the folder moves shelf. */
+function acrossShelves(at, project, found, machineOnly) {
+  const target = path.join(place.shelf(at.flow, machineOnly), path.basename(found.dir));
+  const dir = fs.existsSync(target) ? place.newFolder(project, machineOnly, at.flow) : target;
+  fs.mkdirSync(path.dirname(dir), { recursive: true });
+  fs.renameSync(found.dir, dir);
+  place.link(project, dir);
+  return machineOnly
+    ? [`moved: ${path.basename(project)}'s tickets now live in ${show(dir)}, on this machine alone.`,
+      'The next flow sync takes them out of the Flow home. Its history on GitHub keeps the earlier copies.']
+    : [`moved: ${path.basename(project)}'s tickets now live in ${show(dir)}. The next flow sync sends them.`];
+}
+
+/**
+ * From the Flow home, or a plain folder, onto the branch: the one already
+ * there where an earlier move left it, a new one otherwise. The branch then
+ * holds exactly what moved, so a ticket the branch has and the moved folder
+ * lacks would be deleted, and that refuses.
+ */
+function ontoBranch(at, project, found) {
+  const records_ = path.join(project, '.flow');
+  const push = records.canPush(project);
+  if (!push.ok) throw new FlowError(`the remote refuses a push from this clone, so the branch could never be sent. git said: ${push.why}`);
+
+  let from = found.dir;
+  let staged = null;
+  if (found.type === 'folder' && from === records_) {
+    staged = fs.mkdtempSync(path.join(require('os').tmpdir(), 'flow-store-'));
+    place.copyRecords(records_, staged);
+    from = staged;
+  }
+  const restore = () => {
+    git(project, ['worktree', 'remove', '--force', records_]);
+    if (staged) {
+      place.copyRecords(staged, records_);
+      fs.rmSync(staged, { recursive: true, force: true });
+    } else {
+      place.link(project, found.dir);
+    }
+  };
+  fs.rmSync(records_, { recursive: true, force: true });
+  const checked = records.checkOut(project);
+  if (!checked.ok) {
+    restore();
+    throw new FlowError(`could not check out the flow branch at .flow/: ${checked.why}`);
+  }
+  const moving = new Set(place.ticketFolders(from));
+  const lost = place.ticketFolders(records_).filter((n) => !moving.has(n));
+  if (lost.length) {
+    restore();
+    throw new FlowError(`the flow branch already holds tickets that would be deleted: ${lost.join(', ')}. Nothing was changed.`);
+  }
+  for (const entry of fs.readdirSync(records_)) {
+    if (entry !== '.git') fs.rmSync(path.join(records_, entry), { recursive: true, force: true });
+  }
+  place.copyRecords(from, records_);
+  const file = settings.projectFile(project);
+  const { repository, ...rest } = settings.read(file);
+  if (repository) settings.write(file, rest);
+  const lines = [`moved: ${path.basename(project)}'s tickets now live on the project's flow branch, at .flow/.`];
+  if (addIgnore(project)) lines.push('.gitignore: .flow/ added, waiting for your next commit');
+  records.commit(project, found.type === 'folder' ? 'moved from a folder in this clone' : 'moved from the Flow home');
+  records.syncLater(project, at.flow);
+  // A link to a folder outside the Flow home points at something Flow never made.
+  if (staged || found.type !== 'folder') fs.rmSync(from, { recursive: true, force: true });
+  lines.push('Everyone who can read the repository reads them once the branch is sent, which starts now.');
+  return lines;
+}
+
+actions.store = {
+  section: 'setup',
+  args: '[project|home]',
+  summary: 'where this project\'s tickets live; project or home moves them there',
+  flags: { root: { arg: '<dir>' }, 'machine-only': { bool: true } },
+  run({ positional, flags }) {
+    const at = machine.folders(flags.root);
+    const [word, ...extra] = positional;
+    if (extra.length || (word && !['project', 'home'].includes(word)) || (flags['machine-only'] && word !== 'home')) {
+      throw new FlowError('usage: flow store [project | home [--machine-only]]');
+    }
+    const project = projectRoot();
+    const found = place.placeOf(project, at.flow);
+    if (!word) {
+      out(describe(found, project));
+      return 0;
+    }
+    const want = word === 'project' ? 'branch' : flags['machine-only'] ? 'machine' : 'home';
+    if (found.type === want) {
+      out(`${describe(found, project)} Nothing moved.`);
+      return 0;
+    }
+    const lines = want === 'branch' ? ontoBranch(at, project, found)
+      : found.type === 'home' || found.type === 'machine' ? acrossShelves(at, project, found, want === 'machine')
+        : intoHome(at, project, found, want === 'machine');
+    out(lines.join('\n'));
+    return 0;
   },
 };
 

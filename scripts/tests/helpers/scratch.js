@@ -49,8 +49,8 @@ process.env.FLOW_MACHINE_DEFAULT = process.env.FLOW_MACHINE_DEFAULT || 'test-mac
 
 /**
  * A fresh empty project folder, already in Flow, whose tickets are `exp-1`,
- * `exp-2`. `name` keeps tests apart. Its `.flow/` is a plain folder, the way
- * `flow init --local` keeps it, so no command here commits.
+ * `exp-2`. `name` keeps tests apart. Its `.flow/` is a plain folder, on no
+ * branch and linked to no Flow home, so no command here commits.
  */
 function project(name) {
   const dir = path.join(SCRATCH, name);

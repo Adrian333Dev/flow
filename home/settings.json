@@ -198,6 +198,17 @@
           }
         ]
       }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/compact-check.js\""
+          }
+        ]
+      }
     ]
   },
   "disableBundledSkills": true,
@@ -206,6 +217,11 @@
   "disableClaudeAiConnectors": true,
   "disableArtifact": true,
   "autoMemoryEnabled": false,
+  "autoCompactEnabled": false,
+  "statusLine": {
+    "type": "command",
+    "command": "node \"$HOME/.flow/scripts/flow/flow.js\" status-line --context"
+  },
   "respondToBashCommands": false,
   "worktree": {
     "bgIsolation": "none"

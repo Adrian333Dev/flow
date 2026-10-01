@@ -66,10 +66,12 @@ test('what belongs to one machine is what the ignore file names', () => {
     'skills-update.json',
     'skills-update.lock',
     'records-sync.json',
+    'status-line.json',
     'audit/',
     'changes/',
     'wiki/*/downloads/',
     'node_modules/',
+    'projects-local/',
   ]);
   assert.strictEqual(repo.isRepo(m.at), false, 'writing the ignore file makes no repository');
   assert.strictEqual(repo.changed(m.at), null, 'and nothing counts as changed');
@@ -137,6 +139,49 @@ test('2 machines send and merge their work, and the same lines changed on both s
   assert.match(refused.stderr, /another machine changed the same lines of workflow-notes\.md, so nothing came down and nothing went up\./);
   assert.match(read(path.join(b.at.flow, 'workflow-notes.md')), /again from b\n$/, 'nothing of b\'s was lost');
   assert.strictEqual(repo.git(b.at.flow, ['status', '--porcelain']).out, '', 'no merge is left half done');
+});
+
+test('a project linked into the Flow home travels with it, and a number 2 machines took is renumbered', () => {
+  const remote = bareRepo('sync-linked');
+  const a = machine('sync-linked-a');
+  connect(a, remote);
+  repo.writeIgnore(a.at);
+  assert.strictEqual(sync(a).code, 0);
+  const b = machine('sync-linked-b');
+  connect(b, remote);
+  repo.inspect(b.at, NEWEST);
+  repo.join(b.at);
+
+  // The same project cloned on both machines, its .flow/ linked into each Flow home.
+  const clone = (m) => {
+    const dir = path.join(m.dir, 'app');
+    const records = path.join(m.at.flow, 'projects', 'app');
+    fs.mkdirSync(path.join(records, 'tickets'), { recursive: true });
+    fs.writeFileSync(path.join(records, 'settings.json'), '{\n  "ticketPrefix": "exp",\n  "repository": "github.com/someone/app"\n}\n');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.symlinkSync(records, path.join(dir, '.flow'));
+    return dir;
+  };
+  const appA = clone(a);
+  const env = (m, dir) => ({ ...process.env, FLOW_HOME: m.at.flow, FLOW_PROJECT: dir });
+  const inApp = (m, dir, args) => run('flow/flow.js', args, { cwd: dir, env: env(m, dir) });
+  inApp(a, appA, ['new', 'Login page']);
+  assert.match(inApp(a, appA, ['sync', '--root', a.root]).stdout, /went up/);
+
+  // b pulls the folder, links to it, and takes a number a has since taken too.
+  assert.strictEqual(sync(b).code, 0);
+  const appB = path.join(b.dir, 'app');
+  fs.mkdirSync(appB, { recursive: true });
+  fs.symlinkSync(path.join(b.at.flow, 'projects', 'app'), path.join(appB, '.flow'));
+  inApp(a, appA, ['new', 'Export csv']);
+  assert.strictEqual(inApp(a, appA, ['sync', '--root', a.root]).code, 0);
+  assert.match(inApp(b, appB, ['new', 'Dark mode']).stdout, /created exp-2/);
+
+  const synced = inApp(b, appB, ['sync', '--root', b.root]);
+  assert.strictEqual(synced.code, 0, synced.stderr);
+  assert.match(synced.stdout, /exp-2 is now exp-3: another machine took exp-2 first\./);
+  assert.match(inApp(b, appB, ['exp-3']).stdout, /Dark mode/);
+  assert.match(inApp(b, appB, ['exp-2']).stdout, /Export csv/);
 });
 
 test('a machine behind another machine\'s record syncs nothing until it catches up', () => {

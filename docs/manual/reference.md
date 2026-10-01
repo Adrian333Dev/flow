@@ -153,8 +153,21 @@ It checks each of these in order, and does only what applies:
 
 - **No git repository** → it runs `git init`. Inside a repository it never does.
 - **Typed in a subfolder** → it works at the repository's top folder, and says so.
-- **The remote refuses a push from this clone**, for a missing sign-in or no write access → it stops before making anything, prints what git said, and offers `--local`. A ticket gets its number only once the remote has it, so a project whose remote refuses pushes could never make one. The check is a dry run: it asks the remote and sends nothing.
+- **`--home` or `--machine-only`** → the tickets go to your Flow home, covered [below](#your-flow-home).
+- **Your Flow home already holds the project's tickets**, put there from your other machine → it links `.flow/` to that folder, and the project is set up.
 - **A teammate set the project up**, so the branch `flow` is on the remote → it checks that branch out at `.flow/`, and the project is set up.
+- **A public repository** → it asks where the tickets live, since the branch would publish them. Enter takes the default, and with no terminal attached the tickets go to your Flow home:
+
+  ```text
+  This repository is public. Where should its tickets live?
+    1. Your Flow home: private, on all your machines   (default)
+    2. Your Flow home, this machine only: private, never leaves this computer
+    3. The project's flow branch: PUBLIC, anyone can read them
+  Type 1, 2 or 3:
+  ```
+
+  `gh` tells it whether the repository is public. Where `gh` can't tell, the same question opens with `Flow could not tell whether this repository is public.` A private repository, and one kept somewhere other than GitHub, get the branch without a question.
+- **The remote refuses a push from this clone**, for a missing sign-in or no write access → it stops before making anything, prints what git said, and offers `--home`. A ticket on the branch gets its number only once the remote has it, so a project whose remote refuses pushes could never make one. The check is a dry run: it asks the remote and sends nothing.
 - **No branch `flow`** → it makes one and checks it out at `.flow/`. The branch holds the tickets and shares no history with the code. `.flow/` goes into `.gitignore`, so every code branch ignores the tickets and nothing on the branch is ever merged into the code. [Where everything lives](where-everything-lives.md#flow-flows-working-store) has the whole of it.
 - **The ticket prefix** is asked once, and the first 3 letters of the folder name are offered: `Ticket prefix, so its tickets read sho-1, sho-2 (default: sho):`. `--prefix shop` answers it. A prefix is 2 to 8 lowercase letters, and never `home`, which names the tickets in `~/.flow/`.
 - **Files telling Claude Code or another agent how to work here** → it opens the setup session, and asks nothing. These are `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, anything under `.claude/`, `.mcp.json`, and other tools' rule files such as `.cursorrules`. Only reading them can sort their rules into Flow's files:
@@ -190,8 +203,6 @@ wrote: CLAUDE.md
 set up: ~/code/shop is on entry 3. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
 ```
 
-**`--local` keeps Flow to your own copy of a repository** that other people keep, such as a client's, for as long as you work on it. `.flow/` is then a plain folder listed in `.git/info/exclude`, git's ignore list for one clone. That file is never committed, so nothing appears in `git status` and nothing reaches the other people's copies. Nothing else in the repository changes: no rule file, no `.gitignore` line, no session. The tickets are yours alone, and never leave the clone. Your other projects can still use the full setup.
-
 The setup session is a normal Claude Code session, which loads Flow's rules and hooks and nothing of the project's: no `CLAUDE.md`, no skill, no setting and no MCP server. The launch does this with 2 flags, `--setting-sources user` and `--strict-mcp-config`. The session follows `scripts/flow/setup/project.md` in the clone. It reads the project's rule files, its docs, its code and its Claude Code memory, then lists every change in one form, `migration.md`. Nothing in the project changes before you say go.
 
 **The form holds decisions, and the content sits beside it.** Each line says what happens and where, with a count: `9 rules → AGENTS.md`. The new version of every file is under `files/` beside the form, and `dropped.md` lists each line left behind with the Flow rule that already does its job. Anything that works against Flow is under `🔴 Removed unless you untick it`. Lines it finds about you, rather than the project, go into your own rules in `~/.flow/AGENTS.md`.
@@ -214,6 +225,49 @@ Setting up ~/code/shop runs in its own session. Start it from a terminal:
 - **`~/.flow/run.json`**: the same file as the machine's setup, with `type` `setup-project`, the project's path and its memory folder.
 - **`flow init finish`**: the session's last step. It stamps the project's `.flow/version`, commits the tickets on the branch, and deletes `run.json`.
 - **`flow restore project`** puts back what Flow changed in the project, one box per path in a form. The project's `AGENTS.md`, `CLAUDE.md` and `docs/` stay unless you tick them.
+
+#### Your Flow home
+
+**`--home` keeps the tickets in your Flow home**, the private repository at `~/.flow/` that [`flow sync`](#flow-sync) carries to your other machines. `.flow/` is then a link to `~/.flow/projects/<project>/`, listed in `.git/info/exclude`, git's ignore list for one clone. That file is never committed, so nothing appears in `git status` and nothing reaches anyone else's copy. Nothing else in the repository changes: no rule file, no `.gitignore` line, no session. It suits a public repository whose tickets should stay private, and a repository other people keep, such as a client's.
+
+```text
+$ flow init --home --prefix shop
+.flow/: a link to ~/.flow/projects/shop, listed in .git/info/exclude, so git never sees it
+
+set up in your Flow home: ~/code/shop is on entry 3. Its tickets are private, and flow sync carries them to your other machines. Nothing in the repository changed.
+```
+
+**`--machine-only` keeps them on this computer alone**, in `~/.flow/projects-local/<project>/`, which `flow sync` never sends. It suits work whose notes may not leave the computer, such as an employer's code.
+
+**Your other machine finds the folder by itself.** The folder's `settings.json` keeps the repository's address, `github.com/<owner>/<repo>`, and `flow init` in a clone of the same repository links to that folder rather than asking.
+
+**Tickets in your Flow home get their number on the spot**, the way `~/.flow/`'s own tickets do. 2 machines can give out the same number between syncs, and `flow sync` renumbers one of them, keeping the old id as `was:`.
+
+[`flow store`](#flow-store) moves a project's tickets between the branch and your Flow home at any time.
+
+### `flow store`
+
+Says where the project's tickets live, or moves them. Typed bare, it prints one line:
+
+```text
+$ flow store
+shop's tickets live on the project's flow branch. Everyone who can read the repository reads them.
+```
+
+- **`flow store home`** → into your Flow home, `~/.flow/projects/<project>/`. The branch stays as it was, here and on the remote, and anyone who read the repository may hold a copy. The last lines say so, and how to delete it:
+
+  ```text
+  moved: shop's tickets now live in ~/.flow/projects/shop.
+  The flow branch keeps the tickets as they were, here and on the remote, and anyone who read the repository may hold a copy.
+  To delete it: git branch -D flow, then git push origin --delete flow.
+  ```
+
+- **`flow store home --machine-only`** → onto this computer alone, `~/.flow/projects-local/<project>/`. From your Flow home, the next `flow sync` takes the tickets out of it. The Flow home's history on GitHub keeps the earlier copies.
+- **`flow store project`** → onto the project's branch `flow`, the one an earlier move left behind or a new one. The branch then holds exactly what moved. A ticket on the branch that the moved tickets lack would be deleted, so the move refuses and names it:
+
+  ```text
+  flow: the flow branch already holds tickets that would be deleted: shop-2-export-csv. Nothing was changed.
+  ```
 
 ### `flow doctor`
 
@@ -288,7 +342,7 @@ Bringing this machine from entry 2 to 3 runs in its own session. Start it from a
 
 ### `flow sync`
 
-`~/.flow/` is one private git repository, and that repository is the whole of how Flow reaches your other machines. Everything of yours that should travel already lives there: the rules, the workflow notes, the study cases, the private skills, the wiki and the tickets that belong to no project. A project's tickets travel on the project's own branch `flow`, covered in [A project's tickets](#a-projects-tickets). Any number of machines can share it.
+`~/.flow/` is one private git repository, and that repository is the whole of how Flow reaches your other machines. Everything of yours that should travel already lives there: the rules, the workflow notes, the study cases, the private skills, the wiki, the tickets that belong to no project, and the tickets of each project kept in [your Flow home](#your-flow-home). Any other project's tickets travel on the project's own branch `flow`, covered in [A project's tickets](#a-projects-tickets). Any number of machines can share it.
 
 `flow sync` does 3 things in order:
 
@@ -322,9 +376,9 @@ The laptop's `flow update` migrates the laptop's own copy, with everything it wr
 
 The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow update in a terminal.`
 
-**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `restore.md`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `audit/`, `changes/`, and each wiki tool's `downloads/`.
+**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `restore.md`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `status-line.json`, `audit/`, `changes/`, `projects-local/`, and each wiki tool's `downloads/`.
 
-**Tickets in `~/.flow/` are sent with everything else there**, not when they are made. 2 machines can therefore give out the same `home-` number between syncs. The one that reached the repository first keeps it, and the other takes the next free number, keeping its old id as `was:`, so the old id still finds it:
+**Tickets in `~/.flow/` are sent with everything else there**, not when they are made, and so are the tickets of a project kept there. 2 machines can therefore give out the same number between syncs. The one that reached the repository first keeps it, and the other takes the next free number, keeping its old id as `was:`, so the old id still finds it:
 
 ```text
   home-4 is now home-5: another machine took home-4 first.
@@ -355,7 +409,7 @@ flow: no ticket was made: the remote did not take it. git said: fatal: '../shop.
 A number is given out only once the remote has it. Fix what git names, or wait until the remote answers, then try again.
 ```
 
-A project with no remote, and a [local](#flow-init) one, give numbers out on the spot, since nobody else can take one.
+A project with no remote gives numbers out on the spot, since nobody else can take one. So does a project kept in [your Flow home](#your-flow-home), which `flow sync` renumbers where 2 machines clash.
 
 **2 people creating a ticket in the same moment is the one clash a folder per ticket can't avoid.** The ticket that reached the remote first keeps the number. The other is renumbered to the next free one before its id is shown, so neither person ever sees a number change.
 
@@ -534,7 +588,7 @@ The form is deleted once it is read, or once you type anything other than the wo
 flow: ~/code/shop/.flow holds ticket changes not yet sent to GitHub. Nothing was changed. Run flow sync inside ~/code/shop, then try again.
 ```
 
-A `.flow/` made with `flow init --local` is never sent anywhere, so it never stops a restore. Its box says its tickets exist nowhere else.
+A `.flow/` linked into [your Flow home](#your-flow-home) never stops a restore. Its box deletes the link alone, and says the tickets stay in `~/.flow/projects/<project>/`.
 
 **`flow restore machine` puts every project in the same form**, each project's paths above the machine's. Once `flow` is gone, a project's restore has to be typed through the script's full path, so the machine's restore offers the projects while `flow` still exists. Untick a project's `.flow/` and the project keeps Flow. The last lines then say how to restore it later:
 
@@ -611,6 +665,18 @@ The parent/child shape, nested. Children appear indented under their parents wit
 Done and dropped tickets are hidden by default so the tree shows what is live.
 
 Flags: `--parent <id>` (scope to a subtree), `--all` (include done and dropped).
+
+### `flow status-line`
+
+The ticket this session works on, and its status, for the line Claude Code shows under the box you type in. Claude Code runs it after each message and hands it the session's details. `--context` adds how full the conversation is, against `wrapUpAt`:
+
+```text
+exp-47 building · 98k of 150k
+```
+
+The ticket is the last one you typed a skill for in this session, `/exp-47` or `/flow:execute /exp-47`. Where you typed none, it is the ticket a skill last moved for this session. It prints an empty line outside a Flow project, before a ticket is picked, and on any failure of its own. A run takes about a tenth of a second, and nothing it prints reaches Claude.
+
+Flow's settings make it the whole status line where you have none of your own. [Settings](settings.md#statusline) shows how to add it to ccstatusline instead.
 
 ## One ticket
 
@@ -1072,16 +1138,18 @@ Flow's rules send every file an agent opens through Read, Claude Code's own tool
 
 Two files, and Flow contributes to one of them.
 
-**`~/.claude/settings.json`** is Claude Code's. The links half of `flow install` never writes it, and the setup session merges Flow's keys into it, key by key. Flow contributes 4 keys:
+**`~/.claude/settings.json`** is Claude Code's. The links half of `flow install` never writes it, and the setup session merges Flow's keys into it, key by key. Flow contributes 6 keys:
 
-- **`hooks`**: 9 jobs. `guard.js` asks you before a shell command that could do harm: losing work git cannot give back, sending data off the machine, changing a shared system such as a deploy or a database, changing the machine outside the project, or running downloaded code. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill before it loads on a machine not set up, and a bare `/flow:start` outside a project. `overlays.js` hands the agent the project's overlay each time a skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `failures.js` writes a line into the failure log whenever an MCP tool, a Flow command or an API call fails. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings and every [ticket skill](#ticket-skills) match the tickets, and sends every skill repository to update itself in the background
+- **`hooks`**: 10 jobs. `guard.js` asks you before a shell command that could do harm: losing work git cannot give back, sending data off the machine, changing a shared system such as a deploy or a database, changing the machine outside the project, or running downloaded code. `changes.js` records what each subagent changed and hands the parent a diff when the subagent finishes. `rule-check.js` and `instructions-loaded.js` run Flow's rule checks on every edit and record which instruction files entered context. `check-ticket.js` refuses a typed phase skill before it loads on a machine not set up, and a bare `/flow:start` outside a project. `overlays.js` hands the agent the project's overlay each time a skill loads. `reminder.js` prints `references/reminder.md` beside every message, pointing the agent back at the rules for writing a reply. `context-check.js` tells the agent to stop at a safe point and write a handoff once the conversation passes 150,000 tokens, then again every 20,000 past it. `failures.js` writes a line into the failure log whenever an MCP tool, a Flow command or an API call fails. `compact-check.js` refuses a typed `/compact` and names `/flow:handoff`, then `/clear`, in its place. `session-check.js` opens a session with one line when this machine or this project needs attention, and nothing when neither does. It also makes every skill link match the settings and every [ticket skill](#ticket-skills) match the tickets, and sends every skill repository to update itself in the background
 - **`permissions`**: an allow list, an ask list and a deny list. The allow list covers edits, reads, web lookups and every shell command. The ask list makes a commit, a push and a package publish ask you every time. The deny list covers the Claude Code surfaces Flow does not use, the key folders `~/.ssh` and `~/.aws`, `sudo`, `su`, `mkfs`, the `--dangerously-skip-permissions` flag, and `flow restore machine`, `flow restore project` and `flow uninstall`, which are yours to type and never an agent's to run
 - **`cleanupPeriodDays`**: how long Claude Code keeps session transcripts, which sets what `flow audit` can still read
 - **`fileSuggestion`**: `file-suggestion.js` builds the list `@` opens, offering git-ignored files and putting the most recently changed first
+- **`autoCompactEnabled`**: `false`, so Claude Code never swaps a long conversation for its own summary by itself
+- **`statusLine`**: [`flow status-line --context`](#flow-status-line), written only where you have no status line of your own
 
 A project overrides any of them in its own `.claude/settings.json`, and the two merge key by key rather than replacing. The setup session also writes `skillOverrides`, Claude Code's key for hiding a skill, for each skill synced from your Claude account that works against Flow's rules. `flow skills` never writes it.
 
-**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your other machines: `~/.flow/` is one git repository they all share, and the local file is the part git ignores. Together they hold 10 keys:
+**`~/.flow/settings.json`** and **`~/.flow/settings.local.json`** are Flow's own, and Flow reads the pair as one file with the local one winning. The split is your other machines: `~/.flow/` is one git repository they all share, and the local file is the part git ignores. Together they hold 11 keys:
 
 - **`sources`**: the skill repositories [`flow skills`](#flow-skills) takes skills from, in the shared file. `flow skills add` and `drop` write it
 - **`skills`**: which skills are switched on or off, a line per name, in either file and in a project's `.flow/settings.json`. The nearest file wins, name by name. `flow skills` writes it
@@ -1092,6 +1160,7 @@ A project overrides any of them in its own `.claude/settings.json`, and the two 
 - **`skillsAutoUpdate`**: whether every skill repository pulls itself when a session opens, in the shared file. `false` turns each pull into a fetch that names what is waiting
 - **`wrapUp`**: whether the agent is told to hand off once the conversation passes a size, in the shared file. `false` silences it
 - **`wrapUpAt`**: that size in tokens, 150,000 when unset, in either file
+- **`compact`**: `true` lets a typed `/compact` run, in either file. Unset, `compact-check.js` refuses it
 - **`fileSuggestionIgnore`**: folders and files the `@` list never offers, in either file and in a project's `.flow/settings.json`. The lists add up
 
 [Settings](settings.md) explains every key in both files, every value Flow rejected, and why.

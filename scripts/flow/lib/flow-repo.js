@@ -38,11 +38,15 @@
  *                 the lock the job that reads it holds
  *   records-sync.json   when this machine last sent each project's tickets
  *                 and this folder, which paces the Stop hook's sends
+ *   status-line.json   which ticket each of this machine's sessions works on,
+ *                 and how far `flow status-line` read its transcript
  *   audit/, changes/   what this machine's sessions left: the transcript
  *                 index, and what each subagent changed
  *   a wiki tool's downloads   pages fetched once per machine
  *   node_modules/   what a prototype in a ticket installed, fetched again
  *                 wherever it runs
+ *   projects-local/   the tickets of every project set up with
+ *                 `--machine-only`, which the user kept on this machine
  *
  * Each machine keeps one record in the repository, `machines/<name>.json`:
  * its name, the day it joined, and the changelog entry it is on. `flow install`
@@ -99,10 +103,12 @@ const IGNORED = [
   'skills-update.json',
   'skills-update.lock',
   'records-sync.json',
+  'status-line.json',
   'audit/',
   'changes/',
   'wiki/*/downloads/',
   'node_modules/',
+  'projects-local/',
   '',
 ].join('\n');
 
@@ -425,6 +431,8 @@ function switchClone(clone, number) {
  * A commit first, then a merge, so the same file changed on 2 machines merges
  * where the changes touch different lines. Changes to the same lines stop it:
  * the merge is undone, and this machine's commit stays for the user to sort.
+ *
+ * `theirs` in what comes back is the remote as fetched, before the push.
  */
 function sync(at, mine) {
   if (!isRepo(at)) throw new FlowError(`${at.flow} is not a repository yet. Run flow install, which connects it.`);
@@ -436,6 +444,9 @@ function sync(at, mine) {
         `and this machine is on ${mine}. Nothing was synced. Run flow update first.`);
     }
   }
+  // What the other machines had sent, before this machine's push joins it:
+  // the one a clash on a ticket number is judged against.
+  const theirs = remote ? git(at.flow, ['rev-parse', '-q', '--verify', 'origin/main']).out || null : null;
 
   const count = changed(at);
   let sent = null;
@@ -473,7 +484,7 @@ function sync(at, mine) {
     const pushed = git(at.flow, ['push', '-q', 'origin', 'main']);
     if (!pushed.ok) throw new FlowError(`committed here, and the push failed:\n  ${pushed.err.split('\n')[0]}`);
   }
-  return { came, sent, pushed: unsent };
+  return { came, sent, pushed: unsent, theirs };
 }
 
 module.exports = {

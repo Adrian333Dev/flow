@@ -87,6 +87,7 @@ Anything else is dropped too. Both boxes start empty, and most machines leave `#
 - **`~/.claude/settings.json`**: the machine's file, with Flow's keys applied:
   - `hooks`: `home/settings.json`'s, plus each hook of the user's that stayed.
   - `permissions`: the machine's `allow` and `deny` with the template's added, and the template's `defaultMode` and `disableBypassPermissionsMode`.
+  - `statusLine`: the template's only where the machine has none. A status line of the user's own stays.
   - Every other key in `home/settings.json`: the template's value.
   - `skillOverrides`: `"off"` for each synced skill ticked.
   - `enabledPlugins`: left for `claude plugin uninstall` and `claude plugin disable` to change. Their `run` lines come after this file's `write` line.

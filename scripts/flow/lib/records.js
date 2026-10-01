@@ -8,11 +8,14 @@
  * so switching branches never touches a ticket, and nothing ever merges into
  * the code. Anyone who can read the repository gets the tickets.
  *
- * Two other shapes carry no branch, and every function here does nothing for
- * them:
+ * Other shapes carry no branch, and every function here but `renumber` and
+ * `syncLater` does nothing for them:
  *
- *   local       `.flow/` is a plain folder listed in `.git/info/exclude`,
- *               from `flow init --local`. It never leaves the clone
+ *   linked      `.flow/` is a link into the Flow home, from `flow init --home`
+ *               or `--machine-only`. lib/records-place.js holds how, and
+ *               `flow sync` sends it with ~/.flow/
+ *   folder      `.flow/` is a plain folder, from before the Flow home held
+ *               projects. It never leaves the clone
  *   home        ~/.flow/, the tickets that belong to no project. It is its
  *               own repository and travels through `flow sync`
  *
@@ -61,6 +64,15 @@ const recordsOf = (root) => store.recordsDir(root);
 
 /** True where `.flow/` is a checkout of the `flow` branch. A checkout made by `git worktree` holds a `.git` file. */
 const onBranch = (root) => !store.isHome(root) && fs.existsSync(path.join(recordsOf(root), '.git'));
+
+/** True where `.flow/` is a link, which only `flow init --home` and `flow store` make. */
+function linked(root) {
+  try {
+    return fs.lstatSync(recordsOf(root)).isSymbolicLink();
+  } catch {
+    return false;
+  }
+}
 
 /** git's `-c` pair naming who commits, where git has no name set, so a commit never stops on it. */
 function identity(dir) {
@@ -121,7 +133,8 @@ function locked(root, fn) {
 /** Commit everything in `.flow/`. Returns true when there was something to commit. */
 function commitNow(root, message) {
   const dir = recordsOf(root);
-  if (!git(dir, ['add', '-A']).ok) return false;
+  // `.` keeps a linked project's commit to its own folder of the Flow home.
+  if (!git(dir, ['add', '-A', '--', '.']).ok) return false;
   if (git(dir, ['diff', '--cached', '--quiet']).ok) return false;
   return git(dir, [...identity(dir), 'commit', '-q', '--no-verify', '-m', message]).ok;
 }
@@ -233,11 +246,14 @@ function claim(root, id) {
 /**
  * Run `sync` in a process of its own, so a status move never waits on the
  * network. `flowHome` names the machine's Flow folder where it is not the
- * usual one. Its failures go to the failure log. At home it runs `flow sync`'s
- * own save, the same checkpoint for ~/.flow/.
+ * usual one. Its failures go to the failure log. At home, and in a project
+ * linked into the Flow home, it runs `flow sync`'s own save, the same
+ * checkpoint for ~/.flow/.
  */
 function syncLater(root, flowHome) {
-  const args = store.isHome(root) ? ['--home'] : onBranch(root) ? ['--project', root] : null;
+  const args = store.isHome(root) ? ['--home']
+    : linked(root) ? ['--home', '--in', root]
+      : onBranch(root) ? ['--project', root] : null;
   if (!args) return;
   try {
     // `flowHome` is the machine's Flow folder where a command was given `--root`.
@@ -263,6 +279,8 @@ function syncLater(root, flowHome) {
  * shown, so it keeps no `was:`. ~/.flow/ sends its tickets every 30 minutes
  * rather than at creation, so a number shown there can be taken by another
  * machine meanwhile: `flow sync` renumbers it, keeping the old id as `was:`.
+ * A project linked into the Flow home is sent the same way, and renumbered
+ * the same way, with `origin/main` as the remote.
  */
 function renumber(root, remoteRef = `${REMOTE}/${BRANCH}`, { keepWas = true } = {}) {
   const dir = recordsOf(root);
@@ -316,6 +334,14 @@ function projectAt(from) {
   }
 }
 
+/** The nearest folder at or above `from` whose `.flow/` is a link into the Flow home, or null. */
+function linkedAt(from) {
+  for (let dir = path.resolve(from); ; dir = path.dirname(dir)) {
+    if (linked(dir)) return dir;
+    if (path.dirname(dir) === dir) return null;
+  }
+}
+
 // ------------------------------------------------------------ setting up
 
 /**
@@ -340,5 +366,5 @@ function checkOut(root) {
 }
 
 module.exports = {
-  BRANCH, REMOTE, onBranch, projectAt, commit, pull, sync, syncLater, claim, renumber, checkOut, canPush, remoteHasBranch, hasRemote,
+  BRANCH, REMOTE, onBranch, linked, linkedAt, projectAt, commit, pull, sync, syncLater, claim, renumber, checkOut, canPush, remoteHasBranch, hasRemote,
 };

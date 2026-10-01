@@ -60,6 +60,7 @@ These cost nothing until you type them:
 
 - [x] Memory: notes Claude Code writes about each project and loads into every session, beside Flow's rules. `autoMemoryEnabled`
 - [x] Forks: helper agents that start with a copy of the whole conversation. Flow's helpers see only what they're told. `permissions.deny: Agent(fork)`
+- [x] Compacting: Claude Code swaps a long conversation for its own summary of it, when you type /compact or by itself near the limit. Flow ends a long conversation with /flow:handoff, then /clear. `autoCompactEnabled`, `hooks.PreCompact`
 - [x] Workflows: Claude writes a script that runs many helper agents at once, outside Flow's steps. `disableWorkflows`
 - [x] Skills that come with Claude Code: /debug and /code-review do what Flow's own skills do, and all 6 add to every session. `disableBundledSkills`
 - [x] Pick-list questions: Claude asks you to choose from options, where Flow has it recommend one. `permissions.deny: AskUserQuestion`
@@ -93,6 +94,7 @@ These cost nothing until you type them:
 - [x] Tell Claude to stop at a safe point and write a handoff once the conversation passes 150,000 tokens. `wrapUp`
 - [x] Tell you when a session opens if Flow or your skill repositories need updating. `sessionCheck`
 - [x] Suggest setting Flow up when a session opens in a git repository that doesn't have it. `setupReminder`
+- [x] A status line under the box you type in: the ticket this session works on, its status, and how full the conversation is. Shown only where you have no status line of your own. `statusLine`
 - [x] Keep session history for a year instead of 30 days, so a rule can be traced back to the session that caused it. `cleanupPeriodDays`
 
 ## Taken over by Flow unless you untick it

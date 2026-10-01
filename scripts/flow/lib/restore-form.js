@@ -63,6 +63,9 @@ function rows(at, project = null) {
 function note(row) {
   if (row.skill) return 'deleted. Flow wrote it to list one of your tickets.';
   if (row.project && row.path === store.recordsDir(row.project)) {
+    if (records.linked(row.project)) {
+      return `deleted: the link alone. The tickets stay in ${show(path.resolve(row.project, fs.readlinkSync(row.path)))}.`;
+    }
     return records.onBranch(row.project)
       ? "deleted, with every ticket in it. Tickets sent to GitHub stay on the project's flow branch."
       : 'deleted, with every ticket in it. This .flow/ was never sent anywhere, so its tickets exist nowhere else.';

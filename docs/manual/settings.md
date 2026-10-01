@@ -5,7 +5,7 @@ Flow reads 4 settings files. This page explains every key in each: what it does,
 - **`~/.claude/settings.json`** belongs to Claude Code. Flow ships its keys in `home/settings.json`, and `flow install` merges them in.
 - **`~/.flow/settings.json`** belongs to Flow, and travels to your other machines with the rest of `~/.flow/`.
 - **`~/.flow/settings.local.json`** belongs to Flow and to this machine alone. git ignores it.
-- **`<project>/.flow/settings.json`** belongs to one project, and is committed on its branch `flow`.
+- **`<project>/.flow/settings.json`** belongs to one project, and is committed on its branch `flow`, or kept with the project's tickets in your Flow home.
 
 Flow reads its 2 machine files as one, and the local one wins key by key.
 
@@ -19,6 +19,7 @@ All 4 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`skillOverrides`](#skilloverrides)
   - [`cleanupPeriodDays`](#cleanupperioddays)
   - [`fileSuggestion`](#filesuggestion)
+  - [`statusLine`](#statusline)
   - [Feature flags](#feature-flags)
   - [Deliberately absent](#deliberately-absent)
 - [Flow's settings files](#flows-settings-files)
@@ -31,12 +32,14 @@ All 4 are strict JSON, so none can hold a comment. This page holds the explanati
   - [`setupReminderSkip`](#setupreminderskip)
   - [`wrapUp`](#wrapup)
   - [`wrapUpAt`](#wrapupat)
+  - [`compact`](#compact)
   - [`fileSuggestionIgnore`](#filesuggestionignore)
   - [`ticketPrefix`](#ticketprefix)
+  - [`repository`](#repository)
 
 ## Claude Code's settings file
 
-`home/settings.json` is the template, and `flow install` merges its keys into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins, statusline) that Flow shouldn't own.
+`home/settings.json` is the template, and `flow install` merges its keys into `~/.claude/settings.json`. Merged rather than copied: your global settings also hold personal things (model, effort level, plugins) that Flow shouldn't own. A status line of your own stays too: Flow writes [`statusLine`](#statusline) only where you have none.
 
 Settings load at startup. **Restart Claude Code after any change.**
 
@@ -248,6 +251,26 @@ The context is at 171k, past the 150k limit. Stop at the step you are on: finish
 **A helper agent's tool calls are skipped.** They fire the same hook, carrying the main session's file, so their counts would be the wrong ones.
 
 `"wrapUp": false` in `~/.flow/settings.json` silences it, and [`wrapUp`](#wrapup) covers the switch.
+
+#### The compact refusal
+
+```json
+"PreCompact":         [ { "matcher": "manual", "hooks": [ { "type": "command",
+  "command": "node \"$HOME/.flow/scripts/compact-check.js\"" } ] } ],
+"autoCompactEnabled": false
+```
+
+Refuses `/compact`. Compacting swaps the conversation for Claude Code's own summary of it, and the session carries on from the summary. Flow ends a long conversation another way: `/flow:handoff` writes what the next session needs into the ticket, and `/clear` starts that session. A typed `/compact` stops, and you see:
+
+```text
+Flow does not compact. Run /flow:handoff, then /clear. "compact": true in ~/.flow/settings.json allows /compact.
+```
+
+**A handoff keeps what the next session would get wrong. A summary keeps a little of everything.** The summary lives only inside that one conversation. The handoff lands in the ticket, where the next session reads it, on this machine or another. [The wrap-up](#the-wrap-up) asks for the handoff long before the conversation fills.
+
+**Claude Code also compacts by itself, near the end of the window.** `autoCompactEnabled: false` turns that off, so the hook only ever sees a `/compact` you typed. `manual` is the matcher for those.
+
+[`compact`](#compact) lets a typed `/compact` run again.
 
 #### The session check
 
@@ -539,6 +562,31 @@ Claude Code can skip the script without a warning and use its own list: in a fol
 
 ---
 
+### `statusLine`
+
+```json
+"statusLine": { "type": "command", "command": "node \"$HOME/.flow/scripts/flow/flow.js\" status-line --context" }
+```
+
+The line under the box you type in. Claude Code runs the command after each message, hands it the session's details as JSON, and shows what it prints. Flow's prints the ticket this session works on, its status, and how full the conversation is:
+
+```text
+exp-47 building · 98k of 150k
+```
+
+[`flow status-line`](reference.md#flow-status-line) says how it finds the ticket. Nothing a status line prints reaches Claude, so it costs no tokens.
+
+**The setup writes it only where you have no status line of your own.** One you already have stays as it is.
+
+**In ccstatusline, add it as a Custom Command widget.** ccstatusline draws a status line from pieces you pick, called widgets, and a Custom Command widget shows what a command prints. It hands the command the same details Claude Code hands a status line, so `flow status-line` works there unchanged:
+
+1. Open ccstatusline's settings screen, with the command its README gives: `npx -y ccstatusline@latest`.
+2. Add a widget to a line, and pick Custom Command.
+3. Set its command to `flow status-line`. Add `--context` only where no other widget already shows the conversation's size.
+4. Leave its timeout at 1000 ms. A run takes about 100 ms.
+
+---
+
 ### Feature flags
 
 | Key | Value | Effect |
@@ -548,6 +596,7 @@ Claude Code can skip the script without a warning and use its own list: in a fol
 | `disableRemoteControl` | `true` | No driving the session from claude.ai or mobile. |
 | `disableClaudeAiConnectors` | `true` | No claude.ai connectors. |
 | `disableArtifact` | `true` | No artifact tool. `/flow:visualize` renders inline. |
+| `autoCompactEnabled` | `false` | Claude Code never swaps a long conversation for its own summary by itself. [The compact refusal](#the-compact-refusal) says why. |
 | `autoMemoryEnabled` | `false` | Auto memory is retired. It is per-repository and machine-local, so it cannot hold anything durable. Everything worth keeping goes in the repo: `AGENTS.md`, `docs/`, or a skill. |
 | `respondToBashCommands` | `false` | A command you type behind `!` in the input box puts its output in context and stops there, instead of spending a turn reacting to it. `! flow sync` and `! ls` should cost nothing. When you want a reaction, the next message asks for one, and it carries your instructions, which an automatic reply cannot. |
 
@@ -572,7 +621,7 @@ Claude Code can skip the script without a warning and use its own list: in a fol
 
 **Which file a key goes in is decided by one question: would the value still be true on your other machines?** `~/.flow/` is one git repository shared between your machines, so `settings.json` travels and `settings.local.json` is the part git ignores.
 
-A project has one file of its own, `.flow/settings.json`. It holds the project's [`skills`](#skills) lines and its [`ticketPrefix`](#ticketprefix), and is committed on the project's branch `flow`, so a fresh clone of the project gets both back.
+A project has one file of its own, `.flow/settings.json`. It holds the project's [`skills`](#skills) lines and its [`ticketPrefix`](#ticketprefix), and is committed on the project's branch `flow`, so a fresh clone of the project gets both back. A project kept in your Flow home has the file in its folder there, where it also holds [`repository`](#repository), and `flow sync` carries it.
 
 A change applies on the next command, with nothing to restart.
 
@@ -720,6 +769,18 @@ Either machine file holds it, and the local one wins, so a machine can keep a li
 
 ---
 
+### `compact`
+
+Whether a `/compact` you type runs. Unset, [the compact refusal](#the-compact-refusal) stops it. Write `true` to let it run:
+
+```json
+"compact": true
+```
+
+Either machine file holds it. Claude Code still never compacts by itself, since `autoCompactEnabled` in `~/.claude/settings.json` is that switch.
+
+---
+
 ### `fileSuggestionIgnore`
 
 Folders and files the `@` list never offers, beyond the fixed ones [`fileSuggestion`](#filesuggestion) names:
@@ -747,3 +808,15 @@ The word every ticket id in a project starts with, so its tickets read `exp-1`, 
 **Only the project's `.flow/settings.json` holds it.** `flow init` asks for it once, and offers the first 3 letters of the folder name. A prefix is 2 to 8 lowercase letters, and never `home`, which names the tickets in `~/.flow/`.
 
 **Changing it later renames nothing.** Tickets made before the change keep their ids, and a command reaches them by the whole id, `exp-12`. New tickets take the new word, counting from 1, and a bare number means one of those.
+
+---
+
+### `repository`
+
+The repository a project kept in your Flow home belongs to. `flow init --home` and `flow store home` write it:
+
+```json
+"repository": "github.com/shop-co/shop"
+```
+
+**Only a project folder in your Flow home holds it**, in `~/.flow/projects/<project>/settings.json`. `.flow/` links to that folder, so the project's `.flow/settings.json` is the same file. `flow init` on your other machine reads it to find the folder, and links to it rather than asking. `flow store project` takes it out, since a branch travels with its repository.

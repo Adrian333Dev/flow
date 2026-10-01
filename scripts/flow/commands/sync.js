@@ -55,7 +55,7 @@ actions.sync = {
       syncProject();
       throw e;
     }
-    const { came, sent, pushed } = result;
+    const { came, sent, pushed, theirs } = result;
     out(came ? `came down: ${came} file${came === 1 ? '' : 's'}` : 'nothing new came down.');
     if (came) {
       const done = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
@@ -66,8 +66,15 @@ actions.sync = {
     else out('nothing changed here, so nothing went up.');
     // Home tickets are sent every 30 minutes, not when made, so 2 machines can
     // take one number meanwhile. The one that arrived first keeps it.
-    for (const r of records.renumber(at.flow, 'origin/main')) {
+    for (const r of records.renumber(at.flow, theirs || 'origin/main')) {
       out(`  ${r.from} is now ${r.to}: another machine took ${r.from} first.`);
+    }
+    // A project linked into the Flow home went up with it.
+    const linked = records.linkedAt(process.env.FLOW_PROJECT || process.cwd());
+    if (linked) {
+      for (const r of records.renumber(linked, theirs || 'origin/main')) {
+        out(`  ${r.from} is now ${r.to}: another machine took ${r.from} first.`);
+      }
     }
     return syncProject();
   },
