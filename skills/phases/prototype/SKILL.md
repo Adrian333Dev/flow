@@ -3,8 +3,6 @@ name: prototype
 description: Naive code answering one question, kept in its ticket beside a report of what it found. Never promoted into the real build.
 ---
 
-$ARGUMENTS
-
 # Prototype
 
 Code written to answer one named question, then kept beside its report as a reference.

@@ -3,8 +3,6 @@ name: groundwork
 description: Refines the idea and designs the solution. Every open decision, including ones nobody raised, walked to a written answer.
 ---
 
-$ARGUMENTS
-
 # Groundwork
 
 Find every decision this work needs. Answer each one, write the answer down, and put it in the file that owns it. No plan, no code.

@@ -3,8 +3,6 @@ name: execute
 description: Builds one ticket, plan through review.
 ---
 
-$ARGUMENTS
-
 # Execute
 
 One ticket at a time, start to finish. `flow next` says which are workable; the user picks.

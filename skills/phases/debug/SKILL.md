@@ -3,8 +3,6 @@ name: debug
 description: Finds the cause by evidence, proves it, fixes it.
 ---
 
-$ARGUMENTS
-
 # Debug
 
 Find the cause by evidence, prove it, then fix it. The fix is the cheap part.
