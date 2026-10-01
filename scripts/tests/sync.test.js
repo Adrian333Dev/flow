@@ -71,7 +71,6 @@ test('what belongs to one machine is what the ignore file names', () => {
     'changes/',
     'wiki/*/downloads/',
     'node_modules/',
-    'projects-local/',
   ]);
   assert.strictEqual(repo.isRepo(m.at), false, 'writing the ignore file makes no repository');
   assert.strictEqual(repo.changed(m.at), null, 'and nothing counts as changed');

@@ -62,8 +62,7 @@ Flow puts files in 5 places on a machine, keeps every clone it reads in one fold
 │  ├─ restore.md                  only while a restore waits for its word
 │  ├─ groundwork/<slug>/
 │  ├─ tickets/
-│  ├─ projects/<project>/         a project's tickets, kept in your Flow home
-│  └─ projects-local/<project>/   the same, on this machine alone
+│  └─ projects/<project>/         a project's tickets, kept in your Flow home
 ├─ .util/sources
 └─ .local/bin/
    ├─ flow, fw                    → <clone>/scripts/flow/flow.js
@@ -161,8 +160,7 @@ Each of these folders may also hold entries from other tools. `flow install` nev
 - **`restore.md`**: the form `flow restore` and `flow uninstall` write, one box per path Flow changed. It exists only while the command waits for you to type its word, and is deleted once read.
 - **`groundwork/<slug>/`**: groundwork run outside any project. `/flow:groundwork` writes it.
 - **`tickets/`**: tickets made outside any project, with `FLOW_PROJECT=$HOME flow new "<title>"`. Their ids start with `home`, such as `home-4`, and `flow move` brings a project's ticket here. Same shape as a project's.
-- **`projects/<project>/`**: the whole `.flow/` of a project kept in your Flow home, which the project's `.flow/` links to. `flow init --home` and `flow store home` make it, and `flow sync` carries it to your other machines. Its `settings.json` names the repository, so `flow init` in another clone finds it.
-- **`projects-local/<project>/`**: the same, for a project whose tickets stay on this machine alone. `flow init --machine-only` and `flow store home --machine-only` make it, and git ignores it.
+- **`projects/<project>/`**: the whole `.flow/` of a project kept in your Flow home, which the project's `.flow/` links to. `flow init --private` and `flow store private` make it, and `flow sync` carries it to your other machines. Its `settings.json` names the repository, so `flow init` in another clone finds it.
 
 ### `~/.util/` and `~/.local/bin/`
 
@@ -185,7 +183,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 
 - **`AGENTS.md`**: what every session in this project needs. It starts from `project-template/` with 2 sections: `## Project` says what it is, and `## Rules` holds the corrections that hold here alone. The sessions fill it in, and add anything else most sessions need.
 - **`CLAUDE.md`**: one line, `@AGENTS.md`, from the template, so Claude Code loads the same rules.
-- **`.gitignore`**: from the template. It ignores the skill symlinks, and `.flow/`, which holds a branch of its own. `flow init` adds the `.flow/` line.
+- **`.gitignore`**: from the template. It ignores the skill symlinks, and `.flow/`, which holds a branch of its own. `flow init` adds the `.flow/` line where the tickets live on the branch.
 - **`.uncommitted-include`**: from the template, empty. It names the gitignored files that travel with `util git uncommitted send`.
 
 ### `.claude/`
@@ -198,7 +196,7 @@ Every clone lives in `~/.flow/repos/`. `flow install` clones each one that is mi
 
 `.flow/` is the branch `flow`, checked out inside the project. The branch shares no history with the code: every code branch ignores `.flow/`, so switching branches never touches a ticket, and nothing on it is ever merged into the code. Anyone who can read the repository gets the tickets. `flow init` makes the branch, or checks out the one a teammate made. Each command that changes a ticket commits it there, and the tickets reach the remote at a status move, at once for a new ticket, after a reply once 30 minutes have passed, and at session end. [`flow sync`](reference.md#flow-sync) sends them by hand.
 
-In a project kept in your Flow home, `.flow/` is a link to `~/.flow/projects/<project>/` instead, or to `~/.flow/projects-local/<project>/` for this machine alone. The link is listed in `.git/info/exclude`, git's ignore list for one clone, which is never committed. The folder holds the same files as the branch, and `flow sync` carries it. It suits a public repository whose tickets should stay private, and a repository other people keep, such as a client's. `flow init` asks which in a public repository, and [`flow store`](reference.md#flow-store) moves the tickets either way later.
+In a project kept in your Flow home, `.flow/` is a link to `~/.flow/projects/<project>/` instead. `flow init --private` makes it, and so does choosing your Flow home when `flow init` asks in a public repository. The link is listed in `.git/info/exclude`, git's ignore list for one clone, which is never committed. The folder holds the same files as the branch, and `flow sync` carries it. The rest of the project is the same either way: `AGENTS.md`, `CLAUDE.md` and `.claude/` sit at its root. [`flow store`](reference.md#flow-store) moves the tickets between the 2 places later.
 
 - **`tickets/<id>-<slug>/`**: one folder per ticket, such as `exp-12-login-page/`, holding `ticket.md`, `groundwork/`, `history.md` with one line per status move or handoff, and whatever the work writes: `reports/` for what a phase found, and `protos/<name>/` for a prototype's code, one folder per prototype. `flow new` makes it, and sessions fill it. [Tickets](tickets.md) shows the shape.
 - **`tickets/archive/`**: finished tickets, moved whole. Nothing is deleted.
@@ -220,4 +218,4 @@ Flow sessions write into these and own none of them.
 
 ## What stays on one machine
 
-These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/logs/`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/setup-settings.json`, `~/.flow/migrate-prompt.md`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/restore.md`, `~/.flow/settings.local.json`, `~/.flow/version`, `~/.flow/skills-update.json`, `~/.flow/records-sync.json`, `~/.flow/status-line.json`, `~/.flow/projects-local/`, and every `~/.flow/wiki/<tool>/downloads/`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/wiki/`, `~/.flow/research/`, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/`, `~/.flow/machines/` and `~/.flow/projects/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed on the branch `flow`, so it travels with the repository, or lives in your Flow home and travels with it.
+These exist on one machine and nothing copies them to another: `~/.claude/projects/`, `~/.flow/repos/`, `~/.flow/logs/`, `~/.flow/run.json`, `~/.flow/setup-prompt.md`, `~/.flow/setup-settings.json`, `~/.flow/migrate-prompt.md`, `~/.flow/audit/`, `~/.flow/changes/`, `~/.flow/originals/`, `~/.flow/restore.md`, `~/.flow/settings.local.json`, `~/.flow/version`, `~/.flow/skills-update.json`, `~/.flow/records-sync.json`, `~/.flow/status-line.json`, and every `~/.flow/wiki/<tool>/downloads/`. `flow sync` carries everything else under `~/.flow/` to your other machines, `~/.flow/wiki/`, `~/.flow/research/`, `~/.flow/study-cases/`, `~/.flow/workflow-notes.md`, `~/.flow/migrations/`, `~/.flow/machines/` and `~/.flow/projects/` included. Each machine makes its own clones from the same `sources` list. Everything in a project's `.flow/` is committed on the branch `flow`, so it travels with the repository, or lives in your Flow home and travels with it.

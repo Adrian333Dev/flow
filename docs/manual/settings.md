@@ -813,10 +813,10 @@ The word every ticket id in a project starts with, so its tickets read `exp-1`, 
 
 ### `repository`
 
-The repository a project kept in your Flow home belongs to. `flow init --home` and `flow store home` write it:
+The repository a project kept in your Flow home belongs to. `flow init --private` and `flow store private` write it:
 
 ```json
 "repository": "github.com/shop-co/shop"
 ```
 
-**Only a project folder in your Flow home holds it**, in `~/.flow/projects/<project>/settings.json`. `.flow/` links to that folder, so the project's `.flow/settings.json` is the same file. `flow init` on your other machine reads it to find the folder, and links to it rather than asking. `flow store project` takes it out, since a branch travels with its repository.
+**Only a project folder in your Flow home holds it**, in `~/.flow/projects/<project>/settings.json`. `.flow/` links to that folder, so the project's `.flow/settings.json` is the same file. `flow init` on your other machine reads it to find the folder, and links to it rather than asking. `flow store branch` takes it out, since a branch travels with its repository.

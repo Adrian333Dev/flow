@@ -222,8 +222,8 @@ function startPull(at) {
 /**
  * Bring the project's tickets up to date, and send what this machine left
  * unsent, without waiting: `records-sync.js` runs the pull and the push on the
- * project's `flow` branch, detached. A local project, or a folder with no
- * branch, starts nothing.
+ * project's `flow` branch, detached. A project in the Flow home, or a folder
+ * with no branch, starts nothing.
  */
 function startRecordsPull(at, cwd) {
   const root = projectRoot(cwd, at);

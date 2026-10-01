@@ -11,8 +11,8 @@
  * Other shapes carry no branch, and every function here but `renumber` and
  * `syncLater` does nothing for them:
  *
- *   linked      `.flow/` is a link into the Flow home, from `flow init --home`
- *               or `--machine-only`. lib/records-place.js holds how, and
+ *   linked      `.flow/` is a link into the Flow home, from
+ *               `flow init --private`. lib/records-place.js holds how, and
  *               `flow sync` sends it with ~/.flow/
  *   folder      `.flow/` is a plain folder, from before the Flow home held
  *               projects. It never leaves the clone
@@ -65,7 +65,7 @@ const recordsOf = (root) => store.recordsDir(root);
 /** True where `.flow/` is a checkout of the `flow` branch. A checkout made by `git worktree` holds a `.git` file. */
 const onBranch = (root) => !store.isHome(root) && fs.existsSync(path.join(recordsOf(root), '.git'));
 
-/** True where `.flow/` is a link, which only `flow init --home` and `flow store` make. */
+/** True where `.flow/` is a link, which only `flow init --private` and `flow store` make. */
 function linked(root) {
   try {
     return fs.lstatSync(recordsOf(root)).isSymbolicLink();
@@ -139,7 +139,7 @@ function commitNow(root, message) {
   return git(dir, [...identity(dir), 'commit', '-q', '--no-verify', '-m', message]).ok;
 }
 
-/** Commit the records. Nothing in a local project or at home. */
+/** Commit the records. Nothing off the branch, or at home. */
 function commit(root, message) {
   if (!onBranch(root)) return false;
   const done = locked(root, () => ({ ok: true, made: commitNow(root, message) }));

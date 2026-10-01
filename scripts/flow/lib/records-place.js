@@ -1,18 +1,17 @@
 'use strict';
 /**
- * Where a project's tickets live. 2 places, and a switch on the second:
+ * Where a project's tickets live. 2 places:
  *
  *   branch        `.flow/` is a checkout of the project's branch `flow`, pushed
  *                 with the repository. Everyone who can read the repository
  *                 reads the tickets. lib/records.js keeps it
  *   home          `.flow/` is a link to ~/.flow/projects/<name>/, in the
- *                 private Flow home. `flow sync` carries it to the user's
- *                 other machines, and nobody else sees it
- *   machine       the same link, to ~/.flow/projects-local/<name>/, which the
- *                 Flow home's own ignore list keeps on this machine
+ *                 private Flow home, from `flow init --private`. `flow sync`
+ *                 carries it to the user's other machines, and nobody else
+ *                 sees it
  *
  * A plain `.flow/` folder, from before the Flow home held projects, reads as
- * `folder`: it never leaves the clone, the way `machine` doesn't.
+ * `folder`: it never leaves the clone.
  *
  * The link and the folder name are this machine's. What ties a folder to its
  * project on every machine is `repository` in the folder's settings.json, the
@@ -27,12 +26,11 @@ const records = require('./records');
 const settings = require('./settings');
 
 const PROJECTS = 'projects';
-const LOCAL = 'projects-local';
 
 const git = flowRepo.git;
 
-/** The folder a place keeps its project folders in. */
-const shelf = (home, machineOnly) => path.join(home, machineOnly ? LOCAL : PROJECTS);
+/** The folder the Flow home keeps its project folders in. */
+const shelf = (home) => path.join(home, PROJECTS);
 
 /**
  * The remote, as `github.com/owner/repo`, whatever form git holds it in:
@@ -73,7 +71,7 @@ function visibility(root) {
 
 /**
  * Where this project's tickets live now: `{ type, dir }`, with `type` one of
- * `branch`, `home`, `machine` or `folder`. Null where `.flow/` is missing.
+ * `branch`, `home` or `folder`. Null where `.flow/` is missing.
  */
 function placeOf(root, home = settings.flowHome()) {
   const link = path.join(root, '.flow');
@@ -85,10 +83,7 @@ function placeOf(root, home = settings.flowHome()) {
   }
   if (stat.isSymbolicLink()) {
     const dir = path.resolve(root, fs.readlinkSync(link));
-    const parent = path.dirname(dir);
-    if (parent === path.resolve(shelf(home, false))) return { type: 'home', dir };
-    if (parent === path.resolve(shelf(home, true))) return { type: 'machine', dir };
-    return { type: 'folder', dir };
+    return { type: path.dirname(dir) === path.resolve(shelf(home)) ? 'home' : 'folder', dir };
   }
   return { type: records.onBranch(root) ? 'branch' : 'folder', dir: link };
 }
@@ -96,25 +91,21 @@ function placeOf(root, home = settings.flowHome()) {
 /** The Flow home folder already holding this project's tickets, found by its repository, or null. */
 function findFolder(root, home = settings.flowHome()) {
   const repo = repositoryOf(root);
-  if (!repo) return null;
-  for (const machineOnly of [false, true]) {
-    const dir = shelf(home, machineOnly);
-    if (!fs.existsSync(dir)) continue;
-    for (const name of fs.readdirSync(dir).sort()) {
-      const saved = settings.read(path.join(dir, name, 'settings.json')).repository;
-      if (saved === repo) return path.join(dir, name);
-    }
+  const dir = shelf(home);
+  if (!repo || !fs.existsSync(dir)) return null;
+  for (const name of fs.readdirSync(dir).sort()) {
+    const saved = settings.read(path.join(dir, name, 'settings.json')).repository;
+    if (saved === repo) return path.join(dir, name);
   }
   return null;
 }
 
-/** A new folder name for this project on the shelf: the project folder's name, then `-2`, `-3` where taken. */
-function newFolder(root, machineOnly, home = settings.flowHome()) {
-  const dir = shelf(home, machineOnly);
+/** A new folder for this project in the Flow home: the project folder's name, then `-2`, `-3` where taken. */
+function newFolder(root, home = settings.flowHome()) {
+  const dir = shelf(home);
   const base = path.basename(path.resolve(root)).toLowerCase().replace(/[^a-z0-9._-]+/g, '-') || 'project';
-  const taken = (name) => fs.existsSync(path.join(shelf(home, false), name)) || fs.existsSync(path.join(shelf(home, true), name));
   let name = base;
-  for (let n = 2; taken(name); n++) name = `${base}-${n}`;
+  for (let n = 2; fs.existsSync(path.join(dir, name)); n++) name = `${base}-${n}`;
   return path.join(dir, name);
 }
 
@@ -173,5 +164,5 @@ function ticketFolders(dir) {
 }
 
 module.exports = {
-  PROJECTS, LOCAL, shelf, repositoryOf, visibility, placeOf, findFolder, newFolder, link, exclude, remember, copyRecords, ticketFolders,
+  PROJECTS, shelf, repositoryOf, visibility, placeOf, findFolder, newFolder, link, exclude, remember, copyRecords, ticketFolders,
 };

@@ -2,7 +2,7 @@
 /**
  * A project's tickets on the branch `flow`: `flow init` making it and a
  * teammate joining it, a clash on one number, the commits the commands make,
- * `flow move`, a local project that never touches the repository, and what
+ * `flow move`, a project whose tickets live in the private Flow home, and what
  * a ticket records about the work on it.
  *
  * Every test runs real git against a bare repository standing in for the
@@ -99,14 +99,14 @@ test('offline, flow new makes no ticket, and gives out no number', () => {
   assert.match(t.in(ana, 'new', 'Export csv').stdout, /created exp-1/);
 });
 
-test('flow init stops before making anything where the remote refuses a push, and offers --home', () => {
+test('flow init stops before making anything where the remote refuses a push, and offers --private', () => {
   const t = team('records-refused');
   const ana = t.clone('ana');
   git(ana, 'remote', 'set-url', 'origin', path.join(t.dir, 'nowhere.git'));
   const refused = t.in(ana, 'init', '--prefix', 'exp');
   assert.strictEqual(refused.code, 1);
   assert.match(refused.stderr, /the remote refuses a push from this clone, .*git said: fatal: /);
-  assert.match(refused.stderr, /flow init --home/);
+  assert.match(refused.stderr, /flow init --private/);
   assert.ok(!fs.existsSync(path.join(ana, '.flow')), 'no .flow/');
   assert.ok(!fs.existsSync(path.join(ana, '.gitignore')), 'no .gitignore line');
   assert.ok(!git(ana, 'rev-parse', '--verify', 'flow').ok, 'no branch');
@@ -145,29 +145,29 @@ test('each command that changes a ticket commits it, and flow runs from inside .
   assert.match(inside.stdout, /^exp-1  Login page$/m);
 });
 
-test('flow init --machine-only links .flow/ to a folder the Flow home never sends, and changes nothing git sees', () => {
-  const t = team('records-machine');
+test('flow init --private links .flow/ into the Flow home, hidden from git, and writes the rule files as the branch does', () => {
+  const t = team('records-private-init');
   const ana = t.clone('ana');
-  const made = t.in(ana, 'init', '--machine-only', '--prefix', 'exp');
+  const made = t.in(ana, 'init', '--private', '--prefix', 'exp');
   assert.strictEqual(made.code, 0, made.stderr);
-  assert.match(made.stdout, /stay on this machine alone/);
+  assert.match(made.stdout, /private, in your Flow home/);
+  assert.match(made.stdout, /^wrote: AGENTS\.md$/m);
+  assert.ok(fs.existsSync(path.join(ana, 'CLAUDE.md')));
 
-  const dir = path.join(t.home, 'projects-local', 'ana');
+  const dir = path.join(t.home, 'projects', 'ana');
   assert.strictEqual(fs.readlinkSync(path.join(ana, '.flow')), dir);
   assert.match(fs.readFileSync(path.join(ana, '.git', 'info', 'exclude'), 'utf8'), /^\.flow$/m);
-  assert.ok(!fs.existsSync(path.join(ana, 'AGENTS.md')), 'no rule file');
-  assert.ok(!fs.existsSync(path.join(ana, '.gitignore')), 'no .gitignore line');
+  assert.doesNotMatch(fs.readFileSync(path.join(ana, '.gitignore'), 'utf8'), /^\.flow/m, 'no .flow/ line');
   assert.match(t.in(ana, 'new', 'Try it').stdout, /created exp-1/);
   assert.ok(fs.existsSync(path.join(dir, 'tickets')), 'the ticket landed in the Flow home folder');
-  assert.strictEqual(git(ana, 'status', '--porcelain').out, '', 'git sees nothing');
+  assert.strictEqual(git(ana, 'status', '--porcelain', '--', '.flow').out, '', 'git never sees .flow');
   assert.ok(!git(ana, 'rev-parse', '--verify', 'flow').ok, 'no branch');
-  assert.match(require('../flow/lib/flow-repo').IGNORED, /^projects-local\/$/m, 'the Flow home never sends it');
 });
 
-test('flow init --home: the folder carries the repository, so another clone of it joins the same tickets', () => {
+test('flow init --private: the folder carries the repository, so another clone of it joins the same tickets', () => {
   const t = team('records-home');
   const ana = t.clone('ana');
-  assert.strictEqual(t.in(ana, 'init', '--home', '--prefix', 'exp').code, 0);
+  assert.strictEqual(t.in(ana, 'init', '--private', '--prefix', 'exp').code, 0);
   t.in(ana, 'new', 'Login page');
   const dir = path.join(t.home, 'projects', 'ana');
   assert.strictEqual(JSON.parse(fs.readFileSync(path.join(dir, 'settings.json'), 'utf8')).repository, t.remote);
@@ -205,30 +205,27 @@ test('the remote reads the same in every form git holds it', () => {
   }
 });
 
-test('flow store moves the tickets from the branch to the Flow home, to this machine alone, and back', () => {
+test('flow store moves the tickets from the branch to the Flow home, and back', () => {
   const t = team('records-store');
   const ana = t.clone('ana');
   t.init(ana, '--prefix', 'exp');
   t.in(ana, 'new', 'Login page');
   assert.match(t.in(ana, 'store').stdout, /live on the project's flow branch/);
 
-  const home = t.in(ana, 'store', 'home');
+  const home = t.in(ana, 'store', 'private');
   assert.strictEqual(home.code, 0, home.stderr);
   assert.match(home.stdout, /git push origin --delete flow/);
   assert.ok(git(ana, 'rev-parse', '--verify', 'flow').ok, 'the branch stays');
   assert.match(t.in(ana, 'store').stdout, /live in your Flow home/);
   t.in(ana, 'new', 'Export csv');
 
-  const local = t.in(ana, 'store', 'home', '--machine-only');
-  assert.strictEqual(local.code, 0, local.stderr);
-  assert.ok(fs.existsSync(path.join(t.home, 'projects-local', 'ana', 'tickets')));
-  assert.ok(!fs.existsSync(path.join(t.home, 'projects', 'ana')));
+  assert.ok(fs.existsSync(path.join(t.home, 'projects', 'ana', 'tickets')));
 
-  const back = t.in(ana, 'store', 'project');
+  const back = t.in(ana, 'store', 'branch');
   assert.strictEqual(back.code, 0, back.stderr);
   assert.ok(records.onBranch(ana));
   assert.deepStrictEqual(idsIn(ana), ['exp-1-login-page', 'exp-2-export-csv']);
-  assert.ok(!fs.existsSync(path.join(t.home, 'projects-local', 'ana')), 'the Flow home folder went with the move');
+  assert.ok(!fs.existsSync(path.join(t.home, 'projects', 'ana')), 'the Flow home folder went with the move');
   assert.strictEqual(git(path.join(ana, '.flow'), 'status', '--porcelain').out, '', 'committed');
   assert.ok(!('repository' in JSON.parse(fs.readFileSync(path.join(ana, '.flow', 'settings.json'), 'utf8'))));
 });
@@ -241,13 +238,13 @@ test('flow store refuses to move onto a branch holding a ticket the move would d
   records.sync(ana);
   const ben = t.clone('ben');
   t.in(ben, 'init');
-  t.in(ana, 'store', 'home');
+  t.in(ana, 'store', 'private');
 
   // A teammate still on the branch adds a ticket the Flow home never saw.
   assert.match(t.in(ben, 'new', 'Export csv').stdout, /created exp-2/);
   git(ana, 'fetch', '-q', '--force', 'origin', 'flow:flow');
 
-  const refused = t.in(ana, 'store', 'project');
+  const refused = t.in(ana, 'store', 'branch');
   assert.strictEqual(refused.code, 1);
   assert.match(refused.stderr, /would be deleted: exp-2-export-csv/);
   assert.ok(fs.lstatSync(path.join(ana, '.flow')).isSymbolicLink(), 'the link is back');

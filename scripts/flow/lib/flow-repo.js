@@ -45,8 +45,6 @@
  *   a wiki tool's downloads   pages fetched once per machine
  *   node_modules/   what a prototype in a ticket installed, fetched again
  *                 wherever it runs
- *   projects-local/   the tickets of every project set up with
- *                 `--machine-only`, which the user kept on this machine
  *
  * Each machine keeps one record in the repository, `machines/<name>.json`:
  * its name, the day it joined, and the changelog entry it is on. `flow install`
@@ -108,7 +106,6 @@ const IGNORED = [
   'changes/',
   'wiki/*/downloads/',
   'node_modules/',
-  'projects-local/',
   '',
 ].join('\n');
 

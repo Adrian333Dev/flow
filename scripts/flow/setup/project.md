@@ -31,7 +31,7 @@ A message starting `Carry on` is the same job, stopped part way.
 7. **Apply it**: `node ~/.flow/scripts/apply-migration.js <migration>`. A refusal → print it whole and stop. It stopped part way → say which line and why, and stop: running it again carries on from that line.
 8. **Check it**: `flow doctor`. Its `run.json` line is expected until step 9. Any other problem → name it, with the fix doctor gives, in the last message. It never holds back the stamp.
 9. **Stamp it**: `flow init finish`.
-10. **The last message**: what changed, in the form's own words; that nothing in the code is committed, while the tickets are saved on the branch `flow`; `flow restore project` to undo it all; then "Quit this session and start `claude` again: this project's new rules load when a session starts."
+10. **The last message**: what changed, in the form's own words; that nothing in the code is committed, while the tickets are saved on the branch `flow`, or in the Flow home where `.flow/` links there; `flow restore project` to undo it all; then "Quit this session and start `claude` again: this project's new rules load when a session starts."
 
 ## Reading the project
 

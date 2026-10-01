@@ -153,7 +153,7 @@ It checks each of these in order, and does only what applies:
 
 - **No git repository** → it runs `git init`. Inside a repository it never does.
 - **Typed in a subfolder** → it works at the repository's top folder, and says so.
-- **`--home` or `--machine-only`** → the tickets go to your Flow home, covered [below](#your-flow-home).
+- **`--private`** → the tickets go to your Flow home, covered [below](#your-flow-home). The checks below about the branch, the public question and the refused push are skipped. Everything else runs the same.
 - **Your Flow home already holds the project's tickets**, put there from your other machine → it links `.flow/` to that folder, and the project is set up.
 - **A teammate set the project up**, so the branch `flow` is on the remote → it checks that branch out at `.flow/`, and the project is set up.
 - **A public repository** → it asks where the tickets live, since the branch would publish them. Enter takes the default, and with no terminal attached the tickets go to your Flow home:
@@ -161,13 +161,12 @@ It checks each of these in order, and does only what applies:
   ```text
   This repository is public. Where should its tickets live?
     1. Your Flow home: private, on all your machines   (default)
-    2. Your Flow home, this machine only: private, never leaves this computer
-    3. The project's flow branch: PUBLIC, anyone can read them
-  Type 1, 2 or 3:
+    2. The project's flow branch: PUBLIC, anyone can read them
+  Type 1 or 2:
   ```
 
   `gh` tells it whether the repository is public. Where `gh` can't tell, the same question opens with `Flow could not tell whether this repository is public.` A private repository, and one kept somewhere other than GitHub, get the branch without a question.
-- **The remote refuses a push from this clone**, for a missing sign-in or no write access → it stops before making anything, prints what git said, and offers `--home`. A ticket on the branch gets its number only once the remote has it, so a project whose remote refuses pushes could never make one. The check is a dry run: it asks the remote and sends nothing.
+- **The remote refuses a push from this clone**, for a missing sign-in or no write access → it stops before making anything, prints what git said, and offers `--private`. A ticket on the branch gets its number only once the remote has it, so a project whose remote refuses pushes could never make one. The check is a dry run: it asks the remote and sends nothing.
 - **No branch `flow`** → it makes one and checks it out at `.flow/`. The branch holds the tickets and shares no history with the code. `.flow/` goes into `.gitignore`, so every code branch ignores the tickets and nothing on the branch is ever merged into the code. [Where everything lives](where-everything-lives.md#flow-flows-working-store) has the whole of it.
 - **The ticket prefix** is asked once, and the first 3 letters of the folder name are offered: `Ticket prefix, so its tickets read sho-1, sho-2 (default: sho):`. `--prefix shop` answers it. A prefix is 2 to 8 lowercase letters, and never `home`, which names the tickets in `~/.flow/`.
 - **Files telling Claude Code or another agent how to work here** → it opens the setup session, and asks nothing. These are `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, anything under `.claude/`, `.mcp.json`, and other tools' rule files such as `.cursorrules`. Only reading them can sort their rules into Flow's files:
@@ -223,21 +222,27 @@ Setting up ~/code/shop runs in its own session. Start it from a terminal:
 
 - **`--add-dir`**: `~/.flow`, where the form is written, and the project's memory folder, where one exists, so neither asks each time.
 - **`~/.flow/run.json`**: the same file as the machine's setup, with `type` `setup-project`, the project's path and its memory folder.
-- **`flow init finish`**: the session's last step. It stamps the project's `.flow/version`, commits the tickets on the branch, and deletes `run.json`.
+- **`flow init finish`**: the session's last step. It stamps the project's `.flow/version`, saves the tickets, and deletes `run.json`. On the branch the save is a commit. In your Flow home it is `flow sync`'s save, run in the background.
 - **`flow restore project`** puts back what Flow changed in the project, one box per path in a form. The project's `AGENTS.md`, `CLAUDE.md` and `docs/` stay unless you tick them.
 
 #### Your Flow home
 
-**`--home` keeps the tickets in your Flow home**, the private repository at `~/.flow/` that [`flow sync`](#flow-sync) carries to your other machines. `.flow/` is then a link to `~/.flow/projects/<project>/`, listed in `.git/info/exclude`, git's ignore list for one clone. That file is never committed, so nothing appears in `git status` and nothing reaches anyone else's copy. Nothing else in the repository changes: no rule file, no `.gitignore` line, no session. It suits a public repository whose tickets should stay private, and a repository other people keep, such as a client's.
+**`--private` keeps the tickets in your Flow home**, the private repository at `~/.flow/` that [`flow sync`](#flow-sync) carries to your other machines. `.flow/` is then a link to `~/.flow/projects/<project>/`, listed in `.git/info/exclude`, git's ignore list for one clone. That file is never committed, so the link never shows in `git status` and never reaches anyone else's copy. It suits a public repository whose tickets should stay private, and a repository whose remote refuses your pushes.
+
+**Everything else is the same as on the branch**: `AGENTS.md`, `CLAUDE.md`, the template and the setup session, since a project needs its rules wherever its tickets live. An `AGENTS.md` already in the project is read and rewritten by the setup session, after you say go. Only `.gitignore` gets no `.flow/` line, since the exclude list already hides the link.
 
 ```text
-$ flow init --home --prefix shop
-.flow/: a link to ~/.flow/projects/shop, listed in .git/info/exclude, so git never sees it
+$ flow init --private --prefix shop
+.flow/: a link to ~/.flow/projects/shop, in your Flow home, listed in .git/info/exclude so git never sees it
+wrote: .claude/settings.json
+wrote: .gitignore
+wrote: .uncommitted-include
+wrote: AGENTS.md
+wrote: CLAUDE.md
 
-set up in your Flow home: ~/code/shop is on entry 3. Its tickets are private, and flow sync carries them to your other machines. Nothing in the repository changed.
+set up: ~/code/shop is on entry 3. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
+Its tickets are private, in your Flow home, and flow sync carries them to your other machines.
 ```
-
-**`--machine-only` keeps them on this computer alone**, in `~/.flow/projects-local/<project>/`, which `flow sync` never sends. It suits work whose notes may not leave the computer, such as an employer's code.
 
 **Your other machine finds the folder by itself.** The folder's `settings.json` keeps the repository's address, `github.com/<owner>/<repo>`, and `flow init` in a clone of the same repository links to that folder rather than asking.
 
@@ -254,7 +259,7 @@ $ flow store
 shop's tickets live on the project's flow branch. Everyone who can read the repository reads them.
 ```
 
-- **`flow store home`** → into your Flow home, `~/.flow/projects/<project>/`. The branch stays as it was, here and on the remote, and anyone who read the repository may hold a copy. The last lines say so, and how to delete it:
+- **`flow store private`** → into your Flow home, `~/.flow/projects/<project>/`. The branch stays as it was, here and on the remote, and anyone who read the repository may hold a copy. The last lines say so, and how to delete it:
 
   ```text
   moved: shop's tickets now live in ~/.flow/projects/shop.
@@ -262,8 +267,7 @@ shop's tickets live on the project's flow branch. Everyone who can read the repo
   To delete it: git branch -D flow, then git push origin --delete flow.
   ```
 
-- **`flow store home --machine-only`** → onto this computer alone, `~/.flow/projects-local/<project>/`. From your Flow home, the next `flow sync` takes the tickets out of it. The Flow home's history on GitHub keeps the earlier copies.
-- **`flow store project`** → onto the project's branch `flow`, the one an earlier move left behind or a new one. The branch then holds exactly what moved. A ticket on the branch that the moved tickets lack would be deleted, so the move refuses and names it:
+- **`flow store branch`** → onto the project's branch `flow`, the one an earlier move left behind or a new one. The branch then holds exactly what moved. A ticket on the branch that the moved tickets lack would be deleted, so the move refuses and names it:
 
   ```text
   flow: the flow branch already holds tickets that would be deleted: shop-2-export-csv. Nothing was changed.
@@ -376,7 +380,7 @@ The laptop's `flow update` migrates the laptop's own copy, with everything it wr
 
 The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow update in a terminal.`
 
-**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `restore.md`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `status-line.json`, `audit/`, `changes/`, `projects-local/`, and each wiki tool's `downloads/`.
+**What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `restore.md`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `records-sync.json`, `status-line.json`, `audit/`, `changes/`, each wiki tool's `downloads/`, and `node_modules/`.
 
 **Tickets in `~/.flow/` are sent with everything else there**, not when they are made, and so are the tickets of a project kept there. 2 machines can therefore give out the same number between syncs. The one that reached the repository first keeps it, and the other takes the next free number, keeping its old id as `was:`, so the old id still finds it:
 
