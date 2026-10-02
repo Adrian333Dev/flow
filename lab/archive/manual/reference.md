@@ -381,7 +381,7 @@ your Flow home is on changelog entry 12, since desktop-wsl moved to it, and this
 
 The laptop's `flow update` migrates the laptop's own copy, with everything it wrote while it was cut off. Both copies then have the same shape, and the next `flow sync` merges them. Without the stop, the laptop would download a shape its Flow does not know, or send its old shape back up.
 
-The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow update in a terminal.`
+The laptop learns about it before you type anything. A session start fetches the repository in the background, at most every 6 hours, and the next session opens with `Flow: desktop-wsl is on changelog entry 12, and this machine is on 11. Run flow update in a terminal.`
 
 **What describes one machine never travels**, and `~/.flow/.gitignore` names all of it: `version`, `run.json`, the 2 prompt files, `originals/`, `restore.md`, `settings.local.json`, the `scripts`, `references` and `docs` links, `repos/`, `logs/`, `skills-update.json` and its lock, `records-sync.json`, `status-line.json`, `audit/`, `changes/`, each wiki tool's `downloads/`, and `node_modules/`. Each name counts only at the top of `~/.flow/`, so a project's own `version` under `projects/`, and a `docs/` or `scripts/` folder inside a ticket, still travel. `node_modules/` is the exception, left out wherever it sits.
 

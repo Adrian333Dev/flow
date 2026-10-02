@@ -117,7 +117,7 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
 
   if (statuses.NEEDS_REASON.has(status) && !reason) {
     throw new FlowError(
-      `moving ${t.id} to ${status} needs a reason: in six months it is the only thing that explains the ticket.\n` +
+      `moving ${t.id} to ${status} needs a reason:\n` +
       `  ${verb} --reason "vendor API changes land in Q3, pointless before that"`
     );
   }
@@ -356,7 +356,7 @@ actions.handoff = {
 function notMade(failed) {
   if (!failed.offline) return `no ticket was made: ${failed.why || 'the push failed'}.`;
   return `no ticket was made: the remote did not take it. git said: ${failed.why}\n` +
-    'A number is given out only once the remote has it. Fix what git names, or wait until the remote answers, then try again.';
+    'Fix what git names, or wait until the remote answers, then try again.';
 }
 
 /**
@@ -588,7 +588,7 @@ actions.drop = {
   args: '<id>',
   summary: 'kill it, and repair what depended on it',
   flags: {
-    reason: { required: true, arg: '"<why>"', missing: 'dropping needs a reason, nothing else records why the work died.' },
+    reason: { required: true, arg: '"<why>"', missing: 'dropping needs --reason "<why>".' },
     by: { arg: '<id>' },
     force: { bool: true },
   },

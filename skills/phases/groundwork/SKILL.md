@@ -14,23 +14,21 @@ Find every decision this work needs. Answer each one, write the answer down, and
 3. **Attack**: run the result through real cases before it stands. Phase 3 says at which closes.
 4. **Route**: send each decision to the file that owns it.
 
-Same 4 phases at any size. A long message fills more of the map in advance, never less of it.
+Same 4 phases at any size, however much the first message already settles.
 
 ## Arriving
 
-Anything starts a run: one line, 10 paragraphs, a folder of research reports, a design someone already drafted. Phase 1 takes all of it the same way.
+**No ticket** → the ticket `flow ls` shows open on this subject, since one subject never gets a second map. None → `flow new "<subject>" --type topic`. The map is the ticket's `groundwork/map.md`.
 
-**No ticket** → the ticket already open on this subject, where `flow ls` shows one, since one subject never gets a second map. Otherwise `flow new "<subject>" --type topic`. Either way the map is that ticket's `groundwork/map.md`, opened below.
+**Outside a project**, the ticket lives in `~/.flow/tickets/`, and Phase 4's `docs/` routes land under `~/.flow/`. Never create a project to have somewhere to write. **Work that turns out to belong to a project** → `flow move <id> <project folder>`, once. Same move when the current folder becomes a project mid-run.
 
-**Outside a project the ticket lives in `~/.flow/tickets/`**, and nothing the run decides reaches `docs/`, because there is no product here to hold a spec. Phase 4's `docs/` routes land under `~/.flow/` instead. Never create a project to have somewhere to write. **Work that turns out to belong to a project moves there once**: `flow move <id> <project folder>`. Same move when the folder you are standing in becomes a project mid-run.
-
-**On a ticket, open `map.md` before anything else.** It is what the work produced, so it decides which phase this is. The status is a claim somebody wrote, and it can be wrong.
+**On a ticket, open `map.md` first.** The map decides the phase, never the status.
 
 - **No map, or a map holding no questions** → Phase 1
 - **Any question still `[ ]`** → Phase 2, from the first one
 - **Every question `[x]`** → Phase 4 routes what the map decided
 
-**Then `flow groundwork <id>`** where the ticket holds any other status. Never move it further: a finished map hands over through Phase 4's last line.
+**Then `flow groundwork <id>`**, unless the ticket is already there. Never move it further.
 
 **A map that reads both ways stops the run.** Questions ticked with nothing written under them, a section abandoned mid-sentence, a map about another subject: say what you found and ask.
 
@@ -38,11 +36,11 @@ Anything starts a run: one line, 10 paragraphs, a folder of research reports, a 
 
 ### 1. Extract
 
-Read what is already here in the area this touches: code, documents, whatever there is. Follow how it is built, or say why not.
+Read what already exists in the area this touches: code, documents. Follow how it is built, or say why not.
 
-**Nothing written before this session is settled, including anything labelled settled.** A file saying "decided" records what somebody thought on the day they wrote it, with whatever they knew then. It puts a branch on the map. It never gives you the answer, and it is never your recommendation in Phase 2. What it is reliable about is which questions exist, and what was already tried.
+**Nothing written before this session is settled, a file saying "decided" included.** It puts a branch on the map, never the answer, and never your Phase 2 recommendation. Trust it for which questions exist and what was already tried.
 
-**Input arriving as files somebody already worked on** → read `references/read-intake.md` first. Brainstorms run with an agent, research reports, design drafts: real work, and none of it settled.
+**Input arriving as files somebody already worked on** (a brainstorm run with an agent, a research report, a design draft) → read `references/read-intake.md` first.
 
 Then list 4 things:
 
@@ -51,16 +49,16 @@ Then list 4 things:
 - what **contradicts** something else
 - what a build would need and nobody supplied
 
-**Contradictions sit between files as often as inside a message.** Two versions of one document, a design rejected in a note somewhere else, a scope that changed halfway through. Name them. Never pick a side quietly. Dictated input contradicts itself almost every time.
+**Look for contradictions between files as well as inside a message**: 2 versions of one document, a design rejected in a note elsewhere, a scope that changed halfway. Dictated input contradicts itself almost every time. Name each one. Never pick a side quietly.
 
 Sharpen vague input: what was tried already, and what forced this now.
 
 ### 2. Widen
 
-**Generate options nobody raised.** A map built only from what the user said writes down their thinking instead of mapping the decision. Runs every session, detailed input included: 10 paragraphs is one person's view stated at length.
+**Generate options nobody raised**, every session, detailed input included: 10 paragraphs is still one person's view.
 
 1. **Name the parts.** Break the subject into pieces that vary on their own. Software: data model, control flow, failure handling, deployment. A pipeline: stages, tools, who owns each, what each costs.
-2. **Hit every part with all 9 nudges.** Mechanical on purpose. Going through all 9 finds what nobody thought of. Where a nudge exposes a real decision, that becomes a branch.
+2. **Hit every part with all 9 nudges**, mechanically. A nudge that exposes a real decision becomes a branch.
    - **none**: the part doesn't exist at all
    - **more** · **less**: 10 times as much; a tenth, or exactly 1
    - **reverse**: flip the direction, or the order
@@ -68,7 +66,7 @@ Sharpen vague input: what was tried already, and what forced this now.
    - **as-well-as**: both options instead of a choice between them
    - **part-of**: one thing, or several wearing one name?
    - **earlier** · **later**: sooner in time; deferred until something forces it
-3. **Check the 6 standing subjects.** Skipped most often, cost most when skipped. Each either produces a branch or gets ruled out loud.
+3. **Check the 6 standing subjects.** Each produces a branch or gets ruled out loud.
    - **who it is for**, specifically
    - **how you know it worked**: the observable outcome
    - **what it costs**: money, time, attention
@@ -78,9 +76,9 @@ Sharpen vague input: what was tried already, and what forced this now.
 4. **Imagine it failed.** It shipped and went badly. Name the 3 most likely causes. Each cause is an open decision.
 5. **Check prior art.** What do existing solutions do that nobody here raised? A landscape you don't already know → **invoke `/flow:research`**, never guess at it.
 6. **Challenge the premise.** Is the stated approach right at all? A better path goes on the table _before_ a map gets built around the stated one.
-7. **Cut for relevance.** Drop anything with no plausible win for this goal. Never pad to a number: options the user reads and rejects cost more than they're worth.
+7. **Cut for relevance.** Drop anything with no plausible win for this goal. Never pad to a number.
 
-**Name the new options in prose**: "you haven't mentioned X". Never a label. Seeing what they'd have missed is most of the value.
+**Name the new options in prose**: "you haven't mentioned X". Never a label.
 
 ### 3. Propose
 
@@ -88,7 +86,7 @@ State 3 things and confirm all 3 before walking: **3–N top-level branches**, *
 
 Branches that constrain other branches go first: say which constrains which.
 
-**On a big subject the run can end here.** Settling scope, order and what gets dropped is a full session's work, and the branches that are subjects in their own right leave as child maps. Say that is what happened, and stop.
+**On a big subject the run can end here**, with scope, order and what gets dropped settled, and the branches that are subjects of their own gone to child maps. Say so, and stop.
 
 **Then stop.** The first branch question goes in the _next_ message.
 
@@ -97,13 +95,13 @@ Branches that constrain other branches go first: say which constrains which.
 One branch at a time. Interview until the decision is genuinely clear. A first answer is not clarity.
 
 1. **Pose the branch.**
-2. **Recommend.** Commit to a position: "I'd go with X because Y." A neutral list of options is not an answer.
+2. **Recommend**: "I'd go with X because Y."
 3. **Wait for the reaction.** Vague or partial → probe before closing.
-4. **Write the decision** once it's locked: user-confirmed, no open threads, not mid-discussion agreement. Mark it `[x]`.
+4. **Write the decision** in the map once it locks, and mark it `[x]`.
 
-Batching 2–3 locked decisions into 1 write is fine. Never gate a write behind a yes/no question, never end a session with a settled branch unwritten.
+Never gate a write behind a yes/no question. Never end a session with a settled branch unwritten.
 
-Sub-branches surface mid-conversation. Add them as `[ ]` children immediately, and walk them after the parent closes.
+Add a sub-branch that surfaces mid-conversation as a `[ ]` child at once. Walk it after the parent closes.
 
 **Never expose the bookkeeping.** No index numbers, no checkboxes, no "branch 2.1". Plain prose: situation, options, recommendation.
 
@@ -113,13 +111,13 @@ Sub-branches surface mid-conversation. Add them as `[ ]` children immediately, a
 
 It leaves and gets its own map and session: `flow new "…" --type topic --parent <id>`.
 
-**The body carries what the child cannot get by opening this map**: the branch written as a question, and every decision here that binds it. Never copy the reasoning, and never copy a whole section. The parent's map is one path away, and a second copy of a decision drifts from the first.
+**The body carries what the child cannot get by opening this map**: the branch written as a question, and every decision here that binds it. Never copy the reasoning, and never copy a whole section.
 
-**Split on whether it can be settled alone, never on how big it is.** A branch that needs answers from its siblings is not independent. Size is not a reason: one `map.md` is walked across as many sessions as it takes.
+**Split on whether it can be settled alone, never on size**: one `map.md` is walked across as many sessions as it takes. A branch needing its siblings' answers stays.
 
-A feature rarely spawns one. A whole product usually spawns several, because its parts are genuinely separate subjects.
+A feature rarely spawns one. A whole product usually spawns several.
 
-**A decision that binds more than one child belongs to the parent.** Write it as an open branch in the parent's `map.md`, naming which child raised it. The branch here stays `[ ]` and says what it waits on. Where nothing else here can move, say it waits on the parent and stop. Never answer it locally: 2 children answering the same question answer it differently.
+**A decision that binds more than one child belongs to the parent.** Write it as an open branch in the parent's `map.md`, naming which child raised it. The branch here stays `[ ]` and says what it waits on. Where nothing else here can move, say it waits on the parent and stop. Never answer it locally.
 
 ### When the user isn't the one who can answer
 
@@ -127,12 +125,16 @@ A feature rarely spawns one. A whole product usually spawns several, because its
 
 - **What already exists here** → read it. Never burn a branch on what it already says.
 - **Something documented elsewhere** → **invoke `/flow:research`**, levels 1–2.
-- **Past what the documentation says** → **invoke `/flow:research`**, level 3: get the source and read it. **This is the case that sinks plans**, committing to a tool's internals unread produces a design that dies 4 steps into the build.
-- **Nothing written can answer it** → run something. A cheap check (one command, a 10-second script) runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a child ticket typed `prototype`** carrying the question and its pass and fail: `flow new "<question>" --type prototype --parent <id>`. **Never build it here.** Start a subagent with `Run /flow:prototype on <id>`, and carry on with the walk. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. This groundwork resumes from the finding in the ticket's `reports/`, and closes that ticket with `flow done <id>` once the user accepts the answer. When nothing else on the map can move, say it waits on that ticket and stop. A session that ends first leaves the ticket in `building`, and `/flow:prototype /exp-12` picks it up.
+- **Past what the documentation says** → **invoke `/flow:research`**, level 3: get the source and read it. Never commit to a tool's internals unread.
+- **Nothing written can answer it** → run something. A cheap check (one command, a 10-second script) runs here. Anything needing an install, a server, a download, or more than a couple of turns → **cut a child ticket typed `prototype`** carrying the question and its pass and fail: `flow new "<question>" --type prototype --parent <id>`. **Never build it here.**
+  - Start a subagent with `Run /flow:prototype on <id>`, and carry on with the walk.
+  - Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself.
+  - Resume from the finding in the ticket's `reports/`. Close the ticket with `flow done <id>` once the user accepts the answer.
+  - When nothing else on the map can move, say it waits on that ticket and stop. A session that ends first leaves the ticket in `building`, and `/flow:prototype /exp-12` picks it up.
 
-**A landscape too big to read here goes to a subagent**, never a ticket: reading asks no questions back, so nothing needs to watch it. `/flow:research` owns the brief. The branch stays `[ ]` until the report lands where `/flow:research` files it, and the walk carries on meanwhile. A whole product is where this fires.
+**A landscape too big to read here goes to a subagent, never a ticket.** `/flow:research` owns the brief. The branch stays `[ ]` until the report lands, and the walk carries on meanwhile. A whole product is where this fires.
 
-**Never send the user's own material to a subagent.** A summary drops the detail Phase 1 needs, and their files are where the contradictions hide.
+**Never send the user's own material to a subagent.**
 
 ### When the branch is genuinely hard
 
@@ -143,30 +145,26 @@ Match depth to the branch. An obvious one gets the answer. A stuck one (a constr
 - **Find the same problem in a far-off field.** Name 3 unrelated fields where a problem with the same shape is already solved, and map the parts across. Do all 3 even when the first comes hard.
 - **Build 3 structurally different families before judging any.** They differ in mechanism, not in detail. No evaluation until all 3 exist.
 
-Then recommend one, say what would overturn it, and where a check is cheap, **run it**. A proposal that can be shown wrong in one cycle beats a better-sounding one that can't.
+Then recommend one, say what would overturn it, and where a check is cheap, **run it**. Prefer a proposal one cycle can show wrong over a better-sounding one that can't.
 
 ### When talking can't answer it
 
-Layout, density, how something feels, and equally a system whose shape is itself the question. Rephrasing these grows the scope to fill the uncertainty. "I don't know" twice on one branch is the signal.
+Layout, density, how something feels, a system whose shape is itself the question. The signal: "I don't know" twice on one branch.
 
-**Invoke `/flow:visualize` and draw it. Never describe it.** Draw inline, in the message, unless the drawing is going into a document being written. ASCII frame first until the structure is agreed; colour only when colour is the open branch.
-
-Same whenever a proposal, an architecture or a mechanism goes in front of the user for the first time. A shape stated in sentences was not communicated.
+**Invoke `/flow:visualize` and draw it. Never describe it.** Draw inline, in the message, unless the drawing is going into a document being written. Same whenever a proposal, an architecture or a mechanism goes in front of the user for the first time.
 
 ### When new input arrives mid-walk
 
-The whole ask rarely arrives at once. For each new chunk, before answering it:
+For each new chunk, before answering it:
 
 1. **Check it against settled branches.** If it invalidates a locked decision, say so and reopen it. Never quietly write around it.
-2. **Run widen on it.** New material gets the same treatment as the first input, not just filing.
+2. **Run widen on it**, as on the first input.
 3. **Reorder** if the dependency order changed.
 
 Confirms what is already there → absorb it silently. Changes the shape → say so.
 
 ### When the branch is about structure
 
-- Propose parts with one clear purpose, connected by defined handoffs. For each: what it does, how it's used, what it depends on.
-- A part that needs a huge file, or one person doing 6 unrelated jobs, is one part doing too much.
 - Build the smallest thing that works. 3 similar lines beat a premature abstraction.
 - What you found while exploring shapes the proposal without binding it. If the right design replaces what exists, that's in scope.
 
@@ -175,15 +173,15 @@ Confirms what is already there → absorb it silently. Changes the shape → say
 `## Judgment` carries the method. Extra here:
 
 - Also walk **exactly 1**, **2 at once**, **out of order**, and the cheap patch that changes least.
-- **Report findings only, no fixes.** Nothing found is a result: list the cases you ran so coverage can be checked.
+- **Report findings only, no fixes.** Nothing found is a result: list the cases you ran.
 
-Run at 3 moments, not at every close:
+Run only at 3 moments:
 
 1. The user asks it of a specific proposal.
 2. Your own proposal looks shaky.
 3. The groundwork produced something expensive to get wrong: a structure, a data model, a commitment to a tool or a supplier.
 
-**Name the bets.** The assumptions the answers rest on. Nobody has checked them, and if one is wrong the approach changes.
+**Name the bets**: the unchecked assumptions the answers rest on, where one being wrong changes the approach.
 
 > We're betting that X. If that's not true, we'd need to rethink Y.
 
@@ -193,54 +191,49 @@ Run at 3 moments, not at every close:
 
 ## Phase 4: route what was decided
 
-Confirm every branch is resolved or deliberately deferred, then send each decision to the file that owns it. **Every route is conditional**: most runs use 1 or 2, several at once is normal.
+Confirm every branch is resolved or deliberately deferred, then send each decision to the file that owns it. **Every route is conditional**: most runs use 1 or 2.
 
-- **Work committed to here** → this ticket, or its children, shaped by the list below. Each carries what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list**: `/flow:execute` reads every one of them, and a ticket pointed at everything is pointed at nothing. **Record order that matters as `deps`**; the order you walked the branches in carries none. **Create and fill a child in one command**: `flow new "…" --parent <id> --body -` takes the body on stdin. Never create, then edit.
+- **Work committed to here** → this ticket, or its children, shaped by the list below. Each carries what the map decided and a `## References` section. **Copy the lines that ticket needs, never the whole list.** **Record order that matters as `deps`**; the order you walked the branches in carries none. **Create and fill a child in one command**: `flow new "…" --parent <id> --body -` takes the body on stdin. Never create, then edit.
 - **A branch that is its own subject** → `flow new "…" --type topic --parent <id>`, one per subject. Phase 2 carries the split rule and what the body holds.
-- **Work already written into `docs/spec/product.md`** → `/flow:tickets-from-spec`. That skill cuts the next batch out of a spec written months ago and read cold. Tickets for what this map just decided are the line above.
+- **Work an earlier run already wrote into `docs/spec/product.md`** → `/flow:tickets-from-spec`. Tickets for what this map decided are the first route.
 - **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `references/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
-- **A durable fact about this project** → the project's `AGENTS.md` where most sessions need it, by `## Capture`. Otherwise `docs/context/<subject>.md`.
-- **The project's `AGENTS.md` still holds the template's comments** in its title and `## Project`, as a project set up from the template does → write both from what the map decided, and delete the comments.
+- **The project's `AGENTS.md` still holds the template's comments** in its title and `## Project` → write both from what the map decided, and delete the comments.
 - **Settled and dying with the build**, this build's non-goals included → already written in `map.md`. Leave it there.
 - **Decided, but not now** → `## Deferred` in the map, with the reason.
-- **Nothing** → a legitimate outcome, and deliberate. Say so out loud and say why, in `map.md`. Groundwork that resolves to "not worth doing" did its job.
-- **Not worth building** → propose dropping the ticket. On a yes, `flow drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: a parked ticket satisfies nothing, so its dependents wait for the revival.
+- **The answer is no** → say why, in `map.md`. A `topic` closes as below. Any other ticket → propose dropping it: on a yes, `flow drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: its dependents wait for the revival.
+- **Anything else** → `## Capture`.
 
 **Then shape the ticket, once, and only here:**
 
 - Exactly 1 unit of work → this ticket. A `topic` becomes a feature: `flow edit <id> --type feature`.
 - Several units, useless shipped apart → children of this ticket, which becomes a `feature` where it is a `topic`. **The parent keeps only what no child holds**: the wiring, the integration test, the final suite.
-- Several units, each useful alone → children of this ticket, which becomes a `topic` where it is not one. It closes after them, so the map they link back to keeps its path out of `archive/`.
+- Several units, each useful alone → children of this ticket, which becomes a `topic` where it is not one. It closes after them.
 
-**Then say what happens next.** `flow next` lists what is workable, and **`/flow:execute`** takes one ticket from there. A ticket's plan is written at pickup, inside `/flow:execute`, against the code as it stands that day. On a `topic`, the map is the deliverable: `flow done <id>` once the user says it is done, or after its last child closes. A `topic` whose answer is no closes the same way, since the answer is what it delivered.
+**Then say what happens next**: `flow next` lists what is workable, and **`/flow:execute`** takes one ticket. On a `topic`, the map is the deliverable, a no included: `flow done <id>` once the user says it is done, or after its last child closes.
 
 ## Asking questions
 
 Applies in Phases 1 and 2 both.
 
-- **Every question carries your guess.** Reacting to a wrong guess is faster than composing an answer from nothing.
-- **Rounds in Phase 1, one at a time in Phase 2.** Gap-filling questions are independent: ask them together, ordered so none depends on an answer not yet heard. A decision that constrains other decisions gets its own turn.
-- **"I don't know" is a real answer.** Twice on one branch means talking can't settle it: draw it instead.
+- **Every question carries your guess.**
+- **Rounds in Phase 1, one at a time in Phase 2.** Ask gap-filling questions together, ordered so none depends on an answer not yet heard. A decision that constrains other decisions gets its own turn.
+- **"I don't know" is a real answer.**
 - **Buzzword answers get one probe.** "Scalable", "clean", "modern", "best practice" → _if you didn't have to justify this to anyone, what would you actually want?_
-- **Stop test.** Can you predict the reaction to the next 3 questions you'd ask? No → keep going. Several rounds with your confidence flat → say so and reframe, because the questions are wrong.
-- **Agreement is not an answer.** 3 rounds of "yes, agreed" means the session went passive. Say so out loud.
+- **Stop test.** Can you predict the reaction to the next 3 questions you'd ask? No → keep going. Several rounds with your confidence flat → say so and reframe the questions.
+- **Agreement is not an answer.** 3 rounds of "yes, agreed" → say out loud that the session went passive.
 
 ## The files
 
 - **`map.md`**: every branch and every decision, one file, updated in place. Never split it.
-- **`<index>-<name>.md`**: one file per branch that **actually grew** past what fits in `map.md`. Most branches never earn one.
-
-**Everything else routes out.** Working material stays in this folder. Finished documents go where they belong, one live copy each, a one-line pointer everywhere else.
-
-**`map.md` is the decision log for this build.**
+- **`<index>-<name>.md`**: one file per branch that **actually grew** past what fits in `map.md`.
 
 ### `map.md` format
 
 Markdown checklist. Zero-based indices, children extending the parent, nested as deep as the subject needs.
 
-**Every leaf is a question.** A question walks to an answer and gets ticked. A topic never can, so a map of topics never closes.
+**Every leaf is a question, never a topic.**
 
-**A big subject groups its questions under group headings, written in Title Case.** Case separates the two on sight: `Distribution` is a group, `which platform do we publish to first?` is a question. A group always has children, and closes when they close. A small subject skips grouping and lists questions flat.
+**A big subject groups its questions under group headings, written in Title Case**: `Distribution` is a group, `which platform do we publish to first?` is a question. A group always has children, and closes when they close. A small subject lists questions flat.
 
 ```markdown
 - [ ] 0: Distribution
@@ -253,13 +246,13 @@ Markdown checklist. Zero-based indices, children extending the parent, nested as
 - [ ] 2: how many episodes ship before we judge the format?
 ```
 
-Below the list, one section per resolved branch, carrying the decision, the reasoning, the alternatives rejected and why, the constraints. **Write it for a reader who was never here.** A summary of the conversation fails that reader. A section that outgrows the file moves to `<index>-<name>.md` and leaves a one-line pointer.
+Below the list, one section per resolved branch, carrying the decision, the reasoning, the alternatives rejected and why, the constraints. **Never summarize the conversation: write for a reader who was never here.** A section that outgrows the file moves to `<index>-<name>.md` and leaves a one-line pointer.
 
 ### `## References`, at the bottom of `map.md`
 
-**Add a line the moment you read something the build will need**: a convention file, a research report, a prototype's finding, cached docs for a library, a skill that covers it. Left until the end of the run, half of them are forgotten.
+**Add a line the moment you read something the build will need**: a convention file, a research report, a prototype's finding, cached docs for a library, a skill that covers it.
 
-One line each: the path, then what it says, in a few words. A bare path makes the reader open the file to find out whether it matters.
+One line each: the path, then what it says, in a few words.
 
 ```markdown
 ## References
@@ -275,5 +268,5 @@ Nothing read this run → no section. Phase 4 splits the list across the tickets
 ## Hard rules
 
 - **Every map carries branches nobody raised.** None of them → widen didn't run. Go back.
-- **Never print the map to the user.** It's a file.
+- **Never print the map to the user.**
 - **Never start building before the map closes.** "Just do it" mid-map → check whether the design is actually clear; if it is, close the map first, then act.

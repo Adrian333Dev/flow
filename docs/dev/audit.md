@@ -1,6 +1,6 @@
 # How the audit index works
 
-`flow audit` reads the transcripts Claude Code already writes and builds a SQLite index over them. This page is for whoever changes that code or writes a query against the index. It says what a transcript holds, which unit the index groups by, what each table holds, what the reader has to get right, and where the data lives. The commands themselves are in [Reference](../manual/reference.md#audit).
+`flow audit` reads the transcripts Claude Code already writes and builds a SQLite index over them. This page is for whoever changes that code or writes a query against the index. It says what a transcript holds, which unit the index groups by, what each table holds, what the reader has to get right, and where the data lives. The commands themselves are in [Reference](../../lab/archive/manual/reference.md#audit).
 
 Checked against schema version 6 in `scripts/flow/lib/audit/store.js` on 2026-09-15. The transcript facts come from this machine's own transcripts and from Claude Code's [Sessions](https://code.claude.com/docs/en/sessions), [The .claude directory](https://code.claude.com/docs/en/claude-directory) and [Hooks](https://code.claude.com/docs/en/hooks) pages.
 
@@ -109,7 +109,7 @@ attachment:compact_file_reference  declared    485
 ## Where the data lives
 
 - **The index**: `~/.flow/audit/audit.db`, on one machine. Never synced and never committed, because it describes work that happened on that machine.
-- **The transcripts**: Claude Code's own, under `~/.claude/projects/`. Claude Code deletes a transcript after `cleanupPeriodDays`, which Flow's `home/settings.json` sets to 365. [Settings](../manual/settings.md#cleanupperioddays) gives the reason.
+- **The transcripts**: Claude Code's own, under `~/.claude/projects/`. Claude Code deletes a transcript after `cleanupPeriodDays`, which Flow's `home/settings.json` sets to 365. [Settings](../../lab/archive/manual/settings.md#cleanupperioddays) gives the reason.
 - **Evidence a study case cites**: quoted into the case and committed with it. The transcript it came from exists on one machine and gets deleted.
 - **Which sessions worked a ticket**: written into the ticket once runs are wired, so it travels with the project.
 

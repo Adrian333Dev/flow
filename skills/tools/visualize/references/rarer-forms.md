@@ -1,15 +1,10 @@
 # Rarer forms
 
-3 diagram forms that fire seldom enough to live outside `SKILL.md`. Each carries the 3 lines that
-define it, then the drawing.
-
 ## Timeline / parallel lanes
 
 **When:** concurrency, scheduling, latency, duration: anything where *when*, *how long* or *overlap* is the idea.
-**How:** time flows right; one lane per actor; a bar's width is its real duration; annotate the one thing to notice.
+**How:** time flows right; one lane per actor; a bar's width is its real duration; annotate the one thing to notice. An elbow from one bar's end to the next bar's start is a dependency. Draw a `today` line only in the gaps between bars, so it reads as a reference, never as data.
 **Failure:** structural boxes inside a timeline, or 2 time scales in one picture. Structure and timing are 2 diagrams.
-
-Length carries the quantity here: one column is one day, and a bar is as wide as the work is long. The elbow after `write spec` is a dependency: parser cannot start until spec ends. The `today` line is drawn only in the gaps between bars, which is what makes it read as a reference rather than as data: no new glyph needed, and none available.
 
 ```
                  Aug 19      Aug 26      Sep 02      Sep 09      Sep 16      Sep 23
@@ -33,8 +28,6 @@ Length carries the quantity here: one column is one day, and a bar is as wide as
 **When:** a data model: tables, entities, message shapes, anything with named fields.
 **How:** one box per record, its name above a `├──┤` divider and its fields below, left-aligned; cardinality written at the end of the line it describes.
 **Failure:** every field of every table. Show the keys and the fields the discussion is about.
-
-4 tables, 3 relationships. Each box carries its own rows behind a `├──┤` divider, so the header reads as a name and the rest reads as fields. Cardinality sits at the end it describes: one user, many orders. `orders` and `products` reach each other only through `order_items`, which is what the two vertical hops say.
 
 ```
 ┌──────────────────────────┐                  ┌────────────────────────────┐

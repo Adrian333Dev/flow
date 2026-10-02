@@ -1,6 +1,6 @@
 # Claude Code: where it keeps its files
 
-One file per harness, in `~/.flow/references/harnesses/`. `flow install`, `flow init` and `flow update` open sessions that read every file in that folder, so a second harness is a file written here and no instructions edited.
+One file per harness, in `~/.flow/references/harnesses/`, read whole by the sessions `flow install`, `flow init` and `flow update` open. A second harness is a second file here.
 
 Claude Code's own paths, never Flow's. `flow doctor` reports what Flow owns, and `scripts/flow/lib/installed.js` is the list behind it.
 
@@ -20,7 +20,7 @@ Under the config folder, except the last 2.
 - **`projects/<project>/memory/MEMORY.md`**: auto memory for one project, written by Claude Code and kept here rather than in the project. Topic files sit beside that index. `<project>` is the repository's path with every character that is not a letter or a digit turned into `-`.
 - **`projects/<project>/<session>.jsonl`**: one transcript per session, holding every message and every tool result. `cleanupPeriodDays` deletes old transcripts and leaves the memory folder beside them.
 - **`.credentials.json`**: the login. **`history.jsonl`**: every prompt typed. **`file-history/`**, **`shell-snapshots/`**, **`paste-cache/`**, **`debug/`**, **`plans/`**, **`sessions/`** and **`backups/`**: what a running session leaves behind.
-- **`~/.claude.json`**: app state, the sign-in session, per-project trust, and the MCP servers added for the user or for one project. An MCP server is an outside process a session loads tools from. Claude Code rewrites this whole file whenever a session changes any of it.
+- **`~/.claude.json`**: app state, the sign-in session, per-project trust, and the MCP servers added for the user or for one project. Claude Code rewrites this whole file whenever a session changes any of it.
 - **`/etc/claude-code/managed-settings.json`** on Linux and WSL: settings an administrator deployed, beating every file above.
 
 ## In a project
@@ -43,8 +43,8 @@ A harness with no such launch gets its project files moved out before the sessio
 ## What a migration may name
 
 - **Every path above takes a `write`, a `delete` or a `move` line**, under the 4 rules below.
-- **Never a transcript, a cache or the login.** `projects/`, `history.jsonl`, `file-history/`, `shell-snapshots/`, `paste-cache/`, `debug/`, `sessions/`, `backups/` and `.credentials.json` are a session's own working state, hundreds of megabytes of it, and nothing in Flow needs any of it moved.
-- **`~/.claude.json` changes through a `run` line.** Claude Code rewrites that file itself, so a new version built minutes ago drops whatever a session wrote in between, and the changed-file check refuses the migration anyway.
+- **Never a transcript, a cache or the login.** `projects/`, `history.jsonl`, `file-history/`, `shell-snapshots/`, `paste-cache/`, `debug/`, `sessions/`, `backups/` and `.credentials.json`.
+- **`~/.claude.json` changes through a `run` line.**
 - **A project's auto memory is a machine path.** `~/.claude/projects/<project>/memory/` holds it, so a project's migration names a folder outside the project.
 - **Settings merge key by key**, an administrator's file over the project's local file, over the project's committed file, over the machine's. Permission rules from every one of them hold at once. A migration that moves 1 key names the file holding that key and leaves the rest where it is.
 

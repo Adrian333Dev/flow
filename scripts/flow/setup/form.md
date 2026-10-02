@@ -149,4 +149,4 @@ Left as they are: {left as they are}, such as: plugins, such as frontend-design,
 - run node ~/.flow/scripts/flow/flow.js skills on my-helper --machine: writes ~/.flow/settings.local.json, ~/.claude/skills/my-helper
 ```
 
-A delete comes before the `skills add` that replaces it, since `add` refuses to put a link where a real folder stands. A plugin's uninstall or disable comes after the `settings.json` write. An uninstall names the plugin's `installPath` from `claude plugin list --json` and its data folder, where one exists. A `run` line names every path its command writes, or ends `: writes nothing`.
+A delete comes before the `skills add` that replaces it. A plugin's uninstall or disable comes after the `settings.json` write. An uninstall names the plugin's `installPath` from `claude plugin list --json` and its data folder, where one exists. A `run` line names every path its command writes, or ends `: writes nothing`.

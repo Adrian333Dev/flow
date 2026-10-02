@@ -3,7 +3,7 @@
 ## What the user sent
 
 <!-- Verbatim where the wording is the evidence: a hedge, a question, a repeat.
-     The perishable half: paste it now, before the conversation is compacted. -->
+     Paste it now. -->
 
 ## What happened
 
@@ -11,8 +11,8 @@
 
 ---
 
-<!-- Everything below is reconstructible from the two sections above, so it waits
-     until the work in flight is finished. Leave it empty rather than guess. -->
+<!-- Everything below waits until the work in flight is finished.
+     Leave it empty rather than guess. -->
 
 ## Why it was wrong
 
@@ -20,7 +20,7 @@
 
 ## The tell that was missed
 
-<!-- What was visible at the time and read wrong. Usually the most useful section. -->
+<!-- What was visible at the time and read wrong. -->
 
 ## Root cause
 

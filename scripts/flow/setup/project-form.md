@@ -98,4 +98,4 @@ For every project, not only this one. `~/.flow/AGENTS.md`
 - delete ~/.claude/projects/-home-me-code-projects-delapse/memory: sorted above
 ```
 
-`.flow/settings.json` comes before any `flow` command, since `flow` needs the folder. A `run` line names every path its command writes, or ends `: writes nothing`.
+`.flow/settings.json` comes before any `flow` command. A `run` line names every path its command writes, or ends `: writes nothing`.

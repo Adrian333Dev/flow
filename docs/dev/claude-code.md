@@ -2,7 +2,7 @@
 
 Flow is built on Claude Code, and almost every design decision in it turns on some detail of how Claude Code behaves. This page is those details, written down once so no session works them out again.
 
-Everything here was either read in Anthropic's published documentation or produced by running a test and reading the output. Where a fact came from a test, the page says what was run and what came back. Nothing on this page is a Flow decision: the decisions live in [the manual](../manual/README.md) and in this repository's own rules.
+Everything here was either read in Anthropic's published documentation or produced by running a test and reading the output. Where a fact came from a test, the page says what was run and what came back. Nothing on this page is a Flow decision: the decisions live in [the manual](../../lab/archive/manual/README.md) and in this repository's own rules.
 
 Version numbers matter here. A behavior tested against one release can change in the next, so every tested fact names the version it was seen on.
 
@@ -57,7 +57,7 @@ A transcript is written to `~/.claude/projects/<project>/<session-id>.jsonl`. Ea
 
 Two behaviors surprise people:
 
-- **`cleanupPeriodDays` deletes transcripts**, 30 days after they were written by default. It takes 6 sibling folders with it: `subagents/`, `tool-results/`, `file-history/`, `plans/`, `debug/` and `paste-cache/`. [Settings](../manual/settings.md#cleanupperioddays) covers what Flow sets it to and why.
+- **`cleanupPeriodDays` deletes transcripts**, 30 days after they were written by default. It takes 6 sibling folders with it: `subagents/`, `tool-results/`, `file-history/`, `plans/`, `debug/` and `paste-cache/`. [Settings](../../lab/archive/manual/settings.md#cleanupperioddays) covers what Flow sets it to and why.
 - **`/cd` moves a session's storage** into the new directory's project folder partway through. So one session id can appear under 2 different project folders, and a query grouping by folder double-counts it.
 
 `claude project purge <path>` deletes one project's stored state in full.

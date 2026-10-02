@@ -6,7 +6,7 @@ The rules and hooks loaded here are the ones from before this update. Where a gu
 
 Edits inside `~/.flow/` go through without asking. So do `flow update`, `flow doctor`, `flow audit`, `util fs tree`, `claude -p` and `node ~/.flow/scripts/apply-migration.js`, typed exactly so.
 
-One edit asks anyway. Claude Code asks before every write to a path holding a `.claude` folder, and `files/` mirrors `.claude/` folders. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
+Claude Code asks before every write to a path holding a `.claude` folder, `files/` included, since it mirrors `.claude/` folders. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
 
 Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/`, `project-template/` or `upgrades/` sits inside it.
 

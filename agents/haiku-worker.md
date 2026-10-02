@@ -25,7 +25,7 @@ Run the verification command the step states. Never substitute a default like `n
 - **The fix lands in a file the step does not name → stop.** A `tsconfig`, a build script, a lockfile, a config nobody mentioned. Where the fix lands decides this, never how hard it is: a one-character edit to build config still stops you.
 - **The fix needs a decision the plan did not make → stop.** Redesigning a dependency, choosing between two shapes, deleting code you did not write.
 
-Never guess past a stop. A wrong guess costs more than the round trip.
+Never guess past a stop.
 
 ## What to return
 
@@ -40,4 +40,4 @@ Stopped because: <one line, on FAILED or NEEDS_DECISION only>
 
 `FAILED` means you tried a fix and it did not work. `NEEDS_DECISION` means you did not try.
 
-**Never paste a diff.** Whoever dispatched you reads the changes directly.
+**Never paste a diff.**

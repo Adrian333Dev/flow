@@ -1,26 +1,22 @@
 # Reviewing the code
 
-Read at Phase 4, on a ticket that produced code. A ticket that produced a document or a decision skips this file.
-
 ## Against what this ticket was pointed at
 
-**`## References` in `ticket.md` names what this work had to respect**: a convention, an integration's shape, a library's constraints. Check the diff against each line. No section → straight to the baseline below.
-
-It runs first because everything below it reads the same way on any codebase, and this is the only check that can catch a mistake specific to this project.
+**`## References` in `ticket.md` names what this work had to respect**: a convention, an integration's shape, a library's constraints. Check the diff against each line first. No section → straight to the baseline below.
 
 **A convention nobody referenced was never in scope.** Review the ticket, never the project.
 
 ## Correctness
 
-**Read the tests first.** They say what the author thought the code should do, and the rest of the diff reads faster after them.
+**Read the tests first.**
 
 - **The error path**: what happens when the call fails, the file is missing, the response comes back malformed.
 - **Empty, one, and the boundary**: an empty list, a single item, the first and last index, zero, a null where one is possible.
-- **Whether the test asserts the right thing.** A test that passes while checking the wrong value is worse than no test, and nothing but a review catches it.
+- **Whether the test asserts the right thing**: a test that passes while checking the wrong value.
 
 ## The smell baseline
 
-Twelve shapes worth naming, each as what it is and what to do about it. Match them against what the ticket changed, never against the whole file.
+Match only what the ticket changed.
 
 - **Mysterious name**: a name that does not say what the thing does. Rename it; where no honest name comes, the design is murky.
 - **Duplicated code**: the same logic shape in more than one place. Extract it, call it from both.
@@ -42,9 +38,9 @@ Twelve shapes worth naming, each as what it is and what to do about it. Match th
 
 ## 3 conditional checks
 
-- **Input, auth, secrets or data from outside → check the boundary.** Is the input validated where it arrives, is the query parameterized, is the secret out of the file. Running this on every ticket is ceremony, and ceremony gets skipped.
+- **Input, auth, secrets or data from outside → check the boundary.** Is the input validated where it arrives, is the query parameterized, is the secret out of the file.
 - **A loop over a collection that grows → check the cost.** A query per item, an unbounded fetch, a list endpoint with no limit.
-- **A small diff into an already large file → check the file's size.** Past a healthy size, flag it for a split. Every line of the diff looks harmless, so nothing else flags the growth.
+- **A small diff into an already large file → check the file's size.** Past a healthy size, flag it for a split.
 
 ## Dead code
 
@@ -55,8 +51,8 @@ Name what this change orphaned: the function nothing calls now, the constant wit
 2 levels, and no more:
 
 - **Fix before the ticket closes**: it is wrong, it is unsafe, or it does not do what the ticket asked.
-- **Noted**: everything else. It gets said once and left alone.
+- **Noted**: everything else, said once and left alone.
 
-**Uncertain → say what would settle it.** A finding you cannot prove names the command, the file or the question that would.
+**Uncertain → say what would settle it**: the command, the file or the question.
 
-Say what is genuinely good, and say it specifically. A review that only lists faults gets discounted whole.
+Say what is genuinely good, specifically.

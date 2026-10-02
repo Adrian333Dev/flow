@@ -47,7 +47,7 @@ A subagent can start subagents of its own, up to 3 levels below the main convers
 
 `claude --bg "<prompt>"` from a shell, or a prompt typed into agent view (`claude agents`), starts a full Claude Code session with no terminal attached. Agent view lists it, shows the question it is waiting on, and lets you reply or attach. It keeps running after you close the terminal.
 
-Left to its defaults, it moves into its own worktree before its first edit: a second checkout of the repository in its own folder, branched from the remote default branch, which cannot see your uncommitted work. Flow's `home/settings.json` sets `worktree.bgIsolation` to `"none"`, so a background session edits your working copy directly. [Settings](../manual/settings.md#hooks) gives the reason.
+Left to its defaults, it moves into its own worktree before its first edit: a second checkout of the repository in its own folder, branched from the remote default branch, which cannot see your uncommitted work. Flow's `home/settings.json` sets `worktree.bgIsolation` to `"none"`, so a background session edits your working copy directly. [Settings](../../lab/archive/manual/settings.md#hooks) gives the reason.
 
 ## Kinds Flow turns off
 
@@ -78,7 +78,7 @@ A prototype or a hunt keeps its place in its ticket: the status stays `building`
 
 ## What a subagent changed
 
-A subagent saying "done", or listing the files it edited, proves nothing. Flow records every change as it happens, under the id of the agent that made it, and hands the parent a diff per file when the subagent finishes. `scripts/changes.js` is the hook, and [Settings](../manual/settings.md#the-change-record) explains how it works.
+A subagent saying "done", or listing the files it edited, proves nothing. Flow records every change as it happens, under the id of the agent that made it, and hands the parent a diff per file when the subagent finishes. `scripts/changes.js` is the hook, and [Settings](../../lab/archive/manual/settings.md#the-change-record) explains how it works.
 
 This is a real record, from 2 subagents running at once in a scratch session. It reached the parent just before the first one's finished notice:
 

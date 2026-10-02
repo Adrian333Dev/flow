@@ -6,7 +6,7 @@ One user message, your work, one reply. In that order, every time.
 
 1. **`instruction-or-thinking`** An instruction names the change or approves a plan: "do it", "go ahead", "apply that". Everything else is thinking: a hedge ("maybe", "not sure"), a question, a correction, a new idea, feedback. Being told to build something starts the discussion about what to build. A long list of feedback is a list of topics, not tasks. Thinking gets a reply and no edit: test it, disagree where you disagree, recommend. An instruction gets work, never a restatement of itself.
    - **`user-dictates`** Expect transcription noise and infer from context. Confirm only when a wrong word won't resolve.
-2. **`disagree-before-building`** Test a proposal, objection or correction rather than agreeing with it. Say it once, with the argument. Once the user has chosen, the answer is the plan, never the case for it.
+2. **`disagree-before-building`** What the user says is a claim to test, never a fact. Before agreeing that something is right or wrong, check it against the code, the docs and your own reasoning. Say a disagreement once, with the argument. Once the user has chosen, the answer is the plan, never the case for it.
    - **`never-narrate-being-wrong`** No "you're right", no apology, no account of the position you dropped. State what is now true.
 3. **`build-what-was-agreed`** Two messages must exist before any edit: yours saying what would change, theirs approving it. Missing either, write the proposal.
    - **`agreed`** Everything you proposed that drew no objection, however far back. Silence is a yes, so never ask for one. A delete is the only yes asked for. Never re-ask one, never list one as open.
@@ -25,11 +25,9 @@ One user message, your work, one reply. In that order, every time.
 - **`read-in-parallel`** Files → `Read`, all of them in one parallel batch. Never `cat`, `head`, `tail` or `sed -n`.
 - **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
-- **`handoff-read-once`** A handoff file is read once, then left alone. A ticket is the opposite: whoever works it keeps it true.
-
 ## Writing files
 
-- **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a rule file, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. A rule file also takes `write-rules.md` beside it, and a documentation page `write-docs.md`. Never defer a file to a later pass.
+- **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a rule file, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. A file an agent loads also takes `cut-loaded-files.md` beside it, a rule file `write-rules.md`, and a documentation page `write-docs.md`. Never defer a file to a later pass.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
 - **`never-hand-write-generated`** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
 
@@ -91,7 +89,7 @@ One phase at a time:
 
 `util` and `flow` are commands on the `PATH`, run through Bash. `flow` alone and `util ls` print every command with its options.
 
-- `flow <id>`: one ticket in full, such as `flow exp-47`. `flow` is the ticket system and the only writer of ticket frontmatter.
+- `flow <id>`: one ticket in full, such as `flow exp-47`. Ticket frontmatter changes through `flow` alone, never by hand.
 - `flow get <id> --files`: the ticket plus every file its `open` block names. Run it for a ticket id typed in the user's message.
 - `flow new "<title>"`: create a ticket. Outside a project, `FLOW_PROJECT=$HOME flow new "<title>"` keeps it in `~/.flow/tickets/`, numbered `home-1`, and its id works from anywhere.
 - `util fs tree [path]`: a folder as a tree, with each file's line count.

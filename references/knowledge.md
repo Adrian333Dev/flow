@@ -1,6 +1,6 @@
 # Flow: what the agent knows beyond its rules
 
-The map of everything an agent draws on past Flow's rules and its own training: skills, plugins, MCP servers, the wiki, findings. How each piece arrives, updates, and grows. The procedure inside a step belongs to the file that owns it, named where the step appears.
+Everything an agent draws on past Flow's rules and its own training: skills, plugins, MCP servers, the wiki, findings. How each piece arrives, updates, and grows.
 
 ## The pieces
 
@@ -21,10 +21,10 @@ The map of everything an agent draws on past Flow's rules and its own training: 
 
 ## Reach a service through a command
 
-A command's output is cut in the shell, `| jq '.name'` or `| head`, before it reaches context. An MCP tool puts its whole answer there. Take the first that works:
+Take the first that works:
 
 1. **The vendor's command-line tool**, such as `gh` or `supabase`, with a skill teaching the parts the work needs.
-2. **A small script over the service's web API**, bundled inside that service's skill in `domain-skills`. Flow's own `scripts/` holds only what Flow runs, such as `context7.sh`. Worth it for a service used across projects: the script breaks when the API changes.
+2. **A small script over the service's web API**, bundled inside that service's skill in `domain-skills`. Flow's own `scripts/` holds only what Flow runs, such as `context7.sh`. Only for a service used across projects.
 3. **The MCP server**, for that project. Also the answer for a service that needs a live session no command holds, such as a browser.
 
 ## An outside skill: review it, then pick one of 2 states
@@ -33,16 +33,18 @@ Found by `/flow:research`, or already on the machine when setup runs. Never swit
 
 **The review**, on its `SKILL.md` and whatever it points to:
 
-- **Knowledge or process.** A skill with its own work order, such as "Analyze, Design, Implement, Verify", competes with `/flow:execute`, and nothing decides between them.
+- **Knowledge or process.** A skill with its own work order, such as "Analyze, Design, Implement, Verify", competes with `/flow:execute`.
 - **What the agent gets wrong without it.** Only that part earns context. General engineering the agent already knows does not.
 - **Where the user would disagree.** Each disagreement is a line to rewrite or drop.
-- **The description.** A long one costs context in every session the skill is on for. `~/.flow/references/style.md` → `## 8. Frontmatter descriptions` holds the bar.
+- **The description.** `~/.flow/references/style.md` → `## 8. Frontmatter descriptions` holds the bar.
 
-Install counts and stars only pick which 3 to read. Neither says which fits.
+Install counts and stars only pick which 3 to read.
 
 **The 2 states:**
 
-- **Used whole**: runs as its publisher wrote it and updates by itself. A disagreement goes where `## Adding to a skill the user does not own` says. Take it for a skill from the tool's own makers, which changes with each release, once the review finds nothing structural against it.
+- **Used whole**: runs as its publisher wrote it and updates by itself. Take it for a skill from the tool's own makers, which changes with each release, once the review finds nothing structural against it. A disagreement with it:
+  - **true in one project** → an overlay, `.flow/overlays/<name>.md`, in the project
+  - **true in every project** → harvest the skill instead
 - **Harvested**: never switched on. The harvest reads it, with the tool's findings and any other skill on the subject, and writes the user's own skill. One general skill per tool runs, and it is the user's.
 
 **Used whole is the default until `/flow:write-skill` ships.** Harvested becomes the default then. A skill harvested before that waits switched off for a harvest the user runs by hand.
@@ -73,8 +75,3 @@ Where a finding goes first is `~/.agents/AGENTS.md` → `## Capture`. From there
 **A tool's skill holds what the agent gets wrong without it:** changes since its training, traps the docs never warn about, the user's choices. The tool's docs stay in the wiki, downloaded per version. For a tool the agent has never seen, the skill adds how the tool thinks, in a page, and where its docs are.
 
 **A harvest writes in its own words.** Facts about a tool belong to nobody. A passage or an example copied word for word keeps its license notice. A skill with no license is never copied from. The skill's folder names each input: its repository, path and commit.
-
-## Adding to a skill the user does not own
-
-- **A disagreement in one project** → an overlay, `.flow/overlays/<name>.md`, in the project.
-- **A disagreement true in every project** → harvest the skill instead.

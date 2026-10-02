@@ -91,7 +91,7 @@ function stoppedRun(at) {
   if (found.error) return `${migrations.runFile(at)} does not parse, and a run wrote it. Run flow doctor.`;
 
   const step = found.step ? `after step ${found.step}` : 'before its first step';
-  return `a ${found.type || 'Flow'} run stopped ${step}, so this machine is part way through a change. ` +
+  return `a ${found.type || 'Flow'} run stopped ${step}. ` +
     `To carry on, ${migrations.resume(found)} in a terminal. flow doctor names the way back.`;
 }
 
@@ -107,15 +107,15 @@ function attention(at, cwd) {
   const other = mine.state === 'ok' ? flowRepo.ahead(at, mine.number) : null;
 
   if (mine.state === 'missing') {
-    out.push('this machine carries no version stamp, so flow install never reached its last step. Run flow install.');
+    out.push('flow install never finished on this machine. Run flow install.');
   } else if (mine.state === 'unreadable') {
-    out.push(`~/.flow/version holds "${mine.text}", and it holds one changelog entry number and nothing else. Run flow doctor.`);
+    out.push(`~/.flow/version holds "${mine.text}" in place of a changelog entry number. Run flow doctor.`);
   } else if (newest !== null && mine.number > newest) {
-    out.push(`this machine is at entry ${mine.number} and the changelog stops at ${newest}, so the clone moved backwards. Run flow doctor.`);
+    out.push(`this machine is at entry ${mine.number} and the changelog stops at ${newest}. Run flow doctor.`);
   } else if (other) {
-    out.push(`${other.name} is on changelog entry ${other.number}, and this machine is on ${mine.number}, so flow sync waits. Run flow update in a terminal.`);
+    out.push(`${other.name} is on changelog entry ${other.number}, and this machine is on ${mine.number}. Run flow update in a terminal.`);
   } else if (newest !== null && mine.number < newest) {
-    out.push(`this machine is at changelog entry ${mine.number}, and ${newest} is the newest. Run flow update in a terminal to catch up.`);
+    out.push(`this machine is at changelog entry ${mine.number}, and ${newest} is the newest. Run flow update in a terminal.`);
   }
 
   const root = projectRoot(cwd, at);
@@ -124,13 +124,13 @@ function attention(at, cwd) {
   const name = path.basename(root);
   const theirs = version.applied(path.join(root, '.flow', 'version'));
   if (theirs.state === 'missing') {
-    out.push(`${name} carries no version stamp, so flow init never reached its last step. Type flow init.`);
+    out.push(`flow init never finished in ${name}. Run flow init.`);
   } else if (theirs.state === 'unreadable') {
-    out.push(`${name}/.flow/version holds "${theirs.text}", and it holds one changelog entry number and nothing else. Run flow doctor.`);
+    out.push(`${name}/.flow/version holds "${theirs.text}" in place of a changelog entry number. Run flow doctor.`);
   } else if (mine.state === 'ok' && theirs.number < mine.number) {
     out.push(`${name} is at changelog entry ${theirs.number}, and this machine is at ${mine.number}. Run flow update in a terminal, inside it.`);
   } else if (mine.state === 'ok' && theirs.number > mine.number) {
-    out.push(`${name} is at entry ${theirs.number} and this machine is at ${mine.number}, so the project is ahead of the machine. Run flow doctor.`);
+    out.push(`${name} is at entry ${theirs.number} and this machine is at ${mine.number}. Run flow doctor.`);
   }
   return out;
 }

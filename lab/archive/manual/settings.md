@@ -282,9 +282,9 @@ Flow does not compact. Run /flow:handoff, then /clear. "compact": true in ~/.flo
 Prints one line when this machine or this project needs attention, and nothing at all when neither does:
 
 ```text
-Flow: this machine is at changelog entry 3, and 5 is the newest. Run flow update in a terminal to catch up.
+Flow: this machine is at changelog entry 3, and 5 is the newest. Run flow update in a terminal.
 Flow: delapse is at changelog entry 3, and this machine is at 5. Run flow update in a terminal, inside it.
-Flow: a migrate run stopped after step 4, so this machine is part way through a change. To carry on, run flow update in a terminal. flow doctor names the way back.
+Flow: a migrate run stopped after step 4. To carry on, run flow update in a terminal. flow doctor names the way back.
 Flow: domain-skills is behind. 2 skills changed: react, sql. Update it when you want them, or set "skillsAutoUpdate": true.
 ```
 
@@ -293,7 +293,7 @@ Its lines come from 4 files, and it waits for no network call: `~/.flow/run.json
 **Another machine on a newer release gets its own line**, since [`flow sync`](reference.md#flow-sync) waits until this machine catches up:
 
 ```text
-Flow: desktop-wsl is on changelog entry 12, and this machine is on 11, so flow sync waits. Run flow update in a terminal.
+Flow: desktop-wsl is on changelog entry 12, and this machine is on 11. Run flow update in a terminal.
 ```
 
 [`flow doctor`](reference.md#flow-doctor) stays the full check of the machine, and `flow doctor --tests` adds both test suites.

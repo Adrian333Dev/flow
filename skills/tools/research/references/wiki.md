@@ -52,9 +52,7 @@ The release is the tool's newest on the download day, which is the version the d
 
 ## The folder only grows
 
-2 projects and 2 machines add to one folder. Git merges new files on its own, and stops only where both machines changed the same lines.
-
-- **`research/<question>.md`**: a new question makes a new file. The same question on a newer version adds a dated section at the end, naming the version. The older text stays: another project may still be on that version.
+- **`research/<question>.md`**: a new question makes a new file. The same question on a newer version adds a dated section at the end, naming the version. The older text stays.
 - **`findings/<what-was-learned>.md`**: one file per finding, written once. The same fact learned again adds one line at the end: the version and the date it held.
 - **`index.md`**: a new shortcut is a new line. Rewrite a line only when its shortcut stops working.
 - **`downloads/`**: replaced on refresh, on each machine, outside the rule.
@@ -64,4 +62,4 @@ Where both machines added to the end of one file, keep both additions.
 
 ## What never enters it
 
-A project's details or a client's. `~/.flow/` goes to GitHub, and every project on the machine reads it. The test: would the sentence be true in a different project?
+A project's details or a client's. The test: would the sentence be true in a different project?

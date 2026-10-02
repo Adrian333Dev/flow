@@ -2,9 +2,9 @@
 
 `flow install` made Flow's links, cloned what Flow reads, and opened this session. This run does the rest: Flow's rule file, the line loading it, Flow's keys in `~/.claude/settings.json`, and whatever the machine already holds that works against Flow. It asks the user nothing. Everything goes into one form, `migration.md`, which the user reads, edits and approves once. Nothing on disk outside `~/.flow/` changes before that yes.
 
-The session runs in safe mode, so no skill, plugin or hook of the machine's is loaded, Flow's included. It starts in the home folder, so reading anything under `~` asks nothing. Edits and shell commands go through without asking, apart from a commit, a push or a publish.
+The session runs in safe mode: no skill, plugin or hook of the machine's is loaded, Flow's included. Edits and shell commands go through without asking, apart from a commit, a push or a publish.
 
-One edit asks anyway. Claude Code asks before every write to a path holding a `.claude` folder, `~/.flow/` or not, and `files/` mirrors `~/.claude/`. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
+Claude Code asks before every write to a path holding a `.claude` folder, `files/` included, since it mirrors `~/.claude/`. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
 
 Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits inside it.
 
@@ -45,7 +45,7 @@ Never open a project, or a project's memory under `~/.claude/projects/`. `flow i
 **A line appears only where saying go changes something.** 2 tests, by what the thing is:
 
 - **A setting is judged by its value.** The machine already holds Flow's value → no line. Memory already off gets no box, and a `deny` rule already present gets no mention.
-- **An installed thing is judged by being there.** A plugin, a skill, a hook or an agent that fails the competitor test gets its line even when it is switched off, since it can be switched back on.
+- **An installed thing is judged by being there.** A plugin, a skill, a hook or an agent that fails the competitor test gets its line even when it is switched off.
 
 A section left with no line goes, heading included. `## Flow's skills` always stays.
 
@@ -53,12 +53,12 @@ A section left with no line goes, heading included. `## Flow's skills` always st
 
 **The question is whether a thing tells Claude how to work on ground Flow already rules on.** Ground Flow rules on: every heading in `home/AGENTS.md`, and every job a Flow skill does. Where to put what you found:
 
-- **Tells Claude how to work in every session**, invoked or not (a `SessionStart` hook, a rule file, a plugin that injects instructions) → a line under `### Always removed`, with no box. Flow cannot work beside it.
+- **Tells Claude how to work in every session**, invoked or not (a `SessionStart` hook, a rule file, a plugin that injects instructions) → a line under `### Always removed`, with no box.
 - **Overlaps Flow, and fires only when invoked or matched** (a skill, an agent, a command) → a box under `### Works against Flow's rules`. The line says what it does in plain words, then what Flow does instead.
-- **Synced from the user's Claude account** and overlapping → a box too, removed through `skillOverrides`. Deleting its folder brings it back at the next sync.
+- **Synced from the user's Claude account** and overlapping → a box too, removed through `skillOverrides`. Never delete its folder: the next sync brings it back.
 - **Knows a subject Flow does not** (a framework, a service, a file format), or tells Claude how to work where Flow says nothing → it stays. A plugin or a synced skill that stays is named under `Left as they are`. Anything else that stays is left out of the form.
 - **A plugin** goes by `claude plugin uninstall <name>@<marketplace>`. Never switch it off, and never delete its folder.
-- **A plugin synced from the user's claude.ai account** goes by `claude plugin disable <name>@synced`, since uninstall cannot reach it. Its line says it goes from this machine only, and stays on claude.ai. One the user's organization requires cannot be switched off: name it under `Left as they are`, with that reason.
+- **A plugin synced from the user's claude.ai account** goes by `claude plugin disable <name>@synced`. Its line says it goes from this machine only, and stays on claude.ai. One the user's organization requires cannot be switched off: name it under `Left as they are`, with that reason.
 - **A hook of the user's own**, not from a plugin, goes through the same test. One that stays is written into `hooks` beside Flow's.
 - **An MCP server** stays, and is left out of the form.
 
@@ -82,7 +82,7 @@ Anything else is dropped too. Both boxes start empty, and most machines leave `#
 ## The files it writes
 
 - **`~/.flow/AGENTS.md`**: `home/AGENTS.md`, with `## Preferences` and `## The user` holding the 2 boxes.
-- **`~/.agents/AGENTS.md`**: a link to `~/.flow/AGENTS.md`, made by a `run` line when the migration applies, never in `files/`. `flow sync` carries `~/.flow/`, so the rules reach the user's other machine.
+- **`~/.agents/AGENTS.md`**: a link to `~/.flow/AGENTS.md`, made by a `run` line when the migration applies, never in `files/`.
 - **`~/.claude/CLAUDE.md`**: `home/CLAUDE.md`, the one import line.
 - **`~/.claude/settings.json`**: the machine's file, with Flow's keys applied:
   - `hooks`: `home/settings.json`'s, plus each hook of the user's that stayed.
@@ -98,7 +98,7 @@ Build JSON with `node`, never by hand. A settings file that does not parse, or a
 
 ## When `~/.flow/AGENTS.md` was already there
 
-It was there before this run wrote anything: `flow install` brought it down from the user's other machine, with the rest of `~/.flow/`. The user already approved its `## The user` and `## Preferences` there.
+`flow install` brought it from the user's other machine, with the rest of `~/.flow/`. The user already approved its `## The user` and `## Preferences` there.
 
 - **The boxes start with those 2 sections**: `## Preferences` in `### Your preferences`, `## The user` in `### About you`. A harvested line joins a box only where it says something the arrived text does not.
 - **`files/…/.flow/AGENTS.md`**: `home/AGENTS.md` with the 2 sections from the boxes, as on any machine.

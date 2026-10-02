@@ -109,11 +109,11 @@ A `PreToolUse` hook that runs before every shell command the agent executes. It 
 - **Changing the machine**: a global install, a scheduled job, a write into `~/.ssh` or a shell startup file
 - **Running outside code, or switching Flow off**: a download piped into a shell, an `npx` of a package the project lacks, a write into Claude Code's or Flow's own settings
 
-Each one asks every time, even after you saved a rule allowing that command. The guard never allows anything, so a bug in it cannot let through more than the settings do. [Settings](docs/manual/settings.md#hooks) lists what each kind covers.
+Each one asks every time, even after you saved a rule allowing that command. The guard never allows anything, so a bug in it cannot let through more than the settings do. [Settings](lab/archive/manual/settings.md#hooks) lists what each kind covers.
 
 ### Permissions
 
-Flow's settings allow edits, file reads, web lookups and every shell command, so a loop or a variable never stops for a yes. A shell command asks only when the guard asks, or when it commits, pushes or publishes a package. Those 3 ask every time. Listing safe commands was tried twice and dropped: Claude writes shell in endless shapes, and each shape a list missed asked again. `sudo`, `su`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright. [Settings](docs/manual/settings.md#why-every-shell-command-is-allowed) records why, and why auto mode and the sandbox lost.
+Flow's settings allow edits, file reads, web lookups and every shell command, so a loop or a variable never stops for a yes. A shell command asks only when the guard asks, or when it commits, pushes or publishes a package. Those 3 ask every time. Listing safe commands was tried twice and dropped: Claude writes shell in endless shapes, and each shape a list missed asked again. `sudo`, `su`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright. [Settings](lab/archive/manual/settings.md#why-every-shell-command-is-allowed) records why, and why auto mode and the sandbox lost.
 
 ### Subagent verification by change record ([`scripts/changes.js`](scripts/changes.js))
 
@@ -213,6 +213,6 @@ Flow currently runs on Claude Code, on Linux, macOS and WSL. Native Windows is n
 
 ## Documentation
 
-- **[The manual](docs/manual/README.md)**: how to use Flow. Reference is every command, skill and setting in one place, Where everything lives is every folder Flow uses, and Tickets is the shape of the only thing Flow builds.
+- **[The old manual](lab/archive/manual/README.md)**: how to use Flow, archived while a new manual is written from scratch. Reference is every command, skill and setting in one place, Where everything lives is every folder Flow uses, and Tickets is the shape of the only thing Flow builds.
 - **[Developing Flow](docs/dev/README.md)**: how to change Flow. The repository layout, the two checkouts, the scratch session, the tests, adding a skill, and the agents Claude Code runs.
 - **[Backlog](lab/backlog/)**: every open item, one file per phase.

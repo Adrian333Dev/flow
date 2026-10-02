@@ -1,6 +1,6 @@
 # Worked example: stripped excerpts, NOT the full artifact
 
-A complete explanation of a playback architecture, for a reader who is strong in React with no browser-audio background. Only its key moves appear below; the full version defined the *other* component the same way, wrote both key interactions as prose steps, and closed with its 2 decision points. A real explanation has no gaps between these moves.
+The key moves of an explanation of a playback architecture, for a reader strong in React with no browser-audio background. The full version also defined the *other* component the same way, wrote both key interactions as prose steps, and closed with its 2 decision points, with no gaps between the moves.
 
 **The opening, the whole picture before any part:**
 

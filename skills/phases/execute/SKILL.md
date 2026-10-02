@@ -16,7 +16,7 @@ groundwork → planning → building → review → done
 
 Each move is one command, named after where it lands: `flow plan exp-47`, `flow build exp-47`, `flow review exp-47`, `flow done exp-47`. **2 gates, both the user's**: the plan before `building`, the work before `done`. Nothing else in the loop stops.
 
-Never build a child's work in its parent. `flow ls --parent exp-47` lists them; the parent keeps whatever none of them holds, and picking it up or planning it refuses until they close.
+Never build a child's work in its parent. `flow ls --parent exp-47` lists them; the parent keeps whatever none of them holds.
 
 ## Phase 1: pick up
 
@@ -24,7 +24,7 @@ Never build a child's work in its parent. `flow ls --parent exp-47` lists them; 
 
 **No ticket, and nothing described** → run `flow next` and recommend one ticket: work in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
 
-**The status says where the work stopped; the artifact says whether that phase finished.** Read the artifact, then move the ticket.
+**Read the artifact before moving the ticket.** The status says where the work stopped, never whether that phase finished.
 
 - **`todo`, `groundwork`**: `flow plan exp-47`, then Phase 2
 - **`planning`**: open `plan.md`. Written and approved → `flow build exp-47`, then Phase 3. Otherwise finish writing it
@@ -33,23 +33,23 @@ Never build a child's work in its parent. `flow ls --parent exp-47` lists them; 
 
 Then read the ticket body and its `## State` where one exists.
 
-**A `map:` count short of its own total is groundwork that never closed.** Say which questions are open, and wait: the user decides whether the plan waits for `/flow:groundwork`. No `map:` line is normal: a ticket cut from a spec never had a map.
+**A `map:` count short of its total** → say which questions are open, and wait: the user decides whether the plan waits for `/flow:groundwork`. No `map:` line is normal.
 
-**A ticket born in conversation often has no `## Done when`**: `--body` replaces the template outright, so whether the section exists depends on who wrote it. No check → write it here and show it with the plan. A ticket cut from a spec arrived with one.
+**No `## Done when`** → write one here and show it with the plan.
 
 ## Phase 2: write the plan
 
-**`plan.md`, in the ticket folder. 2 passes, each ending at a write, then the user's approval.** A plan saved only at the end dies with the context; a dead session should cost one pass.
+**`plan.md`, in the ticket folder. 2 passes, each ending at a write, then the user's approval.**
 
-**A design already answers what to build.** Where `docs/spec/` or the ticket's `groundwork/` carries one, the plan sequences it and never re-derives a decision it already made. Where none exists, the plan decides the shape.
+**A design already answers what to build.** Where `docs/spec/` or the ticket's `groundwork/` carries one, the plan sequences it and never re-derives a decision it made. Where none exists, the plan decides the shape.
 
 ### Pass 1: read the code
 
-**Start with `## References` in the ticket**: whoever cut it already found what this work must respect. **No section** → look once in `docs/context/`, `docs/research/`, and `~/.flow/wiki/<tool>/` for each tool the work touches, then write what you found into `## References`, so the next session skips the search.
+**Start with `## References` in the ticket.** **No section** → look once in `docs/context/`, `docs/research/`, and `~/.flow/wiki/<tool>/` for each tool the work touches, then write what you found into `## References`.
 
-**Add a line the moment you read something the build will need**, in any pass, not only this one. Left until the end of the run, half of them are forgotten.
+**Add a line the moment you read something the build will need**, in any pass.
 
-**Read the code this ticket changes, then write down what you found**: the signatures, the seam the change goes through, what surprised you. Plan nothing before this. A design says what to build, never what the code looks like today.
+**Read the code this ticket changes, then write down what you found**: the signatures, the seam the change goes through, what surprised you. Plan nothing before this.
 
 **Name the command that proves this ticket done.** Whatever this project uses, never a default like `npm test`. It pastes into every dispatch.
 
@@ -66,13 +66,13 @@ One line each: title, the files it touches, and the check that proves it.
 
 Each step is finishable and checkable on its own, and names a scoped check wherever the full suite is slow. A wide refactor goes **add the new path, move the callers, delete the old**, never one sweeping step.
 
-**Everything else goes indented, under the step it belongs to**: sub-checks, notes, whatever the build adds. The indent tells a session picking this up which lines are the plan.
+**Everything else goes indented, under the step it belongs to**: sub-checks, notes, whatever the build adds.
 
-**No detail yet.** Step 5's body written now guesses at code steps 1–4 have not produced.
+**No detail yet**: each step's detail is written when it is built.
 
 ### Then show it and wait
 
-More than one step, or more than one file → the user reads what the code looks like now, then `## Steps`, before anything gets built. They are approving the shape: the order, the seam, the step that is missing. One step in one file goes straight through.
+More than one step, or more than one file → the user reads what the code looks like now, then `## Steps`, before anything gets built. One step in one file goes straight through.
 
 ## Phase 3: build
 
@@ -84,7 +84,7 @@ One step at a time, in order. **Write the step's detail, then build it.**
 
 **Never mark a step without the output that proves it.** The full suite runs once, in Phase 4.
 
-**Keep `## State` current as you build**, so `/flow:handoff` checks a record instead of rebuilding one with no context left to rebuild it from.
+**Keep `## State` current as you build.**
 
 What the build turns up, by where it goes:
 
@@ -99,15 +99,15 @@ What the build turns up, by where it goes:
 - **Every edit is already decided**: nothing left to work out by reading the code.
 - **Roughly 5+ files, or 10+ near-identical edits**: a rename at 18 call sites, one signature change everywhere it is called.
 
-The worker spends its own context on the repetition instead of yours. A step needing the code read to decide what to write stays yours at any width.
+A step needing the code read to decide what to write stays yours at any width.
 
-**A step may touch several files and still be one step.** Step boundaries come from finishable-and-checkable; the file count only decides who types it.
+**A step may touch several files and still be one step.**
 
-**A job a separate session picks up is a child ticket instead**: `/flow:handoff` writes it with `--parent exp-47`. Several can be open at once, and one session edits the working folder at a time. Closing this ticket refuses while any is open. A worker dispatched for a step never needs one.
+**A job a separate session picks up is a child ticket instead**: `/flow:handoff` writes it with `--parent exp-47`. Several can be open at once, with one session editing the working folder at a time. A worker dispatched for a step never needs one.
 
 ### Dispatching a step
 
-1. **Paste the step's text into the prompt**, with the check it must pass. Never paste the files it names: reading them here spends the context the dispatch exists to save. Never point at a line range either: `plan.md` gets rewritten in place mid-build and the range goes stale.
+1. **Paste the step's text into the prompt**, with the check it must pass. Never paste the files it names, and never a line range.
 2. **Dispatch the worker.**
 
    ```
@@ -116,30 +116,28 @@ The worker spends its own context on the repetition instead of yours. A step nee
 
 3. **Say it is running.** Its report arrives on a later turn, and the change record with its finished notice.
 4. **Read the change record.** A diff too long to show arrives as line counts plus the path of the whole patch: read the patch.
-5. **No record means verify the step yourself before marking it.** A worker that stopped early and a missing hook look identical from here. A worker that names files it edited and brings no record is running without the hooks: say so, and read those files.
+5. **No record means verify the step yourself before marking it.** A worker that names files it edited and brings no record is running without the hooks: say so, and read those files.
 6. **A file in the record that no step named is the finding.** Tell the user before continuing. A file marked as changed by no tool call a hook saw may not be the worker's: check it before blaming the worker.
-
-**A worker reporting success is not evidence. The change record is.**
 
 Then the status decides:
 
 - **`PASS`**: mark the step `[x]` in `plan.md`, continue.
-- **`FAILED`**: it tried a fix and failed. **When a step fails** below decides what happens next.
-- **`NEEDS_DECISION`**: it stopped rather than guess. Obvious and small → decide it and fix inline. Otherwise → back to the user.
+- **`FAILED`** → `### When a step fails`.
+- **`NEEDS_DECISION`**: obvious and small → decide it and fix inline. Otherwise → back to the user.
 
 ### When a step fails
 
 Whether you ran it or a worker did.
 
-**Fix it here while the cause is in front of you**, and keep going as long as every attempt stays mechanical: a version pin, a config key, a wrong path, a missing import. Never count attempts: 3 obvious fixes cost less than one hunt.
+**Fix it here while the cause is in front of you**, and keep going as long as every attempt stays mechanical: a version pin, a config key, a wrong path, a missing import. Never count attempts.
 
-**Mechanical fixes that change nothing mean the assumption is wrong, not the fix.** A mechanical failure falls to a mechanical fix: the pin lands, the path resolves, the import appears. A run of them leaving the same failure standing says the failure was never mechanical. Every attempt after that is aimed the same wrong way. The run is the signal, never the count.
+**A run of mechanical fixes leaving the same failure standing means the assumption is wrong.** Stop fixing. The run is the signal, never the count.
 
-**Say the assumption to the user before hunting it.** Name what you believed was true, what you changed on the strength of it, and what failed anyway. They read the direction from outside the attempt. What breaks the assumption is usually something only they hold: what that service really returns, what changed last week, which of two files the build actually loads. One message ends most of these.
+**Say the assumption to the user before hunting it.** Name what you believed was true, what you changed on the strength of it, and what failed anyway.
 
-**Stop after one attempt where the code runs and the answer is wrong.** Nothing about that failure is mechanical, and the second guess costs what the first did.
+**Stop after one attempt where the code runs and the answer is wrong.**
 
-**Then `/flow:debug`.** It hunts here, and it owns what happens when the hunt runs out.
+**Then `/flow:debug`**, in this session. It owns what happens when the hunt runs out.
 
 ### When the plan turns out wrong
 
@@ -154,39 +152,39 @@ Something turns up mid-build that the plan did not account for. 4 outcomes, and 
 
 Every step `[x]` → run the full suite Pass 1 named → review it → `flow review exp-47`.
 
-**Verification is fresh or it does not count.** Run the suite in the turn you report it; a pass from 3 steps ago says nothing about the step you just finished.
+**Run the suite in the turn you report it.**
 
-Then 2 passes over the same diff, read once. Asked together, one hides the other: code that follows every convention can still build the wrong thing.
+Then 2 separate passes over the same diff, read once:
 
 - **Against the plan**: every step delivered, and nothing delivered that no step asked for.
-- **Against the code**: read `references/review-code.md`. A ticket that produced a document reads `style.md` instead, with `write-docs.md` beside it for a documentation page and `write-rules.md` for a rule file. A ticket that produced a decision reads none of them.
+- **Against the code**: read `references/review-code.md`. A ticket that produced a document reads `style.md` instead, with `write-docs.md` beside it for a documentation page, `write-rules.md` for a rule file, and `cut-loaded-files.md` for any file an agent loads. A ticket that produced a decision reads none of them.
 
-**Move anything durable in `## State` to `issues.md`, then delete the section from `ticket.md`.** Git keeps the old state.
+**Move anything durable in `## State` to `issues.md`, then delete the section from `ticket.md`.**
 
-`review` satisfies other tickets' `deps`, so the move already unblocks work: read what it prints.
+Read what `flow review` prints: `review` already unblocks the tickets depending on this one.
 
 ### When the user sends review notes
 
-Read the whole list before touching anything. **Anything you do not understand stops the whole list.** Ask about those items first, then start. Notes relate to each other (one is often "and move that into the helper from the note above") so implementing half the list your own way makes the other half wrong.
+Read the whole list before touching anything. **Anything you do not understand stops the whole list.** Ask about those items first, then start.
 
 Check each note against the code. A note that would break something gets said so, once, with the reason.
 
-**Then `flow build exp-47`, before the first edit.** A ticket left in `review` while its code is being rewritten reports itself as waiting on the user. Every ticket depending on it then reads as ready, so `flow next` offers work built on a moving target. The rework goes into `plan.md` as new steps; the old ones are all `[x]` and record none of it.
+**Then `flow build exp-47`, before the first edit.** The rework goes into `plan.md` as new steps.
 
 Then `flow done exp-47`, once the user says it is done.
 
-**Then offer `/flow:file-findings`, and wait for a yes.** It is what turns this ticket into a skill, a rule or a check, and nothing else drains the inbox. Offering is the whole job here: never invoke it unasked.
+**Then offer `/flow:file-findings`.** Never invoke it unasked.
 
 ### When the built thing is wrong
 
-They tested it and it is not what they wanted, not a list of corrections, a different answer. Nothing here is a fault and none of it earns a study case: the decisions were sound against what anyone knew before there was something to look at.
+The user tested it and wants a different answer. None of it is a fault, and none of it earns a study case.
 
-**The 2 paths split on what came back.** A list of changes to what was built → `building`, above. A changed understanding of what this ticket should be → `groundwork`, here, on the same ticket. A new one strands the map, the `## References` and the history.
+**The 2 paths split on what came back.** A list of changes to what was built → `building`, above. A changed understanding of what this ticket should be → `groundwork`, here, on the same ticket, never a new one.
 
-1. **Write what building it taught into `issues.md`**, before anything moves. The reopened map runs on it, and left in the conversation it is gone by the next session.
-2. **Ask what happens to the code**: kept as reference, or reverted. Print the git command; the user runs it. A rejected implementation left in the tree is what the next build starts from.
-3. **`flow groundwork exp-47`**, then `/flow:groundwork`. Read what it prints: leaving `review` stops satisfying other tickets' `deps`, so work that was ready stops being ready.
-4. **`plan.md` is replaced, never extended.** Every step is `[x]` and all of them describe the old shape. Phase 1 writes the new one against the code as it stands that day.
+1. **Write what building it taught into `issues.md`**, before anything moves.
+2. **Ask what happens to the code**: kept as reference, or reverted. Print the git command; the user runs it.
+3. **`flow groundwork exp-47`**, then `/flow:groundwork`. Read what it prints: tickets depending on this one stop being ready.
+4. **`plan.md` is replaced at the next pickup, never extended.**
 
 ## The ticket folder
 
@@ -195,8 +193,8 @@ They tested it and it is not what they wanted, not a list of corrections, a diff
 - **`ticket.md`**: frontmatter (`flow`), the body, `## References` and `## Done when` (whoever created it), `## State` (`/flow:handoff` owns its shape, whoever works the ticket writes it). `## State` holds work in flight and dies at review; `## References` stays.
 - **`plan.md`**: this skill. What the code looks like now, then the steps, then whatever the build adds under them.
 - **`groundwork/map.md`**: `/flow:groundwork`. Every decision and its reasoning.
-- **`issues.md`**: whoever builds. What the build taught, and it stays true after the ticket closes. Created the first time there is something; absent from every ticket that produces none.
-- **`reports/`**: whichever skill answered something. Absent where nothing was answered.
+- **`issues.md`**: whoever builds. What the build taught that stays true after the ticket closes. Created on first need.
+- **`reports/`**: whichever skill answered something.
 - **`protos/`**: `/flow:prototype`. One folder per prototype, the code beside its report.
 - **`history.md`**: `flow`. One line per status move and handoff. Never edited by hand.
 - **`intake/`**: the user. Material dropped in for this job, read and never rewritten.

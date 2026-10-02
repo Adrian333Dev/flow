@@ -66,6 +66,6 @@ module.exports = {
   needs: 'added',
   applies: (file, text) => EXTS.test(file) && declares(text),
   check: (file, text) => offenders(text).length === 0,
-  message: 'Line comments above a declaration. The block form is what reaches the hover at the call site.',
+  message: 'Line comments above a declaration: write them as `/** */`.',
   offenders,
 };

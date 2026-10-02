@@ -16,13 +16,13 @@ disable-model-invocation: true
 
 ## When a ticket is above
 
-**An `open` block already loaded the files it names**, so the phase's artifact may be on screen. Read what is there before opening anything.
+**Read any `open` block above before opening a file**: it already loaded the files it names.
 
-**A `branch:` line saying `checked out here:` another branch** → tell the user which branch the work is on before routing, and wait. Building here would put the work on the wrong branch.
+**A `branch:` line saying `checked out here:` another branch** → tell the user which branch the work is on before routing, and wait.
 
-**Nothing has moved.** The skill you route to writes the status, after it opens the phase's own artifact.
+**Leave the status.** The skill you route to writes it.
 
-Pick the skill, say in one line what decided it, then invoke it with no argument: the skill loads here, in this session, and the ticket is already above.
+Pick the skill, say in one line what decided it, then invoke it here with no argument. The ticket is already above.
 
 - `issue` → `/flow:debug`
 - `prototype` → `/flow:prototype`
@@ -37,6 +37,6 @@ Pick the skill, say in one line what decided it, then invoke it with no argument
 
 **`status: done` or `dropped`** → say the ticket is closed, and stop. Reopening is the user's call.
 
-**Open decisions are what send a ticket to `/flow:groundwork`**, never a long body, and never code left to read. A cleanup chore with nothing settled goes there like anything else.
+**Neither a long body nor code left to read sends a ticket to `/flow:groundwork`.** Only open decisions do.
 
-Route, and stop there. Whether this ticket splits, and whether it is worth building at all, are answers a map produces: `/flow:groundwork` owns both.
+**Route, and stop.** Whether the ticket splits, and whether it is worth building, are `/flow:groundwork`'s to answer.

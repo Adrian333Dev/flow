@@ -1,6 +1,6 @@
 # Developing Flow
 
-Flow is a Claude Code workflow for a solo developer: rules that load in every session, a set of skills, and a small scaffold for a new project. This folder is about changing Flow itself: the repository, the scripts, the skills, and the tests. For using Flow, see [the manual](../manual/README.md), and for what Flow is, the [main README](../../README.md).
+Flow is a Claude Code workflow for a solo developer: rules that load in every session, a set of skills, and a small scaffold for a new project. This folder is about changing Flow itself: the repository, the scripts, the skills, and the tests. For using Flow, see [the manual](../../lab/archive/manual/README.md), and for what Flow is, the [main README](../../README.md).
 
 ## Table of contents
 
@@ -19,7 +19,7 @@ Flow is a Claude Code workflow for a solo developer: rules that load in every se
 - [How the audit index works](audit.md): what a transcript holds, the unit the index groups by, and every table
 - [What Claude Code does](claude-code.md): sessions, instruction files, skills, plugins and hooks, tested rather than assumed
 
-Install, the commands, the skills and the settings are in [Reference](../manual/reference.md), and the file layout on a machine is in [Where everything lives](../manual/where-everything-lives.md). Nothing here restates them.
+Install, the commands, the skills and the settings are in [Reference](../../lab/archive/manual/reference.md), and the file layout on a machine is in [Where everything lives](../../lab/archive/manual/where-everything-lives.md). Nothing here restates them.
 
 ## An edit in the clone is live everywhere
 

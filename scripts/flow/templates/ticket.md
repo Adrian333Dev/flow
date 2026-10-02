@@ -4,4 +4,4 @@
 
 ## Done when
 
-<!-- One observable check, written now rather than at pickup. -->
+<!-- One observable check. Write it now. -->

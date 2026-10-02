@@ -56,7 +56,7 @@ test('a current machine in a current project prints nothing at all', () => {
 test('a machine behind the changelog and a project behind its machine each name flow update', () => {
   const behind = check(place('session-behind', { machine: NEWEST - 1, project: NEWEST - 1 }));
   assert.match(behind.stdout, new RegExp(`Flow: this machine is at changelog entry ${NEWEST - 1}, and ${NEWEST} is the newest`));
-  assert.match(behind.stdout, /Run flow update in a terminal to catch up\./);
+  assert.match(behind.stdout, /Run flow update in a terminal\./);
 
   const project = check(place('session-project', { machine: NEWEST, project: NEWEST - 1 }));
   assert.match(project.stdout, new RegExp(`Flow: project is at changelog entry ${NEWEST - 1}, and this machine is at ${NEWEST}`));
@@ -186,7 +186,7 @@ test('a git repository with no .flow gets the setup line, shown to the user alon
 
 // The Flow home's last fetch holds every machine's record, so the hook reads
 // another machine moving ahead without touching the network.
-test('a machine another machine moved ahead of says flow sync waits for flow update', () => {
+test('a machine another machine moved ahead of says to run flow update', () => {
   const repo = require('../flow/lib/flow-repo');
   const at = place('session-ahead', { machine: NEWEST, project: NEWEST });
   const remote = path.join(SCRATCH, 'session-ahead', 'remote.git');
@@ -204,7 +204,7 @@ test('a machine another machine moved ahead of says flow sync waits for flow upd
   repo.connect(mine, remote);
   assert.strictEqual(check(at).stdout, '', 'nothing fetched yet, so nothing known');
   repo.fetch(mine);
-  assert.strictEqual(check(at).stdout, `Flow: laptop is on changelog entry ${NEWEST + 1}, and this machine is on ${NEWEST}, so flow sync waits. Run flow update in a terminal.\n`);
+  assert.strictEqual(check(at).stdout, `Flow: laptop is on changelog entry ${NEWEST + 1}, and this machine is on ${NEWEST}. Run flow update in a terminal.\n`);
 });
 
 test('a project set up elsewhere, with old Claude Code memory on this machine, gets a line to fold it in', () => {

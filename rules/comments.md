@@ -7,29 +7,27 @@ paths:
   - "**/*.{css,scss}"
 ---
 
-Two decisions, in order: whether the comment is worth writing, then which form it takes.
-
-**None of this is worth stopping work for.** Write comments this way while writing the code. Code that already reads well in another shape is left alone, and the wrong form is never on its own a reason to go back and edit.
+**Apply this while writing code.** Never go back to edit a comment only because its form is wrong.
 
 ## Whether to write one
 
-**Write a comment where a reader fluent in the language would still guess wrong.** Everything else the code already says, and says more reliably, because code cannot go stale against itself.
+**Write a comment only where a reader fluent in the language would still guess wrong.**
 
-- **`header-says-what-the-file-is`** Open every file of code with a header comment. Its first sentence says what the file is, and reads on its own: a reader deciding whether to open the file stops there. Anything after it is optional: a short note on how the file fits, or a decision behind it. A file shorter than its header would be needs none.
-- **`cut-words-never-information`** Write every comment as short as it stays clear. Never over-explain: a comment is a guide to the code, never an essay. Examples, flags, usage lines and details a reader would otherwise open the code for all stay.
-- **`say-what-the-code-cannot`** Write the reason, the constraint, the decision, or what the outside system really returns. The name and the signature carry what the code does, so the comment carries why it does it that way: a workaround and the bug behind it, an ordering that matters, a number that looks arbitrary and is not.
-- **`never-restate-the-line`** Delete a comment that repeats the code under it. `// increment the counter` above `i++` costs a line and a read and pays back nothing.
+- **`header-says-what-the-file-is`** Open every file of code with a header comment. Its first sentence says what the file is, and reads on its own. Anything after it is optional: how the file fits, or a decision behind it. A file shorter than its header would be needs none.
+- **`cut-words-never-information`** Write every comment as short as it stays clear. Never over-explain. Keep examples, flags, usage lines and details a reader would otherwise open the code for.
+- **`say-what-the-code-cannot`** Write the reason, the constraint, the decision, or what the outside system really returns: a workaround and the bug behind it, an ordering that matters, a number that looks arbitrary and is not.
+- **`never-restate-the-line`** Delete a comment that repeats the code under it: `// increment the counter` above `i++`.
 - **`not-every-declaration`** Leave a function whose name already answers the question uncommented. Comment the one where a reader would have to open the body to find out.
-- **`say-it-once`** Put a fact in one comment. Repeating it in the caller and the callee means the two drift, and the reader cannot tell which is current.
+- **`say-it-once`** Put a fact in one comment, never in both the caller and the callee.
 
 ## Which form it takes
 
 **Position decides the form.** A comment on a declaration takes whichever form the language surfaces where the name gets used. A comment inside a body takes the line form.
 
-- **`js-and-ts`** `/** */` on a file header, a class or a function. `//` inside a body. Only `/** */` reaches the hover and the autocomplete list at the call site, so it goes on anything worth reading from another file.
-- **`python`** A docstring on a module, a class or a function. `#` inside a body. The docstring is a string rather than a comment, and it is what the editor and `help()` show.
-- **`bash`** `#` everywhere, since the language has no second form. A blank line is what separates a file header from the code under it.
+- **`js-and-ts`** `/** */` on a file header, a class, a function, and anything else worth reading from another file: only `/** */` reaches the hover at the call site. `//` inside a body.
+- **`python`** A docstring on a module, a class or a function. `#` inside a body.
+- **`bash`** `#` everywhere. A blank line separates a file header from the code under it.
 - **`sql`** `--` on a statement and inside it. `/* */` for a file header running several lines.
-- **`css`** `/* */`, the only form plain CSS has. SCSS adds `//`, which the compiler drops, so a note that should never ship goes there.
-- **`a-block-fits-one-line`** Write a one-line block wherever the text fits: `/** True when the arguments ask for help. */`. Three lines around one sentence is the waste this section exists to stop.
-- **`match-the-file`** Take the form the file already uses in that position. A file mixing two forms for the same thing reads as two authors.
+- **`css`** `/* */`. In SCSS, a note that should never ship takes `//`, which the compiler drops.
+- **`a-block-fits-one-line`** Write a one-line block wherever the text fits: `/** True when the arguments ask for help. */`.
+- **`match-the-file`** Take the form the file already uses in that position.

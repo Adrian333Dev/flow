@@ -30,7 +30,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same session, so Claude Code loads the same rules. Claude Code never reads anything under `~/.agents/` by itself. `project-template/` holds the same pair for a project, where the `CLAUDE.md` stays even though Claude Code could read the `AGENTS.md` alone: [How an instruction file loads](claude-code.md#how-an-instruction-file-loads) says why.
 
-**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../manual/settings.md) explains every key. The setup session `flow install` opens merges it into `~/.claude/settings.json` key by key. The links `flow install` makes before that session write none of the 3 above: a rule file copied before the interview holds nothing of the user.
+**`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../../lab/archive/manual/settings.md) explains every key. The setup session `flow install` opens merges it into `~/.claude/settings.json` key by key. The links `flow install` makes before that session write none of the 3 above: a rule file copied before the interview holds nothing of the user.
 
 **`scripts/`** holds the CLI, the hooks, and the script that carries out a migration:
 
@@ -55,7 +55,7 @@ When you first open the repository, the split that matters has four parts:
 - `package.json` and `tests/` sit here: this is the Node package root.
 - Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
-**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, with `write-rules.md` beside it for a rule file and `write-docs.md` for a documentation page, `workflow.md` describes how the pieces fit, `knowledge.md` maps how skills, plugins, MCP servers and findings arrive and grow, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message, and `harnesses/<name>.md` says where one harness keeps its own files, Claude Code's first. Symlinked as `~/.flow/references`.
+**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, with `cut-loaded-files.md` beside it for a file an agent loads, `write-rules.md` for a rule file and `write-docs.md` for a documentation page, `workflow.md` describes how the pieces fit, `knowledge.md` maps how skills, plugins, MCP servers and findings arrive and grow, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message, and `harnesses/<name>.md` says where one harness keeps its own files, Claude Code's first. Symlinked as `~/.flow/references`.
 
 **`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.agents/skills/flow/skills/`, so the only group names read outside this tree are `drafts/`, which never installs, and `dev/`, whose skills switch.
 
@@ -83,7 +83,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `lab/`, `repos/`, and `project-template/` from loading when a file beside one is read.
 
-**`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/` is for whoever uses Flow, and holds `reference.md`, `tickets.md`, `settings.md`, `where-everything-lives.md` and `use/`, 4 pages following one ticket from `/flow:start` to the handoff. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what `manual/` covers. Install, the commands and the skills live in `manual/reference.md`, and every folder Flow puts on a machine lives in `manual/where-everything-lives.md`. Every settings key lives in `manual/settings.md`. Both folders are authored here and never moved in from `lab/`. Symlinked as `~/.flow/docs`, so `/flow:help` names a page by a path that is the same on every machine.
+**`docs/`** holds Flow's published documentation, one folder per audience. `dev/` is this folder, for whoever changes Flow. `manual/`, for whoever uses Flow, is being written again from scratch, and the old pages wait in `lab/archive/manual/` until it is. Each folder carries a `README.md` indexing its own pages. Nothing in `dev/` restates what the manual covers: install, the commands, the skills, every folder Flow puts on a machine, and every settings key. Both folders are authored here and never moved in from `lab/`. Symlinked as `~/.flow/docs`, so `/flow:help` names a page by a path that is the same on every machine.
 
 ## The design record under `lab/`
 
@@ -110,6 +110,7 @@ Everything beside `context/` is a folder:
 - **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
 - **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, `try.sh` builds [the scratch session](scratch-session.md), and `save-computer.sh` saves this computer as a seed for it to start from. `test-projects/<name>/` builds each run's practice project: `files/` copied in, then `build.sh` making the tickets, or no `build.sh` for a project not set up.
 - **`research/`**: evidence behind the skills, and cached upstream documentation.
+- **`archive/`**: pages taken out of `docs/` whole, kept to write their replacements from. `manual/` is the old manual.
 
 ## What is gitignored
 

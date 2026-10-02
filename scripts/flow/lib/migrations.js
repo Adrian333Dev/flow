@@ -142,7 +142,7 @@ function read(dir, at) {
   const ctx = { base: at.base, project: data.project ? resolvePath(String(data.project), { base: at.base }) : null };
 
   const lines = body.split('\n').filter((l) => VERBS.some((v) => l.startsWith(`- ${v} `)));
-  if (!lines.length) throw new FlowError('migration.md has no action lines, so there is nothing to apply.');
+  if (!lines.length) throw new FlowError('migration.md has no action lines.');
 
   const actions = lines.map((l) => parseLine(l, ctx));
   for (const p of actions.flatMap(touched)) guard(p, at);

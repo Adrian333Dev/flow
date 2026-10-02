@@ -4,47 +4,32 @@ Written 2026-10-02. Read this once, then rewrite it whole next time.
 
 ## Where things stand
 
-Pass 2 of the final sweep is finished and committed by the user. Since then:
+**Passes 1 to 3 of the final sweep are closed, and everything since is uncommitted.** `lab/backlog/before-beta.md` → the final sweep holds what each pass did. `npm test` in `scripts/` passes, 246 of 246.
 
-- **`/flow:start` runs `flow next`**, and `flow get` needs an id. `npm test` in `scripts/` passed, 246 of 246.
-- **Claude Code 2.1.287 is read** into `lab/research/claude-code-updates.md`, nothing to change.
-- **`CLAUDE.md` → `check-claude-code-updates` runs only when the user asks**, since 2026-10-02.
+**The sweep's order changed on 2026-10-02, approved by the user.** Pass 4 is now the `scripts/` cleanup and new layout, with a check of every command against `references/cli-design.md`. Pass 5 is the docs, planned whole and then written from scratch. The scripts go first because the pages name script paths.
 
-## Next: pass 3, approved by the user 2026-10-02, start at once
+**Built the same day, approved by the user:**
 
-`lab/backlog/before-beta.md` → pass 3 holds the approved plan. **The rule: a file the agent loads is instructions, never an explanation.** A short reason stays only where the agent would otherwise get a case wrong. The user ruled it, and wants it applied hard: concise, really concise.
+- **The old manual sits in `lab/archive/manual/`**, moved whole out of `docs/manual/`. Every link into it points there now. `scripts/flow/setup/form.md` still names `~/.flow/docs/manual/settings.md` for an installed machine, which pass 5 repoints once a new settings page exists. The archived pages' own 4 links into `docs/dev/` are broken, since the archive is frozen.
+- **`disagree-before-building`**, in `home/AGENTS.md` and the root `CLAUDE.md`: what the user says is a claim to test, never a fact.
+- **`handoff-read-once` is gone from `home/AGENTS.md`.**
+- **`style.md` §9 moved to `references/cut-loaded-files.md`**, read only for a file an agent loads. Every file naming the writing pass names it.
+- **`references/knowledge.md`** lists the 2 places a disagreement with an outside skill goes under `Used whole`.
+- **`lab/backlog/beta.md`** gained an item for studying beta sessions with `/cost` and `/skill-doctor`.
 
-**Run it alone, start to finish, with no checkpoints.** The user approved the whole sweep and will not review each change. Never stop to show a list and wait.
+**Kept, agreed by the user, each recorded in pass 2:** `/flow:execute`, `/flow:debug` and the review as they are; a prototype in its own session; the `open` block. **Dropped:** a `~/.flow/private-scripts/` folder, recorded in pass 4.
 
-1. **Add the user's rule to `references/style.md`**, one line, under `### Only in a loaded file`.
-2. **Always-loaded rules**: `home/AGENTS.md`, `home/CLAUDE.md` and `rules/comments.md`.
-3. **Skills**, every one outside `drafts/`, each with its `references/`. Biggest first: groundwork, execute, visualize, research, debug, handoff, file-findings, prototype, then start, review, apply-domain-findings, tickets-from-spec. Keep `docs/dev/skills.md` and `skills/tools/file-findings/references/write-skills.md` in step where a rule there changes.
-4. **`references/`**: `workflow.md`, `style.md`, `write-rules.md`, `write-docs.md`, `knowledge.md`, `cli-design.md`, `study-cases.md`, `reminder.md`, `harnesses/`.
-5. **Setup and templates**: `scripts/flow/setup/`, `scripts/flow/templates/`, `project-template/`, `agents/`, `commands/`.
-6. **Hook messages**: every line the hooks in `scripts/*.js` print to the agent.
-7. **CLI output**: every `flow` command's output and refusals, under `scripts/flow/`. Output the user reads (the board, `flow doctor`, the restore form) is short, plain and laid out to read, not instructions. Update the tests matching a changed message.
-8. **`npm test` in `scripts/`**, then the one report.
+## Next
 
-**The safeguards:**
+**The user reviews what was built.** Issues they find come back as reports.
 
-- **Cut words, never rules.** A rule worth removing goes on the report's list and stays in the file.
-- **Keep every load-bearing fact**: a path, a command, a flag, an example where the rule alone is ambiguous.
-- **Rewrite this file as each group finishes**, saying which groups are done, so a compaction loses nothing.
-
-**The report at the end:** words before and after per group, the rules proposed for removal, anything unsure.
-
-### Groundwork, already worked through
-
-The cuts proposed for `skills/phases/groundwork/SKILL.md` on 2026-10-01, all agreed:
-
-- **About 25 reasons that only argue for their rule.** Example: "**On a ticket, open `map.md` first.** The map decides the phase, never the status." replaces 3 sentences.
-- **Rules another file already gives**: "Recommend… a neutral list is not an answer" (`recommend-never-enumerate`); "write the decision once locked" and "batching 2–3 is fine" (`## Capture`); Phase 4's durable-fact route (`## Capture`); "ASCII frame first… colour only when" (`/flow:visualize`).
-- **Said twice inside the skill**: "'I don't know' twice" in 2 sections; the 3 "the answer is no" lines become one, keeping the split (a feature not worth building is dropped, a topic whose answer is no is done); "Everything else routes out… decision log" repeats Phase 4; "A ticket's plan is written at pickup" repeats "No plan".
-- **For the report's removal list, never cut**: in `### When the branch is about structure`, "Propose parts with one clear purpose…" and "A part that needs a huge file… is one part doing too much". "Build the smallest thing that works" and "If the right design replaces what exists, that's in scope" stay regardless.
+**Pass 4, the `scripts/` cleanup, starts when the user says.** Then pass 5: its first page is one command-line reference, every command, flag and option explained, written against `flow help`.
 
 ## How the user wants this work done
 
 - Reason extensively before proposing anything. Weigh each candidate against what it is for, and never re-raise one recorded as kept.
+- Test what the user says before agreeing with it, including their own suggestions.
+- Finish what was asked whole. Leave no proposals open at the end: decide, build, and let the user review.
 - Record every dropped proposal in its backlog item, with why, in the same turn: `CLAUDE.md` → `write-dropped-proposals`.
 - Keep replies short. The user is always in a rush.
 - Reuse what exists, and match the conventions the user names.

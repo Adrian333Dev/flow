@@ -138,7 +138,7 @@ actions.edit = {
     if (flags.status === 'fixed') {
       // A fix nobody can point at is not a fix: the file that changed is the
       // only evidence the rule actually moved.
-      if (!flags.by && !c.data.fix) throw new FlowError('--by names the file that changed: a fix nobody can point at is not a fix.');
+      if (!flags.by && !c.data.fix) throw new FlowError('marking a case fixed needs --by <the file that changed>.');
       if (c.data.status === 'fixed' && !flags.by) {
         out(`${c.issue}/${c.name} is already fixed by ${c.data.fix || '-'}.`);
         return 0;

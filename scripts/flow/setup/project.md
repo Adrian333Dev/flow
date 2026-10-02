@@ -4,7 +4,7 @@
 
 Flow's rules and hooks are loaded. Nothing of the project's is: no `CLAUDE.md`, no skill, no setting, no MCP server. `~/.flow/run.json` names the project, its Claude Code memory folder, and the migration folder under `~/.flow/migrations/`. Edits inside `~/.flow/` go through without asking.
 
-One edit asks anyway. Claude Code asks before every write to a path holding a `.claude` folder, and `files/` mirrors the project's `.claude/`. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
+Claude Code asks before every write to a path holding a `.claude` folder, `files/` included, since it mirrors the project's `.claude/`. Before the first write there, tell the user in one line that Claude Code is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
 
 Flow's clone is `~/.flow/repos/flow/`. Every path below starting `project-template/` sits inside it.
 
@@ -37,7 +37,7 @@ A message starting `Carry on` is the same job, stopped part way.
 
 **Goal: know the project well enough to keep every rule, fact and piece of open work worth keeping.** The code is the truth. Where a doc disagrees with it, the code wins, and the doc becomes a ticket.
 
-- Start with `util fs tree`. Its line counts show a large file before you open it.
+- Start with `util fs tree`.
 - Read files git keeps. `git ls-files` lists them. Claude Code's own files are the exception, read whether git keeps them or not: `CLAUDE.local.md`, `.claude/settings.local.json`, and every other project path in the harness file.
 - Read every rule file, at any depth: `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, `.claude/rules/`, and the like.
 - Read every doc written for this project: specs, plans, decisions, work lists.
@@ -75,10 +75,10 @@ A message starting `Carry on` is the same job, stopped part way.
 - **Overlaps Flow, and fires only when invoked or matched** → a box under `## 🔴 Removed unless you untick it`.
 - **Knows the project's field** → stays, named in one line.
 - **A permission** stays, unless it undoes one of Flow's `deny` rules.
-- **A plugin** is switched off in the project's `.claude/settings.json`. Never uninstalled: other projects may use it.
+- **A plugin** is switched off in the project's `.claude/settings.json`. Never uninstalled.
 - **A skill from a source Flow knows** → `flow skills on <name>`, after its folder's delete.
 - **Any other outside skill** → sorted by `~/.flow/references/knowledge.md` → `## An outside skill`, and added as that section says.
-- **The memory folder** → a box under `## 🔴 Removed unless you untick it`. Flow keeps memory off.
+- **The memory folder** → a box under `## 🔴 Removed unless you untick it`.
 
 ## The files it writes
 
@@ -91,7 +91,7 @@ Every new version goes under `files/<full path>`, beside the form. `project-temp
 - **`.gitignore`**: the project's lines, then each line of the template's it lacks.
 - **`.uncommitted-include`**: the template's, where the project has none.
 - **`.flow/settings.json`**: a copy of the project's own, which `flow init` wrote before this session opened. It holds `ticketPrefix`, the word every ticket id here starts with, and `flow` reads a project by this folder existing.
-- **`.flow/tickets/`**: made by `flow new` once `.flow/settings.json` is written, run with `FLOW_PROJECT` set to the project's folder under `files/`, so every ticket has the format and number `flow` gives it.
+- **`.flow/tickets/`**: made by `flow new` once `.flow/settings.json` is written, run with `FLOW_PROJECT` set to the project's folder under `files/`.
 - **`.flow/inbox.md`**, **`.flow/findings/`**, **`docs/context/`**: where there is something to put in them.
 - **`~/.flow/AGENTS.md`**: the machine's file, with the user's new lines added.
 - **`~/.flow/wiki/<tool>/findings/`**: one file per lesson about a tool.

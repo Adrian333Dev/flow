@@ -7,8 +7,6 @@ description: Reviews how Flow performed. Finds where rules failed, where frictio
 
 !`flow audit index --quiet 2>&1 || true`
 
-2 shapes. A clear failure gets recorded. A suspected flaw gets investigated first.
-
 ## Clear failure
 
 The user rejected output, or a loaded rule did not fire.
@@ -17,14 +15,12 @@ The user rejected output, or a loaded rule did not fire.
 2. Name every rule that loaded and should have prevented the failure. `## Whether a rule loaded` says how to tell.
 3. Record a study case: `flow cases issues`, then `flow cases new "<title>" --issue <issue>`. `~/.flow/references/study-cases.md` carries the body format.
 
-The artifact is perishable. Write it now, analyse later.
-
 ## Suspected flaw
 
 Friction hit twice, a rule fought the work, or a pattern looks wrong without a concrete failure.
 
 1. Name the suspicion in one sentence.
-2. Investigate. The conversation is evidence when the session holds it. `flow audit read` opens a bounded turn range from any past session. `flow audit sessions` lists what is available. Both read an index updated as this skill loaded. When the audit commands are insufficient, read the raw transcripts at `~/.claude/projects/` directly.
+2. Investigate: this session's conversation, `flow audit read` for a turn range from a past session, `flow audit sessions` to list them. Past those, the raw transcripts at `~/.claude/projects/`.
 3. Compare what happened against the rules that loaded, by `## Whether a rule loaded`. A rule that loaded and stayed silent is defective. A rule that never loaded is absent: the fault is whatever should have loaded it.
 4. Record the finding in `~/.flow/workflow-notes.md`, dated, with the project.
 
@@ -34,9 +30,7 @@ Friction hit twice, a rule fought the work, or a pattern looks wrong without a c
 
 ## Recording
 
-Both destinations are global, reachable from any project.
-
 - **Study case** (`~/.flow/study-cases/`): a failure with an artifact. Written in 2 stages: the artifact and one line now, the analysis later.
 - **Workflow note** (`~/.flow/workflow-notes.md`): friction, a gap, a pattern. One dated line.
 
-Neither shape derails the current work. Record and return.
+Record, then return to the work.

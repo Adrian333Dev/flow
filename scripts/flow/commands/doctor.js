@@ -385,7 +385,7 @@ function checkSettings(clone, claude, catalog) {
   // With no mode set, Claude Code starts a session on a Pro, Max or Team plan
   // in auto mode, and nothing on screen says so. A missing key is a merge that
   // went wrong, so it fails. A different mode is somebody's choice, so it is a
-  // note: docs/manual/settings.md argues the case, and this only reports it.
+  // note: lab/archive/manual/settings.md argues the case, and this only reports it.
   const notes = [];
   const wantedMode = (template.permissions || {}).defaultMode;
   const liveMode = (live.permissions || {}).defaultMode;
