@@ -10,7 +10,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { project, write, flow } = require('./helpers/scratch');
-const ticketSkills = require('../flow/lib/ticket-skills');
+const ticketSkills = require('../lib/tickets/ticket-skills');
 
 const skillsOf = (dir) => path.join(dir, '.claude', 'skills');
 const skillText = (dir, id) => fs.readFileSync(path.join(skillsOf(dir), id, 'SKILL.md'), 'utf8');

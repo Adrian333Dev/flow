@@ -59,7 +59,7 @@ function answer(command, { dir, home }, cwd = dir) {
   const env = { ...process.env, HOME: home, CLAUDE_PROJECT_DIR: dir };
   delete env.VIRTUAL_ENV;
   delete env.CONDA_PREFIX;
-  const result = run('guard.js', [], { input, env });
+  const result = run('hooks/guard.js', [], { input, env });
   return result.stdout.trim() ? JSON.parse(result.stdout).hookSpecificOutput : null;
 }
 

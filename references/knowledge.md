@@ -15,7 +15,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 
 ## Everything starts on for one project
 
-- **A skill** → `flow skills add` and `flow skills on`, with no flag, switch it on for this project. Add `--machine` once a second project needs it.
+- **A skill** → `flow skills on`, with no flag, switches it on for this project. Add `--machine` once a second project needs it.
 - **A plugin** → off everywhere, switched on in the project's `.claude/settings.local.json` by whoever works there.
 - **An MCP server** → the project's `.mcp.json`. Never for the whole machine.
 
@@ -53,8 +53,8 @@ Install counts and stars only pick which 3 to read.
 
 **How each arrives:**
 
-- **A standalone skill used whole** → `flow skills add <owner/repo> <name>`: cloned, switched on here.
-- **A standalone skill to harvest** → `flow skills add <owner/repo>`, no name: cloned, nothing switched on.
+- **A standalone skill used whole** → `flow skills add <owner/repo>`, then `flow skills on <name>`: cloned, switched on here.
+- **A standalone skill to harvest** → `flow skills add <owner/repo>` alone: cloned, nothing switched on.
 - **A plugin** → Claude Code's `/plugin install`, then on for this project only. A plugin is used whole or not at all.
 
 **Updates:**

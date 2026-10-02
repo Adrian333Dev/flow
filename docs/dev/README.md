@@ -14,6 +14,7 @@ Flow is a Claude Code workflow for a solo developer: rules that load in every se
 - [The scratch session](scratch-session.md): running a change without installing it
 - [The tests](tests.md): two suites, no dependencies
 - [Adding a skill](skills.md): one folder, one group, no list to update
+- [Designing a flow command](commands.md): the rules every `flow` command follows, from its shape to its flags
 - [What costs context](context-cost.md): which shortenings buy tokens and which only look like they do
 - [The agents Claude Code runs](agents.md): every way one session starts another agent, and which of them Flow uses
 - [How the audit index works](audit.md): what a transcript holds, the unit the index groups by, and every table

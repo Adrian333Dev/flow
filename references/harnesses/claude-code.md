@@ -2,7 +2,7 @@
 
 One file per harness, in `~/.flow/references/harnesses/`, read whole by the sessions `flow install`, `flow init` and `flow update` open. A second harness is a second file here.
 
-Claude Code's own paths, never Flow's. `flow doctor` reports what Flow owns, and `scripts/flow/lib/installed.js` is the list behind it.
+Claude Code's own paths, never Flow's. `flow doctor` reports what Flow owns, and `scripts/lib/machine/installed.js` is the list behind it.
 
 **The config folder is `~/.claude`, and `CLAUDE_CONFIG_DIR` replaces it.** Read that variable before naming any path below. `~/.claude.json` sits beside the folder by default, and inside it as `$CLAUDE_CONFIG_DIR/.claude.json` once the variable is set.
 

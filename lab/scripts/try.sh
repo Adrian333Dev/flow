@@ -292,7 +292,7 @@ if [ "$built" = 0 ]; then
     # version stamp. Without .flow/ every flow command in build.sh refuses the
     # project. There is no remote, so every commit stays in the sandbox.
     newest="$(node -e 'console.log(require(process.argv[1]).newest(process.argv[2]))' \
-      "$root/scripts/flow/lib/version.js" "$root")"
+      "$root/scripts/lib/machine/version.js" "$root")"
     git -C "$proj" worktree add --quiet --orphan -b flow .flow
     printf '.flow/\n' >> "$proj/.gitignore"
     echo '{ "ticketPrefix": "exp" }' > "$proj/.flow/settings.json"
@@ -303,7 +303,7 @@ if [ "$built" = 0 ]; then
     build_home="$run/build-flow"
     mkdir -p "$build_home"
     echo "$newest" > "$build_home/version"
-    FLOW_HOME="$build_home" FLOW_JS="$root/scripts/flow/flow.js" FLOW_PROJECT="$proj" PROJ="$proj" \
+    FLOW_HOME="$build_home" FLOW_JS="$root/scripts/flow.js" FLOW_PROJECT="$proj" PROJ="$proj" \
       bash "$projects/$project/build.sh"
     rm -rf "$build_home"
     # Every flow command commits what it wrote. The files build.sh wrote by hand,

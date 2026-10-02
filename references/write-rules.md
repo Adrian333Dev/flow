@@ -28,5 +28,5 @@ A `→` branch list takes no ids. Its lines are the cases of one rule, and the r
 
 ## The constraints
 
-- **Unique inside its file.** Section ids and rule ids share one namespace. The same id in 2 files is fine. `flow scorecard` prints every id it finds.
+- **Unique inside its file.** Section ids and rule ids share one namespace. The same id in 2 files is fine. `flow audit scorecard` prints every id it finds.
 - **Every heading slugs cleanly.** Rename a heading whose text makes an unreadable id. Never invent syntax to avoid it. `### When it has parts: a design, a plan, a mechanism, a diff across files` became `### When it has parts`, with the list on the line below.

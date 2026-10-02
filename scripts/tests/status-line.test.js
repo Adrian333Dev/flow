@@ -25,7 +25,7 @@ const typed = (name, args = '') => `${JSON.stringify({
 })}\n`;
 
 function statusLine(dir, data, args = []) {
-  return run('flow/flow.js', ['status-line', ...args], {
+  return run('flow.js', ['status-line', ...args], {
     cwd: dir,
     input: JSON.stringify(data),
     env: { ...process.env, FLOW_HOME: path.join(dir, 'flow-home'), FLOW_PROJECT: '' },
@@ -63,7 +63,7 @@ test('nothing outside a project, before a ticket is picked, or on input it canno
   const dir = repoProject('status-line-empty');
   assert.strictEqual(statusLine(dir, { session_id: 's3', cwd: path.dirname(dir) }).stdout.trim(), '');
   assert.strictEqual(statusLine(dir, { session_id: 's3', cwd: dir }).stdout, '\n');
-  const broken = run('flow/flow.js', ['status-line'], { cwd: dir, input: 'not json' });
+  const broken = run('flow.js', ['status-line'], { cwd: dir, input: 'not json' });
   assert.strictEqual(broken.code, 0);
   assert.strictEqual(broken.stdout, '\n');
 });

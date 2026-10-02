@@ -20,7 +20,7 @@ The user rejected output, or a loaded rule did not fire.
 Friction hit twice, a rule fought the work, or a pattern looks wrong without a concrete failure.
 
 1. Name the suspicion in one sentence.
-2. Investigate: this session's conversation, `flow audit read` for a turn range from a past session, `flow audit sessions` to list them. Past those, the raw transcripts at `~/.claude/projects/`.
+2. Investigate: this session's conversation, `flow audit read` for a turn range from a past session, `flow audit ls` to list them. Past those, the raw transcripts at `~/.claude/projects/`.
 3. Compare what happened against the rules that loaded, by `## Whether a rule loaded`. A rule that loaded and stayed silent is defective. A rule that never loaded is absent: the fault is whatever should have loaded it.
 4. Record the finding in `~/.flow/workflow-notes.md`, dated, with the project.
 

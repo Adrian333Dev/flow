@@ -160,7 +160,7 @@ Codex has no Flow hooks yet. The scratch `~/.codex/` carries the seed's settings
 
 Skills and agents are symlinked into the pretend computer, so `SKILL.md` there is the file in your clone. Write, save, invoke: the running session reads what you just wrote.
 
-`settings.json` is a copy. A change to it, or to `install.sh` or `flow install`, needs a new run from a seed with no Flow, or `--fresh` on the old one. A change to the setup's instructions in `scripts/flow/setup/` needs the setup session opened again: `flow install` inside the run rewrites `~/.flow/setup-prompt.md`, the copy the session reads.
+`settings.json` is a copy. A change to it, or to `install.sh` or `flow install`, needs a new run from a seed with no Flow, or `--fresh` on the old one. A change to the setup's instructions in `scripts/sessions/` needs the setup session opened again: `flow install` inside the run rewrites `~/.flow/setup-prompt.md`, the copy the session reads.
 
 ## The practice project
 

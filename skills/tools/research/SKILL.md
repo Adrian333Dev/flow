@@ -50,8 +50,8 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 
 **Adopting a skill:**
 
-- Used whole → `flow skills add <owner/repo> <name>`, which clones the repository and turns the skill on for this project.
-- Harvested → `flow skills add <owner/repo>`, no name, which clones it and switches nothing. Tell the user it waits for the harvest.
+- Used whole → `flow skills add <owner/repo>` clones the repository, then `flow skills on <name>` turns the skill on for this project.
+- Harvested → `flow skills add <owner/repo>` alone. Tell the user it waits for the harvest.
 
 ## How deep to go
 

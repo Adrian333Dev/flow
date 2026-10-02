@@ -46,7 +46,7 @@ function setup(name, { push = false, skills = 'react,postgres' } = {}) {
   write(root, '.flow/findings/react/use-effect-runs-twice-in-strict-mode.md', '---\nskill: react\n---\nReact 19.1.\n');
   write(root, '.flow/findings/postgres/vacuum-skips-tables-with-open-transactions.md', '---\nskill: postgres\n---\nPostgres 17.\n');
   write(root, '.flow/findings/a-finding-not-yet-filed.md', 'still in the inbox\n');
-  const flow = (env = {}) => run('flow/flow.js', ['contribute'], {
+  const flow = (env = {}) => run('flow.js', ['contribute'], {
     cwd: root,
     env: {
       ...process.env,

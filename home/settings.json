@@ -2,7 +2,7 @@
   "cleanupPeriodDays": 365,
   "fileSuggestion": {
     "type": "command",
-    "command": "node \"$HOME/.flow/scripts/file-suggestion.js\""
+    "command": "node \"$HOME/.flow/scripts/hooks/file-suggestion.js\""
   },
   "hooks": {
     "PreToolUse": [
@@ -11,7 +11,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/guard.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/guard.js\""
           }
         ]
       },
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
           }
         ]
       },
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/rule-check.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/rule-check.js\""
           }
         ]
       }
@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
           }
         ]
       },
@@ -49,7 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/changes.js\" --wait",
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\" --wait",
             "asyncRewake": true,
             "timeout": 86400
           }
@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/overlays.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/overlays.js\""
           }
         ]
       }
@@ -71,7 +71,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
           }
         ]
       },
@@ -80,7 +80,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/failures.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/failures.js\""
           }
         ]
       }
@@ -90,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/failures.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/failures.js\""
           }
         ]
       }
@@ -100,7 +100,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/records-sync.js\" --hook stop",
+            "command": "node \"$HOME/.flow/scripts/jobs/records-sync.js\" --hook stop",
             "async": true
           }
         ]
@@ -111,7 +111,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/records-sync.js\" --hook end"
+            "command": "node \"$HOME/.flow/scripts/jobs/records-sync.js\" --hook end"
           }
         ]
       }
@@ -121,7 +121,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
           }
         ]
       }
@@ -131,7 +131,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
           }
         ]
       }
@@ -141,7 +141,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/instructions-loaded.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/instructions-loaded.js\""
           }
         ]
       }
@@ -152,7 +152,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/check-ticket.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/check-ticket.js\""
           }
         ]
       },
@@ -160,7 +160,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/overlays.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/overlays.js\""
           }
         ]
       }
@@ -170,11 +170,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/reminder.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/reminder.js\""
           },
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/context-check.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/context-check.js\""
           }
         ]
       }
@@ -184,7 +184,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/context-check.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/context-check.js\""
           }
         ]
       }
@@ -194,7 +194,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/session-check.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/session-check.js\""
           }
         ]
       }
@@ -205,7 +205,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/compact-check.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/compact-check.js\""
           }
         ]
       }
@@ -220,7 +220,7 @@
   "autoCompactEnabled": false,
   "statusLine": {
     "type": "command",
-    "command": "node \"$HOME/.flow/scripts/flow/flow.js\" status-line --context"
+    "command": "node \"$HOME/.flow/scripts/flow.js\" status-line --context"
   },
   "respondToBashCommands": false,
   "worktree": {
@@ -275,8 +275,8 @@
       "Bash(fw restore machine:*)",
       "Bash(fw restore project:*)",
       "Bash(fw uninstall:*)",
-      "Bash(node ~/.flow/scripts/flow/flow.js restore:*)",
-      "Bash(node ~/.flow/scripts/flow/flow.js uninstall:*)"
+      "Bash(node ~/.flow/scripts/flow.js restore:*)",
+      "Bash(node ~/.flow/scripts/flow.js uninstall:*)"
     ]
   }
 }

@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/guard.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hooks/guard.js\""
           }
         ]
       }

@@ -12,11 +12,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { SCRATCH, REPO, run, write, skillFile } = require('./helpers/scratch');
-const version = require('../flow/lib/version');
+const version = require('../lib/machine/version');
 
 const NEWEST = version.newest(REPO);
 
-/** A throwaway machine and one project inside it, each stamped or not. */
+/** A throwaway machine and one project inside it, each stamped or not. A project is a git repository, as `flow init` leaves one. */
 function place(name, opts = {}) {
   const dir = path.join(SCRATCH, name);
   fs.rmSync(dir, { recursive: true, force: true });
@@ -26,6 +26,7 @@ function place(name, opts = {}) {
   fs.mkdirSync(user, { recursive: true });
   fs.mkdirSync(home, { recursive: true });
   fs.mkdirSync(path.join(project, '.flow'), { recursive: true });
+  spawnSync('git', ['init', '-q'], { cwd: project });
 
   if (opts.machine !== undefined) fs.writeFileSync(path.join(home, 'version'), `${opts.machine}\n`);
   if (opts.project !== undefined) fs.writeFileSync(path.join(project, '.flow', 'version'), `${opts.project}\n`);
@@ -40,7 +41,7 @@ function place(name, opts = {}) {
  * move with FLOW_HOME: the hook makes skill links in Claude Code's folder.
  * The scratch folder sits inside Flow's own repository, so git stops at it.
  */
-const check = ({ home, project, user }) => run('session-check.js', [], {
+const check = ({ home, project, user }) => run('hooks/session-check.js', [], {
   input: JSON.stringify({ hook_event_name: 'SessionStart', source: 'startup', cwd: project }),
   env: {
     ...process.env, FLOW_HOME: home, HOME: user, CLAUDE_CONFIG_DIR: path.join(user, '.claude'), GIT_CEILING_DIRECTORIES: SCRATCH,
@@ -187,7 +188,8 @@ test('a git repository with no .flow gets the setup line, shown to the user alon
 // The Flow home's last fetch holds every machine's record, so the hook reads
 // another machine moving ahead without touching the network.
 test('a machine another machine moved ahead of says to run flow update', () => {
-  const repo = require('../flow/lib/flow-repo');
+  const repo = require('../lib/machine/flow-repo');
+  const { git } = require('../lib/git');
   const at = place('session-ahead', { machine: NEWEST, project: NEWEST });
   const remote = path.join(SCRATCH, 'session-ahead', 'remote.git');
   spawnSync('git', ['init', '-q', '--bare', '-b', 'main', remote]);
@@ -195,7 +197,7 @@ test('a machine another machine moved ahead of says to run flow update', () => {
   const other = { flow: path.join(SCRATCH, 'session-ahead', 'other-flow'), base: path.join(SCRATCH, 'session-ahead') };
   fs.mkdirSync(other.flow, { recursive: true });
   repo.connect(other, remote);
-  repo.git(other.flow, ['config', 'flow.machine', 'laptop']);
+  git(other.flow, ['config', 'flow.machine', 'laptop']);
   repo.writeIgnore(other);
   repo.writeRecord(other, NEWEST + 1);
   repo.sync(other, NEWEST + 1);

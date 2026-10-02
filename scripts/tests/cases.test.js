@@ -5,7 +5,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { project, run } = require('./helpers/scratch');
-const frontmatter = require('../flow/lib/frontmatter');
+const frontmatter = require('../lib/frontmatter');
 
 /**
  * A scratch Flow home and a scratch Claude Code home. The session variables are
@@ -19,7 +19,7 @@ function setup(name, session = {}) {
   const env = { ...process.env, FLOW_HOME: home, FLOW_PROJECT: dir, CLAUDE_CONFIG_DIR: claude, ...session };
   if (!session.CLAUDE_CODE_SESSION_ID) delete env.CLAUDE_CODE_SESSION_ID;
   if (!session.CLAUDE_EFFORT) delete env.CLAUDE_EFFORT;
-  const cases = (...args) => run('flow/flow.js', ['cases', ...args], { cwd: dir, env });
+  const cases = (...args) => run('flow.js', ['cases', ...args], { cwd: dir, env });
   return { dir, home, claude, env, cases };
 }
 

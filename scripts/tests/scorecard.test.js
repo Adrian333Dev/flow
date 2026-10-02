@@ -1,6 +1,6 @@
 'use strict';
 /**
- * The enforcement bridge: the check loader, the two hooks, and `flow scorecard`.
+ * The enforcement bridge: the check loader, the two hooks, and `flow audit scorecard`.
  *
  * No real check is exercised here. Every check below is a fixture written into
  * a scratch folder and pointed at by FLOW_CHECKS, so this file tests the wiring
@@ -17,7 +17,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { project, write, run, SCRIPTS } = require('./helpers/scratch');
 
-const checks = require(path.join(SCRIPTS, 'flow', 'lib', 'checks'));
+const checks = require(path.join(SCRIPTS, 'lib', 'checks', 'checks'));
 
 /** The fields a fixture varies. Anything left out takes the value here. */
 const base = (id) => ({
@@ -212,8 +212,8 @@ test('measure records the result and says nothing to the agent', () => {
   const dir = project('hook-measure');
   check(dir, 'no-todo', { rule: 'CLAUDE.md', check: '(p, c) => !c.includes("TODO")' });
 
-  const clean = run('rule-check.js', [], { input: edit('/x/a.js', 'const a = 1;'), env: env(dir) });
-  const dirty = run('rule-check.js', [], { input: edit('/x/b.js', '// TODO later'), env: env(dir) });
+  const clean = run('hooks/rule-check.js', [], { input: edit('/x/a.js', 'const a = 1;'), env: env(dir) });
+  const dirty = run('hooks/rule-check.js', [], { input: edit('/x/b.js', '// TODO later'), env: env(dir) });
 
   assert.strictEqual(clean.stdout.trim(), '', 'measure never speaks');
   assert.strictEqual(dirty.stdout.trim(), '', 'not even on a violation');
@@ -229,14 +229,14 @@ test('warn puts the message in additionalContext and block denies the edit', () 
   const rule = write(dir, 'rules.md', '- **`no-todo`** Never leave a TODO behind.');
   check(dir, 'no-todo', { rule, tier: 'warn', check: '(p, c) => !c.includes("TODO")' });
 
-  const warned = run('rule-check.js', [], { input: edit('/x/a.js', '// TODO'), env: env(dir) });
+  const warned = run('hooks/rule-check.js', [], { input: edit('/x/a.js', '// TODO'), env: env(dir) });
   const out = JSON.parse(warned.stdout);
   assert.strictEqual(out.hookSpecificOutput.hookEventName, 'PreToolUse');
   assert.match(out.hookSpecificOutput.additionalContext, /no-todo was broken/);
   assert.strictEqual(out.hookSpecificOutput.permissionDecision, undefined, 'warn never decides the call');
 
   check(dir, 'no-todo', { rule, tier: 'block', check: '(p, c) => !c.includes("TODO")' });
-  const blocked = run('rule-check.js', [], { input: edit('/x/a.js', '// TODO'), env: env(dir) });
+  const blocked = run('hooks/rule-check.js', [], { input: edit('/x/a.js', '// TODO'), env: env(dir) });
   const denial = JSON.parse(blocked.stdout).hookSpecificOutput;
   assert.strictEqual(denial.permissionDecision, 'deny');
   assert.match(denial.permissionDecisionReason, /no-todo was broken/);
@@ -247,14 +247,14 @@ test('a warning carries the rule text when its file never loaded, and the id whe
   const rule = write(dir, 'rules.md', '- **`no-todo`** Never leave a TODO behind.');
   check(dir, 'no-todo', { rule, tier: 'warn', check: '(p, c) => !c.includes("TODO")' });
 
-  const cold = run('rule-check.js', [], { input: edit('/x/a.js', '// TODO'), env: env(dir) });
+  const cold = run('hooks/rule-check.js', [], { input: edit('/x/a.js', '// TODO'), env: env(dir) });
   assert.match(JSON.parse(cold.stdout).hookSpecificOutput.additionalContext,
     /Never leave a TODO behind/, 'the text is injected, so no extra turn is needed to read it');
 
   const loaded = JSON.stringify({ session_id: 's1', file_path: rule, memory_type: 'User', load_reason: 'session_start' });
-  run('instructions-loaded.js', [], { input: loaded, env: env(dir) });
+  run('hooks/instructions-loaded.js', [], { input: loaded, env: env(dir) });
 
-  const warm = run('rule-check.js', [], { input: edit('/x/a.js', '// TODO'), env: env(dir) });
+  const warm = run('hooks/rule-check.js', [], { input: edit('/x/a.js', '// TODO'), env: env(dir) });
   const text = JSON.parse(warm.stdout).hookSpecificOutput.additionalContext;
   assert.match(text, /\(no-todo\)/, 'the agent already holds the rule, so the id is enough');
   assert.doesNotMatch(text, /Never leave a TODO behind/);
@@ -266,7 +266,7 @@ test('the hook stays silent on a broken check rather than blocking every edit', 
   const dir = project('hook-safety');
   check(dir, 'explodes', { rule: 'CLAUDE.md', check: '() => { throw new Error("boom"); }' });
 
-  const result = run('rule-check.js', [], { input: edit('/x/a.js', 'anything'), env: env(dir) });
+  const result = run('hooks/rule-check.js', [], { input: edit('/x/a.js', 'anything'), env: env(dir) });
   assert.strictEqual(result.stdout.trim(), '');
   assert.strictEqual(lines(dir).length, 0, 'a check that throws is broken, never violated');
 });
@@ -276,7 +276,7 @@ test('the hook ignores a tool it was not registered for', () => {
   check(dir, 'no-todo', { rule: 'CLAUDE.md', check: '() => false' });
 
   const call = JSON.stringify({ session_id: 's1', tool_name: 'Bash', tool_input: { command: 'ls' } });
-  const result = run('rule-check.js', [], { input: call, env: env(dir) });
+  const result = run('hooks/rule-check.js', [], { input: call, env: env(dir) });
 
   assert.strictEqual(result.stdout.trim(), '');
   assert.strictEqual(lines(dir).length, 0);
@@ -292,7 +292,7 @@ test('needs file rebuilds the whole file for an Edit, where needs added sees onl
     session_id: 's1', cwd: '/tmp/demo', tool_name: 'Edit',
     tool_input: { file_path: target, old_string: 'const old = 2;', new_string: 'const fresh = 3;' },
   });
-  run('rule-check.js', [], { input: call, env: env(dir) });
+  run('hooks/rule-check.js', [], { input: call, env: env(dir) });
 
   const rows = Object.fromEntries(lines(dir).map((r) => [r.id, r.ok]));
   assert.strictEqual(rows['whole-file'], true, 'the rest of the file is visible');
@@ -313,10 +313,10 @@ test('the scorecard counts, ranks, and states what it did not measure', () => {
   check(dir, 'never-relevant', { rule, applies: '() => false' });
   check(dir, 'ghost-rule', { rule });
 
-  for (let i = 0; i < 6; i++) run('rule-check.js', [], { input: edit('/x/a.js', 'bad'), env: env(dir) });
-  run('rule-check.js', [], { input: edit('/x/a.js', 'fine'), env: env(dir) });
+  for (let i = 0; i < 6; i++) run('hooks/rule-check.js', [], { input: edit('/x/a.js', 'bad'), env: env(dir) });
+  run('hooks/rule-check.js', [], { input: edit('/x/a.js', 'fine'), env: env(dir) });
 
-  const report = run('flow/flow.js', ['scorecard'], { env: env(dir) });
+  const report = run('flow.js', ['audit', 'scorecard'], { env: env(dir) });
 
   assert.match(report.stdout, /stale: the check names a rule no file defines/);
   assert.match(report.stdout, /ghost-rule/);
@@ -343,7 +343,7 @@ test('the scorecard names an id its own file defines twice', () => {
   ].join('\n'));
   check(dir, 'no-todo', { rule, check: '() => true' });
 
-  const report = run('flow/flow.js', ['scorecard'], { env: env(dir) });
+  const report = run('flow.js', ['audit', 'scorecard'], { env: env(dir) });
 
   assert.match(report.stdout, /defined twice in one file/);
   assert.match(report.stdout, /capture\s+\(.*rules\.md\)/);
@@ -355,11 +355,11 @@ test('the scorecard throws away results older than a check that has since change
   const rule = write(dir, 'rules.md', '- **`no-todo`** Never leave a TODO behind.');
   check(dir, 'no-todo', { rule, check: '() => false' });
 
-  run('rule-check.js', [], { input: edit('/x/a.js', 'anything'), env: env(dir) });
-  assert.match(run('flow/flow.js', ['scorecard'], { env: env(dir) }).stdout, /no-todo\s+measure\s+1\s+1/);
+  run('hooks/rule-check.js', [], { input: edit('/x/a.js', 'anything'), env: env(dir) });
+  assert.match(run('flow.js', ['audit', 'scorecard'], { env: env(dir) }).stdout, /no-todo\s+measure\s+1\s+1/);
 
   check(dir, 'no-todo', { rule, since: '2099-01-01', check: '() => false' });
-  const after = run('flow/flow.js', ['scorecard'], { env: env(dir) });
+  const after = run('flow.js', ['audit', 'scorecard'], { env: env(dir) });
 
   assert.doesNotMatch(after.stdout, /violated most/, 'the old version answered a different question');
   assert.match(after.stdout, /never applied/);
@@ -369,7 +369,7 @@ test('an empty checks folder reports coverage rather than looking clean', () => 
   const dir = project('scorecard-empty');
   fs.mkdirSync(path.join(dir, 'checks'), { recursive: true });
 
-  const report = run('flow/flow.js', ['scorecard'], { env: env(dir) });
+  const report = run('flow.js', ['audit', 'scorecard'], { env: env(dir) });
 
   assert.match(report.stdout, /nothing to report yet/);
   assert.match(report.stdout, /0 rules measured/);

@@ -9,8 +9,8 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const { SCRATCH, run } = require('./helpers/scratch');
-const failures = require('../flow/lib/failures');
-const logs = require('../flow/lib/logs');
+const failures = require('../lib/logs/failures');
+const logs = require('../lib/logs/logs');
 
 function flowHome(name) {
   const dir = path.join(SCRATCH, name, 'flow-home');
@@ -19,7 +19,7 @@ function flowHome(name) {
 }
 
 const hook = (home, call) =>
-  run('failures.js', [], { env: { ...process.env, FLOW_HOME: home }, input: JSON.stringify(call) });
+  run('hooks/failures.js', [], { env: { ...process.env, FLOW_HOME: home }, input: JSON.stringify(call) });
 
 const read = (home) => {
   const file = failures.file(home);
@@ -88,7 +88,7 @@ test('a long error is cut, and each month gets its own file', () => {
 
 test('a hook call it cannot read writes nothing and exits 0', () => {
   const home = flowHome('failures-garbage');
-  const ran = run('failures.js', [], { env: { ...process.env, FLOW_HOME: home }, input: 'not json' });
+  const ran = run('hooks/failures.js', [], { env: { ...process.env, FLOW_HOME: home }, input: 'not json' });
   assert.strictEqual(ran.code, 0);
   assert.ok(!fs.existsSync(logs.dir(home)));
 });
@@ -109,6 +109,6 @@ test('a background job that failed stays an open issue until the same job works 
   assert.deepStrictEqual(failures.open(home).map((i) => i.job), ['skills a/b']);
   assert.strictEqual(read(home).filter((l) => l.cleared).length, 1, 'a job with nothing open writes no line');
 
-  const line = run('flow/flow.js', ['status-line'], { env: { ...process.env, FLOW_HOME: home }, input: '{}' });
+  const line = run('flow.js', ['status-line'], { env: { ...process.env, FLOW_HOME: home }, input: '{}' });
   assert.strictEqual(line.stdout, '⚠ 1 Flow issue: ask Claude to fix them\n');
 });

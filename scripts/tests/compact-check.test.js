@@ -20,7 +20,7 @@ function flowHome(name, settings) {
 }
 
 const input = JSON.stringify({ hook_event_name: 'PreCompact', trigger: 'manual', custom_instructions: null });
-const check = (home) => run('compact-check.js', [], { input, env: { ...process.env, FLOW_HOME: home } });
+const check = (home) => run('hooks/compact-check.js', [], { input, env: { ...process.env, FLOW_HOME: home } });
 
 test('/compact is refused with the way Flow ends a conversation instead', () => {
   const refused = check(flowHome('compact-refused'));

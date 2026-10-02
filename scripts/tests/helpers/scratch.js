@@ -21,7 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const version = require('../../flow/lib/version');
+const version = require('../../lib/machine/version');
 
 const SCRIPTS = path.resolve(__dirname, '..', '..');
 const REPO = path.resolve(SCRIPTS, '..');
@@ -82,8 +82,8 @@ function setUp(home) {
  * of the user. A test that needs a finished machine does the setup's job here.
  */
 function setupMachine(root) {
-  const machine = require('../../flow/lib/machine');
-  const at = machine.folders(root);
+  const machine = require('../../lib/machine/machine');
+  const at = require('../../lib/paths').folders(root);
   const rules = path.join(at.agents, 'AGENTS.md');
 
   fs.mkdirSync(at.agents, { recursive: true });
@@ -182,7 +182,7 @@ function run(script, args = [], options = {}) {
 /** `flow` against a scratch project, with the root override set, and `extra` added to its environment. */
 function flow(dir, args, extra = {}) {
   const env = { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: path.join(dir, 'flow-home'), ...extra };
-  return run('flow/flow.js', args, { cwd: dir, env });
+  return run('flow.js', args, { cwd: dir, env });
 }
 
 module.exports = {

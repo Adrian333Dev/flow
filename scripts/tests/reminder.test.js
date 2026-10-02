@@ -22,7 +22,7 @@ function flowHome(name, settings) {
   return dir;
 }
 
-const reminder = (home) => run('reminder.js', [], { env: { ...process.env, FLOW_HOME: home } });
+const reminder = (home) => run('hooks/reminder.js', [], { env: { ...process.env, FLOW_HOME: home } });
 
 test('the reminder prints beside every message, and "reminder": false silences it', () => {
   const on = reminder(flowHome('reminder-on', null));

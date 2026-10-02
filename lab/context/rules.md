@@ -6,7 +6,7 @@ Everything behind Flow's rule files: `home/CLAUDE.md`, this repository's `CLAUDE
 
 ## Enforcement: the bridge, the conduct rules, and how a rule file loads
 
-Locked across 5 sessions ending 2026-09-05, and built 2026-09-04 to 2026-09-07: capture into `.flow/findings/`, promotion through `/flow:file-findings`, `scripts/rule-check.js`, `scripts/instructions-loaded.js`, `flow scorecard` and a rule id on every rule. `home/CLAUDE.md` → `## Capture`, `/flow:file-findings` and `/flow:file-findings`' `references/write-checks.md` carry what was built, and git holds the research inventory and the build log. Cut on 2026-09-15 to what 4 open items in `backlog.md` still need.
+Locked across 5 sessions ending 2026-09-05, and built 2026-09-04 to 2026-09-07: capture into `.flow/findings/`, promotion through `/flow:file-findings`, `scripts/hooks/rule-check.js`, `scripts/hooks/instructions-loaded.js`, `flow scorecard` and a rule id on every rule. `home/CLAUDE.md` → `## Capture`, `/flow:file-findings` and `/flow:file-findings`' `references/write-checks.md` carry what was built, and git holds the research inventory and the build log. Cut on 2026-09-15 to what 4 open items in `backlog.md` still need.
 
 ### Locked decisions: the enforcement bridge
 
@@ -116,7 +116,7 @@ Those get a `UserPromptSubmit` hook injecting a short reminder each turn. Built 
 
 #### "Go means finish everything" needs the wrap-up hook
 
-Cut from `home/CLAUDE.md` on 2026-08-31, because a run with no brake is worse than a run that stops early. The brake is a hook watching the token count that tells the agent to stop at the next checkpoint. `one-approval-runs-to-the-end` came back before that hook existed. The hook landed 2026-09-27 as `scripts/context-check.js`, which tells the agent to hand off at 150,000 tokens.
+Cut from `home/CLAUDE.md` on 2026-08-31, because a run with no brake is worse than a run that stops early. The brake is a hook watching the token count that tells the agent to stop at the next checkpoint. `one-approval-runs-to-the-end` came back before that hook existed. The hook landed 2026-09-27 as `scripts/hooks/context-check.js`, which tells the agent to hand off at 150,000 tokens.
 
 #### A study case says `fixed` the moment its rule changes
 
@@ -207,7 +207,7 @@ The skill frontmatter note was already in `references/style.md` §8 and in the r
 
 > "we can completely rewrite it in a much concise way. Like, it's just too detailed, includes unnecessary details. We could have just said something like read only if you need more context about workflow or something like that."
 
-**The `docs/` and `.flow/` paragraph, and the git-repo line.** Both cut from `## Capture`. `references/workflow.md` → `## Inside each place` already carries the two roots, and `scripts/flow/lib/root.js` already refuses to run outside a git repo.
+**The `docs/` and `.flow/` paragraph, and the git-repo line.** Both cut from `## Capture`. `references/workflow.md` → `## Inside each place` already carries the two roots, and `scripts/lib/project.js` already refuses to run outside a git repo.
 
 > "that "**`docs/` and `.flow/` both always exist**" rule is mostly unnecessary! Like, why don't we have to say stuff like, you know, docs folder and flow folder both always exist? Completely unnecessary. Like, whenever we need that folder, we define its path and stuff, right? [...] Like, in what scenario agent would need it even? Let's say, you know, we're starting execution, you know, like groundwork on some ticket. When we started, you know, we already load the skill, right? And skill already defines where, you know, like, defines the commands."
 

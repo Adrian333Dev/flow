@@ -26,7 +26,7 @@ Checked against Claude Code 2.1.271 on 2026-09-15. The sources are [Subagents](h
 
 ## A subagent
 
-The session starts one with the `Agent` tool, giving it a prompt and a type: `general-purpose`, or a name defined in `agents/`, such as Flow's `haiku-worker`.
+The session starts one with the `Agent` tool, giving it a prompt and a type: `general-purpose`, or a name defined in `claude/agents/`, such as Flow's `haiku-worker`.
 
 - **What it starts with**: the prompt, every `CLAUDE.md` that loads for the project, and the git status. Never your conversation, and never the files the parent already read.
 - **Where it runs**: in the background, by default since Claude Code 2.1.198. The parent keeps working, and the subagent's report arrives on a later turn.
@@ -78,7 +78,7 @@ A prototype or a hunt keeps its place in its ticket: the status stays `building`
 
 ## What a subagent changed
 
-A subagent saying "done", or listing the files it edited, proves nothing. Flow records every change as it happens, under the id of the agent that made it, and hands the parent a diff per file when the subagent finishes. `scripts/changes.js` is the hook, and [Settings](../../lab/archive/manual/settings.md#the-change-record) explains how it works.
+A subagent saying "done", or listing the files it edited, proves nothing. Flow records every change as it happens, under the id of the agent that made it, and hands the parent a diff per file when the subagent finishes. `scripts/hooks/changes.js` is the hook, and [Settings](../../lab/archive/manual/settings.md#the-change-record) explains how it works.
 
 This is a real record, from 2 subagents running at once in a scratch session. It reached the parent just before the first one's finished notice:
 

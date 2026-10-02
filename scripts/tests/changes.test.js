@@ -7,7 +7,7 @@ const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 const { project, write } = require('./helpers/scratch');
 
-const SCRIPT = path.resolve(__dirname, '..', 'changes.js');
+const SCRIPT = path.resolve(__dirname, '..', 'hooks', 'changes.js');
 
 /** A git repository with one committed file, and a Flow home of its own. */
 function repo(name) {

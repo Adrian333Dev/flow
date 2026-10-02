@@ -5,7 +5,7 @@
  *
  * Nothing here gets past the locks, because nothing can: the command needs a
  * word typed at a terminal, and a test has no terminal. What happens after the
- * word lives in `lib/installed.js`, so the test calls that directly, the way
+ * word lives in `lib/machine/installed.js`, so the test calls that directly, the way
  * restore.test.js calls `originals.restore`.
  */
 
@@ -14,8 +14,8 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { REPO, project, run, setupMachine, bareRepo } = require('./helpers/scratch');
-const installed = require('../flow/lib/installed');
-const folders = require('../flow/lib/machine').folders;
+const installed = require('../lib/machine/installed');
+const folders = require('../lib/paths').folders;
 
 const exists = (p) => {
   try {
@@ -32,7 +32,7 @@ function machine(name) {
   const root = path.join(dir, 'root');
   const at = folders(root);
 
-  const made = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
+  const made = run('flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
   assert.strictEqual(made.code, 0, made.stderr);
   setupMachine(root);
 
@@ -44,7 +44,7 @@ test('uninstall refuses at the locks, and removes nothing', () => {
 
   // Lock 1 refuses while a session is running, lock 2 where no terminal is
   // attached. A test process has no terminal, so one of the two always fires.
-  const refused = run('flow/flow.js', ['uninstall', '--root', m.root], { cwd: m.dir });
+  const refused = run('flow.js', ['uninstall', '--root', m.root], { cwd: m.dir });
   assert.notStrictEqual(refused.code, 0);
   assert.match(refused.stderr, /^flow: (Close these sessions first: |Run this in a terminal, and type uninstall when it asks\.)/);
 
@@ -57,7 +57,7 @@ test('unsent work in ~/.flow stops the uninstall before the locks, and removes n
   const m = machine('uninstall-unsent');
   fs.writeFileSync(path.join(m.at.flow, 'workflow-notes.md'), 'A note no other machine has.\n');
 
-  const refused = run('flow/flow.js', ['uninstall', '--root', m.root], { cwd: m.dir });
+  const refused = run('flow.js', ['uninstall', '--root', m.root], { cwd: m.dir });
   assert.notStrictEqual(refused.code, 0);
   assert.match(refused.stderr, /holds work no other machine has: .*Run flow sync, then uninstall again\./);
   assert.ok(exists(path.join(m.at.flow, 'workflow-notes.md')), 'the note is still there');
@@ -108,7 +108,7 @@ test('every link into ~/.flow goes before the folder does, and nothing else is t
   fs.mkdirSync(path.join(skills, 'real'));
 
   const done = installed.unlinkInto(m.at.flow, [skills, path.join(m.dir, 'no-such-folder')]);
-  assert.deepStrictEqual(done, [`removed ${require('../flow/lib/machine').shorten(path.join(skills, 'react'))}`]);
+  assert.deepStrictEqual(done, [`removed ${require('../lib/paths').shorten(path.join(skills, 'react'))}`]);
   assert.ok(exists(path.join(skills, 'other')), "another tool's link stays");
   assert.ok(exists(path.join(skills, 'real')), 'a real folder stays');
   assert.ok(exists(path.join(skills, 'flow')), 'the plugin link points into ~/.agents, so it stays for the restore');
@@ -117,8 +117,8 @@ test('every link into ~/.flow goes before the folder does, and nothing else is t
 // The 2 locks refuse every test process, so this runs the command in process
 // with both taken out, and answers the word itself. --root keeps the clone.
 test('uninstall hands over the same form as restore, then deletes ~/.flow whatever it says', () => {
-  const confirm = require('../flow/lib/confirm');
-  const uninstall = require('../flow/commands/uninstall');
+  const confirm = require('../lib/machine/confirm');
+  const uninstall = require('../commands/uninstall');
   const m = machine('uninstall-form');
   const kept = { noSessions: confirm.noSessions, word: confirm.word };
   const said = [];

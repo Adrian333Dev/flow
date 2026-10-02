@@ -5,7 +5,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { project, write, flow } = require('./helpers/scratch');
-const frontmatter = require('../flow/lib/frontmatter');
+const frontmatter = require('../lib/frontmatter');
 
 test('flow ls filters by --status, --type, and --parent', () => {
   const dir = project('board-ls-filters');

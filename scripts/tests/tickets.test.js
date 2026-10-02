@@ -5,7 +5,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { project, write, flow } = require('./helpers/scratch');
-const frontmatter = require('../flow/lib/frontmatter');
+const frontmatter = require('../lib/frontmatter');
 
 const ticket = (dir) => {
   const base = path.join(dir, '.flow', 'tickets');
@@ -65,7 +65,7 @@ test('flow new with --deps validates that each dep exists', () => {
 });
 
 test('a folder on another disk is copied across, then deleted', () => {
-  const store = require('../flow/lib/store');
+  const store = require('../lib/tickets/store');
   const dir = project('tickets-move-other-disk');
   const from = path.dirname(write(dir, 'elsewhere/exp-1-parser/ticket.md', '# Parser\n'));
   const to = path.join(dir, 'there', 'exp-1-parser');

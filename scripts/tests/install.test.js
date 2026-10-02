@@ -13,8 +13,8 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { project, run, flow, gitRepo, bareRepo, skillFile, setUp, pathWith, REPO } = require('./helpers/scratch');
-const historyLog = require('../flow/lib/history');
-const failures = require('../flow/lib/failures');
+const logs = require('../lib/logs/logs');
+const failures = require('../lib/logs/failures');
 
 const linkTarget = (p) => fs.readlinkSync(p);
 
@@ -91,7 +91,7 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
     '/flow:help reads a manual page through this link');
   assert.ok(!fs.existsSync(path.join(at.claude, 'scripts')), 'scripts never land under ~/.claude');
   assert.ok(!fs.lstatSync(path.join(at.claude, 'commands')).isSymbolicLink(), 'commands/ holds other tools\' files too');
-  assert.strictEqual(linkTarget(path.join(at.claude, 'commands', 'capture.md')), path.join(REPO, 'commands', 'capture.md'),
+  assert.strictEqual(linkTarget(path.join(at.claude, 'commands', 'capture.md')), path.join(REPO, 'claude', 'commands', 'capture.md'),
     'a command links per file, typed /capture with no prefix');
 
   // The rule file and the line importing it are /flow:setup-machine's.
@@ -114,7 +114,7 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   const failed = fs.readFileSync(failures.file(at.flowHome), 'utf8').trim().split('\n').map(JSON.parse);
   assert.ok(failed.some((f) => f.source === 'install' && /^could not clone Adrian333Dev\/util/.test(f.error)),
     'and a line in the failure log');
-  const history = fs.readFileSync(historyLog.file(at.flowHome), 'utf8').trim().split('\n').map(JSON.parse);
+  const history = fs.readFileSync(logs.historyFile(at.flowHome), 'utf8').trim().split('\n').map(JSON.parse);
   assert.deepStrictEqual(history.map((h) => [h.type, h.clone]), [['install', REPO]]);
 
   // A skill renamed in the clone leaves a link pointing at nothing.
@@ -167,12 +167,12 @@ test('a name that has left the BIN map is unlinked, and another tool keeps its o
   const bin = path.join(root, '.local', 'bin');
 
   assert.strictEqual(flow(dir, ['install', '--root', root], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) }).code, 0);
-  assert.strictEqual(linkTarget(path.join(bin, 'flow')), path.join(REPO, 'scripts', 'flow', 'flow.js'));
-  assert.strictEqual(linkTarget(path.join(bin, 'fw')), path.join(REPO, 'scripts', 'flow', 'flow.js'));
+  assert.strictEqual(linkTarget(path.join(bin, 'flow')), path.join(REPO, 'scripts', 'flow.js'));
+  assert.strictEqual(linkTarget(path.join(bin, 'fw')), path.join(REPO, 'scripts', 'flow.js'));
 
   // gsave left for util on 2026-08-30. Its link still resolved, so nothing
   // ever noticed it.
-  fs.symlinkSync(path.join(REPO, 'scripts', 'flow', 'flow.js'), path.join(bin, 'gsave'));
+  fs.symlinkSync(path.join(REPO, 'scripts', 'flow.js'), path.join(bin, 'gsave'));
   fs.symlinkSync(path.join(dir, 'other-tool.js'), path.join(bin, 'other'));
 
   const again = flow(dir, ['install', '--root', root], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
@@ -184,7 +184,7 @@ test('a name that has left the BIN map is unlinked, and another tool keeps its o
 
 test('the import line comes from home/CLAUDE.md, with ~ kept only for the real home folder', () => {
   const os = require('os');
-  const machine = require('../flow/lib/machine');
+  const machine = require('../lib/machine/machine');
   assert.strictEqual(fs.readFileSync(path.join(REPO, 'home', 'CLAUDE.md'), 'utf8'), '@~/.agents/AGENTS.md\n');
   assert.strictEqual(machine.importLine(REPO, os.homedir()), '@~/.agents/AGENTS.md');
   assert.strictEqual(machine.importLine(REPO, '/scratch/root'), '@/scratch/root/.agents/AGENTS.md');
@@ -222,7 +222,7 @@ test('install never reaches outside the root it was given', () => {
 test('the flags that took one folder each are gone', () => {
   const dir = project('install-old-flags');
   const before = fs.readdirSync(dir).sort();
-  const old = run('flow/flow.js', ['install', '--home', path.join(dir, 'home'), '--no-bin']);
+  const old = run('flow.js', ['install', '--home', path.join(dir, 'home'), '--no-bin']);
   assert.notStrictEqual(old.code, 0, 'an unknown flag refuses rather than installing for real');
   assert.deepStrictEqual(fs.readdirSync(dir).sort(), before, 'nothing was written before the refusal');
 });
@@ -246,7 +246,7 @@ test('install clones what is missing, links a skill switched on, and never clone
 
   const env = { FLOW_GIT_BASE: `${remote}${path.sep}` };
   const remoteRepo = bareRepo('install-clones');
-  const install = () => run('flow/flow.js', ['install', '--root', root], { cwd: dir, env: { ...process.env, ...env, FLOW_HOME_REMOTE: remoteRepo } });
+  const install = () => run('flow.js', ['install', '--root', root], { cwd: dir, env: { ...process.env, ...env, FLOW_HOME_REMOTE: remoteRepo } });
 
   const first = install();
   assert.strictEqual(first.code, 0, first.stderr);
@@ -269,7 +269,7 @@ test('install clones what is missing, links a skill switched on, and never clone
   assert.match(second.stdout, /Flow is already set up on this machine, so there is nothing more to do\./);
   assert.doesNotMatch(second.stdout, /One step left/);
 
-  const types = fs.readFileSync(historyLog.file(at.flowHome), 'utf8').trim().split('\n')
+  const types = fs.readFileSync(logs.historyFile(at.flowHome), 'utf8').trim().split('\n')
     .map((l) => JSON.parse(l).type);
   assert.deepStrictEqual(types, ['clone', 'clone', 'clone', 'install', 'install']);
 });

@@ -10,13 +10,13 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert');
-const historyLog = require('../flow/lib/history');
+const logs = require('../lib/logs/logs');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { project, write, run } = require('./helpers/scratch');
-const folders = require('../flow/lib/machine').folders;
-const originals = require('../flow/lib/originals');
+const folders = require('../lib/paths').folders;
+const originals = require('../lib/machine/originals');
 
 const read = (p) => fs.readFileSync(p, 'utf8');
 const exists = (p) => {
@@ -30,7 +30,7 @@ const exists = (p) => {
 
 /** `flow` with a scratch root, from a scratch folder. `env` adds to the real one. */
 function flowAt(dir, root, args, env = {}) {
-  return run('flow/flow.js', [...args, '--root', root], { cwd: dir, env: { ...process.env, ...env } });
+  return run('flow.js', [...args, '--root', root], { cwd: dir, env: { ...process.env, ...env } });
 }
 
 /**
@@ -95,7 +95,7 @@ test('the first setup writes the original, and restoring it puts every path back
   const applied = applyAt(dir, root, id);
   assert.strictEqual(applied.code, 0, applied.stderr);
   assert.match(applied.stdout, /Put this machine back with flow restore machine$/m);
-  const logged = JSON.parse(read(historyLog.file(path.join(root, '.flow'))).trim().split('\n').pop());
+  const logged = JSON.parse(read(logs.historyFile(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([logged.type, logged.id, logged.lines], ['setup-machine', id, 6]);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
   assert.strictEqual(read(path.join(root, '.claude/rules/one.md')), 'rule one\n');
@@ -130,7 +130,7 @@ test('the first setup writes the original, and restoring it puts every path back
   assert.strictEqual(original(root).entries.length, 7, 'the original never grows after the first setup');
 
   originals.restore(folders(root), null);
-  const restored = JSON.parse(read(historyLog.file(path.join(root, '.flow'))).trim().split('\n').pop());
+  const restored = JSON.parse(read(logs.historyFile(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([restored.type, restored.paths, restored.project], ['restore', 7, undefined]);
   assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n');
   assert.ok(!exists(path.join(root, '.claude/rules')), 'what the migration created is removed');
@@ -252,7 +252,7 @@ test('a project setup opens its own original, stops part-way, and carries on aft
   ]);
 
   originals.restore(folders(root), proj);
-  const restored = JSON.parse(read(historyLog.file(path.join(root, '.flow'))).trim().split('\n').pop());
+  const restored = JSON.parse(read(logs.historyFile(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([restored.type, restored.project], ['restore', proj], 'a project restore names the project');
   assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), 'old project rules\n');
   assert.strictEqual(read(path.join(proj, 'docs/work/one.md')), 'one\n');
@@ -363,7 +363,7 @@ test('a restore plans every path first, and marks each one put back that changed
 });
 
 test('a restore form reads its boxes strictly, and names the first line that is off', () => {
-  const form = require('../flow/lib/restore-form');
+  const form = require('../lib/machine/restore-form');
   const parts = [{ heading: 'x', rows: [{ path: '/a', ticked: true }, { path: '/b', ticked: false }], name: (r) => r.path.slice(1) }];
   const text = form.render(parts);
   assert.match(text, /^- \[x\] `a`: put back\.$/m);
@@ -383,7 +383,7 @@ test('a restore form reads its boxes strictly, and names the first line that is 
 // with both taken out. The word is answered here, and `edit` stands in for the
 // user changing the form before typing it.
 function answering(said, ...answers) {
-  const confirm = require('../flow/lib/confirm');
+  const confirm = require('../lib/machine/confirm');
   const kept = { noSessions: confirm.noSessions, word: confirm.word };
   confirm.noSessions = () => {};
   confirm.word = (wanted, lines) => {
@@ -417,7 +417,7 @@ function place(name) {
 }
 
 test('a machine restore hands over one form, and the project keeps its knowledge unless ticked', () => {
-  const restore = require('../flow/commands/restore');
+  const restore = require('../commands/restore');
   const said = [];
 
   const plain = place('restore-machine-plain');
@@ -483,8 +483,8 @@ test('a machine restore hands over one form, and the project keeps its knowledge
 });
 
 test('a project restore refuses while its ticked .flow/ holds tickets not sent to GitHub', () => {
-  const restore = require('../flow/commands/restore');
-  const records = require('../flow/lib/records');
+  const restore = require('../commands/restore');
+  const records = require('../lib/tickets/records');
   const { bareRepo } = require('./helpers/scratch');
   const { spawnSync } = require('child_process');
   const dir = project('restore-project-unsent');

@@ -14,7 +14,7 @@ const path = require('path');
 const { project, write, run, REPO } = require('./helpers/scratch');
 
 const hook = (dir, call, env = {}) =>
-  run('overlays.js', [], {
+  run('hooks/overlays.js', [], {
     cwd: dir,
     env: { ...process.env, FLOW_PROJECT: dir, ...env },
     input: JSON.stringify({ cwd: dir, session_id: 's1', ...call }),
@@ -66,6 +66,6 @@ test('outside a project, or on input it cannot read, it prints nothing and exits
   const loose = hook(dir, typed('flow:execute'), { FLOW_PROJECT: '', GIT_CEILING_DIRECTORIES: path.join(REPO, 'tmp') });
   assert.deepStrictEqual([loose.code, loose.stdout, loose.stderr], [0, '', '']);
 
-  const garbage = run('overlays.js', [], { cwd: dir, input: 'not json' });
+  const garbage = run('hooks/overlays.js', [], { cwd: dir, input: 'not json' });
   assert.deepStrictEqual([garbage.code, garbage.stdout, garbage.stderr], [0, '', '']);
 });

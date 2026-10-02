@@ -42,8 +42,8 @@ this machine may carry hooks of its own on the same event.
 **Every path, and the state it ends in.**
 
 - `~/.claude/settings.json`, `hooks.UserPromptSubmit`. The entry naming
-  `reminder.md` ends as `node "$HOME/.flow/scripts/reminder.js"`. Every other
-  entry on that event is untouched.
+  `reminder.md` ends as `node "$HOME/.flow/scripts/hooks/reminder.js"`. Every
+  other entry on that event is untouched.
 - `~/.flow/settings.json` ends with `"reminder": true`, unless the key is set.
 
 **What may be the user's own.** Another `UserPromptSubmit` hook. Leave it, and

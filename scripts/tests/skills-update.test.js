@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Every skill repository updating itself: `scripts/skills-pull.js` and the
+ * Every skill repository updating itself: `scripts/jobs/skills-pull.js` and the
  * library under it. The domain-skills repository stands in for all of them.
  *
  * Every test builds 2 real repositories under tmp/, an upstream and a clone of
@@ -17,9 +17,9 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { SCRATCH, run } = require('./helpers/scratch');
-const update = require('../flow/lib/skills-update');
-const historyLog = require('../flow/lib/history');
-const failures = require('../flow/lib/failures');
+const update = require('../lib/skills/skills-update');
+const logs = require('../lib/logs/logs');
+const failures = require('../lib/logs/failures');
 
 /**
  * git with no machine settings behind it, and an identity of its own. The
@@ -85,7 +85,7 @@ function commit(upstream, name, text) {
 }
 
 /** The background job, run in the foreground so a test can see what it did. */
-const pull = (home) => run('skills-pull.js', [], { env: { ...CLEAN, FLOW_HOME: home } });
+const pull = (home) => run('jobs/skills-pull.js', [], { env: { ...CLEAN, FLOW_HOME: home } });
 
 /** The one note the single clone left, or null. */
 const note = (home) => {
@@ -104,7 +104,7 @@ test('a pull brings the clone up to date and leaves nothing to report', () => {
   assert.strictEqual(note(at.home), null, 'and a session has nothing to say');
   assert.strictEqual(update.stale(at.clone), false, 'the fetch just happened, so the next session leaves it alone');
 
-  const [line] = fs.readFileSync(historyLog.file(at.home), 'utf8').trim().split('\n').map(JSON.parse);
+  const [line] = fs.readFileSync(logs.historyFile(at.home), 'utf8').trim().split('\n').map(JSON.parse);
   assert.strictEqual(line.type, 'pull');
   assert.strictEqual(line.source, 'Adrian333Dev/domain-skills');
   assert.deepStrictEqual(line.changed, ['react'], 'the history names the skills a pull changed');

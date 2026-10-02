@@ -17,7 +17,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { REPO, project, run, setupMachine, utilStub, pathWith, write, skillFile, bareRepo } = require('./helpers/scratch');
-const version = require('../flow/lib/version');
+const version = require('../lib/machine/version');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
 function machine(name) {
@@ -30,7 +30,7 @@ function machine(name) {
   fs.mkdirSync(flowHome, { recursive: true });
   fs.writeFileSync(path.join(flowHome, 'settings.json'), JSON.stringify({ sources: [] }));
 
-  const installed = run('flow/flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
+  const installed = run('flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
   assert.strictEqual(installed.code, 0, installed.stderr);
 
   // Install is half a machine. The rule file and the line importing it come
@@ -57,7 +57,7 @@ function doctor(m, { bin, utilHome, inProject } = {}) {
   // and reports on the machine alone.
   if (inProject) env.FLOW_PROJECT = inProject;
   const args = ['doctor', '--root', m.root, '--no-bin'];
-  return run('flow/flow.js', args, { env });
+  return run('flow.js', args, { env });
 }
 
 test('a fresh install passes every check', () => {
@@ -72,7 +72,7 @@ test('a fresh install passes every check', () => {
 
 test('a machine with nothing installed says so once, rather than failing every check', () => {
   const dir = project('doctor-bare');
-  const report = run('flow/flow.js', ['doctor', '--root', path.join(dir, 'root'), '--no-bin']);
+  const report = run('flow.js', ['doctor', '--root', path.join(dir, 'root'), '--no-bin']);
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /Flow is not installed here/);
@@ -101,7 +101,7 @@ test('a run that stopped part-way is reported first, and names both ways out', (
 });
 
 test('a background job whose last run failed is named until the same job works', () => {
-  const failures = require('../flow/lib/failures');
+  const failures = require('../lib/logs/failures');
   const m = machine('doctor-issues');
   failures.record(m.flowHome, { source: 'records', what: 'sync ~/.flow', job: 'sync ~/.flow', error: 'another machine changed the same lines' });
 
@@ -208,7 +208,7 @@ test('a settings.json with no starting mode fails, and one starting in another m
 // whole report would refuse such a machine, so this flag has to skip it.
 test('--prereq checks what Flow calls and nothing Flow installs', () => {
   const dir = project('doctor-prereq');
-  const at = (bin, extra = {}) => run('flow/flow.js', ['doctor', '--prereq'], {
+  const at = (bin, extra = {}) => run('flow.js', ['doctor', '--prereq'], {
     env: { ...process.env, PATH: pathWith(bin), ...extra },
   });
 
@@ -297,9 +297,9 @@ test('the skills check names a source not cloned, a line no source holds, and a 
   const report = doctor(m, { bin });
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /me\/absent is a source and is not cloned, so none of its skills can load: run flow install/);
-  assert.match(report.stdout, /"gone" is switched on at machine level, and no source holds it: flow skills drop gone --machine/);
+  assert.match(report.stdout, /"gone" is switched on at machine level, and no source holds it: flow skills reset gone --machine/);
   assert.match(report.stdout, /react is switched on and .*\.claude\/skills\/react does not link to it: run flow skills ls/);
-  assert.match(report.stdout, /"groundwork" is switched off at machine level, and it is part of Flow's workflow, always on, so the line does nothing: flow skills drop groundwork --machine/);
+  assert.match(report.stdout, /"groundwork" is switched off at machine level, and it is part of Flow's workflow, always on, so the line does nothing: flow skills reset groundwork --machine/);
   assert.doesNotMatch(report.stdout, /skills\/review is not linked/);
   assert.doesNotMatch(report.stdout, /vue/, 'a skill switched off is not checked');
 

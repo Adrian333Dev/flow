@@ -30,7 +30,7 @@ function file(at, rel, secondsAgo) {
 
 /** The script, handed a query the way Claude Code hands it one. */
 function suggest(at, query) {
-  const result = run('file-suggestion.js', [], {
+  const result = run('hooks/file-suggestion.js', [], {
     input: JSON.stringify({ query }),
     env: { ...process.env, CLAUDE_PROJECT_DIR: at.project, FLOW_HOME: at.home, TMPDIR: at.temp },
   });
@@ -118,7 +118,7 @@ test('a file changed since the walk is sorted by its change time now, and a dele
 test('no query, bad input, or a cache from another project never fails', () => {
   const at = place('suggest-odd');
   file(at, 'a.md', 1);
-  const raw = run('file-suggestion.js', [], {
+  const raw = run('hooks/file-suggestion.js', [], {
     input: 'not json',
     env: { ...process.env, CLAUDE_PROJECT_DIR: at.project, FLOW_HOME: at.home, TMPDIR: at.temp },
   });

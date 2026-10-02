@@ -3,7 +3,7 @@
  * The check for `js-and-ts`: a run of line comments above a top-level
  * declaration is the wrong shape.
  *
- * `js-and-ts` in rules/comments.md puts the block form on a declaration and the
+ * `js-and-ts` in claude/rules/comments.md puts the block form on a declaration and the
  * line form inside a body. Only the block form reaches the editor hover and the
  * autocomplete list at the call site, so a note worth reading from another file
  * is unreachable when it is written as line comments.
@@ -60,7 +60,7 @@ const declares = (text) => String(text).split('\n').some(DECLARES);
 
 module.exports = {
   id: 'js-and-ts',
-  rule: 'rules/comments.md',
+  rule: 'claude/rules/comments.md',
   tier: 'measure',
   since: '2026-09-10',
   needs: 'added',

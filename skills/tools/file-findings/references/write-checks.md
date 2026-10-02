@@ -17,7 +17,7 @@ Every check exports what the runner needs to know about it:
 ```js
 module.exports = {
   id: 'no-em-dashes',
-  rule: 'rules/writing.md',
+  rule: 'claude/rules/writing.md',
   tier: 'measure',
   since: '2026-09-05',
   needs: 'added',
@@ -30,7 +30,7 @@ module.exports = {
 - **`id`** groups the counts and matches a rule ID.
 - **`rule`** is the path to the file holding that rule, so a warning can quote it.
 - **`tier`** is `measure`, `warn` or `block`. See below.
-- **`since`** is the date the check last changed in a way that moves its numbers. `flow scorecard` ignores counts an older version produced.
+- **`since`** is the date the check last changed in a way that moves its numbers. `flow audit scorecard` ignores counts an older version produced.
 - **`needs`** says what the check is handed. `'added'` gives only the text this edit introduces. `'file'` gives the whole file as it will read afterwards.
 - **`applies`** decides whether the rule is relevant here at all. Returning false is not a pass, it is silence: the edit never enters the count.
 - **`check`** returns true when the rule was followed.
@@ -60,7 +60,7 @@ Every check gets a test in `~/.flow/scripts/tests/`, holding at minimum one real
 2. **`warn`** returns the message to the agent before the edit, which then proceeds.
 3. **`block`** refuses the edit.
 
-**Promotion needs evidence, and the evidence is in `flow scorecard`.** Move a check to `warn` once it has applied often enough to mean something and produced no false positives. A path-scoped check starting at `warn`, below, skips this. Move it to `block` only after narrowing `applies` and refining the pattern have cleared the false positives entirely, and only with the user agreeing.
+**Promotion needs evidence, and the evidence is in `flow audit scorecard`.** Move a check to `warn` once it has applied often enough to mean something and produced no false positives. A path-scoped check starting at `warn`, below, skips this. Move it to `block` only after narrowing `applies` and refining the pattern have cleared the false positives entirely, and only with the user agreeing.
 
 **Most checks stay at `measure` forever, and that is success.**
 
@@ -68,7 +68,7 @@ Every check gets a test in `~/.flow/scripts/tests/`, holding at minimum one real
 
 **A path-scoped rule that matters starts at `warn`, never `measure`.** A rule with `paths:` loads only when a matching file is read, so a brand-new file is written without it. `warn` injects the rule's whole text beside the message.
 
-## Reading `flow scorecard`
+## Reading `flow audit scorecard`
 
 It prints 4 lists, each with an action:
 

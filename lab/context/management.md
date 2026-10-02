@@ -77,7 +77,7 @@ What follows from the file:
 - **Being behind is a note, never a problem.** `doctor.js:227` already builds a `notes` list beside `problems`. The version comparisons go there, doctor suggests `flow up` and exits 0. A `run.json` left on disk is a problem and exits non-zero, because something really is half done.
 - The agent's whole input to a migration is the entries newer than the machine's line, plus the diff of the live settings file and rule file against the templates. That answers 0.0.
 - A date over a commit hash: a project reads it without git, and it names the entry it matches. What overturns it: 2 entries on one day needing separate migrations, and then the line becomes the date plus a counter.
-- **Built 2026-09-20**: `scripts/flow/lib/version.js` reads the newest `CHANGELOG.md` entry and any `version` file, and `flow doctor` gained `checkRun`, `checkVersion` and `checkClone` over it, tested in `scripts/tests/doctor.test.js`. Behind is a note suggesting `flow up`, a number above the newest entry is a problem, and a submodule off its gitlink is a note. `--updates` reads the remote with `git ls-remote --tags`, which writes nothing on either side, rather than fetching.
+- **Built 2026-09-20**: `scripts/lib/machine/version.js` reads the newest `CHANGELOG.md` entry and any `version` file, and `flow doctor` gained `checkRun`, `checkVersion` and `checkClone` over it, tested in `scripts/tests/doctor.test.js`. Behind is a note suggesting `flow up`, a number above the newest entry is a problem, and a submodule off its gitlink is a note. `--updates` reads the remote with `git ls-remote --tags`, which writes nothing on either side, rather than fetching.
 
 ## What a migration may touch, locked 2026-09-16
 
@@ -134,7 +134,7 @@ The project half runs the same 6 inside the project when its `.flow/version` is 
 - **Projects snapshot into the same global folder**, never inside the project: a copy there would need ignoring in git and would vanish with the `.flow/` folder it restores. Copies rather than git, because git cannot restore an ignored file: Delapse ignores `.claude/settings.local.json`, and `media-reply` its whole `.claude/`. `flow snapshot ls` inside a project lists that project's alone, and `--all` lists every one.
 - **One thing still rests on the agent**: a `run` line naming every path its command writes, such as `~/.claude.json` for `claude plugin uninstall`. A file a harness rewrites by itself, `~/.claude.json` again, changes through a `run` line, never a `write`, or the out-of-date check refuses it every time. If a live run shows the agent writing a real path itself, the next step is a `PreToolUse` hook refusing `Write` and `Edit` outside the migration's folder while `~/.flow/run.json` exists.
 - **One folder for the machine, one per project, keyed by the project's full path. Locked 2026-09-18, the user's call.** Both trees share the layout. Machine runs go in `machine/<date-time>/`. A project's go in a folder named the way Claude Code names `~/.claude/projects/-home-me-code-projects-delapse/`, every character that is not a letter or a digit turned into `-`, with the leading dash dropped: `home-me-code-projects-delapse/`. flow reads a word starting with `-` as a flag, so `flow snapshot restore -home-me-code-app/2026-09-20T10-12-40` failed with `flags take two dashes`, tried 2026-09-18. 2 projects sharing a folder name never share runs. 2 paths can meet in one name, and the manifest's `project` field keeps them apart. The code reads no layout: an id is the folder's path below `migrations/` or `snapshots/`.
-- **Built 2026-09-18**: `scripts/apply-migration.js`, and `flow snapshot ls` and `restore` in `scripts/flow/commands/snapshot.js`, over `scripts/flow/lib/migrations.js` and `snapshots.js`, tested in `scripts/tests/snapshot.test.js`. `flow snapshot new` was dropped, and `flow apply` removed the same day.
+- **Built 2026-09-18**: `scripts/apply-migration.js`, and `flow snapshot ls` and `restore` in `scripts/commands/snapshot.js`, over `scripts/lib/machine/migrations.js` and `snapshots.js`, tested in `scripts/tests/snapshot.test.js`. `flow snapshot new` was dropped, and `flow apply` removed the same day.
 
 ## The migration is always shown, locked 2026-09-17
 
@@ -167,9 +167,9 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 
 - Today `home/settings.json` has no `SessionStart` hook. Its 11 hooks are 8 `PreToolUse`/`PostToolUse`/`Subagent` lines running `changes.js`, `guard.js` and `rule-check.js`, one `InstructionsLoaded`, one `UserPromptExpansion` running `check-ticket.js`, and the reminder on `UserPromptSubmit`.
 - **Everything Flow prints gets a switch in `~/.flow/settings.json`**, read by the script that prints it. The reminder is first: `"reminder": false` silences it.
-- The reminder runs on `UserPromptSubmit`, so it prints on every prompt. Its hook line becomes `node "$HOME/.flow/scripts/reminder.js"`, because a bare `cat` cannot read a setting. The version line goes on `SessionStart` instead, or it would repeat on every prompt.
+- The reminder runs on `UserPromptSubmit`, so it prints on every prompt. Its hook line becomes `node "$HOME/.flow/scripts/hooks/reminder.js"`, because a bare `cat` cannot read a setting. The version line goes on `SessionStart` instead, or it would repeat on every prompt.
 - A VS Code startup task was rejected: it fires when the editor opens rather than when a session opens, and it helps only inside VS Code.
-- **Built 2026-09-20, both halves.** `scripts/reminder.js` is the `UserPromptSubmit` hook and `scripts/session-check.js` the `SessionStart` one. `prints(name)` in `scripts/flow/lib/settings.js` is how either asks whether its line is switched on, and `"reminder": false` and `"sessionCheck": false` silence them. The session line reads the 3 files this section names, prints a stopped run alone, and stays silent when all 3 are fine.
+- **Built 2026-09-20, both halves.** `scripts/hooks/reminder.js` is the `UserPromptSubmit` hook and `scripts/hooks/session-check.js` the `SessionStart` one. `prints(name)` in `scripts/lib/settings.js` is how either asks whether its line is switched on, and `"reminder": false` and `"sessionCheck": false` silence them. The session line reads the 3 files this section names, prints a stopped run alone, and stays silent when all 3 are fine.
 
 ## How Flow ships, locked 2026-09-17
 
@@ -203,11 +203,11 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 - **`toolbox`**: temporary and replaced whole, so nothing to check. That closes 6.1.
 - The gitlink stays as a record of what was tested together. A difference is a note, never a problem.
 - When a migration needs a newer `util`, its changelog entry says so, and the migration runs the command check before applying. A missing command stops the migration and names `lab/util`.
-- **Built 2026-09-20 as `references/prerequisites.md`, and replaced by code on 2026-09-21, the user's call.** A file of prose telling a skill which shell lines to type is the thing `doctor.js` already warns against: a skill asked to check things by hand gets one wrong and reports success. `flow doctor --prereq` is the check now, `scripts/flow/lib/prereq.js` holds it, and the markdown file is deleted.
+- **Built 2026-09-20 as `references/prerequisites.md`, and replaced by code on 2026-09-21, the user's call.** A file of prose telling a skill which shell lines to type is the thing `doctor.js` already warns against: a skill asked to check things by hand gets one wrong and reports success. `flow doctor --prereq` is the check now, `scripts/lib/machine/prereq.js` holds it, and the markdown file is deleted.
   - **A prerequisite is what Flow calls and never installs**, which is `node`, `git` and `claude` on PATH plus the 3 util commands. Everything Flow puts on a machine stays in the rest of `flow doctor`, where a missing piece is repaired rather than treated as a wall. The 3 programs moved out of doctor's `names` check, which now covers the linked names alone.
   - **A failure stops the run, the user's rule of 2026-09-21.** `apply-migration.js` runs the same list again before it changes its first path, so the stop holds even where a skill body skipped step 0, and a machine is never left between 2 versions.
   - **The domain-skills clone left the list**, because Flow never calls it: a machine with no clone sets Flow up like every other one. `/flow:setup-machine`'s interview asks for the path instead. Stopping on it would have blocked a fresh machine over an optional add-on.
-  - Two facts came off the disk rather than this map: nothing in a hook calls `util`, the callers being `tree-for-structure` and `merge-for-bulk-reads` in the rule file plus `flow get --files`; and the setup guard in `scripts/flow/lib/machine.js` refuses every `flow` command but `install`, `doctor`, `restore` and `uninstall` until `~/.flow/version` exists, which is why the check lives on one of the 4.
+  - Two facts came off the disk rather than this map: nothing in a hook calls `util`, the callers being `tree-for-structure` and `merge-for-bulk-reads` in the rule file plus `flow get --files`; and the setup guard in `scripts/lib/machine/machine.js` refuses every `flow` command but `install`, `doctor`, `restore` and `uninstall` until `~/.flow/version` exists, which is why the check lives on one of the 4.
 
 ## What a machine installs, locked 2026-09-17
 
@@ -230,10 +230,10 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 - **Auto-update, on by default.** The `SessionStart` hook starts a `git pull` in `lab/domain-skills` detached in the background and returns at once. The skills are symlinks into that clone, so every project linking one is current the instant the pull lands. The hook reads the clone's `FETCH_HEAD` timestamp and pulls only when it is hours old, so nothing new is written to disk while this is on.
 - **Two guards, both read before pulling.** Uncommitted changes in the clone, or a pull that would not be a fast-forward. Either one means no pull and one printed line saying why. Without them an automatic pull can wreck work sitting in that clone.
 - **The toggle is `"domainSkillsAutoUpdate": false` in `~/.flow/settings.json`.** The key `domainSkills` there is already taken, holding the path to the clone's `skills/` folder. With the toggle off, the hook fetches instead of pulling, writes what is behind into `~/.flow/skills-update.json`, and prints the skill names every session until the user pulls.
-- **A skill may go global, decided one skill at a time.** The repository holds tool skills as well as domain skills, and a tool skill belongs on the machine. `flow domain-skills add <name> --global` links into `~/.claude/skills/`, and `~/.flow/domain-skills.txt` lists the names so a second machine gets them back. `flow private-skills` already works this way, with `--global` and a `global.txt` list, and `lib/skill-links.js` already takes the place to link into.
+- **A skill may go global, decided one skill at a time.** The repository holds tool skills as well as domain skills, and a tool skill belongs on the machine. `flow domain-skills add <name> --global` links into `~/.claude/skills/`, and `~/.flow/domain-skills.txt` lists the names so a second machine gets them back. `flow private-skills` already works this way, with `--global` and a `global.txt` list, and `lib/skills/skill-links.js` already takes the place to link into.
 - **The cost is said out loud at add time, never forbidden.** A skill installed globally has its description loaded in every session on the machine, React inside a Python project included. `add --global` says so and links it anyway. Until 2026-09-17 the code refused this outright, for that reason.
 - The SSH remote on `domain-skills` is a repo chore rather than skill design. `backlog.md` -> `## V1` -> `### Install and migration` holds it.
-- **Built 2026-09-20, both halves.** `scripts/domain-pull.js` is the detached job and `scripts/flow/lib/skills-update.js` holds it: the 2 guards, the pull, the fetch that `"domainSkillsAutoUpdate": false` switches to, and `~/.flow/skills-update.json`, the note the session check prints. The fast-forward guard is `git pull --ff-only` refusing by itself, so there is nothing to compare by hand. Looking costs one fetch every 6 hours, read off the clone's `FETCH_HEAD`, and every session while a note is waiting, which is what makes the line stop once the user has pulled. `flow domain-skills add <name> --global` links into `~/.claude/skills/` and lists the name in `~/.flow/domain-skills.txt`, saying the cost as it goes. 7 tests, 5 of them over 2 real repositories built under `tmp/`.
+- **Built 2026-09-20, both halves.** `scripts/domain-pull.js` is the detached job and `scripts/lib/skills/skills-update.js` holds it: the 2 guards, the pull, the fetch that `"domainSkillsAutoUpdate": false` switches to, and `~/.flow/skills-update.json`, the note the session check prints. The fast-forward guard is `git pull --ff-only` refusing by itself, so there is nothing to compare by hand. Looking costs one fetch every 6 hours, read off the clone's `FETCH_HEAD`, and every session while a note is waiting, which is what makes the line stop once the user has pulled. `flow domain-skills add <name> --global` links into `~/.claude/skills/` and lists the name in `~/.flow/domain-skills.txt`, saying the cost as it goes. 7 tests, 5 of them over 2 real repositories built under `tmp/`.
 
 ## A run stops once, at the migration, locked 2026-09-17
 
@@ -300,7 +300,7 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 - **The 7 opinion keys are a form in `migration.md`, not 7 questions.** Ruled by the user 2026-09-21, who called answering them one at a time inconvenient and named the migration file as the place to put the form. Each key is one checkbox carrying what the key does, Flow's choice and the reason. Checked applies Flow's choice, unchecked leaves the machine's value alone. The skill opens the file, the user toggles and saves, and the file wins over anything said in chat.
   - **It uses no new mechanism.** `migration.md` is already the one file the user reads and the one yes that runs the whole migration, so the form is that file growing checkboxes. Every other yes-or-no in it takes the same shape, each harvested line the migration would drop among them. The memory files sat on this list until later the same day, when they moved to the interview message.
   - **`AskUserQuestion` was considered and lost.** It takes a `multiSelect` flag, so 7 toggles in one dialog is buildable, and `home/settings.json` denies the tool by bare name, which keeps its schema out of every request. Turning it back on to save one pass of a file once per machine trades a permanent context cost for a one-time convenience. `docs/manual/settings.md` also gives the reason it was denied: Flow's shape is the agent recommending and the user reacting, which is what the form already is.
-  - **The skill carries the ticks into the files, after the yes and before `apply-migration.js` runs.** Taken by the user 2026-09-21 on the recommendation. `scripts/flow/lib/migrations.js` reads only lines opening on `- write`, `- delete`, `- move` or `- run`, so a tick is text to it. An unticked line changes what sits inside `~/.claude/settings.json` or `~/.agents/AGENTS.md`, or takes out the `delete` line of a skill folder the user kept. So the skill rewrites those 2 under `files/` and drops the `delete` line of anything unticked, then runs the script, which changes only the paths listed when it starts. The script's refusals read the real files and never `files/`, so the rewrite trips none of them.
+  - **The skill carries the ticks into the files, after the yes and before `apply-migration.js` runs.** Taken by the user 2026-09-21 on the recommendation. `scripts/lib/machine/migrations.js` reads only lines opening on `- write`, `- delete`, `- move` or `- run`, so a tick is text to it. An unticked line changes what sits inside `~/.claude/settings.json` or `~/.agents/AGENTS.md`, or takes out the `delete` line of a skill folder the user kept. So the skill rewrites those 2 under `files/` and drops the `delete` line of anything unticked, then runs the script, which changes only the paths listed when it starts. The script's refusals read the real files and never `files/`, so the rewrite trips none of them.
   - **The file reads as a form, ruled by the user 2026-09-21**: short lines, nothing explained beyond what a line needs, never documentation with a checklist in it. The shape is still open.
 
 ## Setup asks no question, ruled 2026-09-21
@@ -314,7 +314,7 @@ Every migration is shown whole and runs on one yes, with no size threshold. It i
 - **`## The user` never holds a skill level.** Not `expert`, not `fluent`: someone who codes through an agent has long since forgotten syntax they once knew, so a level goes stale and makes the agent skip explanations. Ruled by the user 2026-09-21.
 - **`## The user` never holds what the user does not know.** The agent assumes no background anyway, and `define-from-zero` already explains every term. Ruled by the user 2026-09-21.
 - **The domain-skills clone arrives when a name needs it**, agreed 2026-09-21, so no setup ever asks where it is. One function, called by `scripts/domain-pull.js` when a session opens and by `flow domain-skills add`, reads the names in `~/.flow/domain-skills.txt` and the open project's `.flow/domain-skills.txt`. No names: nothing happens. Names and no clone: it clones `https://github.com/Adrian333Dev/domain-skills`, the address `flow contribute` already uses, into `~/.flow/domain-skills/`, then links every name. A clone present: the update runs as it does now.
-  - **`~/.flow/domain-skills/` is used whenever `domainSkills` is unset**, so Flow writes only inside its own folder. The folder joins the ignore list in `scripts/flow/lib/flow-repo.js`, so `flow sync` never carries it. A user who wants the clone where they edit it clones it there and sets `domainSkills`, and the function then finds a clone and never makes one.
+  - **`~/.flow/domain-skills/` is used whenever `domainSkills` is unset**, so Flow writes only inside its own folder. The folder joins the ignore list in `scripts/lib/machine/flow-repo.js`, so `flow sync` never carries it. A user who wants the clone where they edit it clones it there and sets `domainSkills`, and the function then finds a clone and never makes one.
   - **2 machines drifting apart with `"domainSkillsAutoUpdate": false` needs nothing built.** Each machine compares its clone against the same GitHub copy, and the one behind prints `<clone> is behind. 2 domain skills changed: web-pages, excalidraw.` at every session until the user updates it. The one case it misses is commits made in one clone and never pushed, which `flow contribute` is how they leave.
 - **Machine setup reads machine-wide context only**, agreed 2026-09-21. It opens no project's memory files: their one use here was `## The user`, which now fills during work, and `/flow:setup-project` reads a project's memory for that project. A project's `.claude/settings.local.json` belongs to that skill too, ruled by the user 2026-09-22. Claude Code keeps no such file at the machine level.
 - **What setup finds is context of any type, never assumed to be a rule file.** Ruled by the user 2026-09-21: a line in a file, a skill, a plugin or a permission rule all count, and a machine may hold none of them. The places to look come from `references/harnesses/claude-code.md`. A machine with nothing on it gets no such section in the form.
@@ -388,7 +388,7 @@ That line also takes a skill's description out of the session's context, so noth
 
 ### Setup opens in a terminal, not a session
 
-`/flow:setup-machine` cannot be typed on a machine that never had Flow, because a skill becomes typeable only once `flow install` links it into `~/.claude/skills/`. So the first step is a shell command: clone, then `node <clone>/scripts/flow/flow.js install`. Its closing message, `scripts/flow/commands/install.js:136-141`, today tells the user to merge `home/settings.json` by hand; it becomes "restart Claude Code and type `/flow:setup-machine`", and the skill does that merge key by key under 3.3.
+`/flow:setup-machine` cannot be typed on a machine that never had Flow, because a skill becomes typeable only once `flow install` links it into `~/.claude/skills/`. So the first step is a shell command: clone, then `node <clone>/scripts/flow.js install`. Its closing message, `scripts/commands/install.js:136-141`, today tells the user to merge `home/settings.json` by hand; it becomes "restart Claude Code and type `/flow:setup-machine`", and the skill does that merge key by key under 3.3.
 
 **That first install snapshots itself.** When `~/.flow/snapshots/` is empty, `flow install` writes the manifest of what it is about to create before creating it, so `flow snapshot restore` reaches the bootstrap links too.
 
@@ -420,7 +420,7 @@ Every migration already shows its `migration.md` and runs on one yes. A replacem
 
 - **`~/.agents/AGENTS.md`**: `files/` gets `home/AGENTS.md` whole, with `## The user` and `## Preferences` copied in from the live file, and `apply-migration.js` puts it in place. Never a line-by-line patch, however small the change. The live file is Flow's file, so the template is the truth for everything outside those 2 sections.
 - **`~/.claude/settings.json`**: `hooks` replaced whole from the template, `permissions` merged, an opinion key asked only where the template's value changed. Set under `## What setup does to settings.json and to a project`.
-- **The links**: `flow install`. `pruneDead` at `scripts/flow/lib/links.js:43` already deletes a link that points into the clone at something gone, so a renamed skill's old link goes by itself.
+- **The links**: `flow install`. `pruneDead` at `scripts/lib/machine/links.js:43` already deletes a link that points into the clone at something gone, so a renamed skill's old link goes by itself.
 - **Whatever the entry names**, such as a command that rewrites every ticket's frontmatter. Nothing else in the run can know about it, which is what the changelog entry is for.
 
 Writing whole is also what makes a re-run harmless: the second run writes the same bytes.
@@ -439,7 +439,7 @@ Rules load when a session launches, so after step 5 the session doing the work s
 
 ### A stale name in `~/.local/bin`, found 2026-09-17
 
-`flow install` prunes `~/.claude/skills`, `agents` and `rules`, and never `~/.local/bin`. The `BIN` map at `scripts/flow/commands/install.js:48` names `flow` and `fw`. Take a name out of that map and its symlink stays on the machine, pointing at a file that still exists, so nothing dangles and nothing detects it: the user keeps typing a command Flow no longer ships. `checkNames` at `doctor.js:138` only checks that the names Flow does ship resolve. The fix is a prune of any link in `~/.local/bin` pointing into the clone whose name Flow no longer ships, and it sits in `backlog.md` -> `## V1` -> `### Install and migration`.
+`flow install` prunes `~/.claude/skills`, `agents` and `rules`, and never `~/.local/bin`. The `BIN` map at `scripts/commands/install.js:48` names `flow` and `fw`. Take a name out of that map and its symlink stays on the machine, pointing at a file that still exists, so nothing dangles and nothing detects it: the user keeps typing a command Flow no longer ships. `checkNames` at `doctor.js:138` only checks that the names Flow does ship resolve. The fix is a prune of any link in `~/.local/bin` pointing into the clone whose name Flow no longer ships, and it sits in `backlog.md` -> `## V1` -> `### Install and migration`.
 
 ### A clone older than the machine
 
@@ -462,7 +462,7 @@ Rules load when a session launches, so after step 5 the session doing the work s
 - **Nothing under `~/.flow/` is ever recorded**, so putting the machine's original back leaves the user's notes, tickets, study cases and wiki where they are.
 - **The original survives a restore**, so the same command runs twice and lands in the same state. The snapshot design had a restore copy everything first, which made an undo of an undo.
 - **Undoing one migration is parked.** The user ruled on 2026-09-20 that the original matters for the first week or two, while putting the machine back is still worth doing, and that nothing else earns a copy per run. `backlog.md` holds the parked pieces: per-migration snapshots, the undo copy, `flow snapshot new`, `flow snapshot drop`, hard links and chained restores.
-- **Built 2026-09-20**: `scripts/flow/lib/originals.js` and `scripts/flow/commands/restore.js` replace `lib/snapshots.js` and `commands/snapshot.js`, giving `flow restore ls`, `flow restore machine` and `flow restore project`, tested in `scripts/tests/restore.test.js`. `apply-migration.js` records into the open window instead of snapshotting, closes it when the migration's `type` is a setup, and keeps how far it got in `applied.json` beside `migration.md`.
+- **Built 2026-09-20**: `scripts/lib/machine/originals.js` and `scripts/commands/restore.js` replace `lib/snapshots.js` and `commands/snapshot.js`, giving `flow restore ls`, `flow restore machine` and `flow restore project`, tested in `scripts/tests/restore.test.js`. `apply-migration.js` records into the open window instead of snapshotting, closes it when the migration's `type` is a setup, and keeps how far it got in `applied.json` beside `migration.md`.
 
 ### `flow uninstall`, the command Flow never had
 
@@ -476,7 +476,7 @@ Type uninstall to go on:
 
 - **The message carries instructions and no explanation**, the user's call 2026-09-20.
 - **The clone is kept where git says it holds work.** A file changed and not committed, or a commit no remote has, and the path is printed instead of deleted. Both checks are reads. Deleting a clone with a day's work in it is data loss, not an uninstall.
-- **A machine with no original is still covered.** `scripts/flow/lib/installed.js` is the one list of what Flow puts on a machine, read by `flow install` to write the original and by `flow uninstall` to strip a machine that has none. Flow's hooks come out of `~/.claude/settings.json`, and the import line out of `~/.claude/CLAUDE.md`. A hook is Flow's when its command names a path inside `~/.flow/`. The permission rules are left, because nothing can tell a rule the user wrote from one that was merged in.
+- **A machine with no original is still covered.** `scripts/lib/machine/installed.js` is the one list of what Flow puts on a machine, read by `flow install` to write the original and by `flow uninstall` to strip a machine that has none. Flow's hooks come out of `~/.claude/settings.json`, and the import line out of `~/.claude/CLAUDE.md`. A hook is Flow's when its command names a path inside `~/.flow/`. The permission rules are left, because nothing can tell a rule the user wrote from one that was merged in.
 - **A rooted uninstall never deletes the clone.** `--root` builds a scratch machine under `tmp/`, and that machine does not own the clone it was built from.
 
 ### 4 locks keep restore and uninstall away from the agent
@@ -486,15 +486,15 @@ Both commands undo the machine, so the agent may never run either.
 1. **Every session closed.** `confirm.noSessions()` refuses while any `claude` or `codex` process runs. The agent only exists inside one, so this lock alone stops it.
 2. **A word typed at `/dev/tty`.** Opening that device from a command the agent ran fails with `No such device or address`, tested 2026-09-20.
 3. **No flag skips the prompt**, so a pasted line and shell history cannot answer it.
-4. **`deny` rules in `home/settings.json`** for `flow restore machine`, `flow restore project` and `flow uninstall`, under both typed names and the `node ~/.flow/scripts/flow/flow.js` path form. `flow restore ls` stays allowed, since it only prints. `apply-migration.js` is not denied, because `/flow:migrate` has to run it.
+4. **`deny` rules in `home/settings.json`** for `flow restore machine`, `flow restore project` and `flow uninstall`, under both typed names and the `node ~/.flow/scripts/flow.js` path form. `flow restore ls` stays allowed, since it only prints. `apply-migration.js` is not denied, because `/flow:migrate` has to run it.
 
 ### A skipped setup is caught by code, never by a hook
 
 `flow install` finishes half a machine, so a user who never types `/flow:setup-machine` has a machine where Flow's rules load nowhere. 2 refusals catch that, both in code that runs anyway.
 
 - **`machine.requireSetup(root)`** refuses every `flow` command where `~/.flow/version` is missing, except the 4 marked `anywhere: true`: `install`, `doctor`, `restore` and `uninstall`. `lib/cli.js` runs it between the flags and the action.
-- **`inFlow()` in `scripts/flow/lib/root.js`** refuses any project with no `.flow/`.
-- **`scripts/check-ticket.js` runs both** before its ticket check, and blocks the expansion with whichever fired.
+- **`inFlow()` in `scripts/lib/project.js`** refuses any project with no `.flow/`.
+- **`scripts/hooks/check-ticket.js` runs both** before its ticket check, and blocks the expansion with whichever fired.
 - **No hook can do this job.** Flow's hooks reach `~/.claude/settings.json` only when `/flow:setup-machine` merges them, so the machine that skipped setup has no hook to fire. `SessionStart` cannot block at all, and `UserPromptSubmit` exit 2 erases what the user typed.
 
 ### One private repository carries a machine's Flow to the next machine
@@ -507,7 +507,7 @@ Both commands undo the machine, so the agent may never run either.
 - **7 things never travel**, and `~/.flow/.gitignore` names them: `version`, `run.json`, `originals/`, `settings.local.json`, the `scripts` and `references` links, and each wiki tool's `downloads/`. The 2 links were added on 2026-09-20: both point into this machine's clone, which sits somewhere else on the other machine.
 - **A setting holding a path lives in `settings.local.json`**, which stays on the machine. `lib/settings.js` reads the pair as one file, the local one winning key by key, and `globalKey()` says which of the 2 holds a setting for a message that has to name a file. `domainSkills` and `clone` are the 2 paths there today.
 - **Uncommitted work travels by `util git work`, on the user's own command.** The agent never runs it, ruled 2026-09-20. Its rename to `util git uncommitted` and the `get <machine> --branch` fix are in `lab/backlog/`.
-- **Built 2026-09-20**: `scripts/flow/lib/flow-repo.js` and `scripts/flow/commands/sync.js`, tested in `scripts/tests/sync.test.js` against a local folder. The round trip through a real GitHub remote is proved by nothing yet, and `backlog.md` carries that gap.
+- **Built 2026-09-20**: `scripts/lib/machine/flow-repo.js` and `scripts/commands/sync.js`, tested in `scripts/tests/sync.test.js` against a local folder. The round trip through a real GitHub remote is proved by nothing yet, and `backlog.md` carries that gap.
 
 ### `flow install` asks 2 questions, and only at a terminal
 
@@ -520,7 +520,7 @@ Both commands undo the machine, so the agent may never run either.
 
 - **It writes no rule file.** `~/.agents/AGENTS.md`, the import line in `~/.claude/CLAUDE.md` and the link `~/.codex/AGENTS.md` all belong to `/flow:setup-machine` now, since a copy made before that skill's interview holds nothing of the user.
 - **Its closing line is "restart Claude Code, then type /flow:setup-machine"**, in place of the hand merge of `home/settings.json` it used to print.
-- **It prunes a name that left the `BIN` map.** `pruneUnlisted()` in `lib/links.js` drops a link into the clone's `scripts/` whose name Flow no longer ships. The dead-link check could never catch one: the old name still resolves and still runs.
+- **It prunes a name that left the `BIN` map.** `pruneUnlisted()` in `lib/machine/links.js` drops a link into the clone's `scripts/` whose name Flow no longer ships. The dead-link check could never catch one: the old name still resolves and still runs.
 - **`~/.flow/docs` was dropped**, reversing the line that added it. The clone's path goes in `~/.flow/settings.local.json` under `clone`, and `/flow:help` reads `<clone>/docs/manual/README.md` through it.
 - **`flow doctor` gained 2 checks**: whether the machine has an original and whether its window is still open, and which names in a project's `domain-skills.txt` and `private-skills.txt` have no link in `.claude/skills/`. Both print notes rather than problems, and its messages for the rule file, the import line, the Codex link and `settings.json` now name `/flow:setup-machine`.
 
@@ -550,7 +550,7 @@ Both commands undo the machine, so the agent may never run either.
 
 **Where a harness keeps its own files is one file in `references/harnesses/`**, `claude-code.md` being the first. The 3 setup and migration skills read every file in that folder, so a second harness is a file written there and no skill edited. This is the first line of `backlog.md` → `### The management skill, in build order`, and the 3 skill lines under it now name the folder.
 
-- **Claude Code's own paths, never Flow's.** What Flow puts on a machine is `scripts/flow/lib/installed.js` and `flow doctor`'s report, and the file points at both rather than repeating either.
+- **Claude Code's own paths, never Flow's.** What Flow puts on a machine is `scripts/lib/machine/installed.js` and `flow doctor`'s report, and the file points at both rather than repeating either.
 - **Paths here, behavior in `docs/dev/claude-code.md`.** That page says how a skill loads, what a hook sees and what an edit mid-session does, and it is written for a person. The reference file loads into an agent mid-task and lists where things sit.
 - **4 rules say what a migration may name**, and they are what the 3 skills actually need: never a transcript, a cache or the login; `~/.claude.json` changes through a `run` line, since Claude Code rewrites that file itself; a project's auto memory is a machine path, so a project's migration names a folder outside the project; settings merge key by key, so a migration that moves 1 key leaves the rest of the file alone.
 - **2 facts were written down nowhere before.** Auto memory is `~/.claude/projects/<project>/memory/`, one folder per repository, kept out of the `cleanupPeriodDays` sweep that deletes transcripts. `~/.claude.json` sits beside the config folder by default and inside it once `CLAUDE_CONFIG_DIR` is set, which is how a scratch session starts signed in.
@@ -581,7 +581,7 @@ Both commands undo the machine, so the agent may never run either.
 - **One ignore line, `repos/`, keeps every clone out of `~/.flow/`'s git.** No record of commits either: the history log below holds what changed.
 - **`flow install` clones every one that is missing, in the foreground, with `--depth 1`.** A clone that fails, offline say, prints a warning and install still finishes. A background clone was rejected: install runs once with the user watching, and a failure seen then beats a missing folder found days later.
 - **Nothing else clones.** A command that finds a clone missing says `flow install` clones it. Running `flow install` again changes nothing that already exists, so it is always the fix.
-- **`domainSkillsAutoUpdate` became `skillsAutoUpdate`, and `scripts/domain-pull.js` became `scripts/skills-pull.js`**, names left to the agent by the user 2026-09-23, since both cover every source.
+- **`domainSkillsAutoUpdate` became `skillsAutoUpdate`, and `scripts/domain-pull.js` became `scripts/jobs/skills-pull.js`**, names left to the agent by the user 2026-09-23, since both cover every source.
 - **The session-start hook pulls every source**, at most every 6 hours, under the 2 guards `## Domain skills` built: uncommitted work in the clone, and a pull that is no fast-forward. `"domainSkillsAutoUpdate": false` turns every source's pull into a fetch and a note.
 
 ### A source is a repository of skill folders
@@ -635,7 +635,7 @@ outside
 ### The settings hold only the exceptions
 
 - **Every file ships with no `skills` key.** A line appears only when the user switches something.
-- **The nearest level wins, name by name.** Project over machine over global. `readGlobal` in `scripts/flow/lib/settings.js` replaces a top-level key whole, so `skills` gets its own merge.
+- **The nearest level wins, name by name.** Project over machine over global. `readGlobal` in `scripts/lib/settings.js` replaces a top-level key whole, so `skills` gets its own merge.
 - **A name no file names is off**, a source's skills and private skills being a library to pick from, so a domain skill a project uses is a line of its own. Flow's essential skills are the exception, always on.
 - **A Flow skill has no project level**, since Flow's skills load as one plugin for the whole machine and `skillOverrides` skips a plugin's skills. The user accepted that. With no flag, the command refuses and names `--machine` and `--global`. Outside a project, no flag is refused too.
 - **A name 2 sources share is refused**, and the command asks for `owner/repo:name`. A private skill can never share a name, which the private-skills command already refused.
@@ -822,7 +822,7 @@ Never use em dashes.
 
 The rulings behind it, each approved 2026-09-23:
 
-- **The parser never sees the form.** `scripts/flow/lib/migrations.js` acts only on lines opening `- write `, `- delete `, `- move ` or `- run `. After the yes, the skill rebuilds those lines and the `files/` copies from the ticks, then runs `apply-migration.js`.
+- **The parser never sees the form.** `scripts/lib/machine/migrations.js` acts only on lines opening `- write `, `- delete `, `- move ` or `- run `. After the yes, the skill rebuilds those lines and the `files/` copies from the ticks, then runs `apply-migration.js`.
 - **The second check is one message covering every box the user changed**, red and green alike, a deleted line counting as unticked. Nothing changed: setup writes at once. Something changed: nothing is written, and one message lists each change with what it costs, plus Claude's shortened version of any edited text box. Go keeps the changes, and ticking again, then go, undoes one. There is no third check.
 - **"About you" starts empty, with no placeholder.** A line belongs only when it is true of the user and changes what Claude does, such as `Colour-blind, so never tell things apart by red and green alone.` Voice dictation is assumed of every user, so it never goes in.
 - **A skill that costs nothing until typed is marked `disable-model-invocation: true`.** `/flow:file-findings` joins `/flow:start` and `/flow:tickets-from-spec`, since Claude only ever offers it. The 4 phases, `/flow:research`, `/flow:visualize`, `/flow:handoff` and `/flow:review` stay on the list Claude sees.
@@ -834,13 +834,13 @@ The rulings behind it, each approved 2026-09-23:
 
 - **`fileSuggestion` gets a line under `## What Flow sets up`**, and **`disableRemoteControl` one under `### Rarely used`.** Both keys are in `home/settings.json`, and the form must name every key it writes.
 - **`/flow:setup-machine` joins the list of skills that cost nothing until typed.** Taken back out the same day, when setup stopped being a skill.
-- **`## Every file this changes` holds one path per line, in the parser's shape.** A `move` reads `->`, and a `run` line ends `: writes <paths>`, since `scripts/flow/lib/migrations.js` refuses anything else. The rule file is 2 lines, `~/.flow/AGENTS.md` and the link `~/.agents/AGENTS.md`, landing the move agreed 2026-09-20 in `backlog.md` → **Working on more than one machine**.
+- **`## Every file this changes` holds one path per line, in the parser's shape.** A `move` reads `->`, and a `run` line ends `: writes <paths>`, since `scripts/lib/machine/migrations.js` refuses anything else. The rule file is 2 lines, `~/.flow/AGENTS.md` and the link `~/.agents/AGENTS.md`, landing the move agreed 2026-09-20 in `backlog.md` → **Working on more than one machine**.
 
 ### Setup is not a skill, ruled 2026-09-24 after the first terminal run
 
 The user ran the build through `try.sh` from a real terminal. What it found, and what was agreed in answer:
 
-- **Setup leaves `skills/`.** Safe mode loads no skill, so the text only ever reached the session as a system prompt, and a typed `/flow:setup-machine` in a normal session would run beside the plugins it removes. It lives in `scripts/flow/setup/`: `machine.md` and `form.md`. Migrations stay skills, since they run on a machine setup already cleared.
+- **Setup leaves `skills/`.** Safe mode loads no skill, so the text only ever reached the session as a system prompt, and a typed `/flow:setup-machine` in a normal session would run beside the plugins it removes. It lives in `scripts/sessions/`: `machine.md` and `form.md`. Migrations stay skills, since they run on a machine setup already cleared.
 - **`flow setup` comes back** as the command that opens the session, reversing its drop below. `flow install` calls it last, and typing it carries on a stopped setup. `flow setup check` checks the install is whole first, and `flow setup finish` stamps the version.
 - **Auto mode refused the first write**, `~/.flow/run.json`, as the agent changing its own setup. The session now starts with `--permission-mode acceptEdits`, `--add-dir ~/.flow` and 3 allowed commands. `disableAutoMode` was rejected: it changes the user's own choice for every session. Taken back for the setup session alone on 2026-09-30, through `--settings`, which changes nothing past that session.
 - **A missing requirement stops setup.** The session met no `util`, since the sandbox skipped the clones, and fell back to `cat`.
@@ -874,7 +874,7 @@ A sandbox run of the moved setup, under `acceptEdits`, reached a correct form an
 curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/<tag>/install.sh | bash
 ```
 
-- **`install.sh` sits at the repo root, is bash, and stays about 20 lines.** It checks for git, node and claude, clones Flow at the tag into `~/.flow/repos/flow/`, then runs `node scripts/flow/flow.js install`. Every other step stays in `install.js`.
+- **`install.sh` sits at the repo root, is bash, and stays about 20 lines.** It checks for git, node and claude, clones Flow at the tag into `~/.flow/repos/flow/`, then runs `node scripts/flow.js install`. Every other step stays in `install.js`.
 - **Bash, because the line runs before Flow is on disk.** `install.js` lives inside the clone, so it cannot fetch the clone. Every machine has bash, and a missing node gets a sentence naming it rather than `node: command not found`.
 - **`--use <folder>` skips the clone** and uses that folder as Flow. `lab/scripts/try.sh` passes the working copy, so a test covers uncommitted edits: a `git clone` of a local folder copies only commits.
 - **A second run changes nothing.** Where `~/.flow/repos/flow/` exists, `install.sh` clones nothing and hands on to `flow install`, which already leaves a machine alone: `### flow install starts setup, and a second run leaves it alone`.
@@ -936,14 +936,14 @@ What the setup form's `permissions` lines install. Claude Code's settings hold e
 - **Setup makes a second ticket, "Find skills, plugins and MCP servers for this stack"**, naming the stack read from the code and what is already installed. Its run uses `/flow:research`, and every install is its own yes. A project with no code gets none, since `/flow:groundwork` settles the stack.
 - **The paths it writes**: `AGENTS.md`, `CLAUDE.md` as `@AGENTS.md`, `.claude/settings.json`, `.gitignore` lines, `.work-include`, `.flow/settings.json`, `.flow/tickets/`, `.flow/overlays/`, `.flow/inbox.md`, `.flow/findings/`, `.flow/domain-skills.txt`, `docs/context/`, `.flow/version` last. On the machine: `~/.flow/AGENTS.md`'s 2 sections, `~/.flow/migrations/<project>/<time>/`, `~/.flow/originals/<project>/`, one `history.jsonl` line.
 
-**The step file, `scripts/flow/setup/project.md`, agreed 2026-09-25**, proposed and left unopposed, the harvest then loosened by the user:
+**The step file, `scripts/sessions/project.md`, agreed 2026-09-25**, proposed and left unopposed, the harvest then loosened by the user:
 
-- **Its steps follow `machine.md`.** 0 `flow setup project check`. 1 read what Flow brings: the harness files, `project-template/`, the form's template `scripts/flow/setup/project-form.md`. 2 read the project. 3 sort every finding into one place and write the new files under `files/`, `project-template/` as the base. 4 hand over the form, then stop. 5 take the answer, with the second check where the user changed something. 6 carry the form into the files. 7 apply it with `apply-migration.js project/<folder>`, which already handles `setup-project` and opens the project's original. 8 `flow doctor`. 9 `flow setup project finish`, writing `.flow/version`. 10 the last message: what changed, `flow restore project` to undo it, start `claude` again.
+- **Its steps follow `machine.md`.** 0 `flow setup project check`. 1 read what Flow brings: the harness files, `project-template/`, the form's template `scripts/sessions/project-form.md`. 2 read the project. 3 sort every finding into one place and write the new files under `files/`, `project-template/` as the base. 4 hand over the form, then stop. 5 take the answer, with the second check where the user changed something. 6 carry the form into the files. 7 apply it with `apply-migration.js project/<folder>`, which already handles `setup-project` and opens the project's original. 8 `flow doctor`. 9 `flow setup project finish`, writing `.flow/version`. 10 the last message: what changed, `flow restore project` to undo it, start `claude` again.
 - **2 new subcommands**: `flow setup project check` and `flow setup project finish`, beside the launch itself. None exists yet.
 - **The launch adds `--add-dir ~/.flow` and `--add-dir` for the project's memory folder.** The session starts in the project, so a write to `~/.flow/migrations/` and a read under `~/.claude/projects/` would each ask otherwise. A write under `files/` into a `.claude` path still asks once, and the session warns first, as `machine.md` does.
 - **Setup needs a git repository.** Only files git would keep are read, and `util git work` assumes git. Outside one the check says to run `git init` and stops. An empty repository gets `project-template/` alone. Overturned by a project the user wants set up that is not under git.
 
-**The form, `scripts/flow/setup/project-form.md`, agreed 2026-09-26**, and built the same day with the step file and the commands:
+**The form, `scripts/sessions/project-form.md`, agreed 2026-09-26**, and built the same day with the step file and the commands:
 
 - **Decisions with counts, never content.** `9 rules → AGENTS.md`. The files sit under `files/`, and `dropped.md` lists each dropped line with its Flow rule.
 - **Its sections**: `What Flow sets up` (with the always-removed lines, no box), `🔴 Removed unless you untick it`, `Moving into Flow's files`, `Tickets`, `Added to your own rules`, `Every file this changes`.
@@ -955,7 +955,7 @@ What the setup form's `permissions` lines install. Claude Code's settings hold e
 - **A memory folder under an old name is read only once ticked**, at the second check, which lists what it added.
 - **A domain skill comes back with `flow skills on <name>`**, replacing `.flow/domain-skills.txt` above, which `## Skills, sources and the machine's clones` removed on 2026-09-23. `.flow/overlays/` is not written either: it is made when an overlay is.
 - **Tickets are made by `flow new`**, run with `FLOW_PROJECT` pointing at the project's copy under `files/`, so the format and numbering are `flow`'s.
-- **Built**: the launch, `flow setup project check` and `flow setup project finish` in `scripts/flow/commands/setup.js`, 3 tests, and `flow doctor`'s stopped-run line naming `flow setup project`.
+- **Built**: the launch, `flow setup project check` and `flow setup project finish` in `scripts/lib/setup.js`, 3 tests, and `flow doctor`'s stopped-run line naming `flow setup project`.
 
 
 Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.
@@ -996,7 +996,7 @@ Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.
 - **A pull git refuses stops `flow up`** with git's message. A stopped run is carried on with no pull, so the guides cannot change under it.
 - **Nothing behind prints one line and runs nothing**, `flow doctor` included. The session runs `flow doctor` after a migration, where there is something new to check.
 - **Proof as `## Proof` above designed it**, run only where the migration changed a hook, the rule file or the skills: `claude -p --output-format json "ok"` from the place's folder, then `flow audit session <session_id>`. No run has shown that the session view lists the hooks that fired.
-- **What was built**: `scripts/flow/commands/up.js`, `scripts/flow/setup/migrate.md`, `migrations.resume()` naming the command for a stopped run, and 4 tests in `scripts/tests/up.test.js`. `session-check.js` and `flow doctor` name `flow up`.
+- **What was built**: `scripts/commands/update.js`, `scripts/sessions/migrate.md`, `migrations.resume()` naming the command for a stopped run, and 4 tests in `scripts/tests/up.test.js`. `session-check.js` and `flow doctor` name `flow up`.
 
 ## The options on the table, by branch
 
@@ -1030,7 +1030,7 @@ Settled by lookup 2026-09-16. Linux and macOS, and Windows only inside WSL. Ever
 - **`flow doctor`** makes every check a function can make: the names resolve, the 3 `util` commands run, `~/.claude/` is linked with its `CLAUDE.md` present, the hooks in `settings.json` are registered with every script on disk, `~/.flow/` resolves into this clone, both suites pass. It returns an exit code.
 - **`flow audit`**, an index of every session transcript on the machine, with queries over it.
 - **The 2 checkouts**, at `docs/dev/checkout.md`. Stable is `~/code/flow`, which every symlink points at. Dev is `~/code/flow-dev`, a worktree nothing points at. Shipping is a pull in stable.
-- **Project overlays**, at `scripts/overlays.js`: a project writes `.flow/overlays/<name>.md`, and a hook hands it to the agent as the skill loads.
+- **Project overlays**, at `scripts/hooks/overlays.js`: a project writes `.flow/overlays/<name>.md`, and a hook hands it to the agent as the skill loads.
 - **`/flow:file-findings`**, which writes `.flow/findings/<subject>.md` during real work and promotes a finding into a skill or a rule later.
 
 ## Faults found by the attack, 2026-09-17
@@ -1096,7 +1096,7 @@ Raised by the user 2026-08-15, as one skill instead of two. The plan had been `s
 
 ## References
 
-- `scripts/flow/commands/install.js` and `doctor.js`: what the 2 setup commands do today, and the fault at `install.js:125`
+- `scripts/commands/install.js` and `doctor.js`: what the 2 setup commands do today, and the fault at `install.js:125`
 - `home/settings.json`: the 11 hooks, every one a `$HOME` shell line, the target state a machine diffs against
 - `home/AGENTS.md`: the template, `## The user` and `## Preferences` at lines 58 and 65
 - `docs/dev/checkout.md`: stable and dev checkouts, shipping by pull

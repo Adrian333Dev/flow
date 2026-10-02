@@ -1,13 +1,13 @@
 'use strict';
 /**
- * `lib/machine-name.js`: the name `flow install` offers a machine. What the
+ * `lib/machine/machine-name.js`: the name `flow install` offers a machine. What the
  * hardware says is read on a real machine only, so these cover what is made
  * of it: the chassis type as a word, a clash numbered, a typed name cleaned.
  */
 
 const { test } = require('node:test');
 const assert = require('node:assert');
-const name = require('../flow/lib/machine-name');
+const name = require('../lib/machine/machine-name');
 
 test('a chassis type becomes laptop, desktop or server, and anything else nothing', () => {
   assert.deepStrictEqual([9, 10, 31].map(name.typeOf), ['laptop', 'laptop', 'laptop']);

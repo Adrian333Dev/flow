@@ -71,7 +71,7 @@ Under-explaining is the failure to avoid. Cover the subject in enough detail tha
 
 A line in `SKILL.md` starting with `` !` `` is a shell command. Claude Code runs it while it builds the skill's text, and puts what the command prints in the line's place, so the output is part of the skill before the model reads a word. `$0` in the command is the first word typed after the skill's name, and `$ARGUMENTS` is everything typed. [What Claude Code does](claude-code.md) records the tests behind both.
 
-**A shell line runs one named command, never logic written inline.** The model and the person maintaining the skill both read the line, and a name says what it does where a pattern test and a chain of `&&` and `||` say nothing. Every [ticket skill](../../lab/archive/manual/reference.md#ticket-skills) is one such line, written by `scripts/flow/lib/ticket-skills.js`:
+**A shell line runs one named command, never logic written inline.** The model and the person maintaining the skill both read the line, and a name says what it does where a pattern test and a chain of `&&` and `||` say nothing. Every [ticket skill](../../lab/archive/manual/reference.md#ticket-skills) is one such line, written by `scripts/lib/tickets/ticket-skills.js`:
 
 ```md
 !`flow get exp-47 --files 2>&1 || true`

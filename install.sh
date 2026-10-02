@@ -40,7 +40,7 @@ main() {
   elif [ ! -e "$clone" ]; then
     git clone --quiet --branch "$version" https://github.com/Adrian333Dev/flow.git "$clone"
   fi
-  exec node "$clone/scripts/flow/flow.js" install "${args[@]}"
+  exec node "$clone/scripts/flow.js" install "${args[@]}"
 }
 
 main "$@"

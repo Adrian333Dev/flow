@@ -15,9 +15,9 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { SCRATCH, project, setUp, write, run, flow } = require('./helpers/scratch');
-const records = require('../flow/lib/records');
-const place = require('../flow/lib/records-place');
-const store = require('../flow/lib/store');
+const records = require('../lib/tickets/records');
+const place = require('../lib/tickets/records-place');
+const store = require('../lib/tickets/store');
 
 /** git in `dir`, with a name to commit under. Returns the trimmed output. */
 function git(dir, ...args) {
@@ -50,7 +50,7 @@ function team(name) {
     git(dir, 'clone', '--quiet', remote, who);
     return path.join(dir, who);
   };
-  const inside = (cwd, ...args) => run('flow/flow.js', args, { cwd, env });
+  const inside = (cwd, ...args) => run('flow.js', args, { cwd, env });
   // With no terminal to ask in, flow init takes the template over the session.
   const init = (cwd, ...args) => inside(cwd, 'init', ...args);
   return { dir, remote, home, env, clone, in: inside, init };
@@ -166,7 +166,7 @@ test('flow init --private links .flow/ into the Flow home, hidden from git, and 
 });
 
 test('flow init records the original before its first write, so restoring it leaves the project as it was', () => {
-  const originals = require('../flow/lib/originals');
+  const originals = require('../lib/machine/originals');
   const t = team('records-original');
   for (const how of [[], ['--private']]) {
     const ana = t.clone(`ana${how.length}`);
@@ -193,7 +193,8 @@ test('flow init records the original before its first write, so restoring it lea
 });
 
 test('flow init on a second machine syncs the Flow home first, so it joins the private folder the first machine made', () => {
-  const repo = require('../flow/lib/flow-repo');
+  const repo = require('../lib/machine/flow-repo');
+  const { git: gitIn } = require('../lib/git');
   const t = team('records-second-machine');
   const remote = path.join(t.dir, 'flow-home.git');
   git(t.dir, 'init', '--quiet', '--bare', '--initial-branch=main', remote);
@@ -201,7 +202,7 @@ test('flow init on a second machine syncs the Flow home first, so it joins the p
   const machineAt = (home, name) => {
     const at = { flow: home, base: path.dirname(home) };
     repo.connect(at, remote);
-    repo.git(home, ['config', 'flow.machine', name]);
+    gitIn(home, ['config', 'flow.machine', name]);
     return at;
   };
 
@@ -222,7 +223,7 @@ test('flow init on a second machine syncs the Flow home first, so it joins the p
   // A private repository takes the branch unasked, unless the Flow home already holds it.
   const ben = t.clone('ben');
   const env = { ...t.env, FLOW_HOME: laptop.flow, FLOW_VISIBILITY: 'private' };
-  const joined = run('flow/flow.js', ['init'], { cwd: ben, env });
+  const joined = run('flow.js', ['init'], { cwd: ben, env });
   assert.strictEqual(joined.code, 0, joined.stderr);
   assert.match(joined.stdout, /where another machine put this project's tickets/);
   assert.strictEqual(fs.readlinkSync(path.join(ben, '.flow')), path.join(laptop.flow, 'projects', 'ana'));
@@ -248,14 +249,14 @@ test('flow init --private: the folder carries the repository, so another clone o
 test('flow init in a public repository puts the tickets in the Flow home when no terminal can answer', () => {
   const t = team('records-public');
   const ana = t.clone('ana');
-  const made = run('flow/flow.js', ['init', '--prefix', 'exp'], { cwd: ana, env: { ...t.env, FLOW_VISIBILITY: 'public' } });
+  const made = run('flow.js', ['init', '--prefix', 'exp'], { cwd: ana, env: { ...t.env, FLOW_VISIBILITY: 'public' } });
   assert.strictEqual(made.code, 0, made.stderr);
   assert.ok(fs.lstatSync(path.join(ana, '.flow')).isSymbolicLink());
   assert.ok(!git(ana, 'rev-parse', '--verify', 'flow').ok, 'no branch to publish');
 
   const other = team('records-private');
   const priv = other.clone('ben');
-  const branch = run('flow/flow.js', ['init', '--prefix', 'exp'], { cwd: priv, env: { ...other.env, FLOW_VISIBILITY: 'private' } });
+  const branch = run('flow.js', ['init', '--prefix', 'exp'], { cwd: priv, env: { ...other.env, FLOW_VISIBILITY: 'private' } });
   assert.strictEqual(branch.code, 0, branch.stderr);
   assert.ok(records.onBranch(priv), 'a private repository gets the branch with no question');
 });
@@ -263,7 +264,7 @@ test('flow init in a public repository puts the tickets in the Flow home when no
 test('the remote reads the same in every form git holds it', () => {
   const t = team('records-remote-forms');
   const ana = t.clone('ana');
-  const place = require('../flow/lib/records-place');
+  const place = require('../lib/tickets/records-place');
   for (const url of ['git@github.com:Owner/Repo.git', 'https://github.com/owner/repo', 'ssh://git@github.com/owner/repo.git']) {
     git(ana, 'remote', 'set-url', 'origin', url);
     assert.strictEqual(place.repositoryOf(ana), 'github.com/owner/repo', url);
@@ -356,7 +357,7 @@ test('a ticket records its code branch when building starts, and a history line 
   delete env.FLOW_PROJECT;
   write(path.join(t.dir, 'claude', 'projects', 'p'), 'abc-123.jsonl',
     '{"type":"ai-title","aiTitle":"Made up"}\n{"type":"custom-title","customTitle":"Budget \\"work\\""}\n');
-  const as = (...args) => run('flow/flow.js', args, { cwd: ana, env });
+  const as = (...args) => run('flow.js', args, { cwd: ana, env });
 
   assert.strictEqual(as('build', 'exp-1').code, 0);
   assert.strictEqual(as('handoff', 'exp-1').code, 0);

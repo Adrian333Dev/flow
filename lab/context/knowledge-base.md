@@ -2,7 +2,7 @@
 
 The design conversation of 2026-09-18 and 2026-09-19 on how `/flow:research` reaches outside tools and where Flow keeps what it learns about them. Built 2026-09-27, by `## The build plan` below. A parallel session works on the management skills at the same time, and this file never covers that work.
 
-The user supplied 2 reports as input, both in this folder: `context7-report.md`, on how Context7 retrieves docs, and `context-7-alternatives.md`, on the tools competing with it.
+The user supplied 2 reports as input, both in `lab/research/`: `context7-report.md`, on how Context7 retrieves docs, and `context-7-alternatives.md`, on the tools competing with it.
 
 ## Where the conversation stands
 
@@ -223,7 +223,7 @@ Walked against the repository on 2026-09-19, every file below opened and its lin
 
 ### Step 1: the 2 scripts
 
-Both find the global folder as `${FLOW_HOME:-$HOME/.flow}`, the variable `scripts/flow/lib/settings.js` already reads, so a trial can point them into `tmp/`.
+Both find the global folder as `${FLOW_HOME:-$HOME/.flow}`, the variable `scripts/lib/settings.js` already reads, so a trial can point them into `tmp/`.
 
 **`skills/tools/research/scripts/fetch-docs.sh`**, rewritten:
 

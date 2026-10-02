@@ -34,7 +34,7 @@ A project's `.flow/` used to be committed with the code, so every branch carried
 
 Decided with the user and built 2026-10-01. A project's tickets live in one of 2 places: the project's `flow` branch, above, or the Flow home.
 
-- **In the Flow home, `.flow/` is a link** to `~/.flow/projects/<name>/`, which `flow sync` carries to the user's other machines. `<name>` is the project folder's name, with `-2`, `-3` where taken. `scripts/flow/lib/records-place.js` holds it.
+- **In the Flow home, `.flow/` is a link** to `~/.flow/projects/<name>/`, which `flow sync` carries to the user's other machines. `<name>` is the project folder's name, with `-2`, `-3` where taken. `scripts/lib/tickets/records-place.js` holds it.
 - **Why a second place**: a public repository would publish its tickets on the branch, and a repository whose remote refuses the user's pushes can't take a branch at all. `--local` covered the second case with a plain folder that never left the clone, so the user's own other machines never saw those tickets.
 - **`--private` names the flag**, over `--home`: the only reason to pick the Flow home is keeping the tickets out of the repository, and `home` names a folder. `flow store branch` and `flow store private` move the tickets. Set by the user 2026-10-01.
 - **No place on one machine alone.** `--machine-only`, built for an employer forbidding work notes in a personal GitHub repository, went the same day it was built: the user ruled the case not worth a flag in V1. A plain `.flow/` folder left by `--local` still reads as `folder` and still works. Nothing makes one any more.
@@ -72,7 +72,7 @@ In order, the first that applies. `flow init` syncs the Flow home before it look
 - **Pull** at session start, in the background, and right before a new ticket takes its number. A project linked into the Flow home pulls with a sync of the Flow home at session start, since 2026-10-01.
 - **Offline**, a push skips quietly and the next checkpoint tries again, except for a new ticket, below. Any other failure goes to the failure log.
 - **`flow sync`** stays, for a push by hand. Typed inside a project it syncs the project's branch too, even when `~/.flow/` refuses.
-- **`scripts/records-sync.js`** runs every checkpoint nobody typed. `~/.flow/records-sync.json` holds when each place last sent, and never travels.
+- **`scripts/jobs/records-sync.js`** runs every checkpoint nobody typed. `~/.flow/records-sync.json` holds when each place last sent, and never travels.
 
 ## A new ticket is pushed at once, or not made
 
@@ -96,7 +96,7 @@ Decided by the user and built on 2026-09-29. Tickets left the code branches, so 
 - **`history.md`** in the ticket folder, one line per status move and per `flow handoff <id>`, which `/flow:handoff` runs after writing `## State`: `2026-09-29 14:02  todo → building  <session id>  "<title>"  feature/budgets`. In the folder rather than in commit messages, so it travels with `flow move` and exists in a project kept in the Flow home, which commits nothing on its own.
 - **The session id is `CLAUDE_CODE_SESSION_ID`**, which Claude Code sets for every command it runs, so no hook is needed. A command typed outside a session writes `-`.
 - **The title** is read from the transcript under `~/.claude/projects/`: the last `customTitle` (a `/rename`), else the last `aiTitle`. A transcript exists only on the machine that ran it and is deleted after 365 days (`cleanupPeriodDays`).
-- **`scripts/flow/lib/ticket-history.js`** holds it. A failed history write never undoes the move.
+- **`scripts/lib/tickets/ticket-history.js`** holds it. A failed history write never undoes the move.
 
 ## The phase skills' first line: `flow load`
 
@@ -115,7 +115,7 @@ Removed 2026-09-30, with `ID_SHAPE`: a ticket reaches a phase skill through its 
 - **`flow restore`**: puts this project or this machine back as before Flow.
 - **`flow uninstall`**: removes Flow.
 
-`flow setup` and `flow setup project` are gone: `scripts/flow/commands/setup.js` is a library holding both sessions. `migrate` was rejected as a command name: `flow update` and the machine setup already migrate.
+`flow setup` and `flow setup project` are gone: `scripts/lib/setup.js` is a library holding both sessions. `migrate` was rejected as a command name: `flow update` and the machine setup already migrate.
 
 ## What `flow init` checks
 

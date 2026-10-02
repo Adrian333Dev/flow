@@ -13,7 +13,7 @@ The user's rule. A `grep` that finds nothing exits with 1, and nobody would act 
 - **Kept**: an MCP tool that returned an error, a Flow command or bundled script that exited with an error (`flow`, `fw`, `util`, `u`, anything under `~/.flow/scripts/` or `skills/flow/skills/`), an API error that ended a turn, and what the agent reports.
 - **Dropped**: every other shell command, every built-in tool, and a call the user interrupted.
 
-The Claude Code docs settled the one open question before the build: a Bash command that exits non-zero does fire `PostToolUseFailure`, with `Exit code N` as the error's first line. So the filter is needed, and it lives in `scripts/flow/lib/failures.js` → `flowCommand()`.
+The Claude Code docs settled the one open question before the build: a Bash command that exits non-zero does fire `PostToolUseFailure`, with `Exit code N` as the error's first line. So the filter is needed, and it lives in `scripts/lib/logs/failures.js` → `flowCommand()`.
 
 ## 3 writers, one line
 
@@ -21,7 +21,7 @@ The Claude Code docs settled the one open question before the build: a Bash comm
 {"at":"2026-09-27T14:02:11Z","source":"hook","what":"mcp__supabase__list_tables","error":"401 Unauthorized","project":"/home/me/code/shop","session":"b81748eb-…","call":"toolu_01…"}
 ```
 
-- **`scripts/failures.js`**, on `PostToolUseFailure` for `Bash` and `mcp__*`, and on `StopFailure`.
+- **`scripts/hooks/failures.js`**, on `PostToolUseFailure` for `Bash` and `mcp__*`, and on `StopFailure`.
 - **Flow's scripts**, through `failures.record()`, for what runs where no session sees it: a clone `flow install` could not make, a pull or fetch the background update could not finish, a `flow sync` git could not complete. A `flow sync` refusal, such as another machine being ahead, is the design working and is never logged.
 - **The agent**, by `home/AGENTS.md` → `## Capture`, for what no hook sees. It adds the line with a shell command. No writing command was built.
 

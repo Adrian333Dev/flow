@@ -72,7 +72,7 @@ flow <id>               show one ticket in full
 flow audit read         query session history from indexed transcripts
 ```
 
-Status commands are named for where the ticket lands: `flow groundwork t047`, `flow plan t047`, `flow build t047`, `flow review t047`, `flow done t047`.
+Status commands are named for where the ticket lands: `flow groundwork exp-47`, `flow plan exp-47`, `flow build exp-47`, `flow review exp-47`, `flow done exp-47`.
 
 The handoff (`/flow:handoff`) writes what the next session would get wrong without it: what is half-done, what cost effort to learn, decisions half-made, files changed outside the plan. `flow get --files` assembles the ticket, its handoff state, and every file named in its `open` block into a context the next session can act on immediately. Sessions do not start from zero.
 
@@ -99,7 +99,7 @@ Two more fire on a situation:
 
 ## Built-in mechanisms
 
-### The guard ([`scripts/guard.js`](scripts/guard.js))
+### The guard ([`scripts/hooks/guard.js`](scripts/hooks/guard.js))
 
 A `PreToolUse` hook that runs before every shell command the agent executes. It reads the whole command the way bash splits it, loops, `$(…)`, `bash -c` and `xargs` included, and asks you before 5 kinds of harm:
 
@@ -115,7 +115,7 @@ Each one asks every time, even after you saved a rule allowing that command. The
 
 Flow's settings allow edits, file reads, web lookups and every shell command, so a loop or a variable never stops for a yes. A shell command asks only when the guard asks, or when it commits, pushes or publishes a package. Those 3 ask every time. Listing safe commands was tried twice and dropped: Claude writes shell in endless shapes, and each shape a list missed asked again. `sudo`, `su`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright. [Settings](lab/archive/manual/settings.md#why-every-shell-command-is-allowed) records why, and why auto mode and the sandbox lost.
 
-### Subagent verification by change record ([`scripts/changes.js`](scripts/changes.js))
+### Subagent verification by change record ([`scripts/hooks/changes.js`](scripts/hooks/changes.js))
 
 A set of hooks records every change as it happens, under the id of the agent that made it. An edit is recorded as the file before and after. A shell command is recorded as a git snapshot of the whole working tree either side of it, taken against a throwaway index, so uncommitted work is included and the real index, the files and HEAD stay untouched. When a subagent finishes, the parent receives one diff per file that subagent changed, plus the commands that changed files. The parent judges the work by that record, never by the worker's summary. Several subagents can run at once in the same working copy, and each record holds only its own subagent's changes.
 
@@ -129,7 +129,7 @@ An `open` block in a ticket or handoff names files and line ranges. When `flow g
 
 ### The audit system
 
-`flow audit` indexes the transcripts Claude Code writes at `~/.claude/projects/` into a SQLite database and answers queries against them. It reads any session that ever ran, including sessions from before the audit existed. `flow audit read` opens a bounded turn range from a past session. `flow audit sessions` lists what is available. The index is derived and rebuildable from the raw transcripts at any time.
+`flow audit` indexes the transcripts Claude Code writes at `~/.claude/projects/` into a SQLite database and answers queries against them. It reads any session that ever ran, including sessions from before the audit existed. `flow audit read` opens a bounded turn range from a past session. `flow audit ls` lists what is available. The index is derived and rebuildable from the raw transcripts at any time.
 
 ### Permission denials and feature flags
 

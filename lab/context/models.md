@@ -37,7 +37,7 @@ Sonnet 4.6 puts the report before the edits without being told. Opus 5 never doe
 
 **Recommendation: have the status line write the current model to a file keyed by session id, and let every hook read that file.**
 
-The status line already runs, already receives `model.id`, and is the only source that sees a `/model` switch the moment it happens. `scripts/rule-check.js` records effort on every scorecard result and leaves the model out, with a comment saying the model waits for exactly this sensor.
+The status line already runs, already receives `model.id`, and is the only source that sees a `/model` switch the moment it happens. `scripts/hooks/rule-check.js` records effort on every scorecard result and leaves the model out, with a comment saying the model waits for exactly this sensor.
 
 The alternative is every hook parsing the transcript backwards for the last assistant event. That repeats file reading on every edit, and fails on a session's first turn, where no assistant event exists yet.
 
@@ -330,7 +330,7 @@ the vendor path holds links. 3 cases, 3 answers.
 
 **Skills: nearly free, and Flow's existing rule is what makes it safe.** `CLAUDE.md` already forbids
 symlinking `skills/` as a folder, and `flow install` links per item
-(`scripts/flow/commands/install.js:91` to `:93`). That rule dodges a documented failure: Claude Code
+(`scripts/commands/install.js:91` to `:93`). That rule dodges a documented failure: Claude Code
 writes internal `.system/` files into `~/.claude/skills/`, which pollutes a whole-folder symlink.
 
 **Do not chain the links.** `clone → ~/.agents/skills/<name> → ~/.claude/skills/<name>` is a link

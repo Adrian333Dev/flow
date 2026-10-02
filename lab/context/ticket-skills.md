@@ -8,7 +8,7 @@ Typing a ticket should offer a list showing each ticket's id, title and status, 
 
 ## Why not the `@` list
 
-`fileSuggestion` (`scripts/file-suggestion.js`) prints file paths only, and Claude Code inserts the picked line after the `@`. A line carrying a description would attach nothing. Ticket folders already carry the title in their name, `.flow/tickets/exp-47-daemon-detection/ticket.md`, and that was the most `@` could show. An MCP server offering tickets as `@` resources was set aside: the docs never say whether the list shows a resource's description, and it is a process running in every session.
+`fileSuggestion` (`scripts/hooks/file-suggestion.js`) prints file paths only, and Claude Code inserts the picked line after the `@`. A line carrying a description would attach nothing. Ticket folders already carry the title in their name, `.flow/tickets/exp-47-daemon-detection/ticket.md`, and that was the most `@` could show. An MCP server offering tickets as `@` resources was set aside: the docs never say whether the list shows a resource's description, and it is a process running in every session.
 
 ## The design: one generated skill per open ticket
 
@@ -56,7 +56,7 @@ Claude Code 2.1.285, run in `tmux` in a scratch project with 5 made-up ticket sk
 
 ## What keeps the skills current
 
-`scripts/flow/lib/ticket-skills.js` holds `sync`. It writes a folder for each listed ticket that lacks one, rewrites one whose title or status changed, skips one already right, and deletes a marked folder whose ticket is no longer listed.
+`scripts/lib/tickets/ticket-skills.js` holds `sync`. It writes a folder for each listed ticket that lacks one, rewrites one whose title or status changed, skips one already right, and deletes a marked folder whose ticket is no longer listed.
 
 - **After every `flow` command that writes a ticket**: `new`, `edit`, `dep`, `file`, `drop`, `move` and every status verb, wrapped once at the bottom of `tickets.js`. It syncs the project the command ran in and the tickets in `~/.flow/`. A failure prints a line and never fails the command.
 - **`session-check.js` when a session opens**: a full `sync`, then `reloadSkills: true` in the hook's output, so skills written there count from the first prompt.
@@ -65,13 +65,13 @@ The docs say Claude Code picks up a skill added, changed or removed under `.clau
 
 ## What was built
 
-- `scripts/flow/lib/ticket-skills.js`: new. `sync`, and `removeAll` for `flow uninstall`.
-- `scripts/flow/commands/tickets.js`: calls `sync` after a write. `flow load` is deleted.
-- `scripts/check-ticket.js`: keeps the machine check, and the project check for a bare `/flow:start`. The id check is deleted. The file keeps its name.
-- `scripts/flow/lib/store.js`: `ID_SHAPE` is deleted, having no reader left.
-- `scripts/session-check.js`: `sync`, then `reloadSkills`.
-- `scripts/flow/commands/init.js`: creates `.claude/skills/`, and skips it in `competing()` while it holds only ticket skills.
-- `scripts/flow/commands/uninstall.js`: deletes every marked folder, in each project and in `~/.claude/skills/`.
+- `scripts/lib/tickets/ticket-skills.js`: new. `sync`, and `removeAll` for `flow uninstall`.
+- `scripts/commands/tickets.js`: calls `sync` after a write. `flow load` is deleted.
+- `scripts/hooks/check-ticket.js`: keeps the machine check, and the project check for a bare `/flow:start`. The id check is deleted. The file keeps its name.
+- `scripts/lib/tickets/store.js`: `ID_SHAPE` is deleted, having no reader left.
+- `scripts/hooks/session-check.js`: `sync`, then `reloadSkills`.
+- `scripts/commands/init.js`: creates `.claude/skills/`, and skips it in `competing()` while it holds only ticket skills.
+- `scripts/commands/uninstall.js`: deletes every marked folder, in each project and in `~/.claude/skills/`.
 - `scripts/tests/ticket-skills.test.js`: new, 7 tests. The tests for `flow load` and the id check are deleted. `helpers/scratch.js` points `CLAUDE_CONFIG_DIR` into `tmp/tests/`, since a `flow` command in a test would otherwise write home ticket skills into the real `~/.claude/skills/`.
 - The 4 phase skills: the first line and `argument-hint` are deleted. `/flow:start`: `argument-hint` is `[path]`, and it gains its line for a ticket printed above.
 - `home/AGENTS.md` → `## Scripts`: `flow get <id> --files`, for a ticket id typed in the user's message.
@@ -115,14 +115,14 @@ Removed by the one-way decision above, and written here before the deletion. Git
 - **What it did**: printed the ticket and every file its `open` block names, as `flow get <id> --files` does, where the word was shaped like a ticket id. Any other word printed nothing. A refusal printed as text and exited 0, so it landed in the skill instead of breaking its load.
 - **Shaped like an id**: `store.ID_SHAPE`, `/^([a-z]{2,8}-)?\d+(-|$)/i`, so `47`, `exp-47` and the folder name `exp-47-parser-split` matched and `start` did not. `check-ticket.js` shared it. It went with both, having no other reader.
 - **Why it existed**: the phase skills' first line had been an inline bash test the user could not read. `flow load` gave that line one named command, on 2026-09-29.
-- **Last version**: `actions.load` in `scripts/flow/commands/tickets.js`, `ID_SHAPE` in `scripts/flow/lib/store.js`, and its test in `scripts/tests/records.test.js`, "flow load prints a ticket for a word shaped like an id". Commit `3da0e93`, `ID_SHAPE` since `04bfd7a`.
+- **Last version**: `actions.load` in `scripts/commands/tickets.js`, `ID_SHAPE` in `scripts/lib/tickets/store.js`, and its test in `scripts/tests/records.test.js`, "flow load prints a ticket for a word shaped like an id". Commit `3da0e93`, `ID_SHAPE` since `04bfd7a`.
 - **Bringing it back**: restore the 3 pieces from that commit, then the phase skills' first line below.
 
 ### The id check in `check-ticket.js`
 
 - **What it did**: read the first word typed after a phase skill or `/flow:start`. A word shaped like an id went to `flow get`. On a miss, the hook blocked the skill before it loaded and showed `flow`'s message, so a typo cost 1 line instead of the whole skill. A `home-` id skipped the project check, since it lives in `~/.flow/`.
 - **Why it existed**: a phase skill loaded its ticket through its own first line, so a bad id printed a refusal and then loaded hundreds of lines on top of it.
-- **Last version**: `scripts/check-ticket.js` and `scripts/tests/check-ticket.test.js` at commit `04bfd7a`. The machine and project checks stay in the file.
+- **Last version**: `scripts/hooks/check-ticket.js` and `scripts/tests/check-ticket.test.js` at commit `04bfd7a`. The machine and project checks stay in the file.
 - **Bringing it back**: only with the phase skills taking an id again. Restore the `ID.test(first)` branch and its tests from that commit.
 
 ### The phase skills' first line

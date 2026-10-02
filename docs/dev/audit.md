@@ -2,7 +2,7 @@
 
 `flow audit` reads the transcripts Claude Code already writes and builds a SQLite index over them. This page is for whoever changes that code or writes a query against the index. It says what a transcript holds, which unit the index groups by, what each table holds, what the reader has to get right, and where the data lives. The commands themselves are in [Reference](../../lab/archive/manual/reference.md#audit).
 
-Checked against schema version 6 in `scripts/flow/lib/audit/store.js` on 2026-09-15. The transcript facts come from this machine's own transcripts and from Claude Code's [Sessions](https://code.claude.com/docs/en/sessions), [The .claude directory](https://code.claude.com/docs/en/claude-directory) and [Hooks](https://code.claude.com/docs/en/hooks) pages.
+Checked against schema version 6 in `scripts/lib/audit/database.js` on 2026-09-15. The transcript facts come from this machine's own transcripts and from Claude Code's [Sessions](https://code.claude.com/docs/en/sessions), [The .claude directory](https://code.claude.com/docs/en/claude-directory) and [Hooks](https://code.claude.com/docs/en/hooks) pages.
 
 ## Table of contents
 
@@ -96,7 +96,7 @@ attachment:compact_file_reference  declared    485
 
 ## What the reader has to get right
 
-`scripts/flow/lib/audit/scan.js` walks the transcripts, and `files.js` decides which file a call touched. Each case below broke the index once on real transcripts.
+`scripts/lib/audit/scan.js` walks the transcripts, and `files.js` decides which file a call touched. Each case below broke the index once on real transcripts.
 
 - **A turn is found by position.** Only user lines carry `promptId`, so a turn runs from one user line with a new `promptId` to the next one, in file order.
 - **Order is file order, never timestamps.** One session resumed in 2 terminals mixes its messages into one file.

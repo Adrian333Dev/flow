@@ -17,12 +17,12 @@ Installing creates symlinks from your machine into this clone, so most files are
 
 When you first open the repository, the split that matters has four parts:
 
-- **Eight folders install**: `home/`, `scripts/`, `references/`, `skills/`, `agents/`, `rules/`, `commands/`, and `project-template/`
-- **Seven entries belong to the repository**: `CLAUDE.md`, `README.md`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
+- **6 folders install**: `home/`, `scripts/`, `references/`, `skills/`, `claude/`, and `project-template/`
+- **7 entries belong to the repository**: `CLAUDE.md`, `README.md`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
 - **`lab/` is the design record**: installed nowhere, never deleted
 - **`repos/` and `tmp/` are gitignored**: either can be thrown away at any moment
 
-`.gitignore`, `.gitmodules`, and `.vscode/` belong to git and the editor. Flow reads none of them.
+`.gitignore`, `.gitmodules`, and `.vscode/` belong to git and the editor. Flow reads none of them. `.vscode/` is gitignored, since it holds one person's editor settings.
 
 ## What installs on a machine
 
@@ -32,40 +32,52 @@ When you first open the repository, the split that matters has four parts:
 
 **`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../../lab/archive/manual/settings.md) explains every key. The setup session `flow install` opens merges it into `~/.claude/settings.json` key by key. The links `flow install` makes before that session write none of the 3 above: a rule file copied before the interview holds nothing of the user.
 
-**`scripts/`** holds the CLI, the hooks, and the script that carries out a migration:
+**`scripts/`** holds the CLI, the hooks, and the script that carries out a migration. Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
-- `flow/flow.js` is the entry point. `lib/` holds the argument layer and the model. `commands/` holds one file per command group: `init.js` is `flow init` and `flow store`, `status-line.js` is `flow status-line`, and `setup.js` holds the setup sessions `flow install` and `flow init` open. `lib/records.js` keeps a project's tickets on its branch `flow`: the commit, the pull, the push, the renumbering after a clash, and checking the branch out at `.flow/`. `lib/records-place.js` keeps them in the Flow home instead: the folder under `~/.flow/projects/`, the link `.flow/` to it, and the repository's address that finds it from another clone. `lib/ticket-history.js` writes a ticket's `branch:` and its `history.md`. `lib/ticket-skills.js` writes one user-only skill per open ticket, after every command that writes a ticket. `lib/audit/` reads Claude Code's transcripts.
-- `flow/setup/` holds what the sessions Flow opens follow: `machine.md` and `form.md` for `flow install`, `project.md` and `project-form.md` for `flow init`, and `migrate.md`, instructions and form in one file, for `flow update`. Not skills: `commands/setup.js` and `commands/up.js` hand the text over as a system prompt, and the machine's setup runs in safe mode, which loads no skill.
-- `guard.js` is the `PreToolUse` hook on Bash. It reads each command the way bash splits it, asks before 5 kinds of harm, and never allows anything. `scripts/tests/guard.test.js` holds a case for each kind.
-- `changes.js` records what each subagent changed, under its agent id, and hands the parent a diff per file when the subagent finishes. `flow/lib/changes.js` holds the logic.
-- `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
-- `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
-- `failures.js` is the `PostToolUseFailure` and `StopFailure` hook. It writes a line into `~/.flow/logs/failures/<month>.jsonl` for a failed MCP tool, a failed Flow command or bundled script, and an API error that ended a turn. `flow/lib/failures.js` holds which calls count, and `flow/lib/logs.js` the one file per month every log under `~/.flow/logs/` uses.
-- `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill before it loads on a machine not set up, and a bare `/flow:start` in a folder with no project.
-- `overlays.js` is the `UserPromptExpansion` hook and the `PostToolUse` hook on `Skill`. Each time a skill loads, typed or loaded by the agent, it hands the agent the project's `.flow/overlays/<name>.md`, for every skill, Flow's or not.
-- `reminder.js` is the `UserPromptSubmit` hook that prints `references/reminder.md` beside every message, unless `"reminder": false` in `~/.flow/settings.json` silences it.
-- `compact-check.js` is the `PreCompact` hook on a typed `/compact`. It refuses with exit 2 and names `/flow:handoff`, then `/clear`. `"compact": true` lets it run.
-- `context-check.js` is the `PostToolBatch` and `UserPromptSubmit` hook that tells the agent to hand off once the conversation passes `"wrapUpAt"` tokens, 150,000 by default, and again every 20,000 past it. It reads the size off the session file. `"wrapUp": false` silences it.
-- `session-check.js` is the `SessionStart` hook that names what needs attention, reading `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`, and printing nothing when all 3 are fine. `"sessionCheck": false` silences it. In a git repository with no `.flow/` it suggests `flow init` through `systemMessage`, to the user alone. It also makes every skill link match the `skills` lines, through `flow/lib/skill-links.js`, makes every ticket skill match the tickets, through `flow/lib/ticket-skills.js`, and starts `records-sync.js` for a project on its branch `flow`.
-- `records-sync.js` saves and sends a project's tickets, and `~/.flow/` with the projects kept in it, where nobody typed `flow sync`: the `Stop` hook after a reply once 30 minutes have passed, the `SessionEnd` hook, a status move and the session check, each in the background. `flow/lib/records.js` holds the logic.
-- `skills-pull.js` updates every skill repository in `~/.flow/repos/sources/` in the background, started by the session check and never typed. It pulls, or fetches and writes what is waiting into `~/.flow/skills-update.json`, which `"skillsAutoUpdate": false` chooses. `flow/lib/skills-update.js` holds the logic.
-- `file-suggestion.js` builds the list `@` opens, named by `fileSuggestion` in `home/settings.json`. It saves each project's walk in the system's temp folder and answers every keystroke from it.
-- `apply-migration.js` carries out a migration that `flow install`, `flow init` or `flow update` wrote, copying each path into the place's original before it changes, while that window is open. It is not a `flow` command, so it is never typed by hand. `flow/lib/migrations.js` and `flow/lib/originals.js` hold the logic.
+- `flow.js` is the entry point. It names the commands and hands what was typed to `lib/cli.js`, the argument layer. [Designing a flow command](commands.md) holds the rules every command follows.
+- `commands/` holds one file per command or group: `init.js` is `flow init`, `store.js` is `flow store`, `update.js` is `flow update`, and `status-line.js` is `flow status-line`.
+- `lib/` holds everything the commands, the hooks and the jobs share. A folder groups one subject, and the files loose in `lib/` serve every subject:
+  - `tickets/`: the tickets. `store.js` is the only file that reads or writes a ticket's folder. `records.js` keeps a project's tickets on its branch `flow`: the commit, the pull, the push, the renumbering after a clash, and checking the branch out at `.flow/`. `records-place.js` keeps them in the Flow home instead: the folder under `~/.flow/projects/`, the link `.flow/` to it, and the repository's address that finds it from another clone. `ticket-history.js` sets a ticket's `branch:` and words the lines of its `history.md`. `ticket-skills.js` writes one user-only skill per open ticket, after every command that writes a ticket.
+  - `machine/`: this machine. What Flow installed, its links, the originals a restore puts back, the migrations, the version stamp, and `~/.flow/` as a private git repository.
+  - `skills/`: the skill links, the skill repositories, and their updates.
+  - `logs/`: the one file per month every log under `~/.flow/logs/` uses, and which failed calls count.
+  - `checks/`: the rule checks and their scorecard.
+  - `audit/`: Claude Code's transcripts, read into the index `flow audit` answers from.
+  - `guard/`: the guard's judgment. `world.js` alone reads the disk, git and the environment. Every other file there turns a command into a decision.
+  - `setup.js` holds the setup sessions `flow install`, `flow init` and `flow update` open. `paths.js` finds every Flow folder, `project.js` the project around a folder, `git.js` runs git and `gh`, and `hook.js` reads a hook's event and writes its answer.
+- `hooks/` holds one file per hook Claude Code runs. Each reads the event, calls `lib/`, and writes the answer:
+  - `guard.js` is the `PreToolUse` hook on Bash. It reads each command the way bash splits it, asks before 5 kinds of harm, and never allows anything. `scripts/tests/guard.test.js` holds a case for each kind.
+  - `changes.js` records what each subagent changed, under its agent id, and hands the parent a diff per file when the subagent finishes. `lib/changes.js` holds the logic.
+  - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
+  - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
+  - `failures.js` is the `PostToolUseFailure` and `StopFailure` hook. It writes a line into `~/.flow/logs/failures/<month>.jsonl` for a failed MCP tool, a failed Flow command or bundled script, and an API error that ended a turn. `lib/logs/failures.js` holds which calls count.
+  - `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill before it loads on a machine not set up, and a bare `/flow:start` in a folder with no project.
+  - `overlays.js` is the `UserPromptExpansion` hook and the `PostToolUse` hook on `Skill`. Each time a skill loads, typed or loaded by the agent, it hands the agent the project's `.flow/overlays/<name>.md`, for every skill, Flow's or not.
+  - `reminder.js` is the `UserPromptSubmit` hook that prints `references/reminder.md` beside every message, unless `"reminder": false` in `~/.flow/settings.json` silences it.
+  - `compact-check.js` is the `PreCompact` hook on a typed `/compact`. It refuses with exit 2 and names `/flow:handoff`, then `/clear`. `"compact": true` lets it run.
+  - `context-check.js` is the `PostToolBatch` and `UserPromptSubmit` hook that tells the agent to hand off once the conversation passes `"wrapUpAt"` tokens, 150,000 by default, and again every 20,000 past it. It reads the size off the session file. `"wrapUp": false` silences it.
+  - `session-check.js` is the `SessionStart` hook that names what needs attention, reading `~/.flow/run.json`, `~/.flow/version` and the project's `.flow/version`, and printing nothing when all 3 are fine. `"sessionCheck": false` silences it. In a git repository with no `.flow/` it suggests `flow init` through `systemMessage`, to the user alone. It also makes every skill link match the `skills` lines, makes every ticket skill match the tickets, and starts `jobs/records-sync.js` for a project on its branch `flow`. `lib/session-start.js` holds the logic.
+  - `file-suggestion.js` builds the list `@` opens, named by `fileSuggestion` in `home/settings.json`. It saves each project's walk in the system's temp folder and answers every keystroke from it.
+- `jobs/` holds the 2 scripts that run in the background, never typed:
+  - `records-sync.js` saves and sends a project's tickets, and `~/.flow/` with the projects kept in it, where nobody typed `flow sync`: the `Stop` hook after a reply once 30 minutes have passed, the `SessionEnd` hook, a status move and the session check. `lib/tickets/records.js` holds the logic.
+  - `skills-pull.js` updates every skill repository in `~/.flow/repos/sources/`, started by the session check. It pulls each one. With `"skillsAutoUpdate": false` it only fetches, and writes what is waiting into `~/.flow/skills-update.json`. `lib/skills/skills-update.js` holds the logic.
+- `sessions/` holds what the sessions Flow opens follow: `machine.md` and `form.md` for `flow install`, `project.md` and `project-form.md` for `flow init`, and `migrate.md`, instructions and form in one file, for `flow update`. Not skills: `lib/setup.js` hands the text over as a system prompt, and the machine's setup runs in safe mode, which loads no skill.
+- `templates/` holds what Flow writes a new file from: a ticket, a map, a study case, and the `README.md` of `~/.flow/`.
+- `apply-migration.js` carries out a migration that `flow install`, `flow init` or `flow update` wrote, During a place's first setup, it copies each path into the place's originals before changing it. `flow restore` puts those back. Later migrations record nothing. It is not a `flow` command, so nobody types it by accident. `lib/machine/migrations.js` and `lib/machine/originals.js` hold the logic.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and `/flow:file-findings`' `references/write-checks.md` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
-- Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
-**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, with `cut-loaded-files.md` beside it for a file an agent loads, `write-rules.md` for a rule file and `write-docs.md` for a documentation page, `workflow.md` describes how the pieces fit, `knowledge.md` maps how skills, plugins, MCP servers and findings arrive and grow, `study-cases.md` says how to record a failure, `cli-design.md` carries the rules the `flow` command surface follows, `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message, and `harnesses/<name>.md` says where one harness keeps its own files, Claude Code's first. Symlinked as `~/.flow/references`.
+**`references/`** holds files Flow ships and rarely loads: `style.md` is the house style, with `cut-loaded-files.md` beside it for a file an agent loads, `write-rules.md` for a rule file and `write-docs.md` for a documentation page, `workflow.md` describes how the pieces fit, `knowledge.md` maps how skills, plugins, MCP servers and findings arrive and grow, `study-cases.md` says how to record a failure, `reminder.md` is the line the `UserPromptSubmit` hook prints beside every message, and `harnesses/<name>.md` says where one harness keeps its own files, Claude Code's first. Symlinked as `~/.flow/references`.
 
 **`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.agents/skills/flow/skills/`, so the only group names read outside this tree are `drafts/`, which never installs, and `dev/`, whose skills switch.
 
 **`skills/.claude-plugin/plugin.json`** is 2 lines naming Flow and describing it, and it is what makes every skill typed `/flow:groundwork` instead of `/groundwork`. Codex reads it here, because it follows each skill's link into this tree and looks above the real folder. `flow install` copies it into `~/.agents/skills/flow/.claude-plugin/`, where Claude Code reads it. Copied rather than linked, because Codex ignores a symlinked manifest. That copy and `~/.flow/settings.local.json` are the only things `flow install` writes that are not symlinks.
 
-**`agents/`** holds subagent definitions, one markdown file each: a system prompt, a tool allowlist, and a model. Symlinked into `~/.claude/agents/`.
+**`claude/`** holds what Claude Code alone reads, each file symlinked into the folder of the same name under `~/.claude/`:
 
-**`rules/`** holds prescriptive rules, one markdown file per topic. Each file is symlinked into `~/.claude/rules/` by `flow install`. Rules without `paths:` frontmatter load every session; rules with `paths:` load only when the agent reads a matching file. Populated by `/flow:file-findings` when knowledge is promoted from `.flow/findings/`.
-
-**`commands/`** holds commands, one markdown file each, typed by the file name with no `flow:` prefix: `capture.md` is `/capture`. Each file is symlinked into `~/.claude/commands/`. A command is for a manual trigger only the user types, so each carries `disable-model-invocation: true` and costs no context until typed.
+- `agents/` holds subagent definitions, one markdown file each: a system prompt, a tool allowlist, and a model.
+- `rules/` holds prescriptive rules, one markdown file per topic. Rules without `paths:` frontmatter load every session; rules with `paths:` load only when the agent reads a matching file. Populated by `/flow:file-findings` when knowledge is promoted from `.flow/findings/`.
+- `commands/` holds commands, one markdown file each, typed by the file name with no `flow:` prefix: `capture.md` is `/capture`. A command is for a manual trigger only the user types, so each carries `disable-model-invocation: true` and costs no context until typed.
 
 **`project-template/`** is what a new project starts with: an `AGENTS.md` with 2 sections (`## Project`, `## Rules`), each holding a placeholder comment, a `CLAUDE.md` holding the one line `@AGENTS.md`, an empty `.claude/settings.json`, a `.gitignore` and a `.uncommitted-include`. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.uncommitted-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git uncommitted send`.
 

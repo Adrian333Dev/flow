@@ -3,8 +3,8 @@
 /**
  * apply-migration.js <id> [--root <dir>]: carry out a migration, recording
  * each path in the place's original the moment before it changes, while that
- * original's window is open. `flow/lib/migrations.js` says what a migration
- * is, and `flow/lib/originals.js` what an original holds and when it closes.
+ * original's window is open. `lib/machine/migrations.js` says what a migration
+ * is, and `lib/machine/originals.js` what an original holds and when it closes.
  *
  * The sessions `flow install`, `flow init` and `flow update` open run it, after the
  * user's yes and never before. It is not a flow command and not on PATH: bare
@@ -36,15 +36,16 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { out, parseArgs } = require('./flow/lib/cli');
-const { FlowError } = require('./flow/lib/error');
-const history = require('./flow/lib/history');
-const machine = require('./flow/lib/machine');
-const migrations = require('./flow/lib/migrations');
-const originals = require('./flow/lib/originals');
-const prereq = require('./flow/lib/prereq');
+const { out, parseArgs } = require('./lib/cli');
+const { FlowError } = require('./lib/error');
+const logs = require('./lib/logs/logs');
+const machine = require('./lib/machine/machine');
+const migrations = require('./lib/machine/migrations');
+const originals = require('./lib/machine/originals');
+const prereq = require('./lib/machine/prereq');
+const paths = require('./lib/paths');
 
-const show = machine.shorten;
+const show = paths.shorten;
 const USAGE = 'apply-migration.js <id> [--root <dir>]';
 
 /** The 2 types that write an original. Everything after them records nothing. */
@@ -108,7 +109,8 @@ function apply(argv) {
   const { positional, flags } = parseArgs(argv, { flags: { root: { arg: '<dir>' } }, usage: USAGE });
   const [id, ...extra] = positional;
   if (!id || extra.length) throw new FlowError(`usage: ${USAGE}, the id being the folder's path below ~/.flow/migrations/`);
-  const at = machine.folders(flags.root);
+  paths.useRoot(flags.root);
+  const at = paths.folders(flags.root);
   const dir = migrations.folder(at, id);
   const migration = migrations.read(dir, at);
   const lines = migration.actions.map((a) => a.line);
@@ -145,7 +147,7 @@ function apply(argv) {
   }
 
   // Last, because the other refusals name the migration and this one names the
-  // machine. lib/prereq.js holds the list and what each failure costs.
+  // machine. lib/machine/prereq.js holds the list and what each failure costs.
   prereq.demand(nothing);
 
   // The first setup of a place is the one run allowed to open its original.
@@ -173,7 +175,7 @@ function apply(argv) {
   }
 
   if (SETUP[type]) originals.close(at, project);
-  history.record(at.flow, { type, id, lines: lines.length, ...(project ? { project } : {}) });
+  logs.recordHistory(at.flow, { type, id, lines: lines.length, ...(project ? { project } : {}) });
   const back = wayBack(at, project);
   out(`applied ${id}, ${lines.length} lines.${back ? ` Put this ${project ? 'project' : 'machine'} back with ${back}` : ''}`);
   return 0;

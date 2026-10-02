@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow sync` and `lib/flow-repo.js`: `~/.flow/` as one private git
+ * `flow sync` and `lib/machine/flow-repo.js`: `~/.flow/` as one private git
  * repository, which is the whole of how Flow reaches another machine.
  *
  * The list of what never travels, the `.gitignore` written from it, the
@@ -19,9 +19,10 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { project, run, flow, bareRepo, REPO } = require('./helpers/scratch');
-const repo = require('../flow/lib/flow-repo');
-const folders = require('../flow/lib/machine').folders;
-const version = require('../flow/lib/version');
+const repo = require('../lib/machine/flow-repo');
+const { git } = require('../lib/git');
+const folders = require('../lib/paths').folders;
+const version = require('../lib/machine/version');
 
 const NEWEST = version.newest(REPO);
 
@@ -38,10 +39,10 @@ function machine(name) {
 /** Connect a machine to `remote` and give it its own name. */
 function connect(m, remote) {
   repo.connect(m.at, remote);
-  repo.git(m.at.flow, ['config', 'flow.machine', m.name]);
+  git(m.at.flow, ['config', 'flow.machine', m.name]);
 }
 
-const sync = (m) => run('flow/flow.js', ['sync', '--root', m.root], { cwd: m.dir });
+const sync = (m) => run('flow.js', ['sync', '--root', m.root], { cwd: m.dir });
 const read = (file) => fs.readFileSync(file, 'utf8');
 
 test('what belongs to one machine is what the ignore file names, at the top of ~/.flow/ alone', () => {
@@ -78,7 +79,7 @@ test('what belongs to one machine is what the ignore file names, at the top of ~
   // A private project's stamp and a prototype's docs/ travel, though their
   // names match a line: every line but node_modules/ holds at the top alone.
   connect(m, bareRepo('sync-ignore-remote'));
-  const ignored = (rel) => repo.git(m.at.flow, ['check-ignore', '-q', '--no-index', rel]).ok;
+  const ignored = (rel) => git(m.at.flow, ['check-ignore', '-q', '--no-index', rel]).ok;
   assert.ok(ignored('version'));
   assert.ok(ignored('docs/manual/README.md'));
   assert.ok(ignored('projects/shop/tickets/exp-3-tts/protos/a/node_modules/x.js'));
@@ -148,7 +149,7 @@ test('2 machines send and merge their work, and the same lines changed on both s
   assert.strictEqual(refused.code, 1);
   assert.match(refused.stderr, /another machine changed the same lines of workflow-notes\.md, so nothing came down and nothing went up\./);
   assert.match(read(path.join(b.at.flow, 'workflow-notes.md')), /again from b\n$/, 'nothing of b\'s was lost');
-  assert.strictEqual(repo.git(b.at.flow, ['status', '--porcelain']).out, '', 'no merge is left half done');
+  assert.strictEqual(git(b.at.flow, ['status', '--porcelain']).out, '', 'no merge is left half done');
 });
 
 test('a project linked into the Flow home travels with it, and a number 2 machines took is renumbered', () => {
@@ -174,7 +175,7 @@ test('a project linked into the Flow home travels with it, and a number 2 machin
   };
   const appA = clone(a);
   const env = (m, dir) => ({ ...process.env, FLOW_HOME: m.at.flow, FLOW_PROJECT: dir });
-  const inApp = (m, dir, args) => run('flow/flow.js', args, { cwd: dir, env: env(m, dir) });
+  const inApp = (m, dir, args) => run('flow.js', args, { cwd: dir, env: env(m, dir) });
   inApp(a, appA, ['new', 'Login page']);
   assert.match(inApp(a, appA, ['sync', '--root', a.root]).stdout, /went up/);
 
@@ -214,7 +215,7 @@ test('a machine behind another machine\'s record syncs nothing until it catches 
   const refused = sync(b);
   assert.strictEqual(refused.code, 1);
   assert.match(refused.stderr, new RegExp(`your Flow home is on changelog entry ${NEWEST + 1}, since sync-ahead moved to it, and this machine is on ${NEWEST}\\. Nothing was synced\\. Run flow update first\\.`));
-  assert.strictEqual(repo.git(b.at.flow, ['rev-list', '--count', 'HEAD']).out, '1', 'nothing was committed');
+  assert.strictEqual(git(b.at.flow, ['rev-list', '--count', 'HEAD']).out, '1', 'nothing was committed');
 
   // The session check reads the same record, from the fetch alone.
   assert.deepStrictEqual(repo.ahead(b.at, NEWEST), { name: 'sync-ahead', number: NEWEST + 1 });
@@ -249,7 +250,7 @@ test('a second machine joins through flow install, and a repository that is not 
   const home = path.join(root, '.flow');
   assert.strictEqual(read(path.join(home, 'AGENTS.md')), 'rules from the first machine\n');
   assert.strictEqual(read(path.join(home, 'study-cases', 'guessing', 'one.md')), 'a case\n');
-  assert.strictEqual(repo.git(home, ['status', '--porcelain']).out, '', 'the ignore file matches the one that came down');
+  assert.strictEqual(git(home, ['status', '--porcelain']).out, '', 'the ignore file matches the one that came down');
 
   const again = install();
   assert.doesNotMatch(again.stdout, /joined:/, 'a machine that has its files never joins twice');
@@ -268,12 +269,12 @@ test('a second machine joins through flow install, and a repository that is not 
   const other = bareRepo('sync-not-flow');
   const work = path.join(dir, 'not-flow');
   fs.mkdirSync(work, { recursive: true });
-  const git = (...args) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd: work });
-  git('init', '-q', '-b', 'main');
+  const inWork = (...args) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd: work });
+  inWork('init', '-q', '-b', 'main');
   fs.writeFileSync(path.join(work, 'README.md'), 'a website\n');
-  git('add', '-A');
-  git('commit', '-q', '-m', 'site');
-  git('push', '-q', other, 'main');
+  inWork('add', '-A');
+  inWork('commit', '-q', '-m', 'site');
+  inWork('push', '-q', other, 'main');
   const fourth = project('sync-fourth');
   const refused = flow(fourth, ['install', '--root', path.join(fourth, 'root'), '--no-bin', '--no-clone'], { FLOW_HOME_REMOTE: other });
   assert.strictEqual(refused.code, 1);
@@ -329,7 +330,7 @@ test('the first install starts the Flow home, so a second machine joins it befor
   assert.strictEqual(first.ran.code, 0, first.ran.stdout + first.ran.stderr);
   assert.match(first.ran.stdout, /named: this machine is test-machine\n/);
   assert.match(first.ran.stdout, /started: your Flow home, sent up so your other machines join it/);
-  const sent = (ref) => repo.git(first.root + '/.flow', ['ls-tree', '-r', '--name-only', ref]).out.split('\n');
+  const sent = (ref) => git(first.root + '/.flow', ['ls-tree', '-r', '--name-only', ref]).out.split('\n');
   assert.deepStrictEqual(sent('HEAD'), ['.gitignore', 'README.md', 'machines/test-machine.json'], 'the first commit');
 
   // The name the first machine claimed is taken, so the second is offered the next.
@@ -338,7 +339,7 @@ test('the first install starts the Flow home, so a second machine joins it befor
   assert.match(second.ran.stdout, /named: this machine is test-machine-2\n/);
   assert.match(second.ran.stdout, /joined: 3 files from test-machine, your Flow home as your other machine last sent it/);
   assert.doesNotMatch(second.ran.stdout, /started:/);
-  assert.match(repo.git(second.root + '/.flow', ['ls-tree', '-r', '--name-only', 'origin/main']).out,
+  assert.match(git(second.root + '/.flow', ['ls-tree', '-r', '--name-only', 'origin/main']).out,
     /machines\/test-machine-2\.json/, 'the second machine\'s record went up at install');
 
   // Both write on their own, then meet: one history, so the merge goes through.

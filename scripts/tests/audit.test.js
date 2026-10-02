@@ -108,7 +108,7 @@ function roots(name) {
   };
 }
 
-const audit = (env, args) => run('flow/flow.js', ['audit', ...args], { env });
+const audit = (env, args) => run('flow.js', ['audit', ...args], { env });
 
 test('a transcript becomes sessions, segments, turns, tools and file touches', () => {
   const { file, env } = roots('audit-shape');
@@ -257,7 +257,7 @@ test('timeline lists every tool call in a session', () => {
 
 test('a query against a missing index says how to build one', () => {
   const { env } = roots('audit-empty');
-  const result = audit(env, ['sessions']);
+  const result = audit(env, ['ls']);
   assert.notStrictEqual(result.code, 0);
   assert.match(result.stderr, /flow audit index/);
 });

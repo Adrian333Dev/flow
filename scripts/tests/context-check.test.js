@@ -41,7 +41,7 @@ function sessionFile(home, sizes) {
 
 function check(home, sizes, extra = {}) {
   const input = JSON.stringify({ transcript_path: sessionFile(home, sizes), hook_event_name: 'PostToolBatch', ...extra });
-  const result = run('context-check.js', [], { input, env: { ...process.env, FLOW_HOME: home } });
+  const result = run('hooks/context-check.js', [], { input, env: { ...process.env, FLOW_HOME: home } });
   assert.strictEqual(result.code, 0);
   return result.stdout ? JSON.parse(result.stdout).hookSpecificOutput : null;
 }
@@ -81,7 +81,7 @@ test('a subagent, a missing file and bad input stay silent and exit 0', () => {
   assert.strictEqual(check(home, [149000, 152000], { agent_id: 'agent-1' }), null);
   assert.strictEqual(check(home, [149000, 152000], { transcript_path: path.join(home, 'none.jsonl') }), null);
 
-  const bad = run('context-check.js', [], { input: 'not json', env: { ...process.env, FLOW_HOME: home } });
+  const bad = run('hooks/context-check.js', [], { input: 'not json', env: { ...process.env, FLOW_HOME: home } });
   assert.deepStrictEqual([bad.code, bad.stdout], [0, '']);
 });
 
@@ -94,6 +94,6 @@ test('a session file larger than one read is read from the end', () => {
   fs.appendFileSync(file, `${tail}\n`);
 
   const input = JSON.stringify({ transcript_path: file, hook_event_name: 'PostToolBatch' });
-  const result = run('context-check.js', [], { input, env: { ...process.env, FLOW_HOME: home } });
+  const result = run('hooks/context-check.js', [], { input, env: { ...process.env, FLOW_HOME: home } });
   assert.match(result.stdout, /at 152k/, 'the 2 messages sit behind a 2 MB line, past the first 1 MB read');
 });

@@ -23,7 +23,7 @@ function typed(command_name, command_args, cwd) {
 }
 
 function check(name, args, dir, env = {}) {
-  return run('check-ticket.js', [], {
+  return run('hooks/check-ticket.js', [], {
     input: typed(name, args, dir),
     cwd: dir,
     env: { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: path.join(dir, 'flow-home'), ...env },

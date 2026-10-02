@@ -43,23 +43,23 @@ const SKIP_VALUE = `// 10, not 15: \`next\` answers a question, and a longer ans
 const NEXT_LIMIT = 10;`;
 
 test('a run of line comments on a function is a violation', () => {
-  assert.strictEqual(jsAndTs.applies('scripts/flow/lib/store.js', VIOLATION_FUNCTION), true);
-  assert.strictEqual(jsAndTs.check('scripts/flow/lib/store.js', VIOLATION_FUNCTION), false);
+  assert.strictEqual(jsAndTs.applies('scripts/lib/tickets/store.js', VIOLATION_FUNCTION), true);
+  assert.strictEqual(jsAndTs.check('scripts/lib/tickets/store.js', VIOLATION_FUNCTION), false);
   assert.deepStrictEqual(jsAndTs.offenders(VIOLATION_FUNCTION), [3]);
 });
 
 test('an arrow bound to a name counts as a function', () => {
-  assert.strictEqual(jsAndTs.check('scripts/flow/lib/cases.js', VIOLATION_ARROW), false);
+  assert.strictEqual(jsAndTs.check('scripts/lib/cases.js', VIOLATION_ARROW), false);
 });
 
 test('the block form passes', () => {
-  assert.strictEqual(jsAndTs.applies('scripts/flow/lib/frontmatter.js', CLEAN_BLOCK), true);
-  assert.strictEqual(jsAndTs.check('scripts/flow/lib/frontmatter.js', CLEAN_BLOCK), true);
+  assert.strictEqual(jsAndTs.applies('scripts/lib/frontmatter.js', CLEAN_BLOCK), true);
+  assert.strictEqual(jsAndTs.check('scripts/lib/frontmatter.js', CLEAN_BLOCK), true);
 });
 
 test('a const holding a value or an import never applies', () => {
   for (const text of [SKIP_REQUIRE, SKIP_VALUE]) {
-    assert.strictEqual(jsAndTs.applies('scripts/flow/lib/graph.js', text), false);
+    assert.strictEqual(jsAndTs.applies('scripts/lib/tickets/graph.js', text), false);
     assert.deepStrictEqual(jsAndTs.offenders(text), []);
   }
 });
@@ -89,7 +89,7 @@ test('only javascript and typescript apply', () => {
 });
 
 test('it declares the fields the loader demands, and names a real rule', () => {
-  const checks = require(path.join(__dirname, '..', 'flow', 'lib', 'checks'));
+  const checks = require(path.join(__dirname, '..', 'lib', 'checks', 'checks'));
   const { checks: loaded, problems } = checks.load();
   assert.deepStrictEqual(problems, []);
   const mine = loaded.find((c) => c.id === 'js-and-ts');

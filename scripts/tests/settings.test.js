@@ -26,8 +26,8 @@ function place(name) {
     ...process.env, HOME: user, FLOW_HOME: home, CLAUDE_CONFIG_DIR: path.join(user, '.claude'), GIT_CEILING_DIRECTORIES: SCRATCH,
   };
   delete env.FLOW_PROJECT;
-  const flow = (...args) => run('flow/flow.js', ['settings', ...args], { cwd: shop, env });
-  const session = () => run('session-check.js', [], {
+  const flow = (...args) => run('flow.js', ['settings', ...args], { cwd: shop, env });
+  const session = () => run('hooks/session-check.js', [], {
     input: JSON.stringify({ hook_event_name: 'SessionStart', source: 'startup', cwd: shop }), env,
   });
   return { user, home, shop, flow, session };
@@ -63,6 +63,10 @@ test('--global writes the shared file, and a machine level that disagrees is nam
   at.flow('off', 'reminder', '--machine');
   const back = at.flow('on', 'reminder', '--global');
   assert.match(back.stdout, /reminder is still off here, since this machine says so\./);
+
+  const reset = at.flow('reset', 'reminder', '--machine');
+  assert.strictEqual(reset.stdout, 'reset: reminder, this machine.\nreminder is now on here, since every machine says so.\n');
+  assert.deepStrictEqual(read(path.join(at.home, 'settings.local.json')), {}, 'the line is gone');
 });
 
 test('a setting with no folder list, and a word naming no setting, each refuse and say what works', () => {
