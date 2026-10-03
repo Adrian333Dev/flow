@@ -9,7 +9,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 ```
 
 > [!WARNING]
-> **Flow is under development and not ready for use.** Commands, files and skills still change from one version to the next.
+> **Flow is almost ready.** Hold off installing until the full release. Until then, explore it: the [Overview](docs/overview.md) shows how it works, [Walkthroughs](docs/walkthroughs.md) follows every kind of work from idea to shipped code, and [the docs](docs/README.md) cover the rest.
 
 ## Install
 

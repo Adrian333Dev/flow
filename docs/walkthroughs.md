@@ -22,8 +22,8 @@ A habit tracker, starting from an empty folder at `~/code/habits`:
 2. **Describe the whole idea.** Notes, brainstorms or research you already have go in `docs/intake/` first, and `/flow:groundwork` reads them before designing. `/flow:groundwork a habit tracker that families share` makes a `topic` ticket, the type for a decision with nothing to build yet. `/flow:groundwork` lists every decision the idea needs in the ticket's `groundwork/map.md`. On a subject this big, the first run settles the scope and the order, then stops. Each big subject becomes a child ticket with its own map.
 3. **Settle each subject.** `/flow:groundwork /habits-2` walks one subject's decisions with you, one at a time. A question needing outside facts gets `/flow:research`. A question only running code can answer becomes a prototype ticket, walked in [A question only running code can answer](#a-question-only-running-code-can-answer).
 4. **Read the spec.** Once the decisions are made, `/flow:groundwork` writes the spec: `docs/spec/product.md` for what the product must do, and `docs/spec/tech.md` for how it is built. Every behavior in `product.md` carries 1 of 4 marks:
-   - **`V1`**: ships first.
-   - **`next`**: committed, not yet.
+   - **A release, `V1`, `V2`…**: the release it ships in. A first spec uses `V1` alone.
+   - **`next`**: committed, with no release picked yet.
    - **`later`**: wanted, with no commitment.
    - **`never`**: refused, with the reason.
 
@@ -31,7 +31,7 @@ A habit tracker, starting from an empty folder at `~/code/habits`:
 5. **Cut the first chunk.** `/flow:tickets-from-spec` turns the `V1` behaviors that matter most next into tickets, and leaves the rest for later runs. Building the first tickets changes the plan for the rest, so tickets cut far ahead go stale. Only you can start it. A behavior one session can plan and build gets one ticket, and a bigger one gets a parent ticket with a child per part. Order that matters becomes waits, so `flow next` offers a ticket only once the tickets it waits on are finished.
 6. **Build ticket by ticket.** Type the phase each ticket needs: `/flow:groundwork /habits-6` while a decision is still open, `/flow:execute /habits-6` once it is decided. Not sure which ticket is next? `/flow:start` shows your tickets and recommends one. [A feature in a project you already have](#a-feature-in-a-project-you-already-have) walks one ticket in full.
 7. **Carry long work across sessions.** Past 150,000 tokens a warning arrives. `/flow:handoff` writes into the ticket where the work stands, `/clear` empties the conversation, and `/flow:execute /habits-6` picks the work up again. [Sessions](sessions.md) covers it.
-8. **Cut the next chunk.** Run `/flow:tickets-from-spec` again as each chunk gets built. It skips every behavior a ticket already covers. Once `V1` is built, change marks in `product.md`: a `next` behavior you want now becomes `V1`, and the next run cuts it.
+8. **Cut the next chunk.** Run `/flow:tickets-from-spec` again as each chunk gets built. It skips every behavior a ticket already covers. Once `V1` is all cut, mark what goes in the next release as `V2` in `product.md`, and the next run cuts it.
 
 ## An existing project, brought into Flow
 

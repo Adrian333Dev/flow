@@ -26,7 +26,7 @@ Each phase works on one ticket. Type the phase, then the ticket's id as a skill:
 - **`/flow:research`**: find out how an outside tool really works, from its documentation and source. What it learns goes in `~/.flow/wiki/<tool>/`, shared by every project. [Learning](../learning.md) covers the wiki.
 - **`/flow:visualize`**: draw diagrams, screen mockups and HTML previews, in a message or in a document.
 - **`/flow:file-findings`** (only you can start it): file what a session learned into skills, rules and checks.
-- **`/flow:tickets-from-spec`** (only you can start it): cut the next chunk of `V1` work out of `docs/spec/` into tickets.
+- **`/flow:tickets-from-spec`** (only you can start it): cut the next chunk of planned work out of `docs/spec/` into tickets, earliest release first.
 
 A skill only you can start never fires by itself, and its description costs the agent nothing. When one is the next step, the agent tells you to type it.
 

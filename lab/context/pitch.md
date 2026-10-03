@@ -42,7 +42,7 @@ The user threw out the pass 5 README below the loop: "terrible marketing". 6 dra
 - **Plain words**: "pre-mortem" and "prior art" were rejected as terms many readers don't know.
 - **The section is called `Features`**, short and dense with capabilities, written as a pitch.
 - **Status carries no unbuilt feature as a lack**: never "no assignees, no roles". Never a timeline either, such as "2 to 3 weeks". The user cares whether Flow is ready and what it does, never the stages to V1.
-- **A warning says Flow is under development and not ready for use.** At the beta the warning's text changes, and at V1 it goes.
+- **A warning says Flow is almost ready**, to hold off installing until the full release, and to explore it meanwhile through the overview, the walkthroughs and the docs index. Set by the user 2026-10-03: the long version was "not exciting", and "first release" could read as the beta. A link to the walkthroughs alone was rejected, since that page never shows the whole of Flow. At the beta the warning's text changes, and at the full release it goes.
 - **Coming next names the trackers** under teams: GitHub Issues, GitHub Projects and others. The mods line links Claude Code's mods docs and says what mods bring.
 - **Install sits above the comparison table.**
 - **Features merge into the table**: every capability where Flow leads becomes a row or part of one.
@@ -54,7 +54,7 @@ The user threw out the pass 5 README below the loop: "terrible marketing". 6 dra
 
 **Agreed, proposed by the agent and never opposed:**
 
-- The warning box sits under the loop, so "not ready" shows before any feature or the install line.
+- The warning box sits under the loop, so "hold off installing" shows before any feature or the install line.
 - Where Flow runs moves into Install: Linux, macOS and WSL, built and tested on Claude's 5.5 models.
 - Coming next, in order: mods, teams, other agents and models.
 - **The table claims only what works today.** GitHub Issues stays in Coming next, and Rule enforcement never says "every rule", since Flow ships 1 check and most rules have none.

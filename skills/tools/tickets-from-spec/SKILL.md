@@ -1,6 +1,6 @@
 ---
 name: tickets-from-spec
-description: Cuts the next chunk of `V1` work out of `docs/spec/` into tickets.
+description: Cuts the next chunk of planned work out of `docs/spec/` into tickets, earliest release first.
 disable-model-invocation: true
 ---
 
@@ -10,17 +10,17 @@ disable-model-invocation: true
 
 ## What gets a ticket
 
-**Only behaviors marked `V1` in `product.md`.** Everything marked `next`, `later` or `never` stays prose.
+**Only behaviors marked with a release (`V1`, `V2`…) in `product.md`, from the earliest release still holding a behavior no ticket covers.** Everything marked `next`, `later` or `never` stays prose.
 
-To promote a `next` behavior, edit its mark in `product.md` first. **Never edit a mark to justify a ticket already created.**
+To promote a behavior, give it a release in `product.md` first. **Never edit a mark to justify a ticket already created.**
 
 **Skip a behavior a ticket already covers**, whatever its status, archived ones included. `grep -rl 'docs/spec/product.md' .flow/tickets/` lists every ticket cut from the spec. Each names its section under `## References`. A dropped one → report it, never cut it again.
 
 ## Picking the next chunk
 
-**Cut a chunk, never the whole of `V1`.** Building the first tickets changes the plan for the rest, so tickets cut far ahead go stale.
+**Cut a chunk, never a whole release.** Building the first tickets changes the plan for the rest, so tickets cut far ahead go stale.
 
-- **Pick what matters most next**: what the rest of `V1` builds on, then what the user most needs working.
+- **Pick what matters most next**: what the rest of the release builds on, then what the user most needs working.
 - **Leave out what waits** on work neither built nor in this chunk.
 - **Leave out what this chunk's build could change.**
 
@@ -63,6 +63,6 @@ Never copy a whole spec section in. Point at `docs/spec/product.md` for the full
 
 ## After
 
-Report the ids, the titles, which spec sections are now covered, and which `V1` sections are still uncut. Then `flow next` shows what is workable.
+Report the ids, the titles, which spec sections are now covered, and which sections of that release are still uncut. Then `flow next` shows what is workable.
 
 Never annotate the spec with ticket ids.

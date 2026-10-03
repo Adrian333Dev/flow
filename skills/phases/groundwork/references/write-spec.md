@@ -59,8 +59,8 @@ Then only what a branch covered, usually 3 or 4 of these:
 
 **Every behavior carries a mark**, one of 4:
 
-- **V1**: ships first. The only mark tickets are created from.
-- **next**: committed, not yet.
+- **A release, `V1`, `V2`…**: the release it ships in. The only mark tickets are created from. A first spec uses `V1` alone.
+- **next**: committed, no release picked yet.
 - **later**: wanted, no commitment.
 - **never**: deliberately refused, with the reason on the same line.
 
