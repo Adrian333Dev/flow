@@ -17,7 +17,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/main/install.sh | bash
 ```
 
-Needs Claude Code, `git`, `node`, `gh` and a GitHub account. Runs on Linux, macOS and Windows through WSL. Built and tested on Claude's 5.5 models. [Install](docs/install.md) walks through the setup.
+Needs Claude Code 2.1.287 or later, `git`, `node`, `gh` and a GitHub account. Runs on Linux, macOS and Windows through WSL. Built and tested on Claude's 5.5 models. [Install](docs/install.md) walks through the setup.
 
 ## How Flow compares
 

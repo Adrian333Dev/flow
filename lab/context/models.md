@@ -276,7 +276,7 @@ frontmatter.
 
 ### Codex namespaces plugin skills, and reads Claude Code's manifest
 
-Found 2026-09-18 in the Codex source, now cloned at `repos/codex`. It decides how Flow's skills are
+Found 2026-09-18 in the Codex source, now cloned at `repos/harnesses/codex`. It decides how Flow's skills are
 named on both harnesses.
 
 **A plugin is a folder holding a manifest, and every skill below it is named `<plugin>:<skill>`.**
@@ -405,7 +405,7 @@ found 7 of Flow's 11 hooks needing a change or having no Codex moment. What stay
 harness needs: the rules in `~/.agents/AGENTS.md` with `~/.claude/CLAUDE.md` importing them, the
 link `~/.codex/AGENTS.md`, and the skills in `~/.agents/skills/flow/`. Codex finds those skills on
 its own, so dropping the link would not keep Flow out of Codex. The port starts from this section.
-Every path below is under `repos/codex/codex-rs/`.
+Every path below is under `repos/harnesses/codex/codex-rs/`.
 
 **How Codex runs a hook.**
 

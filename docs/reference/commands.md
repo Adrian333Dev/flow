@@ -132,7 +132,7 @@ ok    skills: 1 source cloned, 2 skills on everywhere, 1 more for shop
 3 of 13 checks failed.
 ```
 
-- **`--prereq`**: check only the programs Flow needs and never installs: `node`, `git`, `claude` and `gh`. It works before Flow is installed.
+- **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.287 or later. It works before Flow is installed.
 - **`--updates`**: also check whether a newer Flow is out. The one check that uses the network.
 
 ### `flow sync`

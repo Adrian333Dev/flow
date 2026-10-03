@@ -13,8 +13,11 @@ Put Flow on your computer, keep it up to date, and take it off again.
 ## What you need
 
 - **Linux, macOS, or Windows through WSL.**
-- **`git`, `node`, `claude` and `gh`**, GitHub's command-line tool. Flow calls them and never installs them. `flow doctor --prereq` checks all 4.
+- **`git`, `node`, `claude` and `gh`**, GitHub's command-line tool. Flow calls them and never installs them.
+- **Claude Code 2.1.287 or later.** `claude update` brings an older one up to date.
 - **A GitHub account**, where Flow keeps a private backup of your Flow home.
+
+`flow doctor --prereq` checks the programs and the Claude Code release, and the setup stops where one is missing.
 
 ## Install Flow
 

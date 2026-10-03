@@ -373,7 +373,7 @@ All checked on 2026-09-18 and 2026-09-19.
 
 ### Codex
 
-- **Its `workspace-write` sandbox** reads anywhere, and edits only in the working folder and the folders listed in `writable_roots`. From `repos/codex/codex-rs/prompts/templates/permissions/sandbox_mode/workspace_write.md`.
+- **Its `workspace-write` sandbox** reads anywhere, and edits only in the working folder and the folders listed in `writable_roots`. From `repos/harnesses/codex/codex-rs/prompts/templates/permissions/sandbox_mode/workspace_write.md`.
 - **MCP servers** go in `~/.codex/config.toml` under `[mcp_servers.<name>]`.
 
 ### Flow today

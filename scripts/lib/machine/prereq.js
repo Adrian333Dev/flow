@@ -3,7 +3,7 @@
  * What has to be on a machine before Flow runs, checked by running it.
  *
  * A prerequisite is something Flow calls and never installs: the 4 programs it
- * shells out to. Everything Flow puts on a machine itself belongs to
+ * shells out to, and a Claude Code recent enough for Flow. Everything Flow puts on a machine itself belongs to
  * `flow doctor`'s other checks, where a missing piece is repaired rather than
  * treated as a wall. util is one of those: `flow install` clones and links it.
  *
@@ -17,6 +17,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { FlowError } = require('../error');
 
 /** The programs Flow shells out to, with what stops working without each. */
@@ -26,6 +27,12 @@ const PROGRAMS = [
   { name: 'claude', why: 'Flow is a workflow for Claude Code' },
   { name: 'gh', why: 'your Flow home is kept in a private GitHub repository through it' },
 ];
+
+/**
+ * The oldest Claude Code Flow runs on. Raised when the release check finds Flow
+ * relying on something newer. The README's Install section repeats it.
+ */
+const MIN_CLAUDE = '2.1.287';
 
 /**
  * Where a name resolves on PATH, or null.
@@ -59,8 +66,39 @@ function checkPrograms() {
   return { name: 'programs', problems, summary: `${found.join(', ')} all resolve` };
 }
 
-/** The check, in the shape `flow doctor` renders. */
-const checks = () => [checkPrograms()];
+/** `2.1.288` as `[2, 1, 288]`, or null for anything else. */
+function parseRelease(text) {
+  const match = /(\d+)\.(\d+)\.(\d+)/.exec(text || '');
+  return match ? match.slice(1).map(Number) : null;
+}
+
+function olderThan(a, b) {
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i];
+  return false;
+}
+
+/**
+ * Claude Code's release, against MIN_CLAUDE. A claude that is missing is
+ * checkPrograms' problem, so it is skipped here. Output this cannot read
+ * passes: the check exists to stop a release known to be too old, never to
+ * stop every install the day Claude Code changes what it prints.
+ */
+function checkClaude() {
+  const name = 'claude code';
+  const full = onPath('claude');
+  if (!full) return { name, problems: [], summary: 'not on PATH, named above' };
+  const ran = spawnSync(full, ['--version'], { encoding: 'utf8', timeout: 10000 });
+  const release = parseRelease(ran.stdout);
+  if (!release) return { name, problems: [], summary: `claude --version printed nothing readable, so ${MIN_CLAUDE} or later is assumed` };
+  const found = release.join('.');
+  if (olderThan(release, parseRelease(MIN_CLAUDE))) {
+    return { name, problems: [`Claude Code ${found} is older than ${MIN_CLAUDE}, the oldest release Flow runs on: run claude update`], summary: '' };
+  }
+  return { name, problems: [], summary: `${found}, and Flow needs ${MIN_CLAUDE} or later` };
+}
+
+/** The checks, in the shape `flow doctor` renders. */
+const checks = () => [checkPrograms(), checkClaude()];
 
 /** Every problem, as flat lines. */
 const problems = () => checks().flatMap((check) => check.problems);
@@ -79,4 +117,4 @@ function demand(nothing = 'nothing ran') {
   );
 }
 
-module.exports = { PROGRAMS, onPath, checkPrograms, checks, problems, demand };
+module.exports = { PROGRAMS, MIN_CLAUDE, onPath, checkPrograms, checkClaude, checks, problems, demand };

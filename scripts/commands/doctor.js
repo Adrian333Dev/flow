@@ -787,6 +787,7 @@ actions.doctor = {
       checkVersion(clone, at),
       checkClone(clone, { updates: flags.updates }),
       prereq.checkPrograms(),
+      prereq.checkClaude(),
       bin ? checkNames(clone, { bin }) : { name: 'names', skipped: '--no-bin' },
       checkUtil(),
       checkAgents(at, catalog),

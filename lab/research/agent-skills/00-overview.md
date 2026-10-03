@@ -2,7 +2,7 @@
 
 Repository: [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills)
 Version at time of reading: 0.6.6 (plugin.json)
-Cloned to: `repos/agent-skills/` (read-only)
+Cloned to: `repos/workflows/agent-skills/` (read-only)
 
 ## What it is
 

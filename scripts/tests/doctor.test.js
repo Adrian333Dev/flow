@@ -222,6 +222,29 @@ test('--prereq checks what Flow calls and nothing Flow installs', () => {
   assert.match(broken.stdout, /git is not on PATH, and a project is found by asking git for its root/);
 });
 
+// The README names the same floor. A claude older than it stops the setup
+// session before it opens, and a migration before it writes.
+test('--prereq refuses a Claude Code older than the release Flow needs', () => {
+  const dir = project('doctor-claude-release');
+  const claudeAt = (release) => {
+    const bin = path.join(dir, `bin-${release}`);
+    fs.mkdirSync(bin, { recursive: true });
+    fs.writeFileSync(path.join(bin, 'claude'), `#!/usr/bin/env bash\necho "${release} (Claude Code)"\n`);
+    fs.chmodSync(path.join(bin, 'claude'), 0o755);
+    return run('flow.js', ['doctor', '--prereq'], {
+      env: { ...process.env, PATH: `${bin}${path.delimiter}${pathWith(utilStub(dir))}` },
+    });
+  };
+
+  const old = claudeAt('2.1.99');
+  assert.strictEqual(old.code, 1, old.stdout);
+  assert.match(old.stdout, /Claude Code 2\.1\.99 is older than 2\.1\.287, the oldest release Flow runs on: run claude update/);
+
+  const current = claudeAt('2.1.287');
+  assert.strictEqual(current.code, 0, current.stdout);
+  assert.match(current.stdout, /claude code: 2\.1\.287, and Flow needs 2\.1\.287 or later/);
+});
+
 test('a util that does not run is diagnosed against its source registry', () => {
   const m = machine('doctor-util');
   const utilHome = path.join(m.dir, 'util-home');

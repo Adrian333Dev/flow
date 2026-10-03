@@ -48,7 +48,7 @@ The problem it solves is 3 skills the management build adds: `setup`, `help` and
 
 **What a plugin is, here: a folder holding one extra file.** `.claude-plugin/plugin.json` names it, and every skill below that file is offered as `<plugin name>:<skill name>`. No marketplace, nothing installed. `flow install` links the 12 skills into `~/.claude/skills/flow/skills/` and copies the manifest to `~/.claude/skills/flow/.claude-plugin/plugin.json`. The clone keeps bare folders and bare frontmatter names.
 
-**Codex reads the same file**, which is what decided it over every alternative. `repos/codex/codex-rs/exec-server-protocol/src/protocol.rs` lists 3 manifests it accepts and Claude Code's is the second, and `ext/skills/src/loader/namespace.rs` builds the name with `format!("{namespace}:{base_name}")`. So one manifest gives `/flow:groundwork` in Claude Code and `$flow:groundwork` in Codex. `lab/context/models.md` holds the Codex findings, with the file behind each one.
+**Codex reads the same file**, which is what decided it over every alternative. `repos/harnesses/codex/codex-rs/exec-server-protocol/src/protocol.rs` lists 3 manifests it accepts and Claude Code's is the second, and `ext/skills/src/loader/namespace.rs` builds the name with `format!("{namespace}:{base_name}")`. So one manifest gives `/flow:groundwork` in Claude Code and `$flow:groundwork` in Codex. `lab/context/models.md` holds the Codex findings, with the file behind each one.
 
 Two constraints the source set, both now honored by `flow install`: the manifest is copied rather than linked, because `utils/plugins/src/plugin_namespace.rs` calls `symlink_metadata` and ignores a link; and the skills themselves may be links, because `ext/skills/src/loader/host.rs` follows directory symlinks at user scope.
 
@@ -58,7 +58,7 @@ Two constraints the source set, both now honored by `flow install`: the manifest
 
 ## Outside skills: review, then used whole or harvested
 
-Decided with the user 2026-09-27 and built 2026-09-28 as `references/knowledge.md`, which holds the rules. This section holds why. The user started from skills.sh: 10 NestJS skills, install counts from a few thousand to 30,000, and 2 cloned for reference, `repos/agent-nestjs-skills` and `repos/claude-skills`.
+Decided with the user 2026-09-27 and built 2026-09-28 as `references/knowledge.md`, which holds the rules. This section holds why. The user started from skills.sh: 10 NestJS skills, install counts from a few thousand to 30,000, and 2 cloned for reference, `repos/agent-nestjs-skills` and `repos/skills/claude-skills`.
 
 **2 states, and no third.** Used whole: runs as published, updates by itself. Harvested: never switched on, read by the harvest into the user's own skill. A plugin or a standalone skill changes only which tool installs and updates it, never the state.
 
@@ -66,7 +66,7 @@ Decided with the user 2026-09-27 and built 2026-09-28 as `references/knowledge.m
 - **Several general skills on at once was rejected.** They fire on the same files, and the agent follows whichever rule it read last.
 - **Harvesting every candidate by hand was the cost the user named.** The review cuts it: most of what one skill has and another lacks is general engineering the agent already knows. `nestjs-best-practices` spends rule files on the Liskov substitution principle.
 - **Used whole, for the makers' own skill.** It changes with each release, which a copy misses. What would overturn it: a makers' skill whose description or process breaks Flow's rules.
-- **The review's process test** comes from `### A plugin brings more than a skill` above. `nestjs-expert` in `repos/claude-skills` carries "Analyze, Design, Implement, Secure, Verify, Test" and a fixed output order: process competing with `/flow:execute`.
+- **The review's process test** comes from `### A plugin brings more than a skill` above. `nestjs-expert` in `repos/skills/claude-skills` carries "Analyze, Design, Implement, Secure, Verify, Test" and a fixed output order: process competing with `/flow:execute`.
 - **Stars and installs pick which 3 to read, never the pick.** `jeffallan/claude-skills` has about 12,000 stars for 67 skills, and its `nestjs-expert` 5,500 installs. `kadajett/agent-nestjs-skills` has about 300 stars and 30,000 installs. The stars rate the collection, the installs one skill, and neither the fit.
 
 **A tool's skill holds what the agent gets wrong without it.** Changes since training, traps, the user's choices. For a tool the agent has never seen, how the tool thinks and where its docs are. The deciding argument is versions: a guidebook in a skill matches one release and goes stale silently, while the wiki downloads docs per version. What would overturn it: a tool whose docs are too poor to download.
@@ -152,7 +152,7 @@ The user's ideas for the multi-branch work, 2026-09-13, none decided:
 
 **`debug-web-pages`**: Flow's own skill, `skills/debug-web-pages/`, 1,299 lines across 12 files. It reverse-engineers a live web page you do not control: how it works, what handles a key press, whether you can intercept it.
 
-**`browser-harness`**: a third-party tool from the browser-use team, 16.5k stars, catalogued in `toolbox/browser.md` and cloned at `repos/browser-harness/`. It connects an agent straight to a running Chrome over CDP. The agent clicks, types, navigates and reads the page itself. Roughly 1k lines of core, plus 18 mechanics files and a self-growing store of site-specific knowledge.
+**`browser-harness`**: a third-party tool from the browser-use team, 16.5k stars, catalogued in `toolbox/browser.md` and cloned at `repos/skills/browser-harness/`. It connects an agent straight to a running Chrome over CDP. The agent clicks, types, navigates and reads the page itself. Roughly 1k lines of core, plus 18 mechanics files and a self-growing store of site-specific knowledge.
 
 ### Why this came up
 
