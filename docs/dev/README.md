@@ -1,31 +1,14 @@
-# Developing Flow
+# Changing Flow
 
-Flow is a Claude Code workflow for a solo developer: rules that load in every session, a set of skills, and a small scaffold for a new project. This folder is about changing Flow itself: the repository, the scripts, the skills, and the tests. For using Flow, see [the manual](../../lab/archive/manual/README.md), and for what Flow is, the [main README](../../README.md).
+These pages are for changing Flow itself: the repository, the scripts, the skills and the tests. For using Flow, start with [Flow's documentation](../README.md).
 
 ## Table of contents
 
-- [The pages](#the-pages)
-- [An edit in the clone is live everywhere](#an-edit-in-the-clone-is-live-everywhere)
+- [The pages](#the-pages): the 4 pages, one line each
 
 ## The pages
 
-- [The repository layout](layout.md): what is in every folder, and where a new file goes
-- [The two checkouts](checkout.md): how to edit Flow safely when real projects depend on it
-- [The scratch session](scratch-session.md): running a change without installing it
-- [The tests](tests.md): two suites, no dependencies
-- [Adding a skill](skills.md): one folder, one group, no list to update
-- [Designing a flow command](commands.md): the rules every `flow` command follows, from its shape to its flags
-- [What costs context](context-cost.md): which shortenings buy tokens and which only look like they do
-- [The agents Claude Code runs](agents.md): every way one session starts another agent, and which of them Flow uses
-- [How the audit index works](audit.md): what a transcript holds, the unit the index groups by, and every table
-- [What Claude Code does](claude-code.md): sessions, instruction files, skills, plugins and hooks, tested rather than assumed
-
-Install, the commands, the skills and the settings are in [Reference](../../lab/archive/manual/reference.md), and the file layout on a machine is in [Where everything lives](../../lab/archive/manual/where-everything-lives.md). Nothing here restates them.
-
-## An edit in the clone is live everywhere
-
-Flow installs by symlink, so one clone holds every file and your machine holds names pointing into it. Saving a skill file changes the installed workflow at once, in every project and in every session already open. Nothing is copied except the rule file `~/.agents/AGENTS.md` and `~/.claude/settings.json`, which become yours on a first install, and the plugin manifest, which every install rewrites.
-
-That immediacy is what the next two pages exist for. [The two checkouts](checkout.md) is how to rework several files at once without a half-finished state reaching a real project. [The scratch session](scratch-session.md) is how to run a change against a throwaway config instead, leaving the installed workflow alone.
-
-Adding, renaming or removing a skill is the one change that needs `flow install` re-run, because that is when a symlink has to be created or dropped. Editing a skill that already exists needs nothing.
+- [The repository layout](layout.md): what every folder holds, and where a new file goes
+- [Designing a flow command](commands.md): the rules every `flow` command follows, and the command and flags hidden from help
+- [Adding a skill](skills.md): the folder, the group, the frontmatter, and when an install is needed
+- [Trying a change](trying-changes.md): the test suites, a second checkout for a rework, and a real session on a pretend computer

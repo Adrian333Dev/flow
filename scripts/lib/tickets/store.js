@@ -112,12 +112,13 @@ const ticketsDir = (root) => path.join(recordsDir(root), 'tickets');
 const archiveDir = (root) => path.join(recordsDir(root), 'tickets', ARCHIVE);
 
 /**
- * The word a folder name offers, before the user picks: the first 3 letters of
- * it, `expense-tracker` → `exp`. Under 2 letters, `flow`.
+ * The word a folder name offers, before the user picks: its letters whole where
+ * they fit a prefix, `my-app` → `myapp`, else the first 3, `expense-tracker` →
+ * `exp`. Under 2 letters, `flow`.
  */
 function offerWord(folder) {
   const letters = path.basename(path.resolve(folder)).toLowerCase().replace(/[^a-z]/g, '');
-  const word = letters.slice(0, 3);
+  const word = letters.length <= 8 ? letters : letters.slice(0, 3);
   return word.length >= 2 && word !== HOME_WORD ? word : 'flow';
 }
 

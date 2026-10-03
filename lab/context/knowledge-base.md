@@ -296,7 +296,7 @@ Both find the global folder as `${FLOW_HOME:-$HOME/.flow}`, the variable `script
 Read `references/write-docs.md` for every page under `docs/`.
 
 - `references/workflow.md` line 65: `docs/research/` holds research true only for this project, and research nobody could place. One line beside it for `~/.flow/wiki/<tool>/` and `~/.flow/research/`.
-- `docs/dev/agents.md` line 75: a reader subagent writes its report where `/flow:research` files it.
+- `docs/subagents.md`: a reader subagent writes its report where `/flow:research` files it.
 - `docs/manual/where-everything-lives.md`:
   - the machine tree gains `wiki/` and `research/` under `~/.flow/`
   - `### ~/.flow/` gains an entry for each, with the tool folder's 4 parts

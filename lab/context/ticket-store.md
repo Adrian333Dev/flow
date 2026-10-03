@@ -9,7 +9,7 @@ A project's `.flow/` used to be committed with the code, so every branch carried
 ## Ticket ids: a short word and a number
 
 - **Each place picks a short word when it is set up**: `exp` for an expense app, so its tickets are `exp-1`, `exp-2`. The pattern is Backlog.md's `BACK-368` (`lab/research/ticket-tools.md`), and Linear's and Jira's.
-- **The word is `ticketPrefix` in the project's `.flow/settings.json`**, 2 to 8 lowercase letters, never `home`. `flow init` asks once and offers the first 3 letters of the folder name. `--prefix` answers it.
+- **The word is `ticketPrefix` in the project's `.flow/settings.json`**, 2 to 8 lowercase letters, never `home`. `flow init` asks once and offers the folder name's letters, or their first 3 where there are more than 8. `--prefix` answers it.
 - **Global tickets use `home`**: `home-4`. They live in `~/.flow/tickets/` and belong to no project. A `home-` id works from anywhere.
 - **A bare number means the current place's ticket**: `12` inside the expense app is `exp-12`.
 - **The word says where a ticket lives**, so 2 places never produce the same id. A letter per place, `g4`, was rejected: `t` reads as ticket and `g` does not.

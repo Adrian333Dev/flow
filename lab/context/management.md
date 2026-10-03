@@ -551,10 +551,10 @@ Both commands undo the machine, so the agent may never run either.
 **Where a harness keeps its own files is one file in `references/harnesses/`**, `claude-code.md` being the first. The 3 setup and migration skills read every file in that folder, so a second harness is a file written there and no skill edited. This is the first line of `backlog.md` → `### The management skill, in build order`, and the 3 skill lines under it now name the folder.
 
 - **Claude Code's own paths, never Flow's.** What Flow puts on a machine is `scripts/lib/machine/installed.js` and `flow doctor`'s report, and the file points at both rather than repeating either.
-- **Paths here, behavior in `docs/dev/claude-code.md`.** That page says how a skill loads, what a hook sees and what an edit mid-session does, and it is written for a person. The reference file loads into an agent mid-task and lists where things sit.
+- **Paths here, behavior in `lab/context/claude-code.md`.** That page says how a skill loads, what a hook sees and what an edit mid-session does, and it is written for a person. The reference file loads into an agent mid-task and lists where things sit.
 - **4 rules say what a migration may name**, and they are what the 3 skills actually need: never a transcript, a cache or the login; `~/.claude.json` changes through a `run` line, since Claude Code rewrites that file itself; a project's auto memory is a machine path, so a project's migration names a folder outside the project; settings merge key by key, so a migration that moves 1 key leaves the rest of the file alone.
 - **2 facts were written down nowhere before.** Auto memory is `~/.claude/projects/<project>/memory/`, one folder per repository, kept out of the `cleanupPeriodDays` sweep that deletes transcripts. `~/.claude.json` sits beside the config folder by default and inside it once `CLAUDE_CONFIG_DIR` is set, which is how a scratch session starts signed in.
-- **Read from the published pages**, `code.claude.com/docs/en/claude-directory.md` and `memory.md`, on top of `lab/research/claude-code-docs/settings.md` and what `docs/dev/claude-code.md` already held. Nothing was probed: every fact is documented.
+- **Read from the published pages**, `code.claude.com/docs/en/claude-directory.md` and `memory.md`, on top of `lab/research/claude-code-docs/settings.md` and what `lab/context/claude-code.md` already held. Nothing was probed: every fact is documented.
 
 ## `~/.flow/docs` comes back, ruled by the user 2026-09-21
 
@@ -1029,7 +1029,7 @@ Settled by lookup 2026-09-16. Linux and macOS, and Windows only inside WSL. Ever
 - **`flow install`** links everything per item into `~/.claude/`, `~/.flow/` and `~/.local/bin/`, reads the skill list off the tree, and is idempotent. It refuses to touch `settings.json` and prints the file to merge instead.
 - **`flow doctor`** makes every check a function can make: the names resolve, the 3 `util` commands run, `~/.claude/` is linked with its `CLAUDE.md` present, the hooks in `settings.json` are registered with every script on disk, `~/.flow/` resolves into this clone, both suites pass. It returns an exit code.
 - **`flow audit`**, an index of every session transcript on the machine, with queries over it.
-- **The 2 checkouts**, at `docs/dev/checkout.md`. Stable is `~/code/flow`, which every symlink points at. Dev is `~/code/flow-dev`, a worktree nothing points at. Shipping is a pull in stable.
+- **The 2 checkouts**, at `docs/dev/trying-changes.md`. Stable is `~/code/flow`, which every symlink points at. Dev is `~/code/flow-dev`, a worktree nothing points at. Shipping is a pull in stable.
 - **Project overlays**, at `scripts/hooks/overlays.js`: a project writes `.flow/overlays/<name>.md`, and a hook hands it to the agent as the skill loads.
 - **`/flow:file-findings`**, which writes `.flow/findings/<subject>.md` during real work and promotes a finding into a skill or a rule later.
 
@@ -1099,7 +1099,7 @@ Raised by the user 2026-08-15, as one skill instead of two. The plan had been `s
 - `scripts/commands/install.js` and `doctor.js`: what the 2 setup commands do today, and the fault at `install.js:125`
 - `home/settings.json`: the 11 hooks, every one a `$HOME` shell line, the target state a machine diffs against
 - `home/AGENTS.md`: the template, `## The user` and `## Preferences` at lines 58 and 65
-- `docs/dev/checkout.md`: stable and dev checkouts, shipping by pull
+- `docs/dev/trying-changes.md`: stable and dev checkouts, shipping by pull
 - `docs/manual/reference.md` → `## Installing`: what the manual promises about the 2 personalised files today
 - `lab/research/claude-code-docs/memory.md` and `settings.md`: imports, scopes, plugins
 - `lab/research/claude-code-docs/tools-reference.md` → the PowerShell tool: why native Windows is out

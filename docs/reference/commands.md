@@ -86,7 +86,7 @@ wrote: CLAUDE.md
 set up: ~/code/shop is on entry 1. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
 ```
 
-- **`--prefix <word>`**: the start of every ticket id, 2 to 8 lowercase letters, as `shop` in `shop-4`. Asked when left out.
+- **`--prefix <word>`**: the start of every ticket id, 2 to 8 lowercase letters, as `shop` in `shop-4`. Asked when left out, offering the folder's name: `shop` for `~/code/shop`, or the first 3 letters of a name over 8, `exp` for `expense-tracker`.
 - **`--private`**: keep the tickets in your Flow home, so nobody reading the repository sees them. Otherwise they go on the project's `flow` branch.
 - **`-y`**: let the setup session read the files already there, without asking.
 
@@ -120,18 +120,16 @@ fail  util:
         util fs tree does not run, and it is called by home/AGENTS.md, in tree-for-structure
         util fs open does not run, and it is called by flow get --files, through tickets.js
         /home/me/.util/sources does not exist, so no source is registered: run flow install
-ok    ~/.agents: 10 skills linked under skills/flow/, 2 switched off, AGENTS.md present
+ok    ~/.agents: 11 skills linked under skills/flow/, 1 switched off, AGENTS.md present
 ok    ~/.claude: skills/flow, 1 agent, 1 rule, 1 command linked, CLAUDE.md imports the rules
 fail  settings.json:
         /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow install, which merges /home/me/code/flow/home/settings.json into it
 ok    ~/.flow: scripts, references and docs resolve into this clone
 ok    originals: 3 paths recorded before Flow, still open, and 1 project beside it
 note  originals: the machine's original is still open, so flow install has not run to the end. It closes the original on its way out
-fail  skills:
-        Adrian333Dev/domain-skills is a source and is not cloned, so none of its skills can load: run flow install
-skip  tests: add --tests to run both suites
+ok    skills: 1 source cloned, 2 skills on everywhere, 1 more for shop
 
-4 of 13 checks failed.
+3 of 13 checks failed.
 ```
 
 - **`--prereq`**: check only the programs Flow needs and never installs: `node`, `git`, `claude` and `gh`. It works before Flow is installed.

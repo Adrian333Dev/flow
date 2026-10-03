@@ -1,6 +1,6 @@
 # Skills: arguments, plugins, the shared repository, and the toolbox
 
-Four records merged on 2026-09-16, all about where knowledge lives outside a rule file. `docs/dev/skills.md` says how Flow files and writes a skill, and [What Claude Code does](../../docs/dev/claude-code.md) holds every tested fact about what the platform does with one. Neither is restated here: this record holds only the arguments still open.
+Four records merged on 2026-09-16, all about where knowledge lives outside a rule file. `docs/dev/skills.md` says how Flow files and writes a skill, and [`claude-code.md`](claude-code.md) holds every tested fact about what the platform does with one. Neither is restated here: this record holds only the arguments still open.
 
 `lab/backlog/after-v1.md` → `## The skill system` and `## Individual skills` carry the open items.
 
@@ -33,7 +33,7 @@ impeccable ships 1 skill, 4 subagents, 23 commands and 2 hooks. Enabling it adds
 
 #### Off by default, enabled per project
 
-**The decision: a plugin is off everywhere, and turned on for one project by the person working it.** The 2 settings that do it, and why `skillOverrides` is not an off switch, are in [What Claude Code does](../../docs/dev/claude-code.md#a-plugin-is-a-bundle-not-a-skill).
+**The decision: a plugin is off everywhere, and turned on for one project by the person working it.** The 2 settings that do it, and why `skillOverrides` is not an off switch, are in [`claude-code.md`](claude-code.md#a-plugin-is-a-bundle-not-a-skill).
 
 The reasoning that picked that shape:
 

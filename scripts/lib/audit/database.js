@@ -9,6 +9,15 @@
  *
  * Machine-local by design. It describes work that happened on one machine, and
  * `~/.flow` is synced between two, so `audit/` is excluded from that sync.
+ *
+ * Group every query by segment, never by session. A piece of work that crossed
+ * 2 context boundaries is always 3 segments, but 1 session where it compacted
+ * and 3 where it cleared, so a session count means whatever the user happened
+ * to type. The levels, smallest first: turn (one prompt and what it caused),
+ * segment (one context window), session (Claude Code's id, used to join rows
+ * and nothing else), run (the piece of work, below). `--resume` and
+ * `--continue` keep the id and append to the same file; `/branch` and
+ * `--fork-session` start a new one.
  */
 
 const fs = require('fs');
@@ -189,6 +198,8 @@ CREATE TABLE file_touch (
 -- A run is the piece of work, which Flow supplies and Claude Code knows
 -- nothing about. Both tables stay empty with no project, and every query
 -- treats run as optional. That is what makes the audit work with no ticket.
+-- A hook that writes runs from SessionStart has to update a session's row:
+-- SessionStart fires on compaction too, with source compact.
 CREATE TABLE run (
   id        INTEGER PRIMARY KEY,
   key       TEXT UNIQUE,

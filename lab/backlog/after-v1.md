@@ -14,7 +14,7 @@ Flow keeps Claude Code's skills and adds 3 things: a group folder, a hook handin
 
 - [ ] **A skill a subagent preloads gets no overlay.** A subagent definition's `skills:` line loads the skill with no `Skill` call, so `scripts/hooks/overlays.js` never fires. Flow ships no such subagent. A `SubagentStart` hook can add context, so it could hand over the overlays of the skills that definition names. Approved 2026-09-28. `skills.md` → `## Outside skills: review, then used whole or harvested`
 
-- [ ] **`paths:` in skill frontmatter, which Flow uses nowhere.** With it, Claude Code loads a skill only while working with files matching the patterns, and every Flow skill loads from its description alone today. Rejected 2026-08-26 for the `standards/` group, since dissolved. Still open for domain skills, where a skill maps to a file type and costs nothing until it matches. **No richer condition than a glob exists**: no hook loads a skill or a rule file, asked and closed 2026-09-07. **parked** until 1 project installs 5 or more domain skills. `docs/dev/claude-code.md`
+- [ ] **`paths:` in skill frontmatter, which Flow uses nowhere.** With it, Claude Code loads a skill only while working with files matching the patterns, and every Flow skill loads from its description alone today. Rejected 2026-08-26 for the `standards/` group, since dissolved. Still open for domain skills, where a skill maps to a file type and costs nothing until it matches. **No richer condition than a glob exists**: no hook loads a skill or a rule file, asked and closed 2026-09-07. **parked** until 1 project installs 5 or more domain skills. `lab/context/claude-code.md`
 
 ## Individual skills
 
@@ -58,9 +58,9 @@ Flow keeps Claude Code's skills and adds 3 things: a group folder, a hook handin
 
 ## The audit
 
-Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` indexes them into a SQLite file, answers queries against it, and opens a bounded turn range of the original conversation when the counts are not enough. `docs/dev/audit.md` describes the index.
+Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` indexes them into a SQLite file, answers queries against it, and opens a bounded turn range of the original conversation when the counts are not enough. The comments at the top of `scripts/lib/audit/` describe the index.
 
-- [ ] **Scoring a session against Flow's rules, conduct rules included.** The machinery landed 2026-09-07 and holds no checks, so nothing is scored yet. A check is a function where a function can decide, and a model call only where it cannot. `rules.md` assumes one `PreToolUse` hook on `Edit|Write` and leaves conduct rules to a reminder, but 3 documented hooks reach further. `MessageDisplay` streams Claude's prose with a `turn_id`. `PreToolUse` carries the `prompt_id` of the user prompt in progress. `Stop` carries `last_assistant_message` and can block, up to 8 times in a row. Text against edits inside one turn is readable, so `the-turn` and `the-reply` become enforceable and not only measurable. Raised by the user 2026-09-07. **talk first**, a design pass. `rules.md` → `## Locked decisions: the enforcement bridge`, `docs/dev/claude-code.md` → `## What a hook can see of the conversation`
+- [ ] **Scoring a session against Flow's rules, conduct rules included.** The machinery landed 2026-09-07 and holds no checks, so nothing is scored yet. A check is a function where a function can decide, and a model call only where it cannot. `rules.md` assumes one `PreToolUse` hook on `Edit|Write` and leaves conduct rules to a reminder, but 3 documented hooks reach further. `MessageDisplay` streams Claude's prose with a `turn_id`. `PreToolUse` carries the `prompt_id` of the user prompt in progress. `Stop` carries `last_assistant_message` and can block, up to 8 times in a row. Text against edits inside one turn is readable, so `the-turn` and `the-reply` become enforceable and not only measurable. Raised by the user 2026-09-07. **talk first**, a design pass. `rules.md` → `## Locked decisions: the enforcement bridge`, `lab/context/claude-code.md` → `### What a hook can see of the conversation`
 
 - [ ] **The rule-text injection path has never run live.** When a check fires against a rule whose file never loaded this session, `rule-check.js` injects the rule's whole text instead of its id. `checks.ruleText` is unit-tested and has never been exercised by Claude Code. It stays unproven until a `warn` check exists. Moves up if a major rule gets a check before release
 
@@ -84,7 +84,7 @@ Built 2026-09-02, over the transcripts Claude Code already writes. `flow audit` 
 
 - [ ] **2 modes of pace, careful and fast**, shaped like Claude Code's fast mode: a fast user still keeps tickets, and skips the phases they don't want. Raised by the user 2026-09-29, who rejected both a pace fixed per machine and 2 versions of one rule. **talk first**
 
-- [ ] **2 snapshots per command a worker runs**, which is slow on a very large repository. Nothing has measured the cost. `docs/dev/agents.md`
+- [ ] **2 snapshots per command a worker runs**, which is slow on a very large repository. Nothing has measured the cost. `docs/subagents.md`
 
 ## Drawing
 

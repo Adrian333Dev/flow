@@ -124,7 +124,7 @@ The 3 cases written 2026-09-06 (`summary-instead-of-work/`, `reopened-settled-po
 
 ### `.claude/rules/` is a standard Claude Code feature
 
-Verified against `code.claude.com/docs/en/memory` on 2026-09-05. `docs/dev/claude-code.md` → `## How an instruction file loads` holds the loading facts.
+Verified against `code.claude.com/docs/en/memory` on 2026-09-05. `claude-code.md` → `### How an instruction file loads` holds the loading facts.
 
 **`paths:` triggers on a read, never on a write.** "Path-scoped rules trigger when Claude reads files matching the pattern, not on every tool use." An edit is safe, because an edit follows a read. **Creating a new file is not**: write `src/foo.ts` in a session that read no `.ts` file and the TypeScript rule was never in context. The bridge fills that hole: the `PreToolUse` hook fires on `Write` whatever loaded, and the warning injects the rule text when the file never loaded. Filed as `anthropics/claude-code` #93248.
 

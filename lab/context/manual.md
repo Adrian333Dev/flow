@@ -1,49 +1,52 @@
-# Flow's manual: what `docs/manual/` is, and the pages still planned
+# Flow's docs: what `docs/` holds, and why it is shaped that way
 
-Designed 2026-08-29, and renamed from `design-public-docs.md` on 2026-09-16. 4 pages have shipped since: `reference.md`, `settings.md`, `tickets.md` and `where-everything-lives.md`. Git holds what else this record carried: the three scopes of `references/style.md`, the move of Flow's working files from `docs/` to `.flow/`, the `docs/dev/` split and the `~/.flow/` rule, all built. Cut on 2026-09-15 to what the manual item in `lab/backlog/before-beta.md` still needs.
+Designed 2026-08-29 as the manual, renamed from `design-public-docs.md` on 2026-09-16. Pass 5 of the final sweep threw the manual out and wrote `docs/` again from scratch, planned 2026-10-02 and built 2026-10-03. The old pages sit in `lab/archive/manual/`. `references/write-docs.md` holds the rules every page follows.
 
-## What `docs/manual/` is
+## Who reads it
 
-**Official documentation for a stranger, A to Z.** Flow is going public against superpowers, agent-skills and mattpocock's skills, so the reader cloned it and knows nothing about Flow.
+**A stranger who knows Claude Code's basics and has never seen Flow.** Flow is going public against superpowers, agent-skills and mattpocock's skills, so the reader cloned it and knows nothing about Flow. A session, tokens, `CLAUDE.md`, a skill and `/clear` need no definition, ruled by the user 2026-10-03. Every term Flow adds does, in plain words where it first appears, and so does any Claude Code feature past the basics.
 
-**Claude Code familiarity is assumed.** The reader has used Claude Code and knows roughly what a skill is. They have not touched hooks or most settings. Claude Code and skills get a sentence where they are first named, never a section.
+**No agent reads it, so it has no token budget.** Explaining is these pages' job, so pass 3's rule that a loaded file holds instructions alone does not bind them. A page never restates what a skill says. **No skill and no `CLAUDE.md` points into `docs/`**, except `/flow:help`, planned to answer from `~/.flow/docs/README.md`.
 
-**It is the only part of Flow with no token budget and no agent reading it.** A page never restates what a skill says. It says why the skill says it, and links. **No skill and no `CLAUDE.md` ever points into `docs/`.**
+## 3 entry points, one job each
 
-## The six sections
+- **The root `README.md`**: the pitch. What Flow is, the loop, how it compares, the install line, the status, links to the docs. Its wording lives in `pitch.md`.
+- **`docs/README.md`**: the index alone, one line per page in 5 groups. Kept as `README.md` because GitHub renders it when the folder opens.
+- **`docs/overview.md`**: how Flow works whole, each part named and linked to its page. No pitch and no status.
 
-Grouped by **why you are reading**, never by which part of the machine a page touches. Grouping by component was rejected outright: *"that's absolute worst way to teach strangers."*
+Task Master's `docs/README.md` is a plain index. beads and NestJS open on an introduction page. `lab/research/doc-design/` found the best-rated docs pair a landing page with an index.
 
-- **Use Flow**: concepts first (what Flow is, tickets, phases, the approval discipline), then running work. Running work shipped 2026-09-16 as `docs/manual/use/`, one page per chunk, written now so the details are not forgotten; the user ruled that the management skill blocks only the pages it touches, and kept the option of a whole rewrite if the split reads badly. The concepts are still unwritten.
-- **Configure Flow**: settings, `skillOverrides`, overlays, the project template, **precedence and resolution order**, and **why didn't my skill fire**.
-- **Extend Flow**: write a skill, add a domain skill, adopt an external one.
-- **Why it works this way**: the decisions.
-- **Reference**: every command, key, skill and file. Shipped 2026-09-10.
-- **Work on Flow**: the repo, the tests, `try.sh`. Overlaps `docs/dev/`.
+## The tree
 
-**Reference is a section, not the spine.** ESLint's reader knows what linting is and arrives from an error message. Flow's reader does not know what a phase is, so Flow's explanation load is higher and its config surface far smaller.
+```text
+docs/
+├── README.md        the index
+├── overview.md      how Flow works, whole
+├── 14 guide pages   one per subject, grouped in the index by why the reader came
+├── reference/       commands, settings, skills, files: lookup alone
+└── dev/             layout, commands, skills, trying-changes: for whoever changes Flow
+```
 
-## `Why it works this way`: four groups
+**Grouped by why the reader came, never by component.** Grouping by component was rejected outright: *"that's absolute worst way to teach strangers."* The index's groups: Start here, Doing the work, Getting better, Making it yours, Reference.
 
-By **scope and consequence**, the user's axis:
+**Reference is split in 4, and explains no concept.** The old `reference.md` was 15,700 words mixing lookup with long explanation. A reference entry says what a thing does and its options. Where it needs a concept, it gives one sentence and links the guide page. Ruled by the user 2026-10-03: "this is just a references page. This is not where we explain any concepts".
 
-- **What you can change**: global, tied to no step, safe to drop. The git-mutation ban, `AskUserQuestion` denied, plan mode denied, ASCII over images, how the agent explains itself.
-- **What holds it together**: global, and something breaks. The change record being the only honest account of what a subagent touched. Descriptions carrying no trigger. One copy of a skill per machine.
-- **Inside a phase**: review running in the same session, no `code-review` skill, groundwork walking every open decision to an answer.
-- **At setup, once**: symlinks and no copies, no versions, no plugin manifest, every skill on by default, a project overriding key by key.
+**Hidden commands and flags appear only in `docs/dev/`.** `flow handoff`, `--root`, `--no-bin`, `--no-clone`, `--drafts` and `doctor --tests` run for the agent and the tests, so `docs/dev/commands.md` documents them and the user pages never name them.
 
-Entry format is Go's FAQ: **the decision, the alternative rejected, the consequence**, in 1 to 3 blunt paragraphs.
+**No `Why it works this way` section.** The manual planned one, grouped by scope and consequence. A reason now sits beside the decision it explains, on the page where the reader meets the decision: a reason kept apart goes unread, the argument that removed `decisions.md`.
 
-**The inventory is incomplete and known to be.** The real set comes out of reading `lab/context/` end to end. The four groups get confirmed by that reading, not before it.
+## How dense a page is
 
-## What makes it extensible
+Set by the user 2026-10-03 after reading the first build of `docs/reference/commands.md`, which took 3 rewrites:
 
-**Every new item has one obvious home, decided by a written test rather than by resemblance.**
+- **A sentence stays only where the reader would get something wrong without it.** No rule the example already shows, no list repeating the output, no second example showing nothing new.
+- **Budget**: `commands.md` about 950 lines, the other reference pages under 300, about 150 per guide page and per dev page, under 5,000 lines in all. The build came to about 2,900 for users and 550 for the dev pages.
+- **Ordered by need**: setting up first, the daily work next, rare or destructive things late, specialist things last.
+- **Plain words over Flow's own**: "computer" where the reader meets a machine, "everywhere" for `--global`. `flow sync` is "back up your workflow and share it between your computers".
 
-- **Every section is a folder with an index page and one file per unit.** Adding one is a new file plus one line in that index. A page that outgrows itself becomes a folder.
-- **Each group index states its admission test.** *What you can change* takes a decision that holds everywhere, belongs to no step, and leaves Flow running when dropped.
-- **The index carries titles and one line each, never summaries.** A summary is a second copy.
-- **No numbered filenames, and no cross-references by position.** Order lives in the index alone.
+## Every example is real output
+
+Command output is captured on a pretend computer under `tmp/`, built with `flow install --root <dir> --no-clone`, `FLOW_HOME_REMOTE` pointing at a folder and `FLOW_MACHINE_DEFAULT` set. Never the real machine. A file a skill writes, such as a plan, shows the skill's template, labelled as one, until the beta's first real ticket.
 
 ## What the research added
 
@@ -51,18 +54,18 @@ Two reports at `lab/research/doc-design/`, run by the user 2026-08-29:
 
 - **Use Diátaxis as a review lens, never as folder structure.** Python's docs team agreed on it in 2022 and never finished, and JetBrains' 2022 Django survey found 3% adoption.
 - **Layering beats separation.** Django's most-praised defence is that tutorial, overview, usage, API and source all link to each other.
-- **A precedence and resolution-order page, as its own page.** Both reports call it the highest-value content for a config tool, because a config failure is silent.
-- **One complete annotated example as the quickstart target**: a real project's `CLAUDE.md`, `.claude/settings.json` and `.flow/`, commented line by line.
+- **A page on which setting wins.** Both reports call it the highest-value content for a config tool, because a config failure is silent. `docs/configure.md` carries it.
 
 Dropped on the evidence: **`llms.txt`**, since 97% of sites get no traffic from it, and **a named owner per decision record**, since Flow has one author.
 
 ## Rejected, and staying rejected
 
-- **A test over the examples in `docs/`.** Raised twice. Hand-written examples cover the obvious tenth of the scenarios and miss every tricky one, so a green suite reports a safety nobody has. **Do not raise it a third time.** Examples captured by running the real command are a different thing, and `lab/backlog/before-beta.md` asks for them.
-- **A generated command reference.** A command may be explained in several places where it is reached for. Docs get updated inside the change that touched the CLI.
-- **Grouping decisions by component**, such as `skills.md` and `subagents.md`.
+- **A test over the examples in `docs/`.** Raised twice. Hand-written examples cover the obvious tenth of the scenarios and miss every tricky one, so a green suite reports a safety nobody has. **Do not raise it a third time.** Examples captured by running the real command are a different thing.
+- **A generated command reference.** Docs get updated inside the change that touched the CLI.
+- **A rewrite of each old page in place**, proposed 2026-10-02 and dropped: most pages changed shape, so the tree was planned whole first.
+- **`bash` fences for output**: they colour words such as `done` as code, and an apostrophe opens a string. `console` with `$ ` replaced them.
 
 ## Parked until Flow goes public
 
 - **The license.** MIT recommended: every project Flow competes with is MIT. Add the file any time before the repository goes public.
-- **The upstream research caches.** 16 tracked files are verbatim copies of other people's docs: `lab/research/claude-code-docs/` (12), `claude-agent-skill-best-practices.md` and 3 `agentskills-*.md`. Publishing republishes them. The user chose to keep them tracked for now.
+- **The upstream research caches.** Tracked files under `lab/research/` are verbatim copies of other people's docs: `claude-code-docs/`, `claude-agent-skill-best-practices.md` and 3 `agentskills-*.md`. Publishing republishes them. The user chose to keep them tracked for now.

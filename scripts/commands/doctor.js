@@ -259,7 +259,7 @@ function checkAgents(at, catalog) {
   }
 
   // A Flow skill switched off has no link, on purpose, so only the ones on
-  // for this machine are checked: every essential one, and a dev one with a line.
+  // everywhere are checked: every essential one, and a dev one with a line.
   const machineLines = links.lines({ home: at.flow, root: null, levels: ['global'] });
   const on = installable.filter((s) =>
     links.machineState({ name: s.name, essential: skills.essential(s) }, { type: 'flow' }, machineLines) === 'on');
@@ -385,7 +385,7 @@ function checkSettings(clone, claude, catalog) {
   // With no mode set, Claude Code starts a session on a Pro, Max or Team plan
   // in auto mode, and nothing on screen says so. A missing key is a merge that
   // went wrong, so it fails. A different mode is somebody's choice, so it is a
-  // note: lab/archive/manual/settings.md argues the case, and this only reports it.
+  // note: docs/safety.md argues the case, and this only reports it.
   const notes = [];
   const wantedMode = (template.permissions || {}).defaultMode;
   const liveMode = (live.permissions || {}).defaultMode;
@@ -554,7 +554,7 @@ function checkSkills(at) {
   }
 
   const summary = `${count(sources.filter((g) => g.cloned).length, 'source', 'sources')} cloned, ` +
-    `${count(machineOn, 'skill', 'skills')} on for this machine` +
+    `${count(machineOn, 'skill', 'skills')} on everywhere` +
     (root ? `, ${projectOn} more for ${path.basename(root)}` : '');
   return { name: 'skills', problems, summary };
 }
@@ -795,9 +795,8 @@ actions.doctor = {
       checkFlowHome(clone, at.flow),
       checkOriginals(at),
       checkSkills(at),
-      flags.tests
-        ? checkTests(clone, { bin })
-        : { name: 'tests', skipped: 'add --tests to run both suites' },
+      // Hidden from help, so the report never names it when it was left out.
+      flags.tests && checkTests(clone, { bin }),
     ].filter(Boolean);
 
     return report(checks);

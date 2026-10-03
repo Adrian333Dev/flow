@@ -307,5 +307,5 @@ test('the skills check names a source not cloned, a line no source holds, and a 
   fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ sources: ['me/skills'], skills: { review: 'off', react: 'on' } }));
   const fixed = doctor(m, { bin });
   assert.strictEqual(fixed.code, 0, fixed.stdout);
-  assert.match(fixed.stdout, /skills: 1 source cloned, 1 skill on for this machine/);
+  assert.match(fixed.stdout, /skills: 1 source cloned, 1 skill on everywhere/);
 });

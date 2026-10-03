@@ -20,7 +20,7 @@ type: setup-machine
 
 # Setting up this machine
 
-⚠️ Don't change anything in this file unless you know exactly why. Flow is built and tested as one setup, and a change here can break parts of it in ways you won't notice until later. Every key below is explained in ~/.flow/docs/manual/settings.md.
+⚠️ Don't change anything in this file unless you know exactly why. Flow is built and tested as one setup, and a change here can break parts of it in ways you won't notice until later. Every key below is explained in ~/.flow/docs/reference/settings.md.
 
 ## What Flow sets up
 

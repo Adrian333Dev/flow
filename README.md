@@ -1,218 +1,64 @@
 # Flow
 
-An agentic development workflow for a solo developer. Rules, enforcement, a CLI for managing work across sessions, a project scaffold, and a growing set of skills.
+**Flow is a complete development workflow for Claude Code.** It takes a raw idea and finds every decision the project needs, including the ones you never raised. It researches the open ones, settles each one with you, and tests the design against real cases before any code exists. It cuts the design into tickets, then plans, builds and reviews each one. It carries the work from one session to the next. Everything it learns about your preferences, your tools and its own mistakes goes back into its skills, its rules and a wiki that every project shares. Each project starts with what the last one taught it.
+
+```text
+Design    idea → every decision mapped → researched → settled with you → tested on real cases → design written down
+Build     tickets → plan → build → two-pass review → handoff to the next session
+Improve   preferences, tool knowledge, mistakes → filed into skills, rules and the wiki ↺ the next project
+```
 
 ## Table of contents
 
-- [What makes it different](#what-makes-it-different)
-- [From idea to design](#from-idea-to-design)
-- [From design to build](#from-design-to-build)
-- [The ticket system and CLI](#the-ticket-system-and-cli)
-- [The workflow learns](#the-workflow-learns)
-- [Supporting skills](#supporting-skills)
-- [Built-in mechanisms](#built-in-mechanisms)
-- [Keeping it cheap](#keeping-it-cheap)
-- [How it compares](#how-it-compares)
-- [Companion tools](#companion-tools)
-- [What is next](#what-is-next)
-- [Status](#status)
-- [Documentation](#documentation)
+- [What makes it different](#what-makes-it-different): the parts a skill set does not have
+- [How it compares](#how-it-compares): Flow beside 3 popular skill sets
+- [Install](#install): the line to paste, and what it needs
+- [Status](#status): who Flow serves today, where it runs, and what comes next
+- [Documentation](#documentation): where to read on
 
 ## What makes it different
 
-Flow is installed globally, once per machine, by symlinking skills, scripts, and reference files from one clone into your home folder. Flow runs on Claude Code, and does not support Codex yet. `~/.agents/` holds the one real copy of the rules and the skills: the rules (`AGENTS.md`) and a folder holding one symlink per skill, `skills/flow/`, so that every skill is typed `/flow:groundwork`. `~/.claude/` holds what Claude Code reads: a one-line `CLAUDE.md` importing the rules, hooks and permissions (`settings.json`), and a link to the skills folder. `~/.flow/` holds what only Flow reads: the CLI scripts, the guard, reference files, workflow notes, study cases, and every clone Flow reads, under `repos/`. Every project shares the same skills, rules, preferences, and accumulated knowledge. A project adds its own rules and context on top through `.claude/` and `.flow/` at the project level, and [skill overlays](#skill-overlays) let a project extend what a global skill does without editing it.
-
-The workflow handles a full project from the initial idea through to a finished, reviewed build. Each phase produces what the next one consumes:
-
-```text
-/flow:groundwork      idea → researched design, every decision locked
-/flow:start           the board, or one ticket with its context loaded
-/flow:execute         ticket → planned, built, and reviewed
-/flow:file-findings   lessons filed back into skills and rules
-```
-
-Groundwork produces the design and cuts it into tickets. For large projects with an existing spec, `/flow:tickets-from-spec` cuts the next batch of tickets from `docs/spec/` instead, but most of the time groundwork handles ticket creation directly.
-
-Flow can start from any point. If you already have a design, start at `/flow:execute`. If you already have tickets, pick one up with `/flow:start`. If you are mid-build and something breaks, `/flow:debug` takes over. If you need to research before deciding, `/flow:research` runs on its own.
-
-## From idea to design
-
-[`/flow:groundwork`](skills/phases/groundwork/SKILL.md) takes you from a raw idea to a researched, designed solution where every decision is locked and written down. The agent works with you through four stages: map every open decision (including ones nobody raised), walk each to a locked answer through an interview, attack the result by running it through real cases, then route each decision to the file that owns it.
-
-The mapping is where the depth is. The agent breaks the subject into independent parts and systematically generates options the user did not bring. It names contradictions in your input, challenges whether the stated approach is even right, runs a pre-mortem (imagine it shipped and went badly, name the 3 most likely causes), and checks prior art. When a branch is genuinely stuck, the skill reformulates the problem, names the underlying contradiction, forces analogues from unrelated fields, and builds structurally different solution families before judging any.
-
-Groundwork reaches for other skills when conversation alone cannot settle a branch. It invokes `/flow:research` to fetch docs, read source, or survey a landscape the user barely knows. When only running code can answer, it cuts a prototype ticket and hands it to a fresh subagent that sees only the ticket, then resumes from the findings. When the shape of something is itself the question, it invokes `/flow:visualize` and draws it instead of describing it.
-
-What comes out is a design: the decisions, the structure, the tradeoffs, the bets. That design routes to tickets for committed work, a spec for anything that outlives the build, and context files for durable facts. "Nothing" is a legitimate outcome. Groundwork that resolves to "not worth doing" did its job.
-
-It works for any scope from simple feature to full project brainstorming and design.
-
-## From design to build
-
-[`/flow:execute`](skills/phases/execute/SKILL.md) picks up a ticket and writes a plan that sequences the design groundwork produced. The plan does not reinvent what was already decided. It reads the code first, then writes numbered steps, each with a named check that proves it.
-
-Building runs one step at a time. Mechanical steps (5+ files, or 10+ near-identical edits) delegate to a subagent on a cheaper model, verified through the [change record](#subagent-verification-by-change-record-scriptschangesjs).
-
-Review runs two passes over the same diff: against the plan (every step delivered, nothing extra), then against the code (see [`references/review-code.md`](skills/phases/execute/references/review-code.md)). When the built thing turns out wrong, the ticket goes back to groundwork on the same ticket, keeping its full history.
-
-## The ticket system and CLI
-
-`flow` is a full CLI that manages work across sessions. It tracks status, dependencies, parent/child hierarchy, and five ticket types (feature, issue, chore, topic, prototype). Each type walks a subsequence of the same status line (`todo → groundwork → planning → building → review → done`). The system refuses what would break the graph: picking up a ticket whose dependency is unsatisfied, closing a parent with open children, dropping with live dependents.
-
-[`/flow:start`](skills/tools/start/SKILL.md) opens a session. With no argument, it shows the board and recommends what to pick up. With a ticket, it loads the ticket and routes to the right skill based on type and status: a feature at `todo` goes to `/flow:groundwork`, a feature at `planning` goes to `/flow:execute`, an issue goes to `/flow:debug`, a prototype goes to `/flow:prototype`. When you already know the phase, type it with the ticket after it, `/flow:execute /exp-47`. Every open ticket is a skill of its own, so typing `/exp` lists them with their status and title.
-
-Key commands:
-
-```text
-flow next               the board: what to work on, ranked
-flow get <id>           a ticket with its context (--files)
-flow new "title"        create a ticket (--type, --deps, --parent, --body -)
-flow check              catch cycles, dangling ids, dropped blockers
-flow <id>               show one ticket in full
-flow audit read         query session history from indexed transcripts
-```
-
-Status commands are named for where the ticket lands: `flow groundwork exp-47`, `flow plan exp-47`, `flow build exp-47`, `flow review exp-47`, `flow done exp-47`.
-
-The handoff (`/flow:handoff`) writes what the next session would get wrong without it: what is half-done, what cost effort to learn, decisions half-made, files changed outside the plan. `flow get --files` assembles the ticket, its handoff state, and every file named in its `open` block into a context the next session can act on immediately. Sessions do not start from zero.
-
-## The workflow learns
-
-Capture writes everything worth keeping as it surfaces: preferences, patterns, constraints, corrections, things that cost effort to learn. Everything with no obvious home goes to the inbox, raw and unshaped.
-
-[`/flow:file-findings`](skills/tools/file-findings/SKILL.md) drains the inbox and routes each item to its destination by scope. A tool quirk goes to that tool's skill. A broad principle goes to a high-level rule. A user preference goes to the profile. Several findings on one subject that no skill covers are what earns a new skill.
-
-The skills and rules are not static. They accumulate what the work teaches, and the next session loads those changes automatically.
-
-## Supporting skills
-
-Three skills fire inside any phase:
-
-- [`/flow:research`](skills/tools/research/SKILL.md) covers any topic: a library API, a design pattern, a domain the user barely knows. It asks Context7 for a quick answer from a library's docs, and downloads a tool's docs through the llms.txt route (most tools publish one) into `~/.flow/wiki/<tool>/`, one folder per tool shared by every project, so the same docs are downloaded once per machine. Four levels matched to depth: a single doc-page fetch, full docs cached before a plan freezes an API, a source clone for deep customization, or a landscape survey delegated to external LLMs (including free ones) in their own sessions.
-- [`/flow:visualize`](skills/tools/visualize/SKILL.md) picks the medium before drawing: prose, a list, ASCII, an ASCII frame for screen layout, or an HTML preview for color and typography. ASCII first, because it costs a fraction of what an HTML round costs and renders inline. The skill carries a pattern vocabulary (layered stacks, pipelines, flows with return paths, trees, side-by-sides), correctness mechanics (collision detection, equal row length, label fitting), and references for [screen mockups](skills/tools/visualize/references/draw-mockups.md), [large-scale diagrams](skills/tools/visualize/references/hooks-lifecycle.md) (113 columns, 97 rows), and a [full-page YouTube mockup](skills/tools/visualize/references/youtube-page.md) at real proportion.
-- [`/flow:handoff`](skills/tools/handoff/SKILL.md) writes what the next session needs to carry on. It is what makes the ticket system work across sessions.
-
-Two more fire on a situation:
-
-- [`/flow:debug`](skills/phases/debug/SKILL.md) requires multiple hypotheses of different kinds before testing any. Every test is a prediction written before the check runs. Three failed fixes mean the hypothesis was never the problem: the skill names the structure that makes the bug possible and hands it back.
-- [`/flow:prototype`](skills/phases/prototype/SKILL.md) answers a question only running code can settle. Throwaway code, naive on purpose, never promoted. The report is the deliverable, not the code.
-
-## Built-in mechanisms
-
-### The guard ([`scripts/hooks/guard.js`](scripts/hooks/guard.js))
-
-A `PreToolUse` hook that runs before every shell command the agent executes. It reads the whole command the way bash splits it, loops, `$(…)`, `bash -c` and `xargs` included, and asks you before 5 kinds of harm:
-
-- **Losing work**: a delete outside the project, a delete of files git cannot give back, or a git command that throws work away, such as a force push or `reset --hard`
-- **Sending data off the machine**: `curl` posting a file, `scp` to another host, `ssh`
-- **Touching shared systems**: a deploy or cloud tool doing more than read, such as `kubectl delete` or `terraform apply`, and a database wipe
-- **Changing the machine**: a global install, a scheduled job, a write into `~/.ssh` or a shell startup file
-- **Running outside code, or switching Flow off**: a download piped into a shell, an `npx` of a package the project lacks, a write into Claude Code's or Flow's own settings
-
-Each one asks every time, even after you saved a rule allowing that command. The guard never allows anything, so a bug in it cannot let through more than the settings do. [Settings](lab/archive/manual/settings.md#hooks) lists what each kind covers.
-
-### Permissions
-
-Flow's settings allow edits, file reads, web lookups and every shell command, so a loop or a variable never stops for a yes. A shell command asks only when the guard asks, or when it commits, pushes or publishes a package. Those 3 ask every time. Listing safe commands was tried twice and dropped: Claude writes shell in endless shapes, and each shape a list missed asked again. `sudo`, `su`, formatting a disk and starting a Claude Code that skips its permission checks are denied outright. [Settings](lab/archive/manual/settings.md#why-every-shell-command-is-allowed) records why, and why auto mode and the sandbox lost.
-
-### Subagent verification by change record ([`scripts/hooks/changes.js`](scripts/hooks/changes.js))
-
-A set of hooks records every change as it happens, under the id of the agent that made it. An edit is recorded as the file before and after. A shell command is recorded as a git snapshot of the whole working tree either side of it, taken against a throwaway index, so uncommitted work is included and the real index, the files and HEAD stay untouched. When a subagent finishes, the parent receives one diff per file that subagent changed, plus the commands that changed files. The parent judges the work by that record, never by the worker's summary. Several subagents can run at once in the same working copy, and each record holds only its own subagent's changes.
-
-### Skill overlays
-
-A skill is installed globally and shared across every project. A project that needs to extend a skill writes `.flow/overlays/<name>.md`, and that content is appended to the skill's body when it loads. The global skill stays untouched, and the extension is scoped to the project that wrote it.
-
-### Pre-loaded files
-
-An `open` block in a ticket or handoff names files and line ranges. When `flow get --files` loads the ticket, those files arrive in context before the session's first turn. The next session does not have to find or open anything: the files are already there. The block is `util fs open`'s format, so any document can carry one, and [the `open` block](https://github.com/Adrian333Dev/util/blob/main/docs/commands.md#the-open-block) in util's documentation defines it.
-
-### The audit system
-
-`flow audit` indexes the transcripts Claude Code writes at `~/.claude/projects/` into a SQLite database and answers queries against them. It reads any session that ever ran, including sessions from before the audit existed. `flow audit read` opens a bounded turn range from a past session. `flow audit ls` lists what is available. The index is derived and rebuildable from the raw transcripts at any time.
-
-### Permission denials and feature flags
-
-`settings.json` denies tools Flow does not use (plan mode, remote triggers, artifact creation, and others) and disables features that conflict with the workflow (bundled skills, built-in workflows, remote control). These are enforced at the settings level, so the agent cannot bypass them.
-
-## Keeping it cheap
-
-ASCII over HTML for diagrams and mockups: a fraction of the tokens, renders inline, and the structure is decided before color starts.
-
-`util fs tree` for reading directory structure without noise:
-
-```text
-skills/
-├─ phases/       groundwork, execute, prototype, debug
-├─ tools/        start, handoff, file-findings, research, visualize, tickets-from-spec
-└─ dev/          review, apply-domain-findings
-```
-
-Read calls sent together for files: every file a step needs is asked for at once, and each call gets its own page of about 100,000 characters. `util fs merge`, which prints many files as one text, is a tool for pasting into a chat and never for agents. Claude Code passes a command's output to the agent up to about 30,000 characters in total, so a large set of files through `merge` arrives as a preview.
-
-Research levels that stop at the shallowest depth that answers the question. Delegating heavy research to external LLMs (including free ones) keeps cost at zero for broad surveys. A cheaper model for delegated mechanical steps. Prototypes built by a subagent, so throwaway code does not consume the main context.
+- **The design comes before the code.** `/flow:groundwork` maps every decision the work needs, researches the open ones, settles each with you, and runs the result through real cases. [Phases](docs/phases.md)
+- **Work survives the end of a session.** Tickets sit on a board, a handoff writes down what the next session would get wrong, and opening a ticket loads the files it names. [Sessions](docs/sessions.md)
+- **Memory tools remember what went wrong. Flow changes what the agent does next time.** A lesson lands in the skill, the rule or the wiki page it belongs to, and every project reads it. [Learning](docs/learning.md)
+- **Risky shell commands stop for a yes.** A guard reads every command before it runs, and asks before deleting work, sending data off the computer, or changing the computer. [Safety](docs/safety.md)
+- **A subagent's work is checked against what it changed.** Hooks record each subagent's edits, and the main agent reads that diff, never the subagent's own summary. [Subagents](docs/subagents.md)
 
 ## How it compares
 
-The alternatives are skill sets: packages of skills you install into an agent. Flow is a workflow. The difference is in what happens between the skills and around them.
-
-A skill set can build a feature you already know you want. You come in with "build a dashboard", invoke the right skill, and it helps you write the code. Flow handles the full lifecycle of a project. You come in with a raw idea, and the workflow takes you through designing the solution, cutting it into tickets, building each one, reviewing the result, filing what you learned, and carrying state to the next session. The alternatives have no mechanism for that chain, because the chain is not made of skills.
-
-Flow can also start from any checkpoint. If the design is done, skip groundwork. If the tickets exist, pick one up. The phases are a pipeline, not a forced sequence from the beginning.
-
-Other differentiators:
-
-- **The workflow improves itself.** Every session's findings get filed back into the skills and rules. The alternatives ship a fixed set of skills that update when the author ships a new version.
-- **Enforcement is at the tool level.** The guard intercepts commands before they execute. Permission denials block tools at the settings level. The alternatives rely on the agent following instructions in the prompt.
-- **State survives between sessions.** The ticket CLI, the handoff, and pre-loaded files carry context forward. The alternatives start fresh every session (mattpocock/skills integrates with issue trackers, but does not pre-load context or carry handoff state).
-- **One global install serves every project.** Skills, rules, preferences, and accumulated knowledge are shared. A project extends the base with overlays and local rules. The alternatives install per project or require copying files.
-- **Subagent work is verified by diffs, not by trust.** The change record proves what a subagent changed. The alternatives delegate work and trust the report.
-- **Cost optimization is a design principle.** ASCII over HTML, research levels, delegation to cheaper models, merge over parallel reads. The alternatives do not optimize for token cost.
-- **Structured decision-making goes deeper.** Groundwork's systematic widening, contradiction naming, distant analogues, and pre-mortem go further than any brainstorming skill in the alternatives.
-- **Session history is queryable.** The audit system indexes past transcripts and answers queries against them. No alternative ships anything like it.
+The alternatives are skill sets: skills you add to an agent and call one at a time. Flow is a workflow: the skills, plus the board, the hooks and the records that carry work between them.
 
 |  | Flow | [Superpowers](https://github.com/obra/superpowers) | [Agent Skills](https://github.com/addyosmani/agent-skills) | [mattpocock/skills](https://github.com/mattpocock/skills) |
 |---|---|---|---|---|
-| Full project lifecycle | Idea through build, review, and filing | Brainstorming through shipping, each skill independent | /spec through /ship, checklists per step | Composable skills, no pipeline |
-| Start from any point | Yes, any phase | Each skill invoked independently | Each command invoked independently | Each skill invoked independently |
-| Cross-session state | Ticket CLI, handoffs, pre-loaded files | No built-in state management | No built-in state management | Issue tracker integration |
-| Self-improving | Capture and file-findings loop | No | No | No |
-| Enforcement | Hook-level guard, permissions | SessionStart hook | No | No |
-| Subagent verification | A diff per subagent, recorded by hooks | No | No | No |
-| Global install | One symlinked clone | Per-project or global config | Plugin or CLI | Plugin or copied files |
-| Cost optimization | Built-in (ASCII, merge, research levels, delegation) | No | No | No |
-| Session audit | Transcript indexing and queries | No | No | No |
-| Multi-agent support | Claude Code (expanding) | Claude Code, Codex, Cursor, Gemini CLI, others | 70+ agents via skills.sh | Claude Code |
+| Idea to reviewed code | One pipeline: design, tickets, plan, build, review | Brainstorming through finishing a branch, each skill on its own | `/spec` through `/ship`, a checklist per step | Small skills you chain yourself |
+| Work across sessions | A ticket board, handoffs, and a ticket's files loaded on open | Nothing built in | Nothing built in | A handoff skill, and tickets in your issue tracker |
+| Learns from use | Lessons filed into its skills, rules and wiki | No | No | No |
+| Hooks | A guard on every shell command, rule checks on every edit | Loads its introduction at session start | Runs a script at session start | An optional hook blocking risky git commands |
+| Subagent work | Checked against a diff the hooks recorded | Reviewed from the subagent's report | Reviewed from the subagent's report | Reviewed from the subagent's report |
+| Past sessions | Searchable through `flow audit` | No | No | No |
+| Agents | Claude Code | Claude Code, Codex, Cursor, Gemini CLI and others | 70+ agents through skills.sh | Claude Code, and others through skills.sh |
 
-Flow coexists with skill set plugins. The rules and the guard apply regardless of which skill is running, including a plugin's skills.
+Flow works beside a skill set. The guard and the rules apply whichever skill is running.
 
-## Companion tools
+## Install
 
-**[util](https://github.com/Adrian333Dev/util)** is a command registry and CLI. You register command sources from any directory with `util source add`, and the commands become available under namespaces on `PATH`. `util fs tree` and `util fs merge` are the two used in every session. `util install` puts the two names `util` and `u` on `PATH` and registers that repository's own commands, and `util uninstall` takes both back.
+```sh
+curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/main/install.sh | bash
+```
 
-## What is next
-
-The [backlog](lab/backlog/) tracks every open item, one file per phase: before the beta, the beta, and after V1. What the beta still needs, in order:
-
-1. **Research into how issue trackers model a ticket**, so Flow's tickets can later convert to a team's tracker
-2. **The final sweep**: walking the whole workflow through real scenarios, then simplifying it, compressing every skill, and rewriting every file
-3. **A cleanup of the scripts, and wider tests** over the ticket commands
-4. **The manual**, with a real captured example on every page
-5. **`/flow:help`**, answering a question about Flow with the manual page that covers it
-6. **A README and an install path** a stranger can follow
-
-The beta is Flow installed on the author's machine and used for real work for 2 to 3 weeks, with the manual open to anyone who wants to read it.
+You need `git`, `node`, `claude`, `gh` and a GitHub account. [Install](docs/install.md) walks through what the line asks, and how to take Flow off again.
 
 ## Status
 
-What works today: every rule, every skill, the CLI, the permission guard, the project scaffold, and two test suites.
+Flow is not released yet. The next step is a beta: Flow on the author's computer, used for real work for 2 to 3 weeks.
 
-What is unfinished: the user manual, `/flow:help`, multi-agent portability, and the ASCII rendering engine.
-
-Flow currently runs on Claude Code, on Linux, macOS and WSL. Native Windows is not supported: every hook is a shell line. The core workflow is designed to be portable.
+- **Who it serves**: one developer. Two people can share a project's tickets, and nothing more: no assignees, no roles, no shared board, no link to a team's issue tracker.
+- **Where it runs**: Claude Code, on Linux, macOS and Windows through WSL. Native Windows is not supported, since every hook is a shell command. Built and tested on Claude's 5.5 models.
+- **After the first release**: teams come first. Codex and open-source agents are planned, with no date.
 
 ## Documentation
 
-- **[The old manual](lab/archive/manual/README.md)**: how to use Flow, archived while a new manual is written from scratch. Reference is every command, skill and setting in one place, Where everything lives is every folder Flow uses, and Tickets is the shape of the only thing Flow builds.
-- **[Developing Flow](docs/dev/README.md)**: how to change Flow. The repository layout, the two checkouts, the scratch session, the tests, adding a skill, and the agents Claude Code runs.
+- **[Overview](docs/overview.md)**: how Flow works, start to finish. Start here.
+- **[Flow's documentation](docs/README.md)**: every page, grouped by what you came to do.
+- **[Changing Flow](docs/dev/README.md)**: the repository, the tests, and adding a skill or a command.
 - **[Backlog](lab/backlog/)**: every open item, one file per phase.

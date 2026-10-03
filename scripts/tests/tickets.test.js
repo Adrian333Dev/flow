@@ -64,6 +64,15 @@ test('flow new with --deps validates that each dep exists', () => {
   assert.match(bad.stderr, /exp-999/);
 });
 
+test('a folder offers its whole name as the prefix where it fits, else its first 3 letters', () => {
+  const store = require('../lib/tickets/store');
+  assert.strictEqual(store.offerWord('/code/shop'), 'shop');
+  assert.strictEqual(store.offerWord('/code/my-app'), 'myapp');
+  assert.strictEqual(store.offerWord('/code/expense-tracker'), 'exp');
+  assert.strictEqual(store.offerWord('/code/x1'), 'flow');
+  assert.strictEqual(store.offerWord('/code/home'), 'flow');
+});
+
 test('a folder on another disk is copied across, then deleted', () => {
   const store = require('../lib/tickets/store');
   const dir = project('tickets-move-other-disk');
