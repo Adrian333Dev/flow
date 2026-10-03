@@ -260,7 +260,7 @@ function checkAgents(at, catalog) {
 
   // A Flow skill switched off has no link, on purpose, so only the ones on
   // for this machine are checked: every essential one, and a dev one with a line.
-  const machineLines = links.lines({ home: at.flow, root: null, levels: ['machine', 'global'] });
+  const machineLines = links.lines({ home: at.flow, root: null, levels: ['global'] });
   const on = installable.filter((s) =>
     links.machineState({ name: s.name, essential: skills.essential(s) }, { type: 'flow' }, machineLines) === 'on');
   const linkDir = skills.linkDir(at.agents);
@@ -497,7 +497,7 @@ function checkIssues(at) {
 function checkSkills(at) {
   const problems = [];
   const groups = links.catalog(at.flow);
-  const machineLines = links.lines({ home: at.flow, root: null, levels: ['machine', 'global'] });
+  const machineLines = links.lines({ home: at.flow, root: null, levels: ['global'] });
   let root = null;
   try {
     root = projectRoot();
@@ -750,11 +750,11 @@ function report(checks) {
 actions.doctor = {
   section: 'setup',
   anywhere: true,
-  summary: 'verify this machine: version, links, PATH, util, skills, hooks, and both suites with --tests',
+  summary: 'check that Flow is installed correctly: version, links, PATH, util, skills and hooks',
   flags: {
-    root: { arg: '<dir>' },
-    'no-bin': { bool: true },
-    tests: { bool: true },
+    root: { arg: '<dir>', hidden: true },
+    'no-bin': { bool: true, hidden: true },
+    tests: { bool: true, hidden: true },
     updates: { bool: true },
     prereq: { bool: true },
   },

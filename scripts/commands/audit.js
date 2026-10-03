@@ -5,9 +5,7 @@
  * A log, never a fixed report. What counts as a problem is not known before
  * the question is asked, so nothing here ranks or scores: it narrows. The
  * index answers in rows and line numbers, and the line numbers are what open
- * the conversation itself when the rows are not enough. `scorecard` is the one
- * fixed report, since the rule checks ask their question in advance:
- * `scorecard.js` holds it.
+ * the conversation itself when the rows are not enough.
  *
  * Three tools, in the order they cost:
  *
@@ -34,7 +32,6 @@ const query = require('../lib/audit/query');
 const reader = require('../lib/audit/read');
 const { out } = require('../lib/cli');
 const { FlowError } = require('../lib/error');
-const scorecard = require('./scorecard');
 
 const actions = {};
 
@@ -251,8 +248,6 @@ actions.where = {
     return 0;
   },
 };
-
-actions.scorecard = scorecard.scorecard;
 
 module.exports = {
   summary: 'what Claude Code did, read back after the fact',

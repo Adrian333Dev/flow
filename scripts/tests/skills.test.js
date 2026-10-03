@@ -65,7 +65,7 @@ test('ls shows Flow, each source, private and outside, with the level only where
   write(at.home, 'private-skills/notes/SKILL.md', skillFile('notes', 'My notes.'));
   write(at.claude, 'mine/SKILL.md', skillFile('mine', 'Copied in by hand.'));
   assert.strictEqual(at.flow('on', 'react').code, 0);
-  assert.strictEqual(at.flow('on', 'vue', '--machine').code, 0);
+  assert.strictEqual(at.flow('on', 'vue', '--global').code, 0);
   assert.strictEqual(at.flow('on', 'review', '--global').code, 0);
 
   const listed = at.flow('ls');
@@ -76,7 +76,7 @@ test('ls shows Flow, each source, private and outside, with the level only where
     ...flowRows({ review: 'global' }),
     ['domain-skills', '1 more', ''],
     ['  react', 'on', 'project'],
-    ['  vue', 'on', 'machine'],
+    ['  vue', 'on', 'global'],
     ['private', '', ''],
     ['  notes', 'off', ''],
     ['outside', '', ''],
@@ -146,10 +146,10 @@ test('add clones a source, refuses a repository with no skill, and switches noth
   assert.strictEqual(at.flow('add', 'me/one').code, 0);
   assert.ok(!fs.existsSync(path.join(at.claude, 'last30days')), 'add links nothing');
   assert.strictEqual(at.flow('add', 'me/one', 'last30days').code, 1, 'a skill name after the source is refused');
-  const one = at.flow('on', 'last30days', '--machine');
+  const one = at.flow('on', 'last30days', '--global');
   assert.strictEqual(one.code, 0, one.stderr);
   assert.strictEqual(target(path.join(at.claude, 'last30days')), path.join(at.home, 'repos', 'sources', 'me_one'));
-  assert.match(one.stdout, /on: last30days, this machine\. Every session on this machine now loads its description/);
+  assert.match(one.stdout, /on: last30days, everywhere\. Every session now loads its description/);
   assert.deepStrictEqual(read(path.join(at.home, 'settings.json')).sources, ['Adrian333Dev/domain-skills', 'me/one']);
 
   assert.deepStrictEqual(history(at.home).map((h) => [h.type, h.source || h.name]), [
@@ -178,38 +178,51 @@ test('on, off and reset write one line at each level, and the links follow', () 
   assert.ok(!fs.existsSync(link), 'the machine link covers the project');
   assert.deepStrictEqual(read(path.join(at.home, 'settings.json')).skills, { react: 'on' });
 
-  // The machine level sits between the other 2.
-  assert.strictEqual(at.flow('off', 'react', '--machine').code, 0);
-  assert.deepStrictEqual(read(path.join(at.home, 'settings.local.json')), { skills: { react: 'off' } });
-  assert.ok(!fs.existsSync(path.join(at.claude, 'react')), 'off at machine level beats on at global');
+  // Off everywhere, the project's own line applies again.
+  assert.strictEqual(at.flow('off', 'react', '--global').code, 0);
+  assert.deepStrictEqual(read(path.join(at.home, 'settings.json')).skills, { react: 'off' });
+  assert.ok(!fs.existsSync(path.join(at.claude, 'react')), 'off everywhere removes the machine link');
   assert.strictEqual(target(link), path.join(at.clone, 'react'), 'and the project line applies again');
 
-  const reset = at.flow('reset', 'react', '--machine');
+  const reset = at.flow('reset', 'react', '--global');
   assert.strictEqual(reset.code, 0, reset.stderr);
-  assert.match(reset.stdout, /^reset: react, this machine\.\n/);
-  assert.ok(!fs.existsSync(path.join(at.home, 'settings.local.json')), 'a file left empty goes');
-  assert.ok(fs.existsSync(path.join(at.claude, 'react')), 'the global line decides again');
+  assert.match(reset.stdout, /^reset: react, everywhere\.\n/);
+  assert.ok(!fs.existsSync(path.join(at.home, 'settings.json')), 'a file left empty goes');
+  assert.strictEqual(target(link), path.join(at.clone, 'react'), 'the project line still decides');
 
   assert.deepStrictEqual(history(at.home).filter((h) => h.type === 'skill').map((h) => [h.name, h.state, h.level]), [
     ['react', 'on', 'project'],
     ['react', 'on', 'global'],
-    ['react', 'off', 'machine'],
-    ['react', 'reset', 'machine'],
+    ['react', 'off', 'global'],
+    ['react', 'reset', 'global'],
   ]);
+});
+
+test('--machine is refused, and a line in settings.local.json switches nothing', () => {
+  const at = place('skills-no-machine');
+  at.flow('add', 'Adrian333Dev/domain-skills');
+
+  const refused = at.flow('on', 'vue', '--machine');
+  assert.strictEqual(refused.code, 1);
+  assert.match(refused.stderr, /unknown flag "--machine", one of: --global/);
+
+  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ skills: { vue: 'on' } }));
+  assert.strictEqual(at.flow('ls').code, 0);
+  assert.ok(!fs.existsSync(path.join(at.claude, 'vue')), 'the local file holds paths, never a switch');
 });
 
 test('a Flow skill has no project level, and a project cannot hide a skill the machine has on', () => {
   const at = place('skills-refused');
   at.flow('add', 'Adrian333Dev/domain-skills');
-  at.flow('on', 'vue', '--machine');
+  at.flow('on', 'vue', '--global');
 
   const flowSkill = at.flow('off', 'review');
   assert.strictEqual(flowSkill.code, 1);
-  assert.match(flowSkill.stderr, /review is a Flow skill, and Flow's skills load for the whole machine: add --machine or --global\./);
+  assert.match(flowSkill.stderr, /review is a Flow skill, and Flow's skills load for the whole machine: add --global\./);
 
   const hidden = at.flow('off', 'vue');
   assert.strictEqual(hidden.code, 1);
-  assert.match(hidden.stderr, /vue is on for this machine, and a project cannot hide a skill linked for the whole machine yet\.\n {2}flow skills off vue --machine/);
+  assert.match(hidden.stderr, /vue is on everywhere \(--global\), and a project cannot hide a skill linked for the whole machine yet\.\n {2}flow skills off vue --global/);
   assert.ok(!fs.existsSync(path.join(at.project, '.flow', 'settings.json')), 'nothing was written');
 
   const outside = run('flow.js', ['skills', 'on', 'vue'], {
@@ -219,16 +232,16 @@ test('a Flow skill has no project level, and a project cannot hide a skill the m
   assert.notStrictEqual(outside.code, 0, 'no flag outside a project is refused');
 });
 
-test('a dev skill switched on for the machine gets its link in the plugin folder, and loses it once reset', () => {
+test('a dev skill switched on everywhere gets its link in the plugin folder, and loses it once reset', () => {
   const at = place('skills-flow-on');
   const linkDir = skills.linkDir(path.join(at.user, '.agents'));
   const review = skills.installable().find((s) => s.name === 'review');
   fs.mkdirSync(linkDir, { recursive: true });
 
-  assert.strictEqual(at.flow('on', 'review', '--machine').code, 0);
+  assert.strictEqual(at.flow('on', 'review', '--global').code, 0);
   assert.strictEqual(target(path.join(linkDir, 'review')), review.dir);
 
-  assert.strictEqual(at.flow('reset', 'review', '--machine').code, 0);
+  assert.strictEqual(at.flow('reset', 'review', '--global').code, 0);
   assert.ok(!fs.existsSync(path.join(linkDir, 'review')), 'off again by default');
 });
 
@@ -238,22 +251,22 @@ test('an essential skill cannot be switched, stays linked whatever a line says, 
   const groundwork = skills.installable().find((s) => s.name === 'groundwork');
   fs.mkdirSync(linkDir, { recursive: true });
 
-  for (const args of [['off', 'groundwork', '--machine'], ['on', 'groundwork', '--global']]) {
+  for (const args of [['off', 'groundwork', '--global'], ['on', 'groundwork', '--global']]) {
     const refused = at.flow(...args);
     assert.strictEqual(refused.code, 1);
     assert.match(refused.stderr, /groundwork is part of Flow's workflow and always on\. Only the skills in skills\/dev\/ switch\./);
   }
-  assert.ok(!fs.existsSync(path.join(at.home, 'settings.local.json')), 'nothing was written');
+  assert.ok(!fs.existsSync(path.join(at.home, 'settings.json')), 'nothing was written');
 
   // A line written by hand changes nothing, and reset still removes it.
-  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ skills: { groundwork: 'off' } }));
+  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ skills: { groundwork: 'off' } }));
   const listed = at.flow('ls');
   assert.strictEqual(target(path.join(linkDir, 'groundwork')), groundwork.dir, 'linked despite the line');
   assert.doesNotMatch(listed.stdout, /groundwork/);
   assert.doesNotMatch(at.flow('ls', 'groundwork').stdout, /groundwork/, 'not even when searched for');
 
-  assert.strictEqual(at.flow('reset', 'groundwork', '--machine').code, 0);
-  assert.ok(!fs.existsSync(path.join(at.home, 'settings.local.json')), 'the line is gone');
+  assert.strictEqual(at.flow('reset', 'groundwork', '--global').code, 0);
+  assert.ok(!fs.existsSync(path.join(at.home, 'settings.json')), 'the line is gone');
 });
 
 test('a name 2 sources share needs owner/repo:name', () => {
@@ -262,14 +275,14 @@ test('a name 2 sources share needs owner/repo:name', () => {
   gitRepo(path.join(at.dir, 'remote', 'other', 'kit'), { 'react/SKILL.md': skillFile('react', 'Another react.') });
   at.flow('add', 'other/kit');
 
-  const refused = at.flow('on', 'react', '--machine');
+  const refused = at.flow('on', 'react', '--global');
   assert.strictEqual(refused.code, 1);
   assert.match(refused.stderr, /"react" is in 2 sources\. Name the one you mean:\n {2}Adrian333Dev\/domain-skills:react\n {2}other\/kit:react/);
 
-  assert.strictEqual(at.flow('on', 'other/kit:react', '--machine').code, 0);
+  assert.strictEqual(at.flow('on', 'other/kit:react', '--global').code, 0);
   assert.strictEqual(target(path.join(at.claude, 'react')),
     path.join(at.home, 'repos', 'sources', 'other_kit', 'react'));
-  assert.deepStrictEqual(read(path.join(at.home, 'settings.local.json')), { skills: { 'other/kit:react': 'on' } });
+  assert.deepStrictEqual(read(path.join(at.home, 'settings.json')).skills, { 'other/kit:react': 'on' });
 });
 
 test("a dead link into a source is swept, and a folder or link Flow never made is left alone", () => {
@@ -280,7 +293,7 @@ test("a dead link into a source is swept, and a folder or link Flow never made i
   fs.symlinkSync(path.join(at.dir, 'elsewhere'), path.join(at.claude, 'theirs'));
   write(at.claude, 'vue/SKILL.md', skillFile('vue', 'A copy made by hand.'));
 
-  const on = at.flow('on', 'vue', '--machine');
+  const on = at.flow('on', 'vue', '--global');
   assert.strictEqual(on.code, 1, 'a real folder where the link goes is a problem');
   assert.match(on.stderr, /vue is a real folder, not a link: left alone\./);
   assert.ok(fs.statSync(path.join(at.claude, 'vue')).isDirectory());
@@ -291,7 +304,7 @@ test("a dead link into a source is swept, and a folder or link Flow never made i
 test('drop owner/repo removes the source and its clone, and a line left behind shows as missing', () => {
   const at = place('skills-drop-source');
   at.flow('add', 'me/one');
-  at.flow('on', 'last30days', '--machine');
+  at.flow('on', 'last30days', '--global');
 
   const dropped = at.flow('drop', 'me/one');
   assert.strictEqual(dropped.code, 0, dropped.stderr);
@@ -300,8 +313,8 @@ test('drop owner/repo removes the source and its clone, and a line left behind s
   assert.deepStrictEqual(read(path.join(at.home, 'settings.json')).sources, ['Adrian333Dev/domain-skills']);
 
   assert.match(at.flow('ls').stdout,
-    /missing: last30days is on at machine level, and no source holds it\. flow skills reset last30days --machine removes the line\./);
-  assert.strictEqual(at.flow('reset', 'last30days', '--machine').code, 0, 'a line can outlive its skill and still be reset');
+    /missing: last30days is on at global level, and no source holds it\. flow skills reset last30days --global removes the line\./);
+  assert.strictEqual(at.flow('reset', 'last30days', '--global').code, 0, 'a line can outlive its skill and still be reset');
   assert.strictEqual(at.flow('drop', 'last30days').code, 1, 'drop takes a source, never a skill name');
   assert.doesNotMatch(at.flow('ls').stdout, /missing/);
 

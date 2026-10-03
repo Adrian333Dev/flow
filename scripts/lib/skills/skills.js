@@ -14,7 +14,7 @@
  * Installing and being shown are separate questions. Every skill outside
  * `drafts/` installs, and each one is shown while its link in the plugin
  * folder exists. An essential skill, one outside `dev/`, is always linked.
- * A `dev/` skill starts off, and `flow skills on <name> --machine` adds its
+ * A `dev/` skill starts off, and `flow skills on <name> --global` adds its
  * link, which is the only per-skill switch: `skillOverrides` does not reach a
  * plugin's skills. `lib/skills/skill-links.js` makes the links match the settings.
  */

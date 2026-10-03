@@ -122,7 +122,7 @@ actions.store = {
   section: 'setup',
   args: '[branch|private]',
   summary: 'where this project\'s tickets live; branch or private moves them there',
-  flags: { root: { arg: '<dir>' } },
+  flags: { root: { arg: '<dir>', hidden: true } },
   run({ positional, flags }) {
     const at = paths.folders(flags.root);
     const [word, ...extra] = positional;

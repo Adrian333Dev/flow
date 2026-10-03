@@ -359,7 +359,7 @@ actions.init = {
   summary: 'set up the project you are in; --check and --finish are the setup session\'s own steps',
   flags: {
     ...setup.STEP_FLAGS,
-    root: { arg: '<dir>' }, prefix: { arg: '<word>' }, private: { bool: true }, y: { bool: true, letter: true },
+    root: { arg: '<dir>', hidden: true }, prefix: { arg: '<word>' }, private: { bool: true }, y: { bool: true, letter: true },
   },
   run({ positional, flags }) {
     const at = paths.folders(flags.root);

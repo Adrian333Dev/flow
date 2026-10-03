@@ -120,7 +120,7 @@ test('a link the hook changed asks for a rescan, and a session with nothing to c
   const at = place('session-relink', { machine: NEWEST, project: NEWEST });
   const source = path.join(at.home, 'repos', 'sources', 'Adrian333Dev_domain-skills');
   write(source, 'react/SKILL.md', skillFile('react'));
-  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ skills: { react: 'on' } }));
+  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
 
   const first = check(at);
   assert.strictEqual(first.code, 0);
@@ -131,7 +131,7 @@ test('a link the hook changed asks for a rescan, and a session with nothing to c
   assert.strictEqual(second.stdout, '', 'the link is there, so there is nothing to scan');
 
   // A line to print rides along in the same answer.
-  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ skills: {} }));
+  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ skills: {} }));
   fs.writeFileSync(path.join(at.home, 'version'), `${NEWEST - 1}\n`);
   const third = JSON.parse(check(at).stdout).hookSpecificOutput;
   assert.strictEqual(third.reloadSkills, true);
@@ -181,7 +181,7 @@ test('a git repository with no .flow gets the setup line, shown to the user alon
   fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ setupReminderSkip: ['~/code/shop'] }));
   assert.strictEqual(check({ ...at, project: path.join(shop, 'src') }).stdout, '', 'a skipped folder, and everything below it');
 
-  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ setupReminder: false }));
+  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ setupReminder: false }));
   assert.strictEqual(check({ ...at, project: shop }).stdout, '', 'off everywhere');
 });
 
@@ -218,6 +218,6 @@ test('a project set up elsewhere, with old Claude Code memory on this machine, g
   fs.writeFileSync(path.join(memory, 'MEMORY.md'), '- the deploy runs from main\n');
   assert.deepStrictEqual(JSON.parse(check(at).stdout), { systemMessage: 'Flow: old Claude Code memory here. Run flow init to fold it in.' });
 
-  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ setupReminder: false }));
+  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ setupReminder: false }));
   assert.strictEqual(check(at).stdout, '', 'the same switch as the setup line');
 });

@@ -1,6 +1,9 @@
 'use strict';
 /**
- * `flow audit scorecard`: how the rule checks are doing, across every session.
+ * `flow scorecard`: how the rule checks are doing, across every session.
+ *
+ * Its own command, never under `flow audit`: it reads ~/.flow/logs/scorecards/,
+ * which the check hooks write, and never the audit index.
  *
  * Reads every file under ~/.flow/logs/scorecards/, adds the counts, and prints four
  * lists: checks pointing at a rule nobody defines, the rules broken most, the
@@ -99,6 +102,7 @@ function section(title, lines) {
 const actions = {};
 
 actions.scorecard = {
+  section: 'checks',
   summary: 'how the rule checks are doing, across every session',
   run() {
     const { checks: all, problems } = checks.load();

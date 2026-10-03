@@ -228,11 +228,12 @@ function priorityLine(ticket, index) {
 }
 
 /**
- * Where the work stands: the counts across every status, then the 4 questions
- * `brief` answers, then parked.
+ * Where the work stands: the count of each status holding a ticket, then the
+ * 4 questions `brief` answers, then parked.
  *
  * The counts come off the status table, so a new status appears here without
- * this line being touched. Parked tickets are invisible in the daily loop by
+ * this line being touched. A status at 0 is left out: `/flow:start` reads this
+ * line every session, and 5 zeros say nothing. Parked tickets are invisible in the daily loop by
  * design, and this is the one place they surface: a deliberate "not now"
  * cannot quietly become "forgotten".
  */
@@ -240,7 +241,7 @@ function status(tickets, limit) {
   if (!tickets.length) return 'no tickets yet.';
   const by = (s) => tickets.filter((t) => t.data.status === s);
 
-  const counts = statuses.NAMES.map((name) => `${name} ${by(name).length}`).join('   ');
+  const counts = statuses.NAMES.filter((name) => by(name).length).map((name) => `${name} ${by(name).length}`).join('   ');
   const out = [`tickets: ${tickets.length}   ${counts}`, '', brief(tickets, limit)];
 
   const parked = by('parked');

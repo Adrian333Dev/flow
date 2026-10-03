@@ -47,7 +47,7 @@ const projects = require('../lib/project');
 const { git } = require('../lib/git');
 
 const show = paths.shorten;
-const root = { arg: '<dir>' };
+const root = { arg: '<dir>', hidden: true };
 
 /** The commands the session runs without asking. Each is Flow's own, or reads. */
 const ALLOWED = [

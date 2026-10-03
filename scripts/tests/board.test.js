@@ -67,6 +67,18 @@ test('flow next ranks ready tickets by priority', () => {
   assert.ok(highPos < lowPos, 'high priority should appear before low');
 });
 
+test('flow next counts only the statuses holding a ticket', () => {
+  const dir = project('board-next-counts');
+  flow(dir, ['new', 'One']);
+  flow(dir, ['new', 'Two']);
+  const [id] = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive').map((f) => f.match(/^[a-z]+-\d+/)[0]);
+  flow(dir, ['build', id]);
+
+  const next = flow(dir, ['next']);
+  assert.strictEqual(next.code, 0, next.stderr);
+  assert.strictEqual(next.stdout.split('\n')[0], 'tickets: 2   todo 1   building 1');
+});
+
 test('flow next shows in-flight tickets above the ready list', () => {
   const dir = project('board-next-inflight');
 
@@ -111,7 +123,7 @@ test('flow next shows blocked tickets when nothing is ready', () => {
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
   const [id1, id2] = folders.map((f) => f.match(/^[a-z]+-\d+/)[0]);
 
-  flow(dir, ['dep', id2, '--on', id1]);
+  flow(dir, ['edit', id2, '--deps', id1]);
   flow(dir, ['park', id1, '--reason', 'waiting on the vendor']);
 
   const r = flow(dir, ['next']);

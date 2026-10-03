@@ -14,6 +14,7 @@ const { FlowError } = require('./error');
 const out = (s) => process.stdout.write(s.endsWith('\n') ? s : s + '\n');
 
 const HELP_WORDS = ['-h', '--help', 'help'];
+const HELP_FLAGS = ['-h', '--help'];
 
 /**
  * Matches a typed word against the names that are legal in its position: the
@@ -91,8 +92,15 @@ function parseArgs(argv, decl = {}) {
  * `check` runs once per run, between the flags and the action, so a check that
  * needs `--root` sees it. The tool decides what it does: flow refuses a
  * machine `flow install` never finished.
+ *
+ * `--help` or `-h` anywhere after the command prints that command's lines from
+ * the help, and runs nothing.
  */
 function runAction(action, argv, usage, check, extra) {
+  if (argv.some((a) => HELP_FLAGS.includes(a))) {
+    out(actionLines(usage.replace(/ [^ ]+$/, ''), { [usage.split(' ').pop()]: action }).map((l) => l.slice(2)).join('\n'));
+    return 0;
+  }
   const { positional, flags } = parseArgs(argv, { ...action, usage });
   if (check) check(action, flags);
   return action.run({ positional, flags, usage, ...extra });
@@ -152,8 +160,13 @@ function dispatch(argv, { commands, groups, fallback, sections, title, check }) 
 
 const GUTTER = 38;
 
+/**
+ * A flag or a command marked `hidden` works and never prints in the help: the
+ * ones the tests and the agent's skills use, which a person never types.
+ */
 function flagText(action) {
   return Object.entries(action.flags || {})
+    .filter(([, flag]) => !flag.hidden)
     .map(([name, flag]) => (flag.letter ? `[-${name}]` : flag.required ? `--${name} ${flag.arg || '<value>'}` :
       flag.bool ? `[--${name}]` : `[--${name} ${flag.arg || '<value>'}]`))
     .join(' ');
@@ -207,7 +220,7 @@ function groupLines(name, group) {
 function help({ commands, groups, sections, title }) {
   const lines = [title];
   for (const s of sections) {
-    const picked = Object.fromEntries(Object.entries(commands).filter(([, a]) => a.section === s.key));
+    const picked = Object.fromEntries(Object.entries(commands).filter(([, a]) => a.section === s.key && !a.hidden));
     if (!Object.keys(picked).length) continue;
     lines.push('', s.title);
     lines.push(...actionLines('flow', picked));

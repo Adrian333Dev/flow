@@ -12,11 +12,10 @@
  *             domain-skills repository being the first
  *
  * Whether one is on is a line in a settings file, `"skills": { "react": "on" }`.
- * The 3 files are 3 levels, and the nearest line wins, name by name:
+ * The 2 files are 2 levels, and the project's line wins, name by name:
  *
  *   project  <project>/.flow/settings.json
- *   machine  ~/.flow/settings.local.json
- *   global   ~/.flow/settings.json, every machine through `flow sync`
+ *   global   ~/.flow/settings.json, every project, and every machine through `flow sync`
  *
  * A name no file mentions starts off, being a library to pick from. So the
  * files hold only what the user switched.
@@ -47,12 +46,11 @@ const settings = require('../settings');
 const skills = require('./skills');
 const paths = require('../paths');
 
-const LEVELS = ['project', 'machine', 'global'];
+const LEVELS = ['project', 'global'];
 
 /** The settings file one level writes to. */
 function levelFile(level, { home, root }) {
   if (level === 'global') return settings.globalFile(home);
-  if (level === 'machine') return settings.localFile(home);
   return settings.projectFile(root);
 }
 
@@ -237,7 +235,7 @@ function machineState(skill, group, machineLines) {
  */
 function apply({ home, root = null, claude, agents = null }) {
   const groups = catalog(home);
-  const machineLines = lines({ home, root: null, levels: ['machine', 'global'] });
+  const machineLines = lines({ home, root: null, levels: ['global'] });
   const projectLines = root ? lines({ home, root, levels: ['project'] }) : new Map();
   const changed = [];
   const problems = [];

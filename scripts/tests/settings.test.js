@@ -1,6 +1,6 @@
 'use strict';
 /**
- * `flow settings`: the on/off settings Flow reads, switched at the levels
+ * `flow settings`: the on/off settings Flow reads, switched at the 2 levels
  * `flow skills` uses. Each test builds a scratch machine with a home folder
  * holding one git repository, so a folder switch has a folder to name.
  */
@@ -51,29 +51,36 @@ test('off with no flag stops the setup line in this repository alone, and on bri
   assert.match(JSON.parse(at.session().stdout).systemMessage, /not set up here/);
 });
 
-test('--global writes the shared file, and a machine level that disagrees is named', () => {
+test('--global writes the shared file, and the local file switches nothing', () => {
   const at = place('settings-levels');
-  at.flow('off', 'reminder', '--global');
+  const off = at.flow('off', 'reminder', '--global');
+  assert.strictEqual(off.stdout, 'off: reminder, everywhere.\n');
   assert.deepStrictEqual(read(path.join(at.home, 'settings.json')), { reminder: false });
+  assert.match(at.flow().stdout, /reminder\s+off\s+everywhere/);
 
-  const on = at.flow('on', 'reminder', '--machine');
-  assert.strictEqual(on.stdout, 'on: reminder, this machine.\n');
-  assert.match(at.flow().stdout, /reminder\s+on\s+this machine/);
+  // settings.local.json holds paths: a switch written there by hand does nothing.
+  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ reminder: true }));
+  assert.match(at.flow().stdout, /reminder\s+off\s+everywhere/);
 
-  at.flow('off', 'reminder', '--machine');
-  const back = at.flow('on', 'reminder', '--global');
-  assert.match(back.stdout, /reminder is still off here, since this machine says so\./);
+  const reset = at.flow('reset', 'reminder', '--global');
+  assert.strictEqual(reset.stdout, 'reset: reminder, everywhere.\nreminder is now on here.\n');
+  assert.deepStrictEqual(read(path.join(at.home, 'settings.json')), {}, 'the line is gone');
 
-  const reset = at.flow('reset', 'reminder', '--machine');
-  assert.strictEqual(reset.stdout, 'reset: reminder, this machine.\nreminder is now on here, since every machine says so.\n');
-  assert.deepStrictEqual(read(path.join(at.home, 'settings.local.json')), {}, 'the line is gone');
+  // A folder that says off still wins over on everywhere.
+  at.flow('off', 'setupReminder');
+  const back = at.flow('on', 'setupReminder', '--global');
+  assert.match(back.stdout, /setupReminder is still off here, since this folder says so\./);
+
+  const machine = at.flow('on', 'reminder', '--machine');
+  assert.strictEqual(machine.code, 1);
+  assert.match(machine.stderr, /unknown flag "--machine", one of: --global/);
 });
 
 test('a setting with no folder list, and a word naming no setting, each refuse and say what works', () => {
   const at = place('settings-refusals');
   const folder = at.flow('off', 'reminder');
   assert.strictEqual(folder.code, 1);
-  assert.match(folder.stderr, /reminder has no per-folder switch\. Add --machine for this machine, or --global for every machine\./);
+  assert.match(folder.stderr, /reminder has no per-folder switch\. Add --global to switch it everywhere\./);
 
   const unknown = at.flow('off', 'reminders', '--global');
   assert.match(unknown.stderr, /no setting "reminders", one of: reminder, sessionCheck, setupReminder, skillsAutoUpdate, wrapUp/);

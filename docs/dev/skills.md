@@ -40,15 +40,15 @@ A group is mostly a filing decision. The symlinks `flow install` builds are flat
 2 groups change behavior:
 
 - **`drafts/`** does not install. `flow install` skips it, so a skill ships by being moved out of it. Until then the skill is reachable only through [the scratch session](scratch-session.md), which passes `--drafts` on every run.
-- **`dev/`** switches. A skill in it starts off, and `flow skills on <name> --machine` turns it on. Every skill in any other group is part of the workflow: always linked, and `flow skills` refuses to switch it.
+- **`dev/`** switches. A skill in it starts off, and `flow skills on <name> --global` turns it on. Every skill in any other group is part of the workflow: always linked, and `flow skills` refuses to switch it.
 
 `phases/` is closed at those 4. A skill that looks like a fifth phase belongs somewhere else: `/flow:tickets-from-spec` produces tickets and files under `tools/`.
 
-A `dev/` skill is shown in every session once `flow skills on <name> --machine` adds its link to the plugin folder, or `--global` on every machine. A Flow skill has no switch for one project. `skillOverrides`, the key Claude Code hides a skill with, skips a plugin's skills, and Flow's are a plugin.
+A `dev/` skill is shown in every session once `flow skills on <name> --global` adds its link to the plugin folder. A Flow skill has no switch for one project. `skillOverrides`, the key Claude Code hides a skill with, skips a plugin's skills, and Flow's are a plugin.
 
-A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and is turned on in the one project that uses it: `flow skills on <name>`. A skill about a tool used in every project is turned on for the machine instead, with `--machine`, which says what that costs first.
+A skill about one field or tool, such as React or Postgres, is not Flow's. It lives in the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, whose `CONTRIBUTING.md` sets its shape, and is turned on in the one project that uses it: `flow skills on <name>`. A skill about a tool used in every project is turned on everywhere instead, with `--global`, which says what that costs first.
 
-A skill of your own that no repository should carry lives in `~/.flow/private-skills/<name>/`. `flow skills on <name>` turns it on in a project, and `--machine` on the machine. Its name must differ from every Flow skill and every domain skill.
+A skill of your own that no repository should carry lives in `~/.flow/private-skills/<name>/`. `flow skills on <name>` turns it on in a project, and `--global` everywhere. Its name must differ from every Flow skill and every domain skill.
 
 ## Frontmatter
 

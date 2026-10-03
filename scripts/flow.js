@@ -28,6 +28,7 @@ const store = require('./commands/store');
 const up = require('./commands/update');
 const settingsCommand = require('./commands/settings');
 const statusLine = require('./commands/status-line');
+const scorecard = require('./commands/scorecard');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -48,10 +49,11 @@ const TITLE = 'flow: the board, setup, skills, settings and audit';
  * The order inside each section is the order help prints it. A command whose
  * section is missing here still runs and never prints: `status-line`, which
  * Claude Code runs and nobody types, and `contribute`, waiting for the one
- * sharing command that replaces it after V1.
+ * sharing command that replaces it after V1. A command marked `hidden` sits in
+ * a section and still never prints: `handoff`, which only `/flow:handoff` runs.
  */
 const commands = {
-  ...board, ...statusLine, ...tickets.actions, ...install, ...init, ...store, ...up, ...sync, ...doctor, ...uninstall, ...contribute,
+  ...board, ...statusLine, ...tickets.actions, ...install, ...init, ...store, ...up, ...sync, ...doctor, ...uninstall, ...scorecard, ...contribute,
 };
 
 const SECTIONS = [
@@ -59,6 +61,7 @@ const SECTIONS = [
   { key: 'tickets', title: 'tickets' },
   { key: 'status', title: 'status, the move is the command' },
   { key: 'setup', title: 'setup, this machine and its projects' },
+  { key: 'checks', title: 'rule checks' },
 ];
 
 try {

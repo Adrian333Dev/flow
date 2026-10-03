@@ -62,4 +62,20 @@ test('--help prints the surface without needing a project', () => {
   assert.strictEqual(result.code, 0, result.stderr);
   assert.match(result.stdout, /flow new/);
   assert.match(result.stdout, /flow next/);
+  assert.match(result.stdout, /flow scorecard/);
+  assert.doesNotMatch(result.stdout, /handoff|--root|--no-bin|--no-clone|--drafts|--tests/, 'hidden from a person, still run by tests and skills');
+});
+
+test('--help after a command prints that command alone, and runs nothing', () => {
+  const dir = project('flow-command-help');
+  const next = flow(dir, ['next', '--help']);
+  assert.strictEqual(next.code, 0, next.stderr);
+  assert.match(next.stdout, /^flow next +what to work on, ranked\n +\[--limit <n>\] \[--all\]\n$/);
+
+  const on = flow(dir, ['skills', 'on', '-h']);
+  assert.match(on.stdout, /^flow skills on <name\.\.\.> /);
+
+  const made = flow(dir, ['new', 'Never made', '--help']);
+  assert.match(made.stdout, /^flow new /);
+  assert.doesNotMatch(flow(dir, ['ls']).stdout, /Never made/);
 });

@@ -10,14 +10,17 @@
  *                                other machine keeps its clone somewhere else
  *   <project>/.flow/settings.json  one project, committed with it
  *
- * The 2 machine files are read as one, and the local file wins key by key, so
- * a machine can override a shared setting without editing the shared file.
- * `readGlobal` and `globalKey` are that pair; `read` is one named file.
+ * The 2 machine files are read as one, and the local file wins key by key.
+ * `readGlobal` is that pair; `read` is one named file.
+ *
+ * A switch, a skill's line or an on/off setting, is read from settings.json
+ * alone. A switch has 2 levels, this project and every project, and a third
+ * file holding one would make a switch nobody can find from `flow settings`.
  *
  * Keys sit at the top level: `sources`, `skills`, and one per line Flow
  * prints by itself. A new setting is a new key, and nothing here is shaped
- * around a fixed set. `skills` is the one key merged name by name across all
- * 3 files, the project's included, and `lib/skills/skill-links.js` does that merge.
+ * around a fixed set. `skills` is the one key merged name by name, across the
+ * project's file and settings.json, and `lib/skills/skill-links.js` does that merge.
  *
  * Reading never throws. A hook reads these files as a session opens and on
  * every message, and a missing, empty or corrupt file has to mean the
@@ -27,7 +30,6 @@
 const fs = require('fs');
 const path = require('path');
 const paths = require('./paths');
-const { FlowError } = require('./error');
 
 const globalFile = (home) => path.join(home || paths.flowHome(), 'settings.json');
 const localFile = (home) => path.join(home || paths.flowHome(), 'settings.local.json');
@@ -59,19 +61,6 @@ function write(file, data) {
 /** Both machine files as one object, the local one winning key by key. */
 const readGlobal = (home) => ({ ...read(globalFile(home)), ...read(localFile(home)) });
 
-/**
- * One machine setting, and the file it sits in, for a message that says where
- * to put it. A setting neither file holds names the local file, which is where
- * a path belongs.
- */
-function globalKey(key, home) {
-  const local = read(localFile(home));
-  if (key in local) return { file: localFile(home), value: local[key] };
-  const shared = read(globalFile(home));
-  if (key in shared) return { file: globalFile(home), value: shared[key] };
-  return { file: localFile(home), value: undefined };
-}
-
 // ------------------------------------------------ what Flow prints by itself
 
 /**
@@ -82,18 +71,8 @@ function globalKey(key, home) {
  * On unless the key says false, so a machine whose settings file is missing,
  * empty or corrupt still gets every line.
  */
-const prints = (name, home) => readGlobal(home)[name] !== false;
-
-/**
- * The level a switch is written at, from `--machine` or `--global`. With
- * neither, `here`: a skill is switched for the project, a setting for the
- * folder.
- */
-function levelOf(flags, here) {
-  if (flags.machine && flags.global) throw new FlowError('--machine or --global, not both.');
-  return flags.global ? 'global' : flags.machine ? 'machine' : here;
-}
+const prints = (name, home) => read(globalFile(home))[name] !== false;
 
 module.exports = {
-  globalFile, localFile, projectFile, read, readGlobal, globalKey, prints, write, levelOf,
+  globalFile, localFile, projectFile, read, readGlobal, prints, write,
 };

@@ -52,7 +52,7 @@ function find(tickets, ref, unnamed) {
     return store.findTicket(tickets, ref);
   } catch (e) {
     if (unnamed && e instanceof FlowError) {
-      throw new FlowError(`${e.message}\n  "${ref}" is not a command either: flow help lists them.`);
+      throw new FlowError(`${e.message}\n  "${ref}" is not a command either: flow --help lists them.`);
     }
     throw e;
   }
@@ -307,10 +307,11 @@ actions.get = {
  * `flow handoff <id>`: a line in the ticket's `history.md` saying this session
  * handed the work on. `/flow:handoff` runs it after writing `## State`, so the
  * history names every session the work passed through, not only the ones that
- * moved its status.
+ * moved its status. Hidden from help: only that skill runs it.
  */
 actions.handoff = {
   section: 'tickets',
+  hidden: true,
   args: '<id>',
   summary: 'note in the ticket\'s history that this session handed it on',
   run({ positional, usage }) {
@@ -417,6 +418,7 @@ actions.edit = {
     type: { values: store.TICKET_TYPES, arg: '<type>' },
     priority: { values: store.TICKET_PRIORITIES, arg: '<level>' },
     parent: { arg: '<id>' },
+    deps: { arg: '<id,id>' },
   },
   run({ positional, flags, usage }) {
     if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--type ...]`);
@@ -452,6 +454,17 @@ actions.edit = {
       changes.push(`parent: ${t.data.parent || '-'} → ${parent || '-'}`);
       t.data.parent = parent;
     }
+    if (flags.deps !== undefined) {
+      // The whole list, the way `flow new --deps` takes it. Empty clears it.
+      const deps = [...new Set(store.toIdList(flags.deps, tickets.prefix))];
+      for (const d of deps) {
+        if (d === t.id) throw new FlowError('a ticket cannot depend on itself.');
+        if (!tickets.some((x) => x.id === d)) throw new FlowError(`--deps names ${d}, which does not exist.`);
+        if (graph.wouldCycle(tickets, t.id, d)) throw new FlowError(`${t.id} → ${d} would close a dependency cycle. Run flow check.`);
+      }
+      changes.push(`deps: [${t.data.deps.join(', ')}] → [${deps.join(', ')}]`);
+      t.data.deps = deps;
+    }
 
     let renamed = null;
     if (flags.label !== undefined) {
@@ -461,7 +474,7 @@ actions.edit = {
 
     if (!changes.length) {
       throw new FlowError(
-        'nothing to change: pass --title, --label, --type, --priority or --parent.\n' +
+        'nothing to change: pass --title, --label, --type, --priority, --parent or --deps.\n' +
         `  Status moves are their own commands: flow build ${t.id}, flow review ${t.id}, flow done ${t.id}.`
       );
     }
@@ -470,39 +483,6 @@ actions.edit = {
     records.commit(root, `${t.id}: ${changes.join('; ')}`);
     out(`${t.id}\n  ${changes.join('\n  ')}`);
     if (renamed) out(`\nfolder → ${rel(root, t.dir)}`);
-    return 0;
-  },
-};
-
-actions.dep = {
-  section: 'tickets',
-  args: '<id>',
-  summary: 'add or remove a dependency',
-  flags: { on: { arg: '<id>' }, off: { arg: '<id>' } },
-  run({ positional, flags, usage }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> --on <id> | --off <id>`);
-    if (flags.on && flags.off) throw new FlowError('--on and --off are mutually exclusive.');
-    if (!flags.on && !flags.off) throw new FlowError(`${usage} needs --on <id> or --off <id>.`);
-
-    const { root, tickets, t } = locate(positional[0]);
-    const dep = store.requireId(flags.off || flags.on, tickets.prefix);
-
-    if (flags.off) {
-      if (!t.data.deps.includes(dep)) { out(`${t.id} does not depend on ${dep}.`); return 0; }
-      t.data.deps = t.data.deps.filter((d) => d !== dep);
-    } else {
-      if (dep === t.id) throw new FlowError('a ticket cannot depend on itself.');
-      if (!tickets.some((x) => x.id === dep)) throw new FlowError(`no ticket ${dep}.`);
-      if (t.data.deps.includes(dep)) { out(`${t.id} already depends on ${dep}.`); return 0; }
-      if (graph.wouldCycle(tickets, t.id, dep)) {
-        throw new FlowError(`${t.id} → ${dep} would close a dependency cycle. Run flow check.`);
-      }
-      t.data.deps = [...t.data.deps, dep];
-    }
-
-    store.writeTicket(t);
-    records.commit(root, `${t.id}: deps → [${t.data.deps.join(', ')}]`);
-    out(`${t.id}  deps → [${t.data.deps.join(', ')}]`);
     return 0;
   },
 };
@@ -699,7 +679,7 @@ actions.move = {
     if (links.length) {
       throw new FlowError(
         `a link across 2 places could never be followed:\n${links.map((l) => `  ${l}`).join('\n')}\n` +
-        '  Move the linked tickets in the same command, or remove the links first with flow dep and flow edit --parent.'
+        '  Move the linked tickets in the same command, or remove the links first with flow edit --deps and --parent.'
       );
     }
 
@@ -789,7 +769,7 @@ function syncSkills() {
   }
 }
 
-const WRITES = ['new', 'edit', 'dep', 'file', 'drop', 'move', ...statuses.VERBS.map((s) => s.verb)];
+const WRITES = ['new', 'edit', 'file', 'drop', 'move', ...statuses.VERBS.map((s) => s.verb)];
 for (const name of WRITES) {
   const run = actions[name].run;
   actions[name].run = (call) => {

@@ -39,7 +39,7 @@ const actions = {};
 actions.sync = {
   section: 'setup',
   summary: 'save ~/.flow/ and the project\'s tickets, bring the others\' work down, then send it up',
-  flags: { root: { arg: '<dir>' } },
+  flags: { root: { arg: '<dir>', hidden: true } },
   run({ flags }) {
     const at = paths.folders(flags.root);
     const linked = records.linkedAt(process.env.FLOW_PROJECT || process.cwd());

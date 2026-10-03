@@ -30,7 +30,7 @@ Move at triage speed. Building a skill is the one slow step.
 - **`.flow/findings/*.md`**: reusable knowledge captured during work, one finding per file, named for what was learned. A `skill:` header names the skill it is about. `scorecard.md` is the exception: one line per wrong warning from a check. Never read a sub-folder: `.flow/findings/<skill>/` holds findings `flow contribute` has yet to send.
 - **Closed tickets nobody has filed yet.** `flow ls --unfiled` gives the ids. In each folder read `issues.md` for what the build learned, and everything in `reports/` for what was answered.
 - **The groundwork this session closed.** Sweep its `map.md`: promote reusable lessons into skills, move strays out to where they belong. Never open a map this session did not work.
-- **`flow audit scorecard`**: how the existing checks are doing. It names the stale ones, the ones ready to move up a tier, and the rules nothing has applied to in a long time.
+- **`flow scorecard`**: how the existing checks are doing. It names the stale ones, the ones ready to move up a tier, and the rules nothing has applied to in a long time.
 
 ## Routing
 
@@ -101,4 +101,4 @@ Appending a line to a skill that already exists needs none of it.
 
 Where no function can tell violations apart, the rule ships without a check.
 
-**Read `references/write-checks.md`** before writing one, changing one, moving one between tiers, or reading `flow audit scorecard`.
+**Read `references/write-checks.md`** before writing one, changing one, moving one between tiers, or reading `flow scorecard`.

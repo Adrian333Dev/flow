@@ -12,8 +12,8 @@
  * Flow's essential skills, every one outside `skills/dev/`, are left out of
  * `ls`, and `on` and `off` refuse them: they are the workflow, always on.
  *
- * The level is a flag: none for this project, `--machine` for this machine,
- * `--global` for every machine. `lib/skills/skill-links.js` holds the settings, the
+ * The level is a flag: none for this project, `--global` for every project on
+ * every machine. `lib/skills/skill-links.js` holds the settings, the
  * sources and the step that makes the links match, which every action here
  * runs before it answers.
  *
@@ -36,9 +36,9 @@ const links = require('../lib/skills/skill-links');
 const skills = require('../lib/skills/skills');
 const paths = require('../lib/paths');
 
-const COST = 'Every session on this machine now loads its description, in a project it has nothing to do with too.';
+const COST = 'Every session now loads its description, in projects it has nothing to do with too.';
 
-const LEVEL_FLAGS = { machine: { bool: true }, global: { bool: true } };
+const LEVEL_FLAGS = { global: { bool: true } };
 
 /** Where every action reads and writes: Flow's folder, Claude Code's, the plugin's. */
 function where(root) {
@@ -57,14 +57,13 @@ function sync(at) {
   return done;
 }
 
-/** The level a switch writes to, from the flags. */
-/** The project for a project-level switch, or a refusal naming the 2 other levels. */
+/** The project for a project-level switch, or a refusal naming the other level. */
 function rootFor(level) {
   if (level !== 'project') return projects.around();
   const root = projects.around();
   if (!root) {
     throw new FlowError('no Flow project here, and a switch with no flag is for this project.\n' +
-      '  --machine switches it for this machine, --global for every machine.');
+      '  --global switches it everywhere.');
   }
   return root;
 }
@@ -149,12 +148,12 @@ actions.ls = {
  * `state` null removes the line.
  */
 function switchSkills({ names, flags, state, by }) {
-  if (!names.length) throw new FlowError(`usage: flow skills ${by} <name...> [--machine | --global]`);
-  const level = settings.levelOf(flags, 'project');
+  if (!names.length) throw new FlowError(`usage: flow skills ${by} <name...> [--global]`);
+  const level = flags.global ? 'global' : 'project';
   const root = rootFor(level);
   const at = where(root);
   const groups = links.catalog(at.home);
-  const machineLines = links.lines({ home: at.home, root: null, levels: ['machine', 'global'] });
+  const machineLines = links.lines({ home: at.home, root: null, levels: ['global'] });
   const problems = [];
   const written = [];
 
@@ -175,19 +174,19 @@ function switchSkills({ names, flags, state, by }) {
       continue;
     }
     if (hit && hit.group.type === 'flow' && level === 'project') {
-      problems.push(`${key} is a Flow skill, and Flow's skills load for the whole machine: add --machine or --global.`);
+      problems.push(`${key} is a Flow skill, and Flow's skills load for the whole machine: add --global.`);
       continue;
     }
     if (hit && state === 'off' && level === 'project' && links.machineState(hit.skill, hit.group, machineLines) === 'on') {
-      problems.push(`${key} is on for this machine, and a project cannot hide a skill linked for the whole machine yet.\n` +
-        `  flow skills off ${key} --machine switches it off everywhere on this machine.`);
+      problems.push(`${key} is on everywhere (--global), and a project cannot hide a skill linked for the whole machine yet.\n` +
+        `  flow skills off ${key} --global switches it off everywhere.`);
       continue;
     }
     links.writeLine(level, at, key, state);
     written.push(key);
     logs.recordHistory(at.home, { type: 'skill', name: key, state: state || 'reset', level, by: `flow skills ${by}` });
     const note = state === 'on' && level !== 'project' && hit && hit.group.type !== 'flow' ? ` ${COST}` : '';
-    out(`${state || 'reset'}: ${key}, ${level === 'project' ? 'this project' : level === 'machine' ? 'this machine' : 'every machine'}.${note}`);
+    out(`${state || 'reset'}: ${key}, ${level === 'project' ? 'this project' : 'everywhere'}.${note}`);
   }
 
   if (written.length) {
@@ -200,7 +199,7 @@ function switchSkills({ names, flags, state, by }) {
 
 actions.on = {
   args: '<name...>',
-  summary: 'turn skills on for this project, this machine (--machine) or every machine (--global)',
+  summary: 'turn skills on for this project, or everywhere (--global)',
   flags: LEVEL_FLAGS,
   run: ({ positional, flags }) => switchSkills({ names: positional, flags, state: 'on', by: 'on' }),
 };
@@ -254,7 +253,7 @@ actions.add = {
     const found = [...links.scan(dir).values()];
     out(`\n${found.length} skill${found.length === 1 ? '' : 's'}, none switched on by this:`);
     out(render.columns(found.map((s) => [`  ${s.name}`, s.description])));
-    out(`\nflow skills on <name> turns one on here, --machine or --global more widely.`);
+    out(`\nflow skills on <name> turns one on here, --global everywhere.`);
     return 0;
   },
 };

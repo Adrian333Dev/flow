@@ -40,7 +40,7 @@ const form = require('../lib/machine/restore-form');
 const paths = require('../lib/paths');
 
 const show = paths.shorten;
-const root = { arg: '<dir>' };
+const root = { arg: '<dir>', hidden: true };
 
 const actions = {};
 

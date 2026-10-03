@@ -35,7 +35,7 @@ test('the reminder prints beside every message, and "reminder": false silences i
 
   const both = flowHome('reminder-local', { reminder: true });
   fs.writeFileSync(path.join(both, 'settings.local.json'), JSON.stringify({ reminder: false }));
-  assert.strictEqual(reminder(both).stdout, '', 'the local file wins key by key');
+  assert.strictEqual(reminder(both).stdout, LINE, 'the local file holds paths, never a switch');
 });
 
 test('a missing reminder file prints nothing and still exits 0', () => {

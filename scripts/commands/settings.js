@@ -6,10 +6,12 @@
  *   on | off <name>       write that setting at one level
  *   reset <name>          remove it from that level, so the level above decides
  *
- * The levels are `flow skills`' own: no flag for this folder, `--machine` for
- * this machine, `--global` for every machine. The folder is the enclosing git
- * repository. A setting works per folder only where it has a list of folders
- * to skip, since a line like the reminder has nowhere to say "not here".
+ * The levels are `flow skills`' own: no flag for this folder, `--global` for
+ * every project on every machine. The folder is the enclosing git repository.
+ * A setting works per folder only where it has a list of folders to skip,
+ * since a line like the reminder has nowhere to say "not here". That list
+ * holds paths, so it lives in `settings.local.json`; every switch lives in
+ * `settings.json`.
  *
  * `SETTINGS` is the whole list. A new on/off setting is one more entry, and
  * `lib/settings.js` holds the files and how they merge.
@@ -34,8 +36,8 @@ const SETTINGS = [
   { key: 'wrapUp', says: 'tells Claude to hand off once the conversation passes wrapUpAt tokens' },
 ];
 
-const LEVEL_FLAGS = { machine: { bool: true }, global: { bool: true } };
-const LEVEL_NAMES = { folder: 'this folder', machine: 'this machine', global: 'every machine' };
+const LEVEL_FLAGS = { global: { bool: true } };
+const LEVEL_NAMES = { folder: 'this folder', global: 'everywhere' };
 
 function find(key) {
   const found = SETTINGS.find((s) => s.key === key);
@@ -62,9 +64,9 @@ function state(s, dir) {
   if (s.skip && dir && skipped(s).some((d) => dir === d || dir.startsWith(d + path.sep))) {
     return { on: false, level: 'folder' };
   }
-  const { value, file } = settings.globalKey(s.key);
+  const value = settings.read(settings.globalFile())[s.key];
   if (value === undefined) return { on: true, level: '' };
-  return { on: value !== false, level: file === settings.localFile() ? 'machine' : 'global' };
+  return { on: value !== false, level: 'global' };
 }
 
 const actions = {};
@@ -90,15 +92,15 @@ actions.ls = {
  */
 function switchSetting({ positional, flags, state: wanted, by }) {
   const [key, ...extra] = positional;
-  if (!key || extra.length) throw new FlowError(`usage: flow settings ${by} <name> [--machine | --global]`);
+  if (!key || extra.length) throw new FlowError(`usage: flow settings ${by} <name> [--global]`);
   const s = find(key);
-  const level = settings.levelOf(flags, 'folder');
+  const level = flags.global ? 'global' : 'folder';
   const dir = projects.top(process.cwd());
   const home = paths.flowHome();
 
   if (level === 'folder') {
-    if (!s.skip) throw new FlowError(`${key} has no per-folder switch. Add --machine for this machine, or --global for every machine.`);
-    if (!dir) throw new FlowError('no git repository here, and a switch with no flag is for this folder. Add --machine or --global.');
+    if (!s.skip) throw new FlowError(`${key} has no per-folder switch. Add --global to switch it everywhere.`);
+    if (!dir) throw new FlowError('no git repository here, and a switch with no flag is for this folder. Add --global to switch it everywhere.');
     const file = settings.localFile();
     const data = settings.read(file);
     const list = [].concat(data[s.skip] || []).filter((e) => typeof e === 'string' && expand(e) !== dir);
@@ -107,7 +109,7 @@ function switchSetting({ positional, flags, state: wanted, by }) {
     else delete data[s.skip];
     settings.write(file, data);
   } else {
-    const file = level === 'machine' ? settings.localFile() : settings.globalFile();
+    const file = settings.globalFile();
     const data = settings.read(file);
     if (wanted === null) delete data[key];
     else data[key] = wanted === 'on';
@@ -124,7 +126,7 @@ function switchSetting({ positional, flags, state: wanted, by }) {
 
 actions.on = {
   args: '<name>',
-  summary: 'turn a setting on for this folder, this machine (--machine) or every machine (--global)',
+  summary: 'turn a setting on for this folder, or everywhere (--global)',
   flags: LEVEL_FLAGS,
   run: ({ positional, flags }) => switchSetting({ positional, flags, state: 'on', by: 'on' }),
 };

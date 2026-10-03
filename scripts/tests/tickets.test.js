@@ -117,33 +117,44 @@ test('flow edit --parent detects and refuses a cycle', () => {
   assert.match(r.stderr, /ancestor/);
 });
 
-test('flow dep --on adds a dependency and --off removes it', () => {
+test('flow edit --deps replaces the whole list, and an empty value clears it', () => {
   const dir = project('tickets-dep');
 
   flow(dir, ['new', 'First']);
   flow(dir, ['new', 'Second']);
-  const [t1, t2] = ticket(dir);
+  flow(dir, ['new', 'Third']);
+  const [t1, t2, t3] = ticket(dir);
+  const deps = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t3.id), 'utf8')).data.deps || [];
 
-  flow(dir, ['dep', t2.id, '--on', t1.id]);
-  const after = frontmatter.parse(fs.readFileSync(ticketFile(dir, t2.id), 'utf8'));
-  assert.ok(after.data.deps.includes(t1.id), `deps should include ${t1.id}`);
+  const set = flow(dir, ['edit', t3.id, '--deps', `${t1.id},${t2.id}`]);
+  assert.strictEqual(set.code, 0, set.stderr);
+  assert.match(set.stdout, new RegExp(`deps: \\[\\] → \\[${t1.id}, ${t2.id}\\]`));
+  assert.deepStrictEqual(deps(), [t1.id, t2.id]);
 
-  flow(dir, ['dep', t2.id, '--off', t1.id]);
-  const removed = frontmatter.parse(fs.readFileSync(ticketFile(dir, t2.id), 'utf8'));
-  assert.ok(!removed.data.deps || !removed.data.deps.includes(t1.id));
+  flow(dir, ['edit', t3.id, '--deps', t2.id]);
+  assert.deepStrictEqual(deps(), [t2.id], 'the list is replaced, never added to');
+
+  flow(dir, ['edit', t3.id, '--deps', '']);
+  assert.deepStrictEqual(deps(), []);
+
+  const missing = flow(dir, ['edit', t3.id, '--deps', 'tst-99']);
+  assert.strictEqual(missing.code, 1);
+  assert.match(missing.stderr, /--deps names \S+-99, which does not exist\./);
+  assert.strictEqual(flow(dir, ['dep', t3.id, '--on', t1.id]).code, 1, 'flow dep is gone');
 });
 
-test('flow dep --on refuses to close a cycle', () => {
+test('flow edit --deps refuses to close a cycle', () => {
   const dir = project('tickets-dep-cycle');
 
   flow(dir, ['new', 'Alpha']);
   flow(dir, ['new', 'Beta']);
   const [a, b] = ticket(dir);
 
-  flow(dir, ['dep', b.id, '--on', a.id]);
-  const r = flow(dir, ['dep', a.id, '--on', b.id]);
+  flow(dir, ['edit', b.id, '--deps', a.id]);
+  const r = flow(dir, ['edit', a.id, '--deps', b.id]);
   assert.notStrictEqual(r.code, 0);
   assert.match(r.stderr, /cycle/);
+  assert.match(flow(dir, ['edit', a.id, '--deps', a.id]).stderr, /cannot depend on itself/);
 });
 
 test('parking stores the resume status, and reviving restores it', () => {
@@ -209,7 +220,7 @@ test('an unmet dep blocks pickup, and satisfying it unblocks', () => {
   flow(dir, ['new', 'Blocked ticket']);
   const [t1, t2] = ticket(dir);
 
-  flow(dir, ['dep', t2.id, '--on', t1.id]);
+  flow(dir, ['edit', t2.id, '--deps', t1.id]);
   const blocked = flow(dir, ['groundwork', t2.id]);
   assert.notStrictEqual(blocked.code, 0);
   assert.match(blocked.stderr, /blocked/);
@@ -230,7 +241,7 @@ test('flow drop requires --reason, refuses on dependents, --by repairs', () => {
   flow(dir, ['new', 'Replacement']);
   const [t1, t2, t3] = ticket(dir);
 
-  flow(dir, ['dep', t2.id, '--on', t1.id]);
+  flow(dir, ['edit', t2.id, '--deps', t1.id]);
 
   const noReason = flow(dir, ['drop', t1.id]);
   assert.notStrictEqual(noReason.code, 0);
@@ -256,8 +267,8 @@ test('flow drop --force cascades to transitive dependents', () => {
   flow(dir, ['new', 'Leaf']);
   const [t1, t2, t3] = ticket(dir);
 
-  flow(dir, ['dep', t2.id, '--on', t1.id]);
-  flow(dir, ['dep', t3.id, '--on', t2.id]);
+  flow(dir, ['edit', t2.id, '--deps', t1.id]);
+  flow(dir, ['edit', t3.id, '--deps', t2.id]);
 
   const r = flow(dir, ['drop', t1.id, '--reason', 'abandoned', '--force']);
   assert.strictEqual(r.code, 0, r.stderr);

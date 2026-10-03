@@ -83,7 +83,7 @@ actions.uninstall = {
   section: 'setup',
   anywhere: true,
   summary: 'put every project and this machine back, then delete ~/.flow/ and the clone',
-  flags: { root: { arg: '<dir>' } },
+  flags: { root: { arg: '<dir>', hidden: true } },
   run({ flags }) {
     const at = paths.folders(flags.root);
     const clone = paths.cloneRoot();

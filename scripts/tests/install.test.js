@@ -257,7 +257,7 @@ test('install clones what is missing, links a skill switched on, and never clone
   assert.ok(fs.lstatSync(path.join(bin, 'util')).isSymbolicLink(), 'util installed its own name');
   assert.ok(!fs.existsSync(path.join(at.claude, 'skills', 'react')), 'a source skill starts off');
 
-  fs.writeFileSync(path.join(at.flowHome, 'settings.local.json'), JSON.stringify({ skills: { react: 'on' } }));
+  fs.writeFileSync(path.join(at.flowHome, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
   fs.rmSync(path.join(bin, 'util'));
   setUp(at.flowHome);
 

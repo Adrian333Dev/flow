@@ -142,7 +142,7 @@ const lines = (notes) => (notes || []).map(line).filter(Boolean);
 // -------------------------------------------------------------------- the job
 
 /** Whether the clones update themselves. On unless the key says otherwise. */
-const updates = (home) => settings.readGlobal(home).skillsAutoUpdate !== false;
+const updates = (home) => settings.prints('skillsAutoUpdate', home);
 
 /** Everything not committed in the clone, as a count, or null where git failed. */
 function uncommitted(root) {

@@ -4,7 +4,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 
 ## The pieces
 
-- **Flow's skills**: `/flow:<name>`, always on, from the Flow clone. The 2 in `dev/`, `/flow:review` and `/flow:apply-domain-findings`, are off until `flow skills on <name> --machine`.
+- **Flow's skills**: `/flow:<name>`, always on, from the Flow clone. The 2 in `dev/`, `/flow:review` and `/flow:apply-domain-findings`, are off until `flow skills on <name> --global`.
 - **A skill repository, or source**: a repository of skill folders, cloned whole into `~/.flow/repos/sources/<owner>_<repo>/` and listed under `sources` in `~/.flow/settings.json`. [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) is the user's own and the first. Every other is someone else's.
 - **Private skills**: `~/.flow/private-skills/<name>/`, the user's, not yet published.
 - **A plugin**: a bundle from a Claude Code marketplace: skills, often hooks, commands and an MCP server. Claude Code installs and updates it.
@@ -15,7 +15,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 
 ## Everything starts on for one project
 
-- **A skill** → `flow skills on`, with no flag, switches it on for this project. Add `--machine` once a second project needs it.
+- **A skill** → `flow skills on`, with no flag, switches it on for this project. Add `--global` once a second project needs it.
 - **A plugin** → off everywhere, switched on in the project's `.claude/settings.local.json` by whoever works there.
 - **An MCP server** → the project's `.mcp.json`. Never for the whole machine.
 

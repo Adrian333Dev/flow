@@ -16,7 +16,7 @@
 - **`dev/`**: maintaining Flow and the `domain-skills` repository. The one group that switches: each skill starts off
 - **`drafts/`**: a skill being written. `flow install` skips this group, so start every new skill here and graduate it with `mv`
 
-**Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. A skill about one field or tool, such as React, belongs to the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, in the shape its `CONTRIBUTING.md` sets, and `flow skills on <name>` turns it on in a project. Any other skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it. A skill of your own that no repository should carry goes in `~/.flow/private-skills/<name>/`, under a name no Flow or domain skill uses, and `flow skills on <name>` turns it on the same way. `--machine` turns either one on for the whole machine.
+**Every skill outside `drafts/` installs on every machine**, so a skill is typeable the moment its folder exists. A skill about one field or tool, such as React, belongs to the [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) repository, in the shape its `CONTRIBUTING.md` sets, and `flow skills on <name>` turns it on in a project. Any other skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it. A skill of your own that no repository should carry goes in `~/.flow/private-skills/<name>/`, under a name no Flow or domain skill uses, and `flow skills on <name>` turns it on the same way. `--global` turns either one on everywhere.
 
 ## The name, and the prefix
 
@@ -24,7 +24,7 @@
 
 Claude Code names the command after the folder, Codex after the frontmatter `name`, so the 2 must match. The `flow:` comes from `.claude-plugin/plugin.json` beside the skills, holding `"name": "flow"`. Codex types it `$flow:groundwork`.
 
-**Every skill outside `drafts/` and `dev/` is shown in every session, and nothing switches it off.** A `dev/` skill is shown once `flow skills on <name> --machine` adds its link, or `--global` on every machine. A Flow skill has no switch for one project: `skillOverrides`, the settings key that hides a skill, skips a plugin's skills.
+**Every skill outside `drafts/` and `dev/` is shown in every session, and nothing switches it off.** A `dev/` skill is shown once `flow skills on <name> --global` adds its link. A Flow skill has no switch for one project: `skillOverrides`, the settings key that hides a skill, skips a plugin's skills.
 
 ## Shape
 

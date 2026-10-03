@@ -289,23 +289,22 @@ test('the skills check names a source not cloned, a line no source holds, and a 
 
   // A dev skill switched off has no link, and that is not a problem. A line
   // naming an essential skill is one: it does nothing.
-  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ sources: ['me/skills', 'me/absent'] }));
-  fs.writeFileSync(path.join(m.flowHome, 'settings.local.json'), JSON.stringify({
+  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({
+    sources: ['me/skills', 'me/absent'],
     skills: { review: 'off', groundwork: 'off', react: 'on', gone: 'on' },
   }));
 
   const report = doctor(m, { bin });
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /me\/absent is a source and is not cloned, so none of its skills can load: run flow install/);
-  assert.match(report.stdout, /"gone" is switched on at machine level, and no source holds it: flow skills reset gone --machine/);
+  assert.match(report.stdout, /"gone" is switched on at global level, and no source holds it: flow skills reset gone --global/);
   assert.match(report.stdout, /react is switched on and .*\.claude\/skills\/react does not link to it: run flow skills ls/);
-  assert.match(report.stdout, /"groundwork" is switched off at machine level, and it is part of Flow's workflow, always on, so the line does nothing: flow skills reset groundwork --machine/);
+  assert.match(report.stdout, /"groundwork" is switched off at global level, and it is part of Flow's workflow, always on, so the line does nothing: flow skills reset groundwork --global/);
   assert.doesNotMatch(report.stdout, /skills\/review is not linked/);
   assert.doesNotMatch(report.stdout, /vue/, 'a skill switched off is not checked');
 
   fs.symlinkSync(path.join(source, 'react'), path.join(m.home, 'skills', 'react'));
-  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ sources: ['me/skills'] }));
-  fs.writeFileSync(path.join(m.flowHome, 'settings.local.json'), JSON.stringify({ skills: { review: 'off', react: 'on' } }));
+  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ sources: ['me/skills'], skills: { review: 'off', react: 'on' } }));
   const fixed = doctor(m, { bin });
   assert.strictEqual(fixed.code, 0, fixed.stdout);
   assert.match(fixed.stdout, /skills: 1 source cloned, 1 skill on for this machine/);

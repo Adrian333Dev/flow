@@ -6,4 +6,4 @@
 
 ## Reference
 
-- [Commands](reference/commands.md): every `flow` command, each of its flags, and what it prints
+- [Commands](reference/commands.md): every `flow` command you type, its flags, and what it prints

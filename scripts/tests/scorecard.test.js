@@ -1,6 +1,6 @@
 'use strict';
 /**
- * The enforcement bridge: the check loader, the two hooks, and `flow audit scorecard`.
+ * The enforcement bridge: the check loader, the two hooks, and `flow scorecard`.
  *
  * No real check is exercised here. Every check below is a fixture written into
  * a scratch folder and pointed at by FLOW_CHECKS, so this file tests the wiring
@@ -316,7 +316,7 @@ test('the scorecard counts, ranks, and states what it did not measure', () => {
   for (let i = 0; i < 6; i++) run('hooks/rule-check.js', [], { input: edit('/x/a.js', 'bad'), env: env(dir) });
   run('hooks/rule-check.js', [], { input: edit('/x/a.js', 'fine'), env: env(dir) });
 
-  const report = run('flow.js', ['audit', 'scorecard'], { env: env(dir) });
+  const report = run('flow.js', ['scorecard'], { env: env(dir) });
 
   assert.match(report.stdout, /stale: the check names a rule no file defines/);
   assert.match(report.stdout, /ghost-rule/);
@@ -343,7 +343,7 @@ test('the scorecard names an id its own file defines twice', () => {
   ].join('\n'));
   check(dir, 'no-todo', { rule, check: '() => true' });
 
-  const report = run('flow.js', ['audit', 'scorecard'], { env: env(dir) });
+  const report = run('flow.js', ['scorecard'], { env: env(dir) });
 
   assert.match(report.stdout, /defined twice in one file/);
   assert.match(report.stdout, /capture\s+\(.*rules\.md\)/);
@@ -356,10 +356,10 @@ test('the scorecard throws away results older than a check that has since change
   check(dir, 'no-todo', { rule, check: '() => false' });
 
   run('hooks/rule-check.js', [], { input: edit('/x/a.js', 'anything'), env: env(dir) });
-  assert.match(run('flow.js', ['audit', 'scorecard'], { env: env(dir) }).stdout, /no-todo\s+measure\s+1\s+1/);
+  assert.match(run('flow.js', ['scorecard'], { env: env(dir) }).stdout, /no-todo\s+measure\s+1\s+1/);
 
   check(dir, 'no-todo', { rule, since: '2099-01-01', check: '() => false' });
-  const after = run('flow.js', ['audit', 'scorecard'], { env: env(dir) });
+  const after = run('flow.js', ['scorecard'], { env: env(dir) });
 
   assert.doesNotMatch(after.stdout, /violated most/, 'the old version answered a different question');
   assert.match(after.stdout, /never applied/);
@@ -369,7 +369,7 @@ test('an empty checks folder reports coverage rather than looking clean', () => 
   const dir = project('scorecard-empty');
   fs.mkdirSync(path.join(dir, 'checks'), { recursive: true });
 
-  const report = run('flow.js', ['audit', 'scorecard'], { env: env(dir) });
+  const report = run('flow.js', ['scorecard'], { env: env(dir) });
 
   assert.match(report.stdout, /nothing to report yet/);
   assert.match(report.stdout, /0 rules measured/);

@@ -91,10 +91,10 @@ actions.install = {
   summary: 'put Flow on this machine: the links, the clones, then the setup session; --check and --finish are that session\'s own steps',
   flags: {
     ...setup.STEP_FLAGS,
-    root: { arg: '<dir>' },
-    'no-bin': { bool: true },
-    'no-clone': { bool: true },
-    drafts: { bool: true },
+    root: { arg: '<dir>', hidden: true },
+    'no-bin': { bool: true, hidden: true },
+    'no-clone': { bool: true, hidden: true },
+    drafts: { bool: true, hidden: true },
   },
   run({ positional, flags }) {
     const word = setup.stepOf(positional, flags, 'flow install [--check|--finish]');
