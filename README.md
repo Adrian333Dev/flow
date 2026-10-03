@@ -4,41 +4,12 @@
 
 ```text
 Design    idea → every decision mapped → researched → settled with you → tested on real cases → design written down
-Build     tickets → plan → build → two-pass review → handoff to the next session
+Build     tickets → plan → build → review → handoff to the next session
 Improve   preferences, tool knowledge, mistakes → filed into skills, rules and the wiki ↺ the next project
 ```
 
-## Table of contents
-
-- [What makes it different](#what-makes-it-different): the parts a skill set does not have
-- [How it compares](#how-it-compares): Flow beside 3 popular skill sets
-- [Install](#install): the line to paste, and what it needs
-- [Status](#status): who Flow serves today, where it runs, and what comes next
-- [Documentation](#documentation): where to read on
-
-## What makes it different
-
-- **The design comes before the code.** `/flow:groundwork` maps every decision the work needs, researches the open ones, settles each with you, and runs the result through real cases. [Phases](docs/phases.md)
-- **Work survives the end of a session.** Tickets sit on a board, a handoff writes down what the next session would get wrong, and opening a ticket loads the files it names. [Sessions](docs/sessions.md)
-- **Memory tools remember what went wrong. Flow changes what the agent does next time.** A lesson lands in the skill, the rule or the wiki page it belongs to, and every project reads it. [Learning](docs/learning.md)
-- **Risky shell commands stop for a yes.** A guard reads every command before it runs, and asks before deleting work, sending data off the computer, or changing the computer. [Safety](docs/safety.md)
-- **A subagent's work is checked against what it changed.** Hooks record each subagent's edits, and the main agent reads that diff, never the subagent's own summary. [Subagents](docs/subagents.md)
-
-## How it compares
-
-The alternatives are skill sets: skills you add to an agent and call one at a time. Flow is a workflow: the skills, plus the board, the hooks and the records that carry work between them.
-
-|  | Flow | [Superpowers](https://github.com/obra/superpowers) | [Agent Skills](https://github.com/addyosmani/agent-skills) | [mattpocock/skills](https://github.com/mattpocock/skills) |
-|---|---|---|---|---|
-| Idea to reviewed code | One pipeline: design, tickets, plan, build, review | Brainstorming through finishing a branch, each skill on its own | `/spec` through `/ship`, a checklist per step | Small skills you chain yourself |
-| Work across sessions | A ticket board, handoffs, and a ticket's files loaded on open | Nothing built in | Nothing built in | A handoff skill, and tickets in your issue tracker |
-| Learns from use | Lessons filed into its skills, rules and wiki | No | No | No |
-| Hooks | A guard on every shell command, rule checks on every edit | Loads its introduction at session start | Runs a script at session start | An optional hook blocking risky git commands |
-| Subagent work | Checked against a diff the hooks recorded | Reviewed from the subagent's report | Reviewed from the subagent's report | Reviewed from the subagent's report |
-| Past sessions | Searchable through `flow audit` | No | No | No |
-| Agents | Claude Code | Claude Code, Codex, Cursor, Gemini CLI and others | 70+ agents through skills.sh | Claude Code, and others through skills.sh |
-
-Flow works beside a skill set. The guard and the rules apply whichever skill is running.
+> [!WARNING]
+> **Flow is under development and not ready for use.** Commands, files and skills still change from one version to the next.
 
 ## Install
 
@@ -46,19 +17,35 @@ Flow works beside a skill set. The guard and the rules apply whichever skill is 
 curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/main/install.sh | bash
 ```
 
-You need `git`, `node`, `claude`, `gh` and a GitHub account. [Install](docs/install.md) walks through what the line asks, and how to take Flow off again.
+Needs Claude Code, `git`, `node`, `gh` and a GitHub account. Runs on Linux, macOS and Windows through WSL. Built and tested on Claude's 5.5 models. [Install](docs/install.md) walks through the setup.
 
-## Status
+## How Flow compares
 
-Flow is not released yet. The next step is a beta: Flow on the author's computer, used for real work for 2 to 3 weeks.
+Skill sets teach the agent each step. Flow also runs everything between the steps.
 
-- **Who it serves**: one developer. Two people can share a project's tickets, and nothing more: no assignees, no roles, no shared board, no link to a team's issue tracker.
-- **Where it runs**: Claude Code, on Linux, macOS and Windows through WSL. Native Windows is not supported, since every hook is a shell command. Built and tested on Claude's 5.5 models.
-- **After the first release**: teams come first. Codex and open-source agents are planned, with no date.
+|  | Flow | [Superpowers](https://github.com/obra/superpowers) | [Agent Skills](https://github.com/addyosmani/agent-skills) | [mattpocock/skills](https://github.com/mattpocock/skills) |
+|---|---|---|---|---|
+| **Design before code** | Pushes the idea past your first take: questions the premise, researches every unknown, stress-tests the design, cuts it into tickets | Brainstorm into a spec | Interview into a spec | Interview, or decision tickets |
+| **Task tracking** | A ticket CLI built for agents: enforced statuses, dependencies, subtasks. Kept in git, so no work gets lost | Plan files with checkboxes | A todo file | Your issue tracker, or local files |
+| **Long sessions** | Auto handoff when the context grows large. The ticket stays current, so a fresh session resumes instantly | Resumes a plan at its first open task | No | A handoff skill |
+| **Self-improvement** | Captures every correction and lesson as you work, and turns them into its own rules, skills and memory | No | No | A project glossary |
+| **Rule enforcement** | Writes automatic checks for its rules and runs them on every edit, so broken rules get caught | Instructions only | Instructions only | No |
+| **Multi-machine sync** | Memory, rules, skills, tickets, even uncommitted code, synced across your computers through a private GitHub repository | Only what you commit | Only what you commit | Only what you commit |
+| **Skill management** | Replaces Vercel's `npx skills`, adding auto-updates, per-project switches and per-project tweaks | No | No | No |
+| **Installation** | Adopts your existing rules, skills and plugins once you approve. Uninstall restores everything | Plugin install | `npx skills add` | Plugin or `npx skills add` |
+| **Hooks and guardrails** | 12 hooks, 40+ commands: no permission prompts, risky commands stopped, subagent work verified, failures logged and fixed | 1 hook, at session start | 1 hook, 2 optional | 1 optional git guard |
+| **Supported agents** | Claude Code | Claude Code, Codex, Cursor and 7 more | 70+ through skills.sh | Claude Code, and others through skills.sh |
+
+## Coming next
+
+In priority order:
+
+- **Flow built into Claude Code**, through [mods](https://code.claude.com/docs/en/plugins/mods/overview): code that runs inside Claude Code itself and can draw on its screen. A ticket board in its own pane, with buttons that move tickets while Claude works. Every reply checked against Flow's rules before you read it. Sessions on one repository kept from editing over each other. Rules loaded the moment a matching file is written.
+- **Flow for teams**: assignees, roles, a dashboard showing who works on what, and tickets connected to the tracker your team already uses: GitHub Issues, GitHub Projects, Jira, Linear and more.
+- **More agents and models**: Codex first, then open-source models.
 
 ## Documentation
 
 - **[Overview](docs/overview.md)**: how Flow works, start to finish. Start here.
 - **[Flow's documentation](docs/README.md)**: every page, grouped by what you came to do.
 - **[Changing Flow](docs/dev/README.md)**: the repository, the tests, and adding a skill or a command.
-- **[Backlog](lab/backlog/)**: every open item, one file per phase.

@@ -10,7 +10,7 @@ Designed 2026-08-29 as the manual, renamed from `design-public-docs.md` on 2026-
 
 ## 3 entry points, one job each
 
-- **The root `README.md`**: the pitch. What Flow is, the loop, how it compares, the install line, the status, links to the docs. Its wording lives in `pitch.md`.
+- **The root `README.md`**: the pitch. What Flow is, the loop, whether it is ready, the install line, how it compares, what comes next, links to the docs. `pitch.md` holds the rulings behind its wording.
 - **`docs/README.md`**: the index alone, one line per page in 5 groups. Kept as `README.md` because GitHub renders it when the folder opens.
 - **`docs/overview.md`**: how Flow works whole, each part named and linked to its page. No pitch and no status.
 

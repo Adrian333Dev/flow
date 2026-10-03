@@ -15,7 +15,7 @@ New to Flow? Start with [Overview](overview.md).
 - [Overview](overview.md): the parts Flow adds to Claude Code, and the path one piece of work takes through them
 - [Install](install.md): put Flow on your computer, update it, and take it off
 - [New project](new-project.md): set a project up with `flow init`, and choose where its tickets live
-- [Two machines](two-machines.md): your Flow home, and how `flow sync` carries it to your other computers
+- [Two machines](two-machines.md): your Flow home, how `flow sync` carries it to your other computers, and moving uncommitted code
 
 ## Doing the work
 

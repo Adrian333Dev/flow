@@ -1,6 +1,6 @@
 # Two machines
 
-How your rules, notes and tickets reach your other computers: your Flow home, its private GitHub repository, and `flow sync`.
+How your rules, notes, tickets and unfinished code reach your other computers: your Flow home, its private GitHub repository, `flow sync`, and `util git uncommitted`.
 
 ## Table of contents
 
@@ -8,6 +8,7 @@ How your rules, notes and tickets reach your other computers: your Flow home, it
 - [Add a computer](#add-a-computer): `flow install` joins the Flow home you have
 - [`flow sync`](#flow-sync): what it does, and when it runs by itself
 - [What travels](#what-travels): what reaches your other computers, and what stays
+- [Uncommitted code](#uncommitted-code): edits you never committed, carried to the next computer
 - [When 2 computers clash](#when-2-computers-clash): the same lines changed twice, a ticket number taken twice
 - [Both computers on the same Flow](#both-computers-on-the-same-flow): why a computer behind stops syncing
 
@@ -75,6 +76,20 @@ Each computer has a record in the repository, `machines/<name>.json`, saying whi
   "flowVersion": 1
 }
 ```
+
+## Uncommitted code
+
+A project's code travels through the project's own repository, so only the edits you never committed stay behind. `util`, a second command-line tool that `flow install` adds, carries them across:
+
+```sh
+util git uncommitted send   # on the computer you are leaving
+util git uncommitted get    # on the computer you are arriving at
+```
+
+- **`send`** stores every file you changed and pushes it to the project's remote. Your branch, your files and what you staged stay exactly as they were.
+- **`get`** puts those edits back into the project, unstaged, the way you left them. A line changed on both computers comes back with git's usual conflict markers.
+
+Files git ignores stay behind. To carry one, such as `.env.local`, name it in the project's `.uncommitted-include`, one path per line. A file named there is pushed to the project's remote, so on a public repository it becomes public.
 
 ## When 2 computers clash
 
