@@ -171,7 +171,7 @@ test('a git repository with no .flow gets the setup line, shown to the user alon
   assert.strictEqual(spawnSync('git', ['init', '-q'], { cwd: shop }).status, 0);
 
   const output = JSON.parse(check({ ...at, project: path.join(shop, 'src') }).stdout);
-  assert.strictEqual(output.systemMessage, 'Flow: not set up here. Run flow init to add it, or flow settings off setupReminder to stop this.');
+  assert.strictEqual(output.systemMessage, 'Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.');
   assert.strictEqual(output.hookSpecificOutput, undefined, 'nothing reaches the agent');
 
   const notes = path.join(at.user, 'notes');

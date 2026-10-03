@@ -83,8 +83,13 @@ Run `pnpm test:unit` as each step's check. The full suite needs the database, so
 
 ## Change a rule
 
-- **Your rules**: `~/.flow/AGENTS.md`, loaded in every session. The file is yours, so edit any rule. [Approval](approval.md) covers what the main rules do.
+- **Your rules**: `~/.flow/AGENTS.md`, loaded in every session. The setup session wrote it from Flow's template and your old rule files. After that the file is yours: edit any rule, and [`flow sync`](two-machines.md) carries it to your other computers.
 - **A project's rules**: `## Rules` in the project's `AGENTS.md`, for corrections true only there.
 - **Rules for one kind of file**: a file in `.claude/rules/` whose `paths:` header names the files it covers, such as `**/*.ts`. Claude Code loads it once the agent reads a matching file.
 
-Sessions add to all 3 as they learn: [Learning](learning.md) covers how. A rule a script can test can also get a [rule check](rule-checks.md).
+Each rule in your rules file carries an id, such as `build-what-was-agreed`, so a correction can name the rule it means. 2 sections of the file start empty and fill as sessions learn about you:
+
+- **`## The user`**: facts about you, such as the languages you work in.
+- **`## Preferences`**: how you like to work, taken from your corrections.
+
+Sessions add to all 3 kinds of rules as they learn: [Learning](learning.md) covers how. A rule a script can test can also get a [rule check](rule-checks.md).

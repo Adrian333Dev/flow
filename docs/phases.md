@@ -4,17 +4,17 @@ The 4 skills that work on a ticket, which one to pick, and what each leaves in t
 
 ## Table of contents
 
-- [Open a session](#open-a-session): `/flow:start` shows the board, or picks the phase for one ticket
-- [Start a phase](#start-a-phase): typing a phase with a ticket, with words, or alone
-- [`/flow:groundwork`](#flowgroundwork): turn an idea into decisions, then into tickets
-- [`/flow:execute`](#flowexecute): plan one ticket, build it, and hand it to you
+- [Let `/flow:start` pick](#let-flowstart-pick): it shows your tickets, or picks the phase for one
+- [Type a phase yourself](#type-a-phase-yourself): with a ticket, with words, or alone
+- [`/flow:groundwork`](#flowgroundwork): turn an idea and your own notes into decisions, then into tickets
+- [`/flow:execute`](#flowexecute): plan one ticket, build it, hand it to you, and what happens when the build goes wrong
 - [`/flow:debug`](#flowdebug): find a bug's cause, prove it, and fix it
 - [`/flow:prototype`](#flowprototype): answer one question with quick code
 - [The 2 moments Flow waits for you](#the-2-moments-flow-waits-for-you): the plan, and the finished work
 
-## Open a session
+## Let `/flow:start` pick
 
-`/flow:start` alone shows the board, the same one `flow next` prints, and recommends one ticket. Work already in progress comes first, then work split from it, then anything new, whatever its priority. You pick by typing the ticket after it: `/flow:start /shop-5`.
+`/flow:start` alone shows the board, the list of your tickets that `flow next` prints, and recommends one ticket. Work already in progress comes first, then work split from it, then anything new, whatever its priority. You pick by typing the ticket after it: `/flow:start /shop-5`.
 
 With a ticket, `/flow:start` loads it, then starts the phase it needs and says in one line why:
 
@@ -26,7 +26,7 @@ With a ticket, `/flow:start` loads it, then starts the phase it needs and says i
 
 A ticket in `done` or `dropped` stops there: reopening one is your call.
 
-## Start a phase
+## Type a phase yourself
 
 Skip `/flow:start` when you already know the phase:
 
@@ -46,6 +46,14 @@ Turns an idea into a design, with every decision written down. It writes no plan
 2. **Walk**: settle them with you one at a time, writing each answer as it is decided. A question nobody can answer by talking gets research or a prototype.
 3. **Attack**: run the design through real cases, the awkward ones included, before it stands.
 4. **Route**: send each decision where it belongs. Work to build becomes tickets. What outlives the build, such as what the product must do, goes in `docs/spec/`.
+
+**Material you already have** goes in an intake folder, and `/flow:groundwork` reads all of it before listing a single decision: brainstorms run with another agent, research reports, design drafts, notes to yourself.
+
+- **`docs/intake/`** in the project: material for the whole project.
+- **`intake/`** in a ticket's folder: material for that one piece of work.
+- **Any folder you name**: `/flow:groundwork /shop-5 read ~/notes/charts first`.
+
+A big pile gets an `index.md` written into its folder, saying what each file is. Later runs read the index rather than the pile. Nothing you dropped in is ever rewritten.
 
 Everything lands in the ticket's `groundwork/map.md`, a checklist of questions with a section under it for each answer. The format, from the skill:
 
@@ -73,6 +81,12 @@ A step in `plan.md`, from the skill's template:
 1. [ ] **Add the config table**: `db/migrations/0031_rate_limit.sql`, `db/schema.ts`
        Check: `pnpm db:migrate && pnpm test:db`
 ```
+
+When the build goes wrong, one of 3 things happens:
+
+- **A step fails.** The agent fixes it on the spot while each fix is simple, such as a wrong path or a missing import. When a run of fixes leaves the same failure standing, it tells you what it believed, then starts `/flow:debug` in the same session.
+- **The plan turns out wrong.** A discovery that changes only how this ticket gets built rewrites `plan.md`, and the agent says what changed. It proposes anything bigger to you: a new ticket for work that stands on its own, the ticket back to `/flow:groundwork`, or the ticket dropped.
+- **You reject what was built.** A list of changes becomes new steps in `plan.md`. A new idea of what the ticket should be sends the same ticket back to `/flow:groundwork`. What building it taught goes into the ticket's `issues.md` first, and you choose whether the code stays or goes. The agent prints the git command to undo it, and you run it. The next plan replaces the old one.
 
 ## `/flow:debug`
 

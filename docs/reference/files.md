@@ -14,7 +14,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 
 ## The whole tree
 
-```bash
+```text
 ~/
 ├─ .agents/
 │  ├─ AGENTS.md                   → ~/.flow/AGENTS.md
@@ -186,6 +186,7 @@ The project's tickets and what sessions learn in it. It is the project's `flow` 
 
 Sessions write here, and Flow owns none of it.
 
+- **`intake/`**: notes, brainstorms and drafts you drop in. `/flow:groundwork` reads them before designing.
 - **`spec/`**: what the product is. `/flow:tickets-from-spec` cuts tickets from it.
 - **`context/`**: facts about this project that some work needs and most does not.
 - **`research/`**: research reports true only for this project.

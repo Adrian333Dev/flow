@@ -1,13 +1,13 @@
 # Tickets
 
-A ticket is one piece of work, written down as a folder: what to build, where the work stands, and everything the work produced. Every phase works on one ticket, and a phase started without one creates it.
+A ticket is one piece of work, written down as a folder: what to build, where the work stands, and everything the work produced. Flow's 4 phases, the skills that do the work, each work on one ticket. A phase started without one creates it.
 
 ## Table of contents
 
 - [What a ticket holds](#what-a-ticket-holds): the folder, and the file at its top
 - [Naming a ticket](#naming-a-ticket): ids, and the shorter ways to type one
-- [Types](#types): the 5 kinds of work
 - [Statuses](#statuses): where the work stands, and what moves it
+- [Types](#types): the 5 kinds of work, and the statuses each passes through
 - [Parents and waits](#parents-and-waits): splitting work, and work that waits on other work
 
 ## What a ticket holds
@@ -82,16 +82,6 @@ Work that belongs to no project goes in your Flow home, `~/.flow/`, with ids sta
 
 Every open ticket is also a skill, so `/shop-7` opens it in a session. [Skills](reference/skills.md#ticket-skills) covers ticket skills.
 
-## Types
-
-Each type passes through some of the statuses, always in the same order:
-
-- **`feature`**: something new. Every status.
-- **`chore`**: upkeep. Every status, though it usually skips groundwork.
-- **`issue`**: a bug. `todo → building → review → done`, since finding the cause and fixing it are one job.
-- **`topic`**: a decision with nothing to build. `todo → groundwork → done`, and `groundwork/map.md` is the result.
-- **`prototype`**: quick code that answers one question. `todo → building → review → done`, and the code stays in the ticket.
-
 ## Statuses
 
 `todo → groundwork → planning → building → review → done`:
@@ -116,7 +106,17 @@ The skills move tickets as they work, so you rarely type a status. [Phases](phas
 
 `claude --resume <session>` reopens the session that made a move, on the computer that ran it.
 
-A status can be wrong, such as `building` with no `plan.md`. The skill that picks the ticket up then trusts the folder, and says which one disagreed.
+A status can be wrong, such as `building` with no `plan.md`. The skill that picks the ticket up then goes by the files in the folder, tells you the status was wrong, and corrects it.
+
+## Types
+
+Each type passes through some of the statuses, always in the same order:
+
+- **`feature`**: something new. Every status.
+- **`chore`**: upkeep. Every status, though it usually skips groundwork.
+- **`issue`**: a bug. `todo → building → review → done`, since finding the cause and fixing it are one job.
+- **`topic`**: a decision with nothing to build. `todo → groundwork → done`, and `groundwork/map.md` is the result.
+- **`prototype`**: quick code that answers one question. `todo → building → review → done`, and the code stays in the ticket.
 
 ## Parents and waits
 

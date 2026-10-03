@@ -392,10 +392,10 @@ function askName(taken, terminal) {
   const offered = machineName.suggest(taken);
   if (!terminal) return offered;
   for (;;) {
-    const name = machineName.clean(confirm.ask(`\nMachine name (default: ${offered}): `, offered));
+    const name = machineName.clean(confirm.ask(`\nMachine name: `, offered));
     if (!name) continue;
     if (!taken.includes(name)) return name;
-    if (/^y(es)?$/i.test(confirm.ask(`${name} is taken. Replace it? (y/N) `, 'n'))) return name;
+    if (/^y(es)?$/i.test(confirm.ask(`${name} is taken. Replace it? (y/N) `, 'n', ''))) return name;
   }
 }
 

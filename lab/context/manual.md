@@ -12,7 +12,7 @@ Designed 2026-08-29 as the manual, renamed from `design-public-docs.md` on 2026-
 
 - **The root `README.md`**: the pitch. What Flow is, the loop, whether it is ready, the install line, how it compares, what comes next, links to the docs. `pitch.md` holds the rulings behind its wording.
 - **`docs/README.md`**: the index alone, one line per page in 5 groups. Kept as `README.md` because GitHub renders it when the folder opens.
-- **`docs/overview.md`**: how Flow works whole, each part named and linked to its page. No pitch and no status.
+- **`docs/overview.md`**: how Flow works whole. One piece of work first, then how the agent works with you, sessions, learning, and what Flow adds to Claude Code last, each linked to its page. No pitch and no status. The user threw out the first build's opening list, `## The parts`, on 2026-10-03: a heading that names nothing, and the rules on top of the root page.
 
 Task Master's `docs/README.md` is a plain index. beads and NestJS open on an introduction page. `lab/research/doc-design/` found the best-rated docs pair a landing page with an index.
 
@@ -29,9 +29,13 @@ docs/
 
 **Grouped by why the reader came, never by component.** Grouping by component was rejected outright: *"that's absolute worst way to teach strangers."* The index's groups: Start here, Doing the work, Getting better, Making it yours, Reference.
 
+**`docs/walkthroughs.md` walks each kind of work start to finish**: a new project, an existing project brought into Flow, a feature, a bug, a question for code, a decision, upkeep. Asked for by the user 2026-10-03: a stranger cannot piece the route together from pages written one per subject, the route from spec to `/flow:tickets-from-spec` least of all. The overview keeps a 4-step walk of one feature and links here. Each walk links `phases.md` rather than retelling a skill. Setup got no page of its own: `install.md` → `## The setup session` carries the machine's, and `new-project.md` → `## A folder that already has files` the project's, which the walk links.
+
 **Reference is split in 4, and explains no concept.** The old `reference.md` was 15,700 words mixing lookup with long explanation. A reference entry says what a thing does and its options. Where it needs a concept, it gives one sentence and links the guide page. Ruled by the user 2026-10-03: "this is just a references page. This is not where we explain any concepts".
 
 **Hidden commands and flags appear only in `docs/dev/`.** `flow handoff`, `--root`, `--no-bin`, `--no-clone`, `--drafts` and `doctor --tests` run for the agent and the tests, so `docs/dev/commands.md` documents them and the user pages never name them.
+
+**A page explains a mechanism, never a rule.** A hook, a file, a command or a skill gets a page. A rule from `home/AGENTS.md` is never retold: the file is short and plain, and every user edits it, so a retelling goes wrong twice. A rule whose effect a stranger would take for a bug gets one line where they meet it, such as the agent waiting for "go ahead" in `docs/overview.md`. Ruled by the user 2026-10-03, deleting `docs/approval.md`.
 
 **No `Why it works this way` section.** The manual planned one, grouped by scope and consequence. A reason now sits beside the decision it explains, on the page where the reader meets the decision: a reason kept apart goes unread, the argument that removed `decisions.md`.
 
@@ -63,6 +67,7 @@ Dropped on the evidence: **`llms.txt`**, since 97% of sites get no traffic from 
 - **A test over the examples in `docs/`.** Raised twice. Hand-written examples cover the obvious tenth of the scenarios and miss every tricky one, so a green suite reports a safety nobody has. **Do not raise it a third time.** Examples captured by running the real command are a different thing.
 - **A generated command reference.** Docs get updated inside the change that touched the CLI.
 - **A rewrite of each old page in place**, proposed 2026-10-02 and dropped: most pages changed shape, so the tree was planned whole first.
+- **Number prefixes on page files**, such as `01_overview.md`, raised by the user 2026-10-03 and dropped. Adding a page renames every page after it, breaking every link to them, links in public posts too. The index already gives the order, and GitHub shows it when `docs/` opens.
 - **`bash` fences for output**: they colour words such as `done` as code, and an apostrophe opens a string. `console` with `$ ` replaced them.
 
 ## Parked until Flow goes public

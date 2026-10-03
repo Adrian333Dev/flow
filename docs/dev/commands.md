@@ -25,7 +25,7 @@ flow <command> [id]... [--flags]
 - **The command always sits at position 1**, in every command, without exception.
 - **A word naming no command is a ticket id.** `flow exp-47` shows one; `flow get exp-47` is the same thing spelled out. Help prints both as one row, `flow [get] <id>`.
 - **Positionals name what the command acts on**: one id, several ids, or the title for `new`, where no ticket exists yet to point at.
-- **A positional names one target, never two things.** `get` takes one id, and so does each status verb: `flow build exp-47`, then `flow get exp-47`.
+- **A positional names one target, never 2 things.** `get` takes one id, and so does each status verb: `flow build exp-47`, then `flow get exp-47`.
 - **No path names what a command acts on.** Every command finds the root from the current directory.
 - **A last word may name where something goes.** `flow move exp-47 home` moves tickets, `flow store branch` puts a project's records on a branch, and `flow restore machine` puts this machine back.
 - **Everything else is a flag.**
@@ -78,7 +78,7 @@ The rules around them:
 
 - **`add` stands in for `new` where the thing already exists elsewhere and gets fetched.** `flow skills add <owner/repo>` clones a skill repository someone else wrote.
 - **A switch reads `on`, `off` and `reset`.** `on` and `off` write a line at one level: this project or folder, or `--global` for every project. `reset` removes that level's line. The level above then decides. `flow skills` and `flow settings` both work this way.
-- **Extra commands are allowed, and one test decides.** `edit` sets one field, on one ticket, to a value you typed. An extra command earns its place by breaking one of those three: `drop` re-points every ticket that depended on this one, and `file` stamps several tickets at once. `tree` writes nothing at all.
+- **Extra commands are allowed, and one test decides.** `edit` sets one field, on one ticket, to a value you typed. An extra command earns its place by breaking one of those 3: `drop` re-points every ticket that depended on this one, and `file` stamps several tickets at once. `tree` writes nothing at all.
 - **A list field is set whole.** `flow edit <id> --deps <id,id>` replaces the list the way `flow new --deps` writes it, and an empty value clears it. Adding one item means typing the list again, which keeps one command per field.
 - **A missing action is deliberate, and the file says why.** Cases have no `drop`: a recorded failure is never removed.
 - **A group names its most typed action the default, and that word can be left out.** `flow skills react` is `flow skills ls react`, and `flow audit <id>` is `flow audit get <id>`.
@@ -104,8 +104,8 @@ The skill that picks the ticket up runs the move, after it opens the phase's own
 
 ## Flags
 
-- **Start every flag with two dashes.**
-- **A single letter after one dash only where a wide convention already owns it.** `flow init -y` answers yes to its question, as `npm init -y` and `apt -y` do. Such a flag has no two-dash form.
+- **Start every flag with 2 dashes.**
+- **A single letter after one dash only where a wide convention already owns it.** `flow init -y` answers yes to its question, as `npm init -y` and `apt -y` do. Such a flag has no 2-dash form.
 - **Type the whole name.** `--stat` reaches nothing.
 
 ## Every command declares what it accepts

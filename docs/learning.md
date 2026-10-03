@@ -1,12 +1,14 @@
 # Learning
 
-How a lesson from one session changes what the agent does in the next: where each lesson is written, how it becomes a rule or a skill, and the records Flow keeps of what went wrong.
+How a lesson from one session changes what the agent does in the next: where each lesson is written, how it becomes a rule or a skill, how research builds on what exists, and the records Flow keeps of what went wrong.
 
 ## Table of contents
 
 - [Where each lesson goes](#where-each-lesson-goes): what the agent files at each checkpoint, and where
 - [From finding to rule](#from-finding-to-rule): `/flow:file-findings` turns lessons into rules, skills and checks
 - [What Flow knows about outside tools](#what-flow-knows-about-outside-tools): the wiki, and how `/flow:research` uses it
+- [Looking for what already exists](#looking-for-what-already-exists): skills, tools and services searched before anything is built
+- [Questions for an outside AI](#questions-for-an-outside-ai): prompts you run in a deep-research tool, and paste back
 - [The agent's mistakes](#the-agents-mistakes): study cases and workflow notes
 - [The failure log](#the-failure-log): every failure of something Flow runs
 - [Reading past sessions](#reading-past-sessions): `flow audit`, and the words it counts in
@@ -21,7 +23,7 @@ At each checkpoint the agent looks back over the conversation since the last one
 - **A project fact only some work needs**, such as how it deploys → `docs/context/<subject>.md`.
 - **How an outside tool behaves**, such as a library's quirk → `~/.flow/wiki/<tool>/findings/`, shared by every project.
 - **Any other lesson worth reusing** → `.flow/findings/<what-was-learned>.md` in the project.
-- **A mistake of Flow's own**, such as a rule that never fired → `/flow:review`, where it is switched on.
+- **A mistake of Flow's own**, such as a rule that never fired → a study case, through `/flow:review` once you switch it on. [The agent's mistakes](#the-agents-mistakes) covers it.
 - **Everything else** → `.flow/inbox.md`, as it came.
 
 A lesson in `~/.flow/` reaches your other computers through [`flow sync`](two-machines.md). A finding never holds a detail of the project or its client, since your Flow home goes to GitHub.
@@ -62,6 +64,24 @@ An outside tool is anything your project uses that someone else makes: a library
 4. **Outside**: Context7, a free service answering from a library's docs, for a quick question. The downloaded docs, for building against the tool. The tool's GitHub issues, for a bug. Web search last.
 
 A report true only for this project, such as one about its users, goes in the project's `docs/research/` instead. A report about no single tool, such as a comparison of services, goes in `~/.flow/research/`.
+
+## Looking for what already exists
+
+Before anything gets built, `/flow:research` looks for something that already does the job: a library, a service, a skill, a plugin, or an MCP server, which gives Claude Code new tools. It searches 3 places at once:
+
+- **Every skill Flow can reach**: `flow skills ls <pattern>`, across your own skills and every skill repository you have.
+- **The toolbox**: notes on outside tools from real use, downloaded with Flow.
+- **skills.sh**: a public index of skills, searched with `npx skills find`.
+
+With nothing found there, it searches GitHub, plugin marketplaces, the official list of MCP servers, then the web. A skill from your own or from `domain-skills` needs no review: `flow skills on <name>` switches it on. Anything else gets read before it is recommended. The tool's own maker counts before stars, and the agent reads the top 3 in full. [Extend](extend.md#read-a-skill-before-switching-it-on) covers using an outside skill.
+
+## Questions for an outside AI
+
+A survey across many sources, such as comparing every way to add search to an app, goes to a deep-research tool that you run yourself:
+
+1. **`/flow:research` writes the prompts**, one per question, each in its own research file. Each names the AI to run it in, Claude first, and whether it needs a quick search or a deep one of 5 to 20 minutes.
+2. **You run each prompt**, and paste each report back under its prompt. The agent waits, and guesses nothing meanwhile.
+3. **The agent reads every report**, says what they agree on and what stays open, then recommends.
 
 ## The agent's mistakes
 

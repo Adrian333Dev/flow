@@ -4,18 +4,18 @@ One clone holds everything Flow is. This page says what is in each folder, and w
 
 ## Table of contents
 
-- [The four parts](#the-four-parts): what installs, what stays in the repository, the design record, and scratch
+- [The 4 parts](#the-4-parts): what installs, what stays in the repository, the design record, and scratch
 - [What installs on a machine](#what-installs-on-a-machine): the 6 folders and every file in `scripts/`
 - [What belongs to the repository](#what-belongs-to-the-repository): the files that install nowhere, the docs among them
 - [The design record under lab](#the-design-record-under-lab): the reasoning, the backlog and the submodules
 - [What is gitignored](#what-is-gitignored): other people's clones and scratch
 - [Where a new file goes](#where-a-new-file-goes): one line per kind of file
 
-## The four parts
+## The 4 parts
 
-Installing creates symlinks from your machine into this clone, so most files are reachable from two paths at once: one in the repository, one on the machine. [Trying a change](trying-changes.md#two-checkouts) says how to edit safely when every link points here.
+Installing creates symlinks from your machine into this clone, so most files are reachable from 2 paths at once: one in the repository, one on the machine. [Trying a change](trying-changes.md#two-checkouts) says how to edit safely when every link points here.
 
-When you first open the repository, the split that matters has four parts:
+When you first open the repository, the split that matters has 4 parts:
 
 - **6 folders install**: `home/`, `scripts/`, `references/`, `skills/`, `claude/`, and `project-template/`
 - **7 entries belong to the repository**: `CLAUDE.md`, `README.md`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
@@ -32,7 +32,7 @@ When you first open the repository, the split that matters has four parts:
 
 **`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../reference/settings.md) explains every key. The setup session `flow install` opens merges it into `~/.claude/settings.json` key by key. The links `flow install` makes before that session write none of the 3 above: a rule file copied before the interview holds nothing of the user.
 
-**`scripts/`** holds the CLI, the hooks, and the script that carries out a migration. Symlinked as `~/.flow/scripts`. `flow.js` gets two more symlinks in `~/.local/bin/` named `flow` and `fw`.
+**`scripts/`** holds the CLI, the hooks, and the script that carries out a migration. Symlinked as `~/.flow/scripts`. `flow.js` gets 2 more symlinks in `~/.local/bin/` named `flow` and `fw`.
 
 - `flow.js` is the entry point. It names the commands and hands what was typed to `lib/cli.js`, the argument layer. [Designing a flow command](commands.md) holds the rules every command follows.
 - `commands/` holds one file per command or group: `init.js` is `flow init`, `store.js` is `flow store`, `update.js` is `flow update`, and `status-line.js` is `flow status-line`.
@@ -63,7 +63,7 @@ When you first open the repository, the split that matters has four parts:
   - `skills-pull.js` updates every skill repository in `~/.flow/repos/sources/`, started by the session check. It pulls each one. With `"skillsAutoUpdate": false` it only fetches, and writes what is waiting into `~/.flow/skills-update.json`. `lib/skills/skills-update.js` holds the logic.
 - `sessions/` holds what the sessions Flow opens follow: `machine.md` and `form.md` for `flow install`, `project.md` and `project-form.md` for `flow init`, and `migrate.md`, instructions and form in one file, for `flow update`. Not skills: `lib/setup.js` hands the text over as a system prompt, and the machine's setup runs in safe mode, which loads no skill.
 - `templates/` holds what Flow writes a new file from: a ticket, a map, a study case, and the `README.md` of `~/.flow/`.
-- `apply-migration.js` carries out a migration that `flow install`, `flow init` or `flow update` wrote, During a place's first setup, it copies each path into the place's originals before changing it. `flow restore` puts those back. Later migrations record nothing. It is not a `flow` command, so nobody types it by accident. `lib/machine/migrations.js` and `lib/machine/originals.js` hold the logic.
+- `apply-migration.js` carries out a migration that `flow install`, `flow init` or `flow update` wrote. During a place's first setup, it copies each path into the place's originals before changing it. `flow restore` puts those back. Later migrations record nothing. It is not a `flow` command, so nobody types it by accident. `lib/machine/migrations.js` and `lib/machine/originals.js` hold the logic.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and `/flow:file-findings`' `references/write-checks.md` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
 
@@ -101,7 +101,7 @@ When you first open the repository, the split that matters has four parts:
 
 `lab/` holds the reasoning this repository was built from. It ships nowhere and is never deleted. It shrinks to what is still live.
 
-**Every record under `lab/` is history, and the skills on disk win wherever the two disagree.** Git holds the change history, which nothing here restates. `context/state.md` and `backlog/` are the exceptions: both are maintained as the work moves, so where one disagrees with disk, the record is the bug.
+**Every record under `lab/` is history, and the skills on disk win wherever the 2 disagree.** Git holds the change history, which nothing here restates. `context/state.md` and `backlog/` are the exceptions: both are maintained as the work moves, so where one disagrees with disk, the record is the bug.
 
 Every context file sits in `lab/context/`, flat:
 

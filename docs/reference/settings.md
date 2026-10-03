@@ -77,7 +77,7 @@ Off, the lines stop. The work behind them goes on: skill links still match your 
 Suggests setting Flow up when a session opens in a git repository Flow is not in yet:
 
 ```text
-Flow: not set up here. Run flow init to add it, or flow settings off setupReminder to stop this.
+Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.
 ```
 
 In a project set up on another computer, it also suggests folding in the memory Claude Code kept for it on this one. `false` turns both off everywhere. Typed inside a repository with no flag, `flow settings off setupReminder` turns them off for that repository alone, through [`setupReminderSkip`](#setupreminderskip).

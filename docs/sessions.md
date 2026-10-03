@@ -1,6 +1,6 @@
 # Sessions
 
-What Flow does when a session opens and while it runs, and how work carries over to the next session.
+What Flow does when a session opens and while it runs, and how work carries over to the next session or to a second one.
 
 ## Table of contents
 
@@ -8,6 +8,7 @@ What Flow does when a session opens and while it runs, and how work carries over
 - [While a session runs](#while-a-session-runs): the reminder, the status line, and the length warning
 - [Carry work to the next session](#carry-work-to-the-next-session): `/flow:handoff`, `/clear`, and the line that picks the work up
 - [What `/flow:handoff` writes](#what-flowhandoff-writes): the `## State` section in the ticket
+- [Hand a job to a second session](#hand-a-job-to-a-second-session): a child ticket another session picks up while yours carries on
 - [Why Flow refuses `/compact`](#why-flow-refuses-compact): a summary against a handoff
 
 ## When a session opens
@@ -16,7 +17,7 @@ Flow prints a line only when something needs you, and nothing otherwise:
 
 ```text
 Flow: this machine is at changelog entry 3, and 5 is the newest. Run flow update in a terminal.
-Flow: not set up here. Run flow init to add it, or flow settings off setupReminder to stop this.
+Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.
 ```
 
 It also does 3 things without a word, and without making the session wait:
@@ -25,7 +26,7 @@ It also does 3 things without a word, and without making the session wait:
 - **Updates each skill repository** in the background, at most every 6 hours.
 - **Brings down other people's tickets**, in a project whose tickets live on its `flow` branch.
 
-Then type `/flow:start`. [Phases](phases.md) covers what it does.
+Then type the phase you need, such as `/flow:execute /shop-7`, or `/flow:start` to see your tickets and get one recommended. [Phases](phases.md) covers both.
 
 ## While a session runs
 
@@ -56,6 +57,8 @@ The context is at 171k, past the 150k limit. Stop at the step you are on: finish
 ```
 
 [Settings](reference/settings.md#switches) covers turning each line off, and [`wrapUpAt`](reference/settings.md#wrapupat) moves the limit.
+
+**Anything with a shape gets drawn.** A screen layout, an architecture or a flow between parts is drawn with `/flow:visualize`: a text diagram in the reply, or an HTML preview where colour and spacing matter. Every spec carries at least one drawing.
 
 **Your tickets are backed up as you work.** After a reply, Flow sends the project's tickets and your Flow home to GitHub where something changed and 30 minutes have passed, and once more as the session closes. It runs in the background, so a reply never waits.
 
@@ -101,6 +104,12 @@ src/budgets.js:14-24   # setBudget, where step 3 goes
 - **The `open` block**: the files the next session gets before its first message, with a line range where one part matters.
 
 Most handoffs fill 2 of the 4. The section is deleted when the ticket reaches `review`, and anything in `Found` still true moves to the ticket's `issues.md` first. Before it writes, `/flow:handoff` also files what the conversation taught: [Learning](learning.md) covers that step.
+
+## Hand a job to a second session
+
+A job can run in a second session while yours carries on, such as checking how an API behaves while the build continues. Ask for it, and `/flow:handoff` writes the job as a child ticket under the one you are working on. The child ticket holds everything the job needs: what is already set up, what was decided, and what to report back. The handoff ends on the line to type in a new terminal, such as `/flow:execute /shop-8`.
+
+The second session ends with the answer in a few sentences, for you to bring back to the first. Run several at once, with only one of them editing the code, so no session trips over another's changes. A step a helper agent can do needs no second session: [Subagents](subagents.md) covers helper agents.
 
 ## Why Flow refuses `/compact`
 

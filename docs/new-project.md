@@ -16,8 +16,10 @@ Type `flow init` in the project's folder, once Flow is [installed](install.md). 
 It asks for the ticket prefix, the word every ticket id starts with, and offers the folder's name:
 
 ```text
-Ticket prefix, so its tickets read shop-1, shop-2 (default: shop):
+Ticket prefix, so its tickets read shop-1, shop-2: shop
 ```
+
+The offered word shows in dim text. Enter keeps it, and typing replaces it.
 
 In an empty folder it then writes the project's files at once:
 
@@ -34,9 +36,11 @@ wrote: CLAUDE.md
 set up: ~/code/shop is on entry 1. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
 ```
 
+`entry 1` is the version of Flow the project is on. [Update Flow](install.md#update-flow) covers the numbers.
+
 `AGENTS.md` holds what every session in this project needs. It starts with 2 sections, `## Project` for what the project is and `## Rules` for corrections that hold only here. Describe the project with `/flow:groundwork`, which fills in `## Project`. Sessions add the rest as they learn it. [Files](reference/files.md#in-a-project) covers the other files.
 
-Commit the files when you choose. The tickets are saved apart from your code, by Flow.
+Commit the files when you choose. Flow saves the tickets itself, apart from your code.
 
 ## Where the tickets live
 
@@ -51,10 +55,12 @@ A public repository makes `flow init` ask, since the branch would publish the ti
 
 ```text
 This repository is public. Where should its tickets live?
-  1. Your Flow home: private, on all your machines   (default)
+  1. Your Flow home: private, on all your machines
   2. The project's flow branch: PUBLIC, anyone can read them
-Type 1 or 2:
+Type 1 or 2: 1
 ```
+
+Enter picks 1, your Flow home.
 
 A repository that refuses your push stops `flow init` before it makes anything, and offers `--private`.
 
@@ -86,7 +92,7 @@ Quit and start `claude` again once the session ends, so the project's new rules 
 
 ## On your other computer
 
-Clone the project, and type `flow init` in it:
+A clone brings your code and the files you committed, never `.flow/`. The tickets sit on the `flow` branch, which a clone does not check out, or in your Flow home. Clone the project, and type `flow init` in it. Flow sees the project is already set up, and asks nothing:
 
 - **Tickets on the branch**: it checks the `flow` branch out at `.flow/`. A teammate's computer does the same.
 - **Tickets in your Flow home**: it finds their folder by the repository's address, and links `.flow/` to it.

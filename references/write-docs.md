@@ -9,7 +9,8 @@ A page no session loads: a reader arrives from a search or an index, reads it on
 - **Order a page by what the reader needs first.** Everyday things first, rare or destructive ones late, specialist ones last.
 - **Expose nothing the reader never types.** A hidden command or flag, test machinery, and a file name the reader never acts on belong in the pages for people changing the tool.
 - **Show real output**, copied from a run. Never type an example's output by hand.
-- **Open with a table of contents** under a `## Table of contents` heading, one line per heading, in order. Each line ends with a few words after a colon saying what the section holds, so the table of contents alone tells the reader where to go.
+- **Open with a table of contents** under a `## Table of contents` heading, one line per heading, in order. Each line ends with a few words after a colon saying what the section holds, so the table of contents alone tells the reader where to go. An index page is its own table of contents, and gets none.
+- **Name a heading so a stranger knows what sits under it.** "The parts" names nothing. "What Flow adds to Claude Code" does.
 - **Plan what the reader knows on arrival, what they know on leaving, and the path between.** The arrival state decides the first section.
 - **A link names the page it points at.** Never a position. No *the next page*, no *as shown above*, no numbered filenames. Order lives in the index alone.
 - **Every code fence names a language**: `md`, `sh`, `json`, `console` for a command typed with `$ ` and its output, `text` for a tree or output shown without its command. Never `bash` for output: it colours words such as `done` as code, and an apostrophe starts a string. A guess beats a bare fence.

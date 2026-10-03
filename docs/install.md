@@ -41,9 +41,9 @@ node <clone>/scripts/flow.js install
      4. Below, choose "Paste an authentication token", and paste it.
    ```
 
-2. **Asks this computer's name**, offering one made from the kind of computer and its system: `Machine name (default: desktop-wsl):`. Your other computers know it by this name.
+2. **Asks this computer's name**, offering one made from the kind of computer and its system: `Machine name: desktop-wsl`, the offer in dim text that Enter keeps. Your other computers know it by this name.
 3. **Connects your Flow home**: `~/.flow/`, the folder where Flow keeps your rules, notes, settings and tickets. On your first computer, the install creates a private GitHub repository named `flow-home` to back it up. On the next, it downloads your Flow home from there. [Two machines](two-machines.md) covers the second computer.
-4. **Saves this computer's original**: a copy of every file Flow is about to change, so [`flow restore`](#take-flow-off) can put it back.
+4. **Saves a copy of every file Flow is about to change**, so [`flow restore`](#take-flow-off) can put it back. Flow calls this copy the original.
 5. **Links Flow's skills, rules and scripts into place**, and downloads the tools Flow uses. [Files](reference/files.md) lists every path.
 6. **Opens the setup session.**
 
@@ -60,7 +60,7 @@ Every check runs before anything is made. A failed one stops the install, says w
 
 ## The setup session
 
-The install's last step opens a Claude Code session that reads what your computer already holds: your `~/.claude/CLAUDE.md` and the files it loads, your skills, your plugins, and `~/.claude/settings.json`. It writes every change it wants to make into one form, `migration.md`, and stops. Nothing outside `~/.flow/` changes before you approve the form.
+The install's last step opens a Claude Code session that reads what your computer already holds: your `~/.claude/CLAUDE.md` and the files it loads, your skills, your plugins, and `~/.claude/settings.json`. It writes every change it wants to make into one form, `migration.md`, a checklist with one line per change, and stops. Nothing outside `~/.flow/` changes before you approve the form.
 
 A ticked line goes and an unticked one stays. A few lines from the form's template:
 
@@ -106,7 +106,7 @@ A line you added to a file Flow wrote is kept. The form lists it under `Your own
 
 ## Take Flow off
 
-Flow saves an original twice: once for your computer at its first install, and once for each project at its first `flow init`. Nothing is added to an original after that, so it is for deciding against Flow in the first weeks. A file you made since stays yours. Nothing in `~/.flow/` is saved, so putting an original back leaves your notes and tickets alone.
+Flow saves the original files twice: once for your computer at its first install, and once for each project at its first `flow init`. Nothing is added to the originals after that, so they are for deciding against Flow in the first weeks. A file you made since stays yours. Nothing in `~/.flow/` is saved, so putting an original back leaves your notes and tickets alone.
 
 - **`flow restore project`** puts back the project you are in.
 - **`flow restore machine`** puts back your computer, and offers each project in the same form. The `flow` command goes with it.

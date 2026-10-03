@@ -158,7 +158,7 @@ function setupReminder(at, cwd) {
   if (!top) return null;
   const repo = real(top);
   if (repo === real(at.base) || repo === real(at.flow)) return null;
-  return 'Flow: not set up here. Run flow init to add it, or flow settings off setupReminder to stop this.';
+  return 'Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.';
 }
 
 /**

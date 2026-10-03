@@ -12,7 +12,8 @@ New to Flow? Start with [Overview](overview.md).
 
 ## Start here
 
-- [Overview](overview.md): the parts Flow adds to Claude Code, and the path one piece of work takes through them
+- [Overview](overview.md): one piece of work from idea to reviewed code, how it carries across sessions, and what Flow adds to Claude Code
+- [Walkthroughs](walkthroughs.md): every kind of work walked start to finish, from a whole new project to a dependency bump
 - [Install](install.md): put Flow on your computer, update it, and take it off
 - [New project](new-project.md): set a project up with `flow init`, and choose where its tickets live
 - [Two machines](two-machines.md): your Flow home, how `flow sync` carries it to your other computers, and moving uncommitted code
@@ -22,7 +23,6 @@ New to Flow? Start with [Overview](overview.md).
 - [Tickets](tickets.md): what a ticket holds, its types and statuses, and how tickets wait on each other
 - [Phases](phases.md): the 4 skills that work on a ticket, which to pick, and what each leaves behind
 - [Sessions](sessions.md): what Flow does while a session runs, and how work carries over to the next one
-- [Approval](approval.md): what waits for your yes, what one yes covers, and how the agent replies
 - [Subagents](subagents.md): the helper agents Flow starts, and how it proves what each one changed
 - [Safety](safety.md): what runs without asking, what always asks, and what never runs
 

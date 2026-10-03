@@ -44,7 +44,7 @@ vercel deploy --prod                         Changes a shared system: vercel dep
 
 `rm -rf node_modules` and `git status` run without a question.
 
-The guard catches the forms the agent writes, and is no wall. It cannot see inside a script, such as `node -e` or a file the agent wrote and then runs. A command you type behind `!` reaches no hook.
+The guard catches the usual forms of these commands, and misses the rest. It cannot see inside a script, such as `node -e` or a file the agent wrote and then runs. A command you type behind `!` reaches no hook.
 
 ## Always asks
 
@@ -73,7 +73,7 @@ These are denied in every mode, and a saved "allow" cannot lift them:
 
 A permission mode decides what happens to a call no rule matched. Shift+Tab cycles through them.
 
-- **Every session starts in `default`, labelled Manual.** With every shell command allowed, Manual asks only where the guard, an `ask` rule or Claude Code's own protected paths say so. Flow writes the key because some plans would otherwise start in auto mode.
+- **Every session starts in `default`, labelled Manual.** With every shell command allowed, Manual asks only where the guard, an `ask` rule or Claude Code's own protected paths say so. Flow sets `defaultMode` to it because some plans would otherwise start in auto mode.
 - **Bypass mode is locked out.** It would skip every question, the guard's included.
 
 Flow never starts a session in auto mode, where a second model judges each call:

@@ -118,7 +118,7 @@ function hasFiles(project) {
 function wantsSession(yes) {
   if (yes) return true;
   if (!process.stdout.isTTY || !confirm.hasTerminal()) return false;
-  return /^y(es)?$/i.test(confirm.ask('This folder already has files.\nRead them in a setup session first? (y/N) ', 'n'));
+  return /^y(es)?$/i.test(confirm.ask('This folder already has files.\nRead them in a setup session first? (y/N) ', 'n', ''));
 }
 
 /** The word this project's ids start with: `--prefix`, the one asked, or the one offered. */
@@ -126,7 +126,7 @@ function choosePrefix(project, given) {
   const offered = store.offerWord(project);
   let word = given;
   if (!word && process.stdout.isTTY && confirm.hasTerminal()) {
-    word = confirm.ask(`Ticket prefix, so its tickets read ${offered}-1, ${offered}-2 (default: ${offered}): `, offered);
+    word = confirm.ask(`Ticket prefix, so its tickets read ${offered}-1, ${offered}-2: `, offered);
   }
   word = String(word || offered).trim().toLowerCase();
   const bad = store.badWord(word);
@@ -144,7 +144,7 @@ function askPlace(seen) {
   const open = seen === 'public';
   const answer = confirm.ask(
     `${open ? 'This repository is public.' : 'Flow could not tell whether this repository is public.'} Where should its tickets live?\n` +
-    '  1. Your Flow home: private, on all your machines   (default)\n' +
+    '  1. Your Flow home: private, on all your machines\n' +
     `  2. The project's flow branch: ${open ? 'PUBLIC, anyone can read them' : 'anyone who can read the repository reads them'}\n` +
     'Type 1 or 2: ', '1').trim();
   return answer === '2' ? 'branch' : 'home';
