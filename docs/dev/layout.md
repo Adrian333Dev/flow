@@ -126,7 +126,7 @@ Everything beside `context/` is a folder:
 
 ## What is gitignored
 
-- **`repos/`**: clones of other people's repositories, in 4 folders by what they are read for: `workflows/` holds the workflows Flow is compared against, `skills/` skill sets and the skill format, `harnesses/` the agents' own source, and `lists/` curated lists for finding more. `bash lab/scripts/repos.sh` restores them, and its list says what Flow takes from each. Nothing here is yours and nothing here is ever edited.
+- **`repos/`**: clones of other people's repositories, in 5 folders by what they are read for: `workflows/` holds the workflows Flow is compared against, `skills/` skill sets and the skill format, `tools/` single tools around a session such as guards and checkers, `harnesses/` the agents' own source, and `lists/` curated lists for finding more. `bash lab/scripts/repos.sh` restores them, and its list says what Flow takes from each. Nothing here is yours and nothing here is ever edited.
 - **`tmp/`**: scratch. `tmp/try/<name>/` is one run of the scratch session from `try.sh`, kept until `try.sh --delete` removes it: `home/`, the pretend computer's home folder with the project in `home/code/`, `remote.git`, the stand-in for the repository `~/.flow/` lives in, and `sandbox.sh`, the line that starts the session. `tmp/computers/` holds the seeds, saved computers a run starts from: `save-computer.sh` saves this one, `try.sh --save` a run's. None is ever rewritten. `tmp/tests/` is where both test suites write.
 
 Neither survives a fresh clone, and nothing at runtime reads either one.
