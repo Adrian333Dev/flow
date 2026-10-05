@@ -84,6 +84,7 @@ wrote: AGENTS.md
 wrote: CLAUDE.md
 
 set up: ~/code/shop is on entry 1. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
+A plugin or skill switched off on this computer is switched on here with: claude plugin enable <id> --scope project, or flow skills on <name>
 ```
 
 - **`--prefix <word>`**: the start of every ticket id, 2 to 8 lowercase letters, as `shop` in `shop-4`. Asked when left out, offering the folder's name: `shop` for `~/code/shop`, or the first 3 letters of a name over 8, `exp` for `expense-tracker`.

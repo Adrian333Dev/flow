@@ -85,6 +85,15 @@ const COMPETING = [
   '.cursorrules', '.cursor/rules', '.windsurfrules', '.github/copilot-instructions.md',
 ];
 
+/**
+ * The template's last line. With no setup session, nothing reads which plugin
+ * or skill the code uses, so the user is told how to switch one on here. A
+ * list of what is off would need a record of what the machine's setup
+ * switched off, since the user switches things off too, and Flow keeps none.
+ */
+const SWITCH_ON = 'A plugin or skill switched off on this computer is switched on here with: ' +
+  'claude plugin enable <id> --scope project, or flow skills on <name>';
+
 /** What `.flow/` itself ignores on the `flow` branch: whatever a prototype installed. */
 const RECORDS_IGNORE = [
   '# What a prototype installs or generates, fetched again wherever it runs.',
@@ -347,6 +356,7 @@ function init(at, clone, flags) {
   out(`${done.join('\n')}\n\nset up: ${show(project)} is on entry ${newest}. Nothing in the code is committed: ` +
     'AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.' +
     (home ? '\nIts tickets are private, in your Flow home, and flow sync carries them to your other machines.' : '') +
+    `\n${SWITCH_ON}` +
     (flags.y && !something ? '\nNothing here to read. Describe the project with /flow:groundwork.' : ''));
   return 0;
 }

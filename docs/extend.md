@@ -85,4 +85,4 @@ To reach a service such as GitHub or a database, take the first that works:
 2. **A small script over the service's web API**, kept inside that service's skill.
 3. **Its MCP server**, for that project alone.
 
-A command costs nothing until the agent runs it. An MCP server's tool descriptions load into every session of the project.
+A command costs nothing until the agent runs it. An MCP server costs a little in every session of the project: a short note from the server, and the name of each of its tools. A tool's full description loads only when the agent looks for that tool.

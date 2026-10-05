@@ -139,7 +139,8 @@ test('init in an empty folder writes the template at once, and opens no session'
   assert.strictEqual(done.code, 0, done.stderr);
   assert.match(done.stdout, /^wrote: AGENTS\.md$/m);
   assert.match(done.stdout, /^set up: \S+ is on entry \d+\./m);
-  assert.doesNotMatch(done.stdout, /claude /, 'no session');
+  assert.match(done.stdout, /^A plugin or skill switched off on this computer is switched on here with: claude plugin enable <id> --scope project, or flow skills on <name>$/m);
+  assert.doesNotMatch(done.stdout, /claude --/, 'no session');
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
   assert.strictEqual(fs.readFileSync(path.join(m.proj, '.flow', 'version'), 'utf8'), `${version.newest(REPO)}\n`);
   assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(m.proj, '.flow', 'settings.json'), 'utf8')), { ticketPrefix: 'shop' });
@@ -151,7 +152,7 @@ test('init writes the template where the folder holds files and nobody answers y
   const done = m.setup('--prefix', 'shop');
   assert.strictEqual(done.code, 0, done.stderr);
   assert.match(done.stdout, /^wrote: AGENTS\.md$/m);
-  assert.doesNotMatch(done.stdout, /claude /, 'no session');
+  assert.doesNotMatch(done.stdout, /claude --/, 'no session');
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
   assert.strictEqual(fs.readFileSync(path.join(m.proj, '.flow', 'version'), 'utf8'), `${version.newest(REPO)}\n`);
 

@@ -34,9 +34,12 @@ wrote: AGENTS.md
 wrote: CLAUDE.md
 
 set up: ~/code/shop is on entry 1. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
+A plugin or skill switched off on this computer is switched on here with: claude plugin enable <id> --scope project, or flow skills on <name>
 ```
 
 `entry 1` is the version of Flow the project is on. [Update Flow](install.md#update-flow) covers the numbers.
+
+Your computer's setup switches off a plugin or a skill that only some projects use. The last line says how to switch one on in this project once the project uses it. Nothing here reads the code to do that for you.
 
 `AGENTS.md` holds what every session in this project needs. It starts with 2 sections, `## Project` for what the project is and `## Rules` for corrections that hold only here. Describe the project with `/flow:groundwork`, which fills in `## Project`. Sessions add the rest as they learn it. [Files](reference/files.md#in-a-project) covers the other files.
 
