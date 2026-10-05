@@ -74,7 +74,9 @@ Dropped on the evidence: **`llms.txt`**, since 97% of sites get no traffic from 
 - **`bash` fences for output**: they colour words such as `done` as code, and an apostrophe opens a string. `console` with `$ ` replaced them.
 - **Cutting skills, command groups, statuses or types so a beginner has less to learn**, looked at in the final sweep 2026-10-01. 12 skills, 9 command groups, 8 statuses and 5 types shrink through what the docs and `/flow:start` teach first.
 
-## Parked until Flow goes public
+## The license and the copied pages
 
-- **The license.** MIT recommended: every project Flow competes with is MIT. Add the file any time before the repository goes public.
-- **The upstream research caches.** Tracked files under `lab/research/` are verbatim copies of other people's docs: `claude-code-docs/`, `claude-agent-skill-best-practices.md` and 3 `agentskills-*.md`. Publishing republishes them. The user chose to keep them tracked for now.
+Settled by the user 2026-10-05, once GitHub showed the repository was already public:
+
+- **MIT, in `LICENSE`.** Every project Flow competes with is MIT. AGPL-3.0 was recommended the same day, for the user's wish that whatever builds on Flow stays free, and the user chose MIT over it. No open license forbids selling. AGPL makes a shared or hosted version publish its source, and it costs reach: a skill author on MIT cannot copy a Flow skill in, and some companies ban AGPL. Later versions can be relicensed by the user, who wrote every commit. A version already published stays MIT.
+- **The 32 copies of other people's docs stay on disk, out of git**: `lab/research/claude-code-docs/`, `claude-code-mods/docs/`, and in `skill-curation/` `claude-agent-skill-best-practices.md` and 3 `agentskills-*.md`. A `LICENSE` at the top would read as licensing them. Git's history still holds them, left unrewritten: 3 forks already carry them, and their publishers give them away free. A fresh clone fetches them again from their URLs.

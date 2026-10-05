@@ -8,7 +8,7 @@ One clone holds everything Flow is. This page says what is in each folder, and w
 - [What installs on a machine](#what-installs-on-a-machine): the 6 folders and every file in `scripts/`
 - [What belongs to the repository](#what-belongs-to-the-repository): the files that install nowhere, the docs among them
 - [The design record under lab](#the-design-record-under-lab): the reasoning, the backlog and the submodules
-- [What is gitignored](#what-is-gitignored): other people's clones and scratch
+- [What is gitignored](#what-is-gitignored): other people's clones and docs, and scratch
 - [Where a new file goes](#where-a-new-file-goes): one line per kind of file
 
 ## The 4 parts
@@ -18,7 +18,7 @@ Installing creates symlinks from your machine into this clone, so most files are
 When you first open the repository, the split that matters has 4 parts:
 
 - **6 folders install**: `home/`, `scripts/`, `references/`, `skills/`, `claude/`, and `project-template/`
-- **7 entries belong to the repository**: `CLAUDE.md`, `README.md`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
+- **8 entries belong to the repository**: `CLAUDE.md`, `README.md`, `LICENSE`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
 - **`lab/` is the design record**: installed nowhere, never deleted
 - **`repos/` and `tmp/` are gitignored**: either can be thrown away at any moment
 
@@ -87,6 +87,8 @@ When you first open the repository, the split that matters has 4 parts:
 
 **`README.md`** introduces Flow and links to everything else.
 
+**`LICENSE`** is the MIT license: anyone may use, change, share and sell Flow, as long as the license text goes with every copy.
+
 **`install.sh`** is what the one pasted install line runs, `curl -fsSL <address>/install.sh | bash`. It checks for git, node, claude and gh, clones Flow into `~/.flow/repos/flow/`, then hands over to `flow install`, which does every other step. A clone that exists is never cloned again, so running it twice changes nothing. `--use <folder>` skips the clone and uses that folder as Flow.
 
 **`CHANGELOG.md`** holds one entry per change in how Flow behaves, numbered from 1, newest first. An entry's number is Flow's version, and `~/.flow/version` holds the number a machine last applied. Nothing is written into it until Flow is installed on a machine, since a migration is the only reader an entry has.
@@ -121,15 +123,16 @@ Everything beside `context/` is a folder:
 - **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/flow:research` clones it into `tmp/` to search it.
 - **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
 - **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, `try.sh` builds [the scratch session](trying-changes.md#the-scratch-session), and `save-computer.sh` saves this computer as a seed for it to start from. `test-projects/<name>/` builds each run's practice project: `files/` copied in, then `build.sh` making the tickets, or no `build.sh` for a project not set up.
-- **`research/`**: evidence behind the skills, and cached upstream documentation.
+- **`research/`**: evidence behind the skills, and copies of other people's docs, which git ignores.
 - **`archive/`**: pages taken out of `docs/` whole, kept as history. `manual/` is the old manual the user pages replaced.
 
 ## What is gitignored
 
 - **`repos/`**: clones of other people's repositories, in 5 folders by what they are read for: `workflows/` holds the workflows Flow is compared against, `skills/` skill sets and the skill format, `tools/` single tools around a session such as guards and checkers, `harnesses/` the agents' own source, and `lists/` curated lists for finding more. `bash lab/scripts/repos.sh` restores them, and its list says what Flow takes from each. Nothing here is yours and nothing here is ever edited.
 - **`tmp/`**: scratch. `tmp/try/<name>/` is one run of the scratch session from `try.sh`, kept until `try.sh --delete` removes it: `home/`, the pretend computer's home folder with the project in `home/code/`, `remote.git`, the stand-in for the repository `~/.flow/` lives in, and `sandbox.sh`, the line that starts the session. `tmp/computers/` holds the seeds, saved computers a run starts from: `save-computer.sh` saves this one, `try.sh --save` a run's. None is ever rewritten. `tmp/tests/` is where both test suites write.
+- **The copies of other people's docs under `lab/research/`**: `claude-code-docs/`, 18 pages of Claude Code's docs. `claude-code-mods/docs/`, 10 pages on mods. 4 pages in `skill-curation/` on writing skills. Kept out of git because publishing them would republish someone else's pages. A fresh clone fetches them again: Claude Code's pages from the index at `https://code.claude.com/docs/llms.txt`, agentskills.io's from `https://agentskills.io/llms.txt`, and Anthropic's page "Skill authoring best practices" by its title.
 
-Neither survives a fresh clone, and nothing at runtime reads either one.
+None survives a fresh clone, and nothing at runtime reads any of them.
 
 ## Where a new file goes
 
