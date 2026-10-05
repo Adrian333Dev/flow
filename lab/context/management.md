@@ -1006,6 +1006,27 @@ Stated in the user's own messages, 2026-09-08 to 2026-09-16. Not proposals.
 - **Proof as `## Proof` above designed it**, run only where the migration changed a hook, the rule file or the skills: `claude -p --output-format json "ok"` from the place's folder, then `flow audit session <session_id>`. No run has shown that the session view lists the hooks that fired.
 - **What was built**: `scripts/commands/update.js`, `scripts/sessions/migrate.md`, `migrations.resume()` naming the command for a stopped run, and 4 tests in `scripts/tests/up.test.js`. `session-check.js` and `flow doctor` name `flow up`.
 
+## A release copy and a dev copy, switched by one alias, ruled 2026-10-06
+
+**Every session runs the release copy, `~/.flow/repos/flow`, installed by the README's line. A session started with `claude-dev` loads Flow's skills and mods from the dev copy, `~/code/flow-dev`, in any project.** The alias is `alias claude-dev='claude --plugin-dir ~/code/flow-dev/skills'`, and `claude-dev --resume` reopens an existing session that way. The user's case: the read-aloud app stays on the release, while work on Flow shows at once, and a fix found in another project can be tried there. The user asked for the simplest version, accepting gaps: "it's okay if it doesn't fully satisfy our needs".
+
+- **Names, ruled by the user**: the dev copy is `~/code/flow-dev`. The user renames `~/code/flow` by hand. Claude Code files sessions under the folder's path, so moving `~/.claude/projects/-home-me-code-flow/` to `-home-me-code-flow-dev/` keeps `/resume`.
+- **What the alias covers**: skills and mods. The plugin loaded by `--plugin-dir` replaces the installed `flow@skills-dir`. `skills/.claude-plugin/plugin.json` lists the 4 group folders under `skills`, so the grouped tree loads as it stands, and `flow install` copies the manifest without that list.
+- **What stays on the release**: hooks, the status line, the `flow` command, the helper agent, `/capture` and `rules/comments.md`. A change to any of them is tried in the scratch session, `lab/scripts/try.sh`, until it is released.
+- **Branches by hand**: unfinished work sits on a branch, and the dev copy goes back to `main` before a fix wanted in another project.
+- **Probed 2026-10-05** with `claude -p` under `bwrap`, on a pretend home in `tmp/`:
+  - The manifest's `skills` list loads a grouped tree.
+  - A launch-time plugin replaces a same-named skills-folder plugin, by the flag or by `CLAUDE_CODE_PLUGIN_DIRS` set at launch.
+  - `CLAUDE_CODE_PLUGIN_DIRS` in a folder's `env` loads nothing, so the alias is needed.
+  - The real tree under `--plugin-dir` listed all 9 skills the model can see.
+- **Dropped 2026-10-06, each superseded the same week**:
+  - **A live folder**, `~/code/flow-live` with 3 pieces: the alias, `FLOW_SCRIPTS` in the folder's `.claude/settings.local.json` for the hooks, and `CLAUDE.local.md` importing `@home/AGENTS.md`. The user found 3 places too complicated. The rules piece was also needless: a user's rules are `~/.flow/AGENTS.md`, their own file, live everywhere already.
+  - **`FLOW_SCRIPTS` in every hook command, and `flow dev` setting it.** Walked 2026-10-06: a session-start hook running the dev copy's code re-points `~/.agents/skills/flow/skills/` at the dev copy, so every project switches to it, and the next normal session switches them back. `flow install` and `flow update` typed in such a session would act on the dev copy. Reverted rather than fixed, since the simple version sets nothing.
+  - **A draft copy as a git worktree**, and **3 install setups** in the guide. Branches in the one dev copy replace the first, and the README's line is the one install.
+- **Parked in `backlog/after-v1.md` → `## The skill system`**: the whole repository as one plugin, which makes new hooks, the agent and `/capture` live in a dev session, and a marketplace door shipping the install script.
+- **Rejected**: the project's own `.claude/skills/`, where a changed skill loads beside the release copy, and a project skills-folder plugin loses to the user-level one. A changed hook in the project's `settings.json` runs beside the release's, since hooks from every source add up. A changed rule in the project's `AGENTS.md` loads beside the old one, and Claude picks between 2 rules that clash. A second `~/.claude` through `CLAUDE_CONFIG_DIR` splits `/resume`, the login and the MCP servers. Dev hooks passed with `--settings` run beside the installed ones.
+- **The tickets for the dev copy live in the Flow home**: Flow's repository is public.
+
 ## The options on the table, by branch
 
 None approved. Each is a position to argue in the walk, never the answer.

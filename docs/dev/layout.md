@@ -13,7 +13,7 @@ One clone holds everything Flow is. This page says what is in each folder, and w
 
 ## The 4 parts
 
-Installing creates symlinks from your machine into this clone, so most files are reachable from 2 paths at once: one in the repository, one on the machine. [Trying a change](trying-changes.md#two-checkouts) says how to edit safely when every link points here.
+Installing creates symlinks from your machine into this clone, so most files are reachable from 2 paths at once: one in the repository, one on the machine. [Trying a change](trying-changes.md#a-dev-copy-beside-the-release) says how to edit a dev copy while your sessions run the release.
 
 When you first open the repository, the split that matters has 4 parts:
 
@@ -71,7 +71,7 @@ When you first open the repository, the split that matters has 4 parts:
 
 **`skills/`** holds every skill, one folder each, filed under a group: `phases/`, `tools/`, `dev/`, or `drafts/`. [Adding a skill](skills.md) covers the groups. The symlinks `flow install` builds are flat and named for the skill, inside `~/.agents/skills/flow/skills/`, so the only group names read outside this tree are `drafts/`, which never installs, and `dev/`, whose skills switch.
 
-**`skills/.claude-plugin/plugin.json`** is 2 lines naming Flow and describing it, and it is what makes every skill typed `/flow:groundwork` instead of `/groundwork`. Codex reads it here, because it follows each skill's link into this tree and looks above the real folder. `flow install` copies it into `~/.agents/skills/flow/.claude-plugin/`, where Claude Code reads it. Copied rather than linked, because Codex ignores a symlinked manifest. That copy and `~/.flow/settings.local.json` are the only things `flow install` writes that are not symlinks.
+**`skills/.claude-plugin/plugin.json`** names Flow, describes it, and lists the 4 group folders under `skills`. The name is what makes every skill typed `/flow:groundwork` instead of `/groundwork`. The list lets `claude --plugin-dir skills` load this tree as it stands, for [a session on the dev copy](trying-changes.md#starting-a-session-on-the-dev-copy). Codex reads the file here, because it follows each skill's link into this tree and looks above the real folder. `flow install` copies it without the list into `~/.agents/skills/flow/.claude-plugin/`, where Claude Code reads it. Copied rather than linked, because Codex ignores a symlinked manifest. That copy and `~/.flow/settings.local.json` are the only things `flow install` writes that are not symlinks.
 
 **`claude/`** holds what Claude Code alone reads, each file symlinked into the folder of the same name under `~/.claude/`:
 

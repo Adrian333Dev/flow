@@ -1,4 +1,5 @@
 {
   "name": "flow",
-  "description": "An opinionated workflow for solo devs on Claude Code and Codex. Turns scattered ideas into tracked, finished work."
+  "description": "An opinionated workflow for solo devs on Claude Code and Codex. Turns scattered ideas into tracked, finished work.",
+  "skills": ["./phases/", "./tools/", "./dev/", "./drafts/"]
 }

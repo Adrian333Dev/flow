@@ -30,7 +30,7 @@ There is one copy of every skill on the machine, so an edit is live in every pro
 
 ## The groups
 
-A group is mostly a filing decision. The symlinks `flow install` builds are flat, each named for the skill, so moving a skill to a different group later is a `mv`.
+A group is mostly a filing decision. The symlinks `flow install` builds are flat, each named for the skill, so moving a skill to a different group later is a `mv`. A new group also goes into the `skills` list in `skills/.claude-plugin/plugin.json`, or a session on the dev copy never sees it.
 
 - **`phases/`**: what you are doing: groundwork, execute, prototype, debug
 - **`tools/`**: what you reach for around the work: start, help, handoff, file-findings, research, visualize, tickets-from-spec
@@ -39,7 +39,7 @@ A group is mostly a filing decision. The symlinks `flow install` builds are flat
 
 2 groups change behavior:
 
-- **`drafts/`** does not install. `flow install` skips it, so a skill ships by being moved out of it. Until then the skill is reachable only through [the scratch session](trying-changes.md#the-scratch-session), which passes `--drafts` on every run.
+- **`drafts/`** does not install. `flow install` skips it, so a skill ships by being moved out of it. Until then the skill is reachable through [the scratch session](trying-changes.md#the-scratch-session), which passes `--drafts` on every run, and in [a session on the dev copy](trying-changes.md#starting-a-session-on-the-dev-copy), which loads every group.
 - **`dev/`** switches. A skill in it starts off, and `flow skills on <name> --global` turns it on. Every skill in any other group is part of the workflow: always linked, and `flow skills` refuses to switch it.
 
 `phases/` is closed at those 4. A skill that looks like a fifth phase belongs somewhere else: `/flow:tickets-from-spec` produces tickets and files under `tools/`.
@@ -95,7 +95,7 @@ Findings a skill accumulates go in the skill, not a changelog. Dated entries in 
 
 ```text
 ~/.agents/skills/flow/                    a real folder
-├─ .claude-plugin/plugin.json             a copy of skills/.claude-plugin/plugin.json
+├─ .claude-plugin/plugin.json             skills/.claude-plugin/plugin.json, copied without its skills list
 └─ skills/
    ├─ groundwork -> <clone>/skills/phases/groundwork
    └─ …                                   one link per skill outside drafts/
@@ -113,6 +113,6 @@ The plugin folder is the one folder Flow links whole. A link to `~/.claude/skill
 flow install
 ```
 
-Only when a skill was **added, renamed, or removed**. Editing a skill never needs it: `~/.agents/skills/flow/skills/<name>` is a symlink into your clone, so the file you saved is the file the next session reads.
+Only when a skill was **added, renamed, or removed**. Editing a skill never needs it: `~/.agents/skills/flow/skills/<name>` is a symlink into your clone, so the file you saved is the file the next session reads. [A session on the dev copy](trying-changes.md#starting-a-session-on-the-dev-copy) needs no install at all: a new skill loads after `/reload-plugins`.
 
 Re-running is safe at any time. It relinks what it owns, drops links into the clone that no longer resolve, and refuses to replace anything that is not already a symlink.

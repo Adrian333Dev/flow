@@ -1,11 +1,14 @@
 # Trying a change
 
-How to test a change to Flow before it reaches real work: the 2 test suites, a second checkout for a rework across several files, and the scratch session, a real Claude Code session on a pretend computer.
+How to test a change to Flow before it reaches real work: the 2 test suites, a dev copy of Flow beside the release, and the scratch session, a real Claude Code session on a pretend computer.
 
 ## Table of contents
 
 - [The tests](#the-tests): 2 suites, no dependencies, and where they write
-- [Two checkouts](#two-checkouts): a rework stays out of real projects until it holds
+- [A dev copy beside the release](#a-dev-copy-beside-the-release): edit Flow while your other projects stay on the release
+  - [Starting a session on the dev copy](#starting-a-session-on-the-dev-copy): one alias, in any project
+  - [What stays on the release](#what-stays-on-the-release): hooks, the status line, the `flow` command
+  - [Releasing a change](#releasing-a-change): branches, merge, `flow update`
 - [The scratch session](#the-scratch-session): a real session on a pretend computer
   - [Runs and seeds](#runs-and-seeds): a run is one pretend computer, a seed is the saved one it starts from
   - [What the session sees](#what-the-session-sees): your disk read-only, its own home folder
@@ -37,16 +40,52 @@ Both tools write to real folders in normal use, so the suites move every one of 
 
 Neither suite covers a real Claude Code session. The scratch session does, checked by hand.
 
-## Two checkouts
+## A dev copy beside the release
 
-Every skill is a link into your clone, so saving a `SKILL.md` changes that skill at once, in every project and every open session. A rework across 5 skills would be half applied in real work for as long as it takes. 2 working copies of the repository solve it:
+Every skill and hook a session runs comes from one copy of Flow's repository. Install Flow with the README's line, which keeps the release at `~/.flow/repos/flow`. Only `flow update` moves the release. Then clone a second copy, the one you edit:
 
-- **Stable, `~/code/flow`**: every link on the computer points here. Real projects run it.
-- **Dev, `~/code/flow-dev`**: a second working copy on a branch, `git worktree add ../flow-dev <branch>`. Nothing points at it.
+```sh
+git clone https://github.com/Adrian333Dev/flow.git ~/code/flow-dev
+```
 
-A quick fix you want live now goes in stable. A rework goes in dev, runs through the scratch session, and ships by merging the branch and pulling in stable. Run `flow install` again only when a skill was added, renamed or removed, since a link is named for its skill.
+A session runs the release until you start it on the dev copy, so a file you save in `~/code/flow-dev` never reaches your other projects.
 
-The unit of change is the whole clone, not one skill: changing one skill usually means changing 4 more, `home/AGENTS.md` and `home/settings.json`.
+### Starting a session on the dev copy
+
+`--plugin-dir` loads a plugin from a folder for one session, and it replaces the installed plugin of the same name, `flow`. An alias, a short name the shell expands into a longer command, saves typing the flag every time. Add it to `~/.bashrc`, the file bash reads whenever a terminal opens, then load it into the terminal you are in:
+
+```sh
+echo "alias claude-dev='claude --plugin-dir ~/code/flow-dev/skills'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+Pasting the `alias` line alone into a terminal works in that terminal only, until it closes. Every new terminal reads `~/.bashrc` by itself.
+
+- **`claude-dev`**, typed in any folder, starts a session on the dev copy's skills and mods. A skill that misbehaves in one of your projects can be fixed in `~/code/flow-dev` and tried in that project.
+- **`claude-dev --resume`** lists this folder's sessions to pick one, and reopens it on the dev copy.
+- **`claude-dev --resume <id>`** reopens one session by its id, such as `claude-dev --resume 4f2a9c1e-7b3d-4e8a-9f10-2c6d5e8b7a31`. Claude Code looks in the current folder's sessions first, then in every other project's, so it works from any folder. Each session is saved as `~/.claude/projects/<folder>/<id>.jsonl`, so the file name is the id.
+- **A skill edit** shows the next time the skill loads. A new skill shows after `/reload-plugins`. A mod reloads on every save.
+
+A session started any other way, from an editor's panel for one, runs the release's skills.
+
+### What stays on the release
+
+The alias reaches skills and mods alone. These still run from the release, through `~/.flow/scripts` and `~/.claude/`:
+
+- the hooks and the status line
+- the `flow` command, and every script a skill runs by its path under `~/.flow/scripts/`
+- the helper agent, `/capture` and the rules for code comments
+
+Try a change to one of them in [the scratch session](#the-scratch-session), which builds its run from the copy holding `try.sh`. Try a changed command with `node scripts/flow.js`.
+
+### Releasing a change
+
+The dev copy is an ordinary clone, and its branches are yours to manage:
+
+1. Keep unfinished work on a branch. Changing one skill usually means changing 4 more, `home/AGENTS.md` and `home/settings.json`, and that takes several passes.
+2. Switch back to `main` before fixing something another project needs today.
+3. Merge the branch into `main` and push it.
+4. Run `flow update`. The release pulls `main`, and every session runs the change.
 
 ## The scratch session
 

@@ -68,10 +68,10 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   // Claude Code reaches the same folder through one link.
   assert.ok(!fs.lstatSync(at.plugin).isSymbolicLink(), 'the plugin folder is a real folder');
   assert.strictEqual(linkTarget(path.join(at.claude, 'skills', 'flow')), at.plugin);
-  assert.strictEqual(
-    fs.readFileSync(path.join(at.plugin, '.claude-plugin', 'plugin.json'), 'utf8'),
-    fs.readFileSync(path.join(REPO, 'skills', '.claude-plugin', 'plugin.json'), 'utf8')
-  );
+  // The copy drops the clone's `skills` key: its group folders are not in the plugin folder.
+  const { skills: groups, ...named } = JSON.parse(fs.readFileSync(path.join(REPO, 'skills', '.claude-plugin', 'plugin.json'), 'utf8'));
+  assert.ok(groups.length, 'the clone names its group folders, for a live session');
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(at.plugin, '.claude-plugin', 'plugin.json'), 'utf8')), named);
   assert.ok(!fs.lstatSync(path.join(at.plugin, '.claude-plugin', 'plugin.json')).isSymbolicLink(),
     'the manifest is copied: Codex ignores a linked one');
 

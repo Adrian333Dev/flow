@@ -18,6 +18,15 @@ Flow keeps Claude Code's skills and adds 3 things: a group folder, a hook handin
 
 - [ ] **A skill update lands unseen.** `scripts/jobs/skills-pull.js` pulls every outside skill repository at session start, and each skill is a symlink into its clone, so a skill gaining `curl … | bash` reaches every project the next session. The 2 guards before a pull check for local changes and a non-fast-forward, never for what the update adds. SkilLock lists the new shell commands, hosts and file paths in a changed skill. Flow could print that list where `~/.flow/skills-update.json` reports a waiting update. `lab/research/skil-lock.md`
 
+- [ ] **The whole repository as one plugin**, so a dev session runs the dev copy's hooks, helper agent and `/capture` too, beyond the skills and mods `claude-dev` reaches today. Designed 2026-10-06, then parked by the user for the simple alias. **parked** until a changed hook waiting for a release blocks real work: the user expects new hooks often. `management.md` → `## A release copy and a dev copy, switched by one alias, ruled 2026-10-06`. The parts:
+  - **The layout**: `.claude-plugin/plugin.json` at the repository's top, listing the skill groups; `claude/hooks.json` naming each hook as `${CLAUDE_PLUGIN_ROOT}/scripts/hooks/<file>.js`; `claude/agents/` and `claude/commands/`. `~/.claude/skills/flow` links to the release copy.
+  - **`flow dev [folder]`** starts a session on the dev copy. `--branch <name>` opens it in a worktree under `~/code/flow-dev/.claude/worktrees/<branch>`, `--resume` reopens a session there, and a merged worktree with no changes is cleaned up by itself.
+  - **The costs**: `/capture` becomes `/flow:capture`, the agent `flow:haiku-worker`, `drafts/` goes, the 2 `skills/dev/` skills can no longer be switched one by one, and `flow install`, `flow doctor` and their tests change.
+  - **A probe first**: whether Claude Code loads hooks and agents from a `~/.claude/skills/` plugin that is a symlink. The docs leave it open.
+  - **The fault any version must fix**: code from the dev copy must never re-point the machine's links, nor run `flow install` or `flow update` against the dev copy. Walked 2026-10-06 on the `FLOW_SCRIPTS` design: the session-start hook re-pointed `~/.agents/skills/flow/skills/` at whichever copy ran it.
+
+- [ ] **A marketplace door**: Flow listed in a plugin marketplace, the plugin shipping the install script, and the user running it after the marketplace install. A marketplace install alone sets up nothing. Raised by the user 2026-10-06, "not too important today". **parked**
+
 ## Individual skills
 
 - [ ] **A resumed session never learns the old transcript is there.** Each ticket's `history.md` names every session that handed off, and `flow audit read <id> --turns 412-460` opens a slice of one. No skill says so. One line in the pickup would: a detail the handoff lacks → the last session in `history.md`, read with `flow audit read`. claude-code-tools builds its resume on the same idea. `lab/research/claude-code-tools.md`

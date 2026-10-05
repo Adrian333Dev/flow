@@ -36,9 +36,8 @@
 # point of it: a change is usually five skills and a global rule, and this is
 # the only way to test the whole state at once.
 #
-# It runs from whichever checkout holds it, so a second checkout at
-# ~/code/flow-dev builds a session against that checkout and leaves the stable
-# one alone.
+# It runs from whichever checkout holds it, so the dev copy at ~/code/flow-dev
+# builds a session against that copy and leaves the release one alone.
 #
 #   bash lab/scripts/try.sh                                  a new run from the before-flow seed, named before-flow
 #   bash lab/scripts/try.sh --seed set-up                    a new run from another seed, named after it

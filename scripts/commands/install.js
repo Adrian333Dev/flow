@@ -148,10 +148,15 @@ actions.install = {
     // Flow's skills are a plugin, so they link one level down, under a folder
     // holding the manifest that names them. The manifest is copied rather than
     // linked: Codex checks it with `symlink_metadata` and ignores a link.
+    // The clone's `skills` key names its group folders, for a session loading
+    // the clone with `--plugin-dir`. The copy drops it, since the plugin
+    // folder holds the skills flat.
     const linkDir = skills.linkDir(at.agents);
     const manifest = skills.manifestFile(at.agents);
     fs.mkdirSync(path.dirname(manifest), { recursive: true });
-    fs.copyFileSync(skills.manifestSource(), manifest);
+    const named = JSON.parse(fs.readFileSync(skills.manifestSource(), 'utf8'));
+    delete named.skills;
+    fs.writeFileSync(manifest, JSON.stringify(named, null, 2) + '\n');
     done.push(`wrote: ${show(manifest)}`);
 
     fs.mkdirSync(linkDir, { recursive: true });
