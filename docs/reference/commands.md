@@ -147,7 +147,7 @@ went up: desktop-wsl: 1 file
 shop's tickets: nothing new came down, 1 commit went up.
 ```
 
-It runs by itself when a session ends, and every 30 minutes while you work, so you rarely type it. [Two machines](../two-machines.md) covers what travels.
+It runs by itself when a session ends, and every 30 minutes while you work, so you rarely type it. [Sync between computers](../sync.md) covers what travels.
 
 ### `flow store`
 

@@ -5,19 +5,18 @@ Put Flow on your computer, keep it up to date, and take it off again.
 ## Table of contents
 
 - [What you need](#what-you-need): the programs Flow calls, and the systems it runs on
-- [Install Flow](#install-flow): the line to paste, and what it asks
+- [Install Flow](#install-flow): the line to paste, and what it does
 - [The setup session](#the-setup-session): how Flow fits itself around what your computer already holds
-- [Update Flow](#update-flow): get the newest Flow, and bring your computer and projects up to it
+- [Update Flow](#update-flow): bring your computer and projects up to the newest Flow
 - [Take Flow off](#take-flow-off): put back what Flow changed, or remove it
 
 ## What you need
 
 - **Linux, macOS, or Windows through WSL.**
-- **`git`, `node`, `claude` and `gh`**, GitHub's command-line tool. Flow calls them and never installs them.
-- **Claude Code 2.1.287 or later.** `claude update` brings an older one up to date.
+- **`git`, `node`, `gh`**, GitHub's command-line tool, and **Claude Code 2.1.287 or later.** Flow never installs them.
 - **A GitHub account**, where Flow keeps a private backup of your Flow home.
 
-`flow doctor --prereq` checks the programs and the Claude Code release, and the setup stops where one is missing.
+`flow doctor --prereq` checks them.
 
 ## Install Flow
 
@@ -25,85 +24,47 @@ Put Flow on your computer, keep it up to date, and take it off again.
 curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/main/install.sh | bash
 ```
 
-The line downloads Flow into `~/.flow/repos/flow/`, then runs `flow install`. Already downloaded Flow yourself? `flow` is not a command yet, so run the install by its path:
-
-```sh
-node <clone>/scripts/flow.js install
-```
+The line downloads Flow into `~/.flow/repos/flow/` and runs `flow install`. Already downloaded it yourself? Run `node <clone>/scripts/flow.js install`.
 
 `flow install` then:
 
-1. **Signs `gh` in to GitHub**, where it is not signed in yet. The browser sign-in often fails on WSL, so it shows how to use a token instead:
-
-   ```text
-   Flow keeps your Flow home in a private GitHub repository, through gh, and gh is not signed in.
-   Sign in with a token, which works everywhere, WSL included:
-     1. Open github.com/settings/tokens/new, which makes a classic token.
-     2. Tick repo, read:org and gist. Nothing else.
-     3. Generate it and copy it.
-     4. Below, choose "Paste an authentication token", and paste it.
-   ```
-
-2. **Asks this computer's name**, offering one made from the kind of computer and its system: `Machine name: desktop-wsl`, the offer in dim text that Enter keeps. Your other computers know it by this name.
-3. **Connects your Flow home**: `~/.flow/`, the folder where Flow keeps your rules, notes, settings and tickets. On your first computer, the install creates a private GitHub repository named `flow-home` to back it up. On the next, it downloads your Flow home from there. [Two machines](two-machines.md) covers the second computer.
-4. **Saves a copy of every file Flow is about to change**, so [`flow restore`](#take-flow-off) can put it back. Flow calls this copy the original.
-5. **Links Flow's skills, rules and scripts into place**, and downloads the tools Flow uses. [Files](reference/files.md) lists every path.
+1. **Signs `gh` in to GitHub**, with a token where the browser sign-in fails, as it often does on WSL.
+2. **Asks this computer's name**, such as `desktop-wsl`. Your other computers know it by this name.
+3. **Connects your Flow home**, `~/.flow/`, where Flow keeps your rules, notes, settings and tickets. The first computer creates a private GitHub repository for it, `flow-home`, and the next ones download it: [Sync between computers](sync.md).
+4. **Saves a copy of every file it is about to change**, so [`flow restore`](#take-flow-off) can put it back.
+5. **Links Flow's skills, rules and scripts into place**: [Files](reference/files.md) lists them.
 6. **Opens the setup session.**
 
-```console
-$ flow install
-Flow is installed: 10 skills, each typed under the plugin name, as /flow:groundwork.
-wrote: ~/.flow/originals/machine, this machine as it was before Flow
-named: this machine is desktop-wsl
-started: your Flow home, sent up so your other machines join it
-Every line of the install is in ~/.flow/logs/install.log.
-```
-
-Every check runs before anything is made. A failed one stops the install, says what to fix, and leaves your computer as it was. Running `flow install` again is always safe: it puts back whatever is missing.
+A failed check stops the install before anything is made, and says what to fix. Running `flow install` again is always safe.
 
 ## The setup session
 
-The install's last step opens a Claude Code session that reads what your computer already holds: your `~/.claude/CLAUDE.md` and the files it loads, your skills, your plugins, and `~/.claude/settings.json`. It writes every change it wants to make into one form, `migration.md`, a checklist with one line per change, and stops. Nothing outside `~/.flow/` changes before you approve the form.
+A Claude Code session that reads what your computer already holds: your `~/.claude/CLAUDE.md`, skills, plugins and `~/.claude/settings.json`. It writes every change into one form, `migration.md`, and stops. Nothing outside `~/.flow/` changes before you approve the form.
 
-Flow's own settings are plain lines, each with the key it writes. A box is a choice: a ticked line goes ahead, and an unticked one leaves that thing as it is. A few lines from the form's template:
+A ticked box goes ahead, and an unticked one leaves that thing as it is:
 
 ```md
-### Always removed, because Flow can't work with them
-
-- Memory: notes Claude Code writes about each project and loads into every session, beside Flow's rules. `autoMemoryEnabled`
-
 ## 🔴 Removed unless you untick it
-
-### Works against Flow's rules
 
 - [x] tdd skill: tells Claude how to plan and test every change, which Flow's steps already do. `~/.claude/skills/tdd/`
 
 ## Switched on only in the projects that use it
 
-Each one stays installed, switched off in every project. Setting up a project with `flow init` switches it on there when the project uses it. Untick one to keep it on everywhere.
-
 - [x] supabase plugin: knows the Supabase database service. `claude plugin disable`
 ```
 
-A plugin only some projects use costs context in every other project, so the form switches it off everywhere. [New project](new-project.md#a-folder-that-already-has-files) covers switching it back on.
+A plugin only some projects use costs context everywhere else, so the form switches it off, and each project switches it back on: [New project](new-project.md#a-folder-that-already-has-files).
 
-After your yes, the session writes:
-
-- **`~/.flow/AGENTS.md`**, your rules: Flow's template, plus your preferences and what it learned about you from your old rule files.
-- **`~/.claude/CLAUDE.md`**, as one line loading those rules.
-- **Flow's keys into `~/.claude/settings.json`**, leaving your own. [Settings](reference/settings.md#claude-codes-settings-file) covers each key.
-
-While it runs:
+After your yes, the session writes your rules to `~/.flow/AGENTS.md`, from Flow's template and your old rule files. `~/.claude/CLAUDE.md` becomes one line loading them, and Flow's keys go into `~/.claude/settings.json` beside yours.
 
 - **Claude Code asks once before editing its own settings.** Answer **allow Claude to edit its own settings for this session**.
-- **Your own rules, skills, plugins and hooks stay unloaded**, so nothing already on the computer argues with the setup.
-- **`flow` refuses every command but `install`, `doctor`, `restore` and `uninstall`** until the setup finishes. A setup that stopped part way carries on when you type `flow install` again.
+- **`flow` refuses most commands** until the setup finishes. `flow install` again carries a stopped setup on.
 
-The session ends by asking you to quit and start `claude` again, since rules and hooks load when a session starts. Then run [`flow doctor`](reference/commands.md#flow-doctor) to check the install.
+Quit and start `claude` again once it ends, then run [`flow doctor`](reference/commands.md#flow-doctor) to check the install.
 
 ## Update Flow
 
-Each change to how Flow behaves gets a number, and `~/.flow/version` holds the newest one your computer has applied. A session tells you when your computer is behind. Then type, in a terminal:
+A session tells you when your computer is behind. Then type, in a terminal:
 
 ```console
 $ flow update
@@ -111,35 +72,21 @@ Flow was already at its newest commit.
 Flow is up to date: this machine is at entry 1, and so is ~/code/shop.
 ```
 
-1. **It downloads the newest Flow.**
-2. **It compares the numbers**: your computer's against the newest, then the project you typed it in against your computer's.
-3. **It opens an update session for each one behind**, your computer first. The session reads what changed, and writes one form like the setup's.
-
-A line you added to a file Flow wrote is kept. The form lists it under `Your own lines, kept`, ticked, so you can drop it. Quit and start `claude` again once the session ends.
+It downloads the newest Flow, then opens an update session for your computer and for the project you are in, where either is behind. Each session writes a form like the setup's. A line you added to a file Flow wrote is kept. Start `claude` again once it ends.
 
 ## Take Flow off
 
-Flow saves the original files twice: once for your computer at its first install, and once for each project at its first `flow init`. Nothing is added to the originals after that, so they are for deciding against Flow in the first weeks. A file you made since stays yours. Nothing in `~/.flow/` is saved, so putting an original back leaves your notes and tickets alone.
+Flow saved your files as they were before it: your computer's at the first install, each project's at its first `flow init`. Your notes and tickets in `~/.flow/` are never touched by a restore.
 
 - **`flow restore project`** puts back the project you are in.
-- **`flow restore machine`** puts back your computer, and offers each project in the same form. The `flow` command goes with it.
-- **`flow uninstall`** puts back your computer and every project, then deletes `~/.flow/` and Flow's code. Work in `~/.flow/` that `flow sync` has not backed up stops it. Your `flow-home` repository on GitHub stays.
+- **`flow restore machine`** puts back your computer, and offers each project too.
+- **`flow uninstall`** puts back your computer and every project, then deletes `~/.flow/` and Flow. It refuses while `~/.flow/` holds work `flow sync` has not backed up. Your `flow-home` repository on GitHub stays.
 
-Each command writes `~/.flow/restore.md`, one box per path, and waits for you to type `restore` or `uninstall`:
+Each writes `~/.flow/restore.md`, one box per path, and waits for you to type `restore` or `uninstall`:
 
 ```md
-## Flow's files in ~/code/shop
-
 - [x] `.flow/`: deleted, with every ticket in it. Tickets sent to GitHub stay on the project's flow branch.
-- [x] `.gitignore`: deleted. It was not there before Flow.
-- [x] `.claude/skills/shop-7/`: deleted. Flow wrote it to list one of your tickets.
-
-## What ~/code/shop knows
-
-These work without Flow: Claude Code reads AGENTS.md on its own.
-
 - [ ] `AGENTS.md`: deleted. It was not there before Flow.
-- [ ] `CLAUDE.md`: deleted. It was not there before Flow.
 ```
 
-Untick a path to keep it as it is now. Change only the box: anything else on the line stops the command, with nothing changed. Only you can run these 3: [Commands](reference/commands.md#taking-flow-off) lists the locks that stop an agent.
+Untick a path to keep it as it is now. Only you can run these 3 commands: [Commands](reference/commands.md#taking-flow-off).

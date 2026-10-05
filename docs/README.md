@@ -16,7 +16,7 @@ New to Flow? Start with [Overview](overview.md).
 - [Walkthroughs](walkthroughs.md): every kind of work walked start to finish, from a whole new project to a dependency bump
 - [Install](install.md): put Flow on your computer, update it, and take it off
 - [New project](new-project.md): set a project up with `flow init`, and choose where its tickets live
-- [Two machines](two-machines.md): your Flow home, how `flow sync` carries it to your other computers, and moving uncommitted code
+- [Sync between computers](sync.md): your Flow home, how `flow sync` carries it to your other computers, and moving uncommitted code
 
 ## Doing the work
 

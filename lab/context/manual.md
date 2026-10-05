@@ -43,8 +43,11 @@ docs/
 
 Set by the user 2026-10-03 after reading the first build of `docs/reference/commands.md`, which took 3 rewrites:
 
-- **A sentence stays only where the reader would get something wrong without it.** No rule the example already shows, no list repeating the output, no second example showing nothing new.
-- **Budget**: `commands.md` about 950 lines, the other reference pages under 300, about 150 per guide page and per dev page, under 5,000 lines in all. The build came to about 2,900 for users and 550 for the dev pages.
+- **A sentence stays only where it changes what the reader types, sees or decides.** No rule the example already shows, no list repeating the output, no second example showing nothing new.
+- **A mechanism the reader meets is explained in full**: what it does, what the reader sees, what goes wrong and how to fix it. How the agent does a job, and the files a mechanism keeps for itself, stay out.
+- **Budget**: `commands.md` about 950 lines, the other reference pages under 300, about 75 per guide page, about 150 per dev page.
+
+Tightened by the user 2026-10-05, after reading 7 pages. The build came to about 3,000 lines and 26,000 words for users, about 2 hours of reading. The old test, "a sentence stays only where the reader would get something wrong without it", let through how Flow works inside, since a reader can always get that wrong. `learning.md` was cut first as the sample, from 1,600 words to 720, then every guide page and the index the same day, from 16,600 words to 10,300. The longest guide page, the one with the most code blocks, came to about 100 lines. The reference pages and `docs/dev/` were left as they were, ruled by the user: a reader looks an entry up there, and never reads the page through. `two-machines.md` became `sync.md`, "Sync between computers", the same day: the docs say "computer" for a machine, and `flow sync` is what the page explains.
 - **Ordered by need**: setting up first, the daily work next, rare or destructive things late, specialist things last.
 - **Plain words over Flow's own**: "computer" where the reader meets a machine, "everywhere" for `--global`. `flow sync` is "back up your workflow and share it between your computers".
 

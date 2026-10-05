@@ -97,7 +97,7 @@ Each folder here can also hold entries from other tools. `flow install` never re
 
 ## `~/.flow/`
 
-Your Flow home: the folder where Flow keeps your rules, notes, settings and tickets. It is a git repository, backed up to a private GitHub repository named `flow-home`, and `flow sync` shares it between your computers. [Two machines](../two-machines.md) covers how.
+Your Flow home: the folder where Flow keeps your rules, notes, settings and tickets. It is a git repository, backed up to a private GitHub repository named `flow-home`, and `flow sync` shares it between your computers. [Sync between computers](../sync.md) covers how.
 
 ### Your rules and settings
 

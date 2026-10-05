@@ -1,88 +1,69 @@
 # Sessions
 
-What Flow does when a session opens and while it runs, and how work carries over to the next session or to a second one.
+What Flow does while a session runs, and how work carries over to the next session or to a second one.
 
 ## Table of contents
 
-- [When a session opens](#when-a-session-opens): what Flow checks, and when it speaks
+- [When a session opens](#when-a-session-opens): a line only when something needs you
 - [While a session runs](#while-a-session-runs): the reminder, the status line, and the length warning
 - [Carry work to the next session](#carry-work-to-the-next-session): `/flow:handoff`, `/clear`, and the line that picks the work up
 - [What `/flow:handoff` writes](#what-flowhandoff-writes): the `## State` section in the ticket
-- [Hand a job to a second session](#hand-a-job-to-a-second-session): a child ticket another session picks up while yours carries on
+- [Hand a job to a second session](#hand-a-job-to-a-second-session): a child ticket another session picks up
 - [Why Flow refuses `/compact`](#why-flow-refuses-compact): a summary against a handoff
 
 ## When a session opens
 
-Flow prints a line only when something needs you, and nothing otherwise:
+Flow prints a line only when something needs you:
 
 ```text
 Flow: this machine is at changelog entry 3, and 5 is the newest. Run flow update in a terminal.
-Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.
 ```
 
-It also does 3 things without a word, and without making the session wait:
-
-- **Matches skill links to your settings**, so a skill you switched on another computer works here.
-- **Updates each skill repository** in the background, at most every 6 hours.
-- **Brings down other people's tickets**, in a project whose tickets live on its `flow` branch.
-
-Then type the phase you need, such as `/flow:execute /shop-7`, or `/flow:start` to see your tickets and get one recommended. [Phases](phases.md) covers both.
+Without a word, it also links the skills you switched on from another computer, updates each skill repository, and brings down other people's tickets.
 
 ## While a session runs
 
-**A reminder arrives beside every message you send:**
+**A reminder arrives beside every message you send**, putting the reply rules in front of the agent again, since they drift far behind a long conversation:
 
 ```text
 Follow `## The reply`, and pass every `### Before sending` test. If it applies, follow `## Capture`.
 ```
 
-The rules for writing a reply sit at the end of a long file, loaded once when the session starts. By the 15th message they are far behind the conversation, and replies drift back to long and unclear. The line puts them in front of the agent again. It names the rules and never copies them, so it stays one line however many rules you add.
-
-**The status line**, under the box you type in, shows the ticket and how full the conversation is:
+**The status line** shows the ticket and how full the conversation is:
 
 ```text
 shop-7 building · 98k of 150k
 ```
 
-**A warning arrives once the conversation passes 150,000 tokens:**
+**A warning arrives past 150,000 tokens**, and again, firmer, every 20,000 after:
 
 ```text
 The context is at 152k. At the next checkpoint, run /flow:handoff, report in full, and stop.
 ```
 
-The limit follows the quality of the answers, which get worse long before the context window fills. A Flow session starts at about 25,000 tokens, so 150,000 leaves room for about 110,000 of work. Every 20,000 tokens past it, the warning comes again, firmer:
+Answers get worse long before the context window fills. A session starts at about 25,000 tokens, so 150,000 leaves about 110,000 for work. [`wrapUpAt`](reference/settings.md#wrapupat) moves the limit, and [Settings](reference/settings.md#switches) turns each line off.
 
-```text
-The context is at 171k, past the 150k limit. Stop at the step you are on: finish it, run /flow:handoff, report, and stop.
-```
+**Anything with a shape gets drawn** with `/flow:visualize`, such as a screen layout: a text diagram in the reply, or an HTML preview where colour and spacing matter.
 
-[Settings](reference/settings.md#switches) covers turning each line off, and [`wrapUpAt`](reference/settings.md#wrapupat) moves the limit.
-
-**Anything with a shape gets drawn.** A screen layout, an architecture or a flow between parts is drawn with `/flow:visualize`: a text diagram in the reply, or an HTML preview where colour and spacing matter. Every spec carries at least one drawing.
-
-**Your tickets are backed up as you work.** After a reply, Flow sends the project's tickets and your Flow home to GitHub where something changed and 30 minutes have passed, and once more as the session closes. It runs in the background, so a reply never waits.
+**Your tickets are backed up as you work**, in the background: [Sync between computers](sync.md).
 
 ## Carry work to the next session
 
-A new session knows your code and nothing of the conversation before it. 3 steps carry the work across:
-
-1. **`/flow:handoff`** writes what the next session needs into the ticket, then ends on the lines to type next:
+1. **`/flow:handoff`** writes what the next session needs into the ticket, then ends on the lines to type:
 
    ```text
    /clear
    /flow:execute /shop-7
    ```
 
-2. **`/clear`** empties the conversation. The ticket holds everything.
-3. **The line it named** loads the ticket and the files it lists before the agent's first word. The phase carries on where it stopped: `/flow:execute` at the first unchecked step of `plan.md`, `/flow:debug` at the first guess still standing.
+2. **`/clear`** empties the conversation.
+3. **The line it named** loads the ticket and its files before the agent's first word, and the phase carries on where it stopped.
 
-Hand off at a checkpoint: a step finished and its check run. A handoff written in the middle of an edit describes a state that is gone once the edit lands.
-
-Work with no ticket gets one from the handoff, so the next session finds it on the board. Flow writes no separate handoff file.
+Hand off once a step is finished and checked. A handoff written mid-edit describes a state that is gone once the edit lands. Work with no ticket gets one from the handoff.
 
 ## What `/flow:handoff` writes
 
-A `## State` section at the bottom of the ticket's `ticket.md`. One test decides every line: would the next session get this wrong without it? A handoff in the middle of a build might write:
+A `## State` section at the bottom of `ticket.md`:
 
 ````md
 ## State
@@ -97,28 +78,22 @@ src/budgets.js:14-24   # setBudget, where step 3 goes
 ```
 ````
 
-- **`Now`**: where the work stands this second. Rewritten whole each time.
-- **`Found`**: what the session learned that no file records. Added to, and kept until it stops being true.
-- **`Open`**: decisions half made, and the option the session leaned toward. Kept like `Found`.
-- **`Touched`**: files changed that no step in `plan.md` names. Rewritten like `Now`.
-- **The `open` block**: the files the next session gets before its first message, with a line range where one part matters.
+- **`Now`**: where the work stands.
+- **`Found`**: what the session learned that no file records.
+- **`Open`**: decisions half made, and the option the session leaned toward.
+- **`Touched`**: files changed that no step in `plan.md` names.
+- **The `open` block**: the files the next session gets before its first message.
 
-Most handoffs fill 2 of the 4. The section is deleted when the ticket reaches `review`, and anything in `Found` still true moves to the ticket's `issues.md` first. Before it writes, `/flow:handoff` also files what the conversation taught: [Learning](learning.md) covers that step.
+The section is deleted once the ticket reaches `review`.
 
 ## Hand a job to a second session
 
-A job can run in a second session while yours carries on, such as checking how an API behaves while the build continues. Ask for it, and `/flow:handoff` writes the job as a child ticket under the one you are working on. The child ticket holds everything the job needs: what is already set up, what was decided, and what to report back. The handoff ends on the line to type in a new terminal, such as `/flow:execute /shop-8`.
-
-The second session ends with the answer in a few sentences, for you to bring back to the first. Run several at once, with only one of them editing the code, so no session trips over another's changes. A step a helper agent can do needs no second session: [Subagents](subagents.md) covers helper agents.
+Ask for a job to run beside yours, such as checking how an API behaves while the build goes on. `/flow:handoff` writes it as a child ticket holding everything the job needs, and ends on the line to type in a new terminal, such as `/flow:execute /shop-8`. Let only one session edit the code at a time.
 
 ## Why Flow refuses `/compact`
 
-`/compact` swaps the conversation for Claude Code's summary of it. A summary keeps a little of everything, and lives only inside that conversation. A handoff keeps what the next session would get wrong, in the ticket, where any session on any computer reads it.
-
-A typed `/compact` stops, and you see:
+`/compact` swaps the conversation for Claude Code's summary of it. A summary keeps a little of everything, inside that conversation alone. A handoff keeps what the next session would get wrong, in the ticket, where any session on any computer reads it.
 
 ```text
 Flow does not compact. Run /flow:handoff, then /clear. "compact": true in ~/.flow/settings.json allows /compact.
 ```
-
-Claude Code's own compacting near the end of the window is switched off too. [`compact`](reference/settings.md#compact) lets a typed `/compact` run.
