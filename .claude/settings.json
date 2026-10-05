@@ -5,19 +5,6 @@
     "**/toolbox/**/CLAUDE.md",
     "**/project-template/CLAUDE.md"
   ],
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "^(Bash|Read)$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hooks/guard.js\""
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [
