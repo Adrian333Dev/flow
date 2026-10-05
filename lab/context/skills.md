@@ -248,3 +248,13 @@ The toolbox is a catalog of outside tools an agent or a project can use, one fil
 - **With the README**: 1st to 4th for 6 of 9. "My coding agent forgets everything between sessions" put TencentDB-Agent-Memory 4th.
 - **The 2 misses, reworded by an agent**: "browser automation agent" put browser-harness 1st, "claude code skills methodology" put superpowers 2nd.
 - **READMEs cut to 3,000 characters**: TencentDB fell from 4th to 72nd, since its opening is badges and install steps.
+
+## Kept in the final sweep, 2026-10-01 and 2026-10-02
+
+Each was proposed for removal or change in pass 2 of the final sweep and kept.
+
+- **The sharing pipeline**, `flow contribute` and `/flow:apply-domain-findings`, ruled by the user 2026-10-01. Proposed for removal as never run. The single sharing command after V1 is built from these 2, so they stay. Both are already off: `flow contribute` is hidden from `flow help`, and the skill is a dev skill that starts off. Sharing here means sending a skill to the public `domain-skills` repository, never filing knowledge.
+- **`/flow:file-findings` asking about `domain-skills`**, 2026-10-01: no finished domain skill exists, so the question cannot come up in the beta.
+- **`/flow:execute`, `/flow:debug` and the review as they are**, agreed by the user 2026-10-02. Raised by the user: Opus 5.5 and Sonnet 5.5 may run many of the checks unasked. Nobody knows which, and Flow is meant to run on weaker models too, where each check still earns its place. A check goes only once beta sessions show it adds nothing.
+- **A prototype runs in its own session, on a child ticket**, agreed by the user 2026-10-02. Raised by the user as building it inside the groundwork session. A groundwork session is a long design conversation, a prototype's installs, errors and reruns would fill its context, and Flow refuses `/compact`. The child ticket holds the report groundwork reads. Revisit if most beta prototypes turn out to be 10-line probes.
+- **The `open` block** that `/flow:handoff` writes, agreed by the user 2026-10-02. Raised by the user as a candidate to archive. `flow get --files` loads every file the block names before the first turn, so `/clear` then `/exp-47` resumes on the right lines. Removing it saves one section of `/flow:handoff`. Revisit if beta sessions reopen those files anyway.

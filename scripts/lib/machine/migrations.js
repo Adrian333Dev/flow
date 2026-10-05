@@ -131,8 +131,9 @@ function guard(p, at) {
 /**
  * Every file a write or delete line names that changed after the migration
  * was written, read off each file's time. A folder counts every file inside
- * it. The folder name keeps whole seconds, so a change inside that second
- * passes.
+ * it. A change inside the first 30 seconds passes: the wall clock under WSL
+ * jumps 10 seconds ahead and back several times a minute, so a file written
+ * before the folder was named can look 10 seconds newer than it.
  *
  * run and move lines are left out: a command acts on the file as it finds it,
  * and a move takes whatever is there with it. So are links, which hold no
@@ -140,7 +141,7 @@ function guard(p, at) {
  * on already changed itself.
  */
 function changedSince(migration, actions, done = []) {
-  const after = migration.written.getTime() + 1000;
+  const after = migration.written.getTime() + 30 * 1000;
   const ours = (p) => done.some((d) => p === d || p.startsWith(d + path.sep));
   const changed = new Set();
   const walk = (p) => {

@@ -222,6 +222,19 @@ test('flow done refuses on a parent with open children', () => {
   assert.strictEqual(ok.code, 0, ok.stderr);
 });
 
+test('flow get says a parent with open children is blocked on them, and ready once they close', () => {
+  const dir = project('tickets-get-children');
+  flow(dir, ['new', 'Parent feature']);
+  const [p] = ticket(dir);
+  flow(dir, ['new', 'Child task', '--parent', p.id]);
+  const child = ticket(dir).find((t) => t.id !== p.id);
+
+  assert.match(flow(dir, ['get', p.id]).stdout, new RegExp(`blocked: {4}open children come first: ${child.id}\\n`));
+  flow(dir, ['build', child.id]);
+  flow(dir, ['done', child.id]);
+  assert.match(flow(dir, ['get', p.id]).stdout, /ready: {6}yes\n/);
+});
+
 test('an unmet dep blocks pickup, and satisfying it unblocks', () => {
   const dir = project('tickets-dep-block');
 

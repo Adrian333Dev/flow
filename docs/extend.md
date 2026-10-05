@@ -76,7 +76,7 @@ Then it takes one of 2 routes:
 
 ## Plugins and MCP servers
 
-- **A plugin** is a bundle from a Claude Code marketplace: skills, often with hooks and an MCP server. Install it with Claude Code's `/plugin install`, and switch it on for the one project that needs it, in that project's `.claude/settings.local.json`. Flow never updates or switches a plugin. The setup session removes one that works against Flow's rules, with your yes.
+- **A plugin** is a bundle from a Claude Code marketplace: skills, often with hooks and an MCP server. Install it with Claude Code's `/plugin install`, and switch it on for the one project that needs it, in that project's `.claude/settings.json`. Flow never updates a plugin. The setup session removes one that works against Flow's rules, and switches off one that only some projects use, both with your yes. `flow init` then switches that one on in each project whose code uses it.
 - **An MCP server** is a running program that gives the agent extra tools. Add it to the project's `.mcp.json`, never for every project.
 
 To reach a service such as GitHub or a database, take the first that works:

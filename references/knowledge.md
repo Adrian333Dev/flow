@@ -16,7 +16,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 ## Everything starts on for one project
 
 - **A skill** → `flow skills on`, with no flag, switches it on for this project. Add `--global` once a second project needs it.
-- **A plugin** → off everywhere, switched on in the project's `.claude/settings.local.json` by whoever works there.
+- **A plugin** → off everywhere, switched on in the project's `.claude/settings.json`: `claude plugin enable <id> --scope project`.
 - **An MCP server** → the project's `.mcp.json`. Never for the whole machine.
 
 ## Reach a service through a command

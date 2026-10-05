@@ -317,6 +317,52 @@ test('outside code and writes that could switch the guard off ask', () => {
   ]);
 });
 
+test('reading a secret asks, from the shell and from the Read tool', () => {
+  const w = world('guard-secrets');
+  fs.mkdirSync(path.join(w.home, '.ssh'), { recursive: true });
+  fs.mkdirSync(path.join(w.home, '.aws'), { recursive: true });
+  for (const f of ['.ssh/id_ed25519', '.ssh/id_ed25519.pub', '.ssh/known_hosts', '.aws/credentials']) {
+    fs.writeFileSync(path.join(w.home, f), 'x\n');
+  }
+  fs.writeFileSync(path.join(w.dir, '.env.local'), 'SECRET=2\n');
+  fs.writeFileSync(path.join(w.dir, '.env.example'), 'SECRET=\n');
+  expect(w, [
+    'cat .env',
+    'cat ~/.ssh/id_ed25519',
+    'grep SECRET .env.local',
+    'head -5 "$HOME/.aws/credentials"',
+    'base64 < .env',
+    'cd ~ && cat .ssh/id_ed25519',
+    'cat ~/.ssh/*',
+    'echo "$(cat .env)"',
+    'git diff .env',
+    'cat ../app/.env',
+  ], [
+    'cat .env.example',
+    'cp .env.example .env',
+    'ls -la ~/.ssh',
+    'cat ~/.ssh/id_ed25519.pub',
+    'cat ~/.ssh/known_hosts',
+    'wc -l .env',
+    'node --env-file=.env server.js',
+    'source .env',
+    'echo "API=1" >> .env',
+    'git add .env.example',
+  ]);
+  assert.strictEqual(answer('cat ~/.ssh/id_ed25519', w).permissionDecisionReason,
+    'Reads ~/.ssh/id_ed25519, a file of secrets, into the conversation');
+
+  const read = (file) => {
+    const input = JSON.stringify({ tool_name: 'Read', tool_input: { file_path: file }, cwd: w.dir });
+    const result = run('hooks/guard.js', [], { input, env: { ...process.env, HOME: w.home, CLAUDE_PROJECT_DIR: w.dir } });
+    return result.stdout.trim() ? JSON.parse(result.stdout).hookSpecificOutput.permissionDecisionReason : 'silent';
+  };
+  assert.strictEqual(read(path.join(w.dir, '.env')), 'Reads .env, a file of secrets, into the conversation');
+  assert.strictEqual(read(path.join(w.home, '.aws', 'credentials')), 'Reads ~/.aws/credentials, a file of secrets, into the conversation');
+  assert.strictEqual(read(path.join(w.dir, '.env.example')), 'silent');
+  assert.strictEqual(read(path.join(w.dir, 'src', 'clean.js')), 'silent');
+});
+
 test('find judges what it matches, even when it starts at a whole repository', () => {
   const w = world('guard-find-repo');
   const lib = path.join(w.dir, 'vendor', 'lib');

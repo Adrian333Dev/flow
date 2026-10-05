@@ -1,6 +1,6 @@
 # Pitch: how Flow describes itself in the README and in posts
 
-The marketing conversation of 2026-10-02. It feeds the README rewrite in the sweep, `lab/backlog/before-beta.md` → "Build Flow for a stranger", and the posts the user plans on Reddit and X from the beta on. The rewrite makes the README short, so this file holds the wording and the facts, never the page's layout.
+The marketing conversation of 2026-10-02. It feeds the README and the posts the user plans on Reddit and X from the beta on. The README stays short, so this file holds the wording and the facts, never the page's layout.
 
 ## Approved by the user 2026-10-02
 
@@ -81,3 +81,5 @@ The user threw out the pass 5 README below the loop: "terrible marketing". 6 dra
 - **"A software team's whole process, for one developer and Claude Code"**, dropped by the user: too little information, and Flow does not support teams. Who Flow serves belongs in the status section, never in the pitch.
 - **"→ new rules" as the loop's last step**, dropped by the user: too thin. The loop ends on skills, rules and the wiki, drawn as a loop.
 - **A GIF or demo video at launch**, dropped by the user: a terminal recording hides what Flow adds. A demo waits until Flow is stable. Posts are text first, on Reddit and X.
+- **3 more claims, "all-in-one", "saves context" and "clean"**, dropped by the user 2026-10-04: the README is good enough as it is. "Saves context" would also be wrong at session start, where Flow loads about 4,000 tokens against 1,000 to 2,200 for its contenders. `lab/research/contenders.md`
+- **A Compound Engineering column in the comparison table**, dropped by the user 2026-10-04. The user feared a full contender in the table would hurt. Its cells show a skill set Flow leads on every row but supported agents, so it would not hurt. It goes because it tells a reader nothing the Superpowers column doesn't. The column a reader would ask for is gstack's, at about 135,000 stars.

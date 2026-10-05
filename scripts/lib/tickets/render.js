@@ -114,6 +114,13 @@ function branchLine(ticket, root) {
   return `branch:     ${branch}${here && here !== branch ? `   (checked out here: ${here})` : ''}`;
 }
 
+/** Whether a todo ticket can be picked up. A parent waits on its open children, as picking it up refuses. */
+function readyLine(ticket, tickets, unmet) {
+  const open = graph.openChildren(tickets, ticket.id).map((k) => k.id);
+  const reasons = [...(open.length ? [`open children come first: ${open.join(', ')}`] : []), ...unmet.map(blockText)];
+  return reasons.length ? `blocked:    ${reasons.join('; ')}` : 'ready:      yes';
+}
+
 function show(ticket, tickets, root) {
   const index = graph.indexById(tickets);
   const unmet = graph.unmetDeps(ticket, index);
@@ -144,9 +151,7 @@ function show(ticket, tickets, root) {
     reportsLine(ticket),
     ticket.data.closed ? `closed:     ${ticket.data.closed}` : null,
     ticket.data.filed ? `filed:      ${ticket.data.filed}` : null,
-    ticket.data.status === 'todo'
-      ? (unmet.length ? `blocked:    ${unmet.map(blockText).join('; ')}` : 'ready:      yes')
-      : null,
+    ticket.data.status === 'todo' ? readyLine(ticket, tickets, unmet) : null,
     `path:       ${path.relative(root, ticket.file)}`,
   ].filter(Boolean).join('\n');
 
@@ -315,7 +320,7 @@ function brief(tickets, limit) {
   const unfiled = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
   if (unfiled.length) {
     out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow ls --unfiled)`);
-    out.push('         run file-findings to sweep them');
+    out.push('         run /flow:file-findings to sweep them');
   }
   const problems = graph.check(tickets);
   if (graph.hasProblems(problems)) out.push('the ticket graph has problems: flow check');

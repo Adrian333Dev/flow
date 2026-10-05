@@ -338,7 +338,8 @@ function outside({ home, claude }) {
     const listed = JSON.parse(execFileSync('claude', ['plugin', 'list', '--json'], {
       encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'], env,
     }));
-    const names = new Set(listed.map((p) => p.id.split('@')[0]));
+    // Flow's own plugin, `flow@skills-dir`, is the link skipped above.
+    const names = new Set(listed.filter((p) => p.id !== `${skills.PLUGIN}@skills-dir`).map((p) => p.id.split('@')[0]));
     for (const name of [...names].sort()) found.push({ name, type: 'plugin', description: '' });
   } catch {
     // No `claude` on the path, or output Claude Code changed the shape of. Neither is Flow's.

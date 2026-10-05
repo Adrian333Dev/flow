@@ -260,3 +260,7 @@ Four models rewrote the same sections of `home/CLAUDE.md` against the same list 
 - Wrote "the file" and "§9" without naming which file or which section.
 - Cut a trigger condition in a test and flagged it afterwards, instead of preserving it in the same pass.
 - Argued that the files were already tight and recommended two small changes, in a reply written in jargon. The user rejected both the recommendation and the reply.
+
+## The rule checks stay, ruled by the user 2026-10-01
+
+Proposed for removal in pass 2 of the final sweep, since only one check exists and it only records: `rule-check.js`, `instructions-loaded.js`, `flow scorecard` and the check. The user: the checks are a major feature, about 10 come before the release and more keep coming after it. One check today says nothing about the feature's worth.

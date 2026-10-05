@@ -87,6 +87,7 @@ The session loads Flow's rules and nothing of the project's. It reads the projec
 - **The code wins over the docs.** A doc the code contradicts becomes a ticket.
 - **2 tickets are added where they apply**: "Write the product spec", where the project holds plans, and "Find skills, plugins and MCP servers for this stack", where there is code.
 - **Anything working against Flow** is listed under `🔴 Removed unless you untick it`.
+- **A plugin or a skill your computer's setup switched off** is switched on here where the code uses it, under `Switched on for this project`: `supabase plugin: this project uses @supabase/supabase-js.` A plugin's switch goes into the project's `.claude/settings.json`, which reaches your other computer with the code.
 
 Quit and start `claude` again once the session ends, so the project's new rules load. `flow restore project` undoes the whole setup: [Install](install.md#take-flow-off) covers it.
 

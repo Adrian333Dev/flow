@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * guard.js: the PreToolUse hook on Bash, and the one check between Claude and
- * a dangerous shell command. `lib/guard/judge.js` judges the command, and
- * this file is the wiring.
+ * guard.js: the PreToolUse hook on Bash and Read, and the one check between
+ * Claude and a dangerous shell command. `lib/guard/judge.js` judges the
+ * command, and this file is the wiring.
  *
  * Flow's settings allow every shell command. The guard reads each one before
- * it runs, and answers "ask" when it finds one of 5 kinds of harm, one file
+ * it runs, and answers "ask" when it finds one of 6 kinds of harm, one file
  * each in `lib/guard/`:
  *
  *   1. losing work on this machine: a delete outside the project, a delete of
@@ -22,6 +22,8 @@
  *   5. running outside code, or switching Flow off: a download run straight
  *      away, an npx of a package the project lacks, a write into ~/.claude,
  *      ~/.flow, ~/.agents or a project's .claude/settings*.json
+ *   6. reading a secret into the conversation: a private key, a cloud or
+ *      GitHub login, a .env file. The Read tool's reads are judged here too.
  *
  * Otherwise it stays silent and the command runs. It never answers "allow".
  *
@@ -36,10 +38,15 @@
 const hook = require('../lib/hook');
 const { judge } = require('../lib/guard/judge');
 const { world } = require('../lib/guard/world');
+const { secretRead } = require('../lib/guard/secrets');
 
 const data = hook.event();
-const command = data && data.tool_input && data.tool_input.command;
-if (typeof command === 'string' && command.trim()) {
-  const reason = judge(command, data.cwd || process.cwd(), world());
-  if (reason) hook.answer('PreToolUse', { permissionDecision: 'ask', permissionDecisionReason: reason });
+const input = (data && data.tool_input) || {};
+const cwd = (data && data.cwd) || process.cwd();
+let reason = null;
+if (data && data.tool_name === 'Read') {
+  if (typeof input.file_path === 'string') reason = secretRead(input.file_path, cwd, world());
+} else if (typeof input.command === 'string' && input.command.trim()) {
+  reason = judge(input.command, cwd, world());
 }
+if (reason) hook.answer('PreToolUse', { permissionDecision: 'ask', permissionDecisionReason: reason });

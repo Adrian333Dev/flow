@@ -42,6 +42,7 @@ A message starting `Carry on` is the same job, stopped part way.
 - Read every rule file, at any depth: `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, `.claude/rules/`, and the like.
 - Read every doc written for this project: specs, plans, decisions, work lists.
 - Leave documentation copied in from elsewhere unread, such as a library's own docs.
+- Run `claude plugin list --json` and `flow skills ls`: every plugin installed and every outside skill Flow holds, each with whether it is on here.
 - Read the memory folder `run.json` names, where one exists. List the folders in `~/.claude/projects/` too: one whose project is gone from disk may be this project under an old name. List each one in the form, never read it.
 - Explore the code in its own right: the stack, how the pieces fit, the commands that build and test it. Skip what doesn't matter.
 - Use subagents where they help.
@@ -80,6 +81,11 @@ A message starting `Carry on` is the same job, stopped part way.
 - **Any other outside skill** → sorted by `~/.flow/references/knowledge.md` → `## An outside skill`, and added as that section says.
 - **The memory folder** → a box under `## 🔴 Removed unless you untick it`.
 
+**A plugin or an outside skill that is off here, and the project's code uses it** → a box under `## Switched on for this project`, naming what in the code uses it. Off here means a plugin row with `"scope": "user"` and `"enabled": false`, or a skill `flow skills ls` shows off. Used whole only: a skill waiting for a harvest stays off.
+
+- **A plugin** → `"<id>": true` under `enabledPlugins` in `files/…/.claude/settings.json`.
+- **A skill** → a `run flow skills on <name>` line.
+
 ## The files it writes
 
 Every new version goes under `files/<full path>`, beside the form. `project-template/` is the base for each file it holds.
@@ -114,6 +120,7 @@ There is no third check. The next go runs step 6.
 Each unticked line means Flow leaves that thing exactly as the project has it:
 
 - **A skill, a hook, a plugin or the memory folder** → drop its `delete` line, or put it back into `files/…/.claude/settings.json`.
+- **A line under `## Switched on for this project`** → drop its `run` line, or take its key out of `files/…/.claude/settings.json`.
 - **A line under `## Moving into Flow's files`** → drop the files it wrote from `files/`, with their `write` lines.
 - **The line of tickets from open-work lists** → drop those tickets from `files/…/.flow/tickets/`.
 

@@ -65,17 +65,27 @@ Every check runs before anything is made. A failed one stops the install, says w
 
 The install's last step opens a Claude Code session that reads what your computer already holds: your `~/.claude/CLAUDE.md` and the files it loads, your skills, your plugins, and `~/.claude/settings.json`. It writes every change it wants to make into one form, `migration.md`, a checklist with one line per change, and stops. Nothing outside `~/.flow/` changes before you approve the form.
 
-A ticked line goes and an unticked one stays. A few lines from the form's template:
+Flow's own settings are plain lines, each with the key it writes. A box is a choice: a ticked line goes ahead, and an unticked one leaves that thing as it is. A few lines from the form's template:
 
 ```md
+### Always removed, because Flow can't work with them
+
+- Memory: notes Claude Code writes about each project and loads into every session, beside Flow's rules. `autoMemoryEnabled`
+
 ## 🔴 Removed unless you untick it
 
 ### Works against Flow's rules
 
-- [x] Memory: notes Claude Code writes about each project and loads into every session, beside Flow's rules. `autoMemoryEnabled`
-- [x] Compacting: Claude Code swaps a long conversation for its own summary of it, when you type /compact or by itself near the limit. Flow ends a long conversation with /flow:handoff, then /clear. `autoCompactEnabled`, `hooks.PreCompact`
 - [x] tdd skill: tells Claude how to plan and test every change, which Flow's steps already do. `~/.claude/skills/tdd/`
+
+## Switched on only in the projects that use it
+
+Each one stays installed, switched off in every project. Setting up a project with `flow init` switches it on there when the project uses it. Untick one to keep it on everywhere.
+
+- [x] supabase plugin: knows the Supabase database service. `claude plugin disable`
 ```
+
+A plugin only some projects use costs context in every other project, so the form switches it off everywhere. [New project](new-project.md#a-folder-that-already-has-files) covers switching it back on.
 
 After your yes, the session writes:
 

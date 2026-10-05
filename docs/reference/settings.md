@@ -192,7 +192,7 @@ The repository a project belongs to, for a project whose tickets are kept privat
 
 Hooks are scripts Claude Code runs at a fixed moment, such as before every shell command. Flow's live in `~/.flow/scripts/hooks/`:
 
-- **`guard.js`**, before every shell command: asks you before a command that could lose work, send data off the computer, or change a shared system. [Safety](../safety.md) lists what it asks about.
+- **`guard.js`**, before every shell command and every file Claude opens: asks you before a command that could lose work, send data off the computer, or change a shared system, and before Claude reads a file of secrets. [Safety](../safety.md) lists what it asks about.
 - **`changes.js`**, around every edit and command: records which helper agent changed which file. [Subagents](../subagents.md) shows a record.
 - **`rule-check.js`**, before every edit: tests the edit against your rules. [Rule checks](../rule-checks.md) covers them.
 - **`instructions-loaded.js`**, when a rule file loads: records which rules the agent has read.

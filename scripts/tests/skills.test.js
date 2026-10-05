@@ -47,7 +47,7 @@ function place(name) {
   };
   const flow = (...args) => run('flow.js', ['skills', ...args], { cwd: project, env });
   const clone = path.join(home, 'repos', 'sources', 'Adrian333Dev_domain-skills');
-  return { dir, user, home, project, flow, clone, claude: path.join(user, '.claude', 'skills') };
+  return { dir, user, home, project, env, flow, clone, claude: path.join(user, '.claude', 'skills') };
 }
 
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -85,6 +85,22 @@ test('ls shows Flow, each source, private and outside, with the level only where
 
   // A bare `ls` is the default action.
   assert.strictEqual(at.flow().stdout, listed.stdout);
+});
+
+test('ls lists outside plugins, and never Flow\'s own', () => {
+  const at = place('skills-ls-plugins');
+  const bin = path.join(at.dir, 'bin');
+  const plugins = [{ id: 'flow@skills-dir' }, { id: 'superpowers@claude-plugins-official' }];
+  write(bin, 'claude', `#!/usr/bin/env bash\necho '${JSON.stringify(plugins)}'\n`);
+  fs.chmodSync(path.join(bin, 'claude'), 0o755);
+  const listed = run('flow.js', ['skills', 'ls', '--source', 'outside'], {
+    cwd: at.project, env: { ...at.env, PATH: `${bin}${path.delimiter}${process.env.PATH}` },
+  });
+  assert.strictEqual(listed.stdout, render.columns([
+    ['', 'state', 'level'],
+    ['outside', '', ''],
+    ['  superpowers', 'plugin', ''],
+  ]) + '\n', listed.stderr);
 });
 
 test('ls patterns are regular expressions over name and description, and --source lists one whole', () => {

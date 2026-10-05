@@ -83,18 +83,21 @@ test('fileSuggestionIgnore adds names and paths from every level', () => {
 });
 
 test('a keystroke answers from the cache, and a stale cache is walked again in the background', async () => {
+  // Change times a minute apart, and the cache's own time set by hand: the
+  // wall clock under WSL jumps 10 seconds, and a busy suite can take 2.
   const at = place('suggest-cache');
-  file(at, 'first.md', 1);
+  file(at, 'first.md', 60);
   assert.deepStrictEqual(suggest(at, 'md'), ['first.md']);
   const cache = cacheOf(at);
   assert.match(fs.readFileSync(cache, 'utf8'), /^.*project\t\d+\n[\d.]+\tfirst\.md\n$/);
+  const stamped = (time) => fs.writeFileSync(cache, fs.readFileSync(cache, 'utf8').replace(/\t\d+\n/, `\t${time}\n`));
 
+  stamped(Date.now() + 60 * 60 * 1000);
   file(at, 'second.md', 0);
   assert.deepStrictEqual(suggest(at, 'md'), ['first.md'], 'a fresh cache is not walked again');
 
   // Mark the cache stale: this keystroke still answers from it, and starts a walk.
-  const text = fs.readFileSync(cache, 'utf8').replace(/\t\d+\n/, '\t0\n');
-  fs.writeFileSync(cache, text);
+  stamped(0);
   assert.deepStrictEqual(suggest(at, 'md'), ['first.md']);
   for (let i = 0; i < 100 && (fs.existsSync(`${cache}.lock`) || !fs.readFileSync(cache, 'utf8').includes('second.md')); i++) {
     await new Promise((done) => setTimeout(done, 50));

@@ -46,7 +46,7 @@ When you first open the repository, the split that matters has 4 parts:
   - `guard/`: the guard's judgment. `world.js` alone reads the disk, git and the environment. Every other file there turns a command into a decision.
   - `setup.js` holds the setup sessions `flow install`, `flow init` and `flow update` open. `paths.js` finds every Flow folder, `project.js` the project around a folder, `git.js` runs git and `gh`, and `hook.js` reads a hook's event and writes its answer.
 - `hooks/` holds one file per hook Claude Code runs. Each reads the event, calls `lib/`, and writes the answer:
-  - `guard.js` is the `PreToolUse` hook on Bash. It reads each command the way bash splits it, asks before 5 kinds of harm, and never allows anything. `scripts/tests/guard.test.js` holds a case for each kind.
+  - `guard.js` is the `PreToolUse` hook on Bash and Read. It reads each command the way bash splits it, asks before 6 kinds of harm, and never allows anything. On Read it checks the path for a file of secrets alone. `scripts/tests/guard.test.js` holds a case for each kind.
   - `changes.js` records what each subagent changed, under its agent id, and hands the parent a diff per file when the subagent finishes. `lib/changes.js` holds the logic.
   - `rule-check.js` is the `PreToolUse` hook on Edit and Write. It runs every check in `rule-checks/` and records the results.
   - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.

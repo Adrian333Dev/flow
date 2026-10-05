@@ -27,6 +27,7 @@ const { network } = require('./off-machine');
 const { shared, database, hereInput } = require('./shared-systems');
 const { machine, writeTargets, protectedWrite } = require('./machine-changes');
 const { SHELLS, downloads, readsInput, outsideCode, packageRunner } = require('./outside-code');
+const { secrets, secretWord } = require('./secrets');
 
 const child = (ctx) => ({ ...ctx, vars: new Map(ctx.vars) });
 
@@ -57,6 +58,10 @@ function judgeCommand(cmd, ctx) {
     if (r.target && WRITE_REDIRECTS.has(r.op) && !/^(\d+-?|-)$/.test(literal(r.target) ?? '')) {
       const write = protectedWrite(r.target, ctx);
       if (write) return write;
+    }
+    if (r.target && r.op === '<') {
+      const read = secretWord(r.target, ctx);
+      if (read) return read;
     }
   }
 
@@ -111,7 +116,7 @@ function judgeRun(run, cmd, ctx) {
   }
 
   const direct = outsideCode(run, cmd) || deletes(run, ctx) || (program === 'git' && gitCheck(run, ctx))
-    || network(run, ctx) || shared(run) || database(run, cmd) || machine(run, ctx);
+    || network(run, ctx) || shared(run) || database(run, cmd) || machine(run, ctx) || secrets(run, ctx);
   if (direct) return direct;
 
   for (const w of writeTargets(run)) {

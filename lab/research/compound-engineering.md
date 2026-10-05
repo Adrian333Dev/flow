@@ -28,7 +28,7 @@ Read 2026-10-04 from `repos/workflows/compound-engineering-plugin/`, version 3.3
 
 ## Against the README's comparison
 
-A column for it, each cell checked against the clone. Dropped by the user 2026-10-04, with the reason in `lab/backlog/before-beta.md` → "Build Flow for a stranger":
+A column for it, each cell checked against the clone. Dropped by the user 2026-10-04, with the reason in `lab/context/pitch.md` → `## Dropped, with why`:
 
 - **Design before code**: Brainstorm into a requirements plan, with its claims checked
 - **Task tracking**: Plan files

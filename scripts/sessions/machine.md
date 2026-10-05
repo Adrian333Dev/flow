@@ -44,7 +44,7 @@ Never open a project, or a project's memory under `~/.claude/projects/`. `flow i
 
 **A line appears only where saying go changes something.** 2 tests, by what the thing is:
 
-- **A setting is judged by its value.** The machine already holds Flow's value → no line. Memory already off gets no box, and a `deny` rule already present gets no mention.
+- **A setting is judged by its value.** The machine already holds Flow's value → no line. Memory already off gets no line, and a `deny` rule already present gets no mention.
 - **An installed thing is judged by being there.** A plugin, a skill, a hook or an agent that fails the competitor test gets its line even when it is switched off.
 
 A section left with no line goes, heading included. `## Flow's skills` always stays.
@@ -56,18 +56,20 @@ A section left with no line goes, heading included. `## Flow's skills` always st
 - **Tells Claude how to work in every session**, invoked or not (a `SessionStart` hook, a rule file, a plugin that injects instructions) → a line under `### Always removed`, with no box.
 - **Overlaps Flow, and fires only when invoked or matched** (a skill, an agent, a command) → a box under `### Works against Flow's rules`. The line says what it does in plain words, then what Flow does instead.
 - **Synced from the user's Claude account** and overlapping → a box too, removed through `skillOverrides`. Never delete its folder: the next sync brings it back.
-- **Knows a subject Flow does not** (a framework, a service, a file format), or tells Claude how to work where Flow says nothing → it stays. A plugin or a synced skill that stays is named under `Left as they are`. Anything else that stays is left out of the form.
-- **A plugin** goes by `claude plugin uninstall <name>@<marketplace>`. Never switch it off, and never delete its folder.
-- **A plugin synced from the user's claude.ai account** goes by `claude plugin disable <name>@synced`. Its line says it goes from this machine only, and stays on claude.ai. One the user's organization requires cannot be switched off: name it under `Left as they are`, with that reason.
+- **Knows a subject Flow does not** (a framework, a service, a file format), or tells Claude how to work where Flow says nothing → it stays. Anything that stays and is not a plugin, a synced skill or an outside skill is left out of the form.
+- **A plugin that goes** → `claude plugin uninstall <name>@<marketplace>`. Never switch it off, and never delete its folder.
+- **A plugin synced from the user's claude.ai account, that goes** → `claude plugin disable <name>@synced`. Its line says it goes from this machine only, and stays on claude.ai. One the user's organization requires cannot be switched off: name it under `Left as they are`, with that reason.
+- **A plugin that stays, and only some projects use** (a framework, a service, a file format) → a box under `## Switched on only in the projects that use it`, switched off by `claude plugin disable <id> --scope user`. `flow init` switches it on in each project that uses it.
+- **A plugin that stays, and every project uses**, or one already off for the whole machine → named under `Left as they are`. So is a synced skill that stays.
 - **A hook of the user's own**, not from a plugin, goes through the same test. One that stays is written into `hooks` beside Flow's.
 - **An MCP server** stays, and is left out of the form.
 
 **Taking over an outside skill** is its own section of the form, for every skill that stays:
 
-- **Installed by `npx skills`** → Flow's `flow skills add <owner/repo>`, then `flow skills on <name> --machine`, the repository read from `~/.agents/.skill-lock.json`. Its lines: delete both copies, run both commands, then write the lock file with that entry removed. Only taken-over entries leave the lock file.
-- **A real folder copied in by hand** → moved into `~/.flow/private-skills/<name>/`, then `flow skills on <name> --machine`.
+- **Installed by `npx skills`** → Flow's `flow skills add <owner/repo>`, then `flow skills on <name> --global`, the repository read from `~/.agents/.skill-lock.json`. Its lines: delete both copies, run both commands, then write the lock file with that entry removed. Only taken-over entries leave the lock file.
+- **A real folder copied in by hand** → moved into `~/.flow/private-skills/<name>/`, then `flow skills on <name> --global`.
 
-Each line says whether the skill is used whole or harvested, sorted by `~/.flow/references/knowledge.md` → `## An outside skill`. A harvested one is added alone, with no `flow skills on`.
+Each line says whether the skill is used whole or harvested, sorted by `~/.flow/references/knowledge.md` → `## An outside skill`. A harvested one is added alone, with no `flow skills on`. So is one used whole that only some projects use: its line says `flow init` switches it on in each project that uses it.
 
 ## Harvesting
 
@@ -102,12 +104,11 @@ Build JSON with `node`, never by hand. A settings file that does not parse, or a
 
 - **The boxes start with those 2 sections**: `## Preferences` in `### Your preferences`, `## The user` in `### About you`. A harvested line joins a box only where it says something the arrived text does not.
 - **`files/…/.flow/AGENTS.md`**: `home/AGENTS.md` with the 2 sections from the boxes, as on any machine.
-- **`~/.flow/settings.json` arrived too.** A green line's `false` goes into that file, and every other key in it stays.
-- **A skill copied in by hand whose name is already in `~/.flow/private-skills/`** is the same skill. Its lines: delete the copy, then `flow skills on <name> --machine`. No move.
+- **A skill copied in by hand whose name is already in `~/.flow/private-skills/`** is the same skill. Its lines: delete the copy, then the `flow skills on` line any takeover gets. No move.
 
 ## The second check
 
-One message, covering every change the user made. Untick in red or green, a deleted line counting as unticked, and an edited box:
+One message, covering every change the user made. Each untick, a deleted line counting as unticked, and each edited box:
 
 - Each untick: what it costs, in one line.
 - Each edited box: your short version of the new text.
@@ -122,6 +123,5 @@ Each unticked line means Flow leaves that thing exactly as the machine has it:
 - **A key or a `deny` rule** → take it out of `files/…/settings.json`. Where the machine had its own value, keep that value.
 - **A skill, a rule file, a hook or a plugin** → drop its `delete` or `run` line, or keep the hook in `hooks`.
 - **A takeover** → drop all of its lines.
-- **A green line**: `cleanupPeriodDays` keeps the machine's value. `skillsAutoUpdate`, `reminder`, `wrapUp`, `sessionCheck` and `setupReminder` are written `false` into `~/.flow/settings.json`, with a `write` line for it.
 
 Write each box's text into the 2 sections of `files/…/.flow/AGENTS.md`. Every `write` line still needs its file under `files/`, and every `delete` line still needs to name a path.

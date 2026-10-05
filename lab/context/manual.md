@@ -69,6 +69,7 @@ Dropped on the evidence: **`llms.txt`**, since 97% of sites get no traffic from 
 - **A rewrite of each old page in place**, proposed 2026-10-02 and dropped: most pages changed shape, so the tree was planned whole first.
 - **Number prefixes on page files**, such as `01_overview.md`, raised by the user 2026-10-03 and dropped. Adding a page renames every page after it, breaking every link to them, links in public posts too. The index already gives the order, and GitHub shows it when `docs/` opens.
 - **`bash` fences for output**: they colour words such as `done` as code, and an apostrophe opens a string. `console` with `$ ` replaced them.
+- **Cutting skills, command groups, statuses or types so a beginner has less to learn**, looked at in the final sweep 2026-10-01. 12 skills, 9 command groups, 8 statuses and 5 types shrink through what the docs and `/flow:start` teach first.
 
 ## Parked until Flow goes public
 

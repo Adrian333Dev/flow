@@ -354,3 +354,22 @@ test('the first install starts the Flow home, so a second machine joins it befor
   assert.strictEqual(met.code, 0, met.stderr);
   assert.match(met.stdout, /^came down: 1 file$/m);
 });
+
+test('a rebuilt computer that keeps its name joins again, with nothing new to send', () => {
+  const remote = bareRepo('sync-rebuilt');
+  const a = machine('sync-rebuilt-first');
+  connect(a, remote);
+  repo.writeIgnore(a.at);
+  repo.writeRecord(a.at, NEWEST);
+  assert.strictEqual(sync(a).code, 0);
+
+  // The same computer, its disk wiped, its global git config kept.
+  const dir = project('sync-rebuilt-again');
+  const root = path.join(dir, 'root');
+  fs.mkdirSync(root, { recursive: true });
+  fs.writeFileSync(path.join(root, '.gitconfig'), `[flow]\n\tmachine = ${a.name}\n`);
+  const joined = flow(dir, ['install', '--root', root, '--no-bin', '--no-clone'], { FLOW_HOME_REMOTE: remote });
+  assert.strictEqual(joined.code, 0, joined.stdout + joined.stderr);
+  assert.match(joined.stdout, /joined: /);
+  assert.doesNotMatch(joined.stdout, /not sent:/);
+});

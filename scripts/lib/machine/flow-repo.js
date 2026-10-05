@@ -354,13 +354,16 @@ function join(at) {
 
 /**
  * Commit `files` and send them up. Returns the push's error, or null. A
- * failed commit throws: nothing is sent where nothing was saved.
+ * failed commit throws: nothing is sent where nothing was saved. Files the
+ * Flow home already holds as they are commit nothing and send nothing: a
+ * rebuilt computer joining again under its old name.
  */
 function commitAndPush(at, files, message) {
   const staged = git(at.flow, ['add', ...files]);
   if (!staged.ok) throw new FlowError(`could not stage ${at.flow}: ${staged.err}`);
+  if (git(at.flow, ['diff', '--cached', '--quiet']).ok) return null;
   const made = git(at.flow, [...identity(at), 'commit', '-q', '-m', message]);
-  if (!made.ok) throw new FlowError(`could not commit ${at.flow}: ${made.err}`);
+  if (!made.ok) throw new FlowError(`could not commit ${at.flow}: ${made.err || made.out}`);
   const sent = git(at.flow, ['push', '-q', 'origin', 'main']);
   return sent.ok ? null : sent.err.split('\n')[0];
 }
@@ -440,7 +443,7 @@ function sync(at, mine) {
     const staged = git(at.flow, ['add', '-A']);
     if (!staged.ok) throw new FlowError(`could not stage ${at.flow}: ${staged.err}`);
     const made = git(at.flow, [...identity(at), 'commit', '-q', '-m', sent]);
-    if (!made.ok) throw new FlowError(`could not commit ${at.flow}: ${made.err}`);
+    if (!made.ok) throw new FlowError(`could not commit ${at.flow}: ${made.err || made.out}`);
   }
 
   let came = 0;

@@ -11,6 +11,7 @@
 - **`{project}`**: the project's full path, as `run.json` names it. **`{name}`**: its folder's name. **`{place}`**: the first half of `migration` in `run.json`.
 - **`{always removed}`**: one line per plugin or hook that tells Claude how to work in every session.
 - **`{removed}`**: one box per skill, agent, command or hook that overlaps Flow, then the memory folder's box.
+- **`{switched on}`**: one box per plugin or outside skill off on this machine that the project's code uses, naming what uses it.
 - **`{moving}`**: one box per place with something in it: the count, then the place, then the names where they fit on the line.
 - **`{tickets}`**: the 2 fixed tickets, each where it applies, then one box for the tickets from open-work lists, naming each list.
 - **`{old memory}`**: one unticked box per memory folder whose project is gone from disk.
@@ -43,6 +44,13 @@ Nothing changes until you say go. The new version of every file is under files/,
 
 - [x] {removed}, such as: tdd skill: plans and tests every change, which Flow already does. `.claude/skills/tdd/`
 - [x] {removed}, such as: Claude Code's memory for this project: 14 notes, sorted into the sections below. `~/.claude/projects/-home-me-code-projects-delapse/memory/`
+
+## Switched on for this project
+
+Each stays off in your other projects.
+
+- [x] {switched on}, such as: supabase plugin: this project uses @supabase/supabase-js. `enabledPlugins`
+- [x] {switched on}, such as: stripe-helper skill: this project takes payments through Stripe. `flow skills on`
 
 ## Moving into Flow's files
 
@@ -84,7 +92,7 @@ For every project, not only this one. `~/.flow/AGENTS.md`
 ```markdown
 - write AGENTS.md: the project's rules
 - write CLAUDE.md: one line loading AGENTS.md, in place of what it holds now
-- write .claude/settings.json: superpowers switched off, the lint hook removed
+- write .claude/settings.json: superpowers switched off, supabase switched on, the lint hook removed
 - delete .claude/skills/tdd: a skill ticked above
 - write .gitignore: Flow's lines added to yours
 - write .uncommitted-include: gitignored files that travel between your machines
@@ -94,6 +102,7 @@ For every project, not only this one. `~/.flow/AGENTS.md`
 - write .flow/findings: 2 lessons
 - write docs/context: 4 facts
 - run flow skills on remotion: writes .flow/settings.json, .claude/skills/remotion
+- run flow skills on stripe-helper: writes .flow/settings.json, .claude/skills/stripe-helper
 - write ~/.flow/AGENTS.md: your new rules
 - delete ~/.claude/projects/-home-me-code-projects-delapse/memory: sorted above
 ```
