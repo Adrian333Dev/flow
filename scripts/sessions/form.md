@@ -66,6 +66,7 @@ To turn off `skillsAutoUpdate`, `reminder`, `wrapUp`, `sessionCheck` or `setupRe
 Claude starts these on its own, so each one's description is in every session:
 - /flow:groundwork, /flow:execute, /flow:prototype, /flow:debug: the 4 steps of work
 - /flow:research, /flow:visualize, /flow:handoff: used inside the 4 steps
+- /flow:help: answers a question about Flow or Claude Code, and fixes a problem with either
 - /flow:review: writes up each time Flow itself fails
 
 These cost nothing until you type them:

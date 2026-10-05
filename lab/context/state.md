@@ -33,12 +33,12 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 - **`references/knowledge.md`**, written 2026-09-28: the map of what an agent draws on past the rules. Skills, plugins, MCP servers, the wiki, findings. Every outside skill is reviewed, then used whole or harvested. Everything starts on for one project. A service is reached through a command first. `home/AGENTS.md` → `read-knowledge-md` sends a session there before adding any of them, and `/flow:research` step 4 and both setup prompts point to it. `skills.md` → `## Outside skills: review, then used whole or harvested` holds why.
 - **`references/harnesses/claude-code.md`**: where Claude Code keeps its own files, on the machine and in a project, and which of those paths a migration may name. Written 2026-09-21, 42 lines. One file per harness in that folder, so a second harness is a file added there rather than an edit to 3 skills. The sessions `flow install`, `flow init` and `flow update` open read it.
 
-## 12 skills, typed `/flow:<name>`, each switched by its link
+## 13 skills, typed `/flow:<name>`, each switched by its link
 
 `skills/drafts/` is empty.
 
 - **`phases/`**: `groundwork`, `execute`, `prototype`, `debug`
-- **`tools/`**: `start`, `handoff`, `file-findings`, `research`, `tickets-from-spec`, `visualize`
+- **`tools/`**: `start`, `help`, `handoff`, `file-findings`, `research`, `tickets-from-spec`, `visualize`
 - **`dev/`**: `review`, `apply-domain-findings`
 
 **Every folder and every frontmatter `name` is bare, and the `flow:` is added at load time.** `skills/.claude-plugin/plugin.json` holds the one word `flow`. `flow install` links the set into `~/.agents/skills/flow/skills/`, copies that file to `~/.agents/skills/flow/.claude-plugin/plugin.json`, and links `~/.claude/skills/flow` to the folder. `lab/context/skills.md` → `### Flow is a plugin too` holds the argument.
@@ -46,6 +46,8 @@ Read it before touching skills installation, the scripts, or the docs tree. Open
 **Proven on both harnesses 2026-09-18, in scratch installs.** Claude Code 2.1.275 loaded `flow@skills-dir` through the linked folder and read the rules through the import. Codex 0.155.0 named all 12 skills `flow:<name>` and read the rules through the link. Codex needs the manifest in the clone: it follows each skill's link to the real folder, then looks for a manifest above that folder and never above the link. The first Codex run, with the manifest only in the plugin folder, named every skill bare.
 
 **A Flow skill is on while its link in `~/.agents/skills/flow/skills/` exists.** The 11 outside `dev/` are essential: always linked, left out of `flow skills ls`, refused by `on` and `off`, and a line naming one is a `flow doctor` problem. The 2 in `dev/` start off, and `flow skills on <name> --global` links one. `skills.essential()` in `scripts/lib/skills/skills.js` holds the test. There is no project level for a Flow skill: `skillOverrides` does not reach a plugin's skills, and `home/settings.json` no longer ships the key.
+
+**`/flow:help` answers any question about Flow or Claude Code, and fixes a problem with either**, built 2026-10-05. It answers in full and ends on the docs page, found through `~/.flow/docs/README.md`, then reads the clone's code where the page falls short. A failure starts at `flow doctor` and the failure log, and a question about Claude Code itself goes to `/flow:research`. The agent may start it: `management.md` → `## The answer job`.
 
 `/flow:start`, `/flow:tickets-from-spec`, `/flow:file-findings` and `/flow:apply-domain-findings` are user only. `user-only-skills` in `home/AGENTS.md` names them, so every other file names them bare. A user-only skill missing from that list is marked `(user only)` where the agent first meets it, by `references/style.md` → `### Only in a loaded file`. `/flow:tickets-from-spec` was `/flow:cut-from-spec` until 2026-09-18. The 4 phase skills take no argument since 2026-09-30, a ticket arriving through its own skill, `/flow:execute /exp-47`, and their empty `$ARGUMENTS` line went 2026-10-01. `/flow:debug` moves its own ticket since 2026-10-01: `flow review` once the failing check passes after the fix, `flow done` once the user confirms, and none of it when `/flow:execute` sent it. The parent session closes a hunt or a prototype it handed to a subagent. `/flow:debug` still sends a bug inside a web page to `/web-pages`, which left for `domain-skills` and waits on its rebuild there.
 

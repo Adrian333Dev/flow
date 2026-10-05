@@ -350,6 +350,14 @@ That closes 4.0.
 - **"What do I do now" is state, not documentation.** The skill reads `~/.flow/run.json`, then the board, then `.flow/handoff.md`. A half-finished run is the answer whenever one exists. Otherwise one line, then `/flow:start`, which already renders the full picture from `skills/tools/start/SKILL.md`. The answer job never rebuilds `/flow:start`. That closes 5.2.
 - Measured 2026-09-17: 8 pages under `docs/manual/`, 1,493 lines in all, `reference.md` 498 of them.
 
+**Widened by the user 2026-10-05, when `skills/tools/help/SKILL.md` was built.** One line plus an address sent the user off to read when they came to be helped.
+
+- **The answer is whole**, sized to the question, and ends on the page and heading for reading more.
+- **Any question about Flow or Claude Code, and any problem with either.** The docs come first, then the clone's code where a page falls short. A failure starts at `flow doctor` and `~/.flow/logs/failures/`. A question about Claude Code itself goes to `/flow:research`. A bug in the project's own code goes to `/flow:debug`.
+- **A fix that changes anything** is proposed, and runs on the user's yes.
+- **The agent may start it.** `disable-model-invocation` was set to match the other 3 skills of the set, and those became `flow` commands. Typed only, a plain "why didn't sync work?" got an answer from the model's memory.
+- **"What do I do now"** reads `~/.flow/run.json`, then names `/flow:start`. `.flow/handoff.md` is gone: a handoff is written into the ticket, which `/flow:start` prints.
+
 ## Name, group and entry points, locked 2026-09-17
 
 **The management skill is 4 skills, filed in `skills/tools/`, every one of them typed by the user.** 3 until 2026-09-18, when project setup split from machine setup.

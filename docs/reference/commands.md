@@ -114,6 +114,7 @@ ok    issues: every job running in the background worked last time
 ok    version: this machine is at entry 1, the newest one written, shop is at entry 1
 ok    clone: 3 submodules on the commit this clone points at, the remote is not read without --updates
 ok    programs: node, git, claude, gh all resolve
+ok    claude code: 2.1.289, and Flow needs 2.1.287 or later
 fail  names:
         util is not linked: run flow install
         u is not linked: run flow install
@@ -121,16 +122,16 @@ fail  util:
         util fs tree does not run, and it is called by home/AGENTS.md, in tree-for-structure
         util fs open does not run, and it is called by flow get --files, through tickets.js
         /home/me/.util/sources does not exist, so no source is registered: run flow install
-ok    ~/.agents: 11 skills linked under skills/flow/, 1 switched off, AGENTS.md present
+ok    ~/.agents: 12 skills linked under skills/flow/, 1 switched off, AGENTS.md present
 ok    ~/.claude: skills/flow, 1 agent, 1 rule, 1 command linked, CLAUDE.md imports the rules
 fail  settings.json:
         /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow install, which merges /home/me/code/flow/home/settings.json into it
 ok    ~/.flow: scripts, references and docs resolve into this clone
 ok    originals: 3 paths recorded before Flow, still open, and 1 project beside it
 note  originals: the machine's original is still open, so flow install has not run to the end. It closes the original on its way out
-ok    skills: 1 source cloned, 2 skills on everywhere, 1 more for shop
+ok    skills: 1 source cloned, 1 skill on everywhere, 1 more for shop
 
-3 of 13 checks failed.
+3 of 14 checks failed.
 ```
 
 - **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.287 or later. It works before Flow is installed.

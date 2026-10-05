@@ -22,6 +22,7 @@ Each phase works on one ticket. Type the phase, then the ticket's id as a skill:
 ## Tools
 
 - **`/flow:start`** (only you can start it): open a session on the board, or on one ticket. Bare, it shows the board and recommends what to work on. With a ticket, `/flow:start /shop-7`, it picks the phase the ticket needs.
+- **`/flow:help`**: answer any question about Flow or Claude Code, and fix a problem with either. Ask in plain words, or type `/flow:help` and the question. Typed alone, it says what to do next. Each answer ends on the docs page to read for more.
 - **`/flow:handoff`**: write into the ticket what the next session needs to carry on, so `/clear` loses nothing. [Sessions](../sessions.md) covers when it runs.
 - **`/flow:research`**: find out how an outside tool really works, from its documentation and source. What it learns goes in `~/.flow/wiki/<tool>/`, shared by every project. [Learning](../learning.md) covers the wiki.
 - **`/flow:visualize`**: draw diagrams, screen mockups and HTML previews, in a message or in a document.

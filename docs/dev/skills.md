@@ -33,7 +33,7 @@ There is one copy of every skill on the machine, so an edit is live in every pro
 A group is mostly a filing decision. The symlinks `flow install` builds are flat, each named for the skill, so moving a skill to a different group later is a `mv`.
 
 - **`phases/`**: what you are doing: groundwork, execute, prototype, debug
-- **`tools/`**: what you reach for around the work: start, handoff, file-findings, research, visualize, tickets-from-spec
+- **`tools/`**: what you reach for around the work: start, help, handoff, file-findings, research, visualize, tickets-from-spec
 - **`dev/`**: maintaining Flow and the `domain-skills` repository: review, apply-domain-findings
 - **`drafts/`**: one still being written
 
