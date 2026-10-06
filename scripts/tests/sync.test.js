@@ -42,7 +42,7 @@ function connect(m, remote) {
   git(m.at.flow, ['config', 'flow.machine', m.name]);
 }
 
-const sync = (m) => run('flow.js', ['sync', '--root', m.root], { cwd: m.dir });
+const sync = (m) => run('flow.js', ['sync', '--root', m.root], { cwd: m.dir, env: { ...process.env, FLOW_PROJECT: m.dir } });
 const read = (file) => fs.readFileSync(file, 'utf8');
 
 test('what belongs to one machine is what the ignore file names, at the top of ~/.flow/ alone', () => {

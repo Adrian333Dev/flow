@@ -2,9 +2,9 @@
 
 A skill is a folder holding a `SKILL.md`. Create the folder and the skill exists: there is no list to add a name to, because `flow install` reads the tree.
 
-**Name the folder bare, and type the skill with a prefix.** A folder called `groundwork` is typed `/flow:groundwork` in Claude Code and `$flow:groundwork` in Codex. The `flow:` is added when the skill loads, from one file, `skills/.claude-plugin/plugin.json`, which holds the name `flow`. No folder and no `name` in this clone carries it. [`claude-code.md`](../../lab/context/claude-code.md#a-plugin-is-a-bundle-not-a-skill) in the design record has the mechanism.
+**Name the folder bare, and type the skill with a prefix.** A folder called `groundwork` is typed `/flow:groundwork` in Claude Code and `$flow:groundwork` in Codex. The `flow:` is added when the skill loads, from one file, `skills/.claude-plugin/plugin.json`, which holds the name `flow`. No folder and no `name` in this clone carries it. [`claude-code.md`](../../.flow/research/claude-code.md#a-plugin-is-a-bundle-not-a-skill) in the design record has the mechanism.
 
-This page is how Flow files and writes a skill. What Claude Code itself does with one, tested rather than assumed, is in [`claude-code.md`](../../lab/context/claude-code.md) in the design record: where a skill is found, what it costs before it runs, how arguments reach it, and what `skillOverrides` does and does not switch off.
+This page is how Flow files and writes a skill. What Claude Code itself does with one, tested rather than assumed, is in [`claude-code.md`](../../.flow/research/claude-code.md), on the branch `flow`: where a skill is found, what it costs before it runs, how arguments reach it, and what `skillOverrides` does and does not switch off.
 
 ## Table of contents
 
@@ -69,7 +69,7 @@ Under-explaining is the failure to avoid. Cover the subject in enough detail tha
 
 ## A shell line in the body
 
-A line in `SKILL.md` starting with `` !` `` is a shell command. Claude Code runs it while it builds the skill's text, and puts what the command prints in the line's place, so the output is part of the skill before the model reads a word. `$0` in the command is the first word typed after the skill's name, and `$ARGUMENTS` is everything typed. [`claude-code.md`](../../lab/context/claude-code.md#arguments-reach-a-skill-whether-or-not-it-asks-for-them) records the tests behind both.
+A line in `SKILL.md` starting with `` !` `` is a shell command. Claude Code runs it while it builds the skill's text, and puts what the command prints in the line's place, so the output is part of the skill before the model reads a word. `$0` in the command is the first word typed after the skill's name, and `$ARGUMENTS` is everything typed. [`claude-code.md`](../../.flow/research/claude-code.md#arguments-reach-a-skill-whether-or-not-it-asks-for-them) records the tests behind both.
 
 **A shell line runs one named command, never logic written inline.** The model and the person maintaining the skill both read the line, and a name says what it does where a pattern test and a chain of `&&` and `||` say nothing. Every [ticket skill](../reference/skills.md#ticket-skills) is one such line, written by `scripts/lib/tickets/ticket-skills.js`:
 

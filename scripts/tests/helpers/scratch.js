@@ -9,8 +9,9 @@
  *
  * No `git init`. `flow` finds the project root through `git rev-parse`, and
  * this folder sits inside the Flow repo, so an uninitialised scratch project
- * would resolve to Flow itself and write tickets into it. FLOW_PROJECT is the
- * documented override for exactly that, and `flow()` below sets it.
+ * would resolve to Flow itself, a Flow project too, and write into its
+ * `.flow/`. FLOW_PROJECT names the project outright, and `flow()` below sets
+ * it. GIT_CEILING_DIRECTORIES below covers every command run without it.
  *
  * Every scratch project is a machine Flow is already set up on. `flow` refuses
  * every command where `~/.flow/version` is missing and every project where
@@ -26,6 +27,11 @@ const version = require('../../lib/machine/version');
 const SCRIPTS = path.resolve(__dirname, '..', '..');
 const REPO = path.resolve(SCRIPTS, '..');
 const SCRATCH = path.join(REPO, 'tmp', 'tests');
+
+// git stops looking for a repository at tmp/tests/, so a scratch folder that
+// is no repository resolves to none, never to this clone. A test once switched
+// a skill on and synced tickets in the real project this way.
+process.env.GIT_CEILING_DIRECTORIES = SCRATCH;
 
 // Every clone Flow makes goes through `FLOW_GIT_BASE`, and no test reaches
 // the network: by default it names a folder holding nothing, so a clone fails

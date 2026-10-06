@@ -70,9 +70,14 @@ actions.sync = {
   },
 };
 
-/** The project's `flow` branch, where `flow sync` was typed inside one. */
+/**
+ * The project's `flow` branch, where `flow sync` was typed inside one.
+ * FLOW_PROJECT names the project outright, so no walk up from it reaches the
+ * folders around it.
+ */
 function syncProject() {
-  const root = records.projectAt(process.env.FLOW_PROJECT || process.cwd());
+  const named = process.env.FLOW_PROJECT && path.resolve(process.env.FLOW_PROJECT);
+  const root = named ? (records.onBranch(named) ? named : null) : records.projectAt(process.cwd());
   if (!root) return 0;
   const done = records.sync(root, 'saved');
   const name = path.basename(root);

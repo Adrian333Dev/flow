@@ -10,11 +10,11 @@ disable-model-invocation: true
 
 ## What gets a ticket
 
-**Only behaviors marked with a release (`V1`, `V2`…) in `product.md`, from the earliest release still holding a behavior no ticket covers.** Everything marked `next`, `later` or `never` stays prose.
+**Only behaviors marked with a release (`V1`, `V2`…) in any file under `docs/spec/`, from the earliest release still holding a behavior no ticket covers.** `product.md` indexes the files. Everything marked `next`, `later` or `never` stays prose.
 
-To promote a behavior, give it a release in `product.md` first. **Never edit a mark to justify a ticket already created.**
+To promote a behavior, give it a release in its spec file first. **Never edit a mark to justify a ticket already created.**
 
-**Skip a behavior a ticket already covers**, whatever its status, archived ones included. `grep -rl 'docs/spec/product.md' .flow/tickets/` lists every ticket cut from the spec. Each names its section under `## References`. A dropped one → report it, never cut it again.
+**Skip a behavior a ticket already covers**, whatever its status, archived ones included. `grep -rl 'docs/spec/' .flow/tickets/` lists every ticket cut from the spec. Each names its section under `## References`. A dropped one → report it, never cut it again.
 
 ## Picking the next chunk
 
@@ -44,7 +44,7 @@ What changes and why. One paragraph, from the spec section this came from.
 
 ## References
 
-- `docs/spec/product.md` → `### <section>`: the behavior this cuts
+- `docs/spec/<file>.md` → `### <section>`: the behavior this cuts
 - `docs/context/<subject>.md`: what it settles, in a few words
 
 ## Done when
@@ -59,7 +59,7 @@ Each ticket carries:
 - **A `## References` section**: the spec section first, then whatever it attached, plus the conventions this work has to respect: a research report, a file under `docs/context/`, a skill this work should reach for. One line each, the path then what it settles.
 - **A `## Done when`** naming something observable.
 
-Never copy a whole spec section in. Point at `docs/spec/product.md` for the full statement.
+Never copy a whole spec section in. Point at its spec file for the full statement.
 
 ## After
 

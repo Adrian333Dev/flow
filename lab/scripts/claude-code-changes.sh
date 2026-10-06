@@ -6,16 +6,16 @@
 #
 # A development script. It ships nowhere.
 #
-# The last version checked is line 1 of lab/research/claude-code-updates.md,
+# The last version checked is line 1 of .flow/research/claude-code-updates.md,
 # as in "Last checked: 2.1.285". The notes come from Anthropic's CHANGELOG.md
 # on GitHub, newest release first, and printing stops at that version. The
 # script decides nothing: reading each note against Flow, and moving line 1
-# forward, is the agent's job, by the root CLAUDE.md → check-claude-code-updates.
+# forward, is the agent's job, by the root AGENTS.md → check-claude-code-updates.
 set -euo pipefail
 
 url=https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-record="$root/lab/research/claude-code-updates.md"
+record="$root/.flow/research/claude-code-updates.md"
 
 last="$(sed -n '1s/^Last checked: \([0-9][0-9.]*\).*/\1/p' "$record")"
 if [ -z "$last" ]; then

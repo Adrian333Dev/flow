@@ -1,10 +1,6 @@
 /tmp/
 /repos/
 /.vscode/
-/lab/research/claude-code-docs/
-/lab/research/claude-code-mods/docs/
-/lab/research/skill-curation/agentskills-*.md
-/lab/research/skill-curation/claude-agent-skill-best-practices.md
 
 # Flow: .flow/ holds the tickets, checked out from the branch "flow", which
 # shares no history with the code. Every branch sees the same tickets, and

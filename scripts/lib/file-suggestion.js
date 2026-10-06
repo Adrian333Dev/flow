@@ -15,7 +15,7 @@
  *
  *   <project>/.flow/settings.json, ~/.flow/settings.local.json, ~/.flow/settings.json
  *
- *   "fileSuggestionIgnore": ["tmp", "lab/research"]
+ *   "fileSuggestionIgnore": ["tmp", "public/assets"]
  *
  * An entry without a `/` is a name, skipped at any depth. One with a `/` is a
  * path from the project root.

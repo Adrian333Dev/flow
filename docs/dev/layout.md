@@ -4,11 +4,12 @@ One clone holds everything Flow is. This page says what is in each folder, and w
 
 ## Table of contents
 
-- [The 4 parts](#the-4-parts): what installs, what stays in the repository, the design record, and scratch
+- [The 4 parts](#the-4-parts): what installs, what stays in the repository, the maintainers' workspace, and scratch
 - [What installs on a machine](#what-installs-on-a-machine): the 6 folders and every file in `scripts/`
-- [What belongs to the repository](#what-belongs-to-the-repository): the files that install nowhere, the docs among them
-- [The design record under lab](#the-design-record-under-lab): the reasoning, the backlog and the submodules
-- [What is gitignored](#what-is-gitignored): other people's clones and docs, and scratch
+- [What belongs to the repository](#what-belongs-to-the-repository): the files that install nowhere, the docs and the spec among them
+- [The tickets and the research on the branch flow](#the-tickets-and-the-research-on-the-branch-flow): open work, and the evidence behind the design
+- [The maintainers' workspace under lab](#the-maintainers-workspace-under-lab): the submodules and the scripts serving this repository
+- [What is gitignored](#what-is-gitignored): other people's clones, and scratch
 - [Where a new file goes](#where-a-new-file-goes): one line per kind of file
 
 ## The 4 parts
@@ -18,8 +19,8 @@ Installing creates symlinks from your machine into this clone, so most files are
 When you first open the repository, the split that matters has 4 parts:
 
 - **6 folders install**: `home/`, `scripts/`, `references/`, `skills/`, `claude/`, and `project-template/`
-- **8 entries belong to the repository**: `CLAUDE.md`, `README.md`, `LICENSE`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
-- **`lab/` is the design record**: installed nowhere, never deleted
+- **9 entries belong to the repository**: `AGENTS.md`, `CLAUDE.md`, `README.md`, `LICENSE`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
+- **`lab/` is the maintainers' workspace**: installed nowhere
 - **`repos/` and `tmp/` are gitignored**: either can be thrown away at any moment
 
 `.gitignore`, `.gitmodules`, and `.vscode/` belong to git and the editor. Flow reads none of them. `.vscode/` is gitignored, since it holds one person's editor settings.
@@ -28,7 +29,7 @@ When you first open the repository, the split that matters has 4 parts:
 
 **`home/AGENTS.md`** is the rules that apply in every directory, project or not. `flow install` writes it to `~/.flow/AGENTS.md` once the user has checked its form, links `~/.agents/AGENTS.md` to that file, and it is personalized there. The copy here is the template: placeholders and rules, never personal content.
 
-**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same session, so Claude Code loads the same rules. Claude Code never reads anything under `~/.agents/` by itself. `project-template/` holds the same pair for a project, where the `CLAUDE.md` stays even though Claude Code could read the `AGENTS.md` alone: [`claude-code.md`](../../lab/context/claude-code.md#how-an-instruction-file-loads) in the design record says why.
+**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same session, so Claude Code loads the same rules. Claude Code never reads anything under `~/.agents/` by itself. `project-template/` holds the same pair for a project, where the `CLAUDE.md` stays even though Claude Code could read the `AGENTS.md` alone: `.flow/research/claude-code.md` → `### How an instruction file loads`, on the branch `flow`, says why.
 
 **`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../reference/settings.md) explains every key. The setup session `flow install` opens merges it into `~/.claude/settings.json` key by key. The links `flow install` makes before that session write none of the 3 above: a rule file copied before the interview holds nothing of the user.
 
@@ -83,7 +84,7 @@ When you first open the repository, the split that matters has 4 parts:
 
 ## What belongs to the repository
 
-**`CLAUDE.md`** is the rules for working on Flow itself. It installs nowhere. While Flow is not installed on a machine, this file is the only rule set any session here loads.
+**`AGENTS.md`** is the rules for working on Flow itself, and **`CLAUDE.md`** is one line, `@AGENTS.md`, so Claude Code loads them. Neither installs anywhere. While Flow is not installed on a machine, these are the only rules any session here loads.
 
 **`README.md`** introduces Flow and links to everything else.
 
@@ -97,51 +98,45 @@ When you first open the repository, the split that matters has 4 parts:
 
 **`.claude/settings.json`** is this repository's own Claude Code settings, committed. It carries `claudeMdExcludes`, which stops every `CLAUDE.md` under `lab/`, `repos/`, and `project-template/` from loading when a file beside one is read.
 
-**`docs/`** holds Flow's published documentation. The pages at its top are guides for whoever uses Flow, one per subject, such as `tickets.md` or `safety.md`. `reference/` holds the 4 lookup pages: commands, settings, skills and files. `dev/` is this folder, for whoever changes Flow. `docs/README.md` and `dev/README.md` each index their own pages. Nothing in `dev/` restates what the user pages cover, and nothing in the user pages names a hidden command or flag. Symlinked as `~/.flow/docs`, so `/flow:help` names a page by a path that is the same on every machine.
+**`docs/`** holds Flow's published documentation. The pages at its top are guides for whoever uses Flow, one per subject, such as `tickets.md` or `safety.md`. `reference/` holds the 4 lookup pages: commands, settings, skills and files. `dev/` is this folder, for whoever changes Flow. `spec/` is Flow's own product spec: `product.md` says what Flow is and indexes one file per part, each holding what the part does and how it is built, every behavior marked `V1`, `next`, `later` or `never`. `docs/README.md` and `dev/README.md` each index their own pages. Nothing in `dev/` restates what the user pages cover, and nothing in the user pages names a hidden command or flag. Symlinked as `~/.flow/docs`, so `/flow:help` names a page by a path that is the same on every machine.
 
-## The design record under `lab/`
+## The tickets and the research on the branch `flow`
 
-`lab/` holds the reasoning this repository was built from. It ships nowhere and is never deleted. It shrinks to what is still live.
+Flow works on itself the way it works on any project. Its records live on the orphan branch `flow`, checked out at `.flow/`, which no code branch carries:
 
-**Every record under `lab/` is history, and the skills on disk win wherever the 2 disagree.** Git holds the change history, which nothing here restates. `context/state.md` and `backlog/` are the exceptions: both are maintained as the work moves, so where one disagrees with disk, the record is the bug.
+- **`tickets/`**: every open piece of work, one folder each, read and moved through the `flow` command. The beta checklist is tickets `fw-2` to `fw-14`.
+- **`research/`**: the evidence behind the design, one file per subject or tool read, such as `contenders.md` or `claude-code-mods/`.
+- **`inbox.md`**: raw notes waiting for `/flow:file-findings`.
 
-Every context file sits in `lab/context/`, flat:
+A decision belongs in `docs/spec/`, never here. Git holds the history of how each one was reached.
 
-- **`state.md`**: what is built, where each piece stands, and which record covers what. The only status file.
-- **`handoff.md`**: the latest handoff between sessions, rewritten whole each time.
-- **Every other file**: the reasoning behind one subject, such as `management.md`. `state.md` says which one covers what.
+## The maintainers' workspace under `lab/`
 
-Everything beside `context/` is a folder:
+`lab/` ships nowhere. It holds what serves this repository alone:
 
-- **`backlog/`**: every open item, for Flow and for the 3 submodules below, one file per phase. The only place an open item lives, and `context/` holds the reasoning behind each.
-  - `before-beta.md`: what has to be true before Flow installs on the author's machine, in build order.
-  - `beta.md`: `## Checklist`, what real use tries once, and `## Found in use`, what it turns up. Notes from `~/.flow/workflow-notes.md` land in the second.
-  - `after-v1.md`: the rest, one section per area, the lowest priority last.
-
-  An item is one line: what it is, then the file in `context/` holding the argument. A finished item is deleted, never checked off. An item about a submodule opens with its name, as in `**util**:`. A marker on the line says what else holds it back: **talk first** needs its own conversation, **parked** waits for a real case, and **half done** marks a started item.
 - **`util/`**: the `util` CLI, a submodule: [Adrian333Dev/util](https://github.com/Adrian333Dev/util). Edited here, committed from inside the folder, and the new pointer committed here afterwards.
 - **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/flow:research` clones it into `tmp/` to search it.
 - **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
 - **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, `try.sh` builds [the scratch session](trying-changes.md#the-scratch-session), and `save-computer.sh` saves this computer as a seed for it to start from. `test-projects/<name>/` builds each run's practice project: `files/` copied in, then `build.sh` making the tickets, or no `build.sh` for a project not set up.
-- **`research/`**: evidence behind the skills, and copies of other people's docs, which git ignores.
-- **`archive/`**: pages taken out of `docs/` whole, kept as history. `manual/` is the old manual the user pages replaced.
 
 ## What is gitignored
 
 - **`repos/`**: clones of other people's repositories, in 5 folders by what they are read for: `workflows/` holds the workflows Flow is compared against, `skills/` skill sets and the skill format, `tools/` single tools around a session such as guards and checkers, `harnesses/` the agents' own source, and `lists/` curated lists for finding more. `bash lab/scripts/repos.sh` restores them, and its list says what Flow takes from each. Nothing here is yours and nothing here is ever edited.
 - **`tmp/`**: scratch. `tmp/try/<name>/` is one run of the scratch session from `try.sh`, kept until `try.sh --delete` removes it: `home/`, the pretend computer's home folder with the project in `home/code/`, `remote.git`, the stand-in for the repository `~/.flow/` lives in, and `sandbox.sh`, the line that starts the session. `tmp/computers/` holds the seeds, saved computers a run starts from: `save-computer.sh` saves this one, `try.sh --save` a run's. None is ever rewritten. `tmp/tests/` is where both test suites write.
-- **The copies of other people's docs under `lab/research/`**: `claude-code-docs/`, 18 pages of Claude Code's docs. `claude-code-mods/docs/`, 10 pages on mods. 4 pages in `skill-curation/` on writing skills. Kept out of git because publishing them would republish someone else's pages. A fresh clone fetches them again: Claude Code's pages from the index at `https://code.claude.com/docs/llms.txt`, agentskills.io's from `https://agentskills.io/llms.txt`, and Anthropic's page "Skill authoring best practices" by its title.
 
-None survives a fresh clone, and nothing at runtime reads any of them.
+Neither survives a fresh clone, and nothing at runtime reads either.
+
+Copies of other people's docs never enter this repository, since publishing them would republish someone else's pages. They sit in the wiki on each machine, in `~/.flow/wiki/claude-code/downloads/` and `~/.flow/wiki/agentskills/downloads/`, which `flow sync` never carries.
 
 ## Where a new file goes
 
-- A note about why something was decided → `lab/context/`, flat, one file per decision
-- An open item → the file in `lab/backlog/` for its phase, one line, with a pointer to the argument
+- A decision, with its reason → the file in `docs/spec/` for its part, marked `V1`, `next`, `later` or `never`
+- An open item → a ticket, through `flow new`
+- Research behind a decision → `.flow/research/`, one file per subject
 - A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`. `lab/scripts/test-projects/<name>/` is a board for the practice project, `files/` copied in and `build.sh` run, picked with `try.sh --project <name>`
 - A rule check → `scripts/rule-checks/<rule-id>.js`, named after the rule it enforces. Nothing registers it
 - A change in how Flow behaves, once Flow is installed somewhere → one entry in `CHANGELOG.md`, plus `upgrades/<number>.md` where the change moves a path on a machine
 - A scratch file → `tmp/`, never the repository root
 - A skill → `skills/<group>/<name>/SKILL.md`. [Adding a skill](skills.md) covers the rest.
 
-Two rules bind the design record. Nothing under `lab/` is a Flow skill, even where a folder there holds a `SKILL.md`: Flow's own skills live in `skills/` alone, and `domain-skills/` is another repository's. And no path inside `lab/` may appear in a skill, in `home/`, or in `project-template/`, because none of those can see `lab/` once installed.
+Two rules bind `lab/`. Nothing under `lab/` is a Flow skill, even where a folder there holds a `SKILL.md`: Flow's own skills live in `skills/` alone, and `domain-skills/` is another repository's. And no path inside `lab/` may appear in a skill, in `home/`, or in `project-template/`, because none of those can see `lab/` once installed.

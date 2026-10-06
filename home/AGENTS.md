@@ -28,6 +28,7 @@ One user message, your work, one reply. In that order, every time.
 ## Writing files
 
 - **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a rule file, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. A file an agent loads also takes `cut-loaded-files.md` beside it, a rule file `write-rules.md`, and a documentation page `write-docs.md`. Never defer a file to a later pass.
+- **`check-before-adding`** Before adding a rule, preference, section or line to a file an agent loads, read what is there. Something already covering it → sharpen that line. A rule that exists but didn't fire → a Flow failure. Never a second copy.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
 - **`never-hand-write-generated`** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
 
@@ -70,7 +71,7 @@ One phase at a time:
 
 **`capture-at-checkpoints`** At a checkpoint, sweep the conversation since the last sweep and file what it holds. A checkpoint: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. On request, immediately. Unsure: write it.
 
-- Work committed to → `flow new "…"`. A feature mentioned for later counts. `--priority` only when the user asks.
+- Work committed to → `flow new "…"`, with `--priority` where it is plain.
 - How the user wants to work → `~/.agents/AGENTS.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: a correction, irritation at a habit, something they said about themselves. Under 10 lines in the section, write on the first sign; after that, on the second. One sentence each, replacing a line it sharpens.
 - About this project, needed in most sessions → the project's `AGENTS.md`. A correction true here alone goes under `## Rules`, on its second sign.
 - Durable project fact only some work needs (a deploy path, a service's limit) → `docs/context/<subject>.md`
@@ -78,7 +79,7 @@ One phase at a time:
 - Other reusable knowledge (a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, written the same way. `/flow:file-findings` promotes it to a skill or a rule later.
   - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`
 - A warning from a rule check that was wrong → `.flow/findings/scorecard.md`
-- A decision the user confirmed with no open threads → `docs/spec/product.md` or `tech.md`, with its reason, or the groundwork map that owns the subject. Batched, never mid-discussion.
+- A decision the user confirmed with no open threads → the file under `docs/spec/` that owns it, with its reason, or the groundwork map that owns the subject. Batched, never mid-discussion.
 - Flow itself failed (a rule that didn't fire, friction that repeated, output the user rejected) → `/flow:review`, if it's in your skill list
 - Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
 - Everything else → `.flow/inbox.md`, raw. Never shape it. Past 200 lines, offer `/flow:file-findings`.

@@ -48,7 +48,7 @@ One line per file: what it is, whether it is still live, what it is worth.
 Each of these goes to the user for a yes. Never delete without one.
 
 - **Superseded copies** → propose deleting. 2 versions of one document with nothing marking which is dead are a download habit, not a decision.
-- **A research report** → move it where `/flow:research` files it, `docs/research/` when unsure.
+- **A research report** → move it where `/flow:research` files it, `.flow/research/` when unsure.
 - **Facts about the user**: budget, tools they pay for, how they like to work → `~/.agents/AGENTS.md`, under `## The user`.
 - **A recorded failure of an agent** → `/flow:review` writes it up as a study case.
 - **Two scopes tangled in one folder** → split them, and say which scope is superseded.

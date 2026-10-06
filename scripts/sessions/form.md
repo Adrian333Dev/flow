@@ -7,6 +7,7 @@
 - **`{plugins that override Flow}`**: one line per installed plugin that tells Claude how to work in every session, whether or not a skill is invoked, switched on or not. `superpowers` is the example below. None found → no line.
 - **`{competing things}`**: one box per skill, rule file, hook or agent on ground Flow rules on, and per account-synced skill that fights Flow's rules. Name what it does in plain words, then what Flow does instead. None found → the whole subsection goes.
 - **`{switched off}`**: one box per plugin that stays and that only some projects use. Name what it knows in plain words. None found → the whole section goes.
+- **`{replaced}`**: one box per outside skill or plugin whose whole job Flow's own skills already do, such as `find-skills`, `write-a-skill` and `improve-codebase-architecture`. None found → the whole section goes.
 - **`{takeovers}`**: one box per outside skill Flow can take over, saying whether it is on in every project or only in the projects that use it. None found → the whole section goes.
 - **`{left as they are}`**: plugins on in every project, and synced skills that stay, by name. None → the line goes.
 - **`{preferences}` and `{about you}`**: the harvest, one line each. Empty → the fence stays, empty.
@@ -100,9 +101,15 @@ Anything you untick is shown to you again before setup goes ahead.
 
 ## Switched on only in the projects that use it
 
-Each one stays installed, switched off in every project. Setting up a project with `flow init` switches it on there when the project uses it. Untick one to keep it on everywhere.
+Each one stays installed, switched off in every project. To delete one instead, change its line to `delete:`. Setting up a project with `flow init` switches it on there when the project uses it. Untick one to keep it on everywhere.
 
 - [x] {switched off}, such as: supabase plugin: knows the Supabase database service. `claude plugin disable`
+
+## Deleted, because Flow has its own, unless you untick it
+
+Flow's own skills already do the job of each one below. Setup deletes it, and a copy is kept in the migration folder. Untick one to keep it.
+
+- [x] {replaced}, such as: write-a-skill: writes a new skill, which /flow:research and Flow's skill rules already cover. `~/.claude/skills/write-a-skill/`
 
 ## Taken over by Flow unless you untick it
 

@@ -7,14 +7,17 @@
 One test, asked of each decision: **does it outlive the thing being built?**
 
 - **No, it dies with the build** → `design.md` beside `map.md`, or `groundwork/design.md` in the ticket that owns it.
-- **Yes, and it says what the product must do** → `docs/spec/product.md`.
-- **Yes, and it says how the system is built** → `docs/spec/tech.md`.
+- **Yes, and it belongs to one part of the product** → that part's file, `docs/spec/<part>.md`, both what the part does and how it is built. No file for the part yet → its section in `product.md`.
+- **Yes, and it covers the whole product**: what it is, who it is for, the bets → `docs/spec/product.md`.
+- **Yes, and it is a build decision every part shares**: the stack, the repo layout → `docs/spec/tech.md`.
 
-One run usually writes 2 of these. Create `docs/spec/` where there is none.
+Create `docs/spec/` where there is none. **`product.md` is the one file every spec has.** `tech.md` exists only once a build decision covers every part, so code projects usually have one and others never.
+
+**A part gets its own file once both hold**: its boundary fits one sentence, and no fact would sit in 2 files. A part is whatever the product is actually built out of: a surface, a stage, a subsystem. A small product stays in `product.md`.
+
+**`product.md` indexes every other spec file**, one line each: the path and what it holds. The line lands in the same edit that creates, renames or deletes the file.
 
 **A decision carries its reason in the file it lands in**: `### Every decision carries its reason`.
-
-A subject gets its own file beside them only when all 3 hold: no fact appears in 2 files, the boundary is statable in one sentence, and it isn't a section of an existing file. Past 3 files, add an index naming each and what it holds.
 
 **Not this file's job**: how a library was bent out of shape, written after the build → `docs/context/<subject>.md`, by `/flow:execute`.
 
@@ -44,7 +47,7 @@ Always, however small the product:
 
 1. **What it is and who it is for**: one paragraph a stranger follows.
 2. **The problem, and why now.**
-3. **Every behavior**, grouped how the product is actually shaped: by surface, by job, by whatever the map used. Each carries a mark.
+3. **Every behavior**, grouped how the product is actually shaped: by surface, by job, by whatever the map used. Each carries a mark. A part with its own file holds its behaviors there, and `product.md` keeps only the index line.
 4. **How you know it worked**: the observable outcome, the check, the number.
 
 Then only what a branch covered, usually 3 or 4 of these:
@@ -53,11 +56,11 @@ Then only what a branch covered, usually 3 or 4 of these:
 - **Named principles**: the constraints that settle later arguments before they start.
 - **The interaction surface**: screens, cards, flows, at the depth the groundwork reached.
 - **Constraints that are not code**: money, law, privacy, policy.
-- **What it competes against**, and why this holds up. The survey itself belongs in `docs/research/`.
+- **What it competes against**, and why this holds up. The survey itself belongs in `.flow/research/`.
 - **The glossary**: every term invented here.
 - **`## Bets`**: what the whole thing rests on that nobody has checked.
 
-**Every behavior carries a mark**, one of 4:
+**Every behavior carries a mark**, in whichever spec file holds it, one of 4:
 
 - **A release, `V1`, `V2`…**: the release it ships in. The only mark tickets are created from. A first spec uses `V1` alone.
 - **next**: committed, no release picked yet.
@@ -68,9 +71,9 @@ Finish the spec when every behavior carries a mark.
 
 **Write the whole product, at every version.** Scope the *building*, never the *writing*: never push later phases out of the spec.
 
-### How it is built: `tech.md` or `design.md`
+### How it is built: a part's file, `tech.md` or `design.md`
 
-Same skeleton at both scopes. `tech.md` is the whole system and outlives every feature; `design.md` is one thing and dies when that thing is built.
+Same skeleton at every scope. A part's file covers that part, and `tech.md` what every part shares. Both outlive every feature. `design.md` is one thing and dies when that thing is built.
 
 **Always write one, simple work included.** A section can be one sentence.
 
@@ -130,6 +133,7 @@ Same steps, scoped to what changed.
 - **A behavior was refused** → move it to `never`, with the reason. Never delete it.
 - **The direction changed** → say plainly what it is now, in the section it belongs to. The old direction becomes a refused option under the new one, with why it lost.
 - **A section was replaced wholesale** in a file too large to reread → leave one line saying what replaced it and where.
+- **A file was renamed, split or merged** → rewrite every ticket's `## References` line naming the old path, archived tickets included: `grep -rl 'docs/spec/<old>.md' .flow/tickets/`. Then the index line in `product.md`.
 
 ## What stays out
 
@@ -140,4 +144,4 @@ Same steps, scoped to what changed.
 
 A reason that outlives the build goes under its decision. Everything else stays in `map.md`.
 
-**No fact in 2 files.** One live copy, a pointer everywhere else. A decision resting on evidence (a research report, a prototype, a drawing) names it **inline, on that decision**, plus a short reference list at the end of the file. No global index.
+**No fact in 2 files.** One live copy, a pointer everywhere else. A decision resting on evidence (a research report, a prototype, a drawing) names it **inline, on that decision**, plus a short reference list at the end of the file. No list of evidence across files.

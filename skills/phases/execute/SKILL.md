@@ -45,7 +45,7 @@ Then read the ticket body and its `## State` where one exists.
 
 ### Pass 1: read the code
 
-**Start with `## References` in the ticket.** **No section** → look once in `docs/context/`, `docs/research/`, and `~/.flow/wiki/<tool>/` for each tool the work touches, then write what you found into `## References`.
+**Start with `## References` in the ticket.** **No section** → look once in `docs/context/`, `.flow/research/`, and `~/.flow/wiki/<tool>/` for each tool the work touches, then write what you found into `## References`.
 
 **Add a line the moment you read something the build will need**, in any pass.
 

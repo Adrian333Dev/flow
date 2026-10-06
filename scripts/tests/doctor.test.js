@@ -53,11 +53,12 @@ function doctor(m, { bin, utilHome, inProject } = {}) {
   const env = { ...process.env };
   if (bin) env.PATH = pathWith(bin);
   if (utilHome) env.UTIL_HOME = utilHome;
-  // Without this, doctor resolves the Flow repo itself, which has no .flow/,
-  // and reports on the machine alone.
+  // Without this, doctor runs in the scratch folder, which is no project, and
+  // reports on the machine alone. Run from the clone, it would report on Flow's
+  // own repo.
   if (inProject) env.FLOW_PROJECT = inProject;
   const args = ['doctor', '--root', m.root, '--no-bin'];
-  return run('flow.js', args, { env });
+  return run('flow.js', args, { cwd: m.dir, env });
 }
 
 test('a fresh install passes every check', () => {

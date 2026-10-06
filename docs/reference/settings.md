@@ -133,11 +133,11 @@ Folders where [`setupReminder`](#setupreminder) never shows, each with everythin
 Paths the `@` list never offers, on top of the folders it always skips:
 
 ```json
-"fileSuggestionIgnore": ["tmp", "lab/research"]
+"fileSuggestionIgnore": ["tmp", "public/assets"]
 ```
 
 - **An entry with no `/` is a name**, skipped at any depth: `tmp` skips `tmp/` and `docs/tmp/`.
-- **An entry with a `/` is a path** from the project's top folder: `lab/research` skips that folder alone.
+- **An entry with a `/` is a path** from the project's top folder: `public/assets` skips that folder alone.
 
 All 3 of Flow's files can hold it, and their lists add up.
 

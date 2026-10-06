@@ -145,15 +145,15 @@ Write each prompt into its own research file before presenting it, then hand ove
 - A quick question, level 1 → no file. Level 2 and up always writes one.
 - About one outside tool, true in any project → `~/.flow/wiki/<tool>/research/<question>.md`.
 - About no single tool, true in any project: a comparison, a technique, a field → `~/.flow/research/<question>.md`.
-- True only for this project: its users, its market, a client's old system → `docs/research/<question>.md`.
-- Unsure → `docs/research/`. Outside a project → `~/.flow/research/`.
+- True only for this project: its users, its market, a client's old system → `.flow/research/<question>.md`.
+- Unsure → `.flow/research/`. Outside a project → `~/.flow/research/`.
 
 **Never write a project's or a client's details into `~/.flow/`.**
 
 - **A question about 2 tools** → the folder of the tool it is mostly about, with a line in the other tool's `index.md`.
-- **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to `docs/spec/product.md` or `tech.md`, its reason naming the survey. A decision never goes in the report.
+- **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to the file under `docs/spec/` that owns it, its reason naming the survey. A decision never goes in the report.
 - **Research done with an outside LLM** is no separate kind: its prompt and the pasted report go wherever the list puts the question.
 
-`docs/research/` and `~/.flow/research/` are **flat**. Never put a report inside a ticket or a groundwork folder.
+`.flow/research/` and `~/.flow/research/` are **flat**. Never put a report inside a ticket or a groundwork folder.
 
 **A question reading can answer never becomes a ticket of its own.** It runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a `prototype` ticket, and `/flow:groundwork` cuts it.

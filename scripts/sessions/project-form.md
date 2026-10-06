@@ -1,6 +1,6 @@
 # The project setup form
 
-`migration.md`, as the project's setup session writes it. Copy every fixed line word for word. Replace each line holding a `{…}` whole, with the lines it stands for. The text after `such as:` is one example. Never leave a `{…}` in the file.
+`migration.md`, as the project's setup session writes it. Copy every fixed line word for word. Replace each line holding a `{…}` whole, with the lines it stands for. The text after `such as:` is one example. Never leave a `{…}` in the file. Replace `{full path of the migration folder}` with its absolute path, since the reader opens the form from the project, not from the folder.
 
 **A line appears only where saying go changes something.** A section left with no line goes, heading included. `## What Flow sets up` and `## Every file this changes` always stay.
 
@@ -29,7 +29,7 @@ project: {project}
 
 # Setting up {name}
 
-Nothing changes until you say go. The new version of every file is under files/, beside this form.
+Nothing changes until you say go. The new version of every file is under {full path of the migration folder}/files/. This form is in the same folder.
 
 ## What Flow sets up
 

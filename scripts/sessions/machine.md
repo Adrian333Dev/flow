@@ -17,7 +17,7 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 2. **Survey the machine.** `## What to look at` below. Read every rule file whole. For a skill, an agent or a command, read its `description` first, and open the body only where the description leaves the competitor test open.
 3. **Sort what you found.** `## The competitor test` and `## Harvesting` below.
 4. **Write the migration** into `~/.flow/migrations/<migration>/`, the folder `run.json` names as `migration`: `migration.md` by the form's template, and under `files/` the new version of every path a `write` line names, at `files/<full path>`. `## The files it writes` below.
-5. **Hand over the form.** One message: the full path of `migration.md`, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop.
+5. **Hand over the form.** One message: the full path of `migration.md`, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop. A `migration.md` that already exists is never rewritten: a request to save it copies it to `migration.original.md` beside it first.
 6. **Take the answer.** Read `migration.md` again. The file wins over anything said in chat.
    - Nothing changed → step 7.
    - Something changed → `## The second check` below, then wait for go.

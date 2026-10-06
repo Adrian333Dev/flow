@@ -9,7 +9,7 @@ Two scopes, and every section below belongs to one.
 3 jobs read a second file, beside this one:
 
 - **A file an agent loads** → `cut-loaded-files.md`: cuts from real rewrites, before and after.
-- **A rule file** → `write-rules.md`: the id every rule carries.
+- **A rule file** → `write-rules.md`: what makes a rule fire, and the id every rule carries.
 - **A documentation page** → `write-docs.md`: what changes for a page no session loads, §3 included.
 
 ## 1. Plan the shape first

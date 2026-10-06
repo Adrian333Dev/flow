@@ -65,13 +65,13 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ tickets/archive/
 │  ├─ inbox.md
 │  ├─ findings/
+│  ├─ research/
 │  ├─ overlays/<skill>.md
 │  ├─ settings.json
 │  └─ version
 └─ docs/
    ├─ spec/
-   ├─ context/
-   └─ research/
+   └─ context/
 ```
 
 ## `~/.agents/`
@@ -178,6 +178,7 @@ The project's tickets and what sessions learn in it. It is the project's `flow` 
 - **`tickets/archive/`**: finished and dropped tickets, moved here whole.
 - **`inbox.md`**: notes with no home yet. `/flow:file-findings` sorts them.
 - **`findings/`**: one file per lesson a session learned, waiting for `/flow:file-findings`.
+- **`research/`**: research reports true only for this project. `/flow:research` writes them.
 - **`overlays/<skill>.md`**: lines this project adds to a skill. [Configure](../configure.md) covers overlays.
 - **`settings.json`**: this project's skill lines and [`ticketPrefix`](settings.md#ticketprefix).
 - **`version`**: the newest Flow change this project has applied.
@@ -187,9 +188,8 @@ The project's tickets and what sessions learn in it. It is the project's `flow` 
 Sessions write here, and Flow owns none of it.
 
 - **`intake/`**: notes, brainstorms and drafts you drop in. `/flow:groundwork` reads them before designing.
-- **`spec/`**: what the product is. `/flow:tickets-from-spec` cuts tickets from it.
+- **`spec/`**: what the product is. `product.md` always, plus a file per large part of it, which `product.md` lists. `/flow:tickets-from-spec` cuts tickets from it.
 - **`context/`**: facts about this project that some work needs and most does not.
-- **`research/`**: research reports true only for this project.
 
 ## What stays on one computer
 

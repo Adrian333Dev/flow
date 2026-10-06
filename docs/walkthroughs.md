@@ -21,10 +21,10 @@ A habit tracker, in an empty folder:
 1. **Set it up.** `flow init` in the folder.
 2. **Describe the whole idea.** Put any notes or research you have in `docs/intake/` first. `/flow:groundwork a habit tracker that families share` makes a `topic` ticket, the type for a decision with nothing to build yet. On an idea this big, the first run settles the scope, then splits each big subject into a child ticket.
 3. **Settle each subject.** `/flow:groundwork /habits-2` walks one subject's decisions with you, one at a time.
-4. **Read the spec.** `/flow:groundwork` then writes `docs/spec/product.md`, what the product must do, and `docs/spec/tech.md`, how it is built. Each behavior carries a mark: a release such as `V1`, `next`, `later`, or `never` with the reason. Nothing is cut before your yes.
+4. **Read the spec.** `/flow:groundwork` then writes `docs/spec/product.md`: what the product is, and what it must do. A large part of the product, such as sharing between family members, gets its own file beside it, and `docs/spec/tech.md` holds the stack and the folder layout. Each behavior carries a mark: a release such as `V1`, `next`, `later`, or `never` with the reason. Nothing is cut before your yes.
 5. **Cut the first chunk.** `/flow:tickets-from-spec` turns the `V1` behaviors that matter most next into tickets. Tickets cut far ahead go stale, so it leaves the rest for later runs. Only you can start it.
 6. **Build ticket by ticket.** `/flow:groundwork /habits-6` while a decision is open, `/flow:execute /habits-6` once it is decided. `/flow:start` recommends the next ticket.
-7. **Cut the next chunk** with `/flow:tickets-from-spec` as each one gets built. Once `V1` is all cut, mark the next release `V2` in `product.md`.
+7. **Cut the next chunk** with `/flow:tickets-from-spec` as each one gets built. Once `V1` is all cut, mark the next release `V2` in the spec.
 
 ## An existing project, brought into Flow
 

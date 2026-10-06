@@ -6,19 +6,20 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 
 ## Layout
 
-- `lab/context/state.md`: what is built now. `lab/context/*.md` holds the design records behind it, and `docs/dev/layout.md` maps the tree.
-- `lab/backlog/`: open work. The beta checklist is also tickets in `.flow/`.
-- `lab/research/claude-code-docs/`: Claude Code's documentation on disk. Its `llms.md` indexes every page Anthropic publishes, and `WebFetch` reaches the rest.
+- `docs/spec/`: what Flow does and how it is built. `product.md` says it whole and indexes one file per part. `docs/dev/layout.md` maps the tree.
+- `.flow/tickets/`: open work, the beta checklist included. `.flow/research/`: the research behind the design.
+- `lab/`: the maintainers' workspace, holding the 3 submodules and `lab/scripts/`, which serve this repo alone.
+- `~/.flow/wiki/claude-code/downloads/`: Claude Code's documentation on disk. Its `llms.txt` indexes every page Anthropic publishes, and `WebFetch` reaches the rest.
 - `.agents/` holds the one real copy of the rules and skills, `.claude/` what Claude Code reads, `.flow/` what Flow owns. `docs/reference/files.md` lists every path.
 - `npm test` inside `scripts/` runs Flow's suite, and `lab/util/` has its own. `docs/dev/trying-changes.md` has both procedures.
 
 ## Rules
 
-- **`read-state-first`** Read `lab/context/state.md` before touching skills installation, the scripts or the docs tree.
-- **`drain-workflow-notes`** Before choosing the next work, read `~/.flow/workflow-notes.md` and the current month of `~/.flow/logs/failures/`. File each note into `lab/backlog/beta.md` → `## Found in use`, or join it to the item it repeats, then delete the note. A failure worth fixing gets an item the same way, and the log stays untouched.
-- **`check-claude-code-updates`** When asked, run `bash lab/scripts/claude-code-changes.sh` and read each release against Flow. Write what touches Flow into `lab/research/claude-code-updates.md`, give each needed change a backlog item, then set line 1 to the newest release read. Where Flow comes to rely on a newer release, raise `MIN_CLAUDE` in `scripts/lib/machine/prereq.js` and the README's Install line. Download again any page in `lab/research/claude-code-docs/` whose topic a release changed.
+- **`read-the-spec-first`** Read `docs/spec/product.md` and the spec file of the part you touch before changing skills installation, the scripts or the docs tree.
+- **`drain-workflow-notes`** Before choosing the next work, read `~/.flow/workflow-notes.md` and the current month of `~/.flow/logs/failures/`. File each note as a ticket through `flow new`, or join it to the ticket it repeats, then delete the note. A failure worth fixing gets a ticket the same way, and the log stays untouched.
+- **`check-claude-code-updates`** When asked, run `bash lab/scripts/claude-code-changes.sh` and read each release against Flow. Write what touches Flow into `.flow/research/claude-code-updates.md`, give each needed change a ticket, then set line 1 to the newest release read. Where Flow comes to rely on a newer release, raise `MIN_CLAUDE` in `scripts/lib/machine/prereq.js` and the README's Install line. Download again any page in `~/.flow/wiki/claude-code/downloads/pages/` whose topic a release changed.
 - **`design-rules-can-be-overturned`** Paths, types, file shapes, what a skill owns: a better idea wins. Say what the rule protected, whether that still holds, and recommend. The conduct rules, git, installing, deletes and forks hold regardless.
-- **`no-git-mutations`** Never run, print or offer a git command that writes, here or in a submodule, unless the user asks. Reads are fine.
+- **`no-commit-no-push`** Never run `git commit` or `git push`, here or in a submodule, unless the user asks. Every other git command is fine, but never discard the user's uncommitted work.
 - **`deletes-need-confirmation`** A delete needs its own confirmation, even inside an approved plan. Moving is not deleting. Pre-approved: something this session superseded, cleanup of what a change left behind, and your own scratch in `tmp/`.
 - **`design-in-conversation`** Design this workflow in plain conversation. Never invoke a brainstorming skill for it.
 - **`no-fork-subagent`** Never use a fork, the subagent that starts with a copy of the whole conversation. Never propose one, never write one into a skill.
@@ -26,7 +27,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`scratch-in-tmp`** Scratch files go in `tmp/`, gitignored. Never `/tmp`, never the repo root. Delete what your work put there in the same turn, once its result is written down. `computers/`, `try/` and `tests/` belong to tools and stay.
 - **`tracked-never-means-git`** "Tracked" means the agent maintains the file as the work moves. A handoff is untracked: read once, left alone, rewritten whole next time. Handoff files are committed like everything else.
 - **`write-locked-decisions`** Write a decision the user confirmed with no open threads into its record, batched.
-  - **`write-dropped-proposals`** A proposal dropped, whoever dropped it, goes into the backlog item it belongs to, with why, in the same turn.
+  - **`write-dropped-proposals`** A proposal dropped, whoever dropped it, goes into the ticket or the spec file it belongs to, with why, in the same turn.
 - **`approval-exceptions`** Writing down a decision already locked, and scratch files in `tmp/`, need no approval.
 - **`one-sentence-where-one-works`** Skill content can be detailed. A trigger or routing line in a rule file cannot.
 - **`short-beats-the-checks`** Never let a check under `### Before sending` stretch a reply past what its topic is worth. Define a term in a clause, and restate only what the user needs to decide.
@@ -47,9 +48,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`bash-or-node-by-job`** Bash where the script wraps another command. Node where there is real logic.
 - **`type-never-kind`** A field saying what sort of thing a record is gets called `type`.
 - **`no-skill-under-lab`** Flow's own skills live in `skills/`. A skill from another repository lives in that repository. Never let a `lab/` path leak into a skill, `home/` or `project-template/`.
-- **`lab-records-are-history`** Disk wins where a record under `lab/` and the tree disagree. `lab/context/state.md` and `lab/backlog/` are the exceptions: where one disagrees with disk, the record is the bug.
-- **`context-files-are-flat`** Every context file lives in `lab/context/`, flat.
 - **`read-repos-with-cat`** `repos/` holds other people's clones. Read them with `cat`, never `Read`, and never edit them.
 - **`home-files-exist-twice`** `home/AGENTS.md` is the public template, and `~/.agents/AGENTS.md` is the personalized copy. Never write personal content into this repo. Carry a rule worth shipping across by hand.
 - **`placeholder-comments-are-deleted`** A placeholder comment goes the first time its section is filled in.
-- **`no-status-in-agents-md`** No counts, no dates and no build status here. Status goes in `lab/context/state.md`, open work in `lab/backlog/`.
+- **`no-status-in-agents-md`** No counts, no dates and no build status here. What Flow does goes in `docs/spec/`, open work in tickets.

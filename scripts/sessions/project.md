@@ -23,7 +23,7 @@ A message starting `Carry on` is the same job, stopped part way.
 1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, every file in `project-template/`, and the form's template, `~/.flow/scripts/sessions/project-form.md`.
 2. **Read the project.** `## Reading the project` below.
 3. **Sort what you found**, and write the new files. `## Where each finding goes` and `## The files it writes` below.
-4. **Write the form** into `~/.flow/migrations/<migration>/migration.md`, by its template. Then hand it over in one message: its full path, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop.
+4. **Write the form** into `~/.flow/migrations/<migration>/migration.md`, by its template. Then hand it over in one message: its full path, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop. A `migration.md` that already exists is never rewritten: a request to save it copies it to `migration.original.md` beside it first.
 5. **Take the answer.** Read `migration.md` again. The file wins over anything said in chat.
    - Nothing changed → step 6.
    - Something changed → `## The second check` below, then wait for go.
@@ -63,7 +63,7 @@ A message starting `Carry on` is the same job, stopped part way.
 - **A Flow rule does the same job** → `dropped.md` beside the form: the line, then the rule's id.
 - **Anything else** → dropped too, with no rule named.
 
-**Always 2 more tickets**, each where it applies:
+**Always 2 more tickets**, each where it applies, made with `--priority high`, since each finishes the setup:
 
 - **"Write the product spec"** → where the project holds plans, specs or decisions. Its body lists each source with one line saying what it holds. Setup writes no spec.
 - **"Find skills, plugins and MCP servers for this stack"** → where there is code. Its body names the stack and what is already installed.

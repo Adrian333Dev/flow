@@ -46,29 +46,29 @@ workflows/agent-skills                 https://github.com/addyosmani/agent-skill
 workflows/mattpocock-skills            https://github.com/mattpocock/skills.git
 
 # The closest competitor on self-improvement: each solved problem becomes a
-# lesson the next plan reads. lab/research/compound-engineering.md.
+# lesson the next plan reads. .flow/research/compound-engineering.md.
 workflows/compound-engineering-plugin  https://github.com/EveryInc/compound-engineering-plugin.git
 
 # 68 agents, 286 skills, and a learning system built on "instincts".
-# lab/research/ecc.md.
+# .flow/research/ecc.md.
 workflows/ECC                          https://github.com/affaan-m/ECC.git
 
 # An AI task-management system. Read for initialization, the ticket system
-# and the workflow shape: lab/backlog/after-v1.md.
+# and the workflow shape: ticket fw-48.
 workflows/claude-task-master           https://github.com/eyaltoledano/claude-task-master.git
 
 # Garry Tan's sprint of 56 skills, the most-starred whole workflow after
 # Superpowers and ECC. Per-project learnings, opt-in guard hooks.
-# lab/research/gstack.md.
+# .flow/research/gstack.md.
 workflows/gstack                       https://github.com/garrytan/gstack.git
 
 # Claude CodePro, renamed. A paid, closed harness: hooks, memory, a context
 # monitor, a spec workflow. The closest to Flow in shape.
-# lab/research/pilot-shell.md.
+# .flow/research/pilot-shell.md.
 workflows/pilot-shell                  https://github.com/maxritter/pilot-shell.git
 
 # A hook that fires the right skill from the prompt and blocks the first edit
-# until it is read. lab/research/claude-code-infrastructure-showcase.md.
+# until it is read. .flow/research/claude-code-infrastructure-showcase.md.
 workflows/claude-code-infrastructure-showcase https://github.com/diet103/claude-code-infrastructure-showcase.git
 
 # skills/: skill sets, and the skill format itself.
@@ -91,51 +91,51 @@ skills/adhd                            https://github.com/UditAkhourii/adhd.git
 skills/browser-harness                 https://github.com/browser-use/browser-harness.git
 
 # A context-compression skill, read in full 2026-08-09. The findings are in
-# lab/context/compression.md. Its agents/cavecrew-*.md are the model for a
+# .flow/research/compress-ai-context.md. Its agents/cavecrew-*.md are the model for a
 # subagent's fixed output.
 skills/caveman                         https://github.com/JuliusBrussee/caveman.git
 
 # 2 NestJS skill sets, the case behind references/knowledge.md's review of
-# outside skills. lab/context/skills.md.
+# outside skills. docs/spec/skills.md.
 skills/claude-skills                   https://github.com/Jeffallan/claude-skills.git
 skills/agent-nestjs-skills             https://github.com/Kadajett/agent-nestjs-skills.git
 
 # 28 reasoning skills, with an evaluation that refuses every claim its numbers
-# cannot carry. lab/research/cc-thinking-skills.md.
+# cannot carry. .flow/research/cc-thinking-skills.md.
 skills/cc-thinking-skills              https://github.com/tjboudreaux/cc-thinking-skills.git
 
 # tools/: single tools around a session: guards, checkers, memory, replay.
 
 # 2 command guards. Their command test cases can test Flow's guard.
-# lab/research/dippy.md, lab/research/cc-safety-net.md.
+# .flow/research/dippy.md, .flow/research/cc-safety-net.md.
 tools/dippy                            https://github.com/ldayton/Dippy.git
 tools/cc-safety-net                    https://github.com/kenryu42/cc-safety-net.git
 
 # Every piece of Claude Code's own system prompt, per release.
-# lab/research/claude-code-system-prompts.md.
+# .flow/research/claude-code-system-prompts.md.
 tools/claude-code-system-prompts       https://github.com/Piebald-AI/claude-code-system-prompts.git
 
-# 3 checkers for rule and skill files. lab/research/ctxlint.md,
-# lab/research/schliff.md, lab/research/skil-lock.md.
+# 3 checkers for rule and skill files. .flow/research/ctxlint.md,
+# .flow/research/schliff.md, .flow/research/skil-lock.md.
 tools/ctxlint                          https://github.com/ctxlint/Ctxlint.git
 tools/schliff                          https://github.com/Zandereins/schliff.git
 tools/skil-lock                        https://github.com/skills-lock/skil-lock.git
 
 # Session search and resuming from a past transcript.
-# lab/research/claude-code-tools.md.
+# .flow/research/claude-code-tools.md.
 tools/claude-code-tools                https://github.com/pchalasani/claude-code-tools.git
 
 # 2 memory tools: Hivemind mines sessions into skills, presence checks "done"
-# claims. lab/research/hivemind.md, lab/research/presence.md.
+# claims. .flow/research/hivemind.md, .flow/research/presence.md.
 tools/hivemind                         https://github.com/activeloopai/hivemind.git
 tools/presence                         https://github.com/sara-star-quant/presence.git
 
 # Records a session and replays it on another model.
-# lab/research/orca-replay.md.
+# .flow/research/orca-replay.md.
 tools/orca-replay                      https://github.com/Continuum-AI-Corp/OrcaReplay.git
 
 # A browser page for marking up plans, diffs and pages.
-# lab/research/plannotator.md.
+# .flow/research/plannotator.md.
 tools/plannotator                      https://github.com/backnotprop/plannotator.git
 
 # harnesses/: the agents' own source.

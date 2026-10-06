@@ -229,14 +229,14 @@ function registryDiagnosis() {
   } catch {
     return [`${file} does not exist, so no source is registered: run flow install`];
   }
-  const paths = text.split('\n')
+  const listed = text.split('\n')
     .map((l) => l.replace(/\s+#.*$/, '').trim())
     .filter((l) => l && !l.startsWith('#'))
     .map(paths.expandHome);
-  if (!paths.length) return [`${file} is empty, so no source is registered: run flow install`];
-  const gone = paths.filter((p) => !fs.existsSync(p));
+  if (!listed.length) return [`${file} is empty, so no source is registered: run flow install`];
+  const gone = listed.filter((p) => !fs.existsSync(p));
   if (gone.length) return gone.map((p) => `${file} names ${p}, which does not exist: run flow install`);
-  return [`${file} names ${paths.length} live source(s), so the command itself is missing from util's clone: run flow install`];
+  return [`${file} names ${listed.length} live source(s), so the command itself is missing from util's clone: run flow install`];
 }
 
 /**
