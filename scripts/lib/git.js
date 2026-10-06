@@ -16,6 +16,16 @@ const { spawnSync } = require('child_process');
 
 const DROPPED = ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE'];
 
+/**
+ * Put before a git call that writes objects Flow saves on its own: `add`,
+ * `commit`, `rebase`, `merge`. git's default syncs refs to disk but not loose
+ * objects, so a crash seconds after a save leaves a ref pointing at empty
+ * files, and every later git call in the repository fails on it. Passed per
+ * call, never written into the repository's config, so the user's own
+ * commits keep git's default.
+ */
+const DURABLE = ['-c', 'core.fsync=committed'];
+
 function environment(extra) {
   const env = { ...process.env, GIT_TERMINAL_PROMPT: '0' };
   for (const key of DROPPED) delete env[key];
@@ -51,4 +61,4 @@ function top(dir) {
   return found.ok ? found.out : null;
 }
 
-module.exports = { git, gh, top };
+module.exports = { git, gh, top, DURABLE };

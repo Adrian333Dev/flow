@@ -18,6 +18,7 @@ const { SCRATCH, project, setUp, write, run, flow } = require('./helpers/scratch
 const records = require('../lib/tickets/records');
 const place = require('../lib/tickets/records-place');
 const store = require('../lib/tickets/store');
+const failures = require('../lib/logs/failures');
 
 /** git in `dir`, with a name to commit under. Returns the trimmed output. */
 function git(dir, ...args) {
@@ -144,6 +145,44 @@ test('each command that changes a ticket commits it, and flow runs from inside .
   const inside = t.in(path.join(ana, '.flow', 'tickets'), 'exp-1');
   assert.strictEqual(inside.code, 0, inside.stderr);
   assert.match(inside.stdout, /^exp-1  Login page$/m);
+});
+
+test('a save syncs its objects to disk, so a crash right after it leaves no empty object', () => {
+  const t = team('records-fsync');
+  const ana = t.clone('ana');
+  t.init(ana, '--prefix', 'exp');
+  t.in(ana, 'new', 'Login page');
+
+  // A post-commit hook runs even under --no-verify, and sees the -c settings of the commit that ran it.
+  const seen = path.join(t.dir, 'fsync-seen');
+  const hook = path.join(ana, '.git', 'hooks', 'post-commit');
+  fs.writeFileSync(hook, `#!/bin/sh\ngit config --get core.fsync > '${seen}'\n`, { mode: 0o755 });
+  const moved = t.in(ana, 'groundwork', 'exp-1');
+  assert.strictEqual(moved.code, 0, moved.stderr);
+  assert.strictEqual(fs.readFileSync(seen, 'utf8').trim(), 'committed');
+  assert.ok(!git(ana, 'config', '--get', 'core.fsync').ok, 'the repository\'s own config is untouched');
+});
+
+test('a save git refuses says so, and stays an open issue until a save works', () => {
+  const t = team('records-unsaved');
+  const ana = t.clone('ana');
+  t.init(ana, '--prefix', 'exp');
+  t.in(ana, 'new', 'Login page');
+
+  // What a crash left behind: the branch pointing at a commit whose object never reached the disk.
+  const ref = path.join(ana, '.git', 'refs', 'heads', 'flow');
+  const good = fs.readFileSync(ref, 'utf8');
+  fs.writeFileSync(ref, `${'1'.repeat(40)}\n`);
+  const broken = t.in(ana, 'groundwork', 'exp-1');
+  assert.match(broken.stderr, /the tickets in .*\.flow were not saved: (fatal|error): /);
+  const job = `save ${path.resolve(ana)}`;
+  assert.ok(failures.open(t.home).some((issue) => issue.job === job), 'the failure log holds an open issue');
+
+  fs.writeFileSync(ref, good);
+  const fixed = t.in(ana, 'plan', 'exp-1');
+  assert.strictEqual(fixed.code, 0, fixed.stderr);
+  assert.doesNotMatch(fixed.stderr, /not saved/);
+  assert.ok(!failures.open(t.home).some((issue) => issue.job === job), 'the next save that works closes it');
 });
 
 test('flow init --private links .flow/ into the Flow home, hidden from git, and writes the rule files as the branch does', () => {

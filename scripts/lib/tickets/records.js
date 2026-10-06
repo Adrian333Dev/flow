@@ -44,7 +44,9 @@ const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 const store = require('./store');
-const { git } = require('../git');
+const paths = require('../paths');
+const failures = require('../logs/failures');
+const { git, DURABLE } = require('../git');
 
 const BRANCH = 'flow';
 const REMOTE = 'origin';
@@ -119,13 +121,31 @@ function locked(root, fn) {
 
 // ------------------------------------------------------------ saving
 
-/** Commit everything in `.flow/`. Returns true when there was something to commit. */
+/** The failure log's job for one project's saves: open while they fail, closed by the next that works. */
+const saveJob = (root) => `save ${path.resolve(root)}`;
+
+/** A save git refused: say why where someone may be reading, and open the issue. */
+function unsaved(root, err) {
+  const why = reason(err);
+  process.stderr.write(`flow: the tickets in ${recordsOf(root)} were not saved: ${why}\n`);
+  failures.record(paths.flowHome(), { source: 'records', what: saveJob(root), job: saveJob(root), error: why });
+  return false;
+}
+
+/**
+ * Commit everything in `.flow/`. Returns true when there was something to
+ * commit. Nothing to commit is silent; a commit git refuses is not.
+ */
 function commitNow(root, message) {
   const dir = recordsOf(root);
   // `.` keeps a linked project's commit to its own folder of the Flow home.
-  if (!git(dir, ['add', '-A', '--', '.']).ok) return false;
+  const staged = git(dir, [...DURABLE, 'add', '-A', '--', '.']);
+  if (!staged.ok) return unsaved(root, staged.err);
   if (git(dir, ['diff', '--cached', '--quiet']).ok) return false;
-  return git(dir, [...identity(dir), 'commit', '-q', '--no-verify', '-m', message]).ok;
+  const made = git(dir, [...DURABLE, ...identity(dir), 'commit', '-q', '--no-verify', '-m', message]);
+  if (!made.ok) return unsaved(root, made.err || made.out);
+  failures.cleared(paths.flowHome(), saveJob(root));
+  return true;
 }
 
 /** Commit the records. Nothing off the branch, or at home. */
@@ -150,7 +170,7 @@ function pullNow(root) {
     return { ok: false, offline: true, why: reason(fetched.err) };
   }
   const before = git(dir, ['rev-parse', 'HEAD']).out;
-  const replayed = git(dir, [...identity(dir), 'rebase', '-q', `${REMOTE}/${BRANCH}`]);
+  const replayed = git(dir, [...DURABLE, ...identity(dir), 'rebase', '-q', `${REMOTE}/${BRANCH}`]);
   if (!replayed.ok) {
     const clash = git(dir, ['diff', '--name-only', '--diff-filter=U']).out.split('\n').filter(Boolean);
     git(dir, ['rebase', '--abort']);

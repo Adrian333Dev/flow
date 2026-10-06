@@ -71,7 +71,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { FlowError } = require('../error');
-const { git, gh } = require('../git');
+const { git, gh, DURABLE } = require('../git');
 const tickets = require('../tickets/records');
 const version = require('./version');
 
@@ -359,10 +359,10 @@ function join(at) {
  * rebuilt computer joining again under its old name.
  */
 function commitAndPush(at, files, message) {
-  const staged = git(at.flow, ['add', ...files]);
+  const staged = git(at.flow, [...DURABLE, 'add', ...files]);
   if (!staged.ok) throw new FlowError(`could not stage ${at.flow}: ${staged.err}`);
   if (git(at.flow, ['diff', '--cached', '--quiet']).ok) return null;
-  const made = git(at.flow, [...identity(at), 'commit', '-q', '-m', message]);
+  const made = git(at.flow, [...DURABLE, ...identity(at), 'commit', '-q', '-m', message]);
   if (!made.ok) throw new FlowError(`could not commit ${at.flow}: ${made.err || made.out}`);
   const sent = git(at.flow, ['push', '-q', 'origin', 'main']);
   return sent.ok ? null : sent.err.split('\n')[0];
@@ -440,9 +440,9 @@ function sync(at, mine) {
   let sent = null;
   if (count) {
     sent = `${nameOf(at)}: ${count}`;
-    const staged = git(at.flow, ['add', '-A']);
+    const staged = git(at.flow, [...DURABLE, 'add', '-A']);
     if (!staged.ok) throw new FlowError(`could not stage ${at.flow}: ${staged.err}`);
-    const made = git(at.flow, [...identity(at), 'commit', '-q', '-m', sent]);
+    const made = git(at.flow, [...DURABLE, ...identity(at), 'commit', '-q', '-m', sent]);
     if (!made.ok) throw new FlowError(`could not commit ${at.flow}: ${made.err || made.out}`);
   }
 
@@ -453,7 +453,7 @@ function sync(at, mine) {
     came = git(at.flow, ['ls-tree', '-r', '--name-only', 'HEAD']).out.split('\n').filter(Boolean).length;
   } else if (remote) {
     const before = git(at.flow, ['rev-parse', 'HEAD']).out;
-    const merged = git(at.flow, [...identity(at), 'merge', '-q', '--no-edit', 'origin/main']);
+    const merged = git(at.flow, [...DURABLE, ...identity(at), 'merge', '-q', '--no-edit', 'origin/main']);
     if (!merged.ok) {
       const clash = git(at.flow, ['diff', '--name-only', '--diff-filter=U']).out.split('\n').filter(Boolean);
       git(at.flow, ['merge', '--abort']);
