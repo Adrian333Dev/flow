@@ -11,6 +11,7 @@
 - **`{takeovers}`**: one box per outside skill Flow can take over, saying whether it is on in every project or only in the projects that use it. None found → the whole section goes.
 - **`{left as they are}`**: plugins on in every project, and synced skills that stay, by name. None → the line goes.
 - **`{preferences}` and `{about you}`**: the harvest, one line each. Empty → the fence stays, empty.
+- **`{unread}`**: one line per source `flow survey` printed as `unread:`, saying in plain words what went unchecked and why. None → the whole section goes.
 - **`{action lines}`**: every line under `## Every file this changes`, in the order they run.
 
 ## The template
@@ -136,6 +137,12 @@ Left as they are: {left as they are}, such as: plugins, such as security-guidanc
 {about you}
 ```
 
+## What setup could not check
+
+Setup could not read each one below, so it stays exactly as it is.
+
+- {unread}, such as: whether each plugin is switched on. Claude Code's plugin list stopped with "not signed in".
+
 ## Every file this changes
 
 {action lines}
@@ -164,4 +171,4 @@ Left as they are: {left as they are}, such as: plugins, such as security-guidanc
 - move ~/.claude/skills/stripe-helper -> ~/.flow/private-skills/stripe-helper: a folder copied in by hand, switched on by each project that uses it
 ```
 
-A delete comes before the `skills add` that replaces it. A plugin's uninstall or disable comes after the `settings.json` write. An uninstall names the plugin's `installPath` from `claude plugin list --json` and its data folder, where one exists. A `run` line names every path its command writes, or ends `: writes nothing`.
+A delete comes before the `skills add` that replaces it. A plugin's uninstall or disable comes after the `settings.json` write. An uninstall names the plugin's folder, the `folder:` line `flow survey` prints under it, and its data folder, where one exists. A `run` line names every path its command writes, or ends `: writes nothing`.

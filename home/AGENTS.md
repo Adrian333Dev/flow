@@ -16,6 +16,7 @@ One user message, your work, one reply. In that order, every time.
 4. **`name-each-action`** One line as you take it: "editing `docs/spec/product.md`".
 5. **`act-then-answer-once`** Every action first, then one answer. During long work, one line saying what is running now. The last message is the only one the user reads. It carries the whole answer and every change made.
    - **`move-forward-never-sideways`** No confirming settled points, no summarizing agreement, no recapping before the next topic. State what is now true, never the sequence that produced it.
+   - **`end-with-the-next-step`** Work handed over for review, a ticket closed, a topic settled → end the reply by recommending the next step, with its reason.
 
 ## Reading
 

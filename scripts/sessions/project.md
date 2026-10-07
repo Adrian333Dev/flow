@@ -42,7 +42,7 @@ A message starting `Carry on` is the same job, stopped part way.
 - Read every rule file, at any depth: `CLAUDE.md`, `AGENTS.md`, `CLAUDE.local.md`, `.claude/rules/`, and the like.
 - Read every doc written for this project: specs, plans, decisions, work lists.
 - Leave documentation copied in from elsewhere unread, such as a library's own docs.
-- Run `claude plugin list --json` and `flow skills ls`: every plugin installed and every outside skill Flow holds, each with whether it is on here.
+- Run `flow survey --project <folder>`: the project's rule files, settings, skills, agents, commands, MCP servers and the plugins installed for it, then the problems it found. Run `flow survey` for the machine's plugins, each with whether it is on, and `flow skills ls` for every outside skill Flow holds. Take each list as the machine's setup does, by `## What to look at` in `machine.md` beside this file: look beyond it, and log what it missed.
 - Read the memory folder `run.json` names, where one exists. List the folders in `~/.claude/projects/` too: one whose project is gone from disk may be this project under an old name. List each one in the form, never read it.
 - Explore the code in its own right: the stack, how the pieces fit, the commands that build and test it. Skip what doesn't matter.
 - Use subagents where they help.
@@ -81,7 +81,7 @@ A message starting `Carry on` is the same job, stopped part way.
 - **Any other outside skill** → sorted by `~/.flow/references/knowledge.md` → `## An outside skill`, and added as that section says.
 - **The memory folder** → a box under `## 🔴 Removed unless you untick it`.
 
-**A plugin or an outside skill that is off here, and the project's code uses it** → a box under `## Switched on for this project`, naming what in the code uses it. Off here means a plugin row with `"scope": "user"` and `"enabled": false`, or a skill `flow skills ls` shows off. Used whole only: a skill waiting for a harvest stays off.
+**A plugin or an outside skill that is off here, and the project's code uses it** → a box under `## Switched on for this project`, naming what in the code uses it. Off here means a plugin `flow survey` shows `off`, or a skill `flow skills ls` shows off. Used whole only: a skill waiting for a harvest stays off.
 
 - **A plugin** → `"<id>": true` under `enabledPlugins` in `files/…/.claude/settings.json`.
 - **A skill** → a `run flow skills on <name>` line.

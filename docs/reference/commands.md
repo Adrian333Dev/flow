@@ -9,6 +9,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow init`](#flow-init): set up the project you are in
   - [`flow update`](#flow-update): get the newest Flow, and bring this computer and project up to date
   - [`flow doctor`](#flow-doctor): check that Flow is installed correctly
+  - [`flow survey`](#flow-survey): list everything Claude Code loads, and whether each is on
   - [`flow sync`](#flow-sync): back up your workflow and share it between your computers
   - [`flow store`](#flow-store): choose where a project's tickets are kept
 - [The board](#the-board): see all your tickets and what to work on next
@@ -122,6 +123,7 @@ fail  util:
         util fs tree does not run, and it is called by home/AGENTS.md, in tree-for-structure
         util fs open does not run, and it is called by flow get --files, through tickets.js
         /home/me/.util/sources does not exist, so no source is registered: run flow install
+ok    survey: 13 sources read, none of the problems flow survey names
 ok    ~/.agents: 12 skills linked under skills/flow/, 1 switched off, AGENTS.md present
 ok    ~/.claude: skills/flow, 1 agent, 1 rule, 1 command linked, CLAUDE.md imports the rules
 fail  settings.json:
@@ -131,11 +133,38 @@ ok    originals: 3 paths recorded before Flow, still open, and 1 project beside 
 note  originals: the machine's original is still open, so flow install has not run to the end. It closes the original on its way out
 ok    skills: 1 source cloned, 1 skill on everywhere, 1 more for shop
 
-3 of 14 checks failed.
+3 of 15 checks failed.
 ```
 
 - **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.287 or later. It works before Flow is installed.
 - **`--updates`**: also check whether a newer Flow is out. The one check that uses the network.
+
+### `flow survey`
+
+List everything Claude Code loads on this computer: rule files, skills, plugins, settings, agents, commands, and the folders util reads its commands from. Each item says whether it is on, and a plugin lists what it brings. The last group names what looks wrong, such as a plugin on disk that Claude Code doesn't list. It changes nothing, and works before setup has finished. Both setup sessions start from it, so it shows exactly what setup saw.
+
+```console
+$ flow survey
+skills (~/.claude/skills)
+  tdd        on    folder
+  grill-me   off   synced
+plugins
+  typescript-lsp@claude-plugins-official   on    user
+    folder: ~/.claude/plugins/cache/claude-plugins-official/typescript-lsp/1.0.0
+  engineering@synced                       off   synced
+    folder: ~/.claude/plugins/synced/account-1/engineering
+    skills: code-review, standup
+    mcp: github, linear
+util sources
+  ~/.flow/repos/util/commands
+  ~/code/util/commands
+problems
+  ~/.util/sources lists 2 clones of https://github.com/Adrian333Dev/util: ~/.flow/repos/util and ~/code/util
+```
+
+A source it cannot read prints `unread:` and why, and the rest still lists.
+
+- **`--project <folder>`**: list what loads in that project instead: its rule files, `.claude/` folder, MCP servers, and the plugins installed for it.
 
 ### `flow sync`
 

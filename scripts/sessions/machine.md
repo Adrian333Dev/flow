@@ -31,12 +31,19 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 
 ## What to look at
 
-The harness files name every path. Read `CLAUDE_CONFIG_DIR` before any of them. Look in this order:
+**Start from `flow survey`.** It lists every place Claude Code reads its setup from, each item with whether it is on, then `problems`: what it found wrong. Never run `claude plugin list` instead: in this safe-mode session it hides every synced plugin.
 
-1. **An older Flow**: any link into a Flow clone that `flow install` did not make just now, and any copy of a Flow rule file or skill. Each one is a `delete` line.
-2. **Rule files**: `~/.claude/CLAUDE.md` and every file it imports with `@`, `~/.claude/rules/`, `~/.agents/AGENTS.md`.
-3. **Skills, by all 4 routes**: a real folder in `~/.claude/skills/`, a link there into `~/.agents/skills/` (installed by `npx skills`, which names its repository in `~/.agents/.skill-lock.json`), the account-synced tree under `~/.claude/skills/synced/`, and plugins, listed by `claude plugin list --json`. The list includes plugins synced from the user's claude.ai account, as `<name>@synced`, which have no line in `installed_plugins.json`. A plugin's skills, hooks and agents sit in its `installPath`.
-4. **`~/.claude/settings.json`**, key by key, and `~/.claude/agents/`, `commands/` and `output-styles/`.
+Work through the survey's list in this order:
+
+1. **An older Flow**: each link under `older Flow`, and any copy of a Flow rule file or skill. Each one is a `delete` line.
+2. **Rule files**, each file one imports with `@` included.
+3. **Skills, agents, commands and plugins**: what a plugin brings sits indented under it, its folder first. A plugin synced from the claude.ai account shows as `<name>@synced`. A skill installed by `npx skills` names its repository.
+4. **Settings**, key by key, and the managed settings an organization pushed.
+5. **Problems**: each one gets its line in the form.
+
+**The list is where the survey starts, never where it stops.** Then look around the machine for anything the list leaves out, and for problems it never named. Each one found goes in the form like anything else. Each one also gets a line in the failure log, `~/.flow/logs/failures/<year>-<month>.jsonl`, so a ticket teaches the survey to see it: `{"at":"<time>","source":"agent","what":"flow survey","error":"missed <what it missed>","project":"~"}`.
+
+**A source printed `unread:` is never empty.** It goes in the form under `## What setup could not check`, and into the failure log the same way.
 
 Never open a project, or a project's memory under `~/.claude/projects/`. `flow init` reads those. Never open a transcript, a cache or the login.
 

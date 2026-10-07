@@ -128,6 +128,36 @@ function utilStub(dir, { works = true } = {}) {
 }
 
 /**
+ * A claude on PATH answering `--version` and `plugin list --json`, and
+ * failing everything else.
+ *
+ * `list` is what the list prints. `safe` is what it prints while
+ * CLAUDE_CODE_SAFE_MODE is set, as Claude Code 2.1.292 hides every synced
+ * plugin then. `fails` makes the list exit 1 saying it, as a signed-out
+ * Claude Code does. Each stub gets its own folder under `dir`, named by `name`.
+ */
+function claudeStub(dir, { list = [], safe = list, fails = null, name = 'claude-bin' } = {}) {
+  const bin = path.join(dir, name);
+  fs.mkdirSync(bin, { recursive: true });
+  fs.writeFileSync(path.join(bin, 'list.json'), JSON.stringify(list));
+  fs.writeFileSync(path.join(bin, 'list-safe.json'), JSON.stringify(safe));
+  const listing = fails
+    ? `echo ${JSON.stringify(fails)} >&2; exit 1`
+    : 'if [ -n "$CLAUDE_CODE_SAFE_MODE" ]; then cat "$here/list-safe.json"; else cat "$here/list.json"; fi; exit 0';
+  const file = path.join(bin, 'claude');
+  fs.writeFileSync(file, [
+    '#!/usr/bin/env bash',
+    'here="$(dirname "$0")"',
+    'if [ "$1" = "--version" ]; then echo "2.1.292 (Claude Code)"; exit 0; fi',
+    `if [ "$1 $2 $3" = "plugin list --json" ]; then ${listing}; fi`,
+    'exit 1',
+    '',
+  ].join('\n'));
+  fs.chmodSync(file, 0o755);
+  return bin;
+}
+
+/**
  * A git repository on disk holding `files`, `{ 'react/SKILL.md': text }`,
  * committed once. A test clones it through `FLOW_GIT_BASE` in place of GitHub.
  */
@@ -198,5 +228,5 @@ function flow(dir, args, extra = {}) {
 }
 
 module.exports = {
-  SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, utilStub, gitRepo, bareRepo, skillFile, pathWith, write, run, flow,
+  SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, utilStub, claudeStub, gitRepo, bareRepo, skillFile, pathWith, write, run, flow,
 };

@@ -32,6 +32,7 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { out } = require('../lib/cli');
+const { FlowError } = require('../lib/error');
 const failures = require('../lib/logs/failures');
 const installed = require('../lib/machine/installed');
 const { markdownFiles } = require('../lib/machine/links');
@@ -42,6 +43,7 @@ const prereq = require('../lib/machine/prereq');
 const { projectRoot } = require('../lib/project');
 const links = require('../lib/skills/skill-links');
 const skills = require('../lib/skills/skills');
+const survey = require('../lib/machine/survey');
 const version = require('../lib/machine/version');
 const paths = require('../lib/paths');
 const setup = require('../lib/setup');
@@ -204,6 +206,26 @@ function checkUtil() {
   if (problems.length) problems.push(...registryDiagnosis());
 
   return { name: 'util', problems, summary: `${UTIL_COMMANDS.map((c) => c.name).join(', ')} all run` };
+}
+
+/**
+ * The problems `flow survey` names: a source listed twice, 2 clones of one
+ * repository, the disk and Claude Code's plugin list disagreeing, a dead link,
+ * a settings file that is not JSON, a link an older Flow left. Here they
+ * surface on any day, not only at setup. Costs about a second, for the list.
+ */
+function checkSurvey(at) {
+  const name = 'survey';
+  let found;
+  try {
+    found = survey.machine(at);
+  } catch (e) {
+    if (e instanceof FlowError) return { name, problems: [e.message], summary: '' };
+    throw e;
+  }
+  const unread = found.groups.filter((g) => g.unread).map((g) => g.title);
+  const notes = unread.length ? [`could not read ${unread.join(', ')}: flow survey says why`] : [];
+  return { name, problems: found.problems, notes, summary: `${found.groups.length} sources read, none of the problems flow survey names` };
 }
 
 /**
@@ -790,6 +812,7 @@ actions.doctor = {
       prereq.checkClaude(),
       bin ? checkNames(clone, { bin }) : { name: 'names', skipped: '--no-bin' },
       checkUtil(),
+      checkSurvey(at),
       checkAgents(at, catalog),
       checkClaude(clone, at),
       checkSettings(clone, at.claude, catalog),

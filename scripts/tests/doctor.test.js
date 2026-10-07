@@ -16,7 +16,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { REPO, project, run, setupMachine, utilStub, pathWith, write, skillFile, bareRepo } = require('./helpers/scratch');
+const { REPO, project, run, setupMachine, utilStub, claudeStub, pathWith, write, skillFile, bareRepo } = require('./helpers/scratch');
 const version = require('../lib/machine/version');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
@@ -48,10 +48,17 @@ function machine(name) {
   return { dir, root, home, flowHome };
 }
 
-/** Doctor against a scratch machine, with a stub util in front of the real PATH. */
+/**
+ * Doctor against a scratch machine, with a stub util in front of the real PATH.
+ *
+ * A stub claude always goes in front too, listing the one plugin a fresh
+ * install puts on disk, Flow's own: the survey check asks it, and the real one
+ * would read a scratch Claude Code folder it never signed in to.
+ */
 function doctor(m, { bin, utilHome, inProject } = {}) {
   const env = { ...process.env };
-  if (bin) env.PATH = pathWith(bin);
+  const claude = claudeStub(m.dir, { list: [{ id: 'flow@skills-dir', scope: 'user', enabled: true }] });
+  env.PATH = pathWith(bin ? `${claude}${path.delimiter}${bin}` : claude);
   if (utilHome) env.UTIL_HOME = utilHome;
   // Without this, doctor runs in the scratch folder, which is no project, and
   // reports on the machine alone. Run from the clone, it would report on Flow's
@@ -69,6 +76,17 @@ test('a fresh install passes every check', () => {
   assert.match(report.stdout, /nothing to fix\./);
   assert.match(report.stdout, /util: fs tree, fs open all run/);
   assert.match(report.stdout, /21 hooks registered, every file they name on disk, sessions start in "default" mode/);
+});
+
+test("a problem the survey names fails doctor's survey check", () => {
+  const m = machine('doctor-survey');
+  const source = path.join(m.root, 'util', 'commands');
+  fs.mkdirSync(source, { recursive: true });
+  write(m.root, '.util/sources', `${source}\n${source}\n`);
+  const report = doctor(m, { bin: utilStub(m.dir) });
+
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /^fail {2}survey:\n {8}~\/\.util\/sources lists ~\/util\/commands twice$/m);
 });
 
 test('a machine with nothing installed says so once, rather than failing every check', () => {

@@ -41,8 +41,9 @@ Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build e
 - **The board**: `next`, `check`, `ls`, `tree`. Each answers a question about the work as a whole. `next` is the session opener: `/flow:start` runs it.
 - **One ticket**: `<id>`, `handoff`, `new`, `edit`, `file`, `drop`, `move`, and the status verbs. Each names a ticket and acts on it.
 - **A group**: `cases`, `skills`, `settings`, `audit`, `restore`. A different stored thing, carrying its own actions behind its own name.
-- **Setup**: `install`, `init`, `store`, `update`, `sync`, `doctor` and `uninstall`. Each sets up, checks or removes a machine or a project, never a ticket.
+- **Setup**: `install`, `init`, `store`, `update`, `sync`, `doctor`, `survey` and `uninstall`. Each sets up, checks or removes a machine or a project, never a ticket.
   - `install` writes outside any project, into `~/.agents`, `~/.claude`, `~/.flow` and `~/.local/bin`. `doctor` reads the same places back.
+  - `survey` lists every place Claude Code reads its setup from, Flow's or not. Both setup sessions start from it, and `doctor` reports its problems.
   - `install` runs before `flow` is a command at all. Typed by path, it makes the link that lets everything else be typed by name.
   - A setup session's steps are flags: `flow install --check` runs before the session's first change, and `flow install --finish` stamps the version at its end. `init` and `update` take the same 2.
 - **Rule checks**: `scorecard`. It reads `~/.flow/logs/scorecards/`, which the check hooks write, so it stands apart from `audit`, which reads the transcript index.
@@ -56,7 +57,7 @@ All of them share one flat namespace: a name is available once. Help prints them
 A command or a flag declared `hidden: true` runs like any other and never prints in `flow --help`. The user docs leave them out too. They exist for the agent and the tests:
 
 - **`flow handoff <id>`**: adds a line to the ticket's `history.md` saying this session handed the work on. `/flow:handoff` runs it after writing `## State`.
-- **`--root <dir>`**: stands in for `~`, so a command works on a pretend machine. Taken by `install`, `init`, `update`, `doctor`, `sync`, `store`, `uninstall` and every `restore` action. A setup session never opens under it: the command prints what it would hand over.
+- **`--root <dir>`**: stands in for `~`, so a command works on a pretend machine. Taken by `install`, `init`, `update`, `doctor`, `survey`, `sync`, `store`, `uninstall` and every `restore` action. A setup session never opens under it: the command prints what it would hand over.
 - **`install --no-bin`** and **`doctor --no-bin`**: skip `~/.local/bin`, so a test leaves the real `PATH` alone.
 - **`install --no-clone`**: skips cloning `util`, `toolbox` and `domain-skills`, so a test needs no network.
 - **`install --drafts`**: links the skills in `skills/drafts/` too, for trying one before it ships.
