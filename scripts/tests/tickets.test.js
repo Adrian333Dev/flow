@@ -64,6 +64,39 @@ test('flow new with --deps validates that each dep exists', () => {
   assert.match(bad.stderr, /exp-999/);
 });
 
+test('a deleted ticket keeps its number: the counter gives out the next one up', () => {
+  const dir = project('tickets-counter-delete');
+  flow(dir, ['new', 'First']);
+  flow(dir, ['new', 'Second']);
+  assert.strictEqual(fs.readFileSync(path.join(dir, '.flow', 'ticket-counter'), 'utf8'), '2\n');
+
+  fs.rmSync(path.dirname(ticketFile(dir, 'exp-2')), { recursive: true });
+  const r = flow(dir, ['new', 'Third']);
+  assert.strictEqual(r.code, 0, r.stderr);
+  assert.match(r.stdout, /^created exp-3 /m);
+});
+
+test('a ticket moved away keeps its number in the place it left', () => {
+  const dir = project('tickets-counter-move');
+  flow(dir, ['new', 'First']);
+  flow(dir, ['new', 'Second']);
+  const moved = flow(dir, ['move', 'exp-2', 'home']);
+  assert.strictEqual(moved.code, 0, moved.stderr);
+
+  assert.match(flow(dir, ['new', 'Third']).stdout, /^created exp-3 /m);
+  assert.strictEqual(fs.readFileSync(path.join(dir, 'flow-home', 'ticket-counter'), 'utf8'), '1\n');
+});
+
+test('a place with no counter starts from its highest ticket', () => {
+  const dir = project('tickets-counter-missing');
+  flow(dir, ['new', 'First']);
+  flow(dir, ['new', 'Second']);
+  fs.rmSync(path.join(dir, '.flow', 'ticket-counter'));
+
+  assert.match(flow(dir, ['new', 'Third']).stdout, /^created exp-3 /m);
+  assert.strictEqual(fs.readFileSync(path.join(dir, '.flow', 'ticket-counter'), 'utf8'), '3\n');
+});
+
 test('a folder offers its whole name as the prefix where it fits, else its first 3 letters', () => {
   const store = require('../lib/tickets/store');
   assert.strictEqual(store.offerWord('/code/shop'), 'shop');

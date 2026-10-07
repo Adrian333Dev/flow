@@ -48,6 +48,7 @@ Each status, and what moves a ticket into it:
 
 - `V1` **An id is a short word and a number**: `exp-47`. The word is `ticketPrefix` in the project's `.flow/settings.json`, 2 to 8 lowercase letters, asked once by `flow init`. The pattern is Backlog.md's, Linear's and Jira's.
 - `V1` **Tickets outside any project use `home`**, live in `~/.flow/tickets/`, and their ids work from anywhere: `home-4`.
+- `V1` **A number is never given out twice in one place.** `ticket-counter`, beside `version`, holds the highest number the place ever gave out, committed with its tickets. The next number is the higher of the counter and the highest ticket, plus 1. Ruled with the user 2026-10-07: numbering from the tickets on disk freed the number of a ticket deleted, moved away or taken back, and `fw-16` went to a second ticket.
 - `V1` **A bare number means the current place's ticket**: `12` inside the expense app is `exp-12`.
 - `V1` **`flow move <id> <home|folder>` renumbers into the target**, and the ticket keeps `was: exp-12`, so the old id still finds it. A link to a ticket staying behind refuses the move.
 

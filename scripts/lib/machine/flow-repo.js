@@ -453,9 +453,12 @@ function sync(at, mine) {
     came = git(at.flow, ['ls-tree', '-r', '--name-only', 'HEAD']).out.split('\n').filter(Boolean).length;
   } else if (remote) {
     const before = git(at.flow, ['rev-parse', 'HEAD']).out;
-    const merged = git(at.flow, [...DURABLE, ...identity(at), 'merge', '-q', '--no-edit', 'origin/main']);
+    let merged = git(at.flow, [...DURABLE, ...identity(at), 'merge', '-q', '--no-edit', 'origin/main']);
+    if (!merged.ok && tickets.keepHigherCounters(at.flow, tickets.conflicted(at.flow))) {
+      merged = git(at.flow, [...DURABLE, ...identity(at), 'commit', '-q', '--no-edit']);
+    }
     if (!merged.ok) {
-      const clash = git(at.flow, ['diff', '--name-only', '--diff-filter=U']).out.split('\n').filter(Boolean);
+      const clash = tickets.conflicted(at.flow);
       git(at.flow, ['merge', '--abort']);
       throw new FlowError(`another machine changed the same lines of ${clash.join(', ') || 'a file'}, so nothing came down ` +
         `and nothing went up. What this machine wrote is kept, committed in ${at.flow}. ` +

@@ -132,6 +132,24 @@ test('2 people taking one number in the same moment: the second is renumbered be
   assert.doesNotMatch(t.in(ben, 'exp-2').stdout, /^was:/m, 'nobody saw exp-1 on it');
 });
 
+test('2 people giving out different counts at once: the counter keeps the higher, and the second is renumbered', () => {
+  const t = team('records-counter-clash');
+  const ana = t.clone('ana');
+  t.init(ana, '--prefix', 'exp');
+  records.sync(ana);
+  const ben = t.clone('ben');
+  t.in(ben, 'init');
+
+  // Ben's counter goes to 1 while Ana's goes to 2: both changed its one line.
+  const mine = store.createTicket(ben, { title: 'Export csv' });
+  t.in(ana, 'new', 'Login page');
+  t.in(ana, 'new', 'Logout');
+  const claimed = records.claim(ben, mine.id);
+  assert.ok(claimed.ok, claimed.why);
+  assert.strictEqual(claimed.id, 'exp-3');
+  assert.strictEqual(fs.readFileSync(path.join(ben, '.flow', 'ticket-counter'), 'utf8'), '3\n');
+});
+
 test('each command that changes a ticket commits it, and flow runs from inside .flow/', () => {
   const t = team('records-commits');
   const ana = t.clone('ana');

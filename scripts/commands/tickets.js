@@ -687,7 +687,7 @@ actions.move = {
     const prefix = store.prefixOf(target);
     const renamed = new Map();
     for (const t of [...moving].sort((a, b) => store.idNumber(a.id) - store.idNumber(b.id))) {
-      const next = store.nextId([...there, ...[...renamed.values()].map((id) => ({ id }))], prefix);
+      const next = store.nextId([...there, ...[...renamed.values()].map((id) => ({ id }))], prefix, there.counter);
       renamed.set(t.id, next);
     }
 

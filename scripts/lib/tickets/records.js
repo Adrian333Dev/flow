@@ -170,11 +170,15 @@ function pullNow(root) {
     return { ok: false, offline: true, why: reason(fetched.err) };
   }
   const before = git(dir, ['rev-parse', 'HEAD']).out;
-  const replayed = git(dir, [...DURABLE, ...identity(dir), 'rebase', '-q', `${REMOTE}/${BRANCH}`]);
-  if (!replayed.ok) {
-    const clash = git(dir, ['diff', '--name-only', '--diff-filter=U']).out.split('\n').filter(Boolean);
-    git(dir, ['rebase', '--abort']);
-    return { ok: false, clash, why: `someone else changed the same lines of ${clash.join(', ') || 'a ticket'}` };
+  let replayed = git(dir, [...DURABLE, ...identity(dir), 'rebase', '-q', `${REMOTE}/${BRANCH}`]);
+  // The replay can stop once per commit, each time on the counter alone.
+  while (!replayed.ok) {
+    const clash = conflicted(dir);
+    if (!keepHigherCounters(dir, clash)) {
+      git(dir, ['rebase', '--abort']);
+      return { ok: false, clash, why: `someone else changed the same lines of ${clash.join(', ') || 'a ticket'}` };
+    }
+    replayed = git(dir, [...DURABLE, ...identity(dir), 'rebase', '--continue'], { env: { GIT_EDITOR: 'true' } });
   }
   const diff = git(dir, ['diff', '--name-only', before, 'HEAD']).out;
   return { ok: true, came: diff ? diff.split('\n').length : 0 };
@@ -278,6 +282,26 @@ function syncLater(root, flowHome) {
 
 // ------------------------------------------------------------ clashes
 
+/** The files a stopped rebase or merge left with both sides' lines in them. */
+const conflicted = (dir) => git(dir, ['diff', '--name-only', '--diff-filter=U']).out.split('\n').filter(Boolean);
+
+/**
+ * Settle a stopped rebase or merge whose only clashes are ticket counters,
+ * staging the higher number of the 2 sides in each. Both sides gave numbers
+ * out, so the higher covers both, and `renumber` then moves a ticket the 2
+ * sides both took. False, touching nothing, where any other file clashes.
+ * `dir` is the repository's top, where the clashing paths start.
+ */
+function keepHigherCounters(dir, clash) {
+  if (!clash.length || !clash.every((f) => path.basename(f) === store.COUNTER)) return false;
+  for (const f of clash) {
+    const side = (n) => parseInt(git(dir, ['show', `:${n}:${f}`]).out, 10) || 0;
+    fs.writeFileSync(path.join(dir, f), `${Math.max(side(2), side(3))}\n`);
+    if (!git(dir, ['add', '--', f]).ok) return false;
+  }
+  return true;
+}
+
 /**
  * 2 tickets holding one id after a pull: `store.renumber` gives every one the
  * remote lacks the next free number, and this commits the result.
@@ -337,5 +361,5 @@ function checkOut(root) {
 }
 
 module.exports = {
-  BRANCH, REMOTE, onBranch, linked, linkedAt, projectAt, commit, pull, sync, syncLater, claim, renumber, checkOut, canPush, remoteHasBranch, hasRemote,
+  BRANCH, REMOTE, onBranch, linked, linkedAt, projectAt, commit, pull, sync, syncLater, claim, renumber, conflicted, keepHigherCounters, checkOut, canPush, remoteHasBranch, hasRemote,
 };

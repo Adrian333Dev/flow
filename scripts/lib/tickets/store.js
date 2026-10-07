@@ -112,6 +112,32 @@ const ticketsDir = (root) => path.join(recordsDir(root), 'tickets');
 const archiveDir = (root) => path.join(recordsDir(root), 'tickets', ARCHIVE);
 
 /**
+ * The highest number this place ever gave out, committed with the tickets so
+ * every clone shares it. The tickets on disk cannot say it: a ticket deleted,
+ * moved away or taken back would free its number, and the next one would
+ * take it while old records still name the first.
+ */
+const COUNTER = 'ticket-counter';
+const counterFile = (root) => path.join(recordsDir(root), COUNTER);
+
+/** 0 where the file is missing or unreadable: the tickets on disk then decide alone. */
+function readCounter(root) {
+  try {
+    return parseInt(fs.readFileSync(counterFile(root), 'utf8'), 10) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Raises the counter to `id`'s number. It never goes down. */
+function countNumber(root, id) {
+  const n = idNumber(id);
+  if (n <= readCounter(root)) return;
+  fs.mkdirSync(recordsDir(root), { recursive: true });
+  fs.writeFileSync(counterFile(root), `${n}\n`);
+}
+
+/**
  * The word a folder name offers, before the user picks: its letters whole where
  * they fit a prefix, `my-app` → `myapp`, else the first 3, `expense-tracker` →
  * `exp`. Under 2 letters, `flow`.
@@ -258,6 +284,7 @@ function readTickets(root) {
   scanTicketDir(archiveDir(root), root, prefix, tickets);
   tickets.sort(byId);
   tickets.prefix = prefix;
+  tickets.counter = readCounter(root);
   return tickets;
 }
 
@@ -289,9 +316,12 @@ function scanTicketDir(dir, root, prefix, out) {
   }
 }
 
-/** The highest number in the place, plus 1. A ticket that moved away keeps no claim on its number. */
-function nextId(tickets, prefix = tickets.prefix) {
-  let max = 0;
+/**
+ * The higher of the counter and the highest ticket in the place, plus 1. A
+ * missing counter, or a ticket made by hand, can never send it backwards.
+ */
+function nextId(tickets, prefix = tickets.prefix, counter = tickets.counter || 0) {
+  let max = counter;
   for (const t of tickets) {
     if (wordOf(t.id) !== prefix) continue;
     max = Math.max(max, idNumber(t.id));
@@ -382,6 +412,7 @@ function move(t, target, id, renamed) {
   t.data.parent = renamed.get(t.data.parent) || t.data.parent;
   t.data.id = id;
   writeTicket(t);
+  countNumber(target, id);
 }
 
 /** Deletes a ticket's folder whole. Only a new ticket the remote never took goes this way. */
@@ -434,6 +465,7 @@ function renumber(root, onRemote, { keepWas = true } = {}) {
       renamed.push({ from: t.id, to });
       t.id = to;
       writeTicket(t);
+      countNumber(root, to);
     }
   }
   return renamed;
@@ -488,6 +520,7 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, 'ticket.md');
   fs.writeFileSync(file, frontmatter.stringify(data, TICKET_KEYS, body));
+  countNumber(root, id);
 
   // `groundwork/` exists from birth, always. You cannot know at the start
   // whether groundwork will split a ticket, so its location must never
@@ -616,7 +649,7 @@ module.exports = {
   TICKET_KEYS, TICKET_TYPES, TICKET_PRIORITIES, HOME_WORD,
   recordsDir, isHome, homeRoot, ticketsDir, archiveDir, offerWord, badWord, prefixOf, wordOf, idOfFolder,
   normalizeId, idNumber, requireId, slugify, labelize, labelOf, relabel, toIdList, toPriority, today, now,
-  readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,
+  COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,
   historyFile, appendHistory, readHistory,
   hasPlan, planSteps, hasMap, mapQuestions, reportFiles,
   renderTemplate, // cases.js borrows this, slugify and today; nothing else is shared

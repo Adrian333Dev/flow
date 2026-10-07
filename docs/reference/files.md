@@ -36,6 +36,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ version
 │  ├─ machines/<name>.json
 │  ├─ tickets/
+│  ├─ ticket-counter
 │  ├─ projects/<project>/         a project's tickets, kept privately
 │  ├─ workflow-notes.md
 │  ├─ study-cases/<issue>/
@@ -63,6 +64,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 ├─ .flow/
 │  ├─ tickets/<id>-<label>/
 │  ├─ tickets/archive/
+│  ├─ ticket-counter
 │  ├─ inbox.md
 │  ├─ findings/
 │  ├─ research/
@@ -116,6 +118,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 ### Tickets
 
 - **`tickets/`**: tickets that belong to no project, with ids starting `home-`, such as `home-4`. Same shape as a project's.
+- **`ticket-counter`**: the highest `home-` number ever given out, so a deleted or moved ticket's number never goes to a new one.
 - **`projects/<project>/`**: the tickets of a project kept privately, which the project's `.flow/` links to. `flow init --private` and `flow store private` make it.
 
 ### What sessions learn
@@ -176,6 +179,7 @@ The project's tickets and what sessions learn in it. It is the project's `flow` 
 
 - **`tickets/<id>-<label>/`**: one folder per ticket, such as `shop-7-safari-cookie/`. [Tickets](../tickets.md) shows what it holds.
 - **`tickets/archive/`**: finished and dropped tickets, moved here whole.
+- **`ticket-counter`**: the highest ticket number this project ever gave out, such as `75`, so a deleted or moved ticket's number never goes to a new one.
 - **`inbox.md`**: notes with no home yet. `/flow:file-findings` sorts them.
 - **`findings/`**: one file per lesson a session learned, waiting for `/flow:file-findings`.
 - **`research/`**: research reports true only for this project. `/flow:research` writes them.

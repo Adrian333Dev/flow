@@ -195,6 +195,33 @@ test('a project linked into the Flow home travels with it, and a number 2 machin
   assert.match(inApp(b, appB, ['exp-2']).stdout, /Export csv/);
 });
 
+test('2 machines giving out different counts: the counter keeps the higher, and the later ticket is renumbered past it', () => {
+  const remote = bareRepo('sync-counter');
+  const a = machine('sync-counter-a');
+  connect(a, remote);
+  repo.writeIgnore(a.at);
+  assert.strictEqual(sync(a).code, 0);
+  const b = machine('sync-counter-b');
+  connect(b, remote);
+  repo.inspect(b.at, NEWEST);
+  repo.join(b.at);
+  assert.strictEqual(sync(b).code, 0);
+
+  // a gives out home-1 and home-2 while b gives out home-1: both changed the counter's one line.
+  const inHome = (m, args) => run('flow.js', args, { cwd: m.dir, env: { ...process.env, FLOW_HOME: m.at.flow, FLOW_PROJECT: m.root } });
+  inHome(a, ['new', 'Export csv']);
+  inHome(a, ['new', 'Settings page']);
+  assert.strictEqual(sync(a).code, 0);
+  assert.match(inHome(b, ['new', 'Dark mode']).stdout, /created home-1/);
+
+  // The renumbering finds the home tickets through FLOW_HOME, which ~/.flow/ is by default.
+  const synced = run('flow.js', ['sync', '--root', b.root], { cwd: b.dir, env: { ...process.env, FLOW_HOME: b.at.flow, FLOW_PROJECT: b.dir } });
+  assert.strictEqual(synced.code, 0, synced.stderr);
+  assert.match(synced.stdout, /home-1 is now home-3: another machine took home-1 first\./);
+  assert.strictEqual(read(path.join(b.at.flow, 'ticket-counter')), '3\n');
+  assert.strictEqual(git(b.at.flow, ['status', '--porcelain']).out, '', 'no merge is left half done');
+});
+
 test('a machine behind another machine\'s record syncs nothing until it catches up', () => {
   const remote = bareRepo('sync-records');
   const a = machine('sync-ahead');
