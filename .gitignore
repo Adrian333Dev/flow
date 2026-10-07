@@ -1,6 +1,7 @@
 /tmp/
 /repos/
 /.vscode/
+*.code-workspace
 
 # Flow: .flow/ holds the tickets, checked out from the branch "flow", which
 # shares no history with the code. Every branch sees the same tickets, and

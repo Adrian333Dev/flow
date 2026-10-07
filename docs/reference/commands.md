@@ -64,7 +64,7 @@ Put Flow on this computer. It links Flow's skills, rules and scripts, downloads 
 $ flow install
 Flow is installed: 10 skills, each typed under the plugin name, as /flow:groundwork.
 wrote: ~/.flow/originals/machine, this machine as it was before Flow
-named: this machine is desktop-wsl
+named: this machine is pc-wsl
 started: your Flow home, sent up so your other machines join it
 Every line of the install is in ~/.flow/logs/install.log.
 ```
@@ -144,7 +144,7 @@ Back up your workflow and share it between your computers. It sends your Flow ho
 ```console
 $ flow sync
 nothing new came down.
-went up: desktop-wsl: 1 file
+went up: pc-wsl: 1 file
 shop's tickets: nothing new came down, 1 commit went up.
 ```
 

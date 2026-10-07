@@ -104,7 +104,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 - **`AGENTS.md`**: your rules. The setup session writes it from Flow's template and what it kept from your old rule files. After that it is yours, and sessions add what they learn about you.
 - **`settings.json`** and **`settings.local.json`**: Flow's settings. [Settings](settings.md) covers every key.
 - **`version`**: the newest Flow change this computer has applied. `flow` refuses to run while it is missing, since that means the install never finished.
-- **`machines/<name>.json`**: one record per computer sharing this Flow home, saying which version of Flow it is on: `{ "name": "laptop-mac", "joined": "2026-09-27", "flowVersion": 12 }`.
+- **`machines/<name>.json`**: one record per computer sharing this Flow home, saying which version of Flow it is on: `{ "name": "macbook-pro", "joined": "2026-09-27", "flowVersion": 12 }`.
 - **`README.md`** and **`.gitignore`**: a warning for anyone opening the repository on GitHub, and the list of what stays on this computer.
 
 ### Links into your clone

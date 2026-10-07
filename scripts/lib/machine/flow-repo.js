@@ -54,7 +54,7 @@
  * not run the migration another machine already ran on its own copy, so it
  * neither sends nor fetches until `flow update` brings it level.
  *
- * A commit is named for the machine that made it, `desktop: 2 files`, so a
+ * A commit is named for the machine that made it, `pc-wsl: 2 files`, so a
  * line in a note can be traced to where it was written.
  *
  * `README.md` warns whoever opens the repository on GitHub. The first machine

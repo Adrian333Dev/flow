@@ -26,8 +26,8 @@ Install Flow the same way as on the first: [Install](install.md). The install fi
 $ flow install
 Flow is installed: 10 skills, each typed under the plugin name, as /flow:groundwork.
 wrote: ~/.flow/originals/machine, this machine as it was before Flow
-named: this machine is laptop-mac
-joined: 11 files from desktop-wsl, your Flow home as your other machine last sent it
+named: this machine is macbook-pro
+joined: 11 files from pc-wsl, your Flow home as your other machine last sent it
 Every line of the install is in ~/.flow/logs/install.log.
 ```
 
@@ -40,7 +40,7 @@ Your rules and the skills you switched on everywhere arrive with it. For each pr
 ```console
 $ flow sync
 came down: 1 file
-went up: desktop-wsl: 1 file
+went up: pc-wsl: 1 file
 ```
 
 Inside a project with tickets on its `flow` branch, it syncs those too.
@@ -85,7 +85,7 @@ The old id still finds it. A ticket on a project's `flow` branch never clashes, 
 A computer on an older Flow syncs nothing, since a newer Flow may have changed the files it would download. A session there opens with:
 
 ```text
-Flow: desktop-wsl is on changelog entry 12, and this machine is on 11. Run flow update in a terminal.
+Flow: pc-wsl is on changelog entry 12, and this machine is on 11. Run flow update in a terminal.
 ```
 
 `flow update` brings it up, and the next `flow sync` merges both.

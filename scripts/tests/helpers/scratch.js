@@ -49,6 +49,12 @@ process.env.FLOW_HOME_REMOTE = process.env.FLOW_HOME_REMOTE || path.join(SCRATCH
 // one would write there. Set outright, since no test may reach the real one.
 process.env.CLAUDE_CONFIG_DIR = path.join(SCRATCH, 'claude-config');
 
+// git's global config, where `flow install` saves the machine's name. `--root`
+// moves it under the root, and this catches every run without one: a test
+// once left `flow.machine = test-machine` in the real ~/.gitconfig, and the
+// real install kept it without asking.
+process.env.GIT_CONFIG_GLOBAL = path.join(SCRATCH, 'gitconfig');
+
 // The name `flow install` offers a machine, fixed so no test asks the
 // hardware, and PowerShell under WSL, what sort of computer this is.
 process.env.FLOW_MACHINE_DEFAULT = process.env.FLOW_MACHINE_DEFAULT || 'test-machine';

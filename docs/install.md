@@ -29,7 +29,7 @@ The line downloads Flow into `~/.flow/repos/flow/` and runs `flow install`. Alre
 `flow install` then:
 
 1. **Signs `gh` in to GitHub**, with a token where the browser sign-in fails, as it often does on WSL.
-2. **Asks this computer's name**, such as `desktop-wsl`. Your other computers know it by this name.
+2. **Asks this computer's name**, such as `pc-wsl`. Your other computers know it by this name.
 3. **Connects your Flow home**, `~/.flow/`, where Flow keeps your rules, notes, settings and tickets. The first computer creates a private GitHub repository for it, `flow-home`, and the next ones download it: [Sync between computers](sync.md).
 4. **Saves a copy of every file it is about to change**, so [`flow restore`](#take-flow-off) can put it back.
 5. **Links Flow's skills, rules and scripts into place**: [Files](reference/files.md) lists them.
