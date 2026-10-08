@@ -54,6 +54,11 @@ test('in safe mode the machine still lists both synced plugins, switched off', (
   assert.deepStrictEqual(engineering.under, [
     'folder: ~/.claude/plugins/synced/account-1/engineering', 'skills: code-review, standup', 'mcp: github, linear',
   ]);
+  const productivity = plugins.items.find((i) => i.name === 'productivity@synced');
+  assert.ok(
+    productivity.under.includes('mcp: slack, notion, asana, linear, atlassian, monday, clickup, google-calendar, gmail, box'),
+    'every MCP server listed, past 8',
+  );
 });
 
 test('the machine lists no plugin installed for one project', () => {

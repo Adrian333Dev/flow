@@ -16,6 +16,7 @@ Your choices come first: {count} boxes and 2 text boxes. Everything under ✅ ha
 
 - [x] {competing}, such as: **tdd** skill: deleted. It plans and tests every change, which Flow's steps already do.
 - [x] {competing}, such as: **grill-me** skill, synced from your Claude account: switched off on this machine, still on at claude.ai. It interviews you with a list of questions, where Flow has Claude recommend an answer.
+- [x] {competing}, such as: **engineering** plugin, synced from your Claude account: switched off on this machine, still on at claude.ai. Its skills review code and debug, which Flow's own skills do. Its connections to outside services go with it: github, linear.
 
 ## ⏸️ Switched off: rarely used, and sent with every message
 
@@ -145,6 +146,7 @@ With every box ticked, in the order it runs. A copy of each path as it was goes 
 - `ln -sfn ~/.flow/CLAUDE.md ~/.claude/CLAUDE.md` writes `~/.claude/CLAUDE.md`: a link to Flow's rules, in place of the file there now
 - {commands}, such as: `claude plugin uninstall superpowers@claude-plugins-official` writes `~/.claude/settings.json`, `~/.claude/plugins/installed_plugins.json`
 - {commands}, such as: `claude plugin disable supabase@claude-plugins-official --scope user` writes `~/.claude/settings.json`
+- {commands}, such as: `claude plugin disable engineering@synced` writes `~/.claude/settings.json`
 - {commands}, such as: `flow skills add vercel-labs/skills` writes `~/.flow/settings.json`, `~/.flow/repos/sources/vercel-labs_skills`
 - {commands}, such as: `flow skills on find-skills --global` writes `~/.flow/settings.json`, `~/.claude/skills/find-skills`
 

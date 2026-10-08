@@ -83,7 +83,10 @@ function oldMachine(name) {
   write(account, 'manifest.json', JSON.stringify({ plugins: [{ name: 'engineering' }, { name: 'productivity' }] }));
   write(path.dirname(account), '.bucket-account-1', '');
   pluginFolder(path.join(account, 'engineering'), 'engineering', { skills: ['standup', 'code-review'], mcp: ['github', 'linear'] });
-  pluginFolder(path.join(account, 'productivity'), 'productivity', { skills: ['plan-day'] });
+  pluginFolder(path.join(account, 'productivity'), 'productivity', {
+    skills: ['plan-day'],
+    mcp: ['slack', 'notion', 'asana', 'linear', 'atlassian', 'monday', 'clickup', 'google-calendar', 'gmail', 'box'],
+  });
   const synced = ['engineering', 'productivity'].map((p) => ({ id: `${p}@synced`, scope: 'synced', enabled: false, installPath: path.join(account, p) }));
 
   // Rule files, a skill copied in by hand, a synced skill, the settings.

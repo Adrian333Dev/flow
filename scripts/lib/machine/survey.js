@@ -358,7 +358,8 @@ function carries(c, dir) {
   if (agents.length) under.push(`agents: ${names(agents)}`);
   if (commands.length) under.push(`commands: ${names(commands)}`);
   if (hooks.length) under.push(`hooks: ${names(hooks)}`);
-  if (mcp.length) under.push(`mcp: ${names(mcp)}`);
+  // Every server, never cut: the form names each one going with its plugin.
+  if (mcp.length) under.push(`mcp: ${mcp.join(', ')}`);
   return under;
 }
 

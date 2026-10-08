@@ -50,9 +50,9 @@ Never open a project, or a project's memory under `~/.claude/projects/`. `flow i
 
 ## What goes in the form
 
-**Copy the template whole, then fill its gaps.** Every fixed line stays word for word. Replace each line holding a `{…}` whole, with the lines it stands for, and never leave a `{…}` in the file. The text after `such as:` is one example, written for a machine with superpowers, the supabase plugin, a `tdd` skill, `grill-me` synced from a claude.ai account, `find-skills` from `npx skills` and a `stripe-helper` skill copied in by hand.
+**Copy the template whole, then fill its gaps.** Every fixed line stays word for word. Replace each line holding a `{…}` whole, with the lines it stands for, and never leave a `{…}` in the file. The text after `such as:` is one example, written for a machine with superpowers, the supabase plugin, a `tdd` skill, `grill-me` and the `engineering` plugin synced from a claude.ai account, `find-skills` from `npx skills` and a `stripe-helper` skill copied in by hand.
 
-**Every line takes one shape**: `- [x] **name** type: what happens to it. Why, in one sentence.` A settings key never appears on a line.
+**Every line takes one shape**: `- [x] **name** type: what happens to it. Why, in one sentence.` A settings key never appears on a line. A plugin's line ends by naming every MCP server on its `mcp:` line, as connections to outside services that go or stay with it.
 
 **A line appears only where saying go changes something.** 2 tests, by what the thing is:
 
@@ -64,7 +64,7 @@ A section left with no line goes, heading included. `## ✅ Set up with no choic
 ### What each `{…}` holds
 
 - **`{count}`**: the boxes left once the form is filled.
-- **`{competing}`**: one box per skill, rule file, hook or agent on ground Flow rules on, and per account-synced skill that fights Flow's rules. What it does, then what Flow does instead.
+- **`{competing}`**: one box per skill, plugin, rule file, hook or agent on ground Flow rules on, and per account-synced skill or plugin that fights Flow's rules. What it does, then what Flow does instead.
 - **`{switched off}`**: one box per plugin that stays and that only some projects use. What it knows.
 - **`{replaced}`**: one box per outside skill or plugin whose whole job Flow's own skills already do, such as `write-a-skill` and `improve-codebase-architecture`.
 - **`{takeovers}`**: one box per outside skill Flow takes over, saying whether it is on in every project or only in the projects that use it.
@@ -92,7 +92,7 @@ At go, the session records every path in it before its first change, so one path
 - **A plugin that stays, and only some projects use** (a framework, a service, a file format) → a box under `## ⏸️ Switched off, except in the projects that use it`, switched off by `claude plugin disable <id> --scope user`. `flow init` switches it on in each project that uses it.
 - **A plugin that stays, and every project uses**, or one already off for the whole machine → named under ✅ → **Left as they are**. So is a synced skill that stays.
 - **A hook of the user's own**, not from a plugin, goes through the same test. One that stays is written into `hooks` beside Flow's.
-- **An MCP server** stays, and is left out of the form.
+- **An MCP server outside any plugin** stays, and is left out of the form. One a plugin brings goes or stays with that plugin.
 
 **Taking over an outside skill** is `## Taken over by Flow`, for every skill that stays:
 
