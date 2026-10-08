@@ -118,7 +118,7 @@ test('2 machines send and merge their work, and the same lines changed on both s
   connect(a, remote);
   repo.writeIgnore(a.at);
   fs.writeFileSync(path.join(a.at.flow, 'workflow-notes.md'), 'from a\n');
-  fs.writeFileSync(path.join(a.at.flow, 'AGENTS.md'), 'rules\n');
+  fs.writeFileSync(path.join(a.at.flow, 'CLAUDE.md'), 'rules\n');
 
   const first = sync(a);
   assert.strictEqual(first.code, 0, first.stderr);
@@ -132,14 +132,14 @@ test('2 machines send and merge their work, and the same lines changed on both s
 
   // Different files on each side, then the same file at different lines.
   fs.appendFileSync(path.join(b.at.flow, 'workflow-notes.md'), 'from b\n');
-  fs.writeFileSync(path.join(a.at.flow, 'AGENTS.md'), 'rules, edited on a\n');
+  fs.writeFileSync(path.join(a.at.flow, 'CLAUDE.md'), 'rules, edited on a\n');
   assert.match(sync(b).stdout, /went up: sync-b: 1 file$/m);
   const merged = sync(a);
   assert.strictEqual(merged.code, 0, merged.stderr);
   assert.strictEqual(merged.stdout, 'came down: 1 file\nwent up: sync-a: 1 file\n');
   assert.strictEqual(read(path.join(a.at.flow, 'workflow-notes.md')), 'from a\nfrom b\n');
   assert.strictEqual(sync(b).stdout, 'came down: 1 file\nnothing changed here, so nothing went up.\n');
-  assert.strictEqual(read(path.join(b.at.flow, 'AGENTS.md')), 'rules, edited on a\n');
+  assert.strictEqual(read(path.join(b.at.flow, 'CLAUDE.md')), 'rules, edited on a\n');
 
   // The same lines on both sides: the merge is undone, and b keeps its line.
   fs.appendFileSync(path.join(a.at.flow, 'workflow-notes.md'), 'again from a\n');
@@ -262,7 +262,7 @@ test('a second machine joins through flow install, and a repository that is not 
   connect(a, remote);
   repo.writeIgnore(a.at);
   repo.writeRecord(a.at, NEWEST);
-  fs.writeFileSync(path.join(a.at.flow, 'AGENTS.md'), 'rules from the first machine\n');
+  fs.writeFileSync(path.join(a.at.flow, 'CLAUDE.md'), 'rules from the first machine\n');
   fs.mkdirSync(path.join(a.at.flow, 'study-cases', 'guessing'), { recursive: true });
   fs.writeFileSync(path.join(a.at.flow, 'study-cases', 'guessing', 'one.md'), 'a case\n');
   assert.strictEqual(sync(a).code, 0);
@@ -275,7 +275,7 @@ test('a second machine joins through flow install, and a repository that is not 
   assert.match(joined.stdout, /joined: 4 files from sync-first, your Flow home as your other machine last sent it/);
   assert.match(joined.stdout, /One step left: setting up this machine/, 'setup still runs, for this machine\'s own ~\/.claude');
   const home = path.join(root, '.flow');
-  assert.strictEqual(read(path.join(home, 'AGENTS.md')), 'rules from the first machine\n');
+  assert.strictEqual(read(path.join(home, 'CLAUDE.md')), 'rules from the first machine\n');
   assert.strictEqual(read(path.join(home, 'study-cases', 'guessing', 'one.md')), 'a case\n');
   assert.strictEqual(git(home, ['status', '--porcelain']).out, '', 'the ignore file matches the one that came down');
 
@@ -286,11 +286,11 @@ test('a second machine joins through flow install, and a repository that is not 
   const third = project('sync-third');
   const thirdRoot = path.join(third, 'root');
   fs.mkdirSync(path.join(thirdRoot, '.flow'), { recursive: true });
-  fs.writeFileSync(path.join(thirdRoot, '.flow', 'AGENTS.md'), 'rules of its own\n');
+  fs.writeFileSync(path.join(thirdRoot, '.flow', 'CLAUDE.md'), 'rules of its own\n');
   const blocked = flow(third, ['install', '--root', thirdRoot, '--no-bin', '--no-clone'], { FLOW_HOME_REMOTE: remote });
   assert.strictEqual(blocked.code, 1);
-  assert.match(blocked.stdout, /stopped: .*\.flow already holds AGENTS\.md, and your other machine's copies would go on top of them\./);
-  assert.strictEqual(read(path.join(thirdRoot, '.flow', 'AGENTS.md')), 'rules of its own\n');
+  assert.match(blocked.stdout, /stopped: .*\.flow already holds CLAUDE\.md, and your other machine's copies would go on top of them\./);
+  assert.strictEqual(read(path.join(thirdRoot, '.flow', 'CLAUDE.md')), 'rules of its own\n');
 
   // A repository of the user's that happens to carry the name.
   const other = bareRepo('sync-not-flow');

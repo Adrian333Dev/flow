@@ -58,7 +58,7 @@ function migration(root, where, text, files = {}, when = new Date()) {
 
 /** What a small machine holds before any migration. */
 function machine(root) {
-  write(root, '.agents/AGENTS.md', 'old rules\n');
+  write(root, '.claude/CLAUDE.md', 'old rules\n');
   write(root, '.claude/settings.json', '{"old": true}\n');
   write(root, '.claude/projects/-p/memory/a.md', 'memory a\n');
   write(root, '.claude/projects/-p/memory/b.md', 'memory b\n');
@@ -77,7 +77,7 @@ test('the first setup writes the original, and restoring it puts every path back
     '---', 'type: setup-machine', '---', '',
     '# The migration', '',
     'Prose between the lines is for the user and is never read.', '',
-    '- write ~/.agents/AGENTS.md: Flow\'s rules, your 2 sections kept',
+    '- write ~/.claude/CLAUDE.md: Flow\'s rules, your 2 sections kept',
     '- write `~/.claude/rules/`: a folder that did not exist',
     '- delete ~/.claude/projects/-p/memory/: 2 files, carried into the project',
     '- move ~/.claude/notes.md -> ~/.claude/archive/notes.md: out of the way',
@@ -85,7 +85,7 @@ test('the first setup writes the original, and restoring it puts every path back
     '- write ~/.local/bin/flow: the link, pointed at the new clone',
     '',
   ].join('\n'), {
-    [path.join(root, '.agents/AGENTS.md')]: 'new rules\n',
+    [path.join(root, '.claude/CLAUDE.md')]: 'new rules\n',
     [path.join(root, '.claude/rules/one.md')]: 'rule one\n',
   });
   const newLink = path.join(root, '.flow', 'migrations', id, 'files', root, '.local', 'bin', 'flow');
@@ -97,7 +97,7 @@ test('the first setup writes the original, and restoring it puts every path back
   assert.match(applied.stdout, /Put this machine back with flow restore machine$/m);
   const logged = JSON.parse(read(logs.historyFile(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([logged.type, logged.id, logged.lines], ['setup-machine', id, 6]);
-  assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
+  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'new rules\n');
   assert.strictEqual(read(path.join(root, '.claude/rules/one.md')), 'rule one\n');
   assert.ok(!exists(path.join(root, '.claude/projects/-p/memory')), 'the memory folder is gone');
   assert.strictEqual(read(path.join(root, '.claude/archive/notes.md')), 'notes\n');
@@ -107,7 +107,7 @@ test('the first setup writes the original, and restoring it puts every path back
   const manifest = original(root);
   assert.strictEqual(manifest.closed, true, 'a setup shuts the window on its way out');
   assert.deepStrictEqual(manifest.entries.map((e) => [path.relative(root, e.path), e.type]), [
-    ['.agents/AGENTS.md', 'file'],
+    ['.claude/CLAUDE.md', 'file'],
     ['.claude/rules', 'absent'],
     ['.claude/projects/-p/memory', 'folder'],
     ['.claude/notes.md', 'file'],
@@ -117,7 +117,7 @@ test('the first setup writes the original, and restoring it puts every path back
   ]);
   assert.strictEqual(manifest.entries[6].target, '/old/clone/flow.js', 'a link is a row, never a copy');
   const files = path.join(root, '.flow', 'originals', 'machine', 'files');
-  assert.strictEqual(read(path.join(files, root, '.agents/AGENTS.md')), 'old rules\n', 'the original holds only what was there before');
+  assert.strictEqual(read(path.join(files, root, '.claude/CLAUDE.md')), 'old rules\n', 'the original holds only what was there before');
 
   const again = applyAt(dir, root, id);
   assert.match(again.stderr, /is already applied/, 'an applied migration refuses a second apply');
@@ -132,7 +132,7 @@ test('the first setup writes the original, and restoring it puts every path back
   originals.restore(folders(root), null);
   const restored = JSON.parse(read(logs.historyFile(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([restored.type, restored.paths, restored.project], ['restore', 7, undefined]);
-  assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n');
+  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'old rules\n');
   assert.ok(!exists(path.join(root, '.claude/rules')), 'what the migration created is removed');
   assert.strictEqual(read(path.join(root, '.claude/projects/-p/memory/b.md')), 'memory b\n');
   assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n');
@@ -141,9 +141,9 @@ test('the first setup writes the original, and restoring it puts every path back
   assert.strictEqual(fs.readlinkSync(bin), '/old/clone/flow.js');
 
   // The original survives a restore, so the same restore runs again.
-  write(root, '.agents/AGENTS.md', 'changed after the restore\n');
+  write(root, '.claude/CLAUDE.md', 'changed after the restore\n');
   originals.restore(folders(root), null);
-  assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n', 'a second restore lands in the same state');
+  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'old rules\n', 'a second restore lands in the same state');
 });
 
 test('a migration with one bad line changes nothing', () => {
@@ -152,7 +152,7 @@ test('a migration with one bad line changes nothing', () => {
   machine(root);
   const attempt = (where, text, files) => applyAt(dir, root, migration(root, where, text, files));
 
-  const missing = attempt('no-new-file', '---\ntype: migrate\n---\n- delete ~/.claude/notes.md: x\n- write ~/.agents/AGENTS.md: x\n');
+  const missing = attempt('no-new-file', '---\ntype: migrate\n---\n- delete ~/.claude/notes.md: x\n- write ~/.claude/CLAUDE.md: x\n');
   assert.notStrictEqual(missing.code, 0);
   assert.match(missing.stderr, /files\/ does not hold/);
   assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n', 'the delete before it never ran');
@@ -184,14 +184,14 @@ test('a file changed after the migration was written refuses the whole migration
 
   const id = migration(root, 'machine', [
     '---', 'type: migrate', '---',
-    '- write ~/.agents/AGENTS.md: x',
+    '- write ~/.claude/CLAUDE.md: x',
     '- delete ~/.claude/projects/-p/memory/: x',
     '- move ~/.claude/notes.md -> ~/.claude/archive/notes.md: x',
     '- run true: writes ~/.claude/settings.json',
     '- write ~/.local/bin/flow: x',
     '',
   ].join('\n'), {
-    [path.join(root, '.agents/AGENTS.md')]: 'new rules\n',
+    [path.join(root, '.claude/CLAUDE.md')]: 'new rules\n',
     [path.join(root, '.local/bin/flow')]: 'a file this time\n',
   }, new Date(Date.now() - 60 * 60 * 1000));
 
@@ -201,12 +201,12 @@ test('a file changed after the migration was written refuses the whole migration
     .filter((l) => /^  [~/]/.test(l))
     .map((l) => path.relative(root, l.trim().replace(/^~/, os.homedir())));
   assert.deepStrictEqual(named, [
-    '.agents/AGENTS.md',
+    '.claude/CLAUDE.md',
     '.claude/projects/-p/memory/a.md',
     '.claude/projects/-p/memory/b.md',
   ], 'every file inside a folder counts; a move, a run and a link do not');
   assert.match(stale.stderr, /^apply-migration: 3 files changed after machine\/\S+ was written, so nothing ran:/);
-  assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n');
+  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'old rules\n');
   assert.ok(!exists(path.join(root, '.flow/originals')));
 });
 
@@ -320,10 +320,10 @@ test('a program Flow calls that is not on PATH stops the migration before anythi
 
   const id = migration(root, 'machine', [
     '---', 'type: setup-machine', '---', '',
-    '- write ~/.agents/AGENTS.md: the rules',
+    '- write ~/.claude/CLAUDE.md: the rules',
     '- delete ~/.claude/notes.md: out of the way',
     '',
-  ].join('\n'), { [path.join(root, '.agents/AGENTS.md')]: 'new rules\n' });
+  ].join('\n'), { [path.join(root, '.claude/CLAUDE.md')]: 'new rules\n' });
 
   // A PATH holding nothing, so node, git, claude and gh are all missing. The
   // script itself runs through the node that started the test.
@@ -332,12 +332,12 @@ test('a program Flow calls that is not on PATH stops the migration before anythi
   assert.match(refused.stderr, /4 prerequisites of Flow's are not met, so nothing ran:/);
   assert.match(refused.stderr, /git is not on PATH, and a project is found by asking git for its root/);
   assert.match(refused.stderr, /flow doctor --prereq checks the same list/);
-  assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'old rules\n', 'the write never happened');
+  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'old rules\n', 'the write never happened');
   assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n', 'and neither did the delete');
   assert.strictEqual(original(root), null, 'the original was never opened either');
 
   assert.strictEqual(applyAt(dir, root, id).code, 0, 'with the programs back, the same migration goes through');
-  assert.strictEqual(read(path.join(root, '.agents/AGENTS.md')), 'new rules\n');
+  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'new rules\n');
 });
 
 test('a restore plans every path first, and marks each one put back that changed since', () => {
