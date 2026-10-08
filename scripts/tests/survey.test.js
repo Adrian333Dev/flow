@@ -114,6 +114,52 @@ test("a project lists its own files: rules, skills, settings and MCP servers", (
   assert.deepStrictEqual(group(result, 'mcp servers').items, [{ name: 'supabase', scope: 'http' }]);
 });
 
+test("a project's AGENTS.md beside a CLAUDE.md is off, and one CLAUDE.md imports lists once", () => {
+  const m = oldMachine('survey-agents-md');
+  const { delapse, lumacraft_v2: lumacraft } = m.projects;
+  write(delapse, 'CLAUDE.md', 'Use pnpm.\n');
+  write(delapse, 'AGENTS.md', 'Use npm.\n');
+  write(lumacraft, 'CLAUDE.md', '@AGENTS.md\n');
+  write(lumacraft, 'AGENTS.md', 'Use pnpm.\n');
+
+  assert.deepStrictEqual(group(projectOf(m, delapse), 'rule files').items, [
+    { name: '~/code/projects/delapse/CLAUDE.md', scope: 'rule file' },
+    { name: '~/code/projects/delapse/AGENTS.md', state: 'off', scope: 'not read: ~/code/projects/delapse/CLAUDE.md is present' },
+  ]);
+  assert.deepStrictEqual(group(projectOf(m, lumacraft), 'rule files').items, [
+    { name: '~/code/projects/lumacraft_v2/CLAUDE.md', scope: 'rule file' },
+    { name: '~/code/projects/lumacraft_v2/AGENTS.md', scope: 'imported by ~/code/projects/lumacraft_v2/CLAUDE.md' },
+  ]);
+});
+
+test("a CLAUDE.md in a folder above turns a project's AGENTS.md off, and the setting turns it back on", () => {
+  const m = oldMachine('survey-agents-md-above');
+  const dir = m.projects.delapse;
+  write(dir, 'AGENTS.md', 'Use npm.\n');
+  assert.deepStrictEqual(group(projectOf(m, dir), 'rule files').items, [{ name: '~/code/projects/delapse/AGENTS.md', scope: 'rule file' }]);
+
+  write(path.dirname(dir), 'CLAUDE.md', 'Every project.\n');
+  assert.deepStrictEqual(group(projectOf(m, dir), 'rule files').items, [
+    { name: '~/code/projects/delapse/AGENTS.md', state: 'off', scope: 'not read: ~/code/projects/CLAUDE.md is present' },
+  ]);
+
+  const settings = path.join(paths.folders(m.root).claude, 'settings.json');
+  const config = { pluginConfigs: { 'agents-md@builtin': { options: { instructionFiles: 'claude-md-and-agents-md' } } } };
+  fs.writeFileSync(settings, JSON.stringify({ ...JSON.parse(fs.readFileSync(settings, 'utf8')), ...config }));
+  assert.deepStrictEqual(group(projectOf(m, dir), 'rule files').items, [{ name: '~/code/projects/delapse/AGENTS.md', scope: 'rule file' }]);
+});
+
+test('an MCP server the settings approve and .mcp.json does not define is a problem', () => {
+  const m = oldMachine('survey-stale-mcp');
+  const dir = m.projects.delapse;
+  write(dir, '.mcp.json', JSON.stringify({ mcpServers: { context7: { command: 'npx' }, supabase: { type: 'http', url: 'https://x' } } }));
+  write(dir, '.claude/settings.local.json', JSON.stringify({ enabledMcpjsonServers: ['context7', 'playwright', 'supabase'] }));
+  assert.deepStrictEqual(
+    projectOf(m, dir).problems.filter((p) => p.includes('.mcp.json')),
+    ['~/code/projects/delapse/.claude/settings.local.json names playwright in enabledMcpjsonServers, and .mcp.json does not define it'],
+  );
+});
+
 test('the machine lists rule files with their imports, skills, and settings key by key', () => {
   const m = oldMachine('survey-machine-files');
   const result = machineOf(m);

@@ -50,6 +50,7 @@ function context(at) {
   const scratch = path.resolve(at.base) !== os.homedir();
   return {
     at,
+    scratch,
     problems: [],
     show: (p) => (p === at.base || p.startsWith(at.base + path.sep) ? '~' + p.slice(at.base.length) : paths.shorten(p)),
     home: (p) => p.replace(/^~(?=\/|$)/, at.base).split('$HOME').join(at.base),
@@ -165,6 +166,84 @@ function ruleFile(c, file, items, seen, depth = 0, scope = 'rule file') {
   items.push({ name: c.show(file), scope: found.kind === 'link' ? `${scope}, link → ${c.show(found.target)}` : scope });
   if (depth >= 5) return;
   for (const next of imports(c, file, text)) ruleFile(c, next, items, seen, depth + 1, `imported by ${c.show(file)}`);
+}
+
+/** The files whose presence, in a project or a folder above it, stops a project's `AGENTS.md` loading by default. */
+const CLAUDE_FILES = ['CLAUDE.md', path.join('.claude', 'CLAUDE.md'), 'CLAUDE.local.md'];
+
+/**
+ * The **Project instructions** setting, which decides when a project's
+ * `AGENTS.md` loads. Claude Code reads it from managed settings and the user's
+ * settings alone, never a project's.
+ */
+function instructionFiles(c) {
+  const read = (file) => {
+    const value = readJson({ ...c, problems: [] }, file).value;
+    const config = value && value.pluginConfigs && value.pluginConfigs['agents-md@builtin'];
+    return config && config.options && config.options.instructionFiles;
+  };
+  return read(path.join(c.managed, 'managed-settings.json')) || read(path.join(c.at.claude, 'settings.json')) || 'claude-md-or-agents-md';
+}
+
+/**
+ * The first `CLAUDE_FILES` entry in a project or a folder above it. The
+ * user's own `~/.claude/CLAUDE.md` never counts, though the walk passes it.
+ * Under `--root` the walk stops at the scratch machine: `tmp/tests/` sits
+ * inside Flow's own repository, whose `CLAUDE.md` would count.
+ */
+function claudeFileAbove(c, dir) {
+  const top = c.scratch ? path.resolve(c.at.base) : path.parse(dir).root;
+  const user = new Set([path.join(c.at.claude, 'CLAUDE.md'), path.join(c.at.base, '.claude', 'CLAUDE.md')]);
+  for (let d = dir; ; d = path.dirname(d)) {
+    for (const name of CLAUDE_FILES) {
+      const file = path.join(d, name);
+      if (!user.has(file) && isFile(file)) return file;
+    }
+    if (d === top || d === path.dirname(d)) return null;
+  }
+}
+
+/**
+ * A project's rule files, each with whether it loads. `AGENTS.md` loads only
+ * where no `CLAUDE_FILES` entry sits in the project or above it, unless the
+ * setting says otherwise, so one beside a `CLAUDE.md` prints off: its lines
+ * have never reached Claude, and a setup merging both files must know it.
+ * An `AGENTS.md` that `CLAUDE.md` imports lists once, as imported.
+ */
+function projectRules(c, dir) {
+  const setting = instructionFiles(c);
+  const rules = [];
+  const seen = new Set();
+  for (const name of CLAUDE_FILES) ruleFile(c, path.join(dir, name), rules, seen);
+  const blocker = setting === 'claude-md-or-agents-md' && claudeFileAbove(c, dir);
+  const skipped = setting === 'claude-md' ? 'Project instructions is claude-md' : blocker ? `${c.show(blocker)} is present` : null;
+  for (const name of ['AGENTS.md', path.join('.claude', 'AGENTS.md')]) {
+    const file = path.join(dir, name);
+    if (!skipped || seen.has(file) || !isFile(file)) ruleFile(c, file, rules, seen);
+    else rules.push({ name: c.show(file), state: 'off', scope: `not read: ${skipped}` });
+  }
+  rules.push(...ruleFolder(c, path.join(dir, '.claude', 'rules')).map((i) => ({ ...i, name: `.claude/rules/${i.name}` })));
+  if (setting !== 'managed-only') return rules;
+  return rules.map((r) => (r.state ? r : { ...r, state: 'off', scope: 'not read: Project instructions is managed-only' }));
+}
+
+/**
+ * Every name the project's settings approve or refuse in `.mcp.json` that the
+ * file does not define. Names alone: whether a server is on stays Claude Code's rule.
+ */
+function staleMcpApprovals(c, dir) {
+  const read = readJson({ ...c, problems: [] }, path.join(dir, '.mcp.json'));
+  if (read.unread) return;
+  const defined = new Set(Object.keys((read.value && (read.value.mcpServers || read.value)) || {}));
+  for (const name of ['settings.json', 'settings.local.json']) {
+    const file = path.join(dir, '.claude', name);
+    const settings = readJson({ ...c, problems: [] }, file).value || {};
+    for (const key of ['enabledMcpjsonServers', 'disabledMcpjsonServers']) {
+      for (const server of Array.isArray(settings[key]) ? settings[key] : []) {
+        if (!defined.has(server)) c.problems.push(`${c.show(file)} names ${server} in ${key}, and .mcp.json does not define it`);
+      }
+    }
+  }
 }
 
 /** Every `*.md` under a rules folder, at any depth. */
@@ -597,11 +676,8 @@ function project(at, folder) {
   const shared = readJson({ ...c, problems: [] }, path.join(claude, 'settings.json')).value || {};
   const overrides = { ...shared.skillOverrides, ...local.skillOverrides };
 
-  const rules = [];
-  const seen = new Set();
-  for (const name of ['CLAUDE.md', 'CLAUDE.local.md', 'AGENTS.md']) ruleFile(c, path.join(dir, name), rules, seen);
-  rules.push(...ruleFolder(c, path.join(claude, 'rules')).map((i) => ({ ...i, name: `.claude/rules/${i.name}` })));
-
+  const rules = projectRules(c, dir);
+  staleMcpApprovals(c, dir);
   const sub = (name) => ({ title: `${name} (${c.show(path.join(claude, name))})`, ...folderItems(c, path.join(claude, name)) });
 
   const groups = [
