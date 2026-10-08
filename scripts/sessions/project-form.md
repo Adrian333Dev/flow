@@ -18,7 +18,7 @@
 - **`{kept}`**: what stays, by name. None → the line goes.
 - **`{your rules}`**: the new lines for `~/.flow/CLAUDE.md`. None → the whole section goes.
 - **`{unread}`**: one line per source `flow survey` printed as `unread:`, saying in plain words what went unchecked and why. None → the whole section goes.
-- **`{action lines}`**: every line under `## Every file this changes`, in the order they run.
+- **`{file list}`**: every path saying go changes, ticked or not, grouped and shaped by `## The file list` below.
 
 ## The template
 
@@ -88,31 +88,37 @@ Setup could not read each one below, so it stays exactly as it is.
 
 ## Every file this changes
 
-{action lines}
+{file list}
 
 ~/.flow/originals/{place}/ keeps a copy of every file above outside ~/.flow/ as it was, so `flow restore project` can put this project back. .flow/version is stamped once the check at the end passes.
 ````
 
-## The action lines
+## The file list
 
-`~/.flow/scripts/apply-migration.js` acts on every line opening `- write `, `- delete `, `- move ` or `- run `, anywhere in the file, so no other line may open with one of those 4 words. One path per line. A path with no `~` sits inside the project. Everything after `: ` is for the user.
+At go, the session records every path in it before its first change, so one path left out is a file `flow restore` cannot bring back. Each path sits in backticks, and a path with no `~` sits inside the project. A command's line names the command, then every path it writes, or `writes nothing`. `.flow/settings.json` is written before any `flow` command runs.
 
 ```markdown
-- write CLAUDE.md: the project's rules, in place of what it holds now
-- delete AGENTS.md: its rules moved into CLAUDE.md
-- write .claude/settings.json: superpowers switched off, supabase switched on, the lint hook removed
-- delete .claude/skills/tdd: a skill ticked above
-- write .gitignore: Flow's lines added to yours
-- write .uncommitted-include: gitignored files that travel between your machines
-- write .flow/settings.json: the ticket prefix flow init chose
-- write .flow/tickets: 14 tickets
-- write .flow/inbox.md: 3 ideas
-- write .flow/findings: 2 lessons
-- write docs/context: 4 facts
-- run flow skills on remotion: writes .flow/settings.json, .claude/skills/remotion
-- run flow skills on stripe-helper: writes .flow/settings.json, .claude/skills/stripe-helper
-- write ~/.flow/CLAUDE.md: your new rules
-- delete ~/.claude/projects/-home-me-code-projects-delapse/memory: sorted above
-```
+**➕ Written**
 
-`.flow/settings.json` comes before any `flow` command. A `run` line names every path its command writes, or ends `: writes nothing`.
+- `CLAUDE.md`: the project's rules, in place of what it holds now
+- `.claude/settings.json`: superpowers switched off, supabase switched on, the lint hook removed
+- `.gitignore`: Flow's lines added to yours
+- `.uncommitted-include`: gitignored files that travel between your machines
+- `.flow/settings.json`: the ticket prefix flow init chose
+- `.flow/tickets`: 14 tickets
+- `.flow/inbox.md`: 3 ideas
+- `.flow/findings`: 2 lessons
+- `docs/context`: 4 facts
+- `~/.flow/CLAUDE.md`: your new rules
+
+**➖ Deleted**
+
+- `AGENTS.md`: its rules moved into CLAUDE.md
+- `.claude/skills/tdd`: a skill ticked above
+- `~/.claude/projects/-home-me-code-projects-delapse/memory`: sorted above
+
+**▶️ Commands**
+
+- `flow skills on remotion` writes `.flow/settings.json`, `.claude/skills/remotion`
+- `flow skills on stripe-helper` writes `.flow/settings.json`, `.claude/skills/stripe-helper`
+```

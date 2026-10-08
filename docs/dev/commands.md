@@ -63,7 +63,7 @@ A command or a flag declared `hidden: true` runs like any other and never prints
 - **`install --drafts`**: links the skills in `skills/drafts/` too, for trying one before it ships.
 - **`doctor --tests`**: runs both test suites as well, which takes about 14 seconds.
 
-**A migration has no `flow` command.** `~/.flow/scripts/apply-migration.js <folder>` carries one out, run by the setup or update session that wrote it. A command on `PATH` can be typed by accident weeks after the migration was written.
+**Recording the originals has no `flow` command.** `~/.flow/scripts/record-originals.js <path>...` copies each path into the place's original, run by a setup session before its first change, and refused outside a setup. A command on `PATH` can be typed by accident weeks after the setup.
 
 ## The actions
 

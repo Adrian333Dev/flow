@@ -16,15 +16,16 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, `home/CLAUDE.md`, `home/settings.json`, and the form's template, `~/.flow/scripts/sessions/form.md`.
 2. **Survey the machine.** `## What to look at` below. Read every rule file whole. For a skill, an agent or a command, read its `description` first, and open the body only where the description leaves the competitor test open.
 3. **Sort what you found.** `## The competitor test` and `## Harvesting` below.
-4. **Write the migration** into `~/.flow/migrations/<migration>/`, the folder `run.json` names as `migration`: `migration.md` by the form's template, and under `files/` the new version of every path a `write` line names, at `files/<full path>`. `## The files it writes` below.
+4. **Write the migration** into `~/.flow/migrations/<migration>/`, the folder `run.json` names as `migration`: `migration.md` by the form's template, and under `files/` the new version of every file it writes, at `files/<full path>`. `## The files it writes` below.
 5. **Hand over the form.** One message: the full path of `migration.md`, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop. A `migration.md` that already exists is never rewritten: a request to save it copies it to `migration.original.md` beside it first.
-6. **Take the answer.** Read `migration.md` again. The file wins over anything said in chat.
+6. **Take the answer.** Read `migration.md` again, against the form as you wrote it. The file wins over anything said in chat.
+   - A line changed beyond its box mark or a text box, or deleted → name the line, ask what the user meant, and wait. Nothing changes before they answer.
    - Nothing changed → step 7.
    - Something changed → `## The second check` below, then wait for go.
-7. **Carry the form into the files.** `## After the yes` below.
-8. **Apply it**: `node ~/.flow/scripts/apply-migration.js machine/<folder>`. A refusal → print it whole and stop. It stopped part way → say which line and why, and stop: running it again carries on from that line.
+7. **Record the originals**: `node ~/.flow/scripts/record-originals.js <path>...`, naming every path under `## Every file this changes`, ticked or not. A refusal → print it whole and stop: nothing has changed yet.
+8. **Make the changes.** `## After the yes` below.
 9. **Check it**: `flow doctor`.
-   - A problem that says to run `flow install` means this run left something undone. Fix it with a second migration in a new folder, shown to the user the same way, then check again.
+   - A problem that says to run `flow install` means this run left something undone. Fix it with a second form in a new folder, shown to the user the same way: on go, record its file list, make its changes, then check again.
    - Any other problem → name it, with the fix doctor gives, in the last message. It never holds back the stamp.
 10. **Stamp it**: `flow install --finish`.
 11. **The last message**: what changed, in the form's own words; the 2 commands that undo it, `flow restore machine` for the whole setup and `flow uninstall` for all of Flow; then "Quit this session and start `claude` again: Flow's rules and hooks load when a session starts."
@@ -35,7 +36,7 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 
 Work through the survey's list in this order:
 
-1. **An older Flow**: each link under `older Flow`, and any copy of a Flow rule file or skill. Each one is a `delete` line.
+1. **An older Flow**: each link under `older Flow`, and any copy of a Flow rule file or skill. Each one is deleted.
 2. **Rule files**, each file one imports with `@` included.
 3. **Skills, agents, commands and plugins**: what a plugin brings sits indented under it, its folder first. A plugin synced from the claude.ai account shows as `<name>@synced`. A skill installed by `npx skills` names its repository.
 4. **Settings**, key by key, and the managed settings an organization pushed.
@@ -73,7 +74,7 @@ A section left with no line goes, heading included. `## Flow's skills` always st
 
 **Taking over an outside skill** is its own section of the form, for every skill that stays:
 
-- **Installed by `npx skills`** → Flow's `flow skills add <owner/repo>`, then `flow skills on <name> --global`, the repository read from `~/.agents/.skill-lock.json`. Its lines: delete both copies, run both commands, then write the lock file with that entry removed. Only taken-over entries leave the lock file.
+- **Installed by `npx skills`** → Flow's `flow skills add <owner/repo>`, then `flow skills on <name> --global`, the repository read from `~/.agents/.skill-lock.json`. Its changes: delete both copies, run both commands, then write the lock file with that entry removed. Only taken-over entries leave the lock file.
 - **A real folder copied in by hand** → moved into `~/.flow/private-skills/<name>/`, then `flow skills on <name> --global`.
 
 Each line says whether the skill is used whole or harvested, sorted by `~/.flow/references/knowledge.md` → `## An outside skill`. A harvested one is added alone, with no `flow skills on`. So is one used whole that only some projects use: its line says `flow init` switches it on in each project that uses it.
@@ -91,14 +92,14 @@ Anything else is dropped too. Both boxes start empty, and most machines leave `#
 ## The files it writes
 
 - **`~/.flow/CLAUDE.md`**: `home/CLAUDE.md`, with `## Preferences` and `## The user` holding the 2 boxes.
-- **`~/.claude/CLAUDE.md`**: a link to `~/.flow/CLAUDE.md`, made by a `run` line when the migration applies, in place of what it holds now. Never in `files/`.
+- **`~/.claude/CLAUDE.md`**: a link to `~/.flow/CLAUDE.md`, made at go with `ln -sfn ~/.flow/CLAUDE.md ~/.claude/CLAUDE.md`, in place of what it holds now. Never in `files/`.
 - **`~/.claude/settings.json`**: the machine's file, with Flow's keys applied:
   - `hooks`: `home/settings.json`'s, plus each hook of the user's that stayed.
   - `permissions`: the machine's `allow` and `deny` with the template's added, and the template's `defaultMode` and `disableBypassPermissionsMode`.
   - `statusLine`: the template's only where the machine has none. A status line of the user's own stays.
   - Every other key in `home/settings.json`: the template's value.
   - `skillOverrides`: `"off"` for each synced skill ticked.
-  - `enabledPlugins`: left for `claude plugin uninstall` and `claude plugin disable` to change. Their `run` lines come after this file's `write` line.
+  - `enabledPlugins`: left for `claude plugin uninstall` and `claude plugin disable` to change. Both run after this file is copied in.
   - Every key the template does not name stays exactly as it is.
 - **`~/.agents/.skill-lock.json`**, where a takeover changes it.
 
@@ -110,11 +111,11 @@ Build JSON with `node`, never by hand. A settings file that does not parse, or a
 
 - **The boxes start with those 2 sections**: `## Preferences` in `### Your preferences`, `## The user` in `### About you`. A harvested line joins a box only where it says something the arrived text does not.
 - **`files/…/.flow/CLAUDE.md`**: `home/CLAUDE.md` with the 2 sections from the boxes, as on any machine.
-- **A skill copied in by hand whose name is already in `~/.flow/private-skills/`** is the same skill. Its lines: delete the copy, then the `flow skills on` line any takeover gets. No move.
+- **A skill copied in by hand whose name is already in `~/.flow/private-skills/`** is the same skill. Its changes: delete the copy, then the `flow skills on` any takeover gets. No move.
 
 ## The second check
 
-One message, covering every change the user made. Each untick, a deleted line counting as unticked, and each edited box:
+One message, covering every change the user made. Each untick and each edited box:
 
 - Each untick: what it costs, in one line.
 - Each edited box: your short version of the new text.
@@ -124,10 +125,18 @@ There is no third check. The next go runs step 7.
 
 ## After the yes
 
-Each unticked line means Flow leaves that thing exactly as the machine has it:
+Each unticked line means Flow leaves that thing exactly as the machine has it. First carry the form into `files/`:
 
-- **A key or a `deny` rule** → take it out of `files/…/settings.json`. Where the machine had its own value, keep that value.
-- **A skill, a rule file, a hook or a plugin** → drop its `delete` or `run` line, or keep the hook in `hooks`.
-- **A takeover** → drop all of its lines.
+- **A key or a `deny` rule** unticked → take it out of `files/…/settings.json`. Where the machine had its own value, keep that value.
+- **A hook** unticked → keep it in `hooks`.
+- **Each box's text** → the 2 sections of `files/…/.flow/CLAUDE.md`.
 
-Write each box's text into the 2 sections of `files/…/.flow/CLAUDE.md`. Every `write` line still needs its file under `files/`, and every `delete` line still needs to name a path.
+Then make each change, in the order of the file list:
+
+- **A file with a new version under `files/`** → copy it into place. A real file newer than its new version changed after you built that version, which `[ <path> -nt files/<path> ]` tells: build the new version again from the file as it is now, and name it in the last message.
+- **A path deleted** → `rm -rf`, unless its line is unticked.
+- **A command** → run it, unless its line is unticked. A takeover unticked runs none of its commands and deletes nothing.
+- **A file Claude Code rewrites itself**, such as `~/.claude.json` → only through Claude Code's own command, such as `claude plugin uninstall`, never an edit.
+- **A path the file list leaves out** → never touched.
+
+A change that fails → say which and why, and stop. A run carried on checks each change against the disk, and makes only the ones not made yet.

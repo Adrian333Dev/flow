@@ -47,7 +47,8 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`one-source-two-ways`** Every shipped script lives once, in `scripts/`. `lab/scripts/` holds the ones that serve this repo alone. Never copy a file.
 - **`path-commands-are-bare`** `flow next`, `util fs tree docs`. Everything else as `~/.flow/scripts/<file.ext>`.
 - **`bash-or-node-by-job`** Bash where the script wraps another command. Node where there is real logic.
-- **`type-never-kind`** A field saying what sort of thing a record is gets called `type`.
+- **`standard-terminology`** Name anything, a field, a function, a variable, a class or a command, with the word most codebases already use for it: `type`, never `kind`, and `action`, never `verb`. Invent a term only where no standard one exists. A reader knows a standard name on sight, and has to learn an invented one.
+- **`no-sandbox-runs`** Never propose `lab/scripts/try.sh` or a sandbox run, in a plan, a check or a `## Done when`. The user ruled it an unneeded complication, said twice, the second time after a run they started on my suggestion.
 - **`no-skill-under-lab`** Flow's own skills live in `skills/`. A skill from another repository lives in that repository. Never let a `lab/` path leak into a skill, `home/` or `project-template/`.
 - **`read-repos-with-cat`** `repos/` holds other people's clones. Read them with `cat`, never `Read`, and never edit them.
 - **`home-files-exist-twice`** `home/CLAUDE.md` is the public template, and `~/.flow/CLAUDE.md` is the personalized copy. Never write personal content into this repo. Carry a rule worth shipping across by hand.

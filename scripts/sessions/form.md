@@ -12,7 +12,7 @@
 - **`{left as they are}`**: plugins on in every project, and synced skills that stay, by name. None → the line goes.
 - **`{preferences}` and `{about you}`**: the harvest, one line each. Empty → the fence stays, empty.
 - **`{unread}`**: one line per source `flow survey` printed as `unread:`, saying in plain words what went unchecked and why. None → the whole section goes.
-- **`{action lines}`**: every line under `## Every file this changes`, in the order they run.
+- **`{file list}`**: every path saying go changes, ticked or not, grouped and shaped by `## The file list` below.
 
 ## The template
 
@@ -145,29 +145,37 @@ Setup could not read each one below, so it stays exactly as it is.
 
 ## Every file this changes
 
-{action lines}
+{file list}
 
 ~/.flow/version is stamped once the check at the end passes. ~/.flow/originals/machine/ keeps a copy of every file above as it was, so `flow restore machine` can put this machine back.
 ````
 
-## The action lines
+## The file list
 
-`~/.flow/scripts/apply-migration.js` acts on every line opening `- write `, `- delete `, `- move ` or `- run `, anywhere in the file, so no other line may open with one of those 4 words. One path per line. Everything after `: ` is for the user.
+At go, the session records every path in it before its first change, so one path left out is a file `flow restore` cannot bring back. Each path sits in backticks. A command's line names the command, then every path it writes, or `writes nothing`. Within each group, the lines run in order: a delete comes before the `skills add` that replaces it, and a plugin's uninstall or disable after `settings.json` is written.
 
 ```markdown
-- write ~/.flow/CLAUDE.md: Flow's rules, with the 2 boxes above
-- run ln -sfn ~/.flow/CLAUDE.md ~/.claude/CLAUDE.md: writes ~/.claude/CLAUDE.md, a link to Flow's rules, in place of what it holds now
-- write ~/.claude/settings.json: every key named above. Your own settings, such as model and theme, stay as they are
-- run claude plugin uninstall superpowers@claude-plugins-official: writes ~/.claude/settings.json, ~/.claude/plugins/installed_plugins.json, ~/.claude/plugins/cache/claude-plugins-official/superpowers, ~/.claude/plugins/data/superpowers-claude-plugins-official
-- run claude plugin disable engineering@synced: writes ~/.claude/settings.json. Switched off on this machine only, and still on at claude.ai
-- run claude plugin disable supabase@claude-plugins-official --scope user: writes ~/.claude/settings.json. Switched off in every project until one switches it on
-- delete ~/.claude/skills/tdd: a skill ticked above
-- delete ~/.claude/skills/find-skills: the npx skills copy
-- delete ~/.agents/skills/find-skills: the npx skills copy
-- run node ~/.flow/scripts/flow.js skills add vercel-labs/skills: writes ~/.flow/settings.json, ~/.flow/repos/sources/vercel-labs_skills
-- run node ~/.flow/scripts/flow.js skills on find-skills --global: writes ~/.flow/settings.json, ~/.claude/skills/find-skills
-- write ~/.agents/.skill-lock.json: find-skills removed from the record npx skills keeps, so npx skills update can't bring its old copy back
-- move ~/.claude/skills/stripe-helper -> ~/.flow/private-skills/stripe-helper: a folder copied in by hand, switched on by each project that uses it
+**➕ Written**
+
+- `~/.flow/CLAUDE.md`: Flow's rules, with the 2 boxes above
+- `~/.claude/settings.json`: every key named above. Your own settings, such as model and theme, stay as they are
+- `~/.agents/.skill-lock.json`: find-skills removed from the record npx skills keeps, so npx skills update can't bring its old copy back
+
+**➖ Deleted**
+
+- `~/.claude/skills/tdd`: a skill ticked above
+- `~/.claude/skills/find-skills`: the npx skills copy
+- `~/.agents/skills/find-skills`: the npx skills copy
+
+**▶️ Commands**
+
+- `ln -sfn ~/.flow/CLAUDE.md ~/.claude/CLAUDE.md` writes `~/.claude/CLAUDE.md`: a link to Flow's rules, in place of what it holds now
+- `claude plugin uninstall superpowers@claude-plugins-official` writes `~/.claude/settings.json`, `~/.claude/plugins/installed_plugins.json`, `~/.claude/plugins/cache/claude-plugins-official/superpowers`, `~/.claude/plugins/data/superpowers-claude-plugins-official`
+- `claude plugin disable engineering@synced` writes `~/.claude/settings.json`: switched off on this machine only, and still on at claude.ai
+- `claude plugin disable supabase@claude-plugins-official --scope user` writes `~/.claude/settings.json`: switched off in every project until one switches it on
+- `flow skills add vercel-labs/skills` writes `~/.flow/settings.json`, `~/.flow/repos/sources/vercel-labs_skills`
+- `flow skills on find-skills --global` writes `~/.flow/settings.json`, `~/.claude/skills/find-skills`
+- `mv ~/.claude/skills/stripe-helper ~/.flow/private-skills/stripe-helper` writes `~/.claude/skills/stripe-helper`, `~/.flow/private-skills/stripe-helper`: a folder copied in by hand, switched on by each project that uses it
 ```
 
-A delete comes before the `skills add` that replaces it. A plugin's uninstall or disable comes after the `settings.json` write. An uninstall names the plugin's folder, the `folder:` line `flow survey` prints under it, and its data folder, where one exists. A `run` line names every path its command writes, or ends `: writes nothing`.
+An uninstall names the plugin's folder, the `folder:` line `flow survey` prints under it, and its data folder, where one exists.

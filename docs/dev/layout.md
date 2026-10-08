@@ -62,7 +62,7 @@ When you first open the repository, the split that matters has 4 parts:
   - `skills-pull.js` updates every skill repository in `~/.flow/repos/sources/`, started by the session check. It pulls each one. With `"skillsAutoUpdate": false` it only fetches, and writes what is waiting into `~/.flow/skills-update.json`. `lib/skills/skills-update.js` holds the logic.
 - `sessions/` holds what the sessions Flow opens follow: `machine.md` and `form.md` for `flow install`, `project.md` and `project-form.md` for `flow init`, and `migrate.md`, instructions and form in one file, for `flow update`. Not skills: `lib/setup.js` hands the text over as a system prompt, and the machine's setup runs in safe mode, which loads no skill.
 - `templates/` holds what Flow writes a new file from: a ticket, a map, a study case, and the `README.md` of `~/.flow/`.
-- `apply-migration.js` carries out a migration that `flow install`, `flow init` or `flow update` wrote. During a place's first setup, it copies each path into the place's originals before changing it. `flow restore` puts those back. Later migrations record nothing. It is not a `flow` command, so nobody types it by accident. `lib/machine/migrations.js` and `lib/machine/originals.js` hold the logic.
+- `record-originals.js` copies each path a setup is about to change into the place's original, run by the setup session before its first change. `flow restore` puts those back, and once `--finish` closes the original, nothing more is recorded. It is not a `flow` command, so nobody types it by accident. `lib/machine/originals.js` holds the logic.
 - `rule-checks/` holds one file per rule check, named after the rule id it enforces. The folder is the whole registry, and `/flow:file-findings`' `references/write-checks.md` states the export contract.
 - `package.json` and `tests/` sit here: this is the Node package root.
 
@@ -115,6 +115,7 @@ A decision belongs in `docs/spec/`, never here. Git holds the history of how eac
 - **`util/`**: the `util` CLI, a submodule: [Adrian333Dev/util](https://github.com/Adrian333Dev/util). Edited here, committed from inside the folder, and the new pointer committed here afterwards.
 - **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/flow:research` clones it into `tmp/` to search it.
 - **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
+- **`archive/`**: code Flow no longer runs, kept readable, with a `README.md` line per file saying what replaced it.
 - **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, `try.sh` builds [the scratch session](trying-changes.md#the-scratch-session), and `save-computer.sh` saves this computer as a seed for it to start from. `test-projects/<name>/` builds each run's practice project: `files/` copied in, then `build.sh` making the tickets, or no `build.sh` for a project not set up.
 
 ## What is gitignored

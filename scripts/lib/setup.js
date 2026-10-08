@@ -35,10 +35,10 @@
  *
  *   flow install            the links, then this session
  *   flow install --check    what a finished install has, checked
- *   flow install --finish   stamp ~/.flow/version, the session's last step
+ *   flow install --finish   stamp ~/.flow/version and close the original, the session's last step
  *   flow init               the project's session, where one is needed
  *   flow init --check
- *   flow init --finish      stamp .flow/version
+ *   flow init --finish      stamp .flow/version and close the project's original
  *
  * `~/.flow/run.json` is the run going on right now, or nothing. Each of
  * `flow install`, `flow init` and `flow update` writes it before its first
@@ -58,6 +58,7 @@ const confirm = require('./machine/confirm');
 const { FlowError } = require('./error');
 const flowRepo = require('./machine/flow-repo');
 const installed = require('./machine/installed');
+const logs = require('./logs/logs');
 const originals = require('./machine/originals');
 const prereq = require('./machine/prereq');
 const records = require('./tickets/records');
@@ -72,13 +73,16 @@ const show = paths.shorten;
 /** The commands the project's session runs without asking. Each is Flow's own. */
 const SHARED = [
   'Bash(flow doctor:*)',
-  'Bash(node ~/.flow/scripts/apply-migration.js:*)',
+  'Bash(node ~/.flow/scripts/record-originals.js:*)',
   // Flow's rules send every look at a folder through this, never ls.
   'Bash(util fs tree:*)',
 ];
 
-/** What the project session runs without asking: its own command, and git's list of what the project keeps. */
-const PROJECT_ALLOWED = ['Bash(flow init:*)', ...SHARED, 'Bash(git ls-files:*)'];
+/**
+ * What the project session runs without asking: its own command, git's list of
+ * what the project keeps, and the skills it switches on at go.
+ */
+const PROJECT_ALLOWED = ['Bash(flow init:*)', ...SHARED, 'Bash(git ls-files:*)', 'Bash(flow skills on:*)'];
 
 /** util's names, which util's own installer links beside Flow's. */
 const UTIL_BIN = ['util', 'u'];
@@ -127,6 +131,17 @@ function endRun(at) {
   for (const name of ['setup-prompt.md', 'setup-settings.json', 'migrate-prompt.md']) {
     fs.rmSync(path.join(at.flow, name), { force: true });
   }
+}
+
+/**
+ * The end of a setup that changed something: close the place's original, and
+ * log the setup. Here rather than in `record-originals.js`, which runs before
+ * the first change, and a stopped run keeps its window open to record again.
+ */
+function closeSetup(at, run) {
+  const project = run.project || null;
+  originals.close(at, project);
+  logs.recordHistory(at.flow, { type: run.type, id: run.migration, ...(project ? { project } : {}) });
 }
 
 // ---------------------------------------------------------------- the steps
@@ -411,8 +426,8 @@ function checkProject(at) {
 }
 
 /**
- * `flow init --finish`: stamp the project's .flow/version and end the
- * run. The project comes from run.json, so it works from any folder.
+ * `flow init --finish`: stamp the project's .flow/version, close its original
+ * and end the run. The project comes from run.json, so it works from any folder.
  */
 function finishProject(at, clone) {
   const run = readRun(at);
@@ -421,6 +436,7 @@ function finishProject(at, clone) {
   }
   // The project was set up already, and its stamp is flow update's to move.
   if (run.memoryOnly) {
+    closeSetup(at, run);
     endRun(at);
     out(`folded in: this machine's old memory for ${show(run.project)}.`);
     return 0;
@@ -429,6 +445,7 @@ function finishProject(at, clone) {
   const newest = version.stamp(file, clone);
   records.commit(run.project, 'flow init --finish');
   records.syncLater(run.project, at.flow);
+  closeSetup(at, run);
   endRun(at);
   out(`stamped: ${show(file)} is ${newest}. This project is set up.`);
   return 0;
@@ -445,7 +462,7 @@ function check(at) {
   return 1;
 }
 
-/** `flow install --finish`: stamp ~/.flow/version and end the session, its last step. */
+/** `flow install --finish`: stamp ~/.flow/version, close the original and end the session, its last step. */
 function finish(at) {
   const run = readRun(at);
   if (!run || run.type !== 'setup-machine') {
@@ -454,6 +471,7 @@ function finish(at) {
   const newest = version.stamp(path.join(at.flow, 'version'), paths.cloneRoot());
   // The record the other machines read, sent up by the next flow sync.
   flowRepo.writeRecord(at, newest);
+  closeSetup(at, run);
   endRun(at);
   out(`stamped: ${show(path.join(at.flow, 'version'))} is ${newest}. This machine is set up.`);
   return 0;

@@ -10,9 +10,9 @@
  * Two callers, and a failure stops both. The check each session Flow opens
  * runs first, `flow install --check` and `flow update --check`, runs this
  * list: one command with an exit code, in place of an agent typing shell lines and
- * reading them back. `apply-migration.js` runs the same list again before it
- * changes its first path, so a session that skipped its check still writes
- * nothing.
+ * reading them back. `record-originals.js` runs the same list again before a
+ * setup session's first change, so a session that skipped its check stops
+ * before it writes.
  */
 
 const fs = require('fs');

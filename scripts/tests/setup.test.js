@@ -12,6 +12,12 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { project, run, flow, bareRepo, REPO, SCRATCH } = require('./helpers/scratch');
 const version = require('../lib/machine/version');
+const logs = require('../lib/logs/logs');
+const originals = require('../lib/machine/originals');
+const { folders } = require('../lib/paths');
+
+/** The newest line of the history log in a Flow home. */
+const lastHistory = (flowHome) => JSON.parse(fs.readFileSync(logs.historyFile(flowHome), 'utf8').trim().split('\n').pop());
 
 /** A scratch install, with or without what a real one clones and links. */
 function installed(name, { whole }) {
@@ -94,6 +100,9 @@ test('install --finish stamps the version and ends the run, and only a running s
   assert.strictEqual(records.length, 1, 'the record the other machines read');
   const record = JSON.parse(fs.readFileSync(path.join(m.flowHome, 'machines', records[0]), 'utf8'));
   assert.strictEqual(record.flowVersion, version.newest(REPO));
+  assert.strictEqual(originals.read(folders(m.root)).closed, true, "the stamp closes the machine's original");
+  assert.deepStrictEqual(Object.keys(lastHistory(m.flowHome)).filter((k) => k !== 'at'), ['type', 'id']);
+  assert.match(lastHistory(m.flowHome).id, /^machine\/\d{4}-/);
 
   const after = m.setup();
   assert.match(after.stdout, /Flow is already set up on this machine/);
@@ -212,6 +221,9 @@ test('init --finish stamps .flow/version, and a machine run blocks a project one
   assert.strictEqual(fs.readFileSync(path.join(m.proj, '.flow', 'version'), 'utf8'), `${version.newest(REPO)}\n`);
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'setup-prompt.md')));
+  const proj = fs.realpathSync(m.proj);
+  assert.strictEqual(originals.read(folders(m.root), proj).closed, true, "the stamp closes the project's original");
+  assert.deepStrictEqual([lastHistory(m.flowHome).type, lastHistory(m.flowHome).project], ['setup-project', proj]);
   assert.match(m.setup().stdout, /is already set up/);
 
   const other = projectCase('setup-project-busy');

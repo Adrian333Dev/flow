@@ -38,7 +38,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { FlowError } = require('../error');
 const logs = require('../logs/logs');
 
 const home = (at) => path.join(at.flow, 'originals');
@@ -49,25 +48,11 @@ const place = (project) => (project ? project.replace(/[^A-Za-z0-9]/g, '-').repl
 /** One place's folder. It may not exist: `read` answers that. */
 const dir = (at, project) => path.join(home(at), place(project));
 
-/** The folder an id names below `base`, refused when the id climbs out. `what` names the tree. */
-function inside(base, id, what) {
-  const found = path.resolve(base, id);
-  if (!found.startsWith(base + path.sep)) throw new FlowError(`"${id}" is not a ${what} id.`);
-  if (!fs.existsSync(found)) throw new FlowError(`no ${what} ${id} in ${base}.`);
-  return found;
-}
-
 /** Local time, as a folder name (`2026-09-18T21-30-05`) or as a field. */
 function stamp(date = new Date(), sep = ':') {
   const p = (n) => String(n).padStart(2, '0');
   const day = `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}`;
   return `${day}T${[p(date.getHours()), p(date.getMinutes()), p(date.getSeconds())].join(sep)}`;
-}
-
-/** A folder name stamp() made, back to its time. `-2` after it is allowed. */
-function timeOf(name) {
-  const m = name.match(/^(\d{4})-(\d\d)-(\d\d)T(\d\d)-(\d\d)-(\d\d)(-\d+)?$/);
-  return m ? new Date(m[1], m[2] - 1, m[3], m[4], m[5], m[6]) : null;
 }
 
 /** Where a path's copy sits inside an original, or a migration's new version. */
@@ -152,7 +137,9 @@ function record(at, project, target) {
   const manifest = readManifest(base);
   if (!manifest || manifest.closed) return false;
 
-  const seen = (p) => manifest.entries.some((e) => e.path === p);
+  // A path inside an entry is that entry's: a folder's copy holds it, and an
+  // absent one means Flow made it. A setup run again after a stop meets both.
+  const seen = (p) => manifest.entries.some((e) => p === e.path || p.startsWith(e.path + path.sep));
   if (seen(target)) return false;
   let p = target;
   if (!lstat(p)) while (!lstat(path.dirname(p))) p = path.dirname(p);
@@ -251,9 +238,7 @@ module.exports = {
   home,
   place,
   dir,
-  inside,
   stamp,
-  timeOf,
   mirror,
   lstat,
   copyEntry,

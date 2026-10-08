@@ -44,7 +44,7 @@
  * The project's original, lib/machine/originals.js, opens before the first write, and
  * every path written here is recorded first, so `flow restore project` undoes
  * all of it. The template closes it. The setup session leaves it open for
- * apply-migration.js, which closes it at the end. A `git init` is never
+ * record-originals.js, and `flow init --finish` closes it. A `git init` is never
  * recorded: the history the user commits into it is theirs.
  *
  *   flow init            set this project up
@@ -331,7 +331,7 @@ function init(at, clone, flags) {
   // A teammate, or another machine, set the project up: the stamp is there.
   if (fs.existsSync(path.join(records_, 'version'))) {
     makeSkillsFolder(project);
-    // Only old memory to fold in opens a session, and its migration closes the window.
+    // Only old memory to fold in opens a session, and its `flow init --finish` closes the window.
     if (!setup.holdsFiles(setup.memoryDir(at, project))) originals.close(at, project);
     out(done.join('\n'));
     return setup.startProject(at, clone, flags.root);

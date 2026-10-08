@@ -24,11 +24,12 @@ A message starting `Carry on` is the same job, stopped part way.
 2. **Read the project.** `## Reading the project` below.
 3. **Sort what you found**, and write the new files. `## Where each finding goes` and `## The files it writes` below.
 4. **Write the form** into `~/.flow/migrations/<migration>/migration.md`, by its template. Then hand it over in one message: its full path, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop. A `migration.md` that already exists is never rewritten: a request to save it copies it to `migration.original.md` beside it first.
-5. **Take the answer.** Read `migration.md` again. The file wins over anything said in chat.
+5. **Take the answer.** Read `migration.md` again, against the form as you wrote it. The file wins over anything said in chat.
+   - A line changed beyond its box mark or a text box, or deleted → name the line, ask what the user meant, and wait. Nothing changes before they answer.
    - Nothing changed → step 6.
    - Something changed → `## The second check` below, then wait for go.
-6. **Carry the form into the files.** `## After the yes` below.
-7. **Apply it**: `node ~/.flow/scripts/apply-migration.js <migration>`. A refusal → print it whole and stop. It stopped part way → say which line and why, and stop: running it again carries on from that line.
+6. **Record the originals**: `node ~/.flow/scripts/record-originals.js <path>...`, naming every path under `## Every file this changes`, ticked or not. A path with no `~` sits inside the project. A refusal → print it whole and stop: nothing has changed yet.
+7. **Make the changes.** `## After the yes` below.
 8. **Check it**: `flow doctor`. Its `run.json` line is expected until step 9. Any other problem → name it, with the fix doctor gives, in the last message. It never holds back the stamp.
 9. **Stamp it**: `flow init --finish`.
 10. **The last message**: what changed, in the form's own words; that nothing in the code is committed, while the tickets are saved on the branch `flow`, or in the Flow home where `.flow/` links there; `flow restore project` to undo it all; then "Quit this session and start `claude` again: this project's new rules load when a session starts."
@@ -85,7 +86,7 @@ A message starting `Carry on` is the same job, stopped part way.
 **A plugin or an outside skill that is off here, and the project's code uses it** → a box under `## Switched on for this project`, naming what in the code uses it. Off here means a plugin `flow survey` shows `off`, or a skill `flow skills ls` shows off. Used whole only: a skill waiting for a harvest stays off.
 
 - **A plugin** → `"<id>": true` under `enabledPlugins` in `files/…/.claude/settings.json`.
-- **A skill** → a `run flow skills on <name>` line.
+- **A skill** → `flow skills on <name>`, run at go.
 
 ## The files it writes
 
@@ -117,14 +118,21 @@ There is no third check. The next go runs step 6.
 
 ## After the yes
 
-Each unticked line means Flow leaves that thing exactly as the project has it:
+Each unticked line means Flow leaves that thing exactly as the project has it. First carry the form into `files/`:
 
-- **A skill, a hook, a plugin, the memory folder or `AGENTS.md`** → drop its `delete` line, or put it back into `files/…/.claude/settings.json`.
-- **A line under `## Switched on for this project`** → drop its `run` line, or take its key out of `files/…/.claude/settings.json`.
-- **A line under `## Moving into Flow's files`** → drop the files it wrote from `files/`, with their `write` lines.
-- **The line of tickets from open-work lists** → drop those tickets from `files/…/.flow/tickets/`.
+- **A hook or a plugin** unticked → put it back into `files/…/.claude/settings.json`.
+- **A plugin under `## Switched on for this project`** unticked → take its key out of `files/…/.claude/settings.json`.
+- **A line under `## Moving into Flow's files`** unticked → drop the files it wrote from `files/`.
+- **The line of tickets from open-work lists** unticked → drop those tickets from `files/…/.flow/tickets/`.
 
-Every `write` line still needs its file under `files/`, and every `delete` line still needs to name a path.
+Then make each change, in the order of the file list, with `.flow/settings.json` copied in before any `flow` command:
+
+- **A file or folder with a new version under `files/`** → copy it into place. A real file newer than its new version changed after you built that version, which `[ <path> -nt files/<path> ]` tells: build the new version again from the file as it is now, and name it in the last message.
+- **A path deleted**, such as a skill, the memory folder or `AGENTS.md` → `rm -rf`, unless its line is unticked.
+- **A command**, such as `flow skills on <name>` → run it, unless its line is unticked.
+- **A path the file list leaves out** → never touched.
+
+A change that fails → say which and why, and stop. A run carried on checks each change against the disk, and makes only the ones not made yet.
 
 ## When only the memory is read
 

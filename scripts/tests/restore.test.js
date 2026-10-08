@@ -1,18 +1,19 @@
 'use strict';
 /**
- * `apply-migration.js` and `flow restore`: a migration changes only what it
- * names, the first setup of a place records what was there before, and putting
- * that original back lands on the byte.
+ * `record-originals.js` and `flow restore`: a setup records every path it is
+ * about to change into the place's original, and putting that original back
+ * lands on the byte.
  *
  * Every run here targets a scratch root standing in for `~`. A test that
- * reached the real home folder would rewrite this machine.
+ * reached the real home folder would rewrite this machine. The changes a
+ * setup session makes by hand are made here by the test, and
+ * `originals.close` stands in for `--finish`, which `setup.test.js` covers.
  */
 
 const { test } = require('node:test');
 const assert = require('node:assert');
 const logs = require('../lib/logs/logs');
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const { project, write, run } = require('./helpers/scratch');
 const folders = require('../lib/paths').folders;
@@ -34,29 +35,32 @@ function flowAt(dir, root, args, env = {}) {
 }
 
 /**
- * A migration, applied. Every run checks Flow's prerequisites before it writes
+ * The paths recorded. Every run checks Flow's prerequisites before it records
  * anything, and `env` is how a test takes one away.
  */
-const applyAt = (dir, root, id, env = {}) =>
-  run('apply-migration.js', [id, '--root', root], { cwd: dir, env: { ...process.env, ...env } });
+const recordAt = (dir, root, list, env = {}) =>
+  run('record-originals.js', [...list, '--root', root], { cwd: dir, env: { ...process.env, ...env } });
 
 /** One place's original, as the manifest on disk. */
 const original = (root, proj = null) => originals.read(folders(root), proj);
 
-/**
- * A migration folder holding migration.md and the files it writes under
- * files/, named for the time it was written: now, unless `when` says. `where`
- * is `machine` or a project's folder name. Returns its id.
- */
-function migration(root, where, text, files = {}, when = new Date()) {
-  const id = `${where}/${originals.stamp(when, '-')}`;
-  const dir = path.join(root, '.flow', 'migrations', id);
-  write(dir, 'migration.md', text);
-  for (const [p, body] of Object.entries(files)) write(dir, path.join('files', p), body);
-  return id;
+/** The run `flow install` or `flow init` writes before the session opens. */
+function startRun(root, proj = null, type = proj ? 'setup-project' : 'setup-machine') {
+  const migration = `${originals.place(proj)}/${originals.stamp(new Date(), '-')}`;
+  write(path.join(root, '.flow'), 'run.json', JSON.stringify({ type, ...(proj ? { project: proj } : {}), migration, step: 7 }));
 }
 
-/** What a small machine holds before any migration. */
+/** A setup, as its session runs it: record the file list, make the changes, then finish. */
+function setUp(dir, root, proj, list, change) {
+  startRun(root, proj);
+  const recorded = recordAt(dir, root, list);
+  assert.strictEqual(recorded.code, 0, recorded.stderr);
+  change();
+  originals.close(folders(root), proj);
+  fs.rmSync(path.join(root, '.flow', 'run.json'));
+}
+
+/** What a small machine holds before any setup. */
 function machine(root) {
   write(root, '.claude/CLAUDE.md', 'old rules\n');
   write(root, '.claude/settings.json', '{"old": true}\n');
@@ -67,45 +71,50 @@ function machine(root) {
   fs.symlinkSync('/old/clone/flow.js', path.join(root, '.local', 'bin', 'flow'));
 }
 
-test('the first setup writes the original, and restoring it puts every path back', () => {
+/** The file list of the machine setup below, as the form would hold it. */
+const MACHINE_LIST = [
+  '~/.flow/CLAUDE.md',
+  '~/.claude/CLAUDE.md',
+  '~/.claude/rules/',
+  '~/.claude/projects/-p/memory/',
+  '~/.claude/notes.md',
+  '~/.claude/archive/notes.md',
+  '~/.claude/settings.json',
+  '~/.local/bin/flow',
+];
+
+/** What the machine setup's session changes at go. */
+function changeMachine(root) {
+  write(root, '.claude/CLAUDE.md', 'new rules\n');
+  write(root, '.claude/rules/one.md', 'rule one\n');
+  fs.rmSync(path.join(root, '.claude/projects/-p/memory'), { recursive: true });
+  fs.mkdirSync(path.join(root, '.claude/archive'));
+  fs.renameSync(path.join(root, '.claude/notes.md'), path.join(root, '.claude/archive/notes.md'));
+  write(root, '.claude/settings.json', 'new');
+  const bin = path.join(root, '.local', 'bin', 'flow');
+  fs.rmSync(bin);
+  fs.symlinkSync('/new/clone/flow.js', bin);
+}
+
+test('a setup records every path in its file list once, and restoring the original puts every path back', () => {
   const dir = project('original-machine');
   const root = path.join(dir, 'root');
   machine(root);
   const bin = path.join(root, '.local', 'bin', 'flow');
 
-  const id = migration(root, 'machine', [
-    '---', 'type: setup-machine', '---', '',
-    '# The migration', '',
-    'Prose between the lines is for the user and is never read.', '',
-    '- write ~/.claude/CLAUDE.md: Flow\'s rules, your 2 sections kept',
-    '- write `~/.claude/rules/`: a folder that did not exist',
-    '- delete ~/.claude/projects/-p/memory/: 2 files, carried into the project',
-    '- move ~/.claude/notes.md -> ~/.claude/archive/notes.md: out of the way',
-    '- run printf new > .claude/settings.json: writes ~/.claude/settings.json',
-    '- write ~/.local/bin/flow: the link, pointed at the new clone',
-    '',
-  ].join('\n'), {
-    [path.join(root, '.claude/CLAUDE.md')]: 'new rules\n',
-    [path.join(root, '.claude/rules/one.md')]: 'rule one\n',
-  });
-  const newLink = path.join(root, '.flow', 'migrations', id, 'files', root, '.local', 'bin', 'flow');
-  fs.mkdirSync(path.dirname(newLink), { recursive: true });
-  fs.symlinkSync('/new/clone/flow.js', newLink);
+  startRun(root);
+  const recorded = recordAt(dir, root, MACHINE_LIST);
+  assert.strictEqual(recorded.code, 0, recorded.stderr);
+  assert.match(recorded.stdout, /^recorded 7 of 8 paths into \S+originals\/machine\. Left out: 1 inside \S+\.flow\.$/m);
+  changeMachine(root);
 
-  const applied = applyAt(dir, root, id);
-  assert.strictEqual(applied.code, 0, applied.stderr);
-  assert.match(applied.stdout, /Put this machine back with flow restore machine$/m);
-  const logged = JSON.parse(read(logs.historyFile(path.join(root, '.flow'))).trim().split('\n').pop());
-  assert.deepStrictEqual([logged.type, logged.id, logged.lines], ['setup-machine', id, 6]);
-  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'new rules\n');
-  assert.strictEqual(read(path.join(root, '.claude/rules/one.md')), 'rule one\n');
-  assert.ok(!exists(path.join(root, '.claude/projects/-p/memory')), 'the memory folder is gone');
-  assert.strictEqual(read(path.join(root, '.claude/archive/notes.md')), 'notes\n');
-  assert.strictEqual(read(path.join(root, '.claude/settings.json')), 'new', 'the command ran from the root');
-  assert.strictEqual(fs.readlinkSync(bin), '/new/clone/flow.js');
+  // A setup that stopped part way runs the command again, after some changes
+  // landed. Each path keeps the copy from before the first change.
+  const again = recordAt(dir, root, MACHINE_LIST);
+  assert.match(again.stdout, /^recorded 0 of 8 paths .* 7 recorded already\.$/m);
 
   const manifest = original(root);
-  assert.strictEqual(manifest.closed, true, 'a setup shuts the window on its way out');
+  assert.strictEqual(manifest.closed, false, 'the window stays open until --finish');
   assert.deepStrictEqual(manifest.entries.map((e) => [path.relative(root, e.path), e.type]), [
     ['.claude/CLAUDE.md', 'file'],
     ['.claude/rules', 'absent'],
@@ -119,21 +128,18 @@ test('the first setup writes the original, and restoring it puts every path back
   const files = path.join(root, '.flow', 'originals', 'machine', 'files');
   assert.strictEqual(read(path.join(files, root, '.claude/CLAUDE.md')), 'old rules\n', 'the original holds only what was there before');
 
-  const again = applyAt(dir, root, id);
-  assert.match(again.stderr, /is already applied/, 'an applied migration refuses a second apply');
-
-  // Every later migration changes paths and records nothing: the window shut.
-  // A folder name keeps whole seconds, so this one takes the next one along.
-  const later = migration(root, 'machine', '---\ntype: migrate\n---\n- delete ~/.claude/archive/: tidied away\n', {}, new Date(Date.now() + 2000));
-  assert.strictEqual(applyAt(dir, root, later).code, 0);
-  assert.ok(!exists(path.join(root, '.claude/archive')));
-  assert.strictEqual(original(root).entries.length, 7, 'the original never grows after the first setup');
+  // Once closed, the original never grows: a later run records nothing.
+  originals.close(folders(root), null);
+  const closed = recordAt(dir, root, ['~/.claude/rules/one.md', '~/.claude/new.md']);
+  assert.strictEqual(closed.code, 0, closed.stderr);
+  assert.match(closed.stdout, /is closed, so nothing was recorded/);
+  assert.strictEqual(original(root).entries.length, 7);
 
   originals.restore(folders(root), null);
   const restored = JSON.parse(read(logs.historyFile(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([restored.type, restored.paths, restored.project], ['restore', 7, undefined]);
   assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'old rules\n');
-  assert.ok(!exists(path.join(root, '.claude/rules')), 'what the migration created is removed');
+  assert.ok(!exists(path.join(root, '.claude/rules')), 'what the setup created is removed');
   assert.strictEqual(read(path.join(root, '.claude/projects/-p/memory/b.md')), 'memory b\n');
   assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n');
   assert.ok(!exists(path.join(root, '.claude/archive')), 'and so is the folder it made to hold them');
@@ -146,72 +152,28 @@ test('the first setup writes the original, and restoring it puts every path back
   assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'old rules\n', 'a second restore lands in the same state');
 });
 
-test('a migration with one bad line changes nothing', () => {
+test('record-originals refuses outside a setup, and refuses a path it cannot place, recording nothing', () => {
   const dir = project('original-refusals');
   const root = path.join(dir, 'root');
   machine(root);
-  const attempt = (where, text, files) => applyAt(dir, root, migration(root, where, text, files));
 
-  const missing = attempt('no-new-file', '---\ntype: migrate\n---\n- delete ~/.claude/notes.md: x\n- write ~/.claude/CLAUDE.md: x\n');
-  assert.notStrictEqual(missing.code, 0);
-  assert.match(missing.stderr, /files\/ does not hold/);
-  assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n', 'the delete before it never ran');
+  assert.match(recordAt(dir, root, ['~/.claude/notes.md']).stderr, /^record-originals: no setup is running: \S+run\.json names none, so nothing was recorded\.$/m);
+  startRun(root, null, 'migrate');
+  assert.match(recordAt(dir, root, ['~/.claude/notes.md']).stderr, /no setup is running/, 'an update records nothing');
 
-  const untyped = attempt('no-type', '- delete ~/.claude/notes.md: x\n');
-  assert.match(untyped.stderr, /needs a type/);
-
-  const relative = attempt('relative', '---\ntype: migrate\n---\n- delete notes.md: x\n');
-  assert.match(relative.stderr, /relative, and the migration names no project/);
-
-  const own = attempt('own-folder', '---\ntype: migrate\n---\n- delete ~/.flow/: x\n');
-  assert.match(own.stderr, /a migration may not touch it/);
-
-  const silent = attempt('no-command-paths', '---\ntype: migrate\n---\n- run rm -rf ~/.claude\n');
-  assert.match(silent.stderr, /must name what the command writes/);
-
-  write(root, '.flow/migrations/machine/latest/migration.md', '---\ntype: migrate\n---\n- delete ~/.claude/notes.md: x\n');
-  const untimed = applyAt(dir, root, 'machine/latest');
-  assert.match(untimed.stderr, /named for the time it was written/);
+  startRun(root);
+  const relative = recordAt(dir, root, ['~/.claude/CLAUDE.md', 'notes.md']);
+  assert.strictEqual(relative.code, 1);
+  assert.match(relative.stderr, /"notes\.md" is relative, and a machine setup names no project/);
+  assert.match(recordAt(dir, root, ['~/.flow/originals/']).stderr, /holds originals/);
+  assert.match(recordAt(dir, root, ['~']).stderr, /holds migrations/, 'the home folder holds the Flow home');
+  assert.match(recordAt(dir, root, []).stderr, /^record-originals: usage:/);
 
   assert.ok(!exists(path.join(root, '.flow/originals')), 'no refusal opened an original');
-  assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n');
 });
 
-test('a file changed after the migration was written refuses the whole migration', () => {
-  const dir = project('original-out-of-date');
-  const root = path.join(dir, 'root');
-  machine(root);
-
-  const id = migration(root, 'machine', [
-    '---', 'type: migrate', '---',
-    '- write ~/.claude/CLAUDE.md: x',
-    '- delete ~/.claude/projects/-p/memory/: x',
-    '- move ~/.claude/notes.md -> ~/.claude/archive/notes.md: x',
-    '- run true: writes ~/.claude/settings.json',
-    '- write ~/.local/bin/flow: x',
-    '',
-  ].join('\n'), {
-    [path.join(root, '.claude/CLAUDE.md')]: 'new rules\n',
-    [path.join(root, '.local/bin/flow')]: 'a file this time\n',
-  }, new Date(Date.now() - 60 * 60 * 1000));
-
-  const stale = applyAt(dir, root, id);
-  assert.notStrictEqual(stale.code, 0);
-  const named = stale.stderr.split('\n')
-    .filter((l) => /^  [~/]/.test(l))
-    .map((l) => path.relative(root, l.trim().replace(/^~/, os.homedir())));
-  assert.deepStrictEqual(named, [
-    '.claude/CLAUDE.md',
-    '.claude/projects/-p/memory/a.md',
-    '.claude/projects/-p/memory/b.md',
-  ], 'every file inside a folder counts; a move, a run and a link do not');
-  assert.match(stale.stderr, /^apply-migration: 3 files changed after machine\/\S+ was written, so nothing ran:/);
-  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'old rules\n');
-  assert.ok(!exists(path.join(root, '.flow/originals')));
-});
-
-test('a project setup opens its own original, stops part-way, and carries on after a fix', () => {
-  const dir = project('original-stopped');
+test("a project's first setup opens its own original, and records paths relative to the project", () => {
+  const dir = project('original-project');
   const root = path.join(dir, 'root');
   const proj = path.join(root, 'code', 'app');
   write(proj, 'CLAUDE.md', 'old project rules\n');
@@ -219,68 +181,31 @@ test('a project setup opens its own original, stops part-way, and carries on aft
 
   const where = originals.place(proj);
   assert.match(where, /^[^-].*-root-code-app$/, 'a project folder is its path, with no leading dash');
-  const id = migration(root, where, [
-    '---', 'type: setup-project', 'project: ~/code/app', '---',
-    '- write CLAUDE.md: the import line',
-    '- run test -f ready: writes nothing',
-    '- move docs/work/ -> .flow/tickets/: the old work, as tickets',
-    '',
-  ].join('\n'), { [path.join(proj, 'CLAUDE.md')]: 'rules in Flow\'s layout\n' });
+  startRun(root, proj);
+  const recorded = recordAt(dir, root, ['CLAUDE.md', 'docs/work/', '.flow/tickets/']);
+  assert.strictEqual(recorded.code, 0, recorded.stderr);
+  assert.match(recorded.stdout, new RegExp(`^recorded 3 of 3 paths into \\S+originals/${where}\\.$`, 'm'));
 
-  const first = applyAt(dir, root, id);
-  assert.notStrictEqual(first.code, 0);
-  assert.match(first.stderr, /stopped at line 2 of 3/);
-  assert.match(first.stderr, new RegExp(`Carry on after a fix: apply-migration.js ${id}`));
-  assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), 'rules in Flow\'s layout\n', 'line 1 ran');
-  assert.ok(exists(path.join(proj, 'docs/work/one.md')), 'line 3 did not');
+  write(proj, 'CLAUDE.md', 'rules in Flow\'s layout\n');
+  fs.mkdirSync(path.join(proj, '.flow'));
+  fs.renameSync(path.join(proj, 'docs/work'), path.join(proj, '.flow/tickets'));
 
-  const stopped = original(root, proj);
-  assert.strictEqual(stopped.closed, false, 'a run that stopped leaves the window open');
-  assert.strictEqual(stopped.project, proj);
-
-  fs.writeFileSync(path.join(proj, 'ready'), '');
-  const second = applyAt(dir, root, id);
-  assert.strictEqual(second.code, 0, second.stderr);
-  assert.strictEqual(read(path.join(proj, '.flow/tickets/one.md')), 'one\n');
-
-  const done = original(root, proj);
-  assert.strictEqual(done.closed, true);
-  assert.deepStrictEqual(done.entries.map((e) => [path.relative(proj, e.path), e.type]), [
+  const opened = original(root, proj);
+  assert.strictEqual(opened.closed, false);
+  assert.strictEqual(opened.project, proj);
+  assert.deepStrictEqual(opened.entries.map((e) => [path.relative(proj, e.path), e.type]), [
     ['CLAUDE.md', 'file'],
     ['docs/work', 'folder'],
     ['.flow', 'absent'],
   ]);
 
+  originals.close(folders(root), proj);
   originals.restore(folders(root), proj);
   const restored = JSON.parse(read(logs.historyFile(path.join(root, '.flow'))).trim().split('\n').pop());
   assert.deepStrictEqual([restored.type, restored.project], ['restore', proj], 'a project restore names the project');
   assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), 'old project rules\n');
   assert.strictEqual(read(path.join(proj, 'docs/work/one.md')), 'one\n');
   assert.ok(!exists(path.join(proj, '.flow')), "restoring a project's original takes its whole .flow/");
-
-  const after = applyAt(dir, root, id);
-  assert.match(after.stderr, /is already applied/);
-});
-
-test('an edited migration refuses to carry on', () => {
-  const dir = project('original-edited');
-  const root = path.join(dir, 'root');
-  machine(root);
-
-  const text = '---\ntype: migrate\n---\n- delete ~/.claude/notes.md: x\n- run false: writes nothing\n';
-  const id = migration(root, 'machine', text);
-  const stopped = applyAt(dir, root, id);
-  assert.notStrictEqual(stopped.code, 0);
-  assert.ok(!exists(path.join(root, '.claude/notes.md')), 'line 1 ran');
-
-  const file = path.join(root, '.flow', 'migrations', id, 'migration.md');
-  fs.writeFileSync(file, text.replace('- run false: writes nothing\n', ''));
-  const edited = applyAt(dir, root, id);
-  assert.match(edited.stderr, /migration.md changed after line 1 of it ran/);
-
-  fs.writeFileSync(file, text);
-  const carried = applyAt(dir, root, id);
-  assert.match(carried.stderr, /stopped at line 2 of 2/, 'put back as it was, it carries on from where it stopped');
 });
 
 test('flow restore lists the originals, and refuses to put one back unasked', () => {
@@ -292,8 +217,7 @@ test('flow restore lists the originals, and refuses to put one back unasked', ()
   assert.strictEqual(empty.code, 0, empty.stderr);
   assert.match(empty.stdout, /^no original\./);
 
-  const id = migration(root, 'machine', '---\ntype: setup-machine\n---\n- delete ~/.claude/notes.md: x\n');
-  assert.strictEqual(applyAt(dir, root, id).code, 0);
+  setUp(dir, root, null, ['~/.claude/notes.md'], () => fs.rmSync(path.join(root, '.claude/notes.md')));
 
   const listed = flowAt(dir, root, ['restore', 'ls']);
   assert.match(listed.stdout, /^machine {2}1 paths {2}written \d{4}-\d\d-\d\dT\S+ {2}closed$/m);
@@ -311,33 +235,25 @@ test('flow restore lists the originals, and refuses to put one back unasked', ()
 });
 
 // The stop the user asked for on 2026-09-21: a prerequisite that is not met
-// stops the run, and the process that writes is where it is enforced, since a
-// skill body can be skipped and this cannot.
-test('a program Flow calls that is not on PATH stops the migration before anything changes', () => {
-  const dir = project('apply-prereq');
+// stops the setup, checked by the last command before the session's first
+// change, since a session's own first step can be skipped.
+test('a program Flow calls that is not on PATH stops the recording, so the session changes nothing', () => {
+  const dir = project('record-prereq');
   const root = path.join(dir, 'root');
   machine(root);
-
-  const id = migration(root, 'machine', [
-    '---', 'type: setup-machine', '---', '',
-    '- write ~/.claude/CLAUDE.md: the rules',
-    '- delete ~/.claude/notes.md: out of the way',
-    '',
-  ].join('\n'), { [path.join(root, '.claude/CLAUDE.md')]: 'new rules\n' });
+  startRun(root);
 
   // A PATH holding nothing, so node, git, claude and gh are all missing. The
   // script itself runs through the node that started the test.
-  const refused = applyAt(dir, root, id, { PATH: path.join(dir, 'nothing-here') });
+  const refused = recordAt(dir, root, ['~/.claude/CLAUDE.md'], { PATH: path.join(dir, 'nothing-here') });
   assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /4 prerequisites of Flow's are not met, so nothing ran:/);
+  assert.match(refused.stderr, /4 prerequisites of Flow's are not met, so nothing was recorded:/);
   assert.match(refused.stderr, /git is not on PATH, and a project is found by asking git for its root/);
   assert.match(refused.stderr, /flow doctor --prereq checks the same list/);
-  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'old rules\n', 'the write never happened');
-  assert.strictEqual(read(path.join(root, '.claude/notes.md')), 'notes\n', 'and neither did the delete');
-  assert.strictEqual(original(root), null, 'the original was never opened either');
+  assert.strictEqual(original(root), null, 'the original was never opened');
 
-  assert.strictEqual(applyAt(dir, root, id).code, 0, 'with the programs back, the same migration goes through');
-  assert.strictEqual(read(path.join(root, '.claude/CLAUDE.md')), 'new rules\n');
+  assert.strictEqual(recordAt(dir, root, ['~/.claude/CLAUDE.md']).code, 0, 'with the programs back, the same list records');
+  assert.strictEqual(original(root).entries.length, 1);
 });
 
 test('a restore plans every path first, and marks each one put back that changed since', () => {
@@ -396,21 +312,21 @@ function answering(said, ...answers) {
   return () => Object.assign(confirm, kept);
 }
 
-/** A machine and one project, both set up through their first migrations. */
+/** A machine and one project, both through their first setups. */
 function place(name) {
   const dir = project(name);
   const root = path.join(dir, 'root');
   write(root, '.claude/notes.md', 'notes\n');
-  const id = migration(root, 'machine', '---\ntype: setup-machine\n---\n- write ~/.claude/notes.md: x\n',
-    { [path.join(root, '.claude/notes.md')]: 'Flow\'s notes\n' });
-  assert.strictEqual(applyAt(dir, root, id).code, 0);
+  setUp(dir, root, null, ['~/.claude/notes.md'], () => write(root, '.claude/notes.md', 'Flow\'s notes\n'));
   const proj = path.join(root, 'code', 'shop');
   write(proj, 'CLAUDE.md', 'shop rules\n');
   write(proj, 'AGENTS.md', 'rules for every agent\n');
   write(proj, '.gitignore', 'node_modules\n');
-  const pid = migration(root, originals.place(proj), `---\ntype: setup-project\nproject: ${proj}\n---\n- write CLAUDE.md: x\n- delete AGENTS.md: x\n- write .gitignore: x\n`,
-    { [path.join(proj, 'CLAUDE.md')]: 'rules in Flow\'s layout\n', [path.join(proj, '.gitignore')]: 'node_modules\n.flow/\n' }, new Date(Date.now() + 1000));
-  assert.strictEqual(applyAt(dir, root, pid).code, 0);
+  setUp(dir, root, proj, ['CLAUDE.md', 'AGENTS.md', '.gitignore'], () => {
+    write(proj, 'CLAUDE.md', 'rules in Flow\'s layout\n');
+    fs.rmSync(path.join(proj, 'AGENTS.md'));
+    write(proj, '.gitignore', 'node_modules\n.flow/\n');
+  });
   const ticketSkill = (at, id) => write(path.join(at, id), 'SKILL.md', `---\nname: ${id}\n---\n<!-- flow: ticket ${id}, rewritten by flow on every ticket change -->\n`);
   ticketSkill(path.join(root, '.claude', 'skills'), 'home-4');
   ticketSkill(path.join(proj, '.claude', 'skills'), 'exp-47');
