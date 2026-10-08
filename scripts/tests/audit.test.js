@@ -135,6 +135,16 @@ test('a transcript becomes sessions, segments, turns, tools and file touches', (
   assert.match(rows("SELECT name, is_error FROM tool_call WHERE is_error = 1"), /Grep +1/);
 });
 
+test('a long prompt is stored whole, and a listing still trims it', () => {
+  const { file, env } = roots('audit-long-prompt');
+  const long = 'word '.repeat(400) + 'the end';
+  fs.writeFileSync(file, asLines([prompt('p1', long), says('ok')]));
+
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+  assert.match(audit(env, ['sql', 'SELECT length(prompt) n FROM turn']).stdout, new RegExp(`\\b${long.length}\\b`));
+  assert.doesNotMatch(audit(env, ['turns', SESSION.slice(0, 8)]).stdout, /the end/);
+});
+
 test('a reply written as several lines counts its tokens once', () => {
   const { file, env } = roots('audit-reply-once');
   // Claude Code writes one line per content block, each with the reply's whole usage.

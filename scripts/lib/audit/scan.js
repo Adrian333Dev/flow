@@ -30,10 +30,6 @@ const files = require('./files');
 
 const NL = 0x0a;
 
-// The opening text of a turn, kept long enough to recognise and short enough
-// that a thousand of them still print.
-const PROMPT_CHARS = 400;
-
 // ---------------------------------------------------------------- finding
 
 /**
@@ -128,17 +124,21 @@ const text = (v) => (typeof v === 'string' ? v : v == null ? null : JSON.stringi
 const INPUT_CHARS = 4000;
 const capped = (s) => (s && s.length > INPUT_CHARS ? s.slice(0, INPUT_CHARS) + ' …' : s);
 
-/** The first words a turn opened with, whatever shape the message took. */
+/**
+ * The whole text a turn opened with, whatever shape the message took. Kept
+ * whole so a query can read what the user wrote: every listing trims it on
+ * print, and a prompt is small beside the tool calls stored with it.
+ */
 function promptText(message) {
   if (!message) return null;
   const content = message.content;
-  if (typeof content === 'string') return content.slice(0, PROMPT_CHARS);
+  if (typeof content === 'string') return content;
   if (!Array.isArray(content)) return null;
   const parts = [];
   for (const block of content) {
     if (block && block.type === 'text' && block.text) parts.push(block.text);
   }
-  return parts.length ? parts.join('\n').slice(0, PROMPT_CHARS) : null;
+  return parts.length ? parts.join('\n') : null;
 }
 
 /**

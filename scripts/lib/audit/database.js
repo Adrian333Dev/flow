@@ -28,7 +28,7 @@ const { FlowError } = require('../error');
 
 // Bumping this throws the file away on the next index. Every row is derived,
 // so the cost of a rebuild is time, never data.
-const SCHEMA = 8;
+const SCHEMA = 9;
 
 const auditDir = () => path.join(paths.flowHome(), 'audit');
 const dbPath = () => path.join(auditDir(), 'audit.db');
@@ -125,7 +125,7 @@ CREATE TABLE turn (
   duration_ms INTEGER,                -- system/turn_duration
   messages   INTEGER,
   source     TEXT,                    -- typed | queued | compact | tool
-  prompt     TEXT,                    -- the opening text, trimmed
+  prompt     TEXT,                    -- the opening text, whole
   input_tokens  INTEGER DEFAULT 0,
   output_tokens INTEGER DEFAULT 0,
   thinking_tokens INTEGER DEFAULT 0,
