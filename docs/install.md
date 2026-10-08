@@ -41,17 +41,19 @@ A failed check stops the install before anything is made, and says what to fix. 
 
 A Claude Code session that reads what your computer already holds: your `~/.claude/CLAUDE.md`, skills, plugins and `~/.claude/settings.json`. It writes every change into one form, `migration.md`, and stops. Nothing outside `~/.flow/` changes before you approve the form.
 
-A ticked box goes ahead, and an unticked one leaves that thing as it is:
+Your choices come first. A ticked box goes ahead, and an unticked one leaves that thing as it is:
 
 ```md
-## 🔴 Removed unless you untick it
+## ❌ Removed: works against Flow's rules
 
-- [x] tdd skill: tells Claude how to plan and test every change, which Flow's steps already do. `~/.claude/skills/tdd/`
+- [x] **tdd** skill: deleted. It plans and tests every change, which Flow's steps already do.
 
-## Switched on only in the projects that use it
+## ⏸️ Switched off, except in the projects that use it
 
-- [x] supabase plugin: knows the Supabase database service. `claude plugin disable`
+- [x] **supabase** plugin: knows the Supabase database service. Switched off everywhere, and `flow init` switches it on in a project that uses it.
 ```
+
+Under them, `✅ Set up with no choice` lists what Flow sets up whatever you tick, and the form ends with every file it changes.
 
 A plugin only some projects use costs context everywhere else, so the form switches it off, and each project switches it back on: [New project](new-project.md#a-folder-that-already-has-files).
 

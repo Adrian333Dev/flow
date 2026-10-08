@@ -123,7 +123,7 @@ test('uninstall hands over the same form as restore, then deletes ~/.flow whatev
   }
   assert.strictEqual(said[0].wanted, 'uninstall');
   assert.match(said[0].lines[1], /^Then \S+\.flow is deleted\.$/, '--root keeps the clone');
-  assert.match(said[0].form, /^## Done whatever the boxes say\n\n- \S+\.flow is deleted\.\n- \S+ stays: it belongs to this machine, not to --root\.$/m);
+  assert.match(said[0].form, /^## ✅ Done whatever the boxes say\n\n- \S+\.flow is deleted\.\n- \S+ stays: it belongs to this machine, not to --root\.$/m);
   assert.ok(!exists(m.at.flow), '~/.flow is gone, the form with it');
   assert.ok(fs.existsSync(REPO), 'the clone is still there');
 });

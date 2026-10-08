@@ -8,7 +8,7 @@
  * `start` opens a Claude Code session that reads the machine and writes one
  * form, a migration the user checks before anything outside
  * `~/.flow/migrations/` changes. `sessions/machine.md` is what that session
- * follows, and `sessions/form.md` the form it fills in. Neither is a
+ * follows, and `templates/setup-machine.md` the form it fills in. Neither is a
  * skill: the session runs in safe mode, which loads no skill at all, Flow's
  * included, so the text reaches it as an appended system prompt instead.
  *

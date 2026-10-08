@@ -60,9 +60,9 @@ Type 1 or 2: 1
 
 The session writes every change into one form, `migration.md`, and stops. Nothing changes before you approve it.
 
-- **Each line says what goes where**: `9 rules → CLAUDE.md`.
+- **What moves into Flow's files is counted**: `9 rules → CLAUDE.md`. It takes no box: edit the new file under `files/` before you say go.
 - **The code wins over the docs.** A doc the code contradicts becomes a ticket.
-- **Anything working against Flow** is listed under `🔴 Removed unless you untick it`.
+- **Anything working against Flow** has a box under `❌ Removed: works against Flow's rules`.
 - **A plugin or skill your computer's setup switched off** is switched on where the code uses it: `supabase plugin: this project uses @supabase/supabase-js.`
 
 Start `claude` again once the session ends, so the new rules load. `flow restore project` undoes the whole setup: [Install](install.md#take-flow-off).

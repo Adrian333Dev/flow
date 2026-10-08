@@ -82,12 +82,15 @@ function note(row) {
  * whatever the boxes say, as plain lines with no box.
  */
 function render(parts, always = []) {
+  const count = parts.reduce((n, s) => n + s.rows.length, 0);
   const lines = [
     '# Putting Flow\'s changes back',
     '',
-    'One box per path Flow changed. Ticked: it goes back to how it was before Flow, or is deleted where it did not exist. Unticked: it stays as it is now.',
+    '- **Ticked**: it goes back to how it was before Flow, or is deleted where it did not exist.',
+    '- **Unticked**: it stays as it is now.',
+    '- **Save, then type the word** the terminal asks for. Only the boxes are read: change an x to a space or a space to an x, and nothing else on the line.',
     '',
-    'Only the boxes are read. Change an x to a space or a space to an x, and nothing else on the line.',
+    `${count} ${count === 1 ? 'box' : 'boxes'}, one per path Flow changed.`,
   ];
   for (const s of parts) {
     lines.push('', `## ${s.heading}`, '');
@@ -95,7 +98,7 @@ function render(parts, always = []) {
     if (!s.rows.length) lines.push('Nothing to put back.');
     for (const row of s.rows) lines.push(`- [${row.ticked ? 'x' : ' '}] \`${s.name(row)}\`: ${note(row)}`);
   }
-  if (always.length) lines.push('', '## Done whatever the boxes say', '', ...always.map((l) => `- ${l}`));
+  if (always.length) lines.push('', '## ✅ Done whatever the boxes say', '', ...always.map((l) => `- ${l}`));
   return lines.join('\n') + '\n';
 }
 

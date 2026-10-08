@@ -31,7 +31,7 @@ A habit tracker, in an empty folder:
 The `shop` project, with code, a `CLAUDE.md` and a folder of plans:
 
 1. **Set it up.** `flow init` opens the setup session, which reads the project before anything changes: [New project](new-project.md#a-folder-that-already-has-files).
-2. **Read the form.** The session writes every change into one file, `migration.md`, such as `9 rules → CLAUDE.md`. Untick a line to keep that part as it is.
+2. **Read the form.** The session writes every change into one file, `migration.md`, such as `9 rules → CLAUDE.md`. Untick a box to keep that thing as it is.
 3. **Say go.** The session makes the changes. `flow restore project` undoes all of them later.
 4. **Start Claude Code again**, so the project's new rules load.
 5. **Write the spec.** Setup added a "Write the product spec" ticket where the project held plans. `/flow:groundwork /shop-1` turns the plans into `docs/spec/`.

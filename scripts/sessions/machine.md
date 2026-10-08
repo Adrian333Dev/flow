@@ -13,10 +13,10 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 0. **`flow install --check`.** A failure → print what it said and stop. `~/.flow/version` exists → say this machine is already set up, and stop.
    - `~/.flow/run.json` has a `step` above 0 → a run stopped part way. Carry on from the step after it, and tell the user in one line.
    - Rewrite `step` in `run.json` as each step below finishes.
-1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, `home/CLAUDE.md`, `home/settings.json`, and the form's template, `~/.flow/scripts/sessions/form.md`.
+1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, `home/CLAUDE.md`, `home/settings.json`, and the form's template, `~/.flow/scripts/templates/setup-machine.md`.
 2. **Survey the machine.** `## What to look at` below. Read every rule file whole. For a skill, an agent or a command, read its `description` first, and open the body only where the description leaves the competitor test open.
 3. **Sort what you found.** `## The competitor test` and `## Harvesting` below.
-4. **Write the migration** into `~/.flow/migrations/<migration>/`, the folder `run.json` names as `migration`: `migration.md` by the form's template, and under `files/` the new version of every file it writes, at `files/<full path>`. `## The files it writes` below.
+4. **Write the migration** into `~/.flow/migrations/<migration>/`, the folder `run.json` names as `migration`: `migration.md` by the form's template and `## What goes in the form` below, and under `files/` the new version of every file it writes, at `files/<full path>`. `## The files it writes` below.
 5. **Hand over the form.** One message: the full path of `migration.md`, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop. A `migration.md` that already exists is never rewritten: a request to save it copies it to `migration.original.md` beside it first.
 6. **Take the answer.** Read `migration.md` again, against the form as you wrote it. The file wins over anything said in chat.
    - A line changed beyond its box mark or a text box, or deleted → name the line, ask what the user meant, and wait. Nothing changes before they answer.
@@ -50,29 +50,51 @@ Never open a project, or a project's memory under `~/.claude/projects/`. `flow i
 
 ## What goes in the form
 
+**Copy the template whole, then fill its gaps.** Every fixed line stays word for word. Replace each line holding a `{…}` whole, with the lines it stands for, and never leave a `{…}` in the file. The text after `such as:` is one example, written for a machine with superpowers, the supabase plugin, a `tdd` skill, `grill-me` synced from a claude.ai account, `find-skills` from `npx skills` and a `stripe-helper` skill copied in by hand.
+
+**Every line takes one shape**: `- [x] **name** type: what happens to it. Why, in one sentence.` A settings key never appears on a line.
+
 **A line appears only where saying go changes something.** 2 tests, by what the thing is:
 
 - **A setting is judged by its value.** The machine already holds Flow's value → no line. Memory already off gets no line, and a `deny` rule already present gets no mention.
 - **An installed thing is judged by being there.** A plugin, a skill, a hook or an agent that fails the competitor test gets its line even when it is switched off.
 
-A section left with no line goes, heading included. `## Flow's skills` always stays.
+A section left with no line goes, heading included. `## ✅ Set up with no choice` and `## Every file this changes` always stay.
+
+### What each `{…}` holds
+
+- **`{count}`**: the boxes left once the form is filled.
+- **`{competing}`**: one box per skill, rule file, hook or agent on ground Flow rules on, and per account-synced skill that fights Flow's rules. What it does, then what Flow does instead.
+- **`{switched off}`**: one box per plugin that stays and that only some projects use. What it knows.
+- **`{replaced}`**: one box per outside skill or plugin whose whole job Flow's own skills already do, such as `write-a-skill` and `improve-codebase-architecture`.
+- **`{takeovers}`**: one box per outside skill Flow takes over, saying whether it is on in every project or only in the projects that use it.
+- **`{rules intro}`**: one sentence saying where the 2 text boxes' lines came from: the old `~/.claude/CLAUDE.md`, another machine's `~/.flow/CLAUDE.md`, or nowhere.
+- **`{preferences}` and `{about you}`**: the harvest, one line each. Empty → the fence stays, empty.
+- **`{overrides}`**: one line per installed plugin that tells Claude how to work in every session, switched on or not.
+- **`{left as they are}`**: plugins on in every project, and synced skills that stay, by name. None → the line goes.
+- **`{unread}`**: one line per source `flow survey` printed as `unread:`, saying in plain words what went unchecked and why.
+- **`{written}`, `{deleted}`, `{commands}`**: the file list, below.
+
+### The file list
+
+At go, the session records every path in it before its first change, so one path left out is a file `flow restore` cannot bring back. Each path sits in backticks. A command's line names the command, then every path it writes, or `writes nothing`. Within each group, the lines run in order: a delete comes before the `skills add` that replaces it, and a plugin's uninstall or disable after `settings.json` is written. An uninstall names the plugin's folder, the `folder:` line `flow survey` prints under it, and its data folder, where one exists.
 
 ## The competitor test
 
 **The question is whether a thing tells Claude how to work on ground Flow already rules on.** Ground Flow rules on: every heading in `home/CLAUDE.md`, and every job a Flow skill does. Where to put what you found:
 
-- **Tells Claude how to work in every session**, invoked or not (a `SessionStart` hook, a rule file, a plugin that injects instructions) → a line under `### Always removed`, with no box.
-- **Overlaps Flow, and fires only when invoked or matched** (a skill, an agent, a command) → a box under `### Works against Flow's rules`. The line says what it does in plain words, then what Flow does instead.
+- **Tells Claude how to work in every session**, invoked or not (a `SessionStart` hook, a rule file, a plugin that injects instructions) → a line under ✅ → **Always removed**, with no box.
+- **Overlaps Flow, and fires only when invoked or matched** (a skill, an agent, a command) → a box under `## ❌ Removed: works against Flow's rules`. The line says what it does in plain words, then what Flow does instead.
 - **Synced from the user's Claude account** and overlapping → a box too, removed through `skillOverrides`. Never delete its folder: the next sync brings it back.
 - **Knows a subject Flow does not** (a framework, a service, a file format), or tells Claude how to work where Flow says nothing → it stays. Anything that stays and is not a plugin, a synced skill or an outside skill is left out of the form.
 - **A plugin that goes** → `claude plugin uninstall <name>@<marketplace>`. Never switch it off, and never delete its folder.
-- **A plugin synced from the user's claude.ai account, that goes** → `claude plugin disable <name>@synced`. Its line says it goes from this machine only, and stays on claude.ai. One the user's organization requires cannot be switched off: name it under `Left as they are`, with that reason.
-- **A plugin that stays, and only some projects use** (a framework, a service, a file format) → a box under `## Switched on only in the projects that use it`, switched off by `claude plugin disable <id> --scope user`. `flow init` switches it on in each project that uses it.
-- **A plugin that stays, and every project uses**, or one already off for the whole machine → named under `Left as they are`. So is a synced skill that stays.
+- **A plugin synced from the user's claude.ai account, that goes** → `claude plugin disable <name>@synced`. Its line says it goes from this machine only, and stays on claude.ai. One the user's organization requires cannot be switched off: name it under ✅ → **Left as they are**, with that reason.
+- **A plugin that stays, and only some projects use** (a framework, a service, a file format) → a box under `## ⏸️ Switched off, except in the projects that use it`, switched off by `claude plugin disable <id> --scope user`. `flow init` switches it on in each project that uses it.
+- **A plugin that stays, and every project uses**, or one already off for the whole machine → named under ✅ → **Left as they are**. So is a synced skill that stays.
 - **A hook of the user's own**, not from a plugin, goes through the same test. One that stays is written into `hooks` beside Flow's.
 - **An MCP server** stays, and is left out of the form.
 
-**Taking over an outside skill** is its own section of the form, for every skill that stays:
+**Taking over an outside skill** is `## Taken over by Flow`, for every skill that stays:
 
 - **Installed by `npx skills`** → Flow's `flow skills add <owner/repo>`, then `flow skills on <name> --global`, the repository read from `~/.agents/.skill-lock.json`. Its changes: delete both copies, run both commands, then write the lock file with that entry removed. Only taken-over entries leave the lock file.
 - **A real folder copied in by hand** → moved into `~/.flow/private-skills/<name>/`, then `flow skills on <name> --global`.
@@ -84,10 +106,10 @@ Each line says whether the skill is used whole or harvested, sorted by `~/.flow/
 Every line of every rule file found goes in 1 of 3 places:
 
 - **A Flow rule does the same job** → dropped. Drop a line only where you can name that rule.
-- **How the user wants Claude to work, and they would still want it had Flow been there from the start** → `### Your preferences`. `Never use em dashes` passes. `Always show me a diff before you edit` fails: it works around a missing workflow.
-- **True of the user, and it changes what Claude does** → `### About you`. `Colour-blind, so never tell things apart by red and green alone.` Never a skill level, never what they don't know, never what they are working on, and never what every Flow user shares, such as dictating by voice.
+- **How the user wants Claude to work, and they would still want it had Flow been there from the start** → **Your preferences**. `Never use em dashes` passes. `Always show me a diff before you edit` fails: it works around a missing workflow.
+- **True of the user, and it changes what Claude does** → **About you**. `Colour-blind, so never tell things apart by red and green alone.` Never a skill level, never what they don't know, never what they are working on, and never what every Flow user shares, such as dictating by voice.
 
-Anything else is dropped too. Both boxes start empty, and most machines leave `### About you` that way, unless `## When ~/.flow/CLAUDE.md was already there` fills them. Rewrite each kept line in plain words, one rule per line.
+Anything else is dropped too. Both boxes start empty, and most machines leave **About you** that way, unless `## When ~/.flow/CLAUDE.md was already there` fills them. Rewrite each kept line in plain words, one rule per line.
 
 ## The files it writes
 
@@ -109,7 +131,7 @@ Build JSON with `node`, never by hand. A settings file that does not parse, or a
 
 `flow install` brought it from the user's other machine, with the rest of `~/.flow/`. The user already approved its `## The user` and `## Preferences` there.
 
-- **The boxes start with those 2 sections**: `## Preferences` in `### Your preferences`, `## The user` in `### About you`. A harvested line joins a box only where it says something the arrived text does not.
+- **The boxes start with those 2 sections**: `## Preferences` in **Your preferences**, `## The user` in **About you**. A harvested line joins a box only where it says something the arrived text does not.
 - **`files/…/.flow/CLAUDE.md`**: `home/CLAUDE.md` with the 2 sections from the boxes, as on any machine.
 - **A skill copied in by hand whose name is already in `~/.flow/private-skills/`** is the same skill. Its changes: delete the copy, then the `flow skills on` any takeover gets. No move.
 

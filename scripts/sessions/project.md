@@ -20,10 +20,10 @@ A message starting `Carry on` is the same job, stopped part way.
 0. **`flow init --check`.** A failure → print what it said and stop.
    - `step` in `run.json` above 0 → a run stopped part way. Carry on from the step after it, and tell the user in one line.
    - Rewrite `step` in `run.json` as each step below finishes.
-1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, every file in `project-template/`, and the form's template, `~/.flow/scripts/sessions/project-form.md`.
+1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, every file in `project-template/`, and the form's template, `~/.flow/scripts/templates/setup-project.md`.
 2. **Read the project.** `## Reading the project` below.
 3. **Sort what you found**, and write the new files. `## Where each finding goes` and `## The files it writes` below.
-4. **Write the form** into `~/.flow/migrations/<migration>/migration.md`, by its template. Then hand it over in one message: its full path, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop. A `migration.md` that already exists is never rewritten: a request to save it copies it to `migration.original.md` beside it first.
+4. **Write the form** into `~/.flow/migrations/<migration>/migration.md`, by its template and `## What goes in the form` below. Then hand it over in one message: its full path, one line saying ticked items go and unticked ones stay, and that saying go runs it. Then stop. A `migration.md` that already exists is never rewritten: a request to save it copies it to `migration.original.md` beside it first.
 5. **Take the answer.** Read `migration.md` again, against the form as you wrote it. The file wins over anything said in chat.
    - A line changed beyond its box mark or a text box, or deleted → name the line, ask what the user meant, and wait. Nothing changes before they answer.
    - Nothing changed → step 6.
@@ -73,15 +73,15 @@ A message starting `Carry on` is the same job, stopped part way.
 
 **Everything the project's settings and folders hold gets the machine's competitor test**, `## The competitor test` in `machine.md` beside this file, one thing at a time: plugins in `enabledPlugins`, hooks, permissions, MCP servers in `.mcp.json`, skills, agents, commands, and both settings files.
 
-- **Tells Claude how to work in every session** (a plugin that injects instructions, a `SessionStart` hook) → removed with no box, under `## What Flow sets up`.
-- **Overlaps Flow, and fires only when invoked or matched** → a box under `## 🔴 Removed unless you untick it`.
-- **Knows the project's field** → stays, named in one line.
+- **Tells Claude how to work in every session** (a plugin that injects instructions, a `SessionStart` hook) → removed with no box, under ✅ → **Always removed**.
+- **Overlaps Flow, and fires only when invoked or matched** → a box under `## ❌ Removed: works against Flow's rules`.
+- **Knows the project's field** → stays, named under ✅ → **Left as they are**.
 - **A permission** stays, unless it undoes one of Flow's `deny` rules.
 - **A plugin** is switched off in the project's `.claude/settings.json`. Never uninstalled.
 - **A skill from a source Flow knows** → `flow skills on <name>`, after its folder's delete.
 - **Any other outside skill** → sorted by `~/.flow/references/knowledge.md` → `## An outside skill`, and added as that section says.
-- **The memory folder** → a box under `## 🔴 Removed unless you untick it`.
-- **The project's own `AGENTS.md`**, once its rules are read into `CLAUDE.md` → a box under `## 🔴 Removed unless you untick it`. Claude skips it beside a `CLAUDE.md`, so a kept copy only goes stale.
+- **The memory folder** → a box under `## ❌ Removed: works against Flow's rules`. A memory folder whose project is gone from disk → an unticked box under `## Old memory`.
+- **The project's own `AGENTS.md`**, once its rules are read into `CLAUDE.md` → a box under `## ❌ Removed: works against Flow's rules`. Claude skips it beside a `CLAUDE.md`, so a kept copy only goes stale.
 
 **A plugin or an outside skill that is off here, and the project's code uses it** → a box under `## Switched on for this project`, naming what in the code uses it. Off here means a plugin `flow survey` shows `off`, or a skill `flow skills ls` shows off. Used whole only: a skill waiting for a harvest stays off.
 
@@ -105,6 +105,38 @@ Every new version goes under `files/<full path>`, beside the form. `project-temp
 
 Build JSON with `node`, never by hand. A settings file that doesn't parse is a fault to fix before step 4.
 
+## What goes in the form
+
+**Copy the template whole, then fill its gaps.** Every fixed line stays word for word. Replace each line holding a `{…}` whole, with the lines it stands for, and never leave a `{…}` in the file. The text after `such as:` is one example.
+
+**Every line takes one shape**: `- [x] **name** type: what happens to it. Why, in one sentence.` A settings key never appears on a line.
+
+**A line appears only where saying go changes something.** A section left with no line goes, heading included. `## ✅ Set up with no choice` and `## Every file this changes` always stay.
+
+### What each `{…}` holds
+
+- **`{project}`**: the project's full path, as `run.json` names it. **`{name}`**: its folder's name. **`{place}`**: the first half of `migration` in `run.json`.
+- **`{full path of the migration folder}`**: its absolute path, since the reader opens the form from the project.
+- **`{count}`**: the boxes left once the form is filled.
+- **`{removed}`**: one box per skill, agent, command or hook that overlaps Flow, then `AGENTS.md`'s box, then the memory folder's box.
+- **`{switched on}`**: one box per plugin or outside skill off on this machine that the project's code uses, naming what uses it.
+- **`{tickets}`**: one box for the tickets from open-work lists: the count, then each list.
+- **`{old memory}`**: one unticked box per memory folder whose project is gone from disk.
+- **`{your rules}`**: the new lines for `~/.flow/CLAUDE.md`. None → the whole section goes.
+- **`{moving}`**: one line per place with something in it: the count, then the place, then the names where they fit on the line.
+- **`{dropped}`**: the count of lines dropped, naming `dropped.md`. None → the line goes.
+- **`{fixed tickets}`**: the 2 always-written tickets, each where it applies.
+- **`{always removed}`**: one line per plugin or hook that tells Claude how to work in every session.
+- **`{kept}`**: what stays, by name. None → the line goes.
+- **`{unread}`**: one line per source `flow survey` printed as `unread:`, saying in plain words what went unchecked and why.
+- **`{written}`, `{deleted}`, `{commands}`**: the file list, below.
+
+A bold label under ✅ left with no line goes too.
+
+### The file list
+
+At go, the session records every path in it before its first change, so one path left out is a file `flow restore` cannot bring back. Each path sits in backticks, and a path with no `~` sits inside the project. A command's line names the command, then every path it writes, or `writes nothing`.
+
 ## The second check
 
 One message, covering every change the user made:
@@ -122,7 +154,6 @@ Each unticked line means Flow leaves that thing exactly as the project has it. F
 
 - **A hook or a plugin** unticked → put it back into `files/…/.claude/settings.json`.
 - **A plugin under `## Switched on for this project`** unticked → take its key out of `files/…/.claude/settings.json`.
-- **A line under `## Moving into Flow's files`** unticked → drop the files it wrote from `files/`.
 - **The line of tickets from open-work lists** unticked → drop those tickets from `files/…/.flow/tickets/`.
 
 Then make each change, in the order of the file list, with `.flow/settings.json` copied in before any `flow` command:
@@ -139,5 +170,5 @@ A change that fails → say which and why, and stop. A run carried on checks eac
 - **Step 1**: read `project-template/CLAUDE.md` and the form's template alone.
 - **Step 2**: read the memory folder `run.json` names, and the project's own `CLAUDE.md` and `docs/context/`, to know what is already kept. Nothing else.
 - **Step 3**: sort each memory line by `## Where each finding goes`. Skip a line the project's files already say. No ticket from the 2 always-written ones.
-- **The form** holds only the sections with a line, and the memory folder's box under `## 🔴 Removed unless you untick it`.
+- **The form** holds only the sections with a line, and the memory folder's box under `## ❌ Removed: works against Flow's rules`.
 - **Step 9 is `flow init --finish` all the same.** It ends the run and leaves the project's version alone.
