@@ -48,6 +48,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow audit read`](#flow-audit-read): the conversation itself
   - [`flow audit summary`](#flow-audit-summary): a few lines of totals
   - [`flow audit timeline`](#flow-audit-timeline): every tool call in order
+  - [`flow audit context`](#flow-audit-context): how full the context was at each request
   - [`flow audit sql`](#flow-audit-sql): any other question, in SQL
   - [`flow audit schema`](#flow-audit-schema): every table and its columns
   - [`flow audit keep`](#flow-audit-keep): save a session before Claude Code deletes it
@@ -844,6 +845,26 @@ TURN  TOOL  OK   CALL
 ```
 
 - **`--limit <n>`**: at most `n` calls. 500 by default.
+
+### `flow audit context`
+
+`flow audit context <id>`: how full the context was at each request to the model, and where the first file edit came.
+
+```console
+$ flow audit context a1b2
+first edit: request 4, turn 2, line 41, context 52.3k
+peak: 61.0k · 6 requests
+
+#  TURN  LINE  AT     CONTEXT  OUT  TOOLS
+1  1     3     09:00  48.1k    40   Bash
+2  1     6     09:00  49.7k    25   Read Read
+3  1     11    09:01  51.9k    30   Bash
+4  2     41    09:01  52.3k    90   Edit   ← first edit
+5  2     44    09:01  58.2k    20   Bash
+6  2     47    09:02  61.0k    120  -
+```
+
+- **`--limit <n>`**: at most `n` requests. 200 by default.
 
 ### `flow audit sql`
 

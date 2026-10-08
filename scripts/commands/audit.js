@@ -11,6 +11,7 @@
  *
  *   flow audit summary [id]                 compact metrics, one screen
  *   flow audit timeline <id>                every tool call, in order
+ *   flow audit context <id>                 the context size at each request
  *   flow audit ls|sql                       counts, costs, open queries
  *   flow audit read <id> --turns 412-460    the conversation, bounded
  *
@@ -180,6 +181,18 @@ actions.timeline = {
   run({ positional, usage, flags }) {
     out(query.timeline(opened(true), one(positional, usage, 'session id'), {
       limit: Number(flags.limit || 500),
+    }));
+    return 0;
+  },
+};
+
+actions.context = {
+  args: '<id>',
+  summary: 'the context size at each request, marking the first edit',
+  flags: { limit: { arg: '<n>' } },
+  run({ positional, usage, flags }) {
+    out(query.context(opened(true), one(positional, usage, 'session id'), {
+      limit: Number(flags.limit || 200),
     }));
     return 0;
   },

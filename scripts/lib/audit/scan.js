@@ -217,8 +217,14 @@ function statements(db) {
       tool_calls = ?, errors = ? WHERE id = ?`),
     turnDuration: db.prepare('UPDATE turn SET duration_ms = ?, messages = ? WHERE id = ?'),
     tool: db.prepare(`INSERT INTO tool_call
-      (session_id, turn_id, segment_id, tool_use_id, name, summary, input, input_bytes, call_line)
-      VALUES (?,?,?,?,?,?,?,?,?)`),
+      (session_id, turn_id, segment_id, request_id, tool_use_id, name, summary, input, input_bytes, call_line)
+      VALUES (?,?,?,?,?,?,?,?,?,?)`),
+    request: db.prepare(`INSERT INTO request
+      (session_id, turn_id, segment_id, message_id, line, timestamp, model, input_tokens,
+       output_tokens, thinking_tokens, cache_read, cache_write)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(session_id, message_id) DO NOTHING`),
+    findRequest: db.prepare('SELECT id FROM request WHERE session_id = ? AND message_id = ?'),
     toolResult: db.prepare(`UPDATE tool_call SET result_line = ?, result_bytes = ?,
       is_error = ?, duration_ms = ? WHERE id = ?`),
     findTool: db.prepare('SELECT id FROM tool_call WHERE session_id = ? AND tool_use_id = ?'),
@@ -274,7 +280,7 @@ function forget(db, file, sessionId) {
   db.prepare('DELETE FROM event WHERE transcript = ?').run(file);
   const orphaned = db.prepare('SELECT COUNT(*) AS n FROM event WHERE session_id = ?').get(sessionId);
   if (!orphaned || orphaned.n === 0) {
-    for (const table of ['tool_call', 'file_touch', 'turn', 'segment']) {
+    for (const table of ['request', 'tool_call', 'file_touch', 'turn', 'segment']) {
       db.prepare(`DELETE FROM ${table} WHERE session_id = ?`).run(sessionId);
     }
     db.prepare('DELETE FROM session WHERE id = ?').run(sessionId);
@@ -416,17 +422,29 @@ function indexTranscript(db, stmt, entry) {
 
       // --- what the assistant spent, and what it called
       if (e.type === 'assistant') {
+        // Only the first line of a reply counts: the lines after it repeat its usage.
         const usage = (e.message && e.message.usage) || {};
-        turnTotals.input += usage.input_tokens || 0;
-        turnTotals.output += usage.output_tokens || 0;
-        turnTotals.thinking += (usage.output_tokens_details && usage.output_tokens_details.thinking_tokens) || 0;
-        turnTotals.cacheRead += usage.cache_read_input_tokens || 0;
-        turnTotals.cacheWrite += usage.cache_creation_input_tokens || 0;
+        const messageId = (e.message && e.message.id) || null;
+        const thinking = (usage.output_tokens_details && usage.output_tokens_details.thinking_tokens) || 0;
+        const inserted = stmt.request.run(entry.sessionId, turn, segment, messageId, line,
+          e.timestamp || null, model, usage.input_tokens || 0, usage.output_tokens || 0, thinking,
+          usage.cache_read_input_tokens || 0, usage.cache_creation_input_tokens || 0);
+        let request;
+        if (inserted.changes) {
+          request = Number(inserted.lastInsertRowid);
+          turnTotals.input += usage.input_tokens || 0;
+          turnTotals.output += usage.output_tokens || 0;
+          turnTotals.thinking += thinking;
+          turnTotals.cacheRead += usage.cache_read_input_tokens || 0;
+          turnTotals.cacheWrite += usage.cache_creation_input_tokens || 0;
+        } else {
+          request = stmt.findRequest.get(entry.sessionId, messageId).id;
+        }
 
         for (const block of (e.message && e.message.content) || []) {
           if (!block || block.type !== 'tool_use') continue;
           const input = text(block.input);
-          const id = Number(stmt.tool.run(entry.sessionId, turn, segment, block.id || null,
+          const id = Number(stmt.tool.run(entry.sessionId, turn, segment, request, block.id || null,
             block.name || null, summarise(block.name, block.input), capped(input),
             input ? Buffer.byteLength(input) : null, line).lastInsertRowid);
           if (block.id) tools.set(block.id, { id, name: block.name, input: block.input });

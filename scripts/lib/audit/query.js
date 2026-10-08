@@ -249,6 +249,50 @@ function timeline(db, id, { limit = 500 } = {}) {
   return out.join('');
 }
 
+// The tools that change a file, for marking where a session's work began.
+const EDITS = ['Edit', 'Write', 'MultiEdit', 'NotebookEdit'];
+
+/**
+ * The context size at each request: everything the model read before it
+ * answered, cached or not. The first request that edits a file is marked,
+ * since how full the context already was when the work began is the question
+ * a study of a session asks first.
+ */
+function context(db, id, { limit = 200 } = {}) {
+  const s = findSession(db, id);
+  const rows = db.prepare(`SELECT r.*, t.ordinal turn,
+      (SELECT group_concat(name, ' ') FROM tool_call c WHERE c.request_id = r.id) tools
+    FROM request r LEFT JOIN turn t ON t.id = r.turn_id
+    WHERE r.session_id = ? ORDER BY r.line LIMIT ?`).all(s.id, limit);
+  if (!rows.length) return `${short(s.id)} has no requests.`;
+
+  const size = (r) => (r.input_tokens || 0) + (r.cache_read || 0) + (r.cache_write || 0);
+  const edit = db.prepare(`SELECT r.*, t.ordinal turn FROM request r
+    JOIN tool_call c ON c.request_id = r.id LEFT JOIN turn t ON t.id = r.turn_id
+    WHERE r.session_id = ? AND c.name IN (${EDITS.map(() => '?').join(',')})
+    ORDER BY r.line LIMIT 1`).get(s.id, ...EDITS);
+  const { total, peak } = db.prepare(`SELECT COUNT(*) total,
+    MAX(input_tokens + cache_read + cache_write) peak FROM request WHERE session_id = ?`).get(s.id);
+
+  const out = [];
+  if (edit) {
+    const at = db.prepare('SELECT COUNT(*) n FROM request WHERE session_id = ? AND line <= ?').get(s.id, edit.line).n;
+    out.push(`first edit: request ${at}, turn ${edit.turn ?? '-'}, line ${edit.line}, context ${num(size(edit))}`);
+  } else {
+    out.push('no file edited in this session');
+  }
+  out.push(`peak: ${num(peak)} · ${total} requests`, '');
+  out.push(table(
+    ['#', 'TURN', 'LINE', 'AT', 'CONTEXT', 'OUT', 'TOOLS', ''],
+    rows.map((r, i) => [
+      i + 1, r.turn ?? '-', r.line, clock(r.timestamp), num(size(r)), num(r.output_tokens),
+      trim(r.tools, 40) || '-', edit && r.id === edit.id ? '← first edit' : '',
+    ])
+  ));
+  if (total > rows.length) out.push(`\n${rows.length} of ${total} shown. --limit ${total} for all.`);
+  return out.join('\n');
+}
+
 // ---------------------------------------------------------------- open sql
 
 // A query that writes would corrupt an index nothing re-derives on demand, and
@@ -289,6 +333,6 @@ function schema(db) {
 }
 
 module.exports = {
-  sessions, session, turns, summary, timeline, sql, schema, findSession,
+  sessions, session, turns, summary, timeline, context, sql, schema, findSession,
   num, bytes, ms, money, short, trim,
 };

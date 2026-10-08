@@ -135,6 +135,40 @@ test('a transcript becomes sessions, segments, turns, tools and file touches', (
   assert.match(rows("SELECT name, is_error FROM tool_call WHERE is_error = 1"), /Grep +1/);
 });
 
+test('a reply written as several lines counts its tokens once', () => {
+  const { file, env } = roots('audit-reply-once');
+  // Claude Code writes one line per content block, each with the reply's whole usage.
+  const usage = { input_tokens: 3, output_tokens: 70, cache_read_input_tokens: 9000, cache_creation_input_tokens: 40 };
+  const block = (content) => base('assistant', {
+    message: { id: 'msg_1', model: 'claude-opus-5', role: 'assistant', content: [content], usage },
+  });
+  fs.writeFileSync(file, asLines([
+    prompt('p1', 'edit it'),
+    block({ type: 'text', text: 'editing' }),
+    block({ type: 'tool_use', id: 't1', name: 'Edit', input: { file_path: `${CWD}/a.md` } }),
+    returns('t1', 'p1', { filePath: `${CWD}/a.md` }),
+  ]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const rows = (sql) => audit(env, ['sql', sql]).stdout;
+  assert.match(rows("SELECT cache_read, output_tokens FROM turn WHERE prompt_id = 'p1'"), /^9000 +70$/m);
+  assert.match(rows('SELECT COUNT(*) n FROM request'), /^1$/m);
+  assert.match(rows('SELECT r.message_id FROM tool_call c JOIN request r ON r.id = c.request_id'), /msg_1/);
+});
+
+test('context prints the size at each request, and marks the first edit', () => {
+  const { file, env } = roots('audit-context');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const shown = audit(env, ['context', SESSION.slice(0, 4)]);
+  assert.strictEqual(shown.code, 0, shown.stderr);
+  // The Write in turn 3 is the 4th request; each tool call's request read 1000 + 1 + 10.
+  assert.match(shown.stdout, /^first edit: request 4, turn 3, line \d+, context 1\.0k$/m);
+  assert.match(shown.stdout, /^peak: 2\.1k · 7 requests$/m);
+  assert.match(shown.stdout, /^4 +3 +\d+ +\S+ +1\.0k +20 +Write +← first edit$/m);
+});
+
 test('a file is attributed by every route, and confidence says which', () => {
   const { file, env } = roots('audit-files');
   fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));

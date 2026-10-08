@@ -26,6 +26,7 @@ One user message, your work, one reply. In that order, every time.
 - **`read-in-parallel`** Files → `Read`, all of them in one parallel batch. Never `cat`, `head`, `tail` or `sed -n`.
 - **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
+- **`past-sessions-through-audit`** A past session → `flow audit`: `ls` finds it, `context` and `timeline` narrow it, `read --turns` opens it. Never the raw transcript.
 ## Writing files
 
 - **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a rule file, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. A file an agent loads also takes `cut-loaded-files.md` beside it, a rule file `write-rules.md`, and a documentation page `write-docs.md`. Never defer a file to a later pass.

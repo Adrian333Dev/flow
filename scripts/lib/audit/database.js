@@ -28,7 +28,7 @@ const { FlowError } = require('../error');
 
 // Bumping this throws the file away on the next index. Every row is derived,
 // so the cost of a rebuild is time, never data.
-const SCHEMA = 7;
+const SCHEMA = 8;
 
 const auditDir = () => path.join(paths.flowHome(), 'audit');
 const dbPath = () => path.join(auditDir(), 'audit.db');
@@ -157,11 +157,33 @@ CREATE TABLE event (
   model       TEXT
 );
 
+-- One request to the model, and the only place tokens are counted. Claude
+-- Code writes a reply as one transcript line per content block, each repeating
+-- the reply's whole usage, so a row is one message id, never one line. Summed
+-- per line, a session's cache read came out 2.2 times too high.
+CREATE TABLE request (
+  id              INTEGER PRIMARY KEY,
+  session_id      TEXT NOT NULL,
+  turn_id         INTEGER,
+  segment_id      INTEGER,
+  message_id      TEXT,
+  line            INTEGER,
+  timestamp       TEXT,
+  model           TEXT,
+  input_tokens    INTEGER DEFAULT 0,
+  output_tokens   INTEGER DEFAULT 0,
+  thinking_tokens INTEGER DEFAULT 0,
+  cache_read      INTEGER DEFAULT 0,
+  cache_write     INTEGER DEFAULT 0,
+  UNIQUE (session_id, message_id)
+);
+
 CREATE TABLE tool_call (
   id           INTEGER PRIMARY KEY,
   session_id   TEXT NOT NULL,
   turn_id      INTEGER,
   segment_id   INTEGER,
+  request_id   INTEGER,
   tool_use_id  TEXT,
   name         TEXT,
   summary      TEXT,                  -- the one-line handle: a command, a path, a query
@@ -221,6 +243,7 @@ CREATE INDEX event_turn      ON event (turn_id);
 CREATE INDEX event_type      ON event (type, subtype);
 CREATE INDEX turn_session    ON turn (session_id, ordinal);
 CREATE INDEX segment_session ON segment (session_id, ordinal);
+CREATE INDEX request_session ON request (session_id, line);
 CREATE INDEX tool_turn       ON tool_call (turn_id);
 CREATE INDEX tool_name       ON tool_call (name);
 CREATE INDEX tool_session    ON tool_call (session_id);
