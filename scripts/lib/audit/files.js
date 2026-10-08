@@ -187,7 +187,7 @@ function fromCommand(command) {
       for (const word of rest) {
         if (!looksLikePath(word)) continue;
         const range = verb === 'head' && lines ? { start: 1, end: lines } : {};
-        found.push({ path: word, kind: 'read', via: `bash:${verb}`, confidence: 'parsed', ...range });
+        found.push({ path: word, type: 'read', via: `bash:${verb}`, confidence: 'parsed', ...range });
       }
       continue;
     }
@@ -197,7 +197,7 @@ function fromCommand(command) {
     // through -e. Reading the script as a filename is what produced `/^##`.
     if (verb === 'sed') {
       const range = sedRange(rest);
-      const kind = rest.some((w) => w.startsWith('-i') || w.startsWith('--in-place')) ? 'edit' : 'read';
+      const type = rest.some((w) => w.startsWith('-i') || w.startsWith('--in-place')) ? 'edit' : 'read';
       const scripted = rest.includes('-e') || rest.includes('-f');
       let seenScript = scripted;
       for (let i = 0; i < rest.length; i++) {
@@ -208,7 +208,7 @@ function fromCommand(command) {
         }
         if (!seenScript) { seenScript = true; continue; }
         if (!looksLikePath(word)) continue;
-        found.push({ path: word, kind, via: 'bash:sed', confidence: 'parsed', ...range });
+        found.push({ path: word, type, via: 'bash:sed', confidence: 'parsed', ...range });
       }
       continue;
     }
@@ -219,7 +219,7 @@ function fromCommand(command) {
     if (verb === 'util' && rest[0] === 'fs' && rest[1] === 'tree') {
       for (const word of rest.slice(2)) {
         if (looksLikePath(word) || /^[\w.-]+$/.test(word)) {
-          found.push({ path: word, kind: 'list', via: 'util fs tree', confidence: 'parsed' });
+          found.push({ path: word, type: 'list', via: 'util fs tree', confidence: 'parsed' });
         }
       }
     }
@@ -250,8 +250,8 @@ function fromMergeOutput(command, stdout) {
     seen.add(file);
     const range = /^(.*):(\d+)-(\d+)$/.exec(file);
     found.push(range
-      ? { path: range[1], start: Number(range[2]), end: Number(range[3]), kind: 'read', via: 'util fs merge', confidence: 'parsed' }
-      : { path: file, kind: 'read', via: 'util fs merge', confidence: 'parsed' });
+      ? { path: range[1], start: Number(range[2]), end: Number(range[3]), type: 'read', via: 'util fs merge', confidence: 'parsed' }
+      : { path: file, type: 'read', via: 'util fs merge', confidence: 'parsed' });
   }
   return found;
 }
@@ -269,7 +269,7 @@ function fromToolCall({ name, input, result }) {
     if (f && f.filePath) {
       found.push({
         path: f.filePath,
-        kind: 'read',
+        type: 'read',
         via: 'Read',
         confidence: 'exact',
         start: f.startLine ?? null,
@@ -280,7 +280,7 @@ function fromToolCall({ name, input, result }) {
     } else if (input && input.file_path) {
       // An errored read still says which path was asked for, and a path that
       // does not exist is itself worth seeing in the record.
-      found.push({ path: input.file_path, kind: 'read', via: 'Read', confidence: 'exact' });
+      found.push({ path: input.file_path, type: 'read', via: 'Read', confidence: 'exact' });
     }
     return found;
   }
@@ -295,7 +295,7 @@ function fromToolCall({ name, input, result }) {
         : null;
       found.push({
         path: file,
-        kind: name === 'Write' ? 'write' : 'edit',
+        type: name === 'Write' ? 'write' : 'edit',
         via: name,
         confidence: 'exact',
         start,
@@ -326,7 +326,7 @@ function fromAttachment(a) {
   const file = a.path || a.displayPath || a.filename;
   if (!file) return [];
 
-  const kinds = {
+  const types = {
     file: 'read',
     nested_memory: 'read',
     compact_file_reference: 'read',
@@ -334,12 +334,12 @@ function fromAttachment(a) {
     selected_lines_in_ide: 'read',
     edited_text_file: 'edit',
   };
-  const kind = kinds[a.type];
-  if (!kind) return [];
+  const type = types[a.type];
+  if (!type) return [];
 
   return [{
     path: file,
-    kind,
+    type,
     via: `attachment:${a.type}`,
     confidence: 'declared',
     start: a.lineStart ?? null,

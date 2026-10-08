@@ -55,7 +55,7 @@ function findTranscripts(root) {
           path: path.join(dir, entry.name),
           project: project.name,
           sessionId: entry.name.replace(/\.jsonl$/, ''),
-          kind: 'session',
+          type: 'session',
           agentOf: null,
         });
         continue;
@@ -70,7 +70,7 @@ function findTranscripts(root) {
           path: path.join(subagents, agent),
           project: project.name,
           sessionId: agent.replace(/\.jsonl$/, ''),
-          kind: 'subagent',
+          type: 'subagent',
           agentOf: entry.name,
         });
       }
@@ -223,7 +223,7 @@ function statements(db) {
       is_error = ?, duration_ms = ? WHERE id = ?`),
     findTool: db.prepare('SELECT id FROM tool_call WHERE session_id = ? AND tool_use_id = ?'),
     touch: db.prepare(`INSERT INTO file_touch
-      (session_id, turn_id, segment_id, tool_call_id, line, path, given, kind, start_line,
+      (session_id, turn_id, segment_id, tool_call_id, line, path, given, type, start_line,
        end_line, total_lines, bytes, confidence, via)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`),
     session: db.prepare(`INSERT INTO session (id, project, cwd, git_branch, version, slug, started_at, ended_at)
@@ -252,7 +252,7 @@ function statements(db) {
       cache_write   = (SELECT SUM(cache_write)   FROM turn WHERE session_id = session.id)
       WHERE id = ?`),
     bookmark: db.prepare(`INSERT INTO transcript
-      (path, session_id, project, kind, agent_of, bytes_read, lines_read, inode, size, mtime,
+      (path, session_id, project, type, agent_of, bytes_read, lines_read, inode, size, mtime,
        open_turn, open_seg, open_prompt, indexed_at)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       ON CONFLICT(path) DO UPDATE SET
@@ -455,7 +455,7 @@ function indexTranscript(db, stmt, entry) {
           const where = e.cwd || (head && head.cwd) || null;
           for (const t of files.fromToolCall({ name: call.name, input: call.input, result: e.toolUseResult })) {
             stmt.touch.run(entry.sessionId, turn, segment, call.id, line, absolute(t.path, where),
-              t.path, t.kind, t.start ?? null, t.end ?? null, t.total ?? null, t.bytes ?? null,
+              t.path, t.type, t.start ?? null, t.end ?? null, t.total ?? null, t.bytes ?? null,
               t.confidence, t.via);
           }
         }
@@ -466,7 +466,7 @@ function indexTranscript(db, stmt, entry) {
         const where = e.cwd || (head && head.cwd) || null;
         for (const t of files.fromAttachment(e.attachment)) {
           stmt.touch.run(entry.sessionId, turn, segment, null, line, absolute(t.path, where),
-            t.path, t.kind, t.start ?? null, t.end ?? null, null, t.bytes ?? null,
+            t.path, t.type, t.start ?? null, t.end ?? null, null, t.bytes ?? null,
             t.confidence, t.via);
         }
       }
@@ -503,7 +503,7 @@ function indexTranscript(db, stmt, entry) {
       (head && head.slug) || null, firstAt, lastAt);
     stmt.counts.run(entry.sessionId);
 
-    stmt.bookmark.run(entry.path, entry.sessionId, entry.project, entry.kind, entry.agentOf,
+    stmt.bookmark.run(entry.path, entry.sessionId, entry.project, entry.type, entry.agentOf,
       bytesRead, line, stat.ino, stat.size, Math.round(stat.mtimeMs), lastTurn, lastSegment,
       promptId, new Date().toISOString());
 

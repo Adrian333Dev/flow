@@ -86,7 +86,7 @@ function judge(call) {
       continue;
     }
 
-    scorecard.append(call.session_id, { kind: 'result', id: c.id, tier: c.tier, since: c.since, project, effort, ok });
+    scorecard.append(call.session_id, { type: 'result', id: c.id, tier: c.tier, since: c.since, project, effort, ok });
     if (ok || c.tier === 'measure') continue;
 
     // The agent already holds the rule when its file is in context, so the id

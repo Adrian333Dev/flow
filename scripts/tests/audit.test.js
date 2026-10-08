@@ -141,7 +141,7 @@ test('a file is attributed by every route, and confidence says which', () => {
   assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
 
   const touches = audit(env, ['sql',
-    'SELECT path, given, kind, confidence, via, start_line, end_line FROM file_touch ORDER BY id']).stdout;
+    'SELECT path, given, type, confidence, via, start_line, end_line FROM file_touch ORDER BY id']).stdout;
 
   // The Read tool reports its own line range even though the call passed none.
   assert.match(touches, new RegExp(`${CWD}/docs/layout.md.+read +exact +Read +1 +40`));

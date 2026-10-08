@@ -259,7 +259,7 @@ test('a warning carries the rule text when its file never loaded, and the id whe
   assert.match(text, /\(no-todo\)/, 'the agent already holds the rule, so the id is enough');
   assert.doesNotMatch(text, /Never leave a TODO behind/);
 
-  assert.strictEqual(lines(dir).filter((r) => r.kind === 'loaded').length, 1);
+  assert.strictEqual(lines(dir).filter((r) => r.type === 'loaded').length, 1);
 });
 
 test('the hook stays silent on a broken check rather than blocking every edit', () => {

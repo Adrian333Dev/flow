@@ -28,7 +28,7 @@ const { FlowError } = require('../error');
 
 // Bumping this throws the file away on the next index. Every row is derived,
 // so the cost of a rebuild is time, never data.
-const SCHEMA = 6;
+const SCHEMA = 7;
 
 const auditDir = () => path.join(paths.flowHome(), 'audit');
 const dbPath = () => path.join(auditDir(), 'audit.db');
@@ -49,7 +49,7 @@ CREATE TABLE transcript (
   path        TEXT PRIMARY KEY,
   session_id  TEXT NOT NULL,
   project     TEXT NOT NULL,
-  kind        TEXT NOT NULL,          -- session | subagent
+  type        TEXT NOT NULL,          -- session | subagent
   agent_of    TEXT,                   -- parent session id, for a subagent
   bytes_read  INTEGER NOT NULL DEFAULT 0,
   lines_read  INTEGER NOT NULL DEFAULT 0,
@@ -186,7 +186,7 @@ CREATE TABLE file_touch (
   line         INTEGER,
   path         TEXT,                  -- absolute, resolved against the session cwd
   given        TEXT,                  -- exactly as the command or attachment wrote it
-  kind         TEXT,                  -- read | write | edit | list
+  type         TEXT,                  -- read | write | edit | list
   start_line   INTEGER,
   end_line     INTEGER,
   total_lines  INTEGER,

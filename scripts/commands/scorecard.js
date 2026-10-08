@@ -82,7 +82,7 @@ function tally(all, rows) {
   const counts = new Map(all.map((c) => [c.id, { relevant: 0, violations: 0 }]));
   const since = new Map(all.map((c) => [c.id, c.since]));
   for (const row of rows) {
-    if (row.kind !== 'result') continue;
+    if (row.type !== 'result') continue;
     const seen = counts.get(row.id);
     if (!seen) continue;
     if (row.at && row.at.slice(0, 10) < since.get(row.id)) continue;
@@ -147,13 +147,13 @@ actions.scorecard = {
       all.filter((c) => counts.get(c.id).relevant === 0).map((c) => c.id)));
 
     const measured = all.filter((c) => defined.has(c.id)).length;
-    const sessions = new Set(rows.filter((r) => r.kind === 'result').map((r) => r.at?.slice(0, 10))).size;
+    const sessions = new Set(rows.filter((r) => r.type === 'result').map((r) => r.at?.slice(0, 10))).size;
 
     if (!lines.length) out('nothing to report yet.');
     else out(lines.join('\n').trimEnd());
 
     out(`\n${measured} rules measured, ${defined.size - measured} not measurable. ` +
-      `${rows.filter((r) => r.kind === 'result').length} results over ${sessions} days.`);
+      `${rows.filter((r) => r.type === 'result').length} results over ${sessions} days.`);
     if (!all.length) out(`No checks yet. One file each in ${checks.checksDir()}.`);
     return 0;
   },

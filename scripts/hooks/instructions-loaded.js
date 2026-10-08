@@ -25,7 +25,7 @@ try {
   const call = hook.event();
   if (call && call.file_path) {
     scorecard.append(call.session_id, {
-      kind: 'loaded',
+      type: 'loaded',
       file: call.file_path,
       memory: call.memory_type || '',
       why: call.load_reason || '',

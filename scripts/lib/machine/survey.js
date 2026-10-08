@@ -92,15 +92,15 @@ function entry(p) {
   try {
     stat = fs.lstatSync(p);
   } catch {
-    return { kind: 'missing' };
+    return { type: 'missing' };
   }
-  if (!stat.isSymbolicLink()) return { kind: 'real', dir: stat.isDirectory() };
+  if (!stat.isSymbolicLink()) return { type: 'real', dir: stat.isDirectory() };
   const raw = fs.readlinkSync(p);
   try {
     const target = fs.realpathSync(p);
-    return { kind: 'link', target, dir: fs.statSync(target).isDirectory() };
+    return { type: 'link', target, dir: fs.statSync(target).isDirectory() };
   } catch {
-    return { kind: 'dead', raw };
+    return { type: 'dead', raw };
   }
 }
 
@@ -131,8 +131,8 @@ function brief(value) {
  * with what it names. A dead link is a problem once, in `linkProblems`.
  */
 function linkScope(c, found) {
-  if (found.kind === 'link') return `link → ${c.show(found.target)}`;
-  if (found.kind === 'dead') return `dead → ${found.raw}`;
+  if (found.type === 'link') return `link → ${c.show(found.target)}`;
+  if (found.type === 'dead') return `dead → ${found.raw}`;
   return found.dir ? 'folder' : 'file';
 }
 
@@ -163,7 +163,7 @@ function ruleFile(c, file, items, seen, depth = 0, scope = 'rule file') {
     return;
   }
   const found = entry(file);
-  items.push({ name: c.show(file), scope: found.kind === 'link' ? `${scope}, link → ${c.show(found.target)}` : scope });
+  items.push({ name: c.show(file), scope: found.type === 'link' ? `${scope}, link → ${c.show(found.target)}` : scope });
   if (depth >= 5) return;
   for (const next of imports(c, file, text)) ruleFile(c, next, items, seen, depth + 1, `imported by ${c.show(file)}`);
 }
@@ -276,7 +276,7 @@ function skillItems(c, dir, overrides) {
     if (isFile(path.join(p, '.claude-plugin', 'plugin.json'))) continue;
     const found = entry(p);
     let scope = linkScope(c, found);
-    if (found.kind === 'link' && found.target.startsWith(agentsSkills)) {
+    if (found.type === 'link' && found.target.startsWith(agentsSkills)) {
       const from = locked[name] && (locked[name].source || locked[name].sourceUrl);
       scope = from ? `npx skills, ${from}` : `npx skills, not in ${c.show(path.join(c.at.agents, '.skill-lock.json'))}`;
     }
@@ -564,12 +564,12 @@ function flowCloneOf(p) {
 function linkProblems(c) {
   const { at } = c;
   const installedScripts = entry(path.join(at.flow, 'scripts'));
-  const clone = installedScripts.kind === 'link' ? path.dirname(installedScripts.target) : paths.cloneRoot();
+  const clone = installedScripts.type === 'link' ? path.dirname(installedScripts.target) : paths.cloneRoot();
   const older = [];
   const visit = (p, depth) => {
     const found = entry(p);
-    if (found.kind === 'dead') c.problems.push(`${c.show(p)} points at ${found.raw}, which is gone`);
-    if (found.kind === 'link') {
+    if (found.type === 'dead') c.problems.push(`${c.show(p)} points at ${found.raw}, which is gone`);
+    if (found.type === 'link') {
       const other = flowCloneOf(found.target);
       if (other && other !== clone) {
         older.push({ name: c.show(p), scope: `link → ${c.show(found.target)}` });
@@ -577,7 +577,7 @@ function linkProblems(c) {
       }
       return;
     }
-    if (found.kind === 'real' && found.dir && depth > 0) {
+    if (found.type === 'real' && found.dir && depth > 0) {
       for (const name of readDir(p).names || []) visit(path.join(p, name), depth - 1);
     }
   };

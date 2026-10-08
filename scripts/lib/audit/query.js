@@ -128,8 +128,8 @@ function session(db, id) {
   out.push(table(['TOOL', 'CALLS', 'ERRORS', 'RETURNED'],
     tools.map((t) => [t.name, t.n, t.err || 0, bytes(t.b)])));
 
-  const files = db.prepare(`SELECT path, COUNT(*) n, SUM(kind = 'read') reads,
-    SUM(kind IN ('edit','write')) writes FROM file_touch WHERE session_id = ?
+  const files = db.prepare(`SELECT path, COUNT(*) n, SUM(type = 'read') reads,
+    SUM(type IN ('edit','write')) writes FROM file_touch WHERE session_id = ?
     GROUP BY path ORDER BY n DESC LIMIT 12`).all(s.id);
   out.push('', 'FILES: every route into context, exact and parsed alike');
   out.push(table(['TOUCHES', 'READS', 'WRITES', 'PATH'],

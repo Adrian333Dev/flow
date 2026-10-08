@@ -7,7 +7,7 @@
  * write back loses one of them, and the thing lost is a count nobody notices is
  * missing. Appending a line has no such race.
  *
- * Two kinds of line share one file, told apart by `kind`:
+ * Two kinds of line share one file, told apart by `type`:
  *
  *   result  one check ran against one edit, and whether the rule held
  *   loaded  one CLAUDE.md or rule file entered context
@@ -69,12 +69,19 @@ function readAll() {
   return rows;
 }
 
+/** A line written before 2026-10-08 says `kind`: read it as `type` until those files age out. */
+function upgrade(row) {
+  if (row.type || !row.kind) return row;
+  const { kind, ...rest } = row;
+  return { type: kind, ...rest };
+}
+
 function parse(text) {
   const rows = [];
   for (const line of text.split('\n')) {
     if (!line.trim()) continue;
     try {
-      rows.push(JSON.parse(line));
+      rows.push(upgrade(JSON.parse(line)));
     } catch {
       // A line written while the process died. One lost count is not worth
       // refusing to read the other nine hundred.
@@ -85,7 +92,7 @@ function parse(text) {
 
 /** The instruction files this session has loaded, as a set of absolute paths. */
 function loadedIn(sessionId) {
-  return new Set(readSession(sessionId).filter((r) => r.kind === 'loaded').map((r) => r.file));
+  return new Set(readSession(sessionId).filter((r) => r.type === 'loaded').map((r) => r.file));
 }
 
 module.exports = { dir, sessionFile, append, readSession, readAll, loadedIn };
