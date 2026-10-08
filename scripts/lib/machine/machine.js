@@ -1,11 +1,10 @@
 'use strict';
 /**
- * What a machine Flow is on has to have: a finished setup, and the one line
- * `~/.claude/CLAUDE.md` holds. Where the folders sit is `lib/paths.js`.
+ * What a machine Flow is on has to have: a finished setup. Where the folders
+ * sit is `lib/paths.js`.
  */
 
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const paths = require('../paths');
 const { FlowError } = require('../error');
@@ -36,17 +35,4 @@ function requireSetup(root) {
   throw new FlowError('Flow is not set up on this machine. Run flow install.');
 }
 
-/**
- * The one line `~/.claude/CLAUDE.md` holds, pulling in the real rule file,
- * read from its template, home/CLAUDE.md.
- *
- * `~` only where the base is the home folder. A scratch base sits somewhere
- * else, and Claude Code reads `~` as the real home folder whatever the config
- * folder is, so there the line names the file by its full path.
- */
-function importLine(clone, base) {
-  const line = fs.readFileSync(path.join(clone, 'home', 'CLAUDE.md'), 'utf8').trim();
-  return base === os.homedir() ? line : line.replace('@~/', `@${base}${path.sep}`);
-}
-
-module.exports = { importLine, requireSetup };
+module.exports = { requireSetup };

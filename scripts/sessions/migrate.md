@@ -18,7 +18,7 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/`, `proje
 1. **Read what changed**: every guide `flow update --check` listed, lowest number first, then every file in `~/.flow/references/harnesses/`.
    - No entry has a guide → nothing on disk changes. Tell the user in one line, then step 7.
 2. **Read the place.** Every live file a guide names. Then compare Flow's own files with their templates, to find what the user changed by hand:
-   - The machine: `~/.flow/AGENTS.md` against `home/AGENTS.md`, outside `## The user` and `## Preferences`, and `~/.claude/settings.json` against `home/settings.json`.
+   - The machine: `~/.flow/CLAUDE.md` against `home/CLAUDE.md`, outside `## The user` and `## Preferences`, and `~/.claude/settings.json` against `home/settings.json`.
    - A project: `CLAUDE.md`, `.claude/settings.json` and `.gitignore` against `project-template/`.
    - A line no template holds and no guide explains is the user's own.
 3. **Write the migration** into `~/.flow/migrations/<migration>/`: `migration.md` by `## The form` below, and under `files/` the new version of every path a `write` line names, whole, at `files/<full path>`.
@@ -66,7 +66,7 @@ Nothing changes until you say go. The new version of every file is under files/,
 
 These are yours, not Flow's. Each one is carried into the new file. Untick one to drop it.
 
-- [x] {yours}, such as: `~/.flow/AGENTS.md`: "Answer in British English."
+- [x] {yours}, such as: `~/.flow/CLAUDE.md`: "Answer in British English."
 
 ## Every file this changes
 

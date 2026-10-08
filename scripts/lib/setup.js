@@ -216,7 +216,7 @@ function readiness(at) {
 
 /** Flow's rule template, then the setup text. */
 function prompt(clone) {
-  const rules = fs.readFileSync(path.join(clone, 'home', 'AGENTS.md'), 'utf8').trim();
+  const rules = fs.readFileSync(path.join(clone, 'home', 'CLAUDE.md'), 'utf8').trim();
   const setup = fs.readFileSync(path.join(clone, 'scripts', 'sessions', 'machine.md'), 'utf8').trim();
   return `${rules}\n\n${setup}\n`;
 }

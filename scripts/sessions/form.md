@@ -27,7 +27,7 @@ type: setup-machine
 
 ## What Flow sets up
 
-- Flow's rules, read at the start of every session. `~/.agents/AGENTS.md`, loaded by `~/.claude/CLAUDE.md`
+- Flow's rules, read at the start of every session. `~/.claude/CLAUDE.md`, a link to `~/.flow/CLAUDE.md`
 - Flow's hooks: guard.js, changes.js, rule-check.js, instructions-loaded.js, check-ticket.js, reminder.js, context-check.js, session-check.js. `hooks`
 - Commands that can do harm always ask you first: losing work git cannot give back, sending data off the machine, a deploy or a database wipe, a global install, running a downloaded script, and reading a file of passwords or keys. `guard.js`
 - Claude sees exactly what each helper agent changed, even with several working at once. `changes.js`
@@ -155,9 +155,8 @@ Setup could not read each one below, so it stays exactly as it is.
 `~/.flow/scripts/apply-migration.js` acts on every line opening `- write `, `- delete `, `- move ` or `- run `, anywhere in the file, so no other line may open with one of those 4 words. One path per line. Everything after `: ` is for the user.
 
 ```markdown
-- write ~/.flow/AGENTS.md: Flow's rules, with the 2 boxes above
-- run mkdir -p ~/.agents && ln -sfn ~/.flow/AGENTS.md ~/.agents/AGENTS.md: writes ~/.agents/AGENTS.md
-- write ~/.claude/CLAUDE.md: one line loading Flow's rules, in place of what it holds now
+- write ~/.flow/CLAUDE.md: Flow's rules, with the 2 boxes above
+- run ln -sfn ~/.flow/CLAUDE.md ~/.claude/CLAUDE.md: writes ~/.claude/CLAUDE.md, a link to Flow's rules, in place of what it holds now
 - write ~/.claude/settings.json: every key named above. Your own settings, such as model and theme, stay as they are
 - run claude plugin uninstall superpowers@claude-plugins-official: writes ~/.claude/settings.json, ~/.claude/plugins/installed_plugins.json, ~/.claude/plugins/cache/claude-plugins-official/superpowers, ~/.claude/plugins/data/superpowers-claude-plugins-official
 - run claude plugin disable engineering@synced: writes ~/.claude/settings.json. Switched off on this machine only, and still on at claude.ai

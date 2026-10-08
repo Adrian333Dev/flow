@@ -17,6 +17,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 
 - **`read-the-spec-first`** Read `docs/spec/product.md` and the spec file of the part you touch before changing skills installation, the scripts or the docs tree.
 - **`drain-workflow-notes`** Before choosing the next work, read `~/.flow/workflow-notes.md` and the current month of `~/.flow/logs/failures/`. File each note as a ticket through `flow new`, or join it to the ticket it repeats, then delete the note. A failure worth fixing gets a ticket the same way, and the log stays untouched.
+- **`never-suggest-file-findings`** Never offer `/flow:file-findings`, and never count the closed tickets waiting for it. End with the next ticket instead: the user runs it when they choose, and each reminder costs them a line to skip.
 - **`check-claude-code-updates`** When asked, run `bash lab/scripts/claude-code-changes.sh` and read each release against Flow. Write what touches Flow into `.flow/research/claude-code-updates.md`, give each needed change a ticket, then set line 1 to the newest release read. Where Flow comes to rely on a newer release, raise `MIN_CLAUDE` in `scripts/lib/machine/prereq.js` and the README's Install line. Download again any page in `~/.flow/wiki/claude-code/downloads/pages/` whose topic a release changed.
 - **`design-rules-can-be-overturned`** Paths, types, file shapes, what a skill owns: a better idea wins. Say what the rule protected, whether that still holds, and recommend. The conduct rules, git, installing, deletes and forks hold regardless.
 - **`no-commit-no-push`** Never run `git commit` or `git push`, here or in a submodule, unless the user asks. Every other git command is fine, but never discard the user's uncommitted work.
@@ -49,6 +50,6 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`type-never-kind`** A field saying what sort of thing a record is gets called `type`.
 - **`no-skill-under-lab`** Flow's own skills live in `skills/`. A skill from another repository lives in that repository. Never let a `lab/` path leak into a skill, `home/` or `project-template/`.
 - **`read-repos-with-cat`** `repos/` holds other people's clones. Read them with `cat`, never `Read`, and never edit them.
-- **`home-files-exist-twice`** `home/AGENTS.md` is the public template, and `~/.agents/AGENTS.md` is the personalized copy. Never write personal content into this repo. Carry a rule worth shipping across by hand.
+- **`home-files-exist-twice`** `home/CLAUDE.md` is the public template, and `~/.flow/CLAUDE.md` is the personalized copy. Never write personal content into this repo. Carry a rule worth shipping across by hand.
 - **`placeholder-comments-are-deleted`** A placeholder comment goes the first time its section is filled in.
 - **`no-status-in-claude-md`** No counts, no dates and no build status here. What Flow does goes in `docs/spec/`, open work in tickets.

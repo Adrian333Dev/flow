@@ -55,7 +55,7 @@ A ticked box goes ahead, and an unticked one leaves that thing as it is:
 
 A plugin only some projects use costs context everywhere else, so the form switches it off, and each project switches it back on: [New project](new-project.md#a-folder-that-already-has-files).
 
-After your yes, the session writes your rules to `~/.flow/AGENTS.md`, from Flow's template and your old rule files. `~/.claude/CLAUDE.md` becomes one line loading them, and Flow's keys go into `~/.claude/settings.json` beside yours.
+After your yes, the session writes your rules to `~/.flow/CLAUDE.md`, from Flow's template and your old rule files. `~/.claude/CLAUDE.md` becomes a link to that file, and Flow's keys go into `~/.claude/settings.json` beside yours.
 
 - **Claude Code asks once before editing its own settings.** Answer **allow Claude to edit its own settings for this session**.
 - **`flow` refuses most commands** until the setup finishes. `flow install` again carries a stopped setup on.

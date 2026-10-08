@@ -31,7 +31,7 @@ tickets: 6   todo 2   building 1   done 2   dropped 1
 
 ## How the agent works with you
 
-Every session loads your rules, one file at `~/.flow/AGENTS.md`. The ones you notice first:
+Every session loads your rules, one file at `~/.flow/CLAUDE.md`. The ones you notice first:
 
 - **The agent proposes before it edits.** "Go ahead" gets the build. A question or a "maybe" gets an answer.
 - **Silence is a yes.** A proposal you never objected to counts as agreed.

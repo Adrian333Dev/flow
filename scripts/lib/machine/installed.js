@@ -14,13 +14,13 @@
  * reaches both commands by existing. What is left is 6 fixed paths and the names in `~/.local/bin`.
  *
  * 1 of the paths is written by the setup session rather than by the links:
- * the rule file `~/.agents/AGENTS.md`. Install still records it, so whatever
- * was there before Flow is in the original whether or not that skill ever
- * runs.
+ * `~/.claude/CLAUDE.md`, a link to the rule file `~/.flow/CLAUDE.md`. Install
+ * still records it, so whatever was there before Flow is in the original
+ * whether or not that session ever runs.
  *
- * `shared()` is the other half of a machine, and nothing ever deletes it: 2
- * files that are the user's, which Flow adds lines to. An uninstall takes
- * Flow's lines back out and leaves the file where it is.
+ * `shared()` is the other half of a machine, and nothing ever deletes it: the
+ * user's `settings.json`, which Flow adds lines to. An uninstall takes Flow's
+ * lines back out and leaves the file where it is.
  *
  * `strip()` and `stripShared()` are the taking off, and they live here beside
  * the list they read rather than inside `flow uninstall`. A test cannot reach
@@ -63,16 +63,15 @@ function paths(clone, at, { bin = null } = {}) {
     path.join(at.flow, 'scripts'),
     path.join(at.flow, 'references'),
     path.join(at.flow, 'docs'),
-    path.join(at.agents, 'AGENTS.md'),
+    path.join(at.claude, 'CLAUDE.md'),
   ];
   if (bin) for (const name of Object.keys(BIN)) found.push(path.join(bin, name));
   return found;
 }
 
-/** The 2 files Flow writes lines into and never owns. */
+/** The file Flow writes lines into and never owns. */
 const shared = (at) => [
   { path: path.join(at.claude, 'settings.json'), what: "Flow's hooks and its permission rules" },
-  { path: path.join(at.claude, 'CLAUDE.md'), what: 'the one line importing the rule file' },
 ];
 
 /**
@@ -97,13 +96,11 @@ function strip(clone, at, { bin = null } = {}) {
 }
 
 /**
- * Flow's lines out of the 2 files that are the user's: its hooks out of
- * `settings.json`, and the import line out of `CLAUDE.md`.
+ * Flow's hooks out of `settings.json`, the file that is the user's.
  *
  * A hook is Flow's when the command it runs names a path inside `~/.flow/`,
  * which every one of Flow's does: they run a script from `.flow/scripts/` or
- * print a file from `.flow/references/`. An event left with no hooks goes, and
- * so does `CLAUDE.md` where the import line was all it held.
+ * print a file from `.flow/references/`. An event left with no hooks goes.
  *
  * The permission rules Flow's template carries are left where they are. There
  * is no way to tell one the user chose from one that was merged in, and
@@ -111,7 +108,7 @@ function strip(clone, at, { bin = null } = {}) {
  */
 function stripShared(at) {
   const done = [];
-  const [settingsFile, claudeRules] = shared(at).map((f) => f.path);
+  const [settingsFile] = shared(at).map((f) => f.path);
 
   let live = null;
   try {
@@ -136,21 +133,6 @@ function stripShared(at) {
     fs.writeFileSync(settingsFile, JSON.stringify(live, null, 2) + '\n');
     done.push(`took ${taken} hook${taken === 1 ? '' : 's'} out of ${show(settingsFile)}`);
     done.push(`the rest of ${show(settingsFile)} is yours, Flow's permission rules included`);
-  }
-
-  let text = null;
-  try {
-    text = fs.readFileSync(claudeRules, 'utf8');
-  } catch {
-    return done;
-  }
-  const left = text.split('\n').filter((l) => !/^@.*AGENTS\.md$/.test(l.trim())).join('\n');
-  if (left.trim() === '') {
-    fs.rmSync(claudeRules);
-    done.push(`removed ${show(claudeRules)}, which held the import line and nothing else`);
-  } else if (left !== text) {
-    fs.writeFileSync(claudeRules, left);
-    done.push(`took the import line out of ${show(claudeRules)}`);
   }
   return done;
 }

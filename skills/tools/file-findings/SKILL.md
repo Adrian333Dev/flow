@@ -37,8 +37,8 @@ Move at triage speed. Building a skill is the one slow step.
 **Route findings straight to the destination.** Inbox items need the altitude call first.
 
 - **A finding with a `skill:` header** → that skill, by `## A skill filing must not edit` below
-- **Knowledge tied to an outside tool, library or framework** → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, written the way `## Capture` in `~/.agents/AGENTS.md` writes one, by **altitude** below. The harvest takes it into the tool's skill later
-- **Rule true everywhere, and always relevant** → the section of `~/.agents/AGENTS.md` that owns the subject. Never a rule file with no `paths:`
+- **Knowledge tied to an outside tool, library or framework** → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, written the way `## Capture` in `~/.flow/CLAUDE.md` writes one, by **altitude** below. The harvest takes it into the tool's skill later
+- **Rule true everywhere, and always relevant** → the section of `~/.flow/CLAUDE.md` that owns the subject. Never a rule file with no `paths:`
 - **Rule true everywhere, relevant to one stack or file type** → `claude/rules/<topic>.md` in Flow's clone, with `paths:` frontmatter
 - **Rule for this project, always relevant** → the project's `CLAUDE.md`, in the section that owns the subject
 - **Rule for this project, relevant to one stack or file type** → `.claude/rules/<topic>.md` with `paths:` frontmatter
@@ -46,7 +46,7 @@ Move at triage speed. Building a skill is the one slow step.
 - **Project fact only some work needs** → `docs/context/<subject>.md`
 - **Reusable, no matching skill** → flag in `.flow/inbox.md` as `needs skill: <group>/<subject> (<note>)`. Several flags on one subject earn a skill; one flag is not evidence
 - **Work item** → ticket or stays in inbox
-- **Everything else** → the homes under `## Capture` in `~/.agents/AGENTS.md`
+- **Everything else** → the homes under `## Capture` in `~/.flow/CLAUDE.md`
 
 **Skill or project context: would this sentence be true in a different project?** Yes → a skill, or the tool's wiki folder. No → `docs/context/`. Content that is both splits, and is never assigned to one side: *a generated file is never hand-edited, regenerate it* goes to that tool's skill, while the script name and the output path go to context. Genuinely cannot tell → leave it in `.flow/inbox.md` until there are enough instances to see the pattern.
 

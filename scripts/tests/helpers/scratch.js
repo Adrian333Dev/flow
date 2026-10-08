@@ -86,23 +86,30 @@ function setUp(home) {
 }
 
 /**
- * The half of a machine `flow install` writes: the rule file, the one
- * line importing it, and the version stamp its last step leaves behind.
+ * The half of a machine `flow install` writes: the rule file, the link
+ * `~/.claude/CLAUDE.md` makes to it, and the version stamp its last step leaves behind.
  *
  * `flow install` stopped writing all 3 on 2026-09-20, because the rule file is
  * written after the setup's survey, and a copy made before it holds nothing
  * of the user. A test that needs a finished machine does the setup's job here.
  */
 function setupMachine(root) {
-  const machine = require('../../lib/machine/machine');
   const at = require('../../lib/paths').folders(root);
-  const rules = path.join(at.agents, 'AGENTS.md');
+  const rules = path.join(at.flow, 'CLAUDE.md');
 
-  fs.mkdirSync(at.agents, { recursive: true });
-  fs.copyFileSync(path.join(REPO, 'home', 'AGENTS.md'), rules);
+  fs.mkdirSync(at.flow, { recursive: true });
+  fs.copyFileSync(path.join(REPO, 'home', 'CLAUDE.md'), rules);
+
+  // Committed and sent where ~/.flow is a git checkout, as flow sync leaves
+  // it, so the rule file never reads as work no other machine has.
+  if (fs.existsSync(path.join(at.flow, '.git'))) {
+    spawnSync('git', ['-C', at.flow, 'add', 'CLAUDE.md']);
+    spawnSync('git', ['-C', at.flow, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'rules']);
+    spawnSync('git', ['-C', at.flow, 'push', '-q', 'origin', 'HEAD']);
+  }
 
   fs.mkdirSync(at.claude, { recursive: true });
-  fs.writeFileSync(path.join(at.claude, 'CLAUDE.md'), `${machine.importLine(REPO, at.base)}\n`);
+  fs.symlinkSync(rules, path.join(at.claude, 'CLAUDE.md'));
 
   setUp(at.flow);
   return rules;

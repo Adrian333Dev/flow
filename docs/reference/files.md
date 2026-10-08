@@ -5,7 +5,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 ## Table of contents
 
 - [The whole tree](#the-whole-tree): every folder on one screen
-- [`~/.agents/`](#agents): the rules and the skills
+- [`~/.agents/`](#agents): the skills
 - [`~/.claude/`](#claude): what Claude Code reads
 - [`~/.flow/`](#flow): your Flow home
 - [`~/.local/bin/`](#localbin): the commands you type
@@ -17,10 +17,9 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 ```text
 ~/
 ├─ .agents/
-│  ├─ AGENTS.md                   → ~/.flow/AGENTS.md
 │  └─ skills/flow/skills/<name>   → <clone>/skills/<group>/<name>
 ├─ .claude/
-│  ├─ CLAUDE.md                   one line: @~/.agents/AGENTS.md
+│  ├─ CLAUDE.md                   → ~/.flow/CLAUDE.md
 │  ├─ settings.json
 │  ├─ skills/flow                 → ~/.agents/skills/flow
 │  ├─ skills/<name>               → a skill switched on everywhere
@@ -28,7 +27,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ agents/, rules/, commands/  → files in <clone>/claude/
 │  └─ projects/                   Claude Code's record of every session
 ├─ .flow/
-│  ├─ AGENTS.md                   your rules
+│  ├─ CLAUDE.md                   your rules
 │  ├─ scripts, references, docs   → folders in <clone>
 │  ├─ repos/                      every repository Flow downloads
 │  ├─ settings.json
@@ -77,16 +76,15 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 
 ## `~/.agents/`
 
-A folder no single tool owns. `flow install` touches only these 2 entries, and leaves anything else there alone.
+A folder no single tool owns. `flow install` touches only this entry, and leaves anything else there alone.
 
-- **`AGENTS.md`**: the rules every session loads. A link to `~/.flow/AGENTS.md`, so `flow sync` carries your rules to your other computers.
 - **`skills/flow/`**: a link for each Flow skill that is on, beside the file that names the set `flow`, so each one is typed `/flow:<name>`.
 
 ## `~/.claude/`
 
 Each folder here can also hold entries from other tools. `flow install` never replaces an entry that is not one of its links.
 
-- **`CLAUDE.md`**: one line pulling in `~/.agents/AGENTS.md`, since Claude Code never reads `~/.agents/` by itself.
+- **`CLAUDE.md`**: the rules every session loads. A link to `~/.flow/CLAUDE.md`, so `flow sync` carries your rules to your other computers.
 - **`settings.json`**: Claude Code's settings, with Flow's keys added. [Settings](settings.md#claude-codes-settings-file) covers each key.
 - **`skills/flow`**: a link to `~/.agents/skills/flow/`, which is how Claude Code finds Flow's skills.
 - **`skills/<name>`**: a link for each skill from a skill repository switched on everywhere. `flow skills on <name> --global` makes it.
@@ -102,7 +100,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ### Your rules and settings
 
-- **`AGENTS.md`**: your rules. The setup session writes it from Flow's template and what it kept from your old rule files. After that it is yours, and sessions add what they learn about you.
+- **`CLAUDE.md`**: your rules. `~/.claude/CLAUDE.md` links to it. The setup session writes it from Flow's template and what it kept from your old rule files. After that it is yours, and sessions add what they learn about you.
 - **`settings.json`** and **`settings.local.json`**: Flow's settings. [Settings](settings.md) covers every key.
 - **`version`**: the newest Flow change this computer has applied. `flow` refuses to run while it is missing, since that means the install never finished.
 - **`machines/<name>.json`**: one record per computer sharing this Flow home, saying which version of Flow it is on: `{ "name": "macbook-pro", "joined": "2026-09-27", "flowVersion": 12 }`.

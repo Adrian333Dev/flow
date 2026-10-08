@@ -82,7 +82,7 @@ Try a change to one of them in [the scratch session](#the-scratch-session), whic
 
 The dev copy is an ordinary clone, and its branches are yours to manage:
 
-1. Keep unfinished work on a branch. Changing one skill usually means changing 4 more, `home/AGENTS.md` and `home/settings.json`, and that takes several passes.
+1. Keep unfinished work on a branch. Changing one skill usually means changing 4 more, `home/CLAUDE.md` and `home/settings.json`, and that takes several passes.
 2. Switch back to `main` before fixing something another project needs today.
 3. Merge the branch into `main` and push it.
 4. Run `flow update`. The release pulls `main`, and every session runs the change.

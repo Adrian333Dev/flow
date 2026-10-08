@@ -33,8 +33,8 @@ function machine(name) {
   const installed = run('flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
   assert.strictEqual(installed.code, 0, installed.stderr);
 
-  // Install is half a machine. The rule file and the line importing it come
-  // from flow install, an agent's run, so the test writes them itself.
+  // Install is half a machine. The rule file and the link to it come from
+  // flow install's setup session, an agent's run, so the test writes them itself.
   setupMachine(root);
 
   // `flow install` stops short of settings.json on purpose, so the merge a real
@@ -297,15 +297,16 @@ test('a util run the system kills before it exits is retried, never counted', ()
   assert.doesNotMatch(report.stdout, /does not run/);
 });
 
-test('a CLAUDE.md with no import is named', () => {
+test('a CLAUDE.md that is not the link to the rules is named', () => {
   const m = machine('doctor-rules');
 
+  fs.rmSync(path.join(m.home, 'CLAUDE.md'));
   fs.writeFileSync(path.join(m.home, 'CLAUDE.md'), 'My own rules.\n');
 
   const report = doctor(m, { bin: utilStub(m.dir) });
 
   assert.strictEqual(report.code, 1);
-  assert.match(report.stdout, /CLAUDE\.md does not import the rules/);
+  assert.match(report.stdout, /CLAUDE\.md is a real file, not a link/);
   assert.doesNotMatch(report.stdout, /codex/i, 'Codex is not checked');
 });
 

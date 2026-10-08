@@ -41,7 +41,7 @@ const MIN_RATE = 0.6;
  */
 function ruleFiles() {
   const root = paths.cloneRoot();
-  const files = [path.join(root, 'home', 'AGENTS.md'), path.join(root, 'CLAUDE.md')];
+  const files = [path.join(root, 'home', 'CLAUDE.md'), path.join(root, 'CLAUDE.md')];
   const dir = path.join(root, 'claude', 'rules');
   if (fs.existsSync(dir)) {
     for (const name of fs.readdirSync(dir).sort()) {

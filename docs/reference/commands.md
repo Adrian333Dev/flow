@@ -119,12 +119,12 @@ fail  names:
         util is not linked: run flow install
         u is not linked: run flow install
 fail  util:
-        util fs tree does not run, and it is called by home/AGENTS.md, in tree-for-structure
+        util fs tree does not run, and it is called by home/CLAUDE.md, in tree-for-structure
         util fs open does not run, and it is called by flow get --files, through tickets.js
         /home/me/.util/sources does not exist, so no source is registered: run flow install
 ok    survey: 13 sources read, none of the problems flow survey names
-ok    ~/.agents: 12 skills linked under skills/flow/, 1 switched off, AGENTS.md present
-ok    ~/.claude: skills/flow, 1 agent, 1 rule, 1 command linked, CLAUDE.md imports the rules
+ok    ~/.agents: 12 skills linked under skills/flow/, 1 switched off
+ok    ~/.claude: skills/flow, 1 agent, 1 rule, 1 command and CLAUDE.md linked
 fail  settings.json:
         /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow install, which merges /home/me/code/flow/home/settings.json into it
 ok    ~/.flow: scripts, references and docs resolve into this clone
@@ -667,7 +667,7 @@ answered-unread/2026-10-02-answered-before-reading-the-file   fixed
   rule: read-before-answering
   project: shop
   effort: high
-  fix: home/AGENTS.md
+  fix: home/CLAUDE.md
 
 Claimed a config key existed without opening the file.
 ```
@@ -677,10 +677,10 @@ Claimed a config key existed without opening the file.
 `flow cases edit <ref>`: change a field. A case is never deleted.
 
 ```console
-$ flow cases edit answered --status fixed --by home/AGENTS.md
+$ flow cases edit answered --status fixed --by home/CLAUDE.md
 answered-unread/2026-10-02-answered-before-reading-the-file
   status: open → fixed
-  fix: - → home/AGENTS.md
+  fix: - → home/CLAUDE.md
 ```
 
 - **`--status <status>`**: `open` or `fixed`. `fixed` needs `--by`, unless the case already names its fix.

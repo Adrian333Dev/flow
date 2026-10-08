@@ -14,7 +14,7 @@
  * `lib/machine/installed.js` lists, and the clones Flow reads, which `lib/skills/repos.js`
  * lists. `lib/machine/machine.js` says which folder holds what. The other half is
  * the setup session this opens at the end: a Claude Code session that
- * writes the rule file and the import line, merges Flow's hooks into
+ * writes the rule file and the link to it, merges Flow's hooks into
  * `~/.claude/settings.json`, and closes the original. A rule file written here
  * would be the template with nothing of the user in it, so this writes none.
  * `lib/setup.js` says how the session opens.

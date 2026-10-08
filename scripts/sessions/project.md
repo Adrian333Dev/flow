@@ -59,7 +59,7 @@ A message starting `Carry on` is the same job, stopped part way.
 - **An idea nobody committed to** → `.flow/inbox.md`, raw.
 - **A lesson about an outside tool** (a library misbehaving, and the workaround) → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, with no detail of the project or its client. `<tool>` is the tool's GitHub repository name.
 - **Any other lesson worth reusing** → `.flow/findings/<what-was-learned>.md`.
-- **How the user wants Claude to work, or a fact about them** → `~/.flow/AGENTS.md`, `## Preferences` or `## The user`. Same test as the machine's setup: would they still want it had Flow been there from the start. Skip a line already there.
+- **How the user wants Claude to work, or a fact about them** → `~/.flow/CLAUDE.md`, `## Preferences` or `## The user`. Same test as the machine's setup: would they still want it had Flow been there from the start. Skip a line already there.
 - **A Flow rule does the same job** → `dropped.md` beside the form: the line, then the rule's id.
 - **Anything else** → dropped too, with no rule named.
 
@@ -99,7 +99,7 @@ Every new version goes under `files/<full path>`, beside the form. `project-temp
 - **`.flow/settings.json`**: a copy of the project's own, which `flow init` wrote before this session opened. It holds `ticketPrefix`, the word every ticket id here starts with, and `flow` reads a project by this folder existing.
 - **`.flow/tickets/`**: made by `flow new` once `.flow/settings.json` is written, run with `FLOW_PROJECT` set to the project's folder under `files/`.
 - **`.flow/inbox.md`**, **`.flow/findings/`**, **`docs/context/`**: where there is something to put in them.
-- **`~/.flow/AGENTS.md`**: the machine's file, with the user's new lines added.
+- **`~/.flow/CLAUDE.md`**: the machine's file, with the user's new lines added.
 - **`~/.flow/wiki/<tool>/findings/`**: one file per lesson about a tool.
 
 Build JSON with `node`, never by hand. A settings file that doesn't parse is a fault to fix before step 4.

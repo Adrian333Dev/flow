@@ -13,7 +13,7 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 0. **`flow install --check`.** A failure → print what it said and stop. `~/.flow/version` exists → say this machine is already set up, and stop.
    - `~/.flow/run.json` has a `step` above 0 → a run stopped part way. Carry on from the step after it, and tell the user in one line.
    - Rewrite `step` in `run.json` as each step below finishes.
-1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, `home/AGENTS.md`, `home/CLAUDE.md`, `home/settings.json`, and the form's template, `~/.flow/scripts/sessions/form.md`.
+1. **Read what Flow brings**: every file in `~/.flow/references/harnesses/`, `home/CLAUDE.md`, `home/settings.json`, and the form's template, `~/.flow/scripts/sessions/form.md`.
 2. **Survey the machine.** `## What to look at` below. Read every rule file whole. For a skill, an agent or a command, read its `description` first, and open the body only where the description leaves the competitor test open.
 3. **Sort what you found.** `## The competitor test` and `## Harvesting` below.
 4. **Write the migration** into `~/.flow/migrations/<migration>/`, the folder `run.json` names as `migration`: `migration.md` by the form's template, and under `files/` the new version of every path a `write` line names, at `files/<full path>`. `## The files it writes` below.
@@ -58,7 +58,7 @@ A section left with no line goes, heading included. `## Flow's skills` always st
 
 ## The competitor test
 
-**The question is whether a thing tells Claude how to work on ground Flow already rules on.** Ground Flow rules on: every heading in `home/AGENTS.md`, and every job a Flow skill does. Where to put what you found:
+**The question is whether a thing tells Claude how to work on ground Flow already rules on.** Ground Flow rules on: every heading in `home/CLAUDE.md`, and every job a Flow skill does. Where to put what you found:
 
 - **Tells Claude how to work in every session**, invoked or not (a `SessionStart` hook, a rule file, a plugin that injects instructions) → a line under `### Always removed`, with no box.
 - **Overlaps Flow, and fires only when invoked or matched** (a skill, an agent, a command) → a box under `### Works against Flow's rules`. The line says what it does in plain words, then what Flow does instead.
@@ -86,13 +86,12 @@ Every line of every rule file found goes in 1 of 3 places:
 - **How the user wants Claude to work, and they would still want it had Flow been there from the start** → `### Your preferences`. `Never use em dashes` passes. `Always show me a diff before you edit` fails: it works around a missing workflow.
 - **True of the user, and it changes what Claude does** → `### About you`. `Colour-blind, so never tell things apart by red and green alone.` Never a skill level, never what they don't know, never what they are working on, and never what every Flow user shares, such as dictating by voice.
 
-Anything else is dropped too. Both boxes start empty, and most machines leave `### About you` that way, unless `## When ~/.flow/AGENTS.md was already there` fills them. Rewrite each kept line in plain words, one rule per line.
+Anything else is dropped too. Both boxes start empty, and most machines leave `### About you` that way, unless `## When ~/.flow/CLAUDE.md was already there` fills them. Rewrite each kept line in plain words, one rule per line.
 
 ## The files it writes
 
-- **`~/.flow/AGENTS.md`**: `home/AGENTS.md`, with `## Preferences` and `## The user` holding the 2 boxes.
-- **`~/.agents/AGENTS.md`**: a link to `~/.flow/AGENTS.md`, made by a `run` line when the migration applies, never in `files/`.
-- **`~/.claude/CLAUDE.md`**: `home/CLAUDE.md`, the one import line.
+- **`~/.flow/CLAUDE.md`**: `home/CLAUDE.md`, with `## Preferences` and `## The user` holding the 2 boxes.
+- **`~/.claude/CLAUDE.md`**: a link to `~/.flow/CLAUDE.md`, made by a `run` line when the migration applies, in place of what it holds now. Never in `files/`.
 - **`~/.claude/settings.json`**: the machine's file, with Flow's keys applied:
   - `hooks`: `home/settings.json`'s, plus each hook of the user's that stayed.
   - `permissions`: the machine's `allow` and `deny` with the template's added, and the template's `defaultMode` and `disableBypassPermissionsMode`.
@@ -105,12 +104,12 @@ Anything else is dropped too. Both boxes start empty, and most machines leave `#
 
 Build JSON with `node`, never by hand. A settings file that does not parse, or a hook that points at a missing script, is a fault to fix before step 5.
 
-## When `~/.flow/AGENTS.md` was already there
+## When `~/.flow/CLAUDE.md` was already there
 
 `flow install` brought it from the user's other machine, with the rest of `~/.flow/`. The user already approved its `## The user` and `## Preferences` there.
 
 - **The boxes start with those 2 sections**: `## Preferences` in `### Your preferences`, `## The user` in `### About you`. A harvested line joins a box only where it says something the arrived text does not.
-- **`files/…/.flow/AGENTS.md`**: `home/AGENTS.md` with the 2 sections from the boxes, as on any machine.
+- **`files/…/.flow/CLAUDE.md`**: `home/CLAUDE.md` with the 2 sections from the boxes, as on any machine.
 - **A skill copied in by hand whose name is already in `~/.flow/private-skills/`** is the same skill. Its lines: delete the copy, then the `flow skills on` line any takeover gets. No move.
 
 ## The second check
@@ -131,4 +130,4 @@ Each unticked line means Flow leaves that thing exactly as the machine has it:
 - **A skill, a rule file, a hook or a plugin** → drop its `delete` or `run` line, or keep the hook in `hooks`.
 - **A takeover** → drop all of its lines.
 
-Write each box's text into the 2 sections of `files/…/.flow/AGENTS.md`. Every `write` line still needs its file under `files/`, and every `delete` line still needs to name a path.
+Write each box's text into the 2 sections of `files/…/.flow/CLAUDE.md`. Every `write` line still needs its file under `files/`, and every `delete` line still needs to name a path.

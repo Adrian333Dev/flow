@@ -27,9 +27,7 @@ When you first open the repository, the split that matters has 4 parts:
 
 ## What installs on a machine
 
-**`home/AGENTS.md`** is the rules that apply in every directory, project or not. `flow install` writes it to `~/.flow/AGENTS.md` once the user has checked its form, links `~/.agents/AGENTS.md` to that file, and it is personalized there. The copy here is the template: placeholders and rules, never personal content.
-
-**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same session, so Claude Code loads the same rules. Claude Code never reads anything under `~/.agents/` by itself. A project needs no such pair: its rules sit in its own `CLAUDE.md`, which Claude Code reads directly. `docs/spec/rules.md` → `### The rule files` says why Flow writes no `AGENTS.md` there.
+**`home/CLAUDE.md`** is the rules that apply in every directory, project or not. The machine's setup session writes it to `~/.flow/CLAUDE.md` once the user has checked its form, and links `~/.claude/CLAUDE.md` to that file, so Claude Code loads it. It is personalized there. The copy here is the template: placeholders and rules, never personal content. A project's rules sit in its own `CLAUDE.md`. `docs/spec/rules.md` → `### The rule files` says why Flow writes no `AGENTS.md` anywhere.
 
 **`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../reference/settings.md) explains every key. The setup session `flow install` opens merges it into `~/.claude/settings.json` key by key. The links `flow install` makes before that session write none of the 3 above: a rule file copied before the interview holds nothing of the user.
 

@@ -61,7 +61,7 @@ test('install writes its run and its prompt, then prints the session it opens', 
   assert.match(started.stdout, /--append-system-prompt-file \S+setup-prompt\.md 'Set up this machine\.'$/m);
 
   const prompt = fs.readFileSync(path.join(m.flowHome, 'setup-prompt.md'), 'utf8');
-  assert.ok(prompt.startsWith(fs.readFileSync(path.join(REPO, 'home', 'AGENTS.md'), 'utf8').trim()), 'the rules come first');
+  assert.ok(prompt.startsWith(fs.readFileSync(path.join(REPO, 'home', 'CLAUDE.md'), 'utf8').trim()), 'the rules come first');
   assert.match(prompt, /^# This session sets up this machine$/m);
 
   const runFile = JSON.parse(fs.readFileSync(path.join(m.flowHome, 'run.json'), 'utf8'));

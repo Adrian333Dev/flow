@@ -36,7 +36,6 @@ const { FlowError } = require('../lib/error');
 const failures = require('../lib/logs/failures');
 const installed = require('../lib/machine/installed');
 const { markdownFiles } = require('../lib/machine/links');
-const machine = require('../lib/machine/machine');
 const migrations = require('../lib/machine/migrations');
 const originals = require('../lib/machine/originals');
 const prereq = require('../lib/machine/prereq');
@@ -170,7 +169,7 @@ function checkNames(clone, { bin }) {
  * the caller beside each entry says what stops working when it fails.
  */
 const UTIL_COMMANDS = [
-  { name: 'fs tree', callers: 'home/AGENTS.md, in tree-for-structure' },
+  { name: 'fs tree', callers: 'home/CLAUDE.md, in tree-for-structure' },
   { name: 'fs open', callers: 'flow get --files, through tickets.js' },
 ];
 
@@ -305,22 +304,17 @@ function checkAgents(at, catalog) {
     problems.push(`the plugin manifest names "${manifestName}", so the skills are typed /${manifestName}:groundwork: run flow install`);
   }
 
-  const rules = path.join(at.agents, 'AGENTS.md');
-  if (!fs.existsSync(rules)) {
-    problems.push(`${paths.shorten(rules)} is missing: run flow install, which writes it`);
-  }
-
   return {
     name: paths.shorten(at.agents),
     problems,
     summary: `${count(on.length, 'skill', 'skills')} linked under skills/${skills.PLUGIN}/` +
-      `${on.length < installable.length ? `, ${installable.length - on.length} switched off` : ''}, AGENTS.md present`,
+      `${on.length < installable.length ? `, ${installable.length - on.length} switched off` : ''}`,
   };
 }
 
 /**
  * What Claude Code reads: the link to the plugin folder, one link per agent,
- * rule and command, and a CLAUDE.md importing the rule file.
+ * rule and command, and `CLAUDE.md`, a link to the rule file `~/.flow/CLAUDE.md`.
  */
 function checkClaude(clone, at) {
   const agents = markdownFiles(path.join(clone, 'claude', 'agents'));
@@ -328,24 +322,12 @@ function checkClaude(clone, at) {
   const commands = markdownFiles(path.join(clone, 'claude', 'commands'));
   const problems = checkLinks([
     { at: skills.pluginLink(at.claude), target: skills.pluginDir(at.agents), what: `skills/${skills.PLUGIN}` },
+    // Without it Claude Code starts every session with none of the rules.
+    { at: path.join(at.claude, 'CLAUDE.md'), target: path.join(at.flow, 'CLAUDE.md'), what: 'CLAUDE.md', fix: "Flow's setup session links it: run flow install" },
     ...agents.map((f) => ({ at: path.join(at.claude, 'agents', f), target: path.join(clone, 'claude', 'agents', f), what: `agents/${f}` })),
     ...rules.map((f) => ({ at: path.join(at.claude, 'rules', f), target: path.join(clone, 'claude', 'rules', f), what: `rules/${f}` })),
     ...commands.map((f) => ({ at: path.join(at.claude, 'commands', f), target: path.join(clone, 'claude', 'commands', f), what: `commands/${f}` })),
   ]);
-
-  // An import rather than a link, so the check reads the line. Without it
-  // Claude Code starts every session with none of the rules.
-  const file = path.join(at.claude, 'CLAUDE.md');
-  const line = machine.importLine(clone, at.base);
-  let text = null;
-  try {
-    text = fs.readFileSync(file, 'utf8');
-  } catch {
-    problems.push(`CLAUDE.md is missing, so Claude Code loads no rules: run flow install`);
-  }
-  if (text !== null && !text.split('\n').some((l) => l.trim() === line)) {
-    problems.push(`CLAUDE.md does not import the rules, so Claude Code never reads them: add the line ${line}`);
-  }
 
   const counted = [
     `skills/${skills.PLUGIN}`,
@@ -353,7 +335,7 @@ function checkClaude(clone, at) {
     count(rules.length, 'rule', 'rules'),
     count(commands.length, 'command', 'commands'),
   ].join(', ');
-  return { name: paths.shorten(at.claude), problems, summary: `${counted} linked, CLAUDE.md imports the rules` };
+  return { name: paths.shorten(at.claude), problems, summary: `${counted} and CLAUDE.md linked` };
 }
 
 /**

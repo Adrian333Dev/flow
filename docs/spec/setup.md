@@ -71,8 +71,8 @@ How Flow gets onto a machine and into a project, stays current, travels to a sec
 - `V1` **The harvest drops a line from an old rule file only where it can name the Flow rule replacing it.** A kept preference passes a second test: the user would still want it had Flow been there from the start. `Never use em dashes` passes. `Always show me a diff before you edit` fails.
 - `V1` **`## The user` never holds a skill level, what the user does not know, or what they are working on.** A level goes stale and makes the agent skip explanations. Ruled by the user 2026-09-21.
 - `V1` **Every untick gets one second check**, naming what each costs. There is no third.
-- `V1` **`~/.claude/CLAUDE.md` is replaced whole by one import line**, and `~/.agents/AGENTS.md` becomes a link to `~/.flow/AGENTS.md`, the copy `flow sync` carries.
-- `V1` **A machine whose Flow home already holds `~/.flow/AGENTS.md`** starts the 2 boxes from it, and adds only what the harvest finds new.
+- `V1` **`~/.claude/CLAUDE.md` is replaced whole by a link to `~/.flow/CLAUDE.md`**, the copy `flow sync` carries.
+- `V1` **A machine whose Flow home already holds `~/.flow/CLAUDE.md`** starts the 2 boxes from it, and adds only what the harvest finds new.
 - `never` **A pick-list question per setting**, `AskUserQuestion`: switching it on for one form a machine costs its schema in every request. Ruled by the user 2026-09-21.
 - `never` **Auto mode switched off for every session** to let setup write: `--settings` switches it off for the setup session alone.
 - `never` **A machine-wide MCP server switched on only in the projects that use it.** Dropped by the user 2026-10-05 for the simplest version, once the build showed its cost. Claude Code keeps `disabledMcpServers` per project, so Flow would have had to remove the server, keep its key outside the Flow home, and add a command to put it back per project. Tool search makes the saving small, since a tool's description loads only when the agent searches for it. Reopen only where tool search is off.
@@ -182,8 +182,8 @@ An original is every path as it was before Flow first touched it, kept in `~/.fl
 The action lines of `migration.md`:
 
 ```markdown
-- write ~/.flow/AGENTS.md: Flow's rules, with the 2 boxes above
-- run mkdir -p ~/.agents && ln -sfn ~/.flow/AGENTS.md ~/.agents/AGENTS.md: writes ~/.agents/AGENTS.md
+- write ~/.flow/CLAUDE.md: Flow's rules, with the 2 boxes above
+- run ln -sfn ~/.flow/CLAUDE.md ~/.claude/CLAUDE.md: writes ~/.claude/CLAUDE.md, a link to Flow's rules, in place of what it holds now
 - run claude plugin uninstall superpowers@claude-plugins-official: writes ~/.claude/settings.json, ~/.claude/plugins/installed_plugins.json
 - delete ~/.claude/skills/tdd: a skill ticked above
 ```
@@ -200,7 +200,7 @@ A machine's record in the Flow home, `~/.flow/machines/pc-wsl.json`:
 2. `flow install` signs `gh` in, finds `<login>/flow-home` with files in it, and checks it opens with the Flow home's mark.
 3. It offers `laptop-wsl`. The user presses Enter.
 4. It checks the Flow home's files out into `~/.flow/`, links Flow, clones the skill sources, and commits `machines/laptop-wsl.json`.
-5. The setup session opens. `~/.flow/AGENTS.md` arrived with the other machine's 2 sections, so the boxes start from them. The survey finds superpowers installed, and the form marks it always removed.
+5. The setup session opens. `~/.flow/CLAUDE.md` arrived with the other machine's 2 sections, so the boxes start from them. The survey finds superpowers installed, and the form marks it always removed.
 6. The user says go. `apply-migration.js` records each path into the original, then changes it.
 7. `flow doctor` passes. `flow install --finish` stamps `~/.flow/version`. The user restarts `claude`.
 8. In a clone of a project, `flow init` checks out the project's tickets and reports the project already set up.

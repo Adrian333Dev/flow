@@ -44,7 +44,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 
 - `V1` **`failures.js`, on `PostToolUseFailure` for `Bash` and `mcp__*`, and on `StopFailure`.**
 - `V1` **Flow's own scripts, through `failures.record()`**, for what runs where no session sees it: a clone `flow install` could not make, a background pull or fetch, a `flow sync` git could not finish.
-- `V1` **The agent, by `home/AGENTS.md` → `## Capture`**, with a shell command, for what no hook sees: a subagent that changed files and sent no change record, a skill's command that did nothing. No command was built for writing.
+- `V1` **The agent, by `home/CLAUDE.md` → `## Capture`**, with a shell command, for what no hook sees: a subagent that changed files and sent no change record, a skill's command that did nothing. No command was built for writing.
 
 ### The line
 
@@ -55,7 +55,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 
 - `V1` **An open issue is a job whose last line is a failure.** Asked for by the user 2026-10-01: a sync failing on every run had stayed silent, so a second machine lacked the tickets with nobody knowing.
 - `V1` **The status line counts them in every folder**: `⚠ 2 Flow issues: ask Claude to fix them`. The job fails after its hook has returned, so no hook could show it mid-session.
-- `V1` **`flow doctor` lists them under `issues`**, and `home/AGENTS.md` → `fix-flow-issues` runs it when the user asks. A line goes by itself once its job next works.
+- `V1` **`flow doctor` lists them under `issues`**, and `home/CLAUDE.md` → `fix-flow-issues` runs it when the user asks. A line goes by itself once its job next works.
 - `never` **`flow failures`, a command to read the log**, rejected by the user: the agent reads the file.
 - `never` **A skill for fixing issues**: it would only say "run `flow doctor`, fix each line".
 - `never` **A session-start line counting failures**: the status line shows a failure moments after it happens, mid-session too.

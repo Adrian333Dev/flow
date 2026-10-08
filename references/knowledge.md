@@ -65,7 +65,7 @@ Install counts and stars only pick which 3 to read.
 
 ## What the user builds up
 
-Where a finding goes first is `~/.agents/AGENTS.md` → `## Capture`. From there:
+Where a finding goes first is `~/.flow/CLAUDE.md` → `## Capture`. From there:
 
 - **A finding about an outside tool** → waits in `~/.flow/wiki/<tool>/findings/` → the harvest writes it into the tool's skill and deletes it.
 - **A project finding** → `.flow/findings/` → `/flow:file-findings` (user only) turns it into a skill, a rule or a check.

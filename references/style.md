@@ -53,7 +53,7 @@ A step whose content changes with the situation. 4 kinds, each with its own shap
 
 **Never branch for examples alone.** A case that only swaps the nouns is not a case. Write the instruction in domain-free words, then give examples from more than one domain.
 
-- **Pick one target, then the step ends** → a `→` list, one line per case, every case covered. `## Capture` in `home/AGENTS.md` is the model.
+- **Pick one target, then the step ends** → a `→` list, one line per case, every case covered. `## Capture` in `home/CLAUDE.md` is the model.
 - **Extra material some runs need** → `### When <situation>` below the base. These add to the base and to each other. Name the situation that fires each.
 - **A condition that holds for the whole run** → state it once at the top, never per step.
 - **How the run started, before any step runs** → an entrance list at the top of the file. Name what the reader can see: the words they typed, the command that ran, what is on disk. Never a state they would have to work out. Put what every entrance shares above the list, and leave only the difference on each line.
@@ -112,7 +112,7 @@ Cut what lengthens a sentence without clarifying it. Readability first. Last pas
 - Grammar bends where meaning survives. A fragment beats a padded sentence.
 - Delete a whole sentence when it changes no behavior. Never trim it.
 - **Assume an intelligent reader.** Never write the consequence of a rule, the mechanism behind it, or the case it plainly covers. A command is one executable line, then what it prints. A rule is the rule, then nothing.
-- **Mark a skill only the user can start (`disable-model-invocation: true`) as `(user only)` once**, where the agent reads it before any bare mention: `/flow:apply-domain-findings` (user only). One listed in `home/AGENTS.md` → `user-only-skills` needs no other mark.
+- **Mark a skill only the user can start (`disable-model-invocation: true`) as `(user only)` once**, where the agent reads it before any bare mention: `/flow:apply-domain-findings` (user only). One listed in `home/CLAUDE.md` → `user-only-skills` needs no other mark.
 
 ## 7. Never cut these
 

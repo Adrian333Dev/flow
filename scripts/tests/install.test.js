@@ -94,10 +94,10 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.strictEqual(linkTarget(path.join(at.claude, 'commands', 'capture.md')), path.join(REPO, 'claude', 'commands', 'capture.md'),
     'a command links per file, typed /capture with no prefix');
 
-  // The rule file and the line importing it are /flow:setup-machine's.
+  // The rule file and the link to it are /flow:setup-machine's.
   // Install leaves both alone and says which command finishes the machine.
-  assert.ok(!fs.existsSync(path.join(at.agents, 'AGENTS.md')), 'no rule file yet');
-  assert.ok(!fs.existsSync(path.join(at.claude, 'CLAUDE.md')), 'no import line yet');
+  assert.ok(!fs.existsSync(path.join(at.flowHome, 'CLAUDE.md')), 'no rule file yet');
+  assert.ok(!fs.existsSync(path.join(at.claude, 'CLAUDE.md')), 'no link to it yet');
   assert.ok(!fs.existsSync(path.join(root, '.codex')), 'nothing under ~/.codex at all');
   // A scratch root hands the rest to flow install, which has its own tests.
   assert.match(first.stdout, /One step left: setting up this machine\. Start it from a terminal:\n\n {2}flow install --root /);
@@ -182,14 +182,6 @@ test('a name that has left the BIN map is unlinked, and another tool keeps its o
   assert.ok(fs.existsSync(path.join(bin, 'flow')), 'the names still in the map stay');
 });
 
-test('the import line comes from home/CLAUDE.md, with ~ kept only for the real home folder', () => {
-  const os = require('os');
-  const machine = require('../lib/machine/machine');
-  assert.strictEqual(fs.readFileSync(path.join(REPO, 'home', 'CLAUDE.md'), 'utf8'), '@~/.agents/AGENTS.md\n');
-  assert.strictEqual(machine.importLine(REPO, os.homedir()), '@~/.agents/AGENTS.md');
-  assert.strictEqual(machine.importLine(REPO, '/scratch/root'), '@/scratch/root/.agents/AGENTS.md');
-});
-
 test('install never touches the rule file or either way in to it', () => {
   const dir = project('install-claude-md');
   const root = path.join(dir, 'root');
@@ -204,7 +196,8 @@ test('install never touches the rule file or either way in to it', () => {
   const written = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.strictEqual(written.code, 0, written.stderr);
   assert.strictEqual(fs.readFileSync(claudeRules, 'utf8'), 'My own rules.\n');
-  assert.ok(!fs.existsSync(path.join(at.agents, 'AGENTS.md')));
+  assert.ok(!fs.lstatSync(claudeRules).isSymbolicLink(), 'still the user\'s own file');
+  assert.ok(!fs.existsSync(path.join(at.flowHome, 'CLAUDE.md')));
 });
 
 test('install never reaches outside the root it was given', () => {

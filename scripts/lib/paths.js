@@ -4,12 +4,11 @@
  * the home folder, the Flow home, Claude Code's folder or the clone starts
  * here, so an override set once moves every reader with it.
  *
- *   ~/.agents  the one real copy of every file Flow keeps outside the clone:
- *              the rule file AGENTS.md, and the plugin folder skills/flow/
- *   ~/.claude  what Claude Code reads. It reaches ~/.agents through a link and
- *              an import, and holds no original of Flow's
- *   ~/.flow    what only Flow reads: the clones in repos/, scripts/,
- *              references/, docs/ and the settings
+ *   ~/.agents  the plugin folder skills/flow/
+ *   ~/.claude  what Claude Code reads. It reaches ~/.agents and ~/.flow
+ *              through links, and holds no original of Flow's
+ *   ~/.flow    the rule file CLAUDE.md, which flow sync carries, the clones in
+ *              repos/, scripts/, references/, docs/ and the settings
  *
  * `~/.agents` holds the originals because the name belongs to no vendor.
  * Claude Code does not read it, so it gets a link.

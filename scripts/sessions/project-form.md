@@ -16,7 +16,7 @@
 - **`{tickets}`**: the 2 fixed tickets, each where it applies, then one box for the tickets from open-work lists, naming each list.
 - **`{old memory}`**: one unticked box per memory folder whose project is gone from disk.
 - **`{kept}`**: what stays, by name. None → the line goes.
-- **`{your rules}`**: the new lines for `~/.flow/AGENTS.md`. None → the whole section goes.
+- **`{your rules}`**: the new lines for `~/.flow/CLAUDE.md`. None → the whole section goes.
 - **`{unread}`**: one line per source `flow survey` printed as `unread:`, saying in plain words what went unchecked and why. None → the whole section goes.
 - **`{action lines}`**: every line under `## Every file this changes`, in the order they run.
 
@@ -74,7 +74,7 @@ Left as they are: {kept}, such as: the context7 MCP server, the frontend-design 
 
 ## Added to your own rules
 
-For every project, not only this one. `~/.flow/AGENTS.md`
+For every project, not only this one. `~/.flow/CLAUDE.md`
 
 ```text
 {your rules}
@@ -111,7 +111,7 @@ Setup could not read each one below, so it stays exactly as it is.
 - write docs/context: 4 facts
 - run flow skills on remotion: writes .flow/settings.json, .claude/skills/remotion
 - run flow skills on stripe-helper: writes .flow/settings.json, .claude/skills/stripe-helper
-- write ~/.flow/AGENTS.md: your new rules
+- write ~/.flow/CLAUDE.md: your new rules
 - delete ~/.claude/projects/-home-me-code-projects-delapse/memory: sorted above
 ```
 

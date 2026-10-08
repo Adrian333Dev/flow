@@ -105,7 +105,7 @@ The harvest reads a tool's whole wiki folder and every outside skill cloned for 
 - **`skills/tools/research/references/wiki.md`**: a tool folder's layout, `index.md`, `_sources.md`, and what may be added or rewritten. Read before the first write into a tool's folder.
 - **`skills/tools/research/scripts/context7.sh`**: Bash over Context7's web API with `curl`. `search <name> <question>`, and `ask <id|folder[@version]> <question>`, `--tool <folder>` writing the id into `index.md`.
 - **`skills/tools/research/scripts/fetch-docs.sh`**: downloads into a tool's `downloads/` from any folder. `--package` or `--repo` names where the latest release is read, and `--clone` clones or pulls the source into `downloads/repo/`.
-- **`home/AGENTS.md` → `## Capture`**: where each kind of knowledge goes.
+- **`home/CLAUDE.md` → `## Capture`**: where each kind of knowledge goes.
 - **`claude/commands/capture.md`**: `/capture`.
 - **`skills/tools/file-findings/SKILL.md`**: the routing from the inbox and findings to their homes.
 - **`~/.flow/references/knowledge.md`**: the map of what an agent draws on past the rules, read before adding a skill, a plugin or an MCP server.

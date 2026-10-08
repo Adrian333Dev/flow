@@ -41,7 +41,7 @@ docs/
 - `V1` **`docs/walkthroughs.md` walks each kind of work start to finish**: a new project, an existing project brought in, a feature, a bug, a question for code, a decision, upkeep. Asked for by the user 2026-10-03: pages written one per subject never show the route.
 - `V1` **Reference is split in 4 and explains no concept.** An entry says what a thing does and its options, and links the guide page for the concept. "This is not where we explain any concepts", ruled by the user 2026-10-03.
 - `V1` **Hidden commands and flags appear only in `docs/dev/`**: `flow handoff`, `--root`, `--no-bin`, `--no-clone`, `--drafts`, `doctor --tests`.
-- `V1` **A page explains a mechanism, never a rule.** A rule in `home/AGENTS.md` is never retold: every user edits that file, so a retelling goes wrong twice. A rule a stranger would take for a bug gets one line where they meet it, such as the agent waiting for "go ahead". Ruled by the user 2026-10-03, deleting `docs/approval.md`.
+- `V1` **A page explains a mechanism, never a rule.** A rule in `home/CLAUDE.md` is never retold: every user edits that file, so a retelling goes wrong twice. A rule a stranger would take for a bug gets one line where they meet it, such as the agent waiting for "go ahead". Ruled by the user 2026-10-03, deleting `docs/approval.md`.
 - `V1` **A reason sits beside its decision**, on the page where the reader meets it. No separate page of reasons: a reason kept apart goes unread.
 - `V1` **A page added, renamed or dropped updates its folder's `README.md`** in the same edit.
 

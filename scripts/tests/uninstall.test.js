@@ -63,7 +63,7 @@ test('unsent work in ~/.flow stops the uninstall before the locks, and removes n
   assert.ok(exists(path.join(m.at.flow, 'workflow-notes.md')), 'the note is still there');
 });
 
-test('a machine with no original is stripped path by path, and shared files keep what is theirs', () => {
+test('a machine with no original is stripped path by path, and settings.json keeps what is the user\'s', () => {
   const m = machine('uninstall-strip');
   const { at } = m;
 
@@ -73,9 +73,6 @@ test('a machine with no original is stripped path by path, and shared files keep
     .split('$HOME/.flow').join(at.flow));
   template.hooks.SessionStart = [{ hooks: [{ type: 'command', command: 'node ~/my-own.js' }] }];
   fs.writeFileSync(path.join(at.claude, 'settings.json'), JSON.stringify(template, null, 2) + '\n');
-
-  const claudeRules = path.join(at.claude, 'CLAUDE.md');
-  fs.writeFileSync(claudeRules, `${fs.readFileSync(claudeRules, 'utf8').trim()}\n\nMy own rule.\n`);
 
   const done = installed.strip(REPO, at, { bin: null });
 
@@ -87,15 +84,7 @@ test('a machine with no original is stripped path by path, and shared files keep
   const left = JSON.parse(fs.readFileSync(path.join(at.claude, 'settings.json'), 'utf8'));
   assert.deepStrictEqual(Object.keys(left.hooks), ['SessionStart'], "only the user's hook is left");
   assert.strictEqual(left.permissions.defaultMode, 'default', 'the permission rules are left alone');
-
-  assert.strictEqual(fs.readFileSync(claudeRules, 'utf8').trim(), 'My own rule.',
-    'the import line goes and the rest of the file stays');
-});
-
-test('a CLAUDE.md holding the import line and nothing else goes with it', () => {
-  const m = machine('uninstall-claude-md');
-  installed.stripShared(m.at);
-  assert.ok(!exists(path.join(m.at.claude, 'CLAUDE.md')));
+  assert.ok(fs.existsSync(path.join(at.flow, 'CLAUDE.md')), 'the rule file itself stays, with the rest of ~/.flow');
 });
 
 test('every link into ~/.flow goes before the folder does, and nothing else is touched', () => {

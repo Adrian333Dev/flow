@@ -5,7 +5,7 @@ How Flow draws: `/flow:visualize`, the skill every diagram, screen mockup and co
 ## Scope
 
 - **In**: picking the medium, the 3 ways to draw, the characters an agent may use, the conventions every diagram follows, `canvas.js`, what drawing costs, and the engine that may come later.
-- **Out**: when a spec or a reply must carry a drawing, which `skills/phases/groundwork/references/write-spec.md` and `home/AGENTS.md` → `ui-is-drawn` say.
+- **Out**: when a spec or a reply must carry a drawing, which `skills/phases/groundwork/references/write-spec.md` and `home/CLAUDE.md` → `ui-is-drawn` say.
 
 ## What an answer is drawn in
 
@@ -61,7 +61,7 @@ what the answer has to show
 - `V1` **At a crossing the vertical passes and the horizontal breaks.** `┼` means joined.
 - `V1` **A long connector is labelled at both ends**, `from X` where it leaves and `to Y` where it lands, with the label inside the line.
 - `V1` **A pattern vocabulary, a menu and never a template**: layered stack, pipeline, flow with return paths, tree, side by side, and in `references/` a schedule, record boxes and 2 aligned scales.
-- `V1` **`## Structure` stays in `SKILL.md`**, ruled twice by the user, against a reference file and against `home/AGENTS.md`.
+- `V1` **`## Structure` stays in `SKILL.md`**, ruled twice by the user, against a reference file and against `home/CLAUDE.md`.
 
 ### The engine
 

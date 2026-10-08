@@ -58,7 +58,7 @@ disable-model-invocation: true                  # user-only skills
 
 **Write a trigger only where one is wanted**, in exactly 1 of these:
 
-- **`~/.agents/AGENTS.md`**: the few that must fire with nothing else loaded
+- **`~/.flow/CLAUDE.md`**: the few that must fire with nothing else loaded
 - **A phase's body**, where that phase is what needs it. A comment standard is named by `/flow:execute`
 - **A phase's project overlay**, where 1 project wants it. The project's `CLAUDE.md` would load it into groundwork and debugging sessions too
 - **The project's `CLAUDE.md`**, where it is project-wide and belongs to no phase
