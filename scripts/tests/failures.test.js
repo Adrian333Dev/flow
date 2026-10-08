@@ -70,6 +70,18 @@ test('the agent\'s own commands, an interrupt and a built-in tool are never logg
   assert.deepStrictEqual(read(home), []);
 });
 
+test('a compound command is Flow\'s only where Flow\'s part could have set the exit code', () => {
+  const is = (command) => failures.flowCommand(command);
+  assert.ok(is('cd /x && util fs tree docs'));
+  assert.ok(is('ls; flow sync'));
+  assert.ok(is('git status | flow get fw-1'));
+  assert.ok(is('node "$HOME/.flow/scripts/hooks/x.js" && flow doctor'));
+  assert.ok(!is('util fs tree lab; ls .flow/research'), 'the ls set the exit code');
+  assert.ok(!is('grep -n "^#" a.md && git diff --stat && util fs tree scripts'), 'the grep may have stopped the chain');
+  assert.ok(!is('grep "flow|fw" a.md'), 'a | inside quotes splits nothing');
+  assert.ok(!is('flow sync && ls'));
+});
+
 test('an API error that ends a turn is logged', () => {
   const home = flowHome('failures-api');
   hook(home, { hook_event_name: 'StopFailure', session_id: 's2', cwd: '/p', error: 'rate_limit', error_details: '429 Too Many Requests' });

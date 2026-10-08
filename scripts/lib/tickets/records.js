@@ -185,9 +185,11 @@ function pullNow(root) {
 }
 
 /**
- * Send the branch up. `rejected` means someone pushed first. Anything else
- * failing is marked `offline`, which keeps it out of the failure log, and
- * `why` carries git's own words: a refused sign-in reads as itself.
+ * Send the branch up. `rejected` means someone pushed first: git's
+ * `[rejected]` with `fetch first` or `non-fast-forward`, and nothing else.
+ * Anything else failing, a `[remote rejected]` from a server error included,
+ * is marked `offline`, which keeps it out of the failure log, and `why`
+ * carries git's own words: a refused sign-in reads as itself.
  */
 function pushNow(root) {
   const dir = recordsOf(root);
@@ -198,7 +200,7 @@ function pushNow(root) {
   if (!ahead) return { ok: true, sent: 0 };
   const pushed = git(root, ['push', '-q', '-u', REMOTE, `refs/heads/${BRANCH}:refs/heads/${BRANCH}`]);
   if (pushed.ok) return { ok: true, sent: ahead };
-  const rejected = /rejected|fetch first|non-fast-forward/i.test(pushed.err);
+  const rejected = /\[rejected\][^\n]*\((fetch first|non-fast-forward)\)/.test(pushed.err);
   return { ok: false, rejected, offline: !rejected, why: reason(pushed.err) };
 }
 

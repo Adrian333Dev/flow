@@ -31,6 +31,7 @@ One user message, your work, one reply. In that order, every time.
 - **`writing-pass`** Every markdown file gets it, inside the edit that touched it: a skill, a doc, a ticket, a finding, a rule file, a README. Plan the whole file's sections, then test every sentence against `~/.flow/references/style.md`. A file an agent loads also takes `cut-loaded-files.md` beside it, a rule file `write-rules.md`, and a documentation page `write-docs.md`. Never defer a file to a later pass.
 - **`check-before-adding`** Before adding a rule, preference, section or line to a file an agent loads, read what is there. Something already covering it → sharpen that line. A rule that exists but didn't fire → a Flow failure. Never a second copy.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
+- **`standard-terminology`** Name a field, a function, a variable, a class or a command with the word most codebases already use: `type`, never `kind`, and `action`, never `verb`. Invent a term only where no standard one exists.
 - **`never-hand-write-generated`** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.
 
 ## Tools
@@ -149,6 +150,6 @@ Run all 5 on the finished draft. A failure is a rewrite.
 
 - **`the-whole-machine`** The user can redraw the thing from this message alone. Pieces with no machine fail, and so does a summary of a design they have never seen.
 - **`define-from-zero`** Every term built in plain words before its name appears: Flow's own, a tool's own, any word the user has not used themselves. A tool or a library gets one line saying what it does here. Simple over precise. A synonym is not a definition.
-- **`explain-never-label`** A name, a path, a count or a quote standing where the content belongs. Say what the thing does, here.
+- **`explain-never-label`** A name, a path, a count, a ticket id or a quote standing where the content belongs. Say what the thing does, here. A ticket id always comes with what the ticket is about.
 - **`nothing-to-remember`** No sentence leans on an earlier message or an unread file. Restate it in full: the decision, the proposal, the example, the term.
 - **`cut-empty-sentences`** Praising the question, framing what comes next, summarizing what was just said.

@@ -37,16 +37,35 @@ const ERROR_CHARS = 500;
 /** This month's file. */
 const file = (home) => logs.monthFile(home, NAME);
 
+/** One part of a command that runs something Flow built. */
+function flowPart(part) {
+  if (/\.flow\/scripts\/|skills\/flow\/skills\//.test(part)) return true;
+  return /(^|\$\(\s*)(flow|fw|util|u)(\s|$)/.test(part);
+}
+
 /**
- * A shell command that runs something Flow built: `flow`, `fw`, `util`, `u`,
- * a script under `~/.flow/scripts/`, or one bundled in a Flow skill. Every
+ * A shell command whose failure is Flow's: `flow`, `fw`, `util`, `u`, a
+ * script under `~/.flow/scripts/`, or one bundled in a Flow skill. Every
  * other command is the agent's own business: a grep that finds nothing exits
  * with 1 and is no failure of anything.
+ *
+ * The hook sees one exit code for a whole compound command, never which part
+ * set it. So the last part must be Flow's, and so must every part chained to
+ * it with `&&`, bar a `cd`: any of those may be the one that stopped the
+ * chain. `grep x && util fs tree` is the agent's, and so is `flow a && ls`,
+ * a Flow failure missed rather than a guess.
  */
 function flowCommand(command) {
-  const text = String(command || '');
-  if (/\.flow\/scripts\/|skills\/flow\/skills\//.test(text)) return true;
-  return /(^|[;&|(]\s*|\$\(\s*)(flow|fw|util|u)(\s|$)/.test(text.trim());
+  // Quoted text first, so a `|` inside a grep pattern splits nothing.
+  const text = String(command || '').replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, (q) => q.replace(/[;&|\n]/g, ' '));
+  const parts = text.split(/(&&|\|\||[;|\n])/).map((s) => s.trim());
+  let i = parts.length - 1;
+  while (i > 0 && !parts[i]) i -= 2;
+  if (!flowPart(parts[i])) return false;
+  for (i -= 2; i >= 0 && parts[i + 1] === '&&'; i -= 2) {
+    if (!flowPart(parts[i]) && !/^cd(\s|$)/.test(parts[i])) return false;
+  }
+  return true;
 }
 
 /**

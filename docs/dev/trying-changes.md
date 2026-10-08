@@ -55,11 +55,11 @@ A session runs the release until you start it on the dev copy, so a file you sav
 `--plugin-dir` loads a plugin from a folder for one session, and it replaces the installed plugin of the same name, `flow`. An alias, a short name the shell expands into a longer command, saves typing the flag every time. Add it to `~/.bashrc`, the file bash reads whenever a terminal opens, then load it into the terminal you are in:
 
 ```sh
-echo "alias claude-dev='claude --plugin-dir ~/code/flow-dev/skills'" >> ~/.bashrc
+printf "\nalias claude-dev='claude --plugin-dir ~/code/flow-dev/skills'\n" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-Pasting the `alias` line alone into a terminal works in that terminal only, until it closes. Every new terminal reads `~/.bashrc` by itself.
+The newline `printf` writes first keeps the alias off the end of a `~/.bashrc` that lacks a final newline. Pasting the `alias` line alone into a terminal works in that terminal only, until it closes. Every new terminal reads `~/.bashrc` by itself.
 
 - **`claude-dev`**, typed in any folder, starts a session on the dev copy's skills and mods. A skill that misbehaves in one of your projects can be fixed in `~/code/flow-dev` and tried in that project.
 - **`claude-dev --resume`** lists this folder's sessions to pick one, and reopens it on the dev copy.
@@ -77,6 +77,8 @@ The alias reaches skills and mods alone. These still run from the release, throu
 - the helper agent, `/capture` and the rules for code comments
 
 Try a change to one of them in [the scratch session](#the-scratch-session), which builds its run from the copy holding `try.sh`. Try a changed command with `node scripts/flow.js`.
+
+A hook or a status line can also be tried in the session you are in. `/plugin-authoring`, a skill built into Claude Code, writes a plugin of function hooks that reloads on every save: a pane, a status line, a notice or a hook. Use it to shape a hook's or a status line's behavior live, then carry the result into `scripts/hooks/` or the status line script.
 
 ### Releasing a change
 

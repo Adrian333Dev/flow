@@ -101,6 +101,23 @@ test('offline, flow new makes no ticket, and gives out no number', () => {
   assert.match(t.in(ana, 'new', 'Export csv').stdout, /created exp-1/);
 });
 
+test('a push the server refuses stops flow new at once, with the server\'s words', () => {
+  const t = team('records-server-refused');
+  const ana = t.clone('ana');
+  t.init(ana, '--prefix', 'exp');
+  records.sync(ana);
+
+  // git answers `! [remote rejected]`, as GitHub did in its outage of 2026-10-07.
+  const hook = path.join(t.remote, 'hooks', 'pre-receive');
+  fs.writeFileSync(hook, '#!/bin/sh\necho "Internal Server Error" >&2\nexit 1\n', { mode: 0o755 });
+  const refused = t.in(ana, 'new', 'Export csv');
+  fs.rmSync(hook);
+  assert.strictEqual(refused.code, 1);
+  assert.match(refused.stderr, /git said: remote: Internal Server Error/);
+  assert.doesNotMatch(refused.stderr, /refused 5 times/);
+  assert.deepStrictEqual(idsIn(ana), []);
+});
+
 test('flow init stops before making anything where the remote refuses a push, and offers --private', () => {
   const t = team('records-refused');
   const ana = t.clone('ana');
