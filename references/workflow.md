@@ -27,7 +27,7 @@ Any run routes what it decided, to several places or to none:
 - committed work → tickets, each carrying a `## References` section pointing at what the build has to read
 - anything settled that outlives the build → `docs/spec/`, created if absent
 - the shape of one thing, dying when that thing is built → a design document beside the map
-- a durable fact about the project → its `AGENTS.md` where most sessions need it, otherwise `docs/context/<subject>.md`
+- a durable fact about the project → its `CLAUDE.md` where most sessions need it, otherwise `docs/context/<subject>.md`
 - decided but not now, and anything else that dies with the build → the map itself
 
 **Groundwork lives in its ticket's `groundwork/`.** A run outside a project routes nothing to `docs/`.
@@ -65,7 +65,7 @@ Any run routes what it decided, to several places or to none:
 - **`docs/spec/`.** `product.md`, always: what the product is, who it is for, what it bets on, and an index line per other spec file. `<part>.md`, once a part of the product outgrows its section there: what that part does and how it is built. `tech.md`, only once a build decision covers every part: the stack, the repo layout. Every behavior carries its release (V1, V2…) / next / later / never, and every decision its reason and what it refused, in the file that holds it. Markdown only.
 - **`.flow/research/`**: research true only for this project, and research nobody could place. Flat, subject-named, one set for the whole project, on the `flow` branch beside the tickets. Research about an outside tool goes to `~/.flow/wiki/<tool>/research/`, and research about no single tool to `~/.flow/research/`.
 - **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.
-- **`AGENTS.md`**: what every session in this project needs: what the project is, its own rules, and whatever else most sessions would get wrong without.
+- **`CLAUDE.md`**: what every session in this project needs: what the project is, its own rules, and whatever else most sessions would get wrong without.
 - **`docs/context/<subject>.md`**: durable project facts only some work needs, one file per subject: a deploy path, a service's limit, any command past install, run, test and check.
 - **`.flow/inbox.md`**: raw capture, unshaped, drained by `/flow:file-findings`.
 

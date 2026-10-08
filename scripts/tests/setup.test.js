@@ -137,7 +137,7 @@ test('init in an empty folder writes the template at once, and opens no session'
   const m = projectCase('setup-project-plain');
   const done = m.setup('--prefix', 'shop');
   assert.strictEqual(done.code, 0, done.stderr);
-  assert.match(done.stdout, /^wrote: AGENTS\.md$/m);
+  assert.match(done.stdout, /^wrote: CLAUDE\.md$/m);
   assert.match(done.stdout, /^set up: \S+ is on entry \d+\./m);
   assert.match(done.stdout, /^A plugin or skill switched off on this computer is switched on here with: claude plugin enable <id> --scope project, or flow skills on <name>$/m);
   assert.doesNotMatch(done.stdout, /claude --/, 'no session');
@@ -151,7 +151,7 @@ test('init writes the template where the folder holds files and nobody answers y
   fs.writeFileSync(path.join(m.proj, 'app.js'), 'console.log(1);\n');
   const done = m.setup('--prefix', 'shop');
   assert.strictEqual(done.code, 0, done.stderr);
-  assert.match(done.stdout, /^wrote: AGENTS\.md$/m);
+  assert.match(done.stdout, /^wrote: CLAUDE\.md$/m);
   assert.doesNotMatch(done.stdout, /claude --/, 'no session');
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
   assert.strictEqual(fs.readFileSync(path.join(m.proj, '.flow', 'version'), 'utf8'), `${version.newest(REPO)}\n`);
@@ -161,7 +161,7 @@ test('init writes the template where the folder holds files and nobody answers y
   const started = yes.setup('--prefix', 'shop', '-y');
   assert.strictEqual(started.code, 0, started.stderr);
   assert.match(started.stdout, /'Set up this project\.'$/m);
-  assert.ok(!fs.existsSync(path.join(yes.proj, 'AGENTS.md')), 'the session writes it, not the template');
+  assert.ok(!fs.existsSync(path.join(yes.proj, 'CLAUDE.md')), 'the session writes it, not the template');
   assert.strictEqual(yes.setup('--yes').code, 1, '-y has no two-dash form');
 });
 
@@ -169,7 +169,9 @@ test('init -y in an empty folder writes the template, and names /flow:groundwork
   const m = projectCase('setup-project-empty-yes');
   const done = m.setup('--prefix', 'shop', '-y');
   assert.strictEqual(done.code, 0, done.stderr);
-  assert.match(done.stdout, /^wrote: AGENTS\.md$/m);
+  assert.match(done.stdout, /^wrote: CLAUDE\.md$/m);
+  assert.match(fs.readFileSync(path.join(m.proj, 'CLAUDE.md'), 'utf8'), /^## Project$[\s\S]*^## Rules$/m, 'the rules are in CLAUDE.md');
+  assert.ok(!fs.existsSync(path.join(m.proj, 'AGENTS.md')), 'Flow writes no AGENTS.md');
   assert.match(done.stdout, /Nothing here to read\. Describe the project with \/flow:groundwork\./);
   assert.ok(!fs.existsSync(path.join(m.flowHome, 'run.json')));
 });

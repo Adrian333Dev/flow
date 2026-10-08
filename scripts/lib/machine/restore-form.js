@@ -16,9 +16,10 @@
  * is off fails the whole form: a path missing, doubled or unknown, or a mark
  * other than `x` or a space. A typo never turns into a delete.
  *
- * A project's knowledge starts unticked: its `AGENTS.md`, `CLAUDE.md` and
- * `docs/` work without Flow, since Claude Code reads `AGENTS.md` on its own.
- * Ruled by the user 2026-10-01.
+ * A project's knowledge starts unticked: its `CLAUDE.md` and `docs/` work
+ * without Flow, since Claude Code reads `CLAUDE.md` on its own. Ruled by the
+ * user 2026-10-01. An `AGENTS.md` is the user's own file as it was, since Flow
+ * writes none, so it goes back ticked like any other path.
  */
 
 const fs = require('fs');
@@ -39,7 +40,7 @@ const show = paths.shorten;
 const fileOf = (at) => path.join(at.flow, 'restore.md');
 
 /** A project path that is the project's own knowledge, kept by default. */
-const isKnowledge = (rel) => rel === 'AGENTS.md' || rel === 'CLAUDE.md' || rel === 'docs' || rel.startsWith(`docs${path.sep}`);
+const isKnowledge = (rel) => rel === 'CLAUDE.md' || rel === 'docs' || rel.startsWith(`docs${path.sep}`);
 
 /** The folder a place's ticket skills sit in: `lib/tickets/ticket-skills.js`. */
 const skillsDir = (at, project) => (project ? ticketSkills.folderOf(project) : path.join(at.claude, 'skills'));
@@ -166,7 +167,7 @@ function sections(at, project, inside = false) {
     { heading: `Flow's files in ${show(project)}`, rows: all.filter((r) => !r.knowledge), name },
     {
       heading: `What ${show(project)} knows`,
-      text: 'These work without Flow: Claude Code reads AGENTS.md on its own.',
+      text: 'These work without Flow: Claude Code reads CLAUDE.md on its own.',
       rows: all.filter((r) => r.knowledge),
       name,
     },

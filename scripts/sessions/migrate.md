@@ -19,7 +19,7 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/`, `proje
    - No entry has a guide → nothing on disk changes. Tell the user in one line, then step 7.
 2. **Read the place.** Every live file a guide names. Then compare Flow's own files with their templates, to find what the user changed by hand:
    - The machine: `~/.flow/AGENTS.md` against `home/AGENTS.md`, outside `## The user` and `## Preferences`, and `~/.claude/settings.json` against `home/settings.json`.
-   - A project: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json` and `.gitignore` against `project-template/`.
+   - A project: `CLAUDE.md`, `.claude/settings.json` and `.gitignore` against `project-template/`.
    - A line no template holds and no guide explains is the user's own.
 3. **Write the migration** into `~/.flow/migrations/<migration>/`: `migration.md` by `## The form` below, and under `files/` the new version of every path a `write` line names, whole, at `files/<full path>`.
    - One line per file, never one per entry. Where 2 guides name one path, the later guide wins.

@@ -20,7 +20,7 @@
  *
  * What goes back is the user's choice: the same form as `flow restore`,
  * `lib/machine/restore-form.js`, with one box per path in every original. A project's
- * `AGENTS.md`, `CLAUDE.md` and `docs/` start unticked, so its knowledge stays.
+ * `CLAUDE.md` and `docs/` start unticked, so its knowledge stays.
  * Deleting `~/.flow/` and the clone has no box: that is what uninstalling is.
  *
  * Before `~/.flow/` goes, every link into it goes too: a source's skill in

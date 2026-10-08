@@ -66,7 +66,7 @@ Run `pnpm test:unit` as each step's check. The full suite needs the database, so
 ## Change a rule
 
 - **Your rules**: `~/.flow/AGENTS.md`, loaded in every session. The file is yours to edit, and [`flow sync`](sync.md) carries it to your other computers.
-- **A project's rules**: `## Rules` in the project's `AGENTS.md`, for corrections true only there.
+- **A project's rules**: `## Rules` in the project's `CLAUDE.md`, for corrections true only there.
 - **Rules for one kind of file**: a file in `.claude/rules/` whose `paths:` header names the files it covers, such as `**/*.ts`.
 
 Each rule carries an id, such as `build-what-was-agreed`, so a correction can name the rule it means. Sessions add to all 3 as they learn: [Learning](learning.md).

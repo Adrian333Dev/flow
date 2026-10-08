@@ -354,7 +354,7 @@ function init(at, clone, flags) {
   records.commit(project, 'flow init');
   records.syncLater(project, at.flow);
   out(`${done.join('\n')}\n\nset up: ${show(project)} is on entry ${newest}. Nothing in the code is committed: ` +
-    'AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.' +
+    'CLAUDE.md, .gitignore and .claude/ wait for your next commit.' +
     (home ? '\nIts tickets are private, in your Flow home, and flow sync carries them to your other machines.' : '') +
     `\n${SWITCH_ON}` +
     (flags.y && !something ? '\nNothing here to read. Describe the project with /flow:groundwork.' : ''));

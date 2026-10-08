@@ -52,8 +52,8 @@ A message starting `Carry on` is the same job, stopped part way.
 
 **A line kept is a line the agent would get wrong without it.** Standard practice is never a rule: "all LLM calls go through `LlmService`" is ordinary design a capable agent reads off the code.
 
-- **A rule for working in this project** → `AGENTS.md` → `## Rules`. A rule from a subfolder's rule file names that folder.
-- **A fact most sessions need** → `AGENTS.md`, wherever it fits.
+- **A rule for working in this project** → `CLAUDE.md` → `## Rules`. A rule from a subfolder's rule file names that folder.
+- **A fact most sessions need** → `CLAUDE.md`, wherever it fits.
 - **A lasting fact only some work needs** (a deploy path, a service's limit) → `docs/context/<subject>.md`, one question per file. Keep each file short.
 - **Open work from an explicit list** → one ticket per item. Never a ticket for a feature a spec describes.
 - **An idea nobody committed to** → `.flow/inbox.md`, raw.
@@ -80,6 +80,7 @@ A message starting `Carry on` is the same job, stopped part way.
 - **A skill from a source Flow knows** → `flow skills on <name>`, after its folder's delete.
 - **Any other outside skill** → sorted by `~/.flow/references/knowledge.md` → `## An outside skill`, and added as that section says.
 - **The memory folder** → a box under `## 🔴 Removed unless you untick it`.
+- **The project's own `AGENTS.md`**, once its rules are read into `CLAUDE.md` → a box under `## 🔴 Removed unless you untick it`. Claude skips it beside a `CLAUDE.md`, so a kept copy only goes stale.
 
 **A plugin or an outside skill that is off here, and the project's code uses it** → a box under `## Switched on for this project`, naming what in the code uses it. Off here means a plugin `flow survey` shows `off`, or a skill `flow skills ls` shows off. Used whole only: a skill waiting for a harvest stays off.
 
@@ -90,8 +91,7 @@ A message starting `Carry on` is the same job, stopped part way.
 
 Every new version goes under `files/<full path>`, beside the form. `project-template/` is the base for each file it holds.
 
-- **`AGENTS.md`**: the template, with `## Project` written from the code and the rest from what was sorted into it. Under 100 lines.
-- **`CLAUDE.md`**: the template's, the one line `@AGENTS.md`.
+- **`CLAUDE.md`**: the template, with `## Project` written from the code and the rest from what was sorted into it, in place of what it holds now. Under 100 lines.
 - **`.claude/settings.json`**: the project's file with the template's keys added, and what the form removes taken out.
 - **`.claude/settings.local.json`**: the same, where one exists.
 - **`.gitignore`**: the project's lines, then each line of the template's it lacks.
@@ -119,7 +119,7 @@ There is no third check. The next go runs step 6.
 
 Each unticked line means Flow leaves that thing exactly as the project has it:
 
-- **A skill, a hook, a plugin or the memory folder** → drop its `delete` line, or put it back into `files/…/.claude/settings.json`.
+- **A skill, a hook, a plugin, the memory folder or `AGENTS.md`** → drop its `delete` line, or put it back into `files/…/.claude/settings.json`.
 - **A line under `## Switched on for this project`** → drop its `run` line, or take its key out of `files/…/.claude/settings.json`.
 - **A line under `## Moving into Flow's files`** → drop the files it wrote from `files/`, with their `write` lines.
 - **The line of tickets from open-work lists** → drop those tickets from `files/…/.flow/tickets/`.
@@ -128,8 +128,8 @@ Every `write` line still needs its file under `files/`, and every `delete` line 
 
 ## When only the memory is read
 
-- **Step 1**: read `project-template/AGENTS.md` and the form's template alone.
-- **Step 2**: read the memory folder `run.json` names, and the project's own `AGENTS.md` and `docs/context/`, to know what is already kept. Nothing else.
+- **Step 1**: read `project-template/CLAUDE.md` and the form's template alone.
+- **Step 2**: read the memory folder `run.json` names, and the project's own `CLAUDE.md` and `docs/context/`, to know what is already kept. Nothing else.
 - **Step 3**: sort each memory line by `## Where each finding goes`. Skip a line the project's files already say. No ticket from the 2 always-written ones.
 - **The form** holds only the sections with a line, and the memory folder's box under `## 🔴 Removed unless you untick it`.
 - **Step 9 is `flow init --finish` all the same.** It ends the run and leaves the project's version alone.

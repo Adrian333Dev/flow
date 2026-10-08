@@ -16,7 +16,7 @@ At each checkpoint, such as a handoff or finished work, the agent files what the
 
 - **Work you decided on** → a ticket.
 - **How you like to work, or a fact about you** → your rules.
-- **A fact most sessions in this project need** → the project's `AGENTS.md`.
+- **A fact most sessions in this project need** → the project's `CLAUDE.md`.
 - **A project fact only some work needs**, such as how it deploys → `docs/context/<subject>.md`.
 - **How an outside tool behaves** → `~/.flow/wiki/<tool>/findings/`, shared by every project.
 - **Any other lesson** → `.flow/findings/` in the project.
@@ -32,7 +32,7 @@ A finding changes nothing until `/flow:file-findings` moves it into the file tha
 unfiled: 1 closed ticket not yet filed   (flow ls --unfiled)
 ```
 
-It reads the inbox, the findings and each closed ticket's notes. It then shows where each item would go: your rules, the project's `AGENTS.md`, a skill, or a [rule check](rule-checks.md). Nothing is written before your yes.
+It reads the inbox, the findings and each closed ticket's notes. It then shows where each item would go: your rules, the project's `CLAUDE.md`, a skill, or a [rule check](rule-checks.md). Nothing is written before your yes.
 
 ## Research
 

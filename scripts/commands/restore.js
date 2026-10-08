@@ -19,8 +19,8 @@
  *
  * Neither puts everything back blind. Each writes a form, `~/.flow/restore.md`,
  * with one box per path, and the user unticks what stays as it is now before
- * typing the word. A project's knowledge, its `AGENTS.md`, `CLAUDE.md` and
- * `docs/`, starts unticked. `lib/machine/restore-form.js` holds the form and the
+ * typing the word. A project's knowledge, its `CLAUDE.md` and `docs/`, starts
+ * unticked. `lib/machine/restore-form.js` holds the form and the
  * strict reading of it, and the ticket skills, which no original holds.
  *
  * A machine restore puts its projects in the same form. Once `flow` is gone

@@ -60,8 +60,8 @@ disable-model-invocation: true                  # user-only skills
 
 - **`~/.agents/AGENTS.md`**: the few that must fire with nothing else loaded
 - **A phase's body**, where that phase is what needs it. A comment standard is named by `/flow:execute`
-- **A phase's project overlay**, where 1 project wants it. The project's `AGENTS.md` would load it into groundwork and debugging sessions too
-- **The project's `AGENTS.md`**, where it is project-wide and belongs to no phase
+- **A phase's project overlay**, where 1 project wants it. The project's `CLAUDE.md` would load it into groundwork and debugging sessions too
+- **The project's `CLAUDE.md`**, where it is project-wide and belongs to no phase
 
 **A skill invoked over and over stays short, and a long skill takes an argument only where the argument names what the skill opens.** Claude Code appends the whole body again on every run whose render differs, through an argument or a shell line's output. A long skill takes an argument only where what it loads is worth more than its body, such as a ticket and its files, and its bare run renders the same text every time.
 

@@ -34,9 +34,9 @@ Nothing changes until you say go. The new version of every file is under {full p
 
 ## What Flow sets up
 
-- Flow's rules for this project. `AGENTS.md`, loaded by `CLAUDE.md`
+- Flow's rules for this project. `CLAUDE.md`
 - Tickets, the inbox and findings. `.flow/`
-- CLAUDE.md is replaced. What's worth keeping from it is below.
+- CLAUDE.md is rewritten in Flow's layout. What's worth keeping from it is below.
 - {always removed}, such as: The superpowers plugin is switched off here: it overrides Flow's rules in every session. `enabledPlugins`
 
 ## 🔴 Removed unless you untick it
@@ -44,6 +44,7 @@ Nothing changes until you say go. The new version of every file is under {full p
 ⚠️ Do not untick these. Flow was built and tested with every one of them gone. Keeping one makes Claude work against Flow's rules, and nothing will tell you it's happening. Untick one only if you know exactly why. Anything you untick is shown to you again before setup goes ahead.
 
 - [x] {removed}, such as: tdd skill: plans and tests every change, which Flow already does. `.claude/skills/tdd/`
+- [x] {removed}, such as: AGENTS.md: its 9 rules moved into CLAUDE.md, and Claude skips it beside a CLAUDE.md. `AGENTS.md`
 - [x] {removed}, such as: Claude Code's memory for this project: 14 notes, sorted into the sections below. `~/.claude/projects/-home-me-code-projects-delapse/memory/`
 
 ## Switched on for this project
@@ -55,7 +56,7 @@ Each stays off in your other projects.
 
 ## Moving into Flow's files
 
-- [x] {moving}, such as: 9 rules → `AGENTS.md`
+- [x] {moving}, such as: 9 rules → `CLAUDE.md`
 - [x] {moving}, such as: 4 facts about the project → `docs/context/`: stack, deploys, llm-calls, video-pipeline
 - [x] {moving}, such as: 3 unplanned ideas → `.flow/inbox.md`
 - [x] {moving}, such as: 2 lessons about tools → `~/.flow/wiki/`: Inngest retries, ffmpeg on WSL
@@ -97,8 +98,8 @@ Setup could not read each one below, so it stays exactly as it is.
 `~/.flow/scripts/apply-migration.js` acts on every line opening `- write `, `- delete `, `- move ` or `- run `, anywhere in the file, so no other line may open with one of those 4 words. One path per line. A path with no `~` sits inside the project. Everything after `: ` is for the user.
 
 ```markdown
-- write AGENTS.md: the project's rules
-- write CLAUDE.md: one line loading AGENTS.md, in place of what it holds now
+- write CLAUDE.md: the project's rules, in place of what it holds now
+- delete AGENTS.md: its rules moved into CLAUDE.md
 - write .claude/settings.json: superpowers switched off, supabase switched on, the lint hook removed
 - delete .claude/skills/tdd: a skill ticked above
 - write .gitignore: Flow's lines added to yours

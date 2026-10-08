@@ -81,10 +81,9 @@ $ flow init --prefix shop
 wrote: .claude/settings.json
 wrote: .gitignore
 wrote: .uncommitted-include
-wrote: AGENTS.md
 wrote: CLAUDE.md
 
-set up: ~/code/shop is on entry 1. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
+set up: ~/code/shop is on entry 1. Nothing in the code is committed: CLAUDE.md, .gitignore and .claude/ wait for your next commit.
 A plugin or skill switched off on this computer is switched on here with: claude plugin enable <id> --scope project, or flow skills on <name>
 ```
 
@@ -590,7 +589,7 @@ machine  3 paths  written 2026-10-02T22:42:53  still being written
 
 - **A ticked file** goes back to how it was, or is deleted where Flow created it.
 - **An unticked file** stays as it is.
-- **A project's `AGENTS.md`, `CLAUDE.md` and `docs/` start unticked**, since they hold what you learned about the project, and work without Flow.
+- **A project's `CLAUDE.md` and `docs/` start unticked**, since they hold what you learned about the project, and work without Flow.
 
 ## Rule checks
 

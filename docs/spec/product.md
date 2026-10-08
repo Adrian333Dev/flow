@@ -185,7 +185,7 @@ What Flow rests on that nobody has checked, and what happens if each one fails.
 - **Walking every decision before code is worth its time to a solo developer.** If it fails, the user skips `/flow:groundwork`, and the fast mode (`fw-16`) is the answer.
 - **The rules are worth what they cost**: `home/AGENTS.md` alone is about 3,600 tokens in every session. If it fails, rules repeating Claude Code's own system prompt go first.
 - **A handoff carries what the next session needs.** A fresh session picks up from the ticket alone. If it fails, sessions re-derive what the last one knew, and reading the old transcript through `flow audit` is the fallback.
-- **Claude Code keeps the surface Flow builds on**: hooks, a plugin loaded from a skills folder, the settings keys. Flow has 6 issues open with Anthropic for what it lacks. If it fails, a release breaks Flow until each release is read against Flow, which `check-claude-code-updates` in `AGENTS.md` does.
+- **Claude Code keeps the surface Flow builds on**: hooks, a plugin loaded from a skills folder, the settings keys. Flow has 6 issues open with Anthropic for what it lacks. If it fails, a release breaks Flow until each release is read against Flow, which `check-claude-code-updates` in `CLAUDE.md` does.
 - **Nothing in Flow needs a particular model.** It is built and tested on Claude's 5.5 models, and no skill or setting is tuned to them. If it fails, a base rule set plus a per-model overlay is the shape.
 
 ## Glossary

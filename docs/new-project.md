@@ -26,16 +26,15 @@ $ flow init --prefix shop
 wrote: .claude/settings.json
 wrote: .gitignore
 wrote: .uncommitted-include
-wrote: AGENTS.md
 wrote: CLAUDE.md
 
-set up: ~/code/shop is on entry 1. Nothing in the code is committed: AGENTS.md, CLAUDE.md, .gitignore and .claude/ wait for your next commit.
+set up: ~/code/shop is on entry 1. Nothing in the code is committed: CLAUDE.md, .gitignore and .claude/ wait for your next commit.
 A plugin or skill switched off on this computer is switched on here with: claude plugin enable <id> --scope project, or flow skills on <name>
 ```
 
 The last line is for a plugin or skill your computer's setup switched off: switch it on here once the project uses it.
 
-`AGENTS.md` holds what every session in this project needs. `/flow:groundwork` fills in its `## Project` section, and sessions add the rest. Commit the files when you choose.
+`CLAUDE.md` holds what every session in this project needs. `/flow:groundwork` fills in its `## Project` section, and sessions add the rest. Commit the files when you choose.
 
 ## Where the tickets live
 
@@ -61,7 +60,7 @@ Type 1 or 2: 1
 
 The session writes every change into one form, `migration.md`, and stops. Nothing changes before you approve it.
 
-- **Each line says what goes where**: `9 rules → AGENTS.md`.
+- **Each line says what goes where**: `9 rules → CLAUDE.md`.
 - **The code wins over the docs.** A doc the code contradicts becomes a ticket.
 - **Anything working against Flow** is listed under `🔴 Removed unless you untick it`.
 - **A plugin or skill your computer's setup switched off** is switched on where the code uses it: `supabase plugin: this project uses @supabase/supabase-js.`

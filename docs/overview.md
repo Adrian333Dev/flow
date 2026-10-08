@@ -56,7 +56,7 @@ Flow refuses `/compact`, Claude Code's own way of shrinking a conversation. Its 
 At each checkpoint, such as a handoff, the agent files what the conversation taught:
 
 - **How you like to work** → your rules.
-- **A fact about this project** → the project's `AGENTS.md`.
+- **A fact about this project** → the project's `CLAUDE.md`.
 - **How an outside tool behaves**, such as a library's quirk → `~/.flow/wiki/<tool>/`, which every project reads.
 - **A mistake the agent made** → a study case.
 

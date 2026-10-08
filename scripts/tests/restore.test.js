@@ -225,13 +225,13 @@ test('a project setup opens its own original, stops part-way, and carries on aft
     '- run test -f ready: writes nothing',
     '- move docs/work/ -> .flow/tickets/: the old work, as tickets',
     '',
-  ].join('\n'), { [path.join(proj, 'CLAUDE.md')]: '@AGENTS.md\n' });
+  ].join('\n'), { [path.join(proj, 'CLAUDE.md')]: 'rules in Flow\'s layout\n' });
 
   const first = applyAt(dir, root, id);
   assert.notStrictEqual(first.code, 0);
   assert.match(first.stderr, /stopped at line 2 of 3/);
   assert.match(first.stderr, new RegExp(`Carry on after a fix: apply-migration.js ${id}`));
-  assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), '@AGENTS.md\n', 'line 1 ran');
+  assert.strictEqual(read(path.join(proj, 'CLAUDE.md')), 'rules in Flow\'s layout\n', 'line 1 ran');
   assert.ok(exists(path.join(proj, 'docs/work/one.md')), 'line 3 did not');
 
   const stopped = original(root, proj);
@@ -348,14 +348,14 @@ test('a restore plans every path first, and marks each one put back that changed
   write(proj, 'README.md', 'shop\n');
 
   originals.start(at, proj);
-  for (const p of ['AGENTS.md', '.flow', '.gitignore', 'README.md']) originals.record(at, proj, path.join(proj, p));
+  for (const p of ['CLAUDE.md', '.flow', '.gitignore', 'README.md']) originals.record(at, proj, path.join(proj, p));
   originals.close(at, proj);
-  write(proj, 'AGENTS.md', 'shop rules\n');
+  write(proj, 'CLAUDE.md', 'shop rules\n');
   write(proj, '.flow/tickets/1/ticket.md', 'a ticket\n');
   write(proj, 'README.md', 'shop, edited\n');
 
   assert.deepStrictEqual(originals.plan(at, proj).map((row) => [path.relative(proj, row.path), row.removed, Boolean(row.changed), row.folder]), [
-    ['AGENTS.md', true, false, false],
+    ['CLAUDE.md', true, false, false],
     ['.flow', true, false, true],
     ['.gitignore', false, false, false],
     ['README.md', false, true, false],
@@ -406,9 +406,10 @@ function place(name) {
   assert.strictEqual(applyAt(dir, root, id).code, 0);
   const proj = path.join(root, 'code', 'shop');
   write(proj, 'CLAUDE.md', 'shop rules\n');
+  write(proj, 'AGENTS.md', 'rules for every agent\n');
   write(proj, '.gitignore', 'node_modules\n');
-  const pid = migration(root, originals.place(proj), `---\ntype: setup-project\nproject: ${proj}\n---\n- write CLAUDE.md: x\n- write .gitignore: x\n`,
-    { [path.join(proj, 'CLAUDE.md')]: '@AGENTS.md\n', [path.join(proj, '.gitignore')]: 'node_modules\n.flow/\n' }, new Date(Date.now() + 1000));
+  const pid = migration(root, originals.place(proj), `---\ntype: setup-project\nproject: ${proj}\n---\n- write CLAUDE.md: x\n- delete AGENTS.md: x\n- write .gitignore: x\n`,
+    { [path.join(proj, 'CLAUDE.md')]: 'rules in Flow\'s layout\n', [path.join(proj, '.gitignore')]: 'node_modules\n.flow/\n' }, new Date(Date.now() + 1000));
   assert.strictEqual(applyAt(dir, root, pid).code, 0);
   const ticketSkill = (at, id) => write(path.join(at, id), 'SKILL.md', `---\nname: ${id}\n---\n<!-- flow: ticket ${id}, rewritten by flow on every ticket change -->\n`);
   ticketSkill(path.join(root, '.claude', 'skills'), 'home-4');
@@ -434,7 +435,9 @@ test('a machine restore hands over one form, and the project keeps its knowledge
   assert.match(form, /^- \[x\] `\S*shop\/\.gitignore`: put back\. Changed since setup, so those changes are lost\.$/m);
   assert.match(form, /^- \[ \] `\S*shop\/CLAUDE\.md`: put back\. Changed since setup/m, "the project's knowledge starts unticked");
   assert.match(form, /^- \[x\] `\S*skills\/home-4\/`: deleted\. Flow wrote it to list one of your tickets\.$/m);
-  assert.strictEqual(read(path.join(plain.proj, 'CLAUDE.md')), '@AGENTS.md\n', 'an unticked path stays as it is now');
+  assert.match(form, /^- \[x\] `\S*shop\/AGENTS\.md`: put back\./m, 'an AGENTS.md Flow removed goes back like any other path');
+  assert.strictEqual(read(path.join(plain.proj, 'CLAUDE.md')), 'rules in Flow\'s layout\n', 'an unticked path stays as it is now');
+  assert.strictEqual(read(path.join(plain.proj, 'AGENTS.md')), 'rules for every agent\n', 'a ticked path goes back');
   assert.strictEqual(read(path.join(plain.proj, '.gitignore')), 'node_modules\n');
   assert.strictEqual(read(path.join(plain.root, '.claude/notes.md')), 'notes\n');
   assert.ok(!exists(path.join(plain.root, '.claude', 'skills', 'home-4')), "the machine's ticket skill is gone");

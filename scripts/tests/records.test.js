@@ -65,7 +65,7 @@ test('flow init makes the branch flow, and a teammate\'s flow init joins it', ()
   const made = t.init(ana, '--prefix', 'exp');
   assert.strictEqual(made.code, 0, made.stderr);
   assert.match(made.stdout, /a new flow branch, sharing no history with the code/);
-  assert.match(made.stdout, /^wrote: AGENTS\.md$/m);
+  assert.match(made.stdout, /^wrote: CLAUDE\.md$/m);
 
   assert.strictEqual(git(path.join(ana, '.flow'), 'rev-parse', '--abbrev-ref', 'HEAD').out, 'flow');
   assert.ok(!git(ana, 'merge-base', 'main', 'flow').ok, 'no history shared with the code');
@@ -209,7 +209,7 @@ test('flow init --private links .flow/ into the Flow home, hidden from git, and 
   const made = t.in(ana, 'init', '--private', '--prefix', 'exp');
   assert.strictEqual(made.code, 0, made.stderr);
   assert.match(made.stdout, /private, in your Flow home/);
-  assert.match(made.stdout, /^wrote: AGENTS\.md$/m);
+  assert.match(made.stdout, /^wrote: CLAUDE\.md$/m);
   assert.ok(fs.existsSync(path.join(ana, 'CLAUDE.md')));
 
   const dir = path.join(t.home, 'projects', 'ana');
@@ -237,11 +237,11 @@ test('flow init records the original before its first write, so restoring it lea
     const recorded = manifest.entries.map((e) => [path.relative(ana, e.path), e.type]);
     assert.deepStrictEqual(recorded.find(([p]) => p === '.flow'), ['.flow', 'absent']);
     assert.deepStrictEqual(recorded.find(([p]) => p === '.gitignore'), ['.gitignore', 'file']);
-    assert.ok(recorded.some(([p]) => p === 'AGENTS.md'), 'each template file');
+    assert.ok(recorded.some(([p]) => p === 'CLAUDE.md'), 'each template file');
 
     originals.restore(at, ana);
     assert.strictEqual(fs.readFileSync(path.join(ana, '.gitignore'), 'utf8'), 'dist/\n');
-    for (const gone of ['.flow', 'AGENTS.md', 'CLAUDE.md', '.claude']) {
+    for (const gone of ['.flow', 'CLAUDE.md', '.claude']) {
       assert.ok(!fs.existsSync(path.join(ana, gone)), `${gone} is gone ${how}`);
     }
     assert.strictEqual(fs.readFileSync(path.join(ana, 'app.js'), 'utf8'), 'console.log(1);\n', 'the code stays');

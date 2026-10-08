@@ -10,7 +10,7 @@
 # as in "Last checked: 2.1.285". The notes come from Anthropic's CHANGELOG.md
 # on GitHub, newest release first, and printing stops at that version. The
 # script decides nothing: reading each note against Flow, and moving line 1
-# forward, is the agent's job, by the root AGENTS.md → check-claude-code-updates.
+# forward, is the agent's job, by the root CLAUDE.md → check-claude-code-updates.
 set -euo pipefail
 
 url=https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md

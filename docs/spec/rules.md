@@ -48,7 +48,9 @@ What happens each time the agent edits or writes a file:
 ### The rule files
 
 - `V1` **One rule file every session loads: `~/.agents/AGENTS.md`**, a link to `~/.flow/AGENTS.md`, the copy `flow sync` carries. `~/.claude/CLAUDE.md` is the one line `@~/.agents/AGENTS.md`. The file is `home/AGENTS.md` plus the user's 2 sections, `## The user` and `## Preferences`. Its sections, in order: `## The turn`, `## Reading`, `## Writing files`, `## Tools`, `## When something breaks`, `## Workflow`, `## The user`, `## Preferences`, `## Capture`, `## Scripts`, `## Judgment`, `## The reply`.
-- `V1` **A project's rule file is its `AGENTS.md`**, with `CLAUDE.md` beside it holding `@AGENTS.md`. The template gives it 2 sections, `## Project` and `## Rules`, each a placeholder comment. The agent decides what else it holds, the user's call 2026-09-30.
+- `V1` **A project's rule file is its `CLAUDE.md`, and Flow writes no `AGENTS.md` in a project.** The template gives it 2 sections, `## Project` and `## Rules`, each a placeholder comment. The agent decides what else it holds, the user's call 2026-09-30. Ruled by the user 2026-10-08: Flow ships for Claude Code alone, and Codex, Cursor and others treat `AGENTS.md` as their own file and write into it. A root `AGENTS.md` belongs to those agents, and Claude skips it wherever a `CLAUDE.md` exists. A later Codex port renames the file (`.flow/research/models.md`). Reasons in `fw-80`'s `groundwork/map.md` → `## 6`.
+- `never` **A project's rules in `AGENTS.md`, imported by `CLAUDE.md`**, the layout until 2026-10-08: it let Codex read Flow's rules, and let Codex write into them. No setting blocks every agent's edits, since every agent runs as the user's account.
+- `never` **A project's rules in `.agents/AGENTS.md`, imported by `CLAUDE.md`**, proposed 2026-10-08 because Codex never reads that path and its sandbox cannot write it. `CLAUDE.md` alone does the same job with 1 file and no import.
 - `V1` **`claude/rules/comments.md` holds the comment rules**, 13 of them, loaded only for JS, TS, Python, shell, SQL and CSS files through `paths:`. The user ruled comment shape minor.
 - `V1` **One rule set for every model.** No model detection and no rule written for one model. A rule that works on any model is what makes the default-action rule below required.
 - `V1` **Stack content lives in a domain skill, never in a rule file with `paths:`.** Set by the user 2026-09-10, rejecting a `rules/typescript.md`.
@@ -105,7 +107,7 @@ What happens each time the agent edits or writes a file:
 ## The parts
 
 - **`home/AGENTS.md`**: the template of the rule file every session loads.
-- **`project-template/AGENTS.md`**: a project's rule file before setup fills it.
+- **`project-template/CLAUDE.md`**: a project's rule file before setup fills it.
 - **`claude/rules/comments.md`**: the comment rules, linked into `~/.claude/rules/` by `flow install`.
 - **`references/style.md`, `write-rules.md`, `cut-loaded-files.md`**: how a rule file is written.
 - **`scripts/hooks/rule-check.js`**: the wiring. **`scripts/lib/checks/judge.js`** judges the edit, and **`checks.js`** loads the checks and reads a rule's text out of its file.

@@ -19,7 +19,7 @@ Installing creates symlinks from your machine into this clone, so most files are
 When you first open the repository, the split that matters has 4 parts:
 
 - **6 folders install**: `home/`, `scripts/`, `references/`, `skills/`, `claude/`, and `project-template/`
-- **9 entries belong to the repository**: `AGENTS.md`, `CLAUDE.md`, `README.md`, `LICENSE`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
+- **8 entries belong to the repository**: `CLAUDE.md`, `README.md`, `LICENSE`, `install.sh`, `CHANGELOG.md`, `upgrades/`, `.claude/settings.json`, and `docs/`
 - **`lab/` is the maintainers' workspace**: installed nowhere
 - **`repos/` and `tmp/` are gitignored**: either can be thrown away at any moment
 
@@ -29,7 +29,7 @@ When you first open the repository, the split that matters has 4 parts:
 
 **`home/AGENTS.md`** is the rules that apply in every directory, project or not. `flow install` writes it to `~/.flow/AGENTS.md` once the user has checked its form, links `~/.agents/AGENTS.md` to that file, and it is personalized there. The copy here is the template: placeholders and rules, never personal content.
 
-**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same session, so Claude Code loads the same rules. Claude Code never reads anything under `~/.agents/` by itself. `project-template/` holds the same pair for a project, where the `CLAUDE.md` stays even though Claude Code could read the `AGENTS.md` alone: `.flow/research/claude-code.md` → `### How an instruction file loads`, on the branch `flow`, says why.
+**`home/CLAUDE.md`** is one line, `@~/.agents/AGENTS.md`, written into `~/.claude/CLAUDE.md` by the same session, so Claude Code loads the same rules. Claude Code never reads anything under `~/.agents/` by itself. A project needs no such pair: its rules sit in its own `CLAUDE.md`, which Claude Code reads directly. `docs/spec/rules.md` → `### The rule files` says why Flow writes no `AGENTS.md` there.
 
 **`home/settings.json`** is the permissions, the hooks, feature flags, and `skillOverrides` (the off list, which reaches outside skills only). [Settings](../reference/settings.md) explains every key. The setup session `flow install` opens merges it into `~/.claude/settings.json` key by key. The links `flow install` makes before that session write none of the 3 above: a rule file copied before the interview holds nothing of the user.
 
@@ -80,11 +80,11 @@ When you first open the repository, the split that matters has 4 parts:
 - `rules/` holds prescriptive rules, one markdown file per topic. Rules without `paths:` frontmatter load every session; rules with `paths:` load only when the agent reads a matching file. Populated by `/flow:file-findings` when knowledge is promoted from `.flow/findings/`.
 - `commands/` holds commands, one markdown file each, typed by the file name with no `flow:` prefix: `capture.md` is `/capture`. A command is for a manual trigger only the user types, so each carries `disable-model-invocation: true` and costs no context until typed.
 
-**`project-template/`** is what a new project starts with: an `AGENTS.md` with 2 sections (`## Project`, `## Rules`), each holding a placeholder comment, a `CLAUDE.md` holding the one line `@AGENTS.md`, an empty `.claude/settings.json`, a `.gitignore` and a `.uncommitted-include`. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.uncommitted-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git uncommitted send`.
+**`project-template/`** is what a new project starts with: a `CLAUDE.md` with 2 sections (`## Project`, `## Rules`), each holding a placeholder comment, an empty `.claude/settings.json`, a `.gitignore` and a `.uncommitted-include`. Nothing else. It is copied into a project as-is. A directory that is not a project deletes `## Project`. `.uncommitted-include` ships empty, with a comment explaining that it names the gitignored files that travel with `util git uncommitted send`.
 
 ## What belongs to the repository
 
-**`AGENTS.md`** is the rules for working on Flow itself, and **`CLAUDE.md`** is one line, `@AGENTS.md`, so Claude Code loads them. Neither installs anywhere. While Flow is not installed on a machine, these are the only rules any session here loads.
+**`CLAUDE.md`** holds the rules for working on Flow itself, and installs nowhere. While Flow is not installed on a machine, these are the only rules any session here loads.
 
 **`README.md`** introduces Flow and links to everything else.
 

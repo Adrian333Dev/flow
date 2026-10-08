@@ -25,7 +25,7 @@ Under the config folder, except the last 2.
 
 ## In a project
 
-- **`CLAUDE.md`** at the root, or **`.claude/CLAUDE.md`**: this project's rules. **`AGENTS.md`** loads as well, on its own or beside `CLAUDE.md`. **`CLAUDE.local.md`** at the root: the user's own rules for this project, loaded beside `CLAUDE.md`.
+- **`CLAUDE.md`** at the root, or **`.claude/CLAUDE.md`**: this project's rules. **`AGENTS.md`** loads only where no `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` sits in the folder or above it, unless the **Project instructions** setting says otherwise. **`CLAUDE.local.md`** at the root: the user's own rules for this project, loaded beside `CLAUDE.md`.
 - **`.claude/settings.json`**: committed, and shared with whoever else works here. **`.claude/settings.local.json`**: never committed, and Claude Code writes each permanent "don't ask again" approval into it. It sits at the repository root, which a worktree resolves to the main checkout.
 - **`.claude/rules/`**, **`skills/<name>/`**, **`commands/`**, **`agents/`**, **`output-styles/`** and **`workflows/`**: the same 6 as on the machine, for this project alone. Where a machine skill and a project skill share a name, 1 of the 2 survives, the machine's, with no warning.
 - **`.claude/agent-memory/<agent>/MEMORY.md`**: what a subagent defined here carries between runs, written by Claude Code. **`.claude/agent-memory-local/<agent>/MEMORY.md`** beside it is the gitignored half.

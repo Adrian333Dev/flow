@@ -25,7 +25,7 @@ Each path, and what writes it:
 ├─ .flow/findings/<what-was-learned>.md   capture → /flow:file-findings, into a skill or rule
 ├─ .flow/inbox.md                         capture: anything with no home yet
 ├─ docs/context/<subject>.md              capture: a fact only some work here needs
-└─ AGENTS.md                              capture: a fact most sessions here need
+└─ CLAUDE.md                              capture: a fact most sessions here need
 ```
 
 ## Behaviors
@@ -81,13 +81,13 @@ Capture is the sweep the rule file runs at each checkpoint, filing what the conv
 - `V1` **`/capture` runs the sweep now**, typed by the user.
 - `V1` **How an outside tool behaves → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`**, even while the tool's skill is loaded: what went wrong, what fixed it, the rule that follows, the version.
 - `V1` **Other reusable knowledge → `.flow/findings/<what-was-learned>.md`.** A finding about a skill carries a `skill: <name>` header.
-- `V1` **A project fact most sessions need → the project's `AGENTS.md`. One only some work needs → `docs/context/<subject>.md`**, one question per file, rewritten rather than appended.
+- `V1` **A project fact most sessions need → the project's `CLAUDE.md`. One only some work needs → `docs/context/<subject>.md`**, one question per file, rewritten rather than appended.
 - `V1` **How the user works → the rule file's `## Preferences`. A fact about the user → `## The user`.** Both inferred from evidence, never announced.
 - `V1` **Anything else → `.flow/inbox.md`, raw.** Past 200 lines, the agent offers `/flow:file-findings`.
 
 ### Filing findings
 
-- `V1` **`/flow:file-findings`, user only, sorts the inbox, the findings and closed tickets' `issues.md` and `reports/` in one batch**, shows the plan and stops, then writes. A finding about an outside tool goes to the wiki. A rule goes to the rule file or a file with `paths:`. A project fact goes to `AGENTS.md` or `docs/context/`.
+- `V1` **`/flow:file-findings`, user only, sorts the inbox, the findings and closed tickets' `issues.md` and `reports/` in one batch**, shows the plan and stops, then writes. A finding about an outside tool goes to the wiki. A rule goes to the rule file or a file with `paths:`. A project fact goes to `CLAUDE.md` or `docs/context/`.
 - `V1` **Reusable knowledge with no skill to hold it becomes a `needs skill:` line in the inbox.** Several on one subject earn a skill.
 - `V1` **Altitude decides the home**: a tool quirk or a framework pattern → that tool's wiki folder. A seam between 2 tools → the causing tool's folder, plus a line in the other's `index.md`. A broad principle → a concept skill.
 - `V1` **A finding about a domain-skills skill waits in `.flow/findings/<skill>/`** for the sharing command below.

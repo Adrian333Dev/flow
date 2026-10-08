@@ -53,8 +53,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
    └─ util, u                     → ~/.flow/repos/util
 
 <project>/
-├─ AGENTS.md
-├─ CLAUDE.md                      one line: @AGENTS.md
+├─ CLAUDE.md                      the project's rules
 ├─ .gitignore
 ├─ .uncommitted-include
 ├─ .claude/
@@ -160,8 +159,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ### The files at the top
 
-- **`AGENTS.md`**: what every session in this project needs. It starts with 2 sections, `## Project` and `## Rules`, and sessions fill it in.
-- **`CLAUDE.md`**: one line pulling in `AGENTS.md`.
+- **`CLAUDE.md`**: what every session in this project needs. It starts with 2 sections, `## Project` and `## Rules`, and sessions fill it in.
 - **`.gitignore`**: ignores `tmp/`, `node_modules`, the links to skills, and `.flow/`.
 - **`.uncommitted-include`**: files git ignores that should still travel with your uncommitted work. Empty to start.
 

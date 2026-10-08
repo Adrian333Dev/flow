@@ -86,7 +86,7 @@ Each writes `~/.flow/restore.md`, one box per path, and waits for you to type `r
 
 ```md
 - [x] `.flow/`: deleted, with every ticket in it. Tickets sent to GitHub stay on the project's flow branch.
-- [ ] `AGENTS.md`: deleted. It was not there before Flow.
+- [ ] `CLAUDE.md`: deleted. It was not there before Flow.
 ```
 
 Untick a path to keep it as it is now. Only you can run these 3 commands: [Commands](reference/commands.md#taking-flow-off).
