@@ -3,9 +3,9 @@
 /.vscode/
 *.code-workspace
 
-# Flow: .flow/ holds the tickets, checked out from the branch "flow", which
-# shares no history with the code. Every branch sees the same tickets, and
-# none of them is ever merged in.
+# Flow: .flow links to ~/.flow/projects/flow-dev/, Flow's private ticket
+# folder, and .git/info/exclude hides the link. This line catches .flow/ only
+# where it is a real folder.
 .flow/
 
 tmp/
