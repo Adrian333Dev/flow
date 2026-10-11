@@ -1,5 +1,8 @@
 {
   "cleanupPeriodDays": 365,
+  "env": {
+    "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS": "1"
+  },
   "fileSuggestion": {
     "type": "command",
     "command": "node \"$HOME/.flow/scripts/hooks/file-suggestion.js\""

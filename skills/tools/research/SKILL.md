@@ -109,13 +109,20 @@ Using what came back:
 
 ## Delegating heavy reading
 
-**`Explore` is the agent.** Where the job has to run something before it can read → `general-purpose`.
+**Plan the reading here.**
 
-**Dispatch on how much there is to read, never on the level.** A cloned codebase, megabytes of downloaded docs, a question that means opening 20 files → send it out and read the findings. A page or two, one grep for a signature, a file whose name you already have → read it here.
+1. **List the candidates** in one search, here or in one `general-purpose` agent. No deep reading yet.
+2. **Pick the few worth a full read.**
+3. **Read a short source here**: a page or two, one grep for a signature, a file whose name you already have.
+4. **Send each long source to its own `general-purpose` subagent**: a cloned codebase, megabytes of downloaded docs, a question that means opening 20 files. Never 2 agents on one source. A file every agent needs → read it here once, and put its facts in each brief.
+
+**Dispatch on how much there is to read, never on the level.**
+
+**A landscape too big for this session to hold the plan and the reports** → one `general-purpose` subagent runs these steps itself, dispatching its own readers.
 
 **The brief is a handoff**: `/flow:handoff` writes it, delivered in the subagent's prompt rather than as a file. 3 things it carries that belong to reading specifically:
 
-- **The sources**: paths under `~/.flow/wiki/<tool>/downloads/`, the clone at `downloads/repo/`, or URLs to fetch.
+- **The source**: a path under `~/.flow/wiki/<tool>/downloads/`, the clone at `downloads/repo/`, or a URL to fetch.
 - **The question**, precisely stated, with the constraints that shape the answer: stack, versions, decisions already locked.
 - **The output**: findings written into the question's research file, each citing where in the sources it came from.
 

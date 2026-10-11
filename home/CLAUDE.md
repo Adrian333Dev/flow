@@ -20,10 +20,12 @@ One user message, your work, one reply. In that order, every time.
 
 ## Reading
 
-- **`read-minimal-context`** Path and line range, one filtered query over many reads, stop when answered.
+- **`plan-the-reads`** Before the first call, list everything the step needs: files, searches, checks. Send every call that needs no other call's result in one message. A call sent alone resends the whole conversation.
+- **`whole-file-once`** A file you need much of → `Read` it whole, once. A line range only for a file too big for one `Read`. Never slice a file across requests.
 - **`tree-for-structure`** The shape of a folder → `util fs tree`, never `ls` or `find`.
-- **`search-then-choose`** Search with `grep -rn` first. Open only the files whose matching lines matter.
-- **`read-in-parallel`** Files → `Read`, all of them in one parallel batch. Never `cat`, `head`, `tail` or `sed -n`.
+- **`search-then-choose`** Search with `grep -rn -C 3` first. Never grep, then read a slice of what it found. Open only the files whose matching lines matter.
+- **`search-wide`** A search that missed → retry with several patterns in one call, `grep -rn -e a -e b`. Never one guess per request.
+- **`read-in-parallel`** Files → `Read`, all of them in one message. The shell reads only what `Read` cannot: command output, a log's end, a binary.
 - **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
 - **`past-sessions-through-audit`** A past session → `flow audit`: `ls` finds it, `context` and `timeline` narrow it, `read --turns` opens it. Never the raw transcript.
@@ -39,6 +41,7 @@ One user message, your work, one reply. In that order, every time.
 
 - **`read-a-refusal`** Read a refusal before working around it. `--force` is a deliberate override.
 - **`no-mkdir`** Write creates directories.
+- **`edit-with-edit`** Edits → `Edit`, every independent edit in one message. Never `python3` or `sed -i`, one file per request. Never a check alone after an edit.
 - **`change-record`** A "Stop hook blocking error" from `PostToolUse:Agent` is Flow's change record, never a failure: the diff of what one subagent's own tool calls changed. Judge a subagent's work by it, never by its report. It arrives with the subagent's finished notice, and none means no file changed.
 
 ## When something breaks

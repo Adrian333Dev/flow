@@ -104,7 +104,7 @@ Plus 4 where someone waits on an answer:
 
 **A bug with no failing check built yet** → its `## Done when` is the observable: the failure as seen, and what not seeing it would look like.
 
-**A subagent starting now gets the same content in its prompt.**
+**A subagent starting now gets the same content in its prompt, plus a stopping point**: "stop after these 3 sources and write the file". Never a time limit.
 
 ### How much to write
 

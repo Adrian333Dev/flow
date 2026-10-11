@@ -36,7 +36,9 @@ Each path, and what writes it:
 - `V1` **Research searches for what already solves a need before building or reading anything**: `flow skills ls`, the toolbox and skills.sh at once, then skills, plugin marketplaces and MCP servers on GitHub and the web. An outside skill found is judged by `docs/spec/skills.md`.
 - `V1` **4 levels of depth, never starting higher than needed**: a targeted question answered inline, working against a tool from its downloaded docs, deep customization from its cloned source, and a landscape survey through a prompt the user runs in an outside LLM.
 - `V1` **A bug's explanation is searched in the tool's issues**, `gh search issues <words> --repo <owner/repo>`, where most explanations live.
-- `V1` **Heavy reading goes to an `Explore` subagent**, decided by how much there is to read and never by the level. The brief names the sources, the question and the report file.
+- `V1` **The main session plans the reading**: what is already written first, then one cheap list of candidates, then the few worth a full read. Short sources are read in the main session. Each long one goes to its own `general-purpose` subagent, never 2 on one source, decided by how much there is to read and never by the level. The brief names the source, the question, the report file and a stopping point. Decided 2026-10-12 (`fw-100`, `reports/token-costs.md`): the measured waste was a whole job handed to one agent that chose alone what to read, and sibling agents reading the same files.
+  - Refused: `Explore` as the reader. It skips every `CLAUDE.md`, so no Flow rule reaches it, and it cannot write its findings as it goes.
+  - Refused: a planner subagent by default. It repeats the whole-job dispatch with a layer added. Kept for a landscape too big for the main session to hold the plan and the reports.
 - `V1` **One file per question, the question at the top and the findings under it.** A level 1 question writes no file.
 - `V1` **A report goes where it is true**: about one tool → `~/.flow/wiki/<tool>/research/`. About no single tool → `~/.flow/research/`. True only for this project, or unsure → `.flow/research/`. Outside a project, unsure → `~/.flow/research/`. Unsure defaults to the project because an unsure report may hold project details, which never enter `~/.flow/`.
 - `V1` **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to the spec file that owns it, its reason naming the survey.
@@ -53,7 +55,7 @@ Context7 is a web service that answers a question from a library's docs, for one
 - `V1` **No Context7 answer is ever saved.** The answer's page goes into `index.md` under its topic. Ruled 2026-09-19: the same question rarely comes twice, and a shortcut helps the next search where a saved answer does not.
 - `V1` **No key needed.** `CONTEXT7_API_KEY` raises the rate limits when set.
 - `never` **Context7 loaded into every session.** Only research needs it. Ruled 2026-09-18.
-- `never` **Repository tools: GitMCP, DeepWiki, Sourcegraph, GitHub's MCP server.** Cloning plus an `Explore` subagent does their job.
+- `never` **Repository tools: GitMCP, DeepWiki, Sourcegraph, GitHub's MCP server.** Cloning plus a `general-purpose` subagent does their job.
 - `later` **Mintlify Index**, which does Context7's job, tried if Context7's lag bites often.
 
 ### Downloaded docs

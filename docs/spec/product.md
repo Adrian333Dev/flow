@@ -101,6 +101,8 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 - `V1` **A subagent's changes reach the main session as a change record**: the files its own tool calls changed, recorded by `changes.js` under its id. The main session judges the work by the record, never by the subagent's report.
 - `V1` **`haiku-worker` carries out one decided step** that repeats across many files.
 - `V1` **Review runs in the session that built the work**, never in a subagent.
+- `V1` **Every brief ends with a stopping point**, such as "stop after these 3 sources and write the file", never a time: agents see no clock. Decided 2026-10-12 (`fw-100`): briefs saying "about 10 minutes" changed nothing.
+- `V1` **Claude Code's Explore and Plan agents switched off**, by `CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS=1`. Explore skips every `CLAUDE.md`, so no Flow rule reaches the searches Claude Code sends it unasked; Plan has no use while plan mode is denied. Decided 2026-10-12 (`fw-100`).
 - `never` **A fork, the subagent that starts with a copy of the whole conversation.**
 - `later` **A fixed output, tool list and model per subagent**, so a report comes back in a known shape.
 - `later` **Measuring the 2 snapshots taken per command a worker runs**, slow on a very large repository.
