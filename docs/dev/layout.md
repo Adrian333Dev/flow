@@ -116,6 +116,7 @@ A decision belongs in `docs/spec/`, never here. Git holds the history of how eac
 - **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/flow:research` clones it into `tmp/` to search it.
 - **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
 - **`archive/`**: code Flow no longer runs, kept readable, with a `README.md` line per file saying what replaced it.
+- **`mockups/`**: drawings from design work, and the scripts that build them row by row, kept as samples for the ASCII engine. Its `README.md` says what each one draws.
 - **`scripts/`**: scripts serving this repository's development, installed nowhere. `repos.sh` clones the reference repositories, `try.sh` builds [the scratch session](trying-changes.md#the-scratch-session), and `save-computer.sh` saves this computer as a seed for it to start from. `test-projects/<name>/` builds each run's practice project: `files/` copied in, then `build.sh` making the tickets, or no `build.sh` for a project not set up.
 
 ## What is gitignored

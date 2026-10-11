@@ -1,0 +1,172 @@
+1. Tickets page, the default when the board opens
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ ● Read(ticket.md)        │ FLOW   [Tickets]   All   Session                                                                                  / search │
+│   └ Read 70 lines        │────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│                          │ IN PROGRESS  2                                                                                                             │
+│ ● The board now holds    │ ▸ fw-16-flow-redesign            designing 37/58  Flow redesign: fast by default, flexible per job…            v1          │
+│   the agreed list.       │   fw-70-flow-audit-counts                         flow audit: correct token counts, context size per…          v1 audit    │
+│                          │                                                                                                                            │
+│                          │ NEXT  14, in rank order                                                                                                    │
+│                          │   fw-81-agent-told-start                          An agent told to start the next ticket hands back the…       v1 urgent   │
+│                          │   fw-14-build-flows-mods         0 of 3 done      Build Flow's mods, in the build order the research sets      v1 mods     │
+│                          │     fw-99-band-above-prompt                       The band shows each ticket the session works                             │
+│                          │     fw-100-meters-row                             The meters share the permission mode's row                               │
+│                          │     fw-101-board-pane                             The board opens beside the conversation on /board                        │
+│                          │   fw-71-ticket-names-files                        A ticket names its files, and the agent picks what to read   v1          │
+│                          │   fw-31-handoff-says-where                        Handoff says where it wrote, and moves the ticket's…         v1          │
+│                          │   fw-74-skill-reading-past       waits on fw-70   A skill for reading past sessions through flow audit         audit       │
+│                          │   fw-52-every-failure-flow                        Every failure in flow install, flow init and the setup…      v1 setup    │
+│                          │   fw-69-setup-form-uninstalls                     Machine setup leaves out per-project plugins, and the…       v1 setup    │
+│                          │   … 7 more, Enter on this line lists them                                                                                  │
+│                          │                                                                                                                            │
+│                          │ PARKED  33, by reason                                                                                                      │
+│                          │   after fw-16 ships              27 tickets       every ticket unrelated to the redesign                       later       │
+│                          │   after V1 ships                 6 tickets        parked with the label post-v1                                post-v1     │
+│                          │                                                                                                                            │
+│                          │ DONE RECENTLY  3                                                                                                           │
+│                          │   fw-87-apply-migration-runs     done 1d ago      Setup sessions apply their own form, and a script only…      setup       │
+│                          │   fw-85-machines-rules-live      done 2d ago      The machine's rules live in one CLAUDE.md: no AGENTS.md…     setup       │
+│                          │   fw-78-setup-reads-machine      done 2d ago      Setup reads the machine through one script, and the agent…   setup       │
+│                          │                                                                                                                            │
+│                          │                                                                                                                            │
+│ +2 tickets               │                                                                                                                            │
+│──────────────────────────│                                                                                                                            │
+│ >                        │                                                                                                                            │
+│──────────────────────────│────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│ ►► accept edits on       │ ↑↓ move   Space marks   Enter opens   a actions   i inserts into the prompt   / searches   Tab next page   Esc closes      │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+1b. Search: / on the Tickets page, typed "label:setup fail"
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ FLOW   [Tickets]   All   Session                                                                                           │
+│ / label:setup fail▌                                                  3 of 52  ·  label: status: waits:  ·  Esc clears      │
+│────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│ NEXT  2                                                                                                                    │
+│ ▸ fw-52-every-failure-flow                        Every failure in flow install, flow init and the setup…      v1 setup    │
+│   fw-69-setup-form-uninstalls                     Machine setup leaves out per-project plugins, and the…       v1 setup    │
+│                                                                                                                            │
+│ DONE RECENTLY  1                                                                                                           │
+│   fw-87-apply-migration-runs     done 1d ago      Setup sessions apply their own form, and a script only…      setup       │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+2. Ticket page: Enter on fw-71
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ ● Read(ticket.md)        │ FLOW   Tickets › fw-71-ticket-names-files                                                             Esc back to the list │
+│   └ Read 70 lines        │────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│                          │ A ticket names its files, and the agent picks what to read                                                                 │
+│ ● The board now holds    │                                                                                                                            │
+│   the agreed list.       │ ▸ status      todo                                              rank        4th of 14 next                                 │
+│                          │   labels      v1                                                waits on    nothing: ready                                 │
+│                          │   parent      none                                              blocks      fw-64-flow-get-files                           │
+│                          │                                                                                                                            │
+│                          │ QUESTIONS  1 open                                                                                                          │
+│                          │   [ ] Does each reference name a line range where one part of a long file is what matters?                                 │
+│                          │                                                                                                                            │
+│                          │ TASKS  0 of 5 done                                                                                                         │
+│                          │   [ ] Archive --files and the open block to lab/archive/flow-get-files/, with a README naming the commit                   │
+│                          │   [ ] flow <id> stays the one way to show a ticket, and the name flow get retires                                          │
+│                          │   [ ] /flow:handoff writes the references section, and nothing writes an open block                                        │
+│                          │   [ ] home/AGENTS.md, docs/spec/tickets.md and docs/spec/skills.md name the references section                             │
+│                          │   [ ] Drop fw-64 once this lands                                                                                           │
+│                          │                                                                                                                            │
+│                          │ WAITS                                                                                                                      │
+│                          │   fw-71-ticket-names-files       todo                                                                                      │
+│                          │   └ fw-64-flow-get-files         todo      waits on this: it fixes --files, which this archives                            │
+│                          │                                                                                                                            │
+│                          │ FILES                                                                                                                      │
+│                          │   scripts/commands/tickets.js         the lookup flow <id> runs                                                            │
+│                          │   docs/spec/tickets.md                what a ticket holds                                                                  │
+│                          │   docs/spec/skills.md                 what each skill reads                                                                │
+│                          │   home/AGENTS.md                      the rules that name --files                                                          │
+│                          │                                                                                                                            │
+│                          │                                                                                                                            │
+│ +2 tickets               │                                                                                                                            │
+│──────────────────────────│                                                                                                                            │
+│ >                        │                                                                                                                            │
+│──────────────────────────│────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│ ►► accept edits on       │ ↑↓ move   Enter changes the field   a actions   i inserts into the prompt   Esc back                                       │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+3. Action menu: a, with fw-81 and fw-31 marked by Space
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ ● Read(ticket.md)        │ FLOW   [Tickets]   All   Session                                                                                  / search │
+│   └ Read 70 lines        │────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│                          │ IN PROGRESS  2                                                                                                             │
+│ ● The board now holds    │   fw-16-flow-redesign            designing 37/58  Flow redesign: fast by default, flexible per job…            v1          │
+│   the agreed list.       │   fw-70-flow-audit-counts                         flow audit: correct token counts, context size per…          v1 audit    │
+│                          │                                                                                                                            │
+│                          │ NEXT  14, in rank order                                                                                                    │
+│                          │ ■ fw-81-agent-told-start                          An agent told to start the next ticket hands back the…       v1 urgent   │
+│                          │   fw-14-build-flows-mods         0 of 3 done      Build Flow's mods, in the build order the research sets      v1 mods     │
+│                          │     fw-99-band-above-prompt                       The band shows each ticket the session works                             │
+│                          │     fw-100-meters-row                             The meters share the permission mode's row                               │
+│                          │     fw-101-board-pane                             The board opens beside the conversation on /board                        │
+│                          │   fw-71-ticket-names-files                        A ticket names its files, and the agent picks what to read   v1          │
+│                          │ ■ fw-31-handoff-says-where                        Handoff says where it wrote, and moves the ticket's…         v1          │
+│                          │   fw-74-skill-reading-past       waits on fw-70   A skill for reading past sessions through flow audit         audit       │
+│                          │   fw-52-every-failure-flow                        Every failure in flow install, flow init and the setup…      v1 setup    │
+│                          │   fw-69-setup-form-uninstalls                     Machine setup leaves out per-project plugins, and the…       v1 setup    │
+│                          │                                  ┌─ 2 marked: fw-81, fw-31 ──────────────────────────────┐                                 │
+│                          │                                  │                                                       │                                 │
+│                          │                                  │ ▸ Work on these       sends "work on fw-81 and fw-31" │                                 │
+│                          │                                  │   Insert names        puts both into the prompt       │                                 │
+│                          │                                  │   Status              todo  in-progress  parked  …    │                                 │
+│                          │                                  │   Move in order       ↑↓ shows where, Enter saves     │                                 │
+│                          │                                  │   Labels              type to pick or add             │                                 │
+│                          │                                  │   Waits on            pick a ticket                   │                                 │
+│                          │                                  │   Parent              pick a ticket                   │                                 │
+│                          │                                  │                                                       │                                 │
+│                          │                                  ├───────────────────────────────────────────────────────┤                                 │
+│                          │                                  │ runs: flow edit fw-81 fw-31 …        Enter · Esc      │                                 │
+│ +2 tickets               │                                  └───────────────────────────────────────────────────────┘                                 │
+│──────────────────────────│                                                                                                                            │
+│ >                        │                                                                                                                            │
+│──────────────────────────│────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│ ►► accept edits on       │ ↑↓ move   Enter picks   Esc closes the menu                                                                                │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+4. Insert: i on a ticket row or page puts its folder name at the cursor
+BEFORE                        AFTER i ON fw-71              
+──────────────────────────    ──────────────────────────
+ > the badge text should       > the badge text should  
+   come from                     come from fw-71-ticket-
+──────────────────────────       names-files ▌          
+                              ──────────────────────────
+
+5. Session page: every change this session made, in place of /diff
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ ● Read(ticket.md)        │ FLOW   Tickets   All   [Session]                                                                      Enter shows the diff │
+│   └ Read 70 lines        │────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│                          │ THIS SESSION   since 10:42, 38 minutes                                                                                     │
+│ ● The board now holds    │ 17 edits in 7 files, +212 −64    23 commands    1 ticket made    1 issue logged                                            │
+│   the agreed list.       │                                                                                                                            │
+│                          │ TICKETS  3 touched                                                                                                         │
+│                          │   fw-16-flow-redesign            designing 39/58  answered 20.5.6 and 20.5.7, wrote 2 sections                             │
+│                          │   fw-71-ticket-names-files       building 2/5     ticked 2 tasks                                                           │
+│                          │   fw-102-board-insert-key        todo             made                                                                     │
+│                          │                                                                                                                            │
+│                          │ CHANGES  7 files, newest first                                                                                             │
+│                          │   in this project                                                                                                          │
+│                          │ ▸   scripts/lib/tickets/store.js                                              +31 −9      4 edits                          │
+│                          │     scripts/commands/tickets.js                                               +12 −30     2 edits                          │
+│                          │     docs/spec/tickets.md                                                      +12 −4      1 edit                           │
+│                          │   in Flow's files, outside this project                                                                                    │
+│                          │     .flow/tickets/fw-16-flow-redesign/groundwork/map.md                       +48 −6      3 edits                          │
+│                          │     .flow/tickets/fw-102-board-insert-key/ticket.md                           new +22     made by flow new                 │
+│                          │     ~/.flow/wiki/claude-code/findings/mod-runs-tools-and-fills-prompt-box.md  new +18                                      │
+│                          │     .flow/inbox.md                                                            +2          1 edit                           │
+│                          │                                                                                                                            │
+│                          │ ── scripts/lib/tickets/store.js ───────────────────────────────────────────────────────────────────────────────────────────│
+│                          │   83    // The folder name: the id, then words naming the goal                                                             │
+│                          │   84  − const LABEL_WORDS = 3;                                                                                             │
+│                          │   84  + const SLUG_WORDS = 3;                                                                                              │
+│                          │   85  + function slugFrom(title, slug) {                                                                                   │
+│                          │   86  +   if (slug) return slugify(slug);                                                                                  │
+│                          │   87  +   return words(title).slice(0, SLUG_WORDS).join("-");                                                              │
+│                          │   88  + }                                                                                                                  │
+│ +2 tickets               │   … 27 more lines, ↓ scrolls                                                                                               │
+│──────────────────────────│                                                                                                                            │
+│ >                        │                                                                                                                            │
+│──────────────────────────│────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│ ►► accept edits on       │ ↑↓ move   Enter shows the diff   Tab next page   Esc closes                                                                │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

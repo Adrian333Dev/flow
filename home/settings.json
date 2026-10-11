@@ -231,6 +231,7 @@
     "disableBypassPermissionsMode": "disable",
     "allow": [
       "Edit",
+      "Edit(//**/.flow/**)",
       "Read",
       "WebFetch",
       "WebSearch",
@@ -277,6 +278,9 @@
       "Bash(fw uninstall:*)",
       "Bash(node ~/.flow/scripts/flow.js restore:*)",
       "Bash(node ~/.flow/scripts/flow.js uninstall:*)"
+    ],
+    "additionalDirectories": [
+      "~/.flow"
     ]
   }
 }

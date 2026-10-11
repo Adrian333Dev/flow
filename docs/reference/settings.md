@@ -211,10 +211,11 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 "permissions": {
   "defaultMode": "default",
   "disableBypassPermissionsMode": "disable",
-  "allow": ["Edit", "Read", "WebFetch", "WebSearch", "Bash"],
+  "allow": ["Edit", "Edit(//**/.flow/**)", "Read", "WebFetch", "WebSearch", "Bash"],
   "ask": ["Bash(git commit *)", "Bash(git push *)", "Bash(npm publish *)",
           "Bash(pnpm publish *)", "Bash(yarn publish *)", "Bash(cargo publish *)"],
-  "deny": ["…"]
+  "deny": ["…"],
+  "additionalDirectories": ["~/.flow"]
 }
 ```
 
@@ -228,6 +229,8 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
   - `sudo`, `su`, `mkfs` and `--dangerously-skip-permissions`.
   - `flow restore` and `flow uninstall`, so the agent can never take Flow off for you.
   - Worktrees and forked helper agents.
+- **`additionalDirectories`**: your Flow home counts as part of every project, so an edit there never asks.
+- **`Edit(//**/.flow/**)`**: an edit through a project's `.flow` link never asks. A project whose tickets moved to your Flow home with `flow store private` reaches them through that link, and Claude Code asks before any write that leads outside the project unless one rule matches both the link and where it points.
 
 [Safety](../safety.md) gives the reasons for each.
 
