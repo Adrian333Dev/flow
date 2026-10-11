@@ -212,9 +212,17 @@ function statements(db) {
     turn: db.prepare(`INSERT INTO turn
       (session_id, segment_id, prompt_id, ordinal, first_line, started_at, source, prompt)
       VALUES (?,?,?,?,?,?,?,?)`),
-    closeTurn: db.prepare(`UPDATE turn SET last_line = ?, ended_at = ?, input_tokens = ?,
-      output_tokens = ?, thinking_tokens = ?, cache_read = ?, cache_write = ?,
+    closeTurn: db.prepare(`UPDATE turn SET last_line = ?, ended_at = ?,
       tool_calls = ?, errors = ? WHERE id = ?`),
+    // From the request rows rather than added up as lines arrive: a later line
+    // can raise a request's count after its turn closed, even in a later walk.
+    turnTokens: db.prepare(`UPDATE turn SET
+      input_tokens    = COALESCE((SELECT SUM(input_tokens)    FROM request WHERE turn_id = turn.id), 0),
+      output_tokens   = COALESCE((SELECT SUM(output_tokens)   FROM request WHERE turn_id = turn.id), 0),
+      thinking_tokens = COALESCE((SELECT SUM(thinking_tokens) FROM request WHERE turn_id = turn.id), 0),
+      cache_read      = COALESCE((SELECT SUM(cache_read)      FROM request WHERE turn_id = turn.id), 0),
+      cache_write     = COALESCE((SELECT SUM(cache_write)     FROM request WHERE turn_id = turn.id), 0)
+      WHERE session_id = ?`),
     turnDuration: db.prepare('UPDATE turn SET duration_ms = ?, messages = ? WHERE id = ?'),
     tool: db.prepare(`INSERT INTO tool_call
       (session_id, turn_id, segment_id, request_id, tool_use_id, name, summary, input, input_bytes, call_line)
@@ -223,8 +231,13 @@ function statements(db) {
       (session_id, turn_id, segment_id, message_id, line, timestamp, model, input_tokens,
        output_tokens, thinking_tokens, cache_read, cache_write)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-      ON CONFLICT(session_id, message_id) DO NOTHING`),
-    findRequest: db.prepare('SELECT id FROM request WHERE session_id = ? AND message_id = ?'),
+      ON CONFLICT(session_id, message_id) DO UPDATE SET
+        input_tokens    = MAX(request.input_tokens,    excluded.input_tokens),
+        output_tokens   = MAX(request.output_tokens,   excluded.output_tokens),
+        thinking_tokens = MAX(request.thinking_tokens, excluded.thinking_tokens),
+        cache_read      = MAX(request.cache_read,      excluded.cache_read),
+        cache_write     = MAX(request.cache_write,     excluded.cache_write)
+      RETURNING id`),
     toolResult: db.prepare(`UPDATE tool_call SET result_line = ?, result_bytes = ?,
       is_error = ?, duration_ms = ? WHERE id = ?`),
     findTool: db.prepare('SELECT id FROM tool_call WHERE session_id = ? AND tool_use_id = ?'),
@@ -330,18 +343,12 @@ function indexTranscript(db, stmt, entry) {
   let added = 0;
 
   const tools = new Map();            // tool_use_id -> tool_call row id, this run
-  const turnTotals = { input: 0, output: 0, thinking: 0, cacheRead: 0, cacheWrite: 0, calls: 0, errors: 0 };
+  const turnTotals = { calls: 0, errors: 0 };
   const resetTotals = () => Object.keys(turnTotals).forEach((k) => { turnTotals[k] = 0; });
 
   if (turn != null) {
-    const carried = db.prepare(`SELECT input_tokens, output_tokens, thinking_tokens, cache_read,
-      cache_write, tool_calls, errors FROM turn WHERE id = ?`).get(turn);
+    const carried = db.prepare('SELECT tool_calls, errors FROM turn WHERE id = ?').get(turn);
     if (carried) {
-      turnTotals.input = carried.input_tokens || 0;
-      turnTotals.output = carried.output_tokens || 0;
-      turnTotals.thinking = carried.thinking_tokens || 0;
-      turnTotals.cacheRead = carried.cache_read || 0;
-      turnTotals.cacheWrite = carried.cache_write || 0;
       turnTotals.calls = carried.tool_calls || 0;
       turnTotals.errors = carried.errors || 0;
     }
@@ -349,8 +356,7 @@ function indexTranscript(db, stmt, entry) {
 
   const closeTurn = (at, when) => {
     if (turn == null) return;
-    stmt.closeTurn.run(at, when, turnTotals.input, turnTotals.output, turnTotals.thinking,
-      turnTotals.cacheRead, turnTotals.cacheWrite, turnTotals.calls, turnTotals.errors, turn);
+    stmt.closeTurn.run(at, when, turnTotals.calls, turnTotals.errors, turn);
     resetTotals();
     turn = null;
   };
@@ -422,24 +428,15 @@ function indexTranscript(db, stmt, entry) {
 
       // --- what the assistant spent, and what it called
       if (e.type === 'assistant') {
-        // Only the first line of a reply counts: the lines after it repeat its usage.
+        // Every line of a reply carries its usage, and the largest count wins. A
+        // reply opening with thinking writes its first line mid-stream, a few
+        // output tokens in, and a later copy of a reply can carry all zeros.
         const usage = (e.message && e.message.usage) || {};
         const messageId = (e.message && e.message.id) || null;
         const thinking = (usage.output_tokens_details && usage.output_tokens_details.thinking_tokens) || 0;
-        const inserted = stmt.request.run(entry.sessionId, turn, segment, messageId, line,
+        const request = Number(stmt.request.get(entry.sessionId, turn, segment, messageId, line,
           e.timestamp || null, model, usage.input_tokens || 0, usage.output_tokens || 0, thinking,
-          usage.cache_read_input_tokens || 0, usage.cache_creation_input_tokens || 0);
-        let request;
-        if (inserted.changes) {
-          request = Number(inserted.lastInsertRowid);
-          turnTotals.input += usage.input_tokens || 0;
-          turnTotals.output += usage.output_tokens || 0;
-          turnTotals.thinking += thinking;
-          turnTotals.cacheRead += usage.cache_read_input_tokens || 0;
-          turnTotals.cacheWrite += usage.cache_creation_input_tokens || 0;
-        } else {
-          request = stmt.findRequest.get(entry.sessionId, messageId).id;
-        }
+          usage.cache_read_input_tokens || 0, usage.cache_creation_input_tokens || 0).id);
 
         for (const block of (e.message && e.message.content) || []) {
           if (!block || block.type !== 'tool_use') continue;
@@ -519,6 +516,7 @@ function indexTranscript(db, stmt, entry) {
     stmt.session.run(entry.sessionId, entry.project, (head && head.cwd) || null,
       (head && head.gitBranch) || null, (head && head.version) || null,
       (head && head.slug) || null, firstAt, lastAt);
+    stmt.turnTokens.run(entry.sessionId);
     stmt.counts.run(entry.sessionId);
 
     stmt.bookmark.run(entry.path, entry.sessionId, entry.project, entry.type, entry.agentOf,

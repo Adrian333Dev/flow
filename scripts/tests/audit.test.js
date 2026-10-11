@@ -166,6 +166,36 @@ test('a reply written as several lines counts its tokens once', () => {
   assert.match(rows('SELECT r.message_id FROM tool_call c JOIN request r ON r.id = c.request_id'), /msg_1/);
 });
 
+test('a reply keeps its largest count, across lines and across walks', () => {
+  const { file, env } = roots('audit-reply-largest');
+  // A reply opening with thinking writes its first line mid-stream; a later
+  // copy of a reply can carry every count at 0. Both seen in real transcripts.
+  const block = (content, usage) => base('assistant', {
+    message: {
+      id: 'msg_1', model: 'claude-opus-5', role: 'assistant', content: [content],
+      usage: { input_tokens: 3, cache_read_input_tokens: 9000, cache_creation_input_tokens: 40, ...usage },
+    },
+  });
+  fs.writeFileSync(file, asLines([
+    prompt('p1', 'write it'),
+    block({ type: 'thinking', thinking: '' }, { output_tokens: 4 }),
+  ]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  fs.appendFileSync(file, asLines([
+    block({ type: 'tool_use', id: 't1', name: 'Write', input: { file_path: `${CWD}/a.md`, content: 'x' } }, { output_tokens: 5237 }),
+    returns('t1', 'p1', { filePath: `${CWD}/a.md` }),
+    block({ type: 'text', text: 'done' }, { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 }),
+  ]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const rows = (sql) => audit(env, ['sql', sql]).stdout;
+  assert.match(rows('SELECT output_tokens, cache_read FROM request'), /^5237 +9000$/m);
+  assert.match(rows("SELECT output_tokens, cache_read FROM turn WHERE prompt_id = 'p1'"), /^5237 +9000$/m);
+  assert.match(rows('SELECT output_tokens FROM session'), /^5237$/m);
+  assert.match(rows('SELECT r.message_id FROM tool_call c JOIN request r ON r.id = c.request_id'), /msg_1/);
+});
+
 test('context prints the size at each request, and marks the first edit', () => {
   const { file, env } = roots('audit-context');
   fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));

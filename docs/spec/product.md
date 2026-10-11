@@ -69,7 +69,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 - `docs/spec/tickets.md`: the ticket store, the `flow` ticket commands, the ticket skills, and the status moves each phase makes.
 - `docs/spec/skills.md`: Flow's skills and its 4 phases, how skills install and switch on, outside skills and their sources, and project overlays.
 - `docs/spec/rules.md`: the rule file, how a rule is written, the rule checks and the scorecard.
-- `docs/spec/knowledge-base.md`: research, the wiki of outside tools, Context7, capture and findings.
+- `docs/spec/knowledge-base.md`: research, the wiki of outside tools and fields, Context7, capture and findings.
 - `docs/spec/drawing.md`: `/flow:visualize`, and how a diagram is drawn and checked.
 - `docs/spec/failure-log.md`: the failure log and `~/.flow/logs/`.
 - `docs/spec/manual.md`: `docs/`, the README, and how Flow describes itself.

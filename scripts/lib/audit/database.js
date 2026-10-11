@@ -28,7 +28,7 @@ const { FlowError } = require('../error');
 
 // Bumping this throws the file away on the next index. Every row is derived,
 // so the cost of a rebuild is time, never data.
-const SCHEMA = 9;
+const SCHEMA = 10;
 
 const auditDir = () => path.join(paths.flowHome(), 'audit');
 const dbPath = () => path.join(auditDir(), 'audit.db');
@@ -160,7 +160,9 @@ CREATE TABLE event (
 -- One request to the model, and the only place tokens are counted. Claude
 -- Code writes a reply as one transcript line per content block, each repeating
 -- the reply's whole usage, so a row is one message id, never one line. Summed
--- per line, a session's cache read came out 2.2 times too high.
+-- per line, a session's cache read came out 2.2 times too high. Each count is
+-- the largest any line carried: a reply opening with thinking writes its first
+-- line mid-stream, and kept, that line read 644 output tokens where 12,364 ran.
 CREATE TABLE request (
   id              INTEGER PRIMARY KEY,
   session_id      TEXT NOT NULL,
@@ -244,6 +246,7 @@ CREATE INDEX event_type      ON event (type, subtype);
 CREATE INDEX turn_session    ON turn (session_id, ordinal);
 CREATE INDEX segment_session ON segment (session_id, ordinal);
 CREATE INDEX request_session ON request (session_id, line);
+CREATE INDEX request_turn    ON request (turn_id);
 CREATE INDEX tool_turn       ON tool_call (turn_id);
 CREATE INDEX tool_name       ON tool_call (name);
 CREATE INDEX tool_session    ON tool_call (session_id);

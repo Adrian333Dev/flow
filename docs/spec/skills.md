@@ -99,15 +99,16 @@ Closed at 4, set by the user.
 
 ### Outside skills
 
-- `V1` **An outside skill is used whole or harvested, never anything between**, decided with the user 2026-09-27. Used whole: runs as published and updates itself. Harvested: never switched on, read into the user's own skill. `~/.flow/references/knowledge.md` holds the rules.
-- `V1` **Harvest is the default.** No one skill covers what matters, each holds lines the user disagrees with, and every switched-on description loads each turn.
-- `V1` **A maker's own skill is used whole**, since a copy misses each release. What would overturn it: a maker's skill whose description or process breaks Flow's rules.
+- `V1` **An outside skill is used whole or harvested, never anything between**, decided with the user 2026-09-27. Used whole: runs as published and updates itself. Harvested: never switched on, read into wiki pages (`docs/spec/knowledge-base.md` → `### The harvest`). `~/.flow/references/knowledge.md` holds the rules.
+- `V1` **Used whole is the default.** The agent suggests a harvest where the review finds lines the user would rewrite in every project, or the skill is mostly facts the wiki already covers, and harvests on the user's yes. A skill on an expertise harvests into a field's folder. Decided by the user 2026-10-12 (`fw-94`): a skill can be about anything, and a harvest is not always smooth.
+  - Refused: harvest as the default, ruled 2026-09-27 because every switched-on description loads each turn.
+- `V1` **A maker's own skill is used whole, and never suggested for a harvest**, since a copy misses each release. What would overturn it: a maker's skill whose description or process breaks Flow's rules.
 - `V1` **A skill carrying process is weighed before knowledge.** A plugin with its own build order competes with `/flow:execute`, and nothing decides between them.
-- `V1` **A harvested skill never follows its inputs**, ruled by the user 2026-09-28. The harvest drops each input's clone and records its commit. The next harvest starts from fresh research.
+- `V1` **A harvest never follows its inputs**, ruled by the user 2026-09-28. The harvest drops each input's clone and records its commit. The next harvest starts from fresh research.
 - `V1` **A harvest owes no license**: facts belong to nobody. A passage copied word for word keeps its notice.
 - `V1` **Everything starts on for one project.** A service is reached through its command-line tool first, a script in its skill second, a project's MCP server last: a command's output is cut in the shell, and an MCP tool's never is.
 - `never` **Several general skills on at once**: they fire on the same files, and the agent follows whichever it read last.
-- `never` **A companion skill beside an untouched outside one**, dropped 2026-09-28: findings wait in the wiki and go straight into the user's own skill.
+- `never` **A companion skill beside an untouched outside one**, dropped 2026-09-28: what the user would add goes into the wiki.
 
 ### Overlays
 
@@ -120,10 +121,10 @@ Closed at 4, set by the user.
 - `V1` **A skill about one field or tool lives in the public `domain-skills` repository**, never in Flow, and is switched on in the project that uses it. It holds 2 drafts and no finished skill.
 - `V1` **`flow contribute` and `/flow:apply-domain-findings` stay**, ruled by the user 2026-10-01, both off: the one sharing command after V1 is built from them.
 - `later` **CI on the repository's pull requests**: frontmatter, links, the index, no secrets, a body near 150 lines. Waits for the first contributor besides the user.
-- `later` **`/flow:write-skill`, the harvest as a skill**, user only, built after a first run by hand: `docs/spec/knowledge-base.md`.
+- `never` **`/flow:write-skill`, a harvest into one skill per tool**, dropped 2026-10-12 (`fw-94`): knowledge about a tool or field lives in wiki pages.
 - `later` **One domain skill covering a tool at several versions.** The user has a mechanism in mind. A `package.json` lookup was rejected.
 - `later` **`/web-pages` rebuilt on `browser-harness`**, from 1,059 lines to about 150: the capture scripts go, the investigation method stays. Waits for the move off WSL.
-- `later` **Chrome extensions as a skill**, from 3 guides in `drafts/chrome-extension/`, at the next extension project.
+- `later` **Chrome extensions as wiki pages**, from 3 guides in `drafts/chrome-extension/`, at the next extension project. Knowledge about a field goes to the wiki (`fw-94`).
 
 ## The parts
 
