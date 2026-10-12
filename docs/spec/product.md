@@ -124,7 +124,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 ### Mods
 
-- `next` **Flow built into Claude Code through mods.** Ruled by the user 2026-10-02: the beta ships on command hooks, and mods get built during the beta, in this repo. First the 4 open questions get probed, then watch-only mods replace `context-check.js`, `compact-check.js` and the status line. Later steps bring a ticket board in its own pane, every reply checked against the rules before the user reads it, sessions on one repository kept from editing over each other, and a rule loaded the moment a matching file is written. `fw-14`, and `.flow/research/claude-code-mods/README.md` → `## Build order`.
+- `next` **Flow built into Claude Code through mods.** Ruled by the user 2026-10-02: the beta ships on command hooks, and mods get built during the beta, in this repo. First the 4 open questions get probed, then watch-only mods replace `context-check.js`, `compact-check.js` and the status line. Later steps bring a ticket board in its own pane, every reply checked against the rules before the user reads it, sessions on one repository kept from editing over each other, and a rule loaded the moment a matching file is written. `fw-14`, and `.flow/research/claude-code-mods/flow-fixes-and-ideas.md` → `## Build order`.
 
 ### Pace
 
@@ -157,7 +157,7 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 
 ### Other harnesses, models and platforms
 
-- `later` **Codex, then open models**, ruled by the user 2026-09-18: nothing ports until Flow ships on Claude Code. Each harness may get its own mechanisms rather than one bent to fit both. `.flow/research/models.md` holds the port's costs.
+- `later` **Codex, then open models**, ruled by the user 2026-09-18: nothing ports until Flow ships on Claude Code. Each harness may get its own mechanisms rather than one bent to fit both. `.flow/research/models/which-model-and-other-harnesses.md` holds the port's costs.
 - `later` **Native Windows**, where hooks run in PowerShell. Every hook today is a shell line.
 - `later` **Flow without a GitHub account**, parked by the user 2026-10-01. Without GitHub there is no `flow sync`, no second machine and no branch `flow` to push.
 - `later` **One folder holding what must survive a machine change across harnesses**, `~/.flow/` the candidate, never the whole of `~/.claude/` moved under it.
@@ -177,7 +177,7 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 - **Memory tools** remember what went wrong. Flow changes what the agent does next time.
 - **The cost**: Flow loads about 4,000 tokens at session start, against 1,000 to 2,200 for its contenders.
 
-`.flow/research/contenders.md` holds the survey.
+`.flow/research/workflows/does-any-tool-match-flow.md` holds the survey.
 
 ## Bets
 

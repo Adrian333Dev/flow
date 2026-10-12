@@ -56,7 +56,7 @@ Then only what a branch covered, usually 3 or 4 of these:
 - **Named principles**: the constraints that settle later arguments before they start.
 - **The interaction surface**: screens, cards, flows, at the depth the groundwork reached.
 - **Constraints that are not code**: money, law, privacy, policy.
-- **What it competes against**, and why this holds up. The survey itself belongs in `.flow/research/`.
+- **What it competes against**, and why this holds up. The survey itself belongs in `.flow/research/<topic>/`.
 - **The glossary**: every term invented here.
 - **`## Bets`**: what the whole thing rests on that nobody has checked.
 

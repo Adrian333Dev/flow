@@ -103,7 +103,7 @@ When you first open the repository, the split that matters has 4 parts:
 Flow works on itself the way it works on any project. Its records live on the orphan branch `flow`, checked out at `.flow/`, which no code branch carries:
 
 - **`tickets/`**: every open piece of work, one folder each, read and moved through the `flow` command. The beta checklist is tickets `fw-2` to `fw-14`.
-- **`research/`**: the evidence behind the design, one file per subject or tool read, such as `contenders.md` or `claude-code-mods/`.
+- **`research/`**: the evidence behind the design, one folder per topic holding one file per question, such as `workflows/does-any-tool-match-flow.md` or `claude-code-mods/`.
 - **`inbox.md`**: raw notes waiting for `/flow:file-findings`.
 
 A decision belongs in `docs/spec/`, never here. Git holds the history of how each one was reached.
@@ -131,7 +131,7 @@ Copies of other people's docs never enter this repository, since publishing them
 
 - A decision, with its reason → the file in `docs/spec/` for its part, marked `V1`, `next`, `later` or `never`
 - An open item → a ticket, through `flow new`
-- Research behind a decision → `.flow/research/`, one file per subject
+- Research behind a decision → `.flow/research/<topic>/`, one file per question
 - A shipped script → `scripts/`, once. A script that serves only this repository → `lab/scripts/`. `lab/scripts/test-projects/<name>/` is a board for the practice project, `files/` copied in and `build.sh` run, picked with `try.sh --project <name>`
 - A rule check → `scripts/rule-checks/<rule-id>.js`, named after the rule it enforces. Nothing registers it
 - A change in how Flow behaves, once Flow is installed somewhere → one entry in `CHANGELOG.md`, plus `upgrades/<number>.md` where the change moves a path on a machine

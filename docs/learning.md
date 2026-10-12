@@ -41,7 +41,6 @@ An outside tool is anything your project uses that someone else makes: a library
 ```text
 ~/.flow/wiki/next.js/
 ├─ index.md                         where the docs are
-├─ research/<question>.md           one report per question
 ├─ findings/<what-was-learned>.md   lessons from using it
 └─ downloads/                       its docs and code, on this computer only
 ```

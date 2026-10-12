@@ -40,7 +40,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ workflow-notes.md
 │  ├─ study-cases/<issue>/
 │  ├─ wiki/<tool>/
-│  ├─ research/
+│  ├─ research/<topic>/
 │  ├─ private-skills/<name>/
 │  ├─ logs/
 │  ├─ audit/
@@ -65,7 +65,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ ticket-counter
 │  ├─ inbox.md
 │  ├─ findings/
-│  ├─ research/
+│  ├─ research/<topic>/
 │  ├─ overlays/<skill>.md
 │  ├─ settings.json
 │  └─ version
@@ -125,7 +125,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 - **`workflow-notes.md`**: one dated line per bit of friction worth remembering.
 - **`study-cases/<issue>/`**: one file per recorded mistake, filed under the kind of mistake. `flow cases new` writes them.
 - **`wiki/<tool>/`**: what Flow knows about one outside tool, shared by every project. `/flow:research` writes it.
-- **`research/`**: research reports true in any project, such as a comparison of services.
+- **`research/<topic>/`**: research reports true in any project, one folder per topic and one file per question, such as a comparison of services.
 - **`private-skills/<name>/`**: skills you write for yourself and never share. [Extend](../extend.md) covers writing one.
 
 ### Records of what happened
@@ -178,7 +178,7 @@ The project's tickets and what sessions learn in it. It is the project's `flow` 
 - **`ticket-counter`**: the highest ticket number this project ever gave out, such as `75`, so a deleted or moved ticket's number never goes to a new one.
 - **`inbox.md`**: notes with no home yet. `/flow:file-findings` sorts them.
 - **`findings/`**: one file per lesson a session learned, waiting for `/flow:file-findings`.
-- **`research/`**: research reports true only for this project. `/flow:research` writes them.
+- **`research/<topic>/`**: research reports true only for this project, one folder per topic. `/flow:research` writes them.
 - **`overlays/<skill>.md`**: lines this project adds to a skill. [Configure](../configure.md) covers overlays.
 - **`settings.json`**: this project's skill lines and [`ticketPrefix`](settings.md#ticketprefix).
 - **`version`**: the newest Flow change this project has applied.
