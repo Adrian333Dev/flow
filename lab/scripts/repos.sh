@@ -91,7 +91,7 @@ skills/adhd                            https://github.com/UditAkhourii/adhd.git
 skills/browser-harness                 https://github.com/browser-use/browser-harness.git
 
 # A context-compression skill, read in full 2026-08-09. The findings are in
-# ~/.flow/research/context-cost/which-edits-shorten-instructions.md. Its
+# .flow/research/context-cost/which-edits-shorten-instructions.md. Its
 # agents/cavecrew-*.md are the model for a subagent's fixed output.
 skills/caveman                         https://github.com/JuliusBrussee/caveman.git
 

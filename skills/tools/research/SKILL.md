@@ -17,7 +17,7 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 
 1. **A loaded skill covering the subject comes first.**
 2. **Read `index.md` and the pages whose names match the question.** Answered → stop, with no outside request.
-3. **Read the reports whose names match**, in `~/.flow/research/<topic>/` and `.flow/research/<topic>/`.
+3. **Read the reports whose names match**, in the project's `.flow/research/<topic>/`, or `~/.flow/research/<topic>/` outside a project.
 4. **Follow `index.md`**: the doc page listed for the topic, or the Context7 id, which skips Context7's search.
 5. **Go outside**, by the levels below.
 6. **Write back**: what was learned into the page owning it, a line in `index.md` for the doc page that answered, and a report past level 1. No folder → make it with `index.md` on the first write.
@@ -145,25 +145,28 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 **One file per question**: the header, then the question, then the findings. Same shape whether an external LLM, a subagent or you answered it. A level 1 question writes no file.
 
-- True in any project → `~/.flow/research/<topic>/<question>.md`.
-- True only for this project (its users, its market, a client's old system), or unsure → `.flow/research/<topic>/<question>.md`. Outside a project → `~/.flow/research/<topic>/`.
+A report goes in `.flow/research/<topic>/<question>.md` of the project that asked. Outside any project it goes in `~/.flow/research/<topic>/<question>.md`. Other projects look in the wiki, which is where a report's facts end up.
 
 **The topic is what the research served**: a tool, a field, a product idea (`reader-app`). Name the file for the question, the topic dropped: `context7/how-it-retrieves-docs.md`.
 
-**Open the report with 4 lines:**
+**Open the report with front matter, 4 fields:**
 
 ```markdown
+---
 question: how does the App Router redirect signed-out users?
 researched: 2026-09-19
 versions: next.js 16.3.5
 for: planning sign-in for a web app
+---
 ```
+
+A value holding `: ` goes in double quotes.
 
 **Write settled facts into the wiki page owning them, in the same pass.**
 
 **Never write a project's or a client's details into `~/.flow/`.**
 
-- **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to the file under `docs/spec/` that owns it, its reason naming the survey. A decision never goes in the report.
+- **A survey run for a project decision splits**: the survey to the project's `research/`, the pick to the file under `docs/spec/` that owns it, its reason naming the survey. A decision never goes in the report.
 - **Research done with an outside LLM** is no separate kind: its prompt and the pasted report go wherever the list puts the question.
 
 **Never put a report inside a ticket or a groundwork folder.**

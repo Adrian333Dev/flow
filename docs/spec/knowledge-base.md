@@ -17,10 +17,10 @@ Each path, and what writes it:
 │  ├─ index.md                            /flow:research: what it is, the version in use, the docs, the skill covering it
 │  ├─ <topic>.md                          capture, /flow:research: clean knowledge, edited in place
 │  └─ downloads/                          fetch-docs.sh: this machine's alone, never synced
-└─ research/<topic>/<question>.md         /flow:research: raw reports, true in any project
+└─ research/<topic>/<question>.md         /flow:research: raw reports asked outside any project, none at first
 
 <project>/                                the project: .flow/ rides the branch flow
-├─ .flow/research/<topic>/<question>.md   /flow:research: raw reports true only here, and when unsure
+├─ .flow/research/<topic>/<question>.md   /flow:research: raw reports this project asked for
 ├─ .flow/findings/<what-was-learned>.md   capture → /flow:file-findings, into a skill or rule
 ├─ .flow/inbox.md                         capture: anything with no home yet
 ├─ docs/context/<subject>.md              capture: a fact only some work here needs
@@ -40,12 +40,12 @@ Each path, and what writes it:
   - Refused: `Explore` as the reader. It skips every `CLAUDE.md`, so no Flow rule reaches it, and it cannot write its findings as it goes.
   - Refused: a planner subagent by default. It repeats the whole-job dispatch with a layer added. Kept for a landscape too big for the main session to hold the plan and the reports.
 - `V1` **One file per question, the question at the top and the findings under it.** A level 1 question writes no file.
-- `V1` **A report goes where it is true**: in any project → `~/.flow/research/<topic>/`. True only for this project, or unsure → `.flow/research/<topic>/`. Outside a project, unsure → `~/.flow/research/<topic>/`. Unsure defaults to the project because an unsure report may hold project details, which never enter `~/.flow/`.
+- `V1` **A report goes in `research/<topic>/` of the project that asked.** The Flow home counts as a project: research asked outside any project goes to `~/.flow/research/<topic>/`, which holds nothing until then.
 - `V1` **A report sits in a topic folder, never directly under `research/`.** The topic is what the research served: a tool, a field or a product idea (`reader-app`), since a raw report mixes subjects. The file is named for its question, the topic dropped: `context7/how-it-retrieves-docs.md`.
-- `V1` **A report opens with `question`, `researched`, `versions` and `for`**, and gains `harvested: <date>` once its facts are in the wiki.
+- `V1` **A report opens with front matter holding `question`, `researched`, `versions` and `for`**, and gains `harvested: <date>` once its facts are in the wiki.
 - `V1` **No rule deletes a report.** A delete needs the user's yes, and never while an open ticket or the spec cites it. Decided 2026-10-11 (`fw-94`): a report is raw input to the wiki, a newer report on one question almost never comes, and an unused tool may return in another project.
   - Refused: an archive for reports a newer one replaced, or whose purpose ended.
-- `V1` **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to the spec file that owns it, its reason naming the survey.
+- `V1` **A survey run for a project decision splits**: the survey to the project's `research/`, the pick to the spec file that owns it, its reason naming the survey.
 - `V1` **A question reading can answer never becomes a ticket of its own.** A question needing something built and run is a `prototype` ticket.
 - `later` **An MCP search server in place of `WebSearch` and `WebFetch`**, once Flow runs off Anthropic's servers, where both stop. Parallel first, since its free endpoint needs no key.
 
@@ -168,10 +168,12 @@ Checked against Claude Code 2.1.296, 2026-10-12.
 A research report's header, written by `/flow:research`:
 
 ```markdown
+---
 question: how does the App Router redirect signed-out users?
 researched: 2026-09-19
 versions: next.js 16.3.5
 for: planning sign-in for a web app
+---
 ```
 
 A line of `_sources.md`, written by `fetch-docs.sh`:
@@ -224,6 +226,8 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
 - **Downloads are never committed.** Each machine refreshes its own anyway. Git would store a new copy of a 480 KB `llms-full.txt` on every change, and cannot commit a clone as files.
   - Refused: `index.md` recording download dates. It syncs and the downloads do not, so its dates would describe the other machine's files.
 - **Project research lives in `.flow/research/<topic>/`.** `.flow/` is the branch `flow`, checked out once for every code branch, so a report never conflicts across feature branches. Approved 2026-10-06, replacing `docs/research/`. Topic folders replaced the flat layout 2026-10-12 (`fw-94`): 50 flat names hid which report held what.
+- **One root for reports: the project's `research/`.** Decided with the user 2026-10-12 (`fw-106`): a report is temporary, since its facts are harvested into the wiki and the report is then deleted, so another project need not find it. What would overturn it: the harvest (`fw-103`) staying unbuilt for months, with other projects blind to every report meanwhile. Harvest the tool reports first (Context7, backlog boards), since other projects look for those.
+  - Refused: 2 roots, `~/.flow/research/` for a report true in any project and the project's for the rest, the first build of `fw-106`. It asks a true-in-any-project test of every report, for a file that is harvested and deleted anyway.
 - **2 layers: raw reports in `research/`, clean knowledge in `wiki/`.** Decided with the user 2026-10-11 (`fw-94`): a report is raw, often mixed and noisy; the wiki is what an agent browses.
   - Refused: one tree, with every report distilled in place. A product idea or a field survey fits no tool folder.
 
@@ -231,5 +235,5 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
 
 - `.flow/tickets/fw-94-research-cleanup/groundwork/map.md`: section 1, the wiki and research layout, and the reasoning behind it.
 
-- `~/.flow/research/context7/how-it-retrieves-docs.md`: how Context7 retrieves docs, supplied by the user.
-- `~/.flow/research/context7/which-tools-compete.md`: the tools competing with Context7, supplied by the user.
+- `.flow/research/context7/how-it-retrieves-docs.md`: how Context7 retrieves docs, supplied by the user.
+- `.flow/research/context7/which-tools-compete.md`: the tools competing with Context7, supplied by the user.
