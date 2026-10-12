@@ -2,13 +2,13 @@
 
 ## Project
 
-Flow is a Claude Code workflow for a solo developer: global rules (`home/`), skills (`skills/`), the `flow` command and its hooks (`scripts/`), a project scaffold (`project-template/`) and the docs (`docs/`). Plain Node and bash with no dependencies, plus 3 submodules under `lab/`. This checkout is the dev copy. Not yet released.
+Flow is a Claude Code workflow for a solo developer: global rules (`home/`), skills (`skills/`), the `flow` command and its hooks (`scripts/`), a project scaffold (`project-template/`) and the docs (`docs/`). Plain Node and bash with no dependencies, plus 2 submodules under `lab/`. This checkout is the dev copy. Not yet released.
 
 ## Layout
 
 - `docs/spec/`: what Flow does and how it is built. `product.md` says it whole and indexes one file per part. `docs/dev/layout.md` maps the tree.
 - `.flow/tickets/`: open work, the beta checklist included. `.flow/research/`: the research behind the design.
-- `lab/`: the maintainers' workspace, holding the 3 submodules and `lab/scripts/`, which serve this repo alone.
+- `lab/`: the maintainers' workspace, holding the 2 submodules and `lab/scripts/`, which serve this repo alone.
 - `~/.flow/wiki/claude-code/downloads/`: Claude Code's documentation on disk. Its `llms.txt` indexes every page Anthropic publishes, and `WebFetch` reaches the rest.
 - `.agents/` holds the one real copy of the rules and skills, `.claude/` what Claude Code reads, `.flow/` what Flow owns. `docs/reference/files.md` lists every path.
 - `npm test` inside `scripts/` runs Flow's suite, and `lab/util/` has its own. `docs/dev/trying-changes.md` has both procedures.

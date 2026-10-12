@@ -27,6 +27,7 @@ One user message, your work, one reply. In that order, every time.
 - **`search-wide`** A search that missed → retry with several patterns in one call, `grep -rn -e a -e b`. Never one guess per request.
 - **`read-in-parallel`** Files → `Read`, all of them in one message. The shell reads only what `Read` cannot: command output, a log's end, a binary.
 - **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
+- **`wiki-first`** Work against an outside tool or field → its `~/.flow/wiki/<subject>/` first, then its docs. Never training memory alone.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
 - **`past-sessions-through-audit`** A past session → `flow audit`: `ls` finds it, `context` and `timeline` narrow it, `read --turns` opens it. Never the raw transcript.
 ## Writing files
@@ -42,6 +43,7 @@ One user message, your work, one reply. In that order, every time.
 - **`read-a-refusal`** Read a refusal before working around it. `--force` is a deliberate override.
 - **`no-mkdir`** Write creates directories.
 - **`edit-with-edit`** Edits → `Edit`, every independent edit in one message. Never `python3` or `sed -i`, one file per request. Never a check alone after an edit.
+- **`exact-text-from-downloads`** A signature or an example to copy → a downloaded page, verbatim. `WebFetch` returns a summary.
 - **`change-record`** A "Stop hook blocking error" from `PostToolUse:Agent` is Flow's change record, never a failure: the diff of what one subagent's own tool calls changed. Judge a subagent's work by it, never by its report. It arrives with the subagent's finished notice, and none means no file changed.
 
 ## When something breaks
@@ -81,8 +83,8 @@ One phase at a time:
 - How the user wants to work → `~/.flow/CLAUDE.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: a correction, irritation at a habit, something they said about themselves. Under 10 lines in the section, write on the first sign; after that, on the second. One sentence each, replacing a line it sharpens.
 - About this project, needed in most sessions → the project's `CLAUDE.md`. A correction true here alone goes under `## Rules`, on its second sign.
 - Durable project fact only some work needs (a deploy path, a service's limit) → `docs/context/<subject>.md`
-- An outside tool's behavior (a library quirk, a service's limit, a command's trap) → its own file, `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, named in 4 to 8 words. Write what went wrong, what fixed it, the rule that follows, and the version it holds for. The same fact already there → one line at its end: the version and the date it held. Never a detail of the project or its client. Skip what the loaded skill already says.
-- Other reusable knowledge (a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, written the same way. `/flow:file-findings` promotes it to a skill or a rule later.
+- How an outside tool or field behaves (a quirk, a limit, a trap, a workaround) → the page owning the subject in `~/.flow/wiki/<subject>/`, edited in place by `~/.agents/skills/flow/skills/research/references/wiki.md`. Never a detail of the project or its client. Skip what the loaded skill already says.
+- Other reusable knowledge (a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, named in 4 to 8 words: what went wrong, what fixed it, the rule that follows. `/flow:file-findings` promotes it to a skill or a rule later.
   - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`
 - A warning from a rule check that was wrong → `.flow/findings/scorecard.md`
 - A decision the user confirmed with no open threads → the file under `docs/spec/` that owns it, with its reason, or the groundwork map that owns the subject. Batched, never mid-discussion.

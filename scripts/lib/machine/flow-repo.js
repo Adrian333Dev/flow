@@ -30,8 +30,8 @@
  *   settings.local.json   every setting holding a path, the clone included
  *   scripts, references, docs   links into this machine's clone, which sits
  *                 somewhere else on the other machine
- *   repos/        this machine's clones: Flow, util, the toolbox and every
- *                 source. `sources` travels, and `flow install` clones them
+ *   repos/        this machine's clones: Flow, util and every source.
+ *                 `sources` travels, and `flow install` clones them
  *   logs/         what happened on this machine: the last install, every
  *                 change Flow made, every failure, every rule check
  *   skills-update.*   what this machine's source clones are behind by, and
@@ -117,6 +117,9 @@ const IGNORED = [
 ].join('\n');
 
 const isRepo = (at) => fs.existsSync(path.join(at.flow, '.git'));
+
+/** A repository with a remote to send to, which `flow install` always leaves. */
+const connected = (at) => isRepo(at) && git(at.flow, ['remote', 'get-url', 'origin']).ok;
 
 /**
  * This machine's name, from git's `flow.machine`, which `util git` reads too
@@ -208,7 +211,7 @@ function connect(at, url) {
     if (!made.ok) throw new FlowError(`git init in ${at.flow} failed: ${made.err}`);
   }
   const reached = git(at.flow, ['ls-remote', url]);
-  if (!reached.ok) throw new FlowError(`git cannot reach ${url}: ${reached.err.split('\n').pop()}`);
+  if (!reached.ok) throw new FlowError(`git cannot reach ${url}: ${tickets.reason(reached.err)}`);
 
   const existing = git(at.flow, ['remote', 'get-url', 'origin']);
   if (existing.ok && existing.out === url) return;
@@ -219,10 +222,10 @@ function connect(at, url) {
 /** The remote's `main` fetched into `origin/main`. False where the remote has none yet. */
 function fetch(at) {
   const heads = git(at.flow, ['ls-remote', '--heads', 'origin', 'main']);
-  if (!heads.ok) throw new FlowError(`git cannot reach the Flow home's repository: ${heads.err.split('\n').pop()}`);
+  if (!heads.ok) throw new FlowError(`git cannot reach the Flow home's repository: ${tickets.reason(heads.err)}`);
   if (!heads.out) return false;
   const fetched = git(at.flow, ['fetch', '-q', 'origin', 'main']);
-  if (!fetched.ok) throw new FlowError(`could not fetch the Flow home's repository: ${fetched.err.split('\n').pop()}`);
+  if (!fetched.ok) throw new FlowError(`could not fetch the Flow home's repository: ${tickets.reason(fetched.err)}`);
   return true;
 }
 
@@ -234,7 +237,7 @@ const FETCH_HOURS = 6;
  * fetched more than 6 hours ago. What it fetches is what `ahead()` reads.
  */
 function fetchDue(at) {
-  if (!isRepo(at) || !git(at.flow, ['remote', 'get-url', 'origin']).ok) return false;
+  if (!connected(at)) return false;
   try {
     return Date.now() - fs.statSync(path.join(at.flow, '.git', 'FETCH_HEAD')).mtimeMs > FETCH_HOURS * 60 * 60 * 1000;
   } catch {
@@ -420,9 +423,15 @@ function switchClone(clone, number) {
  * where the changes touch different lines. Changes to the same lines stop it:
  * the merge is undone, and this machine's commit stays for the user to sort.
  *
- * `theirs` in what comes back is the remote as fetched, before the push.
+ * After the merge and before the push, each ticket folder in `roots` holding
+ * a number the remote already gave out is renumbered, `was:` kept where
+ * `keepWas` says, so the fix goes up with everything else.
+ *
+ * Returns `{ came, sent, pushed, renumbered }`, or `rejected` and `why` where
+ * another machine pushed between the fetch and the push. Every other failure
+ * throws.
  */
-function sync(at, mine) {
+function sync(at, mine, { roots = [], keepWas = true } = {}) {
   if (!isRepo(at)) throw new FlowError(`${at.flow} is not a repository yet. Run flow install, which connects it.`);
   const remote = fetch(at);
   if (remote) {
@@ -468,35 +477,80 @@ function sync(at, mine) {
     came = diff ? diff.split('\n').length : 0;
   }
 
+  const renumbered = roots.flatMap((root) => tickets.renumber(root, theirs || 'origin/main', { keepWas }));
+
   const unsent = remote
     ? Number(git(at.flow, ['rev-list', '--count', 'origin/main..HEAD']).out || 0)
     : Number(git(at.flow, ['rev-list', '--count', 'HEAD']).out || 0);
   if (unsent > 0) {
     const pushed = git(at.flow, ['push', '-q', 'origin', 'main']);
+    if (!pushed.ok && tickets.pushRefused(pushed.err)) return { rejected: true, why: pushed.err.split('\n')[0], renumbered };
     if (!pushed.ok) throw new FlowError(`committed here, and the push failed:\n  ${pushed.err.split('\n')[0]}`);
   }
-  return { came, sent, pushed: unsent, theirs };
+  return { came, sent, pushed: unsent, renumbered };
+}
+
+/** This machine's changelog entry, 0 where setup never stamped one. */
+function entryOf(at) {
+  const mine = version.applied(path.join(at.flow, 'version'));
+  return mine.state === 'ok' ? mine.number : 0;
 }
 
 /**
- * `sync` at this machine's own entry, then the ticket numbers. Home tickets
- * are sent every 30 minutes, not when made, so 2 machines can take one number
- * meanwhile, and the one that arrived first keeps it. `linked` is a project
- * whose `.flow/` links into the Flow home, which went up with it. Returns what
- * `sync` does, plus `renumbered`, each `{ from, to }`, and throws what it
- * throws.
+ * Run `fn` holding the Flow home's lock, the one `flow new` and every sync
+ * take, so a background sync and a typed command never meet inside git.
+ */
+function withLock(at, fn) {
+  const done = tickets.locked(at.flow, () => ({ value: fn() }));
+  if (!('value' in done)) throw new FlowError(done.why);
+  return done.value;
+}
+
+/**
+ * `sync` at this machine's own entry, renumbering the tickets of ~/.flow/ and
+ * of `linked`, a project whose `.flow/` links into the Flow home. A ticket
+ * reaches the remote through `claimTicket` before anyone sees its number, so
+ * a clash here is one made before that rule, or with no remote: its old id is
+ * kept as `was:`. Returns what `sync` does, and throws what it throws.
  */
 function syncHome(at, linked = null) {
-  const mine = version.applied(path.join(at.flow, 'version'));
-  const result = sync(at, mine.state === 'ok' ? mine.number : 0);
-  const theirs = result.theirs || 'origin/main';
-  const renumbered = [at.flow, linked].filter(Boolean).flatMap((root) => tickets.renumber(root, theirs));
-  return { ...result, renumbered };
+  return withLock(at, () => {
+    const result = sync(at, entryOf(at), { roots: [at.flow, linked].filter(Boolean) });
+    if (result.rejected) throw new FlowError(`committed here, and the push failed:\n  ${result.why}`);
+    return result;
+  });
+}
+
+/**
+ * Push a new ticket before its id is shown: a home ticket, or a private
+ * project's, `root` being the place that holds it. A push refused because
+ * another machine sent first merges what it sent, renumbers the ticket where
+ * that machine took its number, and tries again. No `was:` is written, since
+ * nobody saw the first number. Returns `{ ok, id, why }`, `id` being the
+ * number the ticket ends with. A failure leaves the ticket committed here, and
+ * the caller takes it back.
+ */
+function claimTicket(at, root, id) {
+  let current = id;
+  try {
+    return withLock(at, () => {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const result = sync(at, entryOf(at), { roots: [root], keepWas: false });
+        const moved = result.renumbered.find((r) => r.from === current);
+        if (moved) current = moved.to;
+        if (!result.rejected) return { ok: true, id: current };
+      }
+      return { ok: false, id: current, why: 'the push was refused 5 times in a row' };
+    });
+  } catch (e) {
+    if (!(e instanceof FlowError)) throw e;
+    return { ok: false, id: current, why: e.message };
+  }
 }
 
 module.exports = {
-  syncHome,
-  NAME, MARK, IGNORED, isRepo, machineName, saveName, nameOf, changed, writeIgnore, writeReadme,
+  syncHome, claimTicket,
+  NAME, MARK, IGNORED, isRepo, connected, machineName, saveName, nameOf, changed, writeIgnore, writeReadme,
   locate, create, connect, fetch, fetchDue, writeRecord, records, highest, ahead, inspect, join, claim, seed,
   switchClone, sync,
 };

@@ -327,7 +327,7 @@ actions.handoff = {
 
 /** Why `flow new` made no ticket: the pull or the push behind it failed. */
 function notMade(failed) {
-  if (!failed.offline) return `no ticket was made: ${failed.why || 'the push failed'}.`;
+  if (!failed.offline) return `no ticket was made: ${(failed.why || 'the push failed').replace(/\.$/, '')}.`;
   return `no ticket was made: the remote did not take it. git said: ${failed.why}\n` +
     'Fix what git names, or wait until the remote answers, then try again.';
 }
@@ -364,6 +364,7 @@ actions.new = {
     // pull that fails makes no ticket.
     const pulled = records.pull(root);
     if (!pulled.ok) throw new FlowError(notMade(pulled));
+    for (const r of pulled.renumbered || []) out(`${r.from} is now ${r.to}: another machine took ${r.from} first.`);
     const tickets = store.readTickets(root);
 
     const deps = store.toIdList(flags.deps, tickets.prefix);

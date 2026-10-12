@@ -35,7 +35,7 @@ Each path, and what writes it:
 - `V1` **Research searches for what already solves a need before building or reading anything**: `flow skills ls` and skills.sh at once, then skills, plugin marketplaces and MCP servers on GitHub and the web. An outside skill found is judged by `docs/spec/skills.md`.
 - `never` **The toolbox as research's catalog of outside tools**, dropped 2026-10-12 (`fw-94`): most of its 166 cards are productivity tools and Flow alternatives no work needs. Nothing migrates. `fw-62`'s library is the later replacement.
 - `V1` **4 levels of depth, never starting higher than needed**: a targeted question answered inline, working against a tool from its downloaded docs, deep customization from its cloned source, and a landscape survey through a prompt the user runs in an outside LLM.
-- `V1` **A bug's explanation is searched in the tool's issues**, `gh search issues <words> --repo <owner/repo>`, where most explanations live.
+- `V1` **A failure inside an outside tool is searched in its issues first**, by `/flow:debug`: `gh search issues <words> --repo <owner/repo>`, where most explanations live.
 - `V1` **The main session plans the reading**: what is already written first, then one cheap list of candidates, then the few worth a full read. Short sources are read in the main session. Each long one goes to its own `general-purpose` subagent, never 2 on one source, decided by how much there is to read and never by the level. The brief names the source, the question, the report file and a stopping point. Decided 2026-10-12 (`fw-100`, `reports/token-costs.md`): the measured waste was a whole job handed to one agent that chose alone what to read, and sibling agents reading the same files.
   - Refused: `Explore` as the reader. It skips every `CLAUDE.md`, so no Flow rule reaches it, and it cannot write its findings as it goes.
   - Refused: a planner subagent by default. It repeats the whole-job dispatch with a layer added. Kept for a landscape too big for the main session to hold the plan and the reports.
@@ -75,7 +75,8 @@ Context7 is a web service that answers a question from a library's docs, for one
 The wiki is `~/.flow/wiki/`: clean knowledge an agent can browse, one folder per outside tool or field. A tool's folder is named after its GitHub repository (`next.js`). A tool with no repository takes the product's name, 2 repositories sharing a name take `owner_repo`, and a standard with its own docs, such as OAuth 2.1, gets a folder like a tool. A field takes a plain name: `text-to-speech`, `chrome-extensions`.
 
 - `V1` **A folder is made the first time anything is written about its subject**, with its `index.md`.
-- `V1` **`index.md` holds what the subject is, the version in use, the skill covering it, and shortcuts**: where the live docs are, the Context7 id, and which page answers what. A shortcut is checked by using it, and rewritten when it fails. No expiry date.
+- `V1` **`index.md` holds what the subject is, the version in use, every skill reviewed for it, and shortcuts**: where the live docs are, the Context7 id, and which page answers what. A shortcut is checked by using it, and rewritten when it fails. No expiry date.
+  - `## Skills` lists each skill research reviewed: used whole, passed over or harvested, why, and the date. Research reviews again only a skill changed since its date. Approved by the user 2026-10-12: reviewing a skill means reading it whole, 3 per search.
 - `V1` **One page per topic, edited in place.** A page holds what the docs don't say, linking the doc page. A survey of many tools is one page in the field's folder. A page past about 150 lines splits by topic.
 - `V1` **Versions stay minimal.** A page about something with versions opens with the one it was checked against, and every line holds for it unless the line says otherwise. Decided 2026-10-12 by the user (`fw-94`).
   - A line true only elsewhere: `Until 2.1.290: … From 2.1.290: …`. The old behavior stays for projects still on it.
@@ -136,6 +137,12 @@ An `index.md`, written by research and `context7.sh`:
 
 ```markdown
 # next.js
+
+React framework for web apps. In use: 16.3.5.
+
+## Skills
+- vercel-labs/next-skills: nextjs, used whole (the makers' own), 2026-10-12
+- someone/next-tips: passed over, general advice the agent already knows, 2026-10-12
 
 ## Live docs
 - llms.txt: https://nextjs.org/docs/llms.txt

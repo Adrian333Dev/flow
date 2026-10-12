@@ -9,8 +9,8 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 - **Private skills**: `~/.flow/private-skills/<name>/`, the user's, not yet published.
 - **A plugin**: a bundle from a Claude Code marketplace: skills, often hooks, commands and an MCP server. Claude Code installs and updates it.
 - **An MCP server**: a running program that hands the agent extra tools. Configured per project in `.mcp.json`.
-- **The wiki**: `~/.flow/wiki/<tool>/`, one folder per outside tool, every project's: docs shortcuts, research reports, findings, downloads. `/flow:research`'s own `references/wiki.md` holds its layout. Never loads by itself: `/flow:research` opens it.
-- **Findings**: one file per thing learned. About an outside tool → the wiki. Anything else → the project's `.flow/findings/`.
+- **The wiki**: `~/.flow/wiki/<subject>/`, one folder per outside tool or field, every project's: `index.md`, topic pages edited in place, downloads. `/flow:research`'s own `references/wiki.md` holds its layout. Never loads by itself: the rule file's `## Reading` sends work there.
+- **Findings**: `.flow/findings/`, one file per lesson from a project. A lesson about an outside tool or field goes to its wiki page instead.
 - **An overlay**: `.flow/overlays/<skill>.md`, a project's additions to any skill, handed over as it loads. No plugin prefix in the name.
 
 ## Everything starts on for one project
@@ -42,14 +42,12 @@ Install counts and stars only pick which 3 to read.
 
 **The 2 states:**
 
-- **Used whole**: runs as its publisher wrote it and updates by itself. Take it for a skill from the tool's own makers, which changes with each release, once the review finds nothing structural against it. A disagreement with it:
+- **Used whole**, the default: runs as its publisher wrote it and updates by itself. A disagreement with it:
   - **true in one project** → an overlay, `.flow/overlays/<name>.md`, in the project
-  - **true in every project** → harvest the skill instead
-- **Harvested**: never switched on. The harvest reads it, with the tool's findings and any other skill on the subject, and writes the user's own skill. One general skill per tool runs, and it is the user's.
+  - **true in every project** → suggest a harvest
+- **Harvested**: never switched on. Its facts are read into wiki pages, an expertise skill's into a field folder. Suggest it only where the review finds lines the user would rewrite in every project, or the skill is mostly facts the wiki covers. Run it on a yes, by `/flow:research` → `## Harvest`.
 
-**Used whole is the default until `/flow:write-skill` ships.** Harvested becomes the default then. A skill harvested before that waits switched off for a harvest the user runs by hand.
-
-**The harvest** is `/flow:write-skill` (user only), not built yet. Until then, run it by hand when the user asks, by `~/.agents/skills/flow/skills/file-findings/references/write-skills.md`. It ends with `flow skills drop <owner/repo>` per input, unless a skill there is used whole.
+**Never suggest harvesting a skill from the tool's own makers.**
 
 **How each arrives:**
 
@@ -61,17 +59,17 @@ Install counts and stars only pick which 3 to read.
 
 - **A skill repository** → the background job pulls every clone at most every 6 hours, fast-forward only. A skill used whole is current after the pull.
 - **A plugin** → Claude Code's own plugin update. Flow never touches one.
-- **A harvested skill** → never follows its inputs. A new harvest starts from fresh research.
+- **A harvested skill** → its pages never follow it. Research reviews it again once it changes past the commit its `## Skills` line names.
 
 ## What the user builds up
 
 Where a finding goes first is `~/.flow/CLAUDE.md` → `## Capture`. From there:
 
-- **A finding about an outside tool** → waits in `~/.flow/wiki/<tool>/findings/` → the harvest writes it into the tool's skill and deletes it.
+- **A lesson about an outside tool or field** → its wiki page, edited in place.
 - **A project finding** → `.flow/findings/` → `/flow:file-findings` (user only) turns it into a skill, a rule or a check.
 - **A change to a skill in `domain-skills`** → waits in `.flow/findings/<skill>/` until Flow's sharing command opens a pull request → `/flow:apply-domain-findings` (user only) writes it in.
 - **A new skill** → `~/.flow/private-skills/<name>/`, published by copying it into `domain-skills`.
 
-**A tool's skill holds what the agent gets wrong without it:** changes since its training, traps the docs never warn about, the user's choices. The tool's docs stay in the wiki, downloaded per version. For a tool the agent has never seen, the skill adds how the tool thinks, in a page, and where its docs are.
+**A wiki page holds what the agent gets wrong without it:** changes since its training, traps the docs never warn about, the user's choices. The tool's docs stay in `downloads/`, per version. A tool the agent has never seen gets a page on how the tool thinks, and `index.md` says where its docs are.
 
-**A harvest writes in its own words.** Facts about a tool belong to nobody. A passage or an example copied word for word keeps its license notice. A skill with no license is never copied from. The skill's folder names each input: its repository, path and commit.
+**A harvested skill's `## Skills` line names its commit.**

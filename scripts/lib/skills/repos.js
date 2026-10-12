@@ -5,8 +5,6 @@
  *   repos/flow/                     Flow's own clone, or a link to it where
  *                                   the user keeps it somewhere else
  *   repos/util/                     util, whose `util` and `u` Flow links
- *   repos/toolbox/                  the catalog /flow:research reads, never
- *                                   pulled, since the library replaces it
  *   repos/sources/<owner>_<repo>/   one per skill repository in `sources`
  *
  * `flow install` makes every one that is missing, and nothing else clones. A
@@ -30,8 +28,8 @@ const { git } = require('../git');
 
 const DEFAULT_SOURCES = ['Adrian333Dev/domain-skills'];
 
-/** The 2 clones Flow makes for itself, beside the sources. */
-const OWN = { util: 'Adrian333Dev/util', toolbox: 'Adrian333Dev/toolbox' };
+/** The clone Flow makes for itself, beside the sources. */
+const OWN = { util: 'Adrian333Dev/util' };
 
 const base = () => process.env.FLOW_GIT_BASE || 'https://github.com/';
 

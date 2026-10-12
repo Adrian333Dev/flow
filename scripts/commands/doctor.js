@@ -665,7 +665,7 @@ function checkVersion(clone, at) {
  * tag the remote carries.
  *
  * Every line is a note. A submodule off its gitlink is somebody mid-work in
- * util or the toolbox, and a clone a few entries behind still runs.
+ * util or domain-skills, and a clone a few entries behind still runs.
  *
  * `git ls-remote` rather than a fetch, because it writes nothing at all and
  * the tag names are the whole of what is wanted. It is the one check on this

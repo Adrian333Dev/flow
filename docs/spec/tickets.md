@@ -68,7 +68,8 @@ Each status, and what moves a ticket into it:
 - `V1` **A push follows a status move or a drop, in the background**, and after a reply once 30 minutes have passed with something changed, and at session end. The user asked for more than session end, and at most every half hour.
 - `V1` **A pull runs at session start, in the background, and right before a new ticket takes its number.**
 - `V1` **`flow new` pushes at once, or makes no ticket.** A refused push pulls, renumbers and tries again, up to 5 times, and the id shows only after the push lands. Offline, no ticket is made, and git's own words are printed. A number shown and then changed would stay wrong in every plan, commit message and conversation that already used it. Decided with the user 2026-09-29.
-- `V1` **Tickets in the Flow home get their number on the spot**, and `flow sync` renumbers a clash with `was:`, printing `home-4 is now home-5: another machine took home-4 first.`
+- `V1` **The Flow home claims a number the same way**, for a home ticket and a private project's. `flow new` runs `flow sync` on `~/.flow/` before taking the number. Then it commits every changed file there, merges, and pushes before the id shows. Offline, on a clash in another file, or behind another machine's changelog entry, no ticket is made. Decided with the user 2026-10-07: a number taken on the spot was renumbered at the next sync, mostly in the background, and the new id printed nowhere. Every changed file goes up, not the ticket alone, since git refuses to merge in the other machine's work over an uncommitted file it changed.
+- `V1` **`flow sync` still renumbers a clash in the Flow home, keeping `was:`**, and prints `home-4 is now home-5: another machine took home-4 first.` Only a ticket made before claims existed, or while the Flow home had no remote, meets it. A Flow home with no remote numbers on the spot, as a branch with no remote does.
 - `V1` **A pull meeting the same lines of one ticket changed on both sides is put back**, with the local version committed for a merge by hand.
 
 ### The board
@@ -158,7 +159,8 @@ src/parser.js:40-120   # where step 4 stopped
 
 - **Offline, `flow new`** → no ticket, and git's words printed.
 - **2 people take one number at once** → the later push is refused, pulls, renumbers, and shows its id only after it lands.
-- **2 machines give out one `home-` number** → `flow sync` renumbers the later one, with `was:`.
+- **2 machines take one `home-` number at once** → the later push is refused, merges, renumbers, and shows its id only after it lands.
+- **A home ticket made before claims existed clashes** → `flow sync` renumbers it, with `was:`.
 - **The same ticket changed on both sides** → the pull is put back, the local version stays committed, and the user merges by hand.
 - **A remote refusing the user's pushes** → `flow init` stops before making the branch, and offers `--private`.
 - **A typed `/exp-99` for no such ticket** → plain text reaches the phase, and the agent finds no ticket.
@@ -170,6 +172,7 @@ src/parser.js:40-120   # where step 4 stopped
 - **`npm test` covers the branch, a teammate joining, the refused push, a same-moment clash, `flow store` both ways and `flow move`**, against bare repositories on disk.
 - **A project's branch `flow` works against GitHub.** Not yet: run against repositories on disk alone. This repo's own tickets are the first real use.
 - **The `Stop` and `SessionEnd` sends run in a live session.** Not yet seen.
+- **2 real machines claiming one home number in the same minute, against GitHub.** Not yet: run against repositories on disk alone, `fw-76`.
 
 ## What is locked
 

@@ -28,7 +28,7 @@ function installed(name, { whole }) {
   assert.strictEqual(made.code, 0, made.stderr);
   if (whole) {
     const flowHome = path.join(root, '.flow');
-    for (const clone of ['util', 'toolbox']) fs.mkdirSync(path.join(flowHome, 'repos', clone), { recursive: true });
+    fs.mkdirSync(path.join(flowHome, 'repos', 'util'), { recursive: true });
     fs.writeFileSync(path.join(flowHome, 'settings.json'), JSON.stringify({ sources: [] }));
     for (const name of ['util', 'u']) fs.symlinkSync(REPO, path.join(root, '.local', 'bin', name));
   }

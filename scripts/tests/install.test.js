@@ -234,7 +234,6 @@ test('install clones what is missing, links a skill switched on, and never clone
       "const bin = process.argv[process.argv.indexOf('--bin') + 1];\n" +
       "fs.mkdirSync(bin, { recursive: true }); fs.symlinkSync(__filename, path.join(bin, 'util'));\n",
   });
-  gitRepo(path.join(remote, 'Adrian333Dev', 'toolbox'), { 'README.md': 'catalog\n' });
   gitRepo(path.join(remote, 'Adrian333Dev', 'domain-skills'), { 'react/SKILL.md': skillFile('react') });
 
   const env = { FLOW_GIT_BASE: `${remote}${path.sep}` };
@@ -243,7 +242,7 @@ test('install clones what is missing, links a skill switched on, and never clone
 
   const first = install();
   assert.strictEqual(first.code, 0, first.stderr);
-  for (const id of ['Adrian333Dev/util', 'Adrian333Dev/toolbox', 'Adrian333Dev/domain-skills']) {
+  for (const id of ['Adrian333Dev/util', 'Adrian333Dev/domain-skills']) {
     assert.match(first.stdout, new RegExp(`cloned: ${id} into `));
   }
   assert.ok(fs.existsSync(path.join(at.flowHome, 'repos', 'sources', 'Adrian333Dev_domain-skills', 'react', 'SKILL.md')));
@@ -264,7 +263,7 @@ test('install clones what is missing, links a skill switched on, and never clone
 
   const types = fs.readFileSync(logs.historyFile(at.flowHome), 'utf8').trim().split('\n')
     .map((l) => JSON.parse(l).type);
-  assert.deepStrictEqual(types, ['clone', 'clone', 'clone', 'install', 'install']);
+  assert.deepStrictEqual(types, ['clone', 'clone', 'install', 'install']);
 });
 
 test('install refuses when ~/.flow/repos/flow is another clone', () => {

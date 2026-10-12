@@ -37,7 +37,7 @@ Move at triage speed. Building a skill is the one slow step.
 **Route findings straight to the destination.** Inbox items need the altitude call first.
 
 - **A finding with a `skill:` header** → that skill, by `## A skill filing must not edit` below
-- **Knowledge tied to an outside tool, library or framework** → `~/.flow/wiki/<tool>/findings/<what-was-learned>.md`, written the way `## Capture` in `~/.flow/CLAUDE.md` writes one, by **altitude** below. The harvest takes it into the tool's skill later
+- **Knowledge tied to an outside tool, library, framework or field** → the page owning it in `~/.flow/wiki/<subject>/`, by `~/.agents/skills/flow/skills/research/references/wiki.md` and **altitude** below
 - **Rule true everywhere, and always relevant** → the section of `~/.flow/CLAUDE.md` that owns the subject. Never a rule file with no `paths:`
 - **Rule true everywhere, relevant to one stack or file type** → `claude/rules/<topic>.md` in Flow's clone, with `paths:` frontmatter
 - **Rule for this project, always relevant** → the project's `CLAUDE.md`, in the section that owns the subject
@@ -48,7 +48,7 @@ Move at triage speed. Building a skill is the one slow step.
 - **Work item** → ticket or stays in inbox
 - **Everything else** → the homes under `## Capture` in `~/.flow/CLAUDE.md`
 
-**Skill or project context: would this sentence be true in a different project?** Yes → a skill, or the tool's wiki folder. No → `docs/context/`. Content that is both splits, and is never assigned to one side: *a generated file is never hand-edited, regenerate it* goes to that tool's skill, while the script name and the output path go to context. Genuinely cannot tell → leave it in `.flow/inbox.md` until there are enough instances to see the pattern.
+**Skill or project context: would this sentence be true in a different project?** Yes → a skill, or a wiki page. No → `docs/context/`. Content that is both splits, and is never assigned to one side: *a generated file is never hand-edited, regenerate it* goes to that tool's wiki page, while the script name and the output path go to context. Genuinely cannot tell → leave it in `.flow/inbox.md` until there are enough instances to see the pattern.
 
 **What may go in `docs/context/<subject>.md`**, all 4:
 
@@ -65,10 +65,10 @@ Move at triage speed. Building a skill is the one slow step.
 
 Match the note's scope to the home's scope:
 
-- tool quirk → that tool's wiki folder
-- framework pattern → that framework's wiki folder
+- tool quirk → a page in that tool's wiki folder
+- framework pattern → a page in that framework's wiki folder
 - broad principle, such as "the client never touches the DB directly" → a high-level concept skill, `architecture` for that one
-- seam between 2 tools → the **source** tool's wiki folder, plus a line in the other's `index.md`
+- seam between 2 tools → a page in the **source** tool's wiki folder, plus a line in the other's `index.md`
 
 Never a "tool-A-with-tool-B" folder or skill. One home per fact, a pointer everywhere else.
 

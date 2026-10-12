@@ -1,11 +1,9 @@
 ---
 name: research
-description: Researches any subject. Finds a skill, plugin, library, tool, existing solution or anything else. Reverse engineers tools, investigates source code and more. Keeps what it learns about each outside tool in one folder per tool, shared by every project, and asks Context7 for quick answers from a library's docs.
+description: Researches any subject. Finds a skill, plugin, library, tool, existing solution or anything else. Reverse engineers tools, investigates source code and more. Keeps what it learns about each outside tool or field in wiki pages shared by every project, harvests reports and outside skills into them, and asks Context7 for quick answers from a library's docs.
 ---
 
 # Research
-
-**Never work against an external tool from training memory alone**, above all when writing a plan.
 
 **Say what you are researching and why before touching any tool.**
 
@@ -13,27 +11,26 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 
 **Research any subject.** A question with no tool behind it, such as market research, uses level 4 and the report file below.
 
-## A question about a tool starts from its folder
+## A question starts from the wiki
 
-`~/.flow/wiki/<tool>/` holds what Flow knows about one outside tool: shortcuts into the docs, research reports, findings, and this machine's downloads. `references/wiki.md` holds its layout and what may be added or rewritten. Read it before the first write into a tool's folder.
+`~/.flow/wiki/<subject>/` holds what Flow knows about one outside tool or field: `index.md`, topic pages, and this machine's downloads. Read `references/wiki.md` before any write into it.
 
-1. **The tool's domain skill comes first**, when one is loaded: it holds what earlier harvests gathered.
-2. **Open `~/.flow/wiki/<tool>/`**, creating it on the first research about the tool. Print the finding count, and whether `flow skills ls <tool>` finds a skill: `next.js: 7 findings, no skill`.
-3. **Read the files in `research/` and `findings/` whose names match the question.** Answered → stop, with no outside request.
-4. **Follow `index.md`**: the page listed for the topic, or the Context7 id, which skips Context7's search.
+1. **A loaded skill covering the subject comes first.**
+2. **Read `index.md` and the pages whose names match the question.** Answered → stop, with no outside request.
+3. **Read the reports whose names match**, in `~/.flow/research/<topic>/` and `.flow/research/<topic>/`.
+4. **Follow `index.md`**: the doc page listed for the topic, or the Context7 id, which skips Context7's search.
 5. **Go outside**, by the levels below.
-6. **Write back**: a line in `index.md` for the page that answered, and a report in `research/` past level 1.
+6. **Write back**: what was learned into the page owning it, a line in `index.md` for the doc page that answered, and a report past level 1. No folder → make it with `index.md` on the first write.
 
 ## Look for what already solves it
 
 **Search before building or reading anything.** 2 starting points:
 
 - **A need with no tool yet** → anything that already solves it, fully or partly: a library, CLI, service, app, skill, plugin or MCP server. Name what a partial fit leaves unsolved.
-- **A tool already chosen** → a skill, plugin or MCP server for it, before reading a line of its documentation.
+- **A tool already chosen** → its `index.md` → `## Skills` first, then a skill, plugin or MCP server for it, before reading a line of its documentation.
 
 1. **Search these at once:**
    - **Every skill Flow can reach:** `flow skills ls <pattern>`. Each pattern is a regular expression over the name and the description, and a skill shows when it matches every one. It covers your private skills, the domain-skills repository and every other skill repository Flow has. `flow skills ls --source domain-skills` lists one repository whole.
-   - **The toolbox**, a catalog of outside tools with notes from real use, at `~/.flow/repos/toolbox/`. Read its `README.md`, then search the folders that could hold an answer, the way it says. No folder there → `flow install` clones it.
    - **skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill.
 2. **A skill `flow skills ls` found in `domain-skills` or your private skills needs no judging.** Turn it on: `flow skills on <name>`. One from any other repository is judged in step 4 first.
 3. **When nothing from step 1 fits, search outward:**
@@ -46,18 +43,18 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
    - **Rank by publisher first:** the tool's own maker beats anyone else. Then the repo's stars and last push.
    - **Weigh install counts least.**
    - **Read the top 3** in full before recommending one, and name what the others lose on.
-5. **Write down what you found, including finding nothing**, wherever this question's report goes, under `## Where it goes`.
+5. **Write down what you found, including finding nothing**: each skill reviewed into `index.md` → `## Skills`, the rest wherever this question's report goes, under `## Where it goes`.
 
 **Adopting a skill:**
 
 - Used whole → `flow skills add <owner/repo>` clones the repository, then `flow skills on <name>` turns the skill on for this project.
-- Harvested → `flow skills add <owner/repo>` alone. Tell the user it waits for the harvest.
+- Harvested → `flow skills add <owner/repo>` alone, then `## Harvest` on the user's yes.
 
 ## How deep to go
 
 4 levels. Match depth to the work, escalate when the current level cannot answer, and never start higher than needed. Enough for a confident answer at the current level → stop and answer.
 
-1. **Targeted question**: one API, one config flag, "is X still maintained?" → Context7, below, or a single doc-page fetch. A bug's explanation → the tool's issues: `gh search issues <words> --repo <owner/repo>`. Inline, quick.
+1. **Targeted question**: one API, one config flag, "is X still maintained?" → Context7, below, or a single doc-page fetch. Inline, quick.
 2. **Working against a tool**: planning or building a feature on it → its downloads, by the llms.txt route below. Read the relevant pages before freezing any API into a spec or plan.
 3. **Deep customization**: extending a library past what its docs describe → clone the source and read the code: `fetch-docs.sh <tool> - --repo <owner/repo> --clone` puts it in `downloads/repo/`, or pulls a clone already there. Clone without asking; announce it.
 4. **Landscape**: surveying what exists, comparing options in depth, a domain you barely know → external prompt research, below.
@@ -99,13 +96,12 @@ Using what came back:
 
 - **`llms.txt`**: small; read it whole. Pick the pages the task needs and fetch those too, by passing their URLs to the script.
 - **`llms-full.txt`**: **never read inline.** Grep it, read the matching slices.
-- Exact signatures and copy-paste examples come from these downloaded files verbatim. WebFetch summarizes: fine for "how does X work", wrong for a precise signature.
 - **Download again only for a newer version.** Opening a download inside a project, read the tool's version from the lockfile:
   - Newer than the release in `_sources.md` → run the script again, then read.
   - The same or older → read what is there. Older means the docs may describe what the project lacks: check what they say against Context7 pinned to the project's version, or the tool's docs for that version.
   - No project, or the tool missing from the lockfile → read what is there.
 
-**No llms.txt anywhere:** Context7 → web search for the official docs, saving useful pages with the script → ask the user for content or URLs. Never fall back to training memory.
+**No llms.txt anywhere:** Context7 → web search for the official docs, saving useful pages with the script → ask the user for content or URLs.
 
 ## Delegating heavy reading
 
@@ -147,20 +143,37 @@ Write each prompt into its own research file before presenting it, then hand ove
 
 ## Where it goes
 
-**One file per question**, the prompt or question at the top and the findings below it in the same file. Same shape whether an external LLM, a subagent or you answered it.
+**One file per question**: the header, then the question, then the findings. Same shape whether an external LLM, a subagent or you answered it. A level 1 question writes no file.
 
-- A quick question, level 1 → no file. Level 2 and up always writes one.
-- About one outside tool, true in any project → `~/.flow/wiki/<tool>/research/<question>.md`.
-- About no single tool, true in any project: a comparison, a technique, a field → `~/.flow/research/<question>.md`.
-- True only for this project: its users, its market, a client's old system → `.flow/research/<question>.md`.
-- Unsure → `.flow/research/`. Outside a project → `~/.flow/research/`.
+- True in any project → `~/.flow/research/<topic>/<question>.md`.
+- True only for this project (its users, its market, a client's old system), or unsure → `.flow/research/<topic>/<question>.md`. Outside a project → `~/.flow/research/<topic>/`.
+
+**The topic is what the research served**: a tool, a field, a product idea (`reader-app`). Name the file for the question, the topic dropped: `context7/how-it-retrieves-docs.md`.
+
+**Open the report with 4 lines:**
+
+```markdown
+question: how does the App Router redirect signed-out users?
+researched: 2026-09-19
+versions: next.js 16.3.5
+for: planning sign-in for a web app
+```
+
+**Write settled facts into the wiki page owning them, in the same pass.**
 
 **Never write a project's or a client's details into `~/.flow/`.**
 
-- **A question about 2 tools** → the folder of the tool it is mostly about, with a line in the other tool's `index.md`.
 - **A survey run for a project decision splits**: the survey to `~/.flow/`, the pick to the file under `docs/spec/` that owns it, its reason naming the survey. A decision never goes in the report.
 - **Research done with an outside LLM** is no separate kind: its prompt and the pasted report go wherever the list puts the question.
 
-`.flow/research/` and `~/.flow/research/` are **flat**. Never put a report inside a ticket or a groundwork folder.
+**Never put a report inside a ticket or a groundwork folder.**
 
 **A question reading can answer never becomes a ticket of its own.** It runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a `prototype` ticket, and `/flow:groundwork` cuts it.
+
+## Harvest
+
+Run when the user asks: reports, or an outside skill, into wiki pages.
+
+1. **Read the reports or the skill whole.**
+2. **Write what holds into the wiki pages owning it**, in your own words, by `references/wiki.md`. A passage copied word for word keeps its license notice. Never copy from a skill with no license.
+3. **Mark the source.** A report gets `harvested: <date>` in its header. A skill gets its `## Skills` line marked `harvested at <commit>`, then `flow skills drop <owner/repo>`, unless a skill from that repository is used whole.

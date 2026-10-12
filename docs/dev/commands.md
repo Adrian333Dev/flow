@@ -59,7 +59,7 @@ A command or a flag declared `hidden: true` runs like any other and never prints
 - **`flow handoff <id>`**: adds a line to the ticket's `history.md` saying this session handed the work on. `/flow:handoff` runs it after writing `## State`.
 - **`--root <dir>`**: stands in for `~`, so a command works on a pretend machine. Taken by `install`, `init`, `update`, `doctor`, `survey`, `sync`, `store`, `uninstall` and every `restore` action. A setup session never opens under it: the command prints what it would hand over.
 - **`install --no-bin`** and **`doctor --no-bin`**: skip `~/.local/bin`, so a test leaves the real `PATH` alone.
-- **`install --no-clone`**: skips cloning `util`, `toolbox` and `domain-skills`, so a test needs no network.
+- **`install --no-clone`**: skips cloning `util` and the skill repositories, so a test needs no network.
 - **`install --drafts`**: links the skills in `skills/drafts/` too, for trying one before it ships.
 - **`doctor --tests`**: runs both test suites as well, which takes about 14 seconds.
 

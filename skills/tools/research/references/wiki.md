@@ -1,31 +1,38 @@
 # The wiki
 
-`~/.flow/wiki/` holds one folder per outside tool: a library, a service, a command-line tool, a standard with its own docs. Every project on the machine shares it, and the Flow home repository carries it to the other machine.
+`~/.flow/wiki/` holds one folder per outside tool or field, shared by every project on the machine. `flow sync` carries it to the other machine, `downloads/` excepted.
 
-## The layout
+## The folder
 
 ```text
 ~/.flow/wiki/next.js/
-├─ index.md                         where the live docs are, which page answers what
-├─ research/<question>.md           research reports about this tool alone
-├─ findings/<what-was-learned>.md   facts learned using the tool, waiting for the harvest
-└─ downloads/                       this machine's alone, never committed
-   ├─ _sources.md                   what was downloaded, when, and the tool's latest release then
+├─ index.md               what it is, the version in use, skills reviewed, doc shortcuts
+├─ <topic>.md             one page per topic, edited in place
+└─ downloads/             this machine's alone, never synced
+   ├─ _sources.md         what was downloaded, when, and the tool's latest release then
    ├─ llms.txt
    ├─ llms-full.txt
    ├─ pages/<page>.md
-   └─ repo/                         the tool's source, cloned
+   └─ repo/               the tool's source, cloned
 ```
 
-- **The folder name** is the tool's GitHub repository name: `next.js`. A tool with no repository takes the product's name. 2 repositories sharing a name take `owner_repo`.
-- **A standard**, such as OAuth 2.1, gets a folder like a tool.
+- **A tool's folder** takes its GitHub repository name: `next.js`. No repository → the product's name. 2 repositories sharing a name → `owner_repo`. A standard with its own docs, such as OAuth 2.1, gets a folder like a tool.
+- **A field's folder** takes a plain name: `text-to-speech`, `chrome-extensions`.
+- **Make the folder with its `index.md`**, on the first write about its subject.
+- **Never write a global index.** `util fs tree ~/.flow/wiki` lists every folder.
 
 ## `index.md`
 
-Shortcuts for the next search of the same tool, never answers:
+Shortcuts for the next search, never answers:
 
 ```md
 # next.js
+
+React framework for web apps. In use: 16.3.5.
+
+## Skills
+- vercel-labs/next-skills: nextjs, used whole, the makers' own, 2026-10-12
+- someone/next-tips: next-tips, passed over, general advice the agent already knows, 2026-10-12
 
 ## Live docs
 - llms.txt: https://nextjs.org/docs/llms.txt
@@ -36,8 +43,11 @@ Shortcuts for the next search of the same tool, never answers:
 - auth, redirecting signed-out users: https://github.com/vercel/next.js/blob/canary/docs/01-app/02-guides/authentication.mdx
 ```
 
-- `context7.sh` writes the `Context7:` line. Every other line is yours.
-- A shortcut is checked by using it. One that fails gets looked up again and its line rewritten. No expiry date.
+- **The opening line**: what the subject is, then the version in use.
+- **A field's `index.md`** lists its tools, one line each, with no version.
+- **`## Skills`**: every skill research reviewed for the subject, one line each: `<owner/repo>: <name>, used whole | passed over | harvested at <commit>, <why>, <date>`. Review again only a skill changed since its date.
+- **`context7.sh` writes the `Context7:` line.** Every other line is yours.
+- **A shortcut is checked by using it.** One that fails gets looked up again and its line rewritten. No expiry date.
 
 ## `_sources.md`
 
@@ -50,15 +60,35 @@ Shortcuts for the next search of the same tool, never answers:
 
 The release is the tool's newest on the download day, which is the version the docs describe. It is never the project's version.
 
-## The folder only grows
+## A page
 
-- **`research/<question>.md`**: a new question makes a new file. The same question on a newer version adds a dated section at the end, naming the version. The older text stays.
-- **`findings/<what-was-learned>.md`**: one file per finding, written once. The same fact learned again adds one line at the end: the version and the date it held.
-- **`index.md`**: a new shortcut is a new line. Rewrite a line only when its shortcut stops working.
-- **`downloads/`**: replaced on refresh, on each machine, outside the rule.
-- **The harvest** deletes the findings it wrote into the tool's skill. Nothing else removes a file.
+One topic, named for it: `permissions.md`. It holds what the docs don't say, linking the doc page.
 
-Where both machines added to the end of one file, keep both additions.
+```md
+# Permissions
+
+Checked against Claude Code 2.1.296, 2026-10-12.
+
+- "Always allow" on a compound command saves one rule per piece.
+- Until 2.1.290: `Read` asked even with an allow rule. From 2.1.290: the rule covers it.
+- `Edit` outside the project asks every time (2.1.310).
+```
+
+- **Open with the version the page was checked against.** Every line holds for it unless the line says otherwise.
+- **A line true only on another version** → `Until 2.1.290: … From 2.1.290: …`. Keep both halves: a project may still run the old one.
+- **A fact added on a newer version** → `(2.1.310)` at its end, until the whole page is rechecked and the opening line moves.
+- **A field page** has no version line.
+- **Evidence** is a link to a doc page or an issue, only where one exists. Never stamp every line.
+
+## Changing a page
+
+1. **Read the page first.**
+2. **Edit the page owning the subject.** None owns it → start one.
+3. **Delete a fact proven wrong.**
+4. **Rewrite a page whole** when its subject changed shape.
+5. **Split by topic** past about 150 lines.
+
+2 machines edited one page → `flow sync` stops, naming the file. Merge by hand, keeping both sides.
 
 ## What never enters it
 

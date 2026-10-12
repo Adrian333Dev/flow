@@ -8,8 +8,9 @@
  * so switching branches never touches a ticket, and nothing ever merges into
  * the code. Anyone who can read the repository gets the tickets.
  *
- * Other shapes carry no branch, and every function here but `renumber` and
- * `syncLater` does nothing for them:
+ * Other shapes carry no branch. `pull` and `claim` hand the 2 in the Flow home
+ * to lib/machine/flow-repo.js, and every other function here but `renumber`
+ * and `syncLater` does nothing for them:
  *
  *   linked      `.flow/` is a link into the Flow home, from
  *               `flow init --private`. lib/tickets/records-place.js holds how, and
@@ -47,6 +48,7 @@ const store = require('./store');
 const paths = require('../paths');
 const failures = require('../logs/failures');
 const { git, DURABLE } = require('../git');
+const { FlowError } = require('../error');
 
 const BRANCH = 'flow';
 const REMOTE = 'origin';
@@ -200,9 +202,12 @@ function pushNow(root) {
   if (!ahead) return { ok: true, sent: 0 };
   const pushed = git(root, ['push', '-q', '-u', REMOTE, `refs/heads/${BRANCH}:refs/heads/${BRANCH}`]);
   if (pushed.ok) return { ok: true, sent: ahead };
-  const rejected = /\[rejected\][^\n]*\((fetch first|non-fast-forward)\)/.test(pushed.err);
+  const rejected = pushRefused(pushed.err);
   return { ok: false, rejected, offline: !rejected, why: reason(pushed.err) };
 }
+
+/** True where git refused a push because someone pushed first. */
+const pushRefused = (err) => /\[rejected\][^\n]*\((fetch first|non-fast-forward)\)/.test(err);
 
 /**
  * Whether the remote takes a push from this clone, asked without sending
@@ -227,8 +232,32 @@ function sync(root, message = 'saved') {
   });
 }
 
-/** Pull alone, before a number is taken. */
+/**
+ * The Flow home, where `root`'s tickets live in it and it has a remote: home
+ * tickets, or a project linked there. Required here rather than at the top,
+ * since flow-repo.js requires this file.
+ */
+function flowHomeOf(root) {
+  if (!store.isHome(root) && !linked(root)) return null;
+  const repo = require('../machine/flow-repo');
+  const at = paths.folders();
+  return repo.connected(at) ? { repo, at } : null;
+}
+
+/**
+ * Pull alone, before a number is taken. In the Flow home, its whole sync,
+ * which brings `renumbered` back.
+ */
 function pull(root) {
+  const home = flowHomeOf(root);
+  if (home) {
+    try {
+      return { ok: true, renumbered: home.repo.syncHome(home.at, linked(root) ? root : null).renumbered };
+    } catch (e) {
+      if (!(e instanceof FlowError)) throw e;
+      return { ok: false, why: e.message };
+    }
+  }
   if (!onBranch(root)) return { ok: true, skipped: true };
   return locked(root, () => pullNow(root));
 }
@@ -238,9 +267,12 @@ function pull(root) {
  * pulls, renumbers the ticket if its number was taken, and tries again. No
  * `was:` is written, since nobody saw the first number. `id` is the number the
  * ticket took; the one it ends with comes back. A failure leaves the ticket
- * committed here, and the caller takes it back.
+ * committed here, and the caller takes it back. The Flow home claims the same
+ * way, through flow-repo.js.
  */
 function claim(root, id) {
+  const home = flowHomeOf(root);
+  if (home) return home.repo.claimTicket(home.at, root, id);
   if (!onBranch(root)) return { ok: true, id };
   return locked(root, () => {
     commitNow(root, `${id}: new`);
@@ -308,12 +340,10 @@ function keepHigherCounters(dir, clash) {
  * 2 tickets holding one id after a pull: `store.renumber` gives every one the
  * remote lacks the next free number, and this commits the result.
  *
- * A project's new ticket meets this only inside `claim`, before its id is
- * shown, so it keeps no `was:`. ~/.flow/ sends its tickets every 30 minutes
- * rather than at creation, so a number shown there can be taken by another
- * machine meanwhile: `flow sync` renumbers it, keeping the old id as `was:`.
- * A project linked into the Flow home is sent the same way, and renumbered
- * the same way, with `origin/main` as the remote.
+ * A new ticket meets this inside `claim`, before its id is shown, so it keeps
+ * no `was:`. The Flow home's `flow sync` renumbers too, with `origin/main` as
+ * the remote and the old id kept as `was:`: a ticket made there before claims
+ * existed, or while the Flow home had no remote.
  */
 function renumber(root, remoteRef = `${REMOTE}/${BRANCH}`, { keepWas = true } = {}) {
   const onRemote = () => new Set(git(recordsOf(root), ['ls-tree', '-r', '--name-only', remoteRef]).out
@@ -364,4 +394,5 @@ function checkOut(root) {
 
 module.exports = {
   BRANCH, REMOTE, onBranch, linked, linkedAt, projectAt, commit, pull, sync, syncLater, claim, renumber, conflicted, keepHigherCounters, checkOut, canPush, remoteHasBranch, hasRemote,
+  locked, pushRefused, reason,
 };

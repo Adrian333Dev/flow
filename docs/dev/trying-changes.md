@@ -33,7 +33,7 @@ Both tools write to real folders in normal use, so the suites move every one of 
 - **`FLOW_PROJECT`**: the project, normally found through `git rev-parse`.
 - **`FLOW_CHECKS`**: where the rule checks live, normally `scripts/rule-checks/`.
 - **`FLOW_HOME_REMOTE`**: a folder standing in for the `flow-home` repository on GitHub, so `gh` is never asked.
-- **`FLOW_GIT_BASE`**: stands in for `https://github.com/`, so the skill repositories, util and toolbox are cloned from folders on disk.
+- **`FLOW_GIT_BASE`**: stands in for `https://github.com/`, so util and the skill repositories are cloned from folders on disk.
 - **`FLOW_MACHINE_DEFAULT`**: the computer's offered name, in place of asking the hardware, which takes minutes under WSL.
 - **`FLOW_VISIBILITY`**: whether the project's repository counts as public, in place of asking GitHub.
 - **`UTIL_HOME`**, **`UTIL_PROJECT`** and **`UTIL_BIN`**: util's registry, its project, and where `util install` links. `tests/helpers/scratch.js` sets all 3 on every test, since a test left with one unset can put links on the real `PATH`.

@@ -20,6 +20,7 @@ const fs = require('fs');
 const path = require('path');
 const { project, run, flow, bareRepo, REPO } = require('./helpers/scratch');
 const repo = require('../lib/machine/flow-repo');
+const store = require('../lib/tickets/store');
 const { git } = require('../lib/git');
 const folders = require('../lib/paths').folders;
 const version = require('../lib/machine/version');
@@ -152,7 +153,7 @@ test('2 machines send and merge their work, and the same lines changed on both s
   assert.strictEqual(git(b.at.flow, ['status', '--porcelain']).out, '', 'no merge is left half done');
 });
 
-test('a project linked into the Flow home travels with it, and a number 2 machines took is renumbered', () => {
+test('a project linked into the Flow home travels with it, and each number is claimed before it is shown', () => {
   const remote = bareRepo('sync-linked');
   const a = machine('sync-linked-a');
   connect(a, remote);
@@ -176,43 +177,105 @@ test('a project linked into the Flow home travels with it, and a number 2 machin
   const appA = clone(a);
   const env = (m, dir) => ({ ...process.env, FLOW_HOME: m.at.flow, FLOW_PROJECT: dir });
   const inApp = (m, dir, args) => run('flow.js', args, { cwd: dir, env: env(m, dir) });
-  inApp(a, appA, ['new', 'Login page']);
-  assert.match(inApp(a, appA, ['sync', '--root', a.root]).stdout, /went up/);
+  assert.match(inApp(a, appA, ['new', 'Login page']).stdout, /created exp-1/);
+  assert.match(inApp(a, appA, ['sync', '--root', a.root]).stdout, /nothing changed here, so nothing went up\./, 'flow new sent it');
 
-  // b pulls the folder, links to it, and takes a number a has since taken too.
+  // b pulls the folder and links to it. a takes exp-2 while b is not looking.
   assert.strictEqual(sync(b).code, 0);
   const appB = path.join(b.dir, 'app');
   fs.mkdirSync(appB, { recursive: true });
   fs.symlinkSync(path.join(b.at.flow, 'projects', 'app'), path.join(appB, '.flow'));
-  inApp(a, appA, ['new', 'Export csv']);
-  assert.strictEqual(inApp(a, appA, ['sync', '--root', a.root]).code, 0);
-  assert.match(inApp(b, appB, ['new', 'Dark mode']).stdout, /created exp-2/);
+  assert.match(inApp(a, appA, ['new', 'Export csv']).stdout, /created exp-2/);
+  assert.match(inApp(b, appB, ['new', 'Dark mode']).stdout, /created exp-3/);
 
   const synced = inApp(b, appB, ['sync', '--root', b.root]);
   assert.strictEqual(synced.code, 0, synced.stderr);
-  assert.match(synced.stdout, /exp-2 is now exp-3: another machine took exp-2 first\./);
-  assert.match(inApp(b, appB, ['exp-3']).stdout, /Dark mode/);
-  assert.match(inApp(b, appB, ['exp-2']).stdout, /Export csv/);
+  assert.doesNotMatch(synced.stdout, /is now/);
+  assert.strictEqual(inApp(a, appA, ['sync', '--root', a.root]).code, 0);
+  assert.match(inApp(a, appA, ['exp-3']).stdout, /Dark mode/);
 });
 
-test('2 machines giving out different counts: the counter keeps the higher, and the later ticket is renumbered past it', () => {
-  const remote = bareRepo('sync-counter');
-  const a = machine('sync-counter-a');
+/** `fn` run in this process as machine `m`, whose ~/.flow/ the ticket store reads through FLOW_HOME. */
+function asMachine(m, fn) {
+  const had = process.env.FLOW_HOME;
+  process.env.FLOW_HOME = m.at.flow;
+  try {
+    return fn();
+  } finally {
+    if (had === undefined) delete process.env.FLOW_HOME;
+    else process.env.FLOW_HOME = had;
+  }
+}
+
+/** 2 machines joined to one Flow home, `remote`, both synced. */
+function pair(name) {
+  const remote = bareRepo(name);
+  const a = machine(`${name}-a`);
   connect(a, remote);
   repo.writeIgnore(a.at);
   assert.strictEqual(sync(a).code, 0);
-  const b = machine('sync-counter-b');
+  const b = machine(`${name}-b`);
   connect(b, remote);
   repo.inspect(b.at, NEWEST);
   repo.join(b.at);
   assert.strictEqual(sync(b).code, 0);
+  return { remote, a, b };
+}
 
-  // a gives out home-1 and home-2 while b gives out home-1: both changed the counter's one line.
-  const inHome = (m, args) => run('flow.js', args, { cwd: m.dir, env: { ...process.env, FLOW_HOME: m.at.flow, FLOW_PROJECT: m.root } });
+/** `flow` on machine `m`'s home tickets. */
+const inHome = (m, args) => run('flow.js', args, { cwd: m.dir, env: { ...process.env, FLOW_HOME: m.at.flow, FLOW_PROJECT: m.root } });
+
+test('2 machines making a home ticket in the same minute: the second is renumbered before it is shown, and sync has nothing left', () => {
+  const { a, b } = pair('sync-claim');
+
+  // b's ticket is made before a's push lands, as when both type flow new at once.
+  const mine = asMachine(b, () => store.createTicket(b.root, { title: 'Dark mode' }));
+  assert.strictEqual(mine.id, 'home-1');
+  assert.match(inHome(a, ['new', 'Export csv']).stdout, /created home-1/);
+  const claimed = asMachine(b, () => repo.claimTicket(b.at, b.root, mine.id));
+  assert.deepStrictEqual(claimed, { ok: true, id: 'home-2' });
+  assert.doesNotMatch(inHome(b, ['home-2']).stdout, /^was:/m, 'nobody saw home-1 on it');
+
+  for (const m of [b, a]) {
+    const synced = inHome(m, ['sync', '--root', m.root]);
+    assert.strictEqual(synced.code, 0, synced.stderr);
+    assert.doesNotMatch(synced.stdout, /is now/);
+  }
+  assert.match(inHome(a, ['home-2']).stdout, /Dark mode/);
+  assert.strictEqual(read(path.join(a.at.flow, 'ticket-counter')), '2\n');
+});
+
+test('a home ticket whose number cannot be claimed is not made', () => {
+  const { remote, a } = pair('sync-unclaimed');
+  const tickets = () => (fs.existsSync(path.join(a.at.flow, 'tickets')) ? fs.readdirSync(path.join(a.at.flow, 'tickets')) : []);
+
+  // Offline: the pull before the number fails, and nothing is written.
+  git(a.at.flow, ['remote', 'set-url', 'origin', path.join(a.dir, 'nowhere.git')]);
+  const offline = inHome(a, ['new', 'Export csv']);
+  assert.strictEqual(offline.code, 1);
+  assert.match(offline.stderr, /no ticket was made: git cannot reach the Flow home's repository: fatal: .*does not appear to be a git repository fatal: Could not read from remote repository\.\n/);
+  assert.deepStrictEqual(tickets(), []);
+
+  // The pull lands and the push is refused: the ticket is taken back.
+  git(a.at.flow, ['remote', 'set-url', 'origin', remote]);
+  const hook = path.join(remote, 'hooks', 'pre-receive');
+  fs.writeFileSync(hook, '#!/bin/sh\nexit 1\n', { mode: 0o755 });
+  const refused = inHome(a, ['new', 'Export csv']);
+  assert.strictEqual(refused.code, 1);
+  assert.match(refused.stderr, /no ticket was made: committed here, and the push failed:/);
+  assert.deepStrictEqual(tickets(), []);
+});
+
+test('a ticket made before claims existed: the counter keeps the higher, and sync renumbers it past, keeping was:', () => {
+  const { remote, a, b } = pair('sync-counter');
+
+  // a gives out home-1 and home-2 while b, with no remote, takes home-1 on the
+  // spot: both changed the counter's one line.
   inHome(a, ['new', 'Export csv']);
   inHome(a, ['new', 'Settings page']);
-  assert.strictEqual(sync(a).code, 0);
+  git(b.at.flow, ['remote', 'remove', 'origin']);
   assert.match(inHome(b, ['new', 'Dark mode']).stdout, /created home-1/);
+  git(b.at.flow, ['remote', 'add', 'origin', remote]);
 
   // The renumbering finds the home tickets through FLOW_HOME, which ~/.flow/ is by default.
   const synced = run('flow.js', ['sync', '--root', b.root], { cwd: b.dir, env: { ...process.env, FLOW_HOME: b.at.flow, FLOW_PROJECT: b.dir } });

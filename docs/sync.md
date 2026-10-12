@@ -72,13 +72,15 @@ They come back unstaged, as you left them. Ignored files stay behind unless list
 
 **The same lines of one file changed on both computers stop the sync.** Nothing comes down and nothing goes up, and your work stays committed. Merge the file by hand, then sync again.
 
-**2 computers can give a private ticket the same number** between syncs. The one that reached GitHub first keeps it, and the other takes the next free number:
+**A new private ticket gets its number only once GitHub has it.** This covers a ticket outside any project, such as `home-4`, and the tickets of a project set up with `flow init --private`. `flow new` syncs your Flow home first, then sends the ticket before it prints the id. A ticket on a project's `flow` branch works the same way, so 2 computers never show the same number. Offline, `flow new` makes no ticket and prints git's error.
+
+**A ticket made before this rule can still clash**, and so can one made while your Flow home had no GitHub remote. The next sync gives it the next free number:
 
 ```text
   home-4 is now home-5: another machine took home-4 first.
 ```
 
-The old id still finds it. A ticket on a project's `flow` branch never clashes, since it gets its number from GitHub.
+The old id still finds it.
 
 ## A computer on an older Flow
 

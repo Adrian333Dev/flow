@@ -29,6 +29,8 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 2. **Rank 3 hypotheses, and show the user all 3 before testing any.** 3, always.
 
+   **A failure inside an outside tool → search its issues first**: `gh search issues <words> --repo <owner/repo>`.
+
    **Find one case that works and one that breaks**, then narrow the gap between them. In time: the last commit that passed against the first that failed, which is what `git bisect` automates. In the input, the largest payload that survives against the smallest that fails. In the machine, the box that works against the box that does not.
 
    **Force the 3 apart, each a different kind of cause.** Bad data arriving, an environment that differs from the one that works, and 2 things happening in the wrong order are 3 kinds. "`parseDate` mishandles the timezone", "`parseDate` mishandles the locale" and "`parseDate` mishandles a leap year" are one kind in 3 coats of paint.

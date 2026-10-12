@@ -20,11 +20,11 @@
  * `lib/setup.js` says how the session opens.
  *
  * Every clone lives in `~/.flow/repos/`. Flow's own is `repos/flow`, a link
- * where this clone sits somewhere else. util, the toolbox and every skill
- * repository in `sources` are cloned when missing, and a clone that fails is
- * a warning: running install again changes nothing that exists, so it is
- * always the fix. util gets its names through its own `util install`.
- * `--no-clone` skips all 3, for the tests.
+ * where this clone sits somewhere else. util and every skill repository in
+ * `sources` are cloned when missing, and a clone that fails is a warning:
+ * running install again changes nothing that exists, so it is always the fix.
+ * util gets its names through its own `util install`. `--no-clone` skips
+ * every clone, for the tests.
  *
  * On a machine where setup already finished, `~/.flow/version` exists and the
  * run ends without sending the user to setup again.
@@ -301,7 +301,7 @@ function realpath(p) {
 }
 
 /**
- * Clone util, the toolbox and every source missing from `~/.flow/repos/`.
+ * Clone util and every source missing from `~/.flow/repos/`.
  * A failure is a line of the report, never a stop: every link is already made.
  */
 function cloneMissing(at) {

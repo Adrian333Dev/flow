@@ -113,7 +113,6 @@ A decision belongs in `docs/spec/`, never here. Git holds the history of how eac
 `lab/` ships nowhere. It holds what serves this repository alone:
 
 - **`util/`**: the `util` CLI, a submodule: [Adrian333Dev/util](https://github.com/Adrian333Dev/util). Edited here, committed from inside the folder, and the new pointer committed here afterwards.
-- **`toolbox/`**: outside tools filed by who they are for, AI agents or everything else, then by what they help with, one file per tool, a submodule: [Adrian333Dev/toolbox](https://github.com/Adrian333Dev/toolbox). It installs nowhere. `/flow:research` clones it into `tmp/` to search it.
 - **`domain-skills/`**: the shared skills about one field or tool each, a submodule: [Adrian333Dev/domain-skills](https://github.com/Adrian333Dev/domain-skills). Committed the same way as `util/`.
 - **`archive/`**: code Flow no longer runs, kept readable, with a `README.md` line per file saying what replaced it.
 - **`mockups/`**: drawings from design work, and the scripts that build them row by row, kept as samples for the ASCII engine. Its `README.md` says what each one draws.

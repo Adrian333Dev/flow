@@ -20,8 +20,8 @@
 # The first run of a name builds it from a seed, a saved computer in
 # tmp/computers/<seed>/, copied and never changed. A seed with no Flow on it,
 # before-flow for one, runs install.sh from this checkout, the way a new user's
-# first step does: the real install, with util, the toolbox and the skill
-# repositories cloned from GitHub, and the setup session after it. A seed saved
+# first step does: the real install, with util and the skill repositories
+# cloned from GitHub, and the setup session after it. A seed saved
 # from a run that finished setup skips both. Running the same name again
 # reopens it as it was left, so a machine that went through setup stays one to
 # test on.
