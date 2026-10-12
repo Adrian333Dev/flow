@@ -67,7 +67,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 - `docs/spec/setup.md`: installing Flow on a machine, setting up a project, updating, syncing machines, restoring and uninstalling.
 - `docs/spec/tickets.md`: the ticket store, the `flow` ticket commands, the ticket skills, and the status moves each phase makes.
-- `docs/spec/skills.md`: Flow's skills and its 4 phases, how skills install and switch on, outside skills and their sources, and project overlays.
+- `docs/spec/skills.md`: Flow's skills and its 4 phases, how skills install and switch on, outside skills and their sources, and overlays.
 - `docs/spec/rules.md`: the rule file, how a rule is written, the rule checks and the scorecard.
 - `docs/spec/knowledge-base.md`: research, the wiki of outside tools and fields, Context7, capture and findings.
 - `docs/spec/drawing.md`: `/flow:visualize`, and how a diagram is drawn and checked.
@@ -152,7 +152,7 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 - `V1` **`changes.js`**, which lets 2 Haiku workers edit at once without mixing their changes. Uncommitted work makes `git diff` mix them.
 - `V1` **`flow audit`**, read by `/flow:review` and by the update's proof step.
 - `V1` **`flow cases`**, proposed as a merge into workflow notes. A case keeps the output for good and closes naming the file that fixed it, so a rule shortened later still shows why it exists. A note is one line, deleted once filed.
-- `V1` **The settings levels and the project overlays**, which make Flow flexible.
+- `V1` **The settings levels and the overlays**, which make Flow flexible.
 - `V1` **The ticket skills, the skill updater, the `@` file list, and the restore and uninstall forms**: each small and asked for, or the undo the beta needs.
 
 ### Other harnesses, models and platforms

@@ -51,7 +51,7 @@ When you first open the repository, the split that matters has 4 parts:
   - `instructions-loaded.js` is the `InstructionsLoaded` hook, recording which rule files entered context.
   - `failures.js` is the `PostToolUseFailure` and `StopFailure` hook. It writes a line into `~/.flow/logs/failures/<month>.jsonl` for a failed MCP tool, a failed Flow command or bundled script, and an API error that ended a turn. `lib/logs/failures.js` holds which calls count.
   - `check-ticket.js` is the `UserPromptExpansion` hook that refuses a typed phase skill before it loads on a machine not set up, and a bare `/flow:start` in a folder with no project.
-  - `overlays.js` is the `UserPromptExpansion` hook and the `PostToolUse` hook on `Skill`. Each time a skill loads, typed or loaded by the agent, it hands the agent the project's `.flow/overlays/<name>.md`, for every skill, Flow's or not.
+  - `overlays.js` is the `UserPromptExpansion` hook and the `PostToolUse` hook on `Skill`. Each time a skill loads, typed or loaded by the agent, it hands the agent `~/.flow/skill-overlays/<name>.md`, for every skill, Flow's or not, in every project.
   - `reminder.js` is the `UserPromptSubmit` hook that prints `references/reminder.md` beside every message, unless `"reminder": false` in `~/.flow/settings.json` silences it.
   - `compact-check.js` is the `PreCompact` hook on a typed `/compact`. It refuses with exit 2 and names `/flow:handoff`, then `/clear`. `"compact": true` lets it run.
   - `context-check.js` is the `PostToolBatch` and `UserPromptSubmit` hook that tells the agent to hand off once the conversation passes `"wrapUpAt"` tokens, 150,000 by default, and again every 20,000 past it. It reads the size off the session file. `"wrapUp": false` silences it.

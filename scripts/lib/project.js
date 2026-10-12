@@ -48,7 +48,7 @@ function around(from, at = paths.folders()) {
 
 /**
  * The Flow project a command runs in, or a refusal naming the command that
- * brings one in. Every command reading a ticket, an overlay or a skill list
+ * brings one in. Every command reading a ticket or a skill list
  * goes through here.
  */
 function projectRoot() {

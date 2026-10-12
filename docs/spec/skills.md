@@ -25,7 +25,7 @@ How Flow's skills are shaped, installed and switched on, and how outside skills 
 ~/.flow/private-skills/<name>/             the user's own skills
 <project>/.claude/skills/<name> → either   on in this project
 ~/.claude/skills/<name> → either           on everywhere, --global
-<project>/.flow/overlays/<name>.md         this project's additions to a skill
+~/.flow/skill-overlays/<name>.md         the user's additions to a skill, every project
 ```
 
 ## Behaviors
@@ -100,7 +100,7 @@ Closed at 4, set by the user.
 ### Outside skills
 
 - `V1` **An outside skill is used whole or harvested, never anything between**, decided with the user 2026-09-27. Used whole: runs as published and updates itself. Harvested: never switched on, read into wiki pages (`docs/spec/knowledge-base.md` → `### The harvest`). `~/.flow/references/knowledge.md` holds the rules.
-- `V1` **Used whole is the default.** The agent suggests a harvest where the review finds lines the user would rewrite in every project, or the skill is mostly facts the wiki already covers, and harvests on the user's yes. A skill on an expertise harvests into a field's folder. Decided by the user 2026-10-12 (`fw-94`): a skill can be about anything, and a harvest is not always smooth.
+- `V1` **Used whole is the default.** The agent suggests a harvest where an overlay would rewrite most of the skill, or the skill is mostly facts the wiki already covers, and harvests on the user's yes. A skill on an expertise harvests into a field's folder. Decided by the user 2026-10-12 (`fw-94`): a skill can be about anything, and a harvest is not always smooth.
   - Refused: harvest as the default, ruled 2026-09-27 because every switched-on description loads each turn.
 - `V1` **A maker's own skill is used whole, and never suggested for a harvest**, since a copy misses each release. What would overturn it: a maker's skill whose description or process breaks Flow's rules.
 - `V1` **A skill carrying process is weighed before knowledge.** A plugin with its own build order competes with `/flow:execute`, and nothing decides between them.
@@ -112,7 +112,9 @@ Closed at 4, set by the user.
 
 ### Overlays
 
-- `V1` **A project extends any skill with `.flow/overlays/<name>.md`**, the name without its plugin's prefix. `overlays.js` hands it to the agent under `# Overlay` each time the skill loads, typed or started by the agent, in a subagent too. Flow's skills and outside ones get the same mechanism, the user's call 2026-09-28.
+- `V1` **The user extends any skill with `~/.flow/skill-overlays/<name>.md`**, the name without its plugin's prefix. `overlays.js` hands it to the agent under `# Overlay` each time the skill loads, in every project, typed or started by the agent, in a subagent too. Flow's skills and outside ones get the same mechanism, the user's call 2026-09-28.
+  - Global only, ruled by the user 2026-10-12: an addition is almost always to an outside skill and wanted in every project. A fact true for one project goes in its `CLAUDE.md`.
+- `never` **A per-project overlay, `.flow/overlays/<name>.md`**, dropped by the user 2026-10-12 for simplicity. No overlay file existed. The hook and its test are in `lab/archive/project-overlays/`.
 - `later` **An overlay for a skill a subagent preloads through `skills:`**, from a `SubagentStart` hook. Flow ships no such subagent. Approved 2026-09-28.
 - `later` **An overlay reaching a skill's `references/` pages.** The hook fires once, when `SKILL.md` loads.
 
@@ -144,12 +146,12 @@ A project's settings switching 2 skills:
 { "skills": { "react": "on", "nestjs": "off" } }
 ```
 
-An overlay, `.flow/overlays/execute.md`, reaching the agent as `/flow:execute` loads:
+An overlay, `~/.flow/skill-overlays/execute.md`, reaching the agent as `/flow:execute` loads:
 
 ```markdown
 # Overlay
 
-Run `pnpm test:unit`, never `pnpm test`: the full suite needs the staging database.
+End every review with the next ticket to take, and why.
 ```
 
 ## One real case: a project takes on a skill
@@ -157,7 +159,7 @@ Run `pnpm test:unit`, never `pnpm test`: the full suite needs the staging databa
 1. `/flow:research` finds 3 NestJS skills and reads them. One is the makers' own.
 2. The user agrees to use the makers' skill whole. `flow skills add nestjs/skills` clones it, and `flow skills on nestjs` links it into the project's `.claude/skills/`.
 3. The next session lists it. Its description loads, and the agent starts it on a NestJS file.
-4. The project writes `.flow/overlays/nestjs.md`. Every load hands it over.
+4. The user writes `~/.flow/skill-overlays/nestjs.md`. Every load, in every project, hands it over.
 5. The makers push a change. The next session start pulls it, and every project with the link reads the new version.
 
 ## How it fails

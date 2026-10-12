@@ -11,7 +11,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 - **An MCP server**: a running program that hands the agent extra tools. Configured per project in `.mcp.json`.
 - **The wiki**: `~/.flow/wiki/<subject>/`, one folder per outside tool or field, every project's: `index.md`, topic pages edited in place, downloads. `/flow:research`'s own `references/wiki.md` holds its layout. Never loads by itself: the rule file's `## Reading` sends work there.
 - **Findings**: `.flow/findings/`, one file per lesson from a project. A lesson about an outside tool or field goes to its wiki page instead.
-- **An overlay**: `.flow/overlays/<skill>.md`, a project's additions to any skill, handed over as it loads. No plugin prefix in the name.
+- **An overlay**: `~/.flow/skill-overlays/<skill>.md`, the user's additions to any skill, handed over in every project as it loads. No plugin prefix in the name.
 
 ## Everything starts on for one project
 
@@ -42,10 +42,11 @@ Install counts and stars only pick which 3 to read.
 
 **The 2 states:**
 
-- **Used whole**, the default: runs as its publisher wrote it and updates by itself. A disagreement with it:
-  - **true in one project** → an overlay, `.flow/overlays/<name>.md`, in the project
-  - **true in every project** → suggest a harvest
-- **Harvested**: never switched on. Its facts are read into wiki pages, an expertise skill's into a field folder. Suggest it only where the review finds lines the user would rewrite in every project, or the skill is mostly facts the wiki covers. Run it on a yes, by `/flow:research` → `## Harvest`.
+- **Used whole**, the default: runs as its publisher wrote it and updates by itself. A disagreement with it → an overlay, `~/.flow/skill-overlays/<name>.md`:
+  - **Additions only**: short imperative lines, one fact each, never restating the skill.
+  - **Never edit the skill's clone**: the next pull overwrites it.
+  - **A fact true for one project** → that project's `CLAUDE.md`, never an overlay.
+- **Harvested**: never switched on. Its facts are read into wiki pages, an expertise skill's into a field folder. Suggest it only where an overlay would rewrite most of the skill, or the skill is mostly facts the wiki covers. Run it on a yes, by `/flow:research` → `## Harvest`.
 
 **Never suggest harvesting a skill from the tool's own makers.**
 
