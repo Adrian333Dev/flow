@@ -68,6 +68,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 - `docs/spec/setup.md`: installing Flow on a machine, setting up a project, updating, syncing machines, restoring and uninstalling.
 - `docs/spec/tickets.md`: the ticket store, the `flow` ticket commands, the ticket skills, and the status moves each phase makes.
 - `docs/spec/skills.md`: Flow's skills and its 4 phases, how skills install and switch on, outside skills and their sources, and overlays.
+- `docs/spec/permissions.md`: what runs without asking, what asks, the guard, the dialog that asks, and the log of asks.
 - `docs/spec/rules.md`: the rule file, how a rule is written, the rule checks and the scorecard.
 - `docs/spec/knowledge-base.md`: research, the wiki of outside tools and fields, Context7, capture and findings.
 - `docs/spec/drawing.md`: `/flow:visualize`, and how a diagram is drawn and checked.
@@ -80,21 +81,13 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 12 hook scripts, registered 21 times in `home/settings.json`.
 
-- `V1` **Every shell command runs without a prompt.** `permissions.allow` holds a bare `Bash`, ruled by the user 2026-09-28: a list of allowed programs asked on half of real commands.
-- `V1` **The guard asks before 6 kinds of harm**: losing work, sending data off the machine, a deploy or cloud write, changing the machine, running outside code or writing Claude Code's or Flow's settings, and reading a secret. It never allows. A delete inside the project's `tmp/` never asks.
-- `V1` **A commit, a push and a package publish always ask**, through `permissions.ask`.
-- `V1` **`sudo`, `su`, `mkfs` and `--dangerously-skip-permissions` are denied**, through `permissions.deny`.
+- `V1` **Permissions have their own file**: what runs unasked, the guard, the dialog and the log, in `docs/spec/permissions.md`.
 - `V1` **The session hands off at 150,000 tokens.** `context-check.js` tells the agent to run `/flow:handoff` at the next checkpoint, then again every 20,000 tokens past it. The user set the limit 2026-09-27, since answers degrade past about 140,000.
 - `V1` **Flow never compacts.** A typed `/compact` is refused with `Run /flow:handoff, then /clear.`, and Claude Code's own compacting is off. A handoff keeps what the next session needs, where a summary keeps the conversation.
 - `V1` **One reminder line beside every message the user sends**, naming `## The reply` and `## Capture`. `"reminder": false` turns it off.
 - `V1` **`@` lists every file, git-ignored ones included, most recently changed first**, answered from a saved walk in about 50 ms.
 - `V1` **The session start prints one line only when something needs attention**: a stopped setup, a version behind, a git repository with no Flow, old Claude Code memory to fold in. It also makes every skill link and ticket skill match the settings, and starts the background pull and sync.
-- `never` **Auto mode**: it costs extra, its reviews fail with no verdict, and it blocks what the conversation agreed. Ruled 2026-09-28.
-- `never` **Claude Code's sandbox** in place of the guard, ruled 2026-09-28.
-- `never` **A hook approving a command whose programs are all on a list**: built and removed 2026-09-28, since every missed shape meant editing the list.
-- `never` **A timed switch letting commits and pushes run without asking**: removed by the user 2026-09-25, since Claude Code's own prompt covers it. `git log -S gitMode` finds the code, if a switch that holds even in auto mode is ever needed.
 - `never` **A typed `/compact` let through on the second try**, refused 2026-10-01: people learn to type it twice.
-- `later` **The guard checked against Dippy's and CC Safety Net's thousands of command cases**, with one sentence of threat model: the guard stops a helpful agent's accidents, never a deliberate attack.
 
 ### Subagents
 

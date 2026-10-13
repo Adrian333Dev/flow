@@ -277,14 +277,6 @@ function gitCheck({ args }, ctx) {
       return has('-f', '--force', '--discard-changes') ? losing(here, 'Force-switches branches') : null;
     case 'rm':
       return (has('--force') || short('f')) && !has('--cached') ? losing(positionals(rest), 'Force-removes files from git') : null;
-    case 'config': {
-      if (!has('--global', '--system')) return null;
-      const words = positionals(rest).map(literal);
-      const writes = has('--unset', '--unset-all', '--add', '--replace-all', '--remove-section', '--rename-section', '--edit', '-e')
-        || ['set', 'unset', 'edit', 'rename-section', 'remove-section'].includes(words[0])
-        || (!has('--get', '--get-all', '--get-regexp', '--list', '-l') && !['get', 'list'].includes(words[0]) && words.length >= 2);
-      return writes ? 'Changes your global git settings' : null;
-    }
     default:
       return null;
   }

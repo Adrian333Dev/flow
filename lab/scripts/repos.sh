@@ -106,6 +106,11 @@ skills/cc-thinking-skills              https://github.com/tjboudreaux/cc-thinkin
 
 # tools/: single tools around a session: guards, checkers, memory, replay.
 
+# Anthropic's sample mods: blast-radius holds a risky command and draws a pane
+# of what it would change, replay-theater and token-weather. Read for fw-35's
+# permission pane: claude-code/mods/blast-radius/hooks/blast-radius.mjs.
+tools/claude-code-playground           https://github.com/anthropics/claude-code-playground.git
+
 # 2 command guards. Their command test cases can test Flow's guard.
 # .flow/research/enforcement/dippy-what-flow-could-take.md,
 # .flow/research/enforcement/cc-safety-net-what-blocks-and-misses.md.

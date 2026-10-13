@@ -91,4 +91,4 @@ function database({ program, args }, cmd) {
   return null;
 }
 
-module.exports = { shared, database, hereInput, VERSION_FLAGS };
+module.exports = { shared, database, hereInput };

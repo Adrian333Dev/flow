@@ -25,9 +25,9 @@ const { unwrap, assign } = require('./unwrap');
 const { deletes, gitCheck } = require('./losing-work');
 const { network } = require('./off-machine');
 const { shared, database, hereInput } = require('./shared-systems');
-const { machine, writeTargets, protectedWrite } = require('./machine-changes');
+const { writeTargets, protectedPath, protectedWrite } = require('./machine-changes');
 const { SHELLS, downloads, readsInput, outsideCode, packageRunner } = require('./outside-code');
-const { secrets, secretWord } = require('./secrets');
+const { secrets, secretWord, shown } = require('./secrets');
 
 const child = (ctx) => ({ ...ctx, vars: new Map(ctx.vars) });
 
@@ -116,7 +116,7 @@ function judgeRun(run, cmd, ctx) {
   }
 
   const direct = outsideCode(run, cmd) || deletes(run, ctx) || (program === 'git' && gitCheck(run, ctx))
-    || network(run, ctx) || shared(run) || database(run, cmd) || machine(run, ctx) || secrets(run, ctx);
+    || network(run, ctx) || shared(run) || database(run, cmd) || secrets(run, ctx);
   if (direct) return direct;
 
   for (const w of writeTargets(run)) {
@@ -140,12 +140,11 @@ function judgeRun(run, cmd, ctx) {
   return null;
 }
 
-// A mention of one of these in a command the guard failed on still asks.
-const RISKY = /\b(rm|unlink|shred|find|xargs|git|curl|wget|dd|kubectl|terraform|ssh|scp|rsync|docker|npx)\b/;
-
 /**
  * Why `command`, run from `cwd`, needs the user's yes, or null. The project is
- * the folder Claude Code names in `CLAUDE_PROJECT_DIR`, else `cwd`.
+ * the folder Claude Code names in `CLAUDE_PROJECT_DIR`, else `cwd`. A throw
+ * other than `Unreadable` is a bug in the guard and propagates, so `guard.js`
+ * answers ask for any command.
  */
 function judge(command, cwd, world) {
   const dir = world.real(cwd);
@@ -156,8 +155,17 @@ function judge(command, cwd, world) {
     return judgeItems(parse(command), ctx);
   } catch (err) {
     if (err instanceof Unreadable) return null;
-    return RISKY.test(command) ? `The guard could not read this command (${err.message})` : null;
+    throw err;
   }
 }
 
-module.exports = { judge };
+/** Why an `Edit` or `Write` of `file`, from `cwd`, needs the user's yes, or null: it writes into a place that can switch the guard off. */
+function judgeFileWrite(file, cwd, world) {
+  const dir = world.real(cwd);
+  const root = world.real(world.env('CLAUDE_PROJECT_DIR') || dir);
+  const ctx = { root, dir, world };
+  const p = path.resolve(dir, file);
+  return protectedPath(p, shown(p, ctx), ctx);
+}
+
+module.exports = { judge, judgeFileWrite };

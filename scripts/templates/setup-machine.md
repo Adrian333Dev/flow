@@ -72,7 +72,7 @@ Flow is built and tested as one setup. [Flow's settings guide][settings] explain
 
 **Safety**
 
-- Commands that can do harm ask you first: losing work git can't give back, sending data off the machine, a deploy or a database wipe, a global install, running a downloaded script, reading a file of passwords or keys.
+- Commands that can do harm ask you first: losing work git can't give back, sending data off the machine, a deploy or a database wipe, running a downloaded script, editing the files that switch the guard off, reading a private key or a login.
 - A git commit, a git push and publishing a package ask you every time.
 - Claude can't run commands as admin or as another user, format a disk, or start a copy of itself that never asks.
 - Claude can't run `flow restore` or `flow uninstall`. Only you can.

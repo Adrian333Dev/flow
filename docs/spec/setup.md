@@ -5,7 +5,7 @@ How Flow gets onto a machine and into a project, stays current, travels to a sec
 ## Scope
 
 - **In**: `install.sh`, `flow install`, the machine's setup session and its form, `flow init` and the project's setup session, `flow update` and its session, the changelog and the version stamps, `flow sync` and the Flow home, `flow doctor`, the originals, `flow restore` and `flow uninstall`.
-- **Out**: where a project's tickets live and `flow store`, in `docs/spec/tickets.md`. Switching skills on and off, and skill sources, in `docs/spec/skills.md`. The hooks, the permissions and the session-start line, in `docs/spec/product.md` → `### Hooks and guardrails`.
+- **Out**: where a project's tickets live and `flow store`, in `docs/spec/tickets.md`. Switching skills on and off, and skill sources, in `docs/spec/skills.md`. The hooks and the session-start line, in `docs/spec/product.md` → `### Hooks and guardrails`. The permissions, in `docs/spec/permissions.md`.
 
 ## A machine, from nothing to set up
 
@@ -74,7 +74,7 @@ How Flow gets onto a machine and into a project, stays current, travels to a sec
 - `V1` **Every untick gets one second check**, naming what each costs. There is no third.
 - `V1` **`~/.claude/CLAUDE.md` is replaced whole by a link to `~/.flow/CLAUDE.md`**, the copy `flow sync` carries.
 - `V1` **A machine whose Flow home already holds `~/.flow/CLAUDE.md`** starts the 2 boxes from it, and adds only what the harvest finds new.
-- `never` **A pick-list question per setting**, `AskUserQuestion`: switching it on for one form a machine costs its schema in every request. Ruled by the user 2026-09-21.
+- `never` **A pick-list question per setting** in setup: the one form is the file the user ticks. Ruled by the user 2026-09-21, for the tool's schema in every request. The tool's deny left `home/settings.json` 2026-10-13, since the permission dialog needs the tool (`docs/spec/permissions.md`), so setup alone keeps the rule.
 - `never` **A synced skill removed because this machine can't run it**, such as `computer-use` on Linux. Setup judges a synced skill by the competitor test alone, and whether one runs here is the user's own business. Ruled by the user 2026-10-08, `fw-20`.
 - `never` **A "delete" choice for a synced plugin.** The next sync brings it back, so setup only switches one off. Dropped 2026-10-08, `fw-20`.
 - `never` **A box turning both sync settings off** (`syncClaudeAiSkills`, `syncClaudeAiPlugins`) where every synced item competes with Flow. A synced skill is judged by the competitor test alone, and one knowing a file format such as `docx` or `pdf` always stays, so the box would almost never show. Dropped 2026-10-08, `fw-20`.

@@ -137,6 +137,7 @@ End the reply with what the user types to carry on: `/clear`, then the line that
 - **A ticket mid-phase** → that phase's skill, then the ticket's: `/flow:groundwork /exp-47`, `/flow:execute /exp-47`, `/flow:debug /exp-4`, `/flow:prototype /exp-9`.
 - **A ticket with no phase running** → `/flow:start /exp-47`, which picks the phase from its type and status.
 - **A job handed to another session** → the same line, typed in a new session. This one carries on.
+- **A helper agent still running** → put `Wait for the helper's finished notice, then type:` above the lines. Claude Code's docs do not say `/clear` spares a running helper, and its change record would go with it.
 
 Add words after the line only for an instruction the ticket does not hold.
 

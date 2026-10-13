@@ -1,8 +1,9 @@
 'use strict';
 /**
- * Harm 6, reading a secret into the conversation: a private key, a cloud or
- * GitHub login, a `.env` file. Whatever a command prints lands in the
- * transcript, which goes to the model's servers.
+ * Harm 7, reading a secret into the conversation: a private key, a cloud or
+ * GitHub login. Whatever a command prints lands in the transcript, which goes
+ * to the model's servers. A `.env` file is not on the list: reading one runs
+ * unasked.
  *
  * A command naming a secret asks, unless its program only looks at the file
  * or uses it without printing it, such as `ls`, `chmod`, `ssh` or `source`.
@@ -20,8 +21,7 @@ const HOME_FILES = ['.kube/config', '.docker/config.json', '.config/gh/hosts.yml
 // Inside ~/.ssh, the files holding no secret.
 const SSH_PUBLIC = /(\.pub|^known_hosts(\.old)?|^authorized_keys|^config)$/;
 // Secret wherever they sit.
-const NAMES = new Set(['.env', '.netrc', '.git-credentials', 'id_rsa', 'id_dsa', 'id_ecdsa', 'id_ed25519']);
-const ENV_EXAMPLE = /^\.env\.(example|sample|template|dist)$/;
+const NAMES = new Set(['.netrc', '.git-credentials', 'id_rsa', 'id_dsa', 'id_ecdsa', 'id_ed25519']);
 
 // Programs that use a file without printing what it holds.
 const QUIET = new Set(['ls', 'stat', 'test', '[', 'file', 'wc', 'du', 'touch', 'chmod', 'chown', 'rm', 'unlink', 'shred',
@@ -33,8 +33,7 @@ const GIT_PRINTS = new Set(['show', 'diff', 'blame', 'log', 'grep', 'cat-file'])
 /** Whether the file at `p` holds secrets. */
 function isSecret(p, home) {
   const base = path.basename(p);
-  if (NAMES.has(base) || /^\.env[*?[]/.test(base)) return true;
-  if (base.startsWith('.env.') && !ENV_EXAMPLE.test(base)) return true;
+  if (NAMES.has(base)) return true;
   const rel = path.relative(home, p);
   if (rel.startsWith('..') || path.isAbsolute(rel)) return false;
   if (HOME_FILES.includes(rel)) return true;
@@ -75,4 +74,4 @@ function secretRead(file, cwd, world) {
   return `Reads ${shown(p, { dir: path.resolve(cwd), world })}, a file of secrets, into the conversation`;
 }
 
-module.exports = { secrets, secretWord, secretRead };
+module.exports = { secrets, secretWord, secretRead, shown };

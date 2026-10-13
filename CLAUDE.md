@@ -15,7 +15,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 
 ## Rules
 
-- **`read-the-spec-first`** Read `docs/spec/product.md` and the spec file of the part you touch before changing skills installation, the scripts or the docs tree.
+- **`read-the-spec-first`** Read `docs/spec/product.md` and the spec file of the part you touch before changing skills installation, the scripts or the docs tree. Cite a design detail from `fw-16`'s map before the spec: the spec lags the redesign until its build lands.
 - **`drain-workflow-notes`** Before choosing the next work, read `~/.flow/workflow-notes.md` and the current month of `~/.flow/logs/failures/`. File each note as a ticket through `flow new`, or join it to the ticket it repeats, then delete the note. A failure worth fixing gets a ticket the same way, and the log stays untouched.
 - **`never-suggest-file-findings`** Never offer `/flow:file-findings`, and never count the closed tickets waiting for it. End with the next ticket instead: the user runs it when they choose, and each reminder costs them a line to skip.
 - **`check-claude-code-updates`** When asked, run `bash lab/scripts/claude-code-changes.sh` and read each release against Flow. Write what touches Flow into `.flow/research/claude-code/releases-read-against-flow.md`, give each needed change a ticket, then set line 1 to the newest release read. Where Flow comes to rely on a newer release, raise `MIN_CLAUDE` in `scripts/lib/machine/prereq.js` and the README's Install line. Download again any page in `~/.flow/wiki/claude-code/downloads/pages/` whose topic a release changed.

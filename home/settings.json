@@ -10,7 +10,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "^(Bash|Read)$",
+        "matcher": "^(Edit|Write|Bash|Read)$",
         "hooks": [
           {
             "type": "command",
@@ -260,7 +260,6 @@
       "RemoteTrigger",
       "ReportFindings",
       "ScheduleWakeup",
-      "AskUserQuestion",
       "CronCreate",
       "CronDelete",
       "CronList",

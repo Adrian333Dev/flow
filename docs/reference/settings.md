@@ -192,7 +192,7 @@ The repository a project belongs to, for a project whose tickets are kept privat
 
 Hooks are scripts Claude Code runs at a fixed moment, such as before every shell command. Flow's live in `~/.flow/scripts/hooks/`:
 
-- **`guard.js`**, before every shell command and every file Claude opens: asks you before a command that could lose work, send data off the computer, or change a shared system, and before Claude reads a file of secrets. [Safety](../safety.md) lists what it asks about.
+- **`guard.js`**, before every shell command, edit, write and file read: asks you before a call that could lose work, send data off the computer, change a shared system or switch the guard off, and before Claude reads a private key or a login. [Safety](../safety.md) lists what it asks about.
 - **`changes.js`**, around every edit and command: records which helper agent changed which file. [Subagents](../subagents.md) shows a record.
 - **`rule-check.js`**, before every edit: tests the edit against your rules. [Rule checks](../rule-checks.md) covers them.
 - **`instructions-loaded.js`**, when a rule file loads: records which rules the agent has read.
@@ -224,7 +224,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 - **`allow`**: every edit, read, web fetch, web search and shell command runs without asking. The guard and the `ask` rules are what stop a harmful one.
 - **`ask`**: a commit, a push or a publish always asks, since each puts work where other people see it. Delete a line to let that command run unasked.
 - **`deny`**: never runs, in any mode:
-  - Claude Code tools Flow replaces or never uses, such as plan mode, `AskUserQuestion` and scheduled jobs. Each one left out also saves the tokens its description costs.
+  - Claude Code tools Flow replaces or never uses, such as plan mode and scheduled jobs. Each one left out also saves the tokens its description costs.
   - Reading `~/.ssh` and `~/.aws`, the folders holding your keys.
   - `sudo`, `su`, `mkfs` and `--dangerously-skip-permissions`.
   - `flow restore` and `flow uninstall`, so the agent can never take Flow off for you.

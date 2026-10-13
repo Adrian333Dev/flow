@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * guard.js: the PreToolUse hook on Bash and Read, and the one check between
- * Claude and a dangerous shell command. `lib/guard/judge.js` judges the
- * command, and this file is the wiring.
+ * guard.js: the PreToolUse hook on Edit, Write, Bash and Read, and the one
+ * check between Claude and a dangerous call. `lib/guard/judge.js` judges it,
+ * and this file is the wiring.
  *
- * Flow's settings allow every shell command. The guard reads each one before
- * it runs, and answers "ask" when it finds one of 6 kinds of harm, one file
- * each in `lib/guard/`:
+ * Flow's settings allow every shell command and every edit. The guard reads
+ * each call before it runs, and answers "ask" when it finds one of 7 kinds of
+ * harm, in `lib/guard/`:
  *
  *   1. losing work on this machine: a delete outside the project, a delete of
  *      files git cannot give back, a delete aimed at a variable, and the git
@@ -16,16 +16,20 @@
  *      another host, ssh
  *   3. touching shared systems: a deploy or cloud tool doing more than read,
  *      a database drop
- *   4. changing the machine outside the project: a global install, a
- *      scheduled job or background service, killing programs by name, a write
- *      into ~/.ssh, a shell startup file or the global git settings
- *   5. running outside code, or switching Flow off: a download run straight
- *      away, an npx of a package the project lacks, a write into ~/.claude,
- *      ~/.flow, ~/.agents or a project's .claude/settings*.json
- *   6. reading a secret into the conversation: a private key, a cloud or
- *      GitHub login, a .env file. The Read tool's reads are judged here too.
+ *   4. running outside code: a download run straight away, an npx of a
+ *      package the project lacks
+ *   5. a write into ~/.ssh
+ *   6. a write to a file that can switch the guard off: ~/.claude/settings.json
+ *      and settings.local.json, ~/.claude/plugins, ~/.claude/dev-mods,
+ *      ~/.flow/repos/flow/scripts, a project's .claude/settings*.json. An
+ *      Edit or Write is judged by this kind alone.
+ *   7. reading a secret into the conversation: a private key, a cloud or
+ *      GitHub login. The Read tool's reads are judged here too.
  *
- * Otherwise it stays silent and the command runs. It never answers "allow".
+ * Otherwise it stays silent and the call runs. It never answers "allow".
+ *
+ * It fails closed: any throw, a failed require included, answers "ask". That
+ * answer is printed without `lib/hook`, since that file may be what failed.
  *
  * It cannot see inside a script: `node -e`, `python3 -c`, or a file Claude
  * wrote and then runs. It catches the forms Claude writes, and is no wall.
@@ -35,18 +39,35 @@
  * a rule that holds everywhere belongs here.
  */
 
-const hook = require('../lib/hook');
-const { judge } = require('../lib/guard/judge');
-const { world } = require('../lib/guard/world');
-const { secretRead } = require('../lib/guard/secrets');
+function main() {
+  const hook = require('../lib/hook');
+  const { judge, judgeFileWrite } = require('../lib/guard/judge');
+  const { world } = require('../lib/guard/world');
+  const { secretRead } = require('../lib/guard/secrets');
 
-const data = hook.event();
-const input = (data && data.tool_input) || {};
-const cwd = (data && data.cwd) || process.cwd();
-let reason = null;
-if (data && data.tool_name === 'Read') {
-  if (typeof input.file_path === 'string') reason = secretRead(input.file_path, cwd, world());
-} else if (typeof input.command === 'string' && input.command.trim()) {
-  reason = judge(input.command, cwd, world());
+  const data = hook.event();
+  const input = (data && data.tool_input) || {};
+  const cwd = (data && data.cwd) || process.cwd();
+  const tool = data && data.tool_name;
+  let reason = null;
+  if (tool === 'Read') {
+    if (typeof input.file_path === 'string') reason = secretRead(input.file_path, cwd, world());
+  } else if (tool === 'Edit' || tool === 'Write') {
+    if (typeof input.file_path === 'string') reason = judgeFileWrite(input.file_path, cwd, world());
+  } else if (typeof input.command === 'string' && input.command.trim()) {
+    reason = judge(input.command, cwd, world());
+  }
+  if (reason) hook.answer('PreToolUse', { permissionDecision: 'ask', permissionDecisionReason: reason });
 }
-if (reason) hook.answer('PreToolUse', { permissionDecision: 'ask', permissionDecisionReason: reason });
+
+try {
+  main();
+} catch {
+  process.stdout.write(`${JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'ask',
+      permissionDecisionReason: 'The guard failed, so this command asks first.',
+    },
+  })}\n`);
+}

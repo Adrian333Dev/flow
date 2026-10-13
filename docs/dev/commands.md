@@ -6,7 +6,7 @@
 
 - [The shape](#the-shape): where the command, the ids and the flags go
 - [One default noun](#one-default-noun): why tickets have no group name
-- [The kinds of command](#the-kinds-of-command): board, one ticket, groups, setup, rule checks
+- [The types of command](#the-types-of-command): board, one ticket, groups, setup, rule checks
 - [Hidden from help](#hidden-from-help): the command and flags only the agent and the tests use
 - [The actions](#the-actions): `new`, `ls`, `get`, `edit`, `drop`, switches and defaults
 - [Status verbs](#status-verbs): one command per status
@@ -36,7 +36,7 @@ Tickets are never named in a command: `flow ls`, `flow new "…"`, `flow build e
 
 **Exactly one stored thing goes unnamed: the most typed.** A second unnamed noun would collide the moment both wanted `ls`.
 
-## The kinds of command
+## The types of command
 
 - **The board**: `next`, `check`, `ls`, `tree`. Each answers a question about the work as a whole. `next` is the session opener: `/flow:start` runs it.
 - **One ticket**: `<id>`, `handoff`, `new`, `edit`, `file`, `drop`, `move`, and the status verbs. Each names a ticket and acts on it.

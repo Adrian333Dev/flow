@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Harm 5, running outside code: a download run straight away, and an npx of
+ * Harm 4, running outside code: a download run straight away, and an npx of
  * a package the project lacks.
  */
 
