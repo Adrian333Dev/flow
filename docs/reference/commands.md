@@ -49,6 +49,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow audit summary`](#flow-audit-summary): a few lines of totals
   - [`flow audit timeline`](#flow-audit-timeline): every tool call in order
   - [`flow audit context`](#flow-audit-context): how full the context was at each request
+  - [`flow audit permissions`](#flow-audit-permissions): the permission questions, counted
   - [`flow audit sql`](#flow-audit-sql): any other question, in SQL
   - [`flow audit schema`](#flow-audit-schema): every table and its columns
   - [`flow audit keep`](#flow-audit-keep): save a session before Claude Code deletes it
@@ -865,6 +866,42 @@ peak: 61.0k · 6 requests
 ```
 
 - **`--limit <n>`**: at most `n` requests. 200 by default.
+
+### `flow audit permissions`
+
+`flow audit permissions [id]`: count the permission questions Flow asked you, by where each came from and by what it said. A normal ticket build asks nothing except before a commit, a push or a publish, so the last section lists every other ask. Each of those is a rule to narrow.
+
+This reads the permission log in `~/.flow/logs/permissions/`, never the index, so `flow audit index` is not needed first. A line that does not parse is skipped and counted. A missing log is an error, since `0 asks` there would read as a pass.
+
+```console
+$ flow audit permissions
+permission log: 3 lines, 0 skipped (did not parse)
+2 asks · 1 auto-allowed
+
+BY SOURCE
+SOURCE  ASKS  AUTO-ALLOWED
+guard   1     0
+rule    1     0
+core    0     1
+
+BY HEADLINE
+ASKS  AUTO  HEADLINE
+1     0     Pushes 3 commits to origin/main
+1     0     Writes into ~/.claude/settings.json, which could switch the guard off
+0     1     Writes .claude/skills/x/SKILL.md
+
+THE TARGET: asks other than commit, push and publish
+1 ask outside the list:
+AT                PROJECT  SOURCE  ANSWER  HEADLINE
+2026-10-13 09:31  shop     guard   refuse  Writes into ~/.claude/settings.json, which could switch the guard off
+```
+
+`guard` is an ask from Flow's guard, `rule` one from a `permissions.ask` rule, and `core` one Claude Code raises on its own. An auto-allowed line is a core ask on a protected path that Flow allowed without a question, so it is counted apart. `AT` is UTC.
+
+- **`[id]`**: one session, by the start of its id.
+- **`--project <name>`**: one project's asks.
+- **`--since <date>`**, **`--until <date>`**: from and to a date, both included, such as `2026-10-13`.
+- **`--limit <n>`**: at most `n` headlines, and `n` asks outside the list. 20 by default.
 
 ### `flow audit sql`
 

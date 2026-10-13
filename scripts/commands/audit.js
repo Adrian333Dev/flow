@@ -14,11 +14,13 @@
  *   flow audit context <id>                 the context size at each request
  *   flow audit ls|sql                       counts, costs, open queries
  *   flow audit read <id> --turns 412-460    the conversation, bounded
+ *   flow audit permissions [id]             the permission asks, counted
  *
  * Nothing is recorded by Flow. `~/.claude/projects/<project>/<session>.jsonl`
  * is written by Claude Code whether Flow is installed or not, and every
  * command here only reads it. The index is derived and rebuildable: delete it
- * and `flow audit index` writes it again.
+ * and `flow audit index` writes it again. `permissions` alone skips the index
+ * and reads the log Flow's mod keeps in `~/.flow/logs/permissions/`.
  *
  * It works with no ticket and outside any project. A run (the piece of work a
  * ticket names) is optional everywhere, which is what makes that true.
@@ -31,6 +33,7 @@ const store = require('../lib/audit/database');
 const scan = require('../lib/audit/scan');
 const query = require('../lib/audit/query');
 const reader = require('../lib/audit/read');
+const permissions = require('../lib/audit/permissions');
 const { out } = require('../lib/cli');
 const { FlowError } = require('../lib/error');
 
@@ -193,6 +196,27 @@ actions.context = {
   run({ positional, usage, flags }) {
     out(query.context(opened(true), one(positional, usage, 'session id'), {
       limit: Number(flags.limit || 200),
+    }));
+    return 0;
+  },
+};
+
+actions.permissions = {
+  args: '[id]',
+  summary: 'the permission asks, counted by source and headline',
+  flags: {
+    project: { arg: '<name>' },
+    since: { arg: '<date>' },
+    until: { arg: '<date>' },
+    limit: { arg: '<n>' },
+  },
+  run({ positional, flags, usage }) {
+    out(permissions.view({
+      id: one(positional, usage, 'session id') || null,
+      project: flags.project || null,
+      since: flags.since || null,
+      until: flags.until || null,
+      limit: Number(flags.limit || 20),
     }));
     return 0;
   },

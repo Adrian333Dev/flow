@@ -41,7 +41,7 @@ When you first open the repository, the split that matters has 4 parts:
   - `skills/`: the skill links, the skill repositories, and their updates.
   - `logs/`: the one file per month every log under `~/.flow/logs/` uses, and which failed calls count.
   - `checks/`: the rule checks and their scorecard.
-  - `audit/`: Claude Code's transcripts, read into the index `flow audit` answers from.
+  - `audit/`: Claude Code's transcripts, read into the index `flow audit` answers from, and `permissions.js`, which counts the permission log without the index.
   - `guard/`: the guard's judgment. `world.js` alone reads the disk, git and the environment. Every other file there turns a command into a decision.
   - `setup.js` holds the setup sessions `flow install`, `flow init` and `flow update` open. `paths.js` finds every Flow folder, `project.js` the project around a folder, `git.js` runs git and `gh`, and `hook.js` reads a hook's event and writes its answer.
 - `hooks/` holds one file per hook Claude Code runs. Each reads the event, calls `lib/`, and writes the answer:
