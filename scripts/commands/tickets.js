@@ -40,6 +40,35 @@ function loadHome() {
 
 const rel = (root, p) => path.relative(root, p) || p;
 
+/** The labels a `--label a,b` value names. Any name is free; one that cannot be written plainly is refused. */
+function labelsFrom(value) {
+  const labels = store.toLabelList(value);
+  for (const label of labels) {
+    const bad = store.badLabel(label);
+    if (bad) throw new FlowError(bad);
+  }
+  return labels;
+}
+
+/**
+ * A child's line in its parent's `## Tasks` follows the child's status: ticked
+ * when the child reaches `done`, cleared when a `done` child is reopened.
+ * Returns the line to print, or null where there is nothing to say.
+ */
+function followInParent(t, tickets, from, status) {
+  const closing = status === 'done';
+  if (!t.data.parent || (!closing && from !== 'done')) return null;
+  const parent = tickets.find((x) => x.id === t.data.parent);
+  if (!parent) return null;
+
+  const result = store.tickTask(parent, t.id, closing);
+  if (result === 'changed') {
+    store.writeTicket(parent);
+    return `${closing ? 'ticked' : 'cleared'} in ${parent.id}'s ## Tasks`;
+  }
+  return result === 'missing' && closing ? `${parent.id} has no line for ${t.id} in its ## Tasks` : null;
+}
+
 /**
  * `flow exp-47` and `flow get exp-47` both land on the same lookup. The first
  * got here because `exp-47` matched no command, which means a mistyped
@@ -88,11 +117,16 @@ function locate(ref, unnamed) {
 /**
  * The one place a status is written. Every verb goes through it.
  *
- * Guards are keyed to where the ticket is coming from, never to where it is
- * going: a ticket leaving `todo` or `parked` is being picked up, so it meets
- * both refusals whatever it moves to.
+ * Guards are keyed to where the ticket is coming from and what it moves into:
+ * a ticket leaving `todo` or `parked` for `in-progress` or `done` is being
+ * picked up, so it meets both refusals. A move between `todo` and `parked`
+ * starts nothing, so it meets neither: parking a blocked ticket is the point
+ * of parking.
+ *
+ * `batch` is a move inside a larger one (a label parked whole): the caller
+ * commits and sends once, so the move prints its own line and nothing else.
  */
-function transition(t, tickets, root, status, { force, reason, verb }) {
+function transition(t, tickets, root, status, { force, reason, verb, batch }) {
   const from = t.data.status;
   if (from === status) {
     out(`${t.id} is already ${status}.`);
@@ -106,7 +140,7 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
     );
   }
 
-  const entering = from === 'todo' || from === 'parked';
+  const entering = (from === 'todo' || from === 'parked') && status !== 'todo' && status !== 'parked';
 
   // Starting a blocked ticket refuses rather than warns. A warning is a line of
   // text an agent reads past; a non-zero exit is the thing it cannot ignore.
@@ -146,14 +180,19 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
   const revived = from === 'parked' && t.data.reason;
 
   const { moved } = store.setStatus(t, status, reason || '');
+  const inParent = followInParent(t, tickets, from, status);
   // A status move is a checkpoint: saved on the `flow` branch now, and sent
   // in the background, so the move never waits on the network.
-  records.commit(root, `${t.id}: ${from} → ${status}`);
-  records.syncLater(root);
+  if (!batch) {
+    records.commit(root, `${t.id}: ${from} → ${status}`);
+    records.syncLater(root);
+  }
   out(`${t.id}  ${from} → ${status}   ${t.data.title}`);
-  if (t.data.reason) out(`      reason: ${t.data.reason}`);
+  if (t.data.reason && !batch) out(`      reason: ${t.data.reason}`);
   if (moved) out(`      moved → ${rel(root, moved.to)}`);
-  if (revived) out(`      revived, cleared reason: ${revived}`);
+  if (revived && !batch) out(`      revived, cleared reason: ${revived}`);
+  if (inParent) out(`      ${inParent}`);
+  if (batch) return 0;
 
   if (unmet.length) {
     out('\nforced past unsatisfied deps:');
@@ -179,6 +218,47 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
   return 0;
 }
 
+/**
+ * Moves every ticket carrying `label` that `pick` selects, with one commit and
+ * one send: a set put off together is one act, and a commit per ticket would
+ * bury the log. A ticket whose move refuses stays where it was, and the rest
+ * go on. A label no ticket carries is no error, since labels are free: the
+ * labels in use are listed, so a typo shows.
+ */
+function moveLabelled(label, { pick, targetOf, reason, verb, noun, none }) {
+  const { root, tickets } = load();
+  const name = String(label).trim().toLowerCase();
+  const picked = tickets.filter((t) => t.data.labels.includes(name) && pick(t));
+  if (!picked.length) {
+    const used = [...new Set(tickets.flatMap((t) => t.data.labels))].sort();
+    out(`${none(name)}${used.length ? ` Labels in use: ${used.join(', ')}.` : ''}`);
+    return 0;
+  }
+
+  const refused = [];
+  for (const t of picked) {
+    try {
+      transition(t, tickets, root, targetOf(t), { reason, verb: `flow ${verb} ${t.id}`, batch: true });
+    } catch (e) {
+      if (!(e instanceof FlowError)) throw e;
+      refused.push(`  ${t.id}  ${e.message.split('\n')[0]}`);
+    }
+  }
+
+  const moved = picked.length - refused.length;
+  const count = `${moved} ticket${moved === 1 ? '' : 's'}`;
+  if (moved) {
+    records.commit(root, `label ${name}: ${noun} ${count}`);
+    records.syncLater(root);
+  }
+  out(`\n${noun} ${count} labelled ${name}${reason ? `: ${reason}` : ''}`);
+  if (refused.length) {
+    out(`\nrefused (${refused.length}):`);
+    for (const r of refused) out(r);
+  }
+  return refused.length ? 1 : 0;
+}
+
 // ---------------------------------------------------------------- the board
 
 const actions = {};
@@ -190,6 +270,7 @@ actions.ls = {
     status: { values: statuses.NAMES, arg: '<status>' },
     type: { values: store.TICKET_TYPES, arg: '<type>' },
     parent: { arg: '<id>' },
+    label: { arg: '<label>' },
     unfiled: { bool: true },
   },
   run({ flags }) {
@@ -198,6 +279,7 @@ actions.ls = {
 
     if (flags.status) list = list.filter((t) => t.data.status === flags.status);
     if (flags.type) list = list.filter((t) => t.data.type === flags.type);
+    if (flags.label) list = list.filter((t) => t.data.labels.includes(flags.label.toLowerCase()));
     if (flags.parent) {
       const parent = store.requireId(flags.parent, tickets.prefix);
       list = list.filter((t) => t.data.parent === parent);
@@ -347,7 +429,7 @@ actions.new = {
     priority: { values: store.TICKET_PRIORITIES, arg: '<level>' },
     parent: { arg: '<id>' },
     deps: { arg: '<id,id>' },
-    label: { arg: '<1-3 words>' },
+    label: { arg: '<label,label>' },
     body: { arg: '<text|->' },
   },
   run({ positional, flags, usage }) {
@@ -355,6 +437,7 @@ actions.new = {
     if (!title) throw new FlowError(`usage: ${usage} "<title>"`);
 
     const body = readBody(flags);
+    const labels = labelsFrom(flags.label);
     const root = projectRoot();
     // The newest numbers first, so this ticket takes one nobody has pushed.
     // A number is only ever given out where the remote agreed to it, so a
@@ -376,8 +459,8 @@ actions.new = {
     }
 
     let t = store.createTicket(root, {
-      title, type: flags.type || 'feature', priority: flags.priority || '',
-      parent, deps, tickets, body, label: flags.label,
+      title, type: flags.type || 'feature', priority: flags.priority || '', labels,
+      parent, deps, tickets, body,
     });
 
     // Pushed before the id is shown, so nobody ever sees a number change. A
@@ -392,8 +475,8 @@ actions.new = {
 
     out(`created ${t.id}  ${t.data.title}`);
     out(`        ${rel(root, t.file)}`);
-    out(`        ${rel(root, path.join(t.dir, 'groundwork', 'map.md'))}`);
     if (t.data.priority) out(`        priority: ${t.data.priority}`);
+    if (labels.length) out(`        labels: ${labels.join(', ')}`);
     if (parent) out(`        parent: ${parent}`);
     if (deps.length) out(`        deps: ${deps.join(', ')}`);
     out(`\npick up with: flow start ${t.id}`);
@@ -412,7 +495,7 @@ actions.edit = {
   summary: 'change a field',
   flags: {
     title: { arg: '"<title>"' },
-    label: { arg: '<1-3 words>' },
+    label: { arg: '<label,label>' },
     type: { values: store.TICKET_TYPES, arg: '<type>' },
     priority: { values: store.TICKET_PRIORITIES, arg: '<level>' },
     parent: { arg: '<id>' },
@@ -464,10 +547,11 @@ actions.edit = {
       t.data.deps = deps;
     }
 
-    let renamed = null;
     if (flags.label !== undefined) {
-      renamed = store.relabel(t, flags.label);
-      changes.push(`label: ${renamed.from} → ${renamed.to}`);
+      // The whole list, the way `--deps` takes it. Empty clears it.
+      const labels = labelsFrom(flags.label);
+      changes.push(`labels: [${t.data.labels.join(', ')}] → [${labels.join(', ')}]`);
+      t.data.labels = labels;
     }
 
     if (!changes.length) {
@@ -480,7 +564,6 @@ actions.edit = {
     store.writeTicket(t);
     records.commit(root, `${t.id}: ${changes.join('; ')}`);
     out(`${t.id}\n  ${changes.join('\n  ')}`);
-    if (renamed) out(`\nfolder → ${rel(root, t.dir)}`);
     return 0;
   },
 };
@@ -724,15 +807,27 @@ for (const s of statuses.VERBS) {
   const needsReason = statuses.NEEDS_REASON.has(s.name);
   actions[s.verb] = {
     section: 'status',
-    args: '<id>',
-    summary: statuses.DOES[s.verb],
+    args: s.name === 'parked' ? '[<id>]' : '<id>',
+    summary: s.name === 'parked' ? `${statuses.DOES[s.verb]}; --label parks every open ticket with it` : statuses.DOES[s.verb],
     flags: {
+      ...(s.name === 'parked' ? { label: { arg: '<label>' } } : {}),
       ...(needsReason
         ? { reason: { required: true, arg: '"<why>"', missing: `${s.verb}ing needs a reason: in six months it is the only thing that explains the ticket.` } }
         : {}),
       force: { bool: true },
     },
     run({ positional, flags, usage }) {
+      if (s.name === 'parked' && flags.label) {
+        if (positional.length) throw new FlowError('give a ticket id or --label, not both.');
+        return moveLabelled(flags.label, {
+          pick: (t) => statuses.OPEN.has(t.data.status) && t.data.status !== 'parked',
+          targetOf: () => 'parked',
+          reason: String(flags.reason).trim(),
+          verb: 'park',
+          noun: 'parked',
+          none: (name) => `no open ticket carries ${name}.`,
+        });
+      }
       if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
       const { root, tickets, t } = locate(positional[0]);
       return transition(t, tickets, root, s.name, {
@@ -743,6 +838,26 @@ for (const s of statuses.VERBS) {
     },
   };
 }
+
+/**
+ * The pair to `park --label`: every parked ticket carrying the label goes back
+ * to the status it left, which `park` stored as `resume`.
+ */
+actions.revive = {
+  section: 'status',
+  summary: 'bring back every parked ticket with a label, each to where it stopped',
+  flags: { label: { required: true, arg: '<label>' } },
+  run({ flags }) {
+    return moveLabelled(flags.label, {
+      pick: (t) => t.data.status === 'parked',
+      targetOf: (t) => (t.data.resume === 'in-progress' ? 'in-progress' : 'todo'),
+      reason: '',
+      verb: 'revive',
+      noun: 'revived',
+      none: (name) => `no parked ticket carries ${name}.`,
+    });
+  },
+};
 
 // ---------------------------------------------------------------- ticket skills
 
@@ -767,7 +882,7 @@ function syncSkills() {
   }
 }
 
-const WRITES = ['new', 'edit', 'file', 'drop', 'move', ...statuses.VERBS.map((s) => s.verb)];
+const WRITES = ['new', 'edit', 'file', 'drop', 'move', 'revive', ...statuses.VERBS.map((s) => s.verb)];
 for (const name of WRITES) {
   const run = actions[name].run;
   actions[name].run = (call) => {

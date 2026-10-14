@@ -26,7 +26,7 @@ const paths = require('../paths');
 // `was` is the id a ticket held before `flow move` took it to another place,
 // or before a clash renumbered it, so the old id still finds it. `branch` is
 // the code branch the work is built on, written once: see ticket-history.js.
-const TICKET_KEYS = ['id', 'was', 'title', 'status', 'type', 'priority', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
+const TICKET_KEYS = ['id', 'was', 'title', 'status', 'type', 'priority', 'labels', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
 
 // `topic` is a ticket whose deliverable is a settled answer rather than code.
 // It was called `research` until the name collided with the `research` skill,
@@ -39,6 +39,22 @@ const TICKET_TYPES = ['feature', 'issue', 'chore', 'topic', 'prototype'];
 // `high` stops meaning anything a year in. Nothing sets it but the user asking.
 const TICKET_PRIORITIES = ['high', 'normal', 'low'];
 const STORED_PRIORITIES = ['high', 'low'];
+
+// `labels` are free tags, several per ticket: `v1`, `post-v1`, `urgent`. Any
+// name that fits the pattern is allowed, and no label changes what Flow does.
+// The pattern keeps the inline list in the frontmatter safe: no comma, no space.
+const LABEL = /^[a-z0-9][a-z0-9-]{0,23}$/;
+
+/** A `labels` value as a list: an array, or a comma-separated string. */
+function toLabelList(v) {
+  if (v === undefined || v === null || v === '') return [];
+  const raw = Array.isArray(v) ? v : String(v).split(',');
+  return [...new Set(raw.map((x) => String(x).trim()).filter(Boolean))];
+}
+
+/** The refusal for a label that cannot be one, or null. */
+const badLabel = (label) =>
+  LABEL.test(label) ? null : `"${label}" cannot be a label: use lowercase letters, digits and hyphens, 24 characters at most.`;
 
 /** Anything that is not a stored value (including `normal`) means unset. */
 const toPriority = (v) => {
@@ -241,27 +257,6 @@ function labelize(text) {
 /** The label part of a folder name, with the id stripped off. */
 const labelOf = (t) => t.dirName.slice(t.id.length).replace(/^-/, '');
 
-/**
- * Renames the folder, and only the folder. Nothing stores a label: `deps` and
- * `parent` hold bare ids, so a rename has no references to chase and cannot
- * strand one.
- */
-function relabel(t, given) {
-  const from = labelOf(t);
-  const to = labelize(given);
-  if (to === from) return { from, to };
-
-  const dirName = `${t.id}-${to}`;
-  const wanted = path.join(path.dirname(t.dir), dirName);
-  if (fs.existsSync(wanted)) throw new FlowError(`${wanted} already exists.`);
-
-  fs.renameSync(t.dir, wanted);
-  t.dir = wanted;
-  t.dirName = dirName;
-  t.file = path.join(wanted, 'ticket.md');
-  return { from, to };
-}
-
 function toIdList(v, prefix) {
   if (v === undefined || v === null || v === '') return [];
   const raw = Array.isArray(v) ? v : String(v).split(',');
@@ -307,6 +302,7 @@ function scanTicketDir(dir, root, prefix, out) {
     data.status = data.status || 'todo';
     data.type = data.type || 'feature';
     data.priority = toPriority(data.priority);
+    data.labels = toLabelList(data.labels).map((l) => l.toLowerCase());
     data.title = data.title || entry.name;
     data.reason = data.reason ? String(data.reason).trim() : '';
     data.closed = data.closed ? String(data.closed).trim() : '';
@@ -491,9 +487,9 @@ function readHistory(t) {
  * `tickets` is passed in when the caller already read the pool: at a few
  * thousand tickets a second scan is the most expensive thing a command does.
  */
-function createTicket(root, { title, type, priority, parent, deps, tickets, body: given, label }) {
+function createTicket(root, { title, type, priority, labels, parent, deps, tickets, body: given }) {
   const id = nextId(tickets || readTickets(root), prefixOf(root));
-  const slug = labelize(label || title);
+  const slug = labelize(title);
   const dir = path.join(ticketsDir(root), `${id}-${slug}`);
   if (fs.existsSync(dir)) throw new FlowError(`${dir} already exists.`);
 
@@ -504,6 +500,7 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
     status: 'todo',
     type: type || 'feature',
     priority: toPriority(priority),
+    labels: labels || [],
     branch: '',
     parent: parent || '',
     deps: deps || [],
@@ -519,16 +516,6 @@ function createTicket(root, { title, type, priority, parent, deps, tickets, body
   const file = path.join(dir, 'ticket.md');
   fs.writeFileSync(file, frontmatter.stringify(data, TICKET_KEYS, body));
   countNumber(root, id);
-
-  // `groundwork/` exists from birth, always. You cannot know at the start
-  // whether groundwork will split a ticket, so its location must never
-  // depend on that outcome, and a ticket's path is fixed for life.
-  const groundworkDir = path.join(dir, 'groundwork');
-  fs.mkdirSync(groundworkDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(groundworkDir, 'map.md'),
-    renderTemplate('map.md', { id, title: data.title })
-  );
 
   return { id, dirName: `${id}-${slug}`, dir, file, data, body, root };
 }
@@ -595,11 +582,56 @@ function mapQuestions(t) {
  * `groundwork/` it appears on first write, because a report's location never
  * moves: it just may not exist.
  */
-const reportFiles = (t) => {
-  const dir = path.join(t.dir, 'reports');
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort();
+const mdFiles = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort() : []);
+const reportFiles = (t) => mdFiles(path.join(t.dir, 'reports'));
+
+/** Decision files beside `ticket.md`, once the decisions outgrow it: `decisions/<subject>.md`. */
+const decisionFiles = (t) => mdFiles(path.join(t.dir, 'decisions'));
+
+/** The text under `## <heading>` up to the next `##` heading, or null where the ticket has none. */
+function section(body, heading) {
+  const lines = String(body).split('\n');
+  const start = lines.findIndex((l) => l.trim() === `## ${heading}`);
+  if (start === -1) return null;
+  const rest = lines.slice(start + 1);
+  const end = rest.findIndex((l) => /^## /.test(l));
+  return (end === -1 ? rest : rest.slice(0, end)).join('\n');
+}
+
+const countSection = (t, heading, pattern) => {
+  const text = section(t.body, heading);
+  return text === null ? null : countBoxes(text, pattern);
 };
+
+/** The ticket's own `## Questions`, counted at every indent as the map was. */
+const questionCount = (t) => countSection(t, 'Questions', QUESTION);
+
+/** The ticket's own `## Tasks`: steps at the left margin, never the sub-checks under them. */
+const taskCount = (t) => countSection(t, 'Tasks', STEP);
+
+/**
+ * Ticks, or clears, the line in `parent`'s `## Tasks` that starts with the
+ * child's id: `- [ ] fw-127: …`. A line that only mentions the id further along
+ * belongs to another child. Changes `parent.body` and returns 'changed',
+ * 'same' where the box already matched, or 'missing' where no line starts with
+ * the id.
+ */
+function tickTask(parent, childId, done) {
+  const lines = parent.body.split('\n');
+  const start = lines.findIndex((l) => l.trim() === '## Tasks');
+  if (start === -1) return 'missing';
+
+  const line = new RegExp(`^(\\s*(?:[-*]|\\d+[.)])\\s+\\[)([ xX])(\\]\\s+[*\`]*${childId}(?![\\w-]))`);
+  for (let i = start + 1; i < lines.length && !/^## /.test(lines[i]); i++) {
+    const m = lines[i].match(line);
+    if (!m) continue;
+    if ((m[2] !== ' ') === done) return 'same';
+    lines[i] = lines[i].replace(line, `$1${done ? 'x' : ' '}$3`);
+    parent.body = lines.join('\n');
+    return 'changed';
+  }
+  return 'missing';
+}
 
 /**
  * Resolves an id (exp-47, 47), an id the ticket held before it moved, a
@@ -646,9 +678,9 @@ function renderTemplate(name, vars) {
 module.exports = {
   TICKET_KEYS, TICKET_TYPES, TICKET_PRIORITIES, HOME_WORD,
   recordsDir, isHome, homeRoot, ticketsDir, archiveDir, offerWord, badWord, prefixOf, wordOf, idOfFolder,
-  normalizeId, idNumber, requireId, slugify, labelize, labelOf, relabel, toIdList, toPriority, today, now,
+  normalizeId, idNumber, requireId, slugify, labelize, labelOf, toIdList, toLabelList, badLabel, toPriority, today, now,
   COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,
   historyFile, appendHistory, readHistory,
-  hasPlan, planSteps, hasMap, mapQuestions, reportFiles,
+  hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, questionCount, taskCount, tickTask,
   renderTemplate, // cases.js borrows this, slugify and today; nothing else is shared
 };

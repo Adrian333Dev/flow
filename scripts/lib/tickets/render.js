@@ -139,6 +139,7 @@ function show(ticket, tickets, root) {
     // The one place inheritance is spelled out, so "which ticket do I edit to
     // change this" has an answer somewhere. The daily lists stay uncluttered.
     `priority:   ${priorityLine(ticket, index)}`,
+    ticket.data.labels.length ? `labels:     ${ticket.data.labels.join(', ')}` : null,
     ticket.data.reason ? `reason:     ${ticket.data.reason}` : null,
     ticket.data.status === 'parked' ? `resumes at: ${ticket.data.resume || '?'}` : null,
     `deps:       ${deps.length ? deps.join(', ') : '-'}`,
@@ -146,8 +147,11 @@ function show(ticket, tickets, root) {
     kids.length
       ? `children:   ${progressOf(ticket, tickets)} done, ${kids.map((k) => `${k.id} (${k.data.status})`).join(', ')}`
       : null,
+    questionsLine(ticket),
+    tasksLine(ticket),
     mapLine(ticket),
     planLine(ticket),
+    decisionsLine(ticket),
     reportsLine(ticket),
     ticket.data.closed ? `closed:     ${ticket.data.closed}` : null,
     ticket.data.filed ? `filed:      ${ticket.data.filed}` : null,
@@ -213,6 +217,22 @@ const planLine = (ticket) => {
 const reportsLine = (ticket) => {
   const files = store.reportFiles(ticket);
   return files.length ? `reports:    ${files.map((f) => `reports/${f}`).join(', ')}` : null;
+};
+
+/** The ticket's own lists, counted from `ticket.md`. The map and plan lines above stay for tickets made before the one-file shape. */
+const questionsLine = (ticket) => {
+  const q = store.questionCount(ticket);
+  return q ? `questions:  ${q.done}/${q.total} answered` : null;
+};
+
+const tasksLine = (ticket) => {
+  const tasks = store.taskCount(ticket);
+  return tasks ? `tasks:      ${tasks.done}/${tasks.total} done` : null;
+};
+
+const decisionsLine = (ticket) => {
+  const files = store.decisionFiles(ticket);
+  return files.length ? `decisions:  ${files.map((f) => `decisions/${f}`).join(', ')}` : null;
 };
 
 function priorityLine(ticket, index) {

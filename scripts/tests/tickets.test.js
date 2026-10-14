@@ -29,7 +29,7 @@ const ticketFile = (dir, id) => {
   return null;
 };
 
-test('flow new with type, priority, label, and parent', () => {
+test('flow new with type, priority, labels, and parent', () => {
   const dir = project('tickets-new-flags');
 
   const r1 = flow(dir, ['new', 'Set up CI', '--type', 'chore', '--priority', 'high']);
@@ -38,12 +38,13 @@ test('flow new with type, priority, label, and parent', () => {
   assert.strictEqual(t1.data.type, 'chore');
   assert.strictEqual(t1.data.priority, 'high');
 
-  const r2 = flow(dir, ['new', 'Lint config', '--parent', t1.id, '--label', 'lint']);
+  const r2 = flow(dir, ['new', 'Lint config', '--parent', t1.id, '--label', 'lint,post-v1']);
   assert.strictEqual(r2.code, 0, r2.stderr);
   const all = ticket(dir);
   const child = all.find((t) => t.id !== t1.id);
   assert.strictEqual(child.data.parent, t1.id);
-  assert.ok(child.folder.includes('lint'), `folder "${child.folder}" should contain "lint"`);
+  assert.deepStrictEqual(child.data.labels, ['lint', 'post-v1']);
+  assert.ok(child.folder.includes('lint-config'), `folder "${child.folder}" is named from the title`);
 });
 
 test('flow new with --body sets the ticket body', () => {
@@ -127,7 +128,7 @@ test('a folder on another disk is copied across, then deleted', () => {
   assert.match(fs.readFileSync(path.join(to, 'ticket.md'), 'utf8'), /Parser/);
 });
 
-test('flow edit changes title, type, priority, and label', () => {
+test('flow edit changes title, type, priority, and labels', () => {
   const dir = project('tickets-edit');
 
   flow(dir, ['new', 'Old title', '--type', 'feature', '--priority', 'high']);
@@ -139,10 +140,15 @@ test('flow edit changes title, type, priority, and label', () => {
   assert.strictEqual(edited.data.type, 'chore');
   assert.strictEqual(edited.data.priority, 'low');
 
-  const r = flow(dir, ['edit', t.id, '--label', 'renamed']);
+  const labelsOf = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data.labels || [];
+  const r = flow(dir, ['edit', t.id, '--label', 'ui,api']);
   assert.strictEqual(r.code, 0, r.stderr);
-  const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  assert.ok(folders.some((f) => f.includes('renamed')), `a folder should contain "renamed": ${folders}`);
+  assert.deepStrictEqual(labelsOf(), ['ui', 'api']);
+
+  flow(dir, ['edit', t.id, '--label', 'api']);
+  assert.deepStrictEqual(labelsOf(), ['api'], 'the list is replaced, never added to');
+  flow(dir, ['edit', t.id, '--label', '']);
+  assert.deepStrictEqual(labelsOf(), []);
 });
 
 test('flow edit --parent detects and refuses a cycle', () => {
@@ -442,19 +448,17 @@ test('flow get needs an id: the board is flow next', () => {
   assert.match(r.stderr, /takes a ticket id.*The board is flow next/);
 });
 
-test('flow <id> counts the map questions, and an untouched map has none', () => {
+test('flow <id> still counts the questions of an old ticket\'s map', () => {
   const dir = project('tickets-map-count');
 
   const created = flow(dir, ['new', 'Split the parser']);
   assert.strictEqual(created.code, 0, created.stderr);
   const [t] = ticket(dir);
 
-  // The template ships its example inside an HTML comment. A ticket nobody has
-  // opened has no answered questions and no unanswered ones either, so the line
-  // stays away rather than reading 1/4.
+  // A new ticket holds no map, so the line stays away until an old one has it.
   const fresh = flow(dir, ['get', t.id]);
   assert.strictEqual(fresh.code, 0, fresh.stderr);
-  assert.doesNotMatch(fresh.stdout, /^map:/m, 'an untouched map is not a count');
+  assert.doesNotMatch(fresh.stdout, /^map:/m, 'no map is no count');
 
   write(dir, `.flow/tickets/${t.folder}/groundwork/map.md`, [
     '# Split the parser: groundwork',
@@ -469,4 +473,121 @@ test('flow <id> counts the map questions, and an untouched map has none', () => 
   const worked = flow(dir, ['get', t.id]);
   assert.strictEqual(worked.code, 0, worked.stderr);
   assert.match(worked.stdout, /^map: +groundwork\/map\.md +2\/4 answered$/m);
+});
+
+test('a new ticket is one file', () => {
+  const dir = project('tickets-one-file');
+
+  const r = flow(dir, ['new', 'Split the parser']);
+  assert.strictEqual(r.code, 0, r.stderr);
+  const [t] = ticket(dir);
+  assert.deepStrictEqual(fs.readdirSync(path.join(dir, '.flow', 'tickets', t.folder)), ['ticket.md']);
+  assert.doesNotMatch(r.stdout, /map\.md/);
+});
+
+test('flow <id> counts ## Questions and ## Tasks, and lists decisions/', () => {
+  const dir = project('tickets-lists');
+  const body = [
+    'What it is for.', '',
+    '## Questions', '',
+    '- [x] 0: Where does the seam go?',
+    '  - [ ] 0.0: what about the error positions?',
+    '<!-- - [ ] an example inside a comment -->', '',
+    '## Tasks', '',
+    '1. [x] **Cut the parser**: `parser.js`',
+    '      - [ ] a sub-check the build added',
+    '2. [ ] **Wire the builder**', '',
+    '## State', '',
+    '- [ ] not a task',
+  ].join('\n');
+
+  flow(dir, ['new', 'Split the parser', '--body', body]);
+  const [t] = ticket(dir);
+  write(dir, `.flow/tickets/${t.folder}/decisions/seam.md`, '# Seam\n');
+
+  const shown = flow(dir, ['get', t.id]).stdout;
+  assert.match(shown, /^questions: +1\/2 answered$/m);
+  assert.match(shown, /^tasks: +1\/2 done$/m);
+  assert.match(shown, /^decisions: +decisions\/seam\.md$/m);
+});
+
+test('flow done ticks a child\'s line in the parent\'s ## Tasks, and a reopen clears it', () => {
+  const dir = project('tickets-tick');
+  const tasks = ['## Tasks', '', '- [ ] exp-2: First child', '- [ ] **exp-3**: Second child, after exp-2'].join('\n');
+  flow(dir, ['new', 'Parent', '--body', tasks]);
+  flow(dir, ['new', 'First child', '--parent', 'exp-1']);
+  flow(dir, ['new', 'Second child', '--parent', 'exp-1']);
+  flow(dir, ['new', 'Third child', '--parent', 'exp-1']);
+  const parent = () => fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8');
+
+  flow(dir, ['start', 'exp-2']);
+  const done = flow(dir, ['done', 'exp-2']);
+  assert.match(done.stdout, /ticked in exp-1's ## Tasks/);
+  assert.match(parent(), /- \[x\] exp-2: First child/);
+  assert.match(parent(), /- \[ \] \*\*exp-3\*\*/, 'a mention of exp-2 on another line ticks nothing');
+
+  flow(dir, ['start', 'exp-3']);
+  flow(dir, ['done', 'exp-3']);
+  assert.match(parent(), /- \[x\] \*\*exp-3\*\*/);
+
+  assert.match(flow(dir, ['start', 'exp-2']).stdout, /cleared in exp-1's ## Tasks/);
+  assert.match(parent(), /- \[ \] exp-2: First child/);
+
+  flow(dir, ['start', 'exp-4']);
+  assert.match(flow(dir, ['done', 'exp-4']).stdout, /exp-1 has no line for exp-4 in its ## Tasks/);
+});
+
+test('flow ls --label shows one set, and a label is free but plainly spelled', () => {
+  const dir = project('tickets-labels');
+  flow(dir, ['new', 'Alpha', '--label', 'v1']);
+  flow(dir, ['new', 'Beta', '--label', 'v1,post-v1']);
+  flow(dir, ['new', 'Gamma']);
+
+  const listed = flow(dir, ['ls', '--label', 'v1']).stdout;
+  assert.match(listed, /exp-1/);
+  assert.match(listed, /exp-2/);
+  assert.doesNotMatch(listed, /exp-3/);
+  assert.match(flow(dir, ['ls', '--label', 'never-used']).stdout, /no tickets\./);
+  assert.match(flow(dir, ['get', 'exp-2']).stdout, /^labels: +v1, post-v1$/m);
+
+  const bad = flow(dir, ['new', 'Delta', '--label', 'Has Space']);
+  assert.strictEqual(bad.code, 1);
+  assert.match(bad.stderr, /cannot be a label/);
+});
+
+test('flow park --label parks every open ticket carrying it, and flow revive brings them back', () => {
+  const dir = project('tickets-label-park');
+  flow(dir, ['new', 'Later one', '--label', 'post-v1']);
+  flow(dir, ['new', 'Later two', '--label', 'post-v1,v2', '--deps', 'exp-1']);
+  flow(dir, ['new', 'Now', '--label', 'v1']);
+  flow(dir, ['start', 'exp-1']);
+  const state = (id) => frontmatter.parse(fs.readFileSync(ticketFile(dir, id), 'utf8')).data;
+
+  const none = flow(dir, ['park', '--label', 'nope', '--reason', 'x']);
+  assert.strictEqual(none.code, 0, none.stderr);
+  assert.match(none.stdout, /no open ticket carries nope\. Labels in use: post-v1, v1, v2\./);
+  assert.strictEqual(flow(dir, ['park', 'exp-3', '--label', 'v1', '--reason', 'x']).code, 1);
+
+  const parked = flow(dir, ['park', '--label', 'post-v1', '--reason', 'after V1 ships']);
+  assert.strictEqual(parked.code, 0, parked.stderr);
+  assert.match(parked.stdout, /parked 2 tickets labelled post-v1: after V1 ships/);
+  assert.deepStrictEqual([state('exp-1').status, state('exp-1').resume], ['parked', 'in-progress']);
+  assert.deepStrictEqual([state('exp-2').status, state('exp-2').resume], ['parked', 'todo']);
+  assert.strictEqual(state('exp-3').status, 'todo', 'a ticket without the label stays');
+
+  const back = flow(dir, ['revive', '--label', 'post-v1']);
+  assert.strictEqual(back.code, 0, back.stderr);
+  assert.strictEqual(state('exp-1').status, 'in-progress');
+  assert.strictEqual(state('exp-2').status, 'todo');
+  assert.strictEqual(state('exp-2').reason || '', '');
+});
+
+test('parking a blocked todo ticket works, and starting it still refuses', () => {
+  const dir = project('tickets-park-blocked');
+  flow(dir, ['new', 'First']);
+  flow(dir, ['new', 'Second', '--deps', 'exp-1']);
+
+  assert.strictEqual(flow(dir, ['park', 'exp-2', '--reason', 'later']).code, 0);
+  assert.strictEqual(flow(dir, ['todo', 'exp-2']).code, 0);
+  assert.strictEqual(flow(dir, ['start', 'exp-2']).code, 1, 'a pickup still meets the dep');
 });

@@ -17,7 +17,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
 - [One ticket](#one-ticket): show, create, change or remove one ticket
   - [`flow get`](#flow-get): show one ticket
   - [`flow new`](#flow-new): create a ticket
-  - [`flow edit`](#flow-edit): change a ticket's title, type, priority or links
+  - [`flow edit`](#flow-edit): change a ticket's title, type, priority, labels or links
   - [`flow file`](#flow-file): mark finished tickets as checked for lessons
   - [`flow drop`](#flow-drop): remove a ticket that will never be done
   - [`flow move`](#flow-move): move tickets to another project, or to your Flow home
@@ -167,6 +167,7 @@ shop-6  dropped   feature  -     -       Old budget layout
 - **`--status <status>`**: `todo`, `groundwork`, `planning`, `building`, `review`, `done`, `parked` or `dropped`.
 - **`--type <type>`**: `feature`, `issue`, `chore`, `topic` or `prototype`.
 - **`--parent <id>`**: the tickets split from one ticket.
+- **`--label <label>`**: the tickets carrying one label.
 - **`--unfiled`**: finished tickets not yet checked for lessons. [`flow file`](#flow-file) marks them.
 
 ### `flow tree`
@@ -232,21 +233,21 @@ pick up with: flow groundwork shop-2
 `flow new "<title>"`: create a ticket.
 
 ```console
-$ flow new "CSV export" --deps shop-2 --priority high
+$ flow new "CSV export" --deps shop-2 --priority high --label v1
 created shop-3  CSV export
         .flow/tickets/shop-3-csv-export/ticket.md
-        .flow/tickets/shop-3-csv-export/groundwork/map.md
         priority: high
+        labels: v1
         deps: shop-2
 
-pick up with: flow groundwork shop-3
+pick up with: flow start shop-3
 ```
 
 - **`--type <type>`**: `feature` (the default), `issue`, `chore`, `topic` or `prototype`. [Tickets](../tickets.md) covers each.
 - **`--priority <level>`**: `high`, `normal` (the default) or `low`. A ticket without one takes its parent's.
 - **`--parent <id>`**: the ticket this one was split from.
 - **`--deps <id,id>`**: tickets that must reach `review` or `done` before this one can start.
-- **`--label <1-3 words>`**: the words in the folder name. Made from the title when left out.
+- **`--label <label,label>`**: free tags such as `v1` or `post-v1`, in lowercase letters, digits and hyphens.
 - **`--body <text>`**: the ticket's text, in place of the template. `--body -` reads it from standard input.
 
 ### `flow edit`
@@ -265,7 +266,7 @@ shop-3
 ```
 
 - **`--title "<title>"`**: the title. The folder name stays.
-- **`--label <1-3 words>`**: renames the folder. Links use the id alone, so none break.
+- **`--label <label,label>`**: the ticket's labels, replacing the whole list. An empty value clears it.
 - **`--type <type>`**: the type.
 - **`--priority <level>`**: the priority. `normal` removes it, so the parent's applies again.
 - **`--parent <id>`**: the ticket this one was split from. An empty value removes it.
@@ -329,6 +330,7 @@ flow build <id>                   build it
 flow review <id>                  hand the work over
 flow done <id>                    close it, and move its folder to the archive
 flow park <id> --reason "<why>"   set it aside
+flow revive --label <label>       bring back every parked ticket with a label
 ```
 
 The skills move tickets for you. [Phases](../phases.md) covers which skill moves a ticket, and when. A move lists the tickets it unblocked:
@@ -368,6 +370,22 @@ shop-4  building → parked   Login fails on Safari
       reason: waiting on a Safari machine
 
 revive with: flow build shop-4
+```
+
+**A label parks a set.** `flow park --label` parks every open ticket carrying it, in one commit, and `flow revive --label` returns each parked one to the status it left. A label no ticket carries changes nothing and lists the labels in use.
+
+```console
+$ flow park --label post-v1 --reason "after V1 ships"
+shop-8  todo → parked   Dark mode
+shop-9  building → parked   Export to PDF
+
+parked 2 tickets labelled post-v1: after V1 ships
+
+$ flow revive --label post-v1
+shop-8  parked → todo   Dark mode
+shop-9  parked → building   Export to PDF
+
+revived 2 tickets labelled post-v1
 ```
 
 ## Skills

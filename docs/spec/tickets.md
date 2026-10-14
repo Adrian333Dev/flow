@@ -28,7 +28,11 @@ Each status, and what moves a ticket into it:
 
 ### The ticket
 
-- `V1` **One folder per ticket**, `.flow/tickets/<id>-<words>/`: `ticket.md`, `history.md`, and what its phases write, such as `groundwork/map.md`, `plan.md`, `issues.md`, `reports/` and `protos/<name>/`.
+- `V1` **One folder per ticket**, `.flow/tickets/<id>-<words>/`: `ticket.md`, `history.md`, and what the work writes, such as `decisions/<subject>.md`, `reports/` and `protos/<name>/`. A ticket made earlier still holds its `groundwork/map.md`, `plan.md` and `issues.md`, until `/flow:file-findings` reads them.
+- `V1` **A ticket is one file, `ticket.md`**: what it is for and how you know it is done, then `## Questions` if the work needs design, `## Tasks` if it needs building, and `## State`. Both lists are optional and flat, except `## Questions`, which keeps Title Case group headings. `flow <id>` counts the boxes in each, `questions: 3/7 answered` and `tasks: 2/5 done`, and skips a box inside an HTML comment. `flow new` writes no `map.md`, no `plan.md` and no `issues.md`.
+- `V1` **Decisions move to `decisions/<subject>.md` once they outgrow `ticket.md`**, past about 300 lines. `ticket.md` keeps the questions, the state and a line per file, and `flow <id>` lists the files.
+- `V1` **Big work is cut into children.** A child names its parent in `parent:`. The parent's `## Tasks` lists its children in build order, one line each that starts with the child's id: `- [ ] fw-127: …`. `flow done` on a child ticks that line, and reopening the child clears it. A parent closes after its last child. `deps` stays for the rare wait outside the family.
+- `V1` **Labels are free tags**: `labels: [v1, post-v1]` in the frontmatter, several per ticket, each in lowercase letters, digits and hyphens, 24 characters at most. Nothing in Flow reads a label to decide what to do.
 - `V1` **5 types**: `feature`, `issue`, `chore`, `topic`, `prototype`. Every type uses part of the one status order, never a different order.
 - `V1` **5 statuses**: `todo` is ready to work and nothing else. `in-progress` is under way, and a ticket waiting on the user stays there. `done` is closed by the agent once its own check passes, and the user reopens it in a word. `parked` is put off, with a reason saying what brings it back. `dropped` is cancelled, with a reason. No project adds a status. One field says where the work is.
 - `V1` **Only `done` satisfies a dependency.** A ticket still `in-progress` can change under the work built on top of it.
@@ -70,8 +74,10 @@ Each status, and what moves a ticket into it:
 - `V1` **`flow next` prints what to work on, ranked**: in flight first, then what could start, then what was set aside. A parent with open children stays out of `in flight`.
 - `V1` **`flow tree` shows a split feature whole**: every level, each parent's count of children done, what blocks each ticket, and why one is parked. Kept by the user 2026-10-01.
 - `V1` **`flow check` finds cycles, dangling ids, dropped blockers, orphaned parents and unknown statuses.**
-- `V1` **`flow ls` lists tickets filtered** by status, type, parent, or not yet filed by `/flow:file-findings`.
+- `V1` **`flow ls` lists tickets filtered** by status, type, parent, label, or not yet filed by `/flow:file-findings`.
 - `V1` **A status move is the command**: `flow start exp-47`, `flow done`, `flow park --reason "<why>"`, `flow todo`. `dropped` has only `flow drop`. `flow done` refuses a parent with open children, and `flow drop` refuses while live dependents exist.
+- `V1` **Only a pickup meets the refusals on unmet `deps` and open children**: a move into `in-progress` or `done`. Parking, and a move between `todo` and `parked`, start nothing, so parking a blocked ticket works.
+- `V1` **`flow park --label post-v1 --reason "after V1 ships"` parks every open ticket carrying the label**, in one commit. `flow revive --label post-v1` returns each parked one to the status it left. A label no ticket carries changes nothing and prints the labels in use, since labels are free and a typo should show.
 - `later` **Colour in `flow`'s output**, only to a terminal and never with `NO_COLOR` set. Moved after V1 by the user 2026-10-04.
 - `later` **Box tables around command output.** Parked by the user 2026-10-03: their borders cost the agent tokens each time it reads `flow next`.
 - `later` **Wider tests over the ticket commands.** Moved after V1 by the user 2026-10-04.

@@ -104,7 +104,7 @@ Capture is the sweep the rule file runs at each checkpoint, filing what the conv
 
 ### Filing findings
 
-- `V1` **`/flow:file-findings`, user only, sorts the inbox, the findings and closed tickets' `issues.md` and `reports/` in one batch**, shows the plan and stops, then writes. A finding about an outside tool goes to the wiki. A rule goes to the rule file or a file with `paths:`. A project fact goes to `CLAUDE.md` or `docs/context/`.
+- `V1` **`/flow:file-findings`, user only, sorts the inbox, the findings, closed tickets' `reports/` and the `issues.md` that older tickets still hold, in one batch**, shows the plan and stops, then writes. A finding about an outside tool goes to the wiki. A rule goes to the rule file or a file with `paths:`. A project fact goes to `CLAUDE.md` or `docs/context/`.
 - `V1` **Reusable knowledge with no skill to hold it becomes a `needs skill:` line in the inbox.** Several on one subject earn a skill.
 - `V1` **Altitude decides the home**: a tool quirk or a framework pattern → that tool's wiki folder. A seam between 2 tools → the causing tool's folder, plus a line in the other's `index.md`. A broad principle → a concept skill.
 
