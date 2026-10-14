@@ -14,9 +14,9 @@ const ticketHistory = require('./ticket-history');
 function ticketTable(tickets) {
   if (tickets.length === 0) return 'no tickets.';
   return table(
-    ['ID', 'STATUS', 'LABELS', 'PARENT', 'TITLE'],
+    ['TICKET', 'STATUS', 'LABELS', 'PARENT'],
     tickets.map((t) => [
-      t.id, t.data.status, t.data.labels.join(',') || '-', t.data.parent || '-', t.data.title,
+      store.nameOf(t), t.data.status, t.data.labels.join(',') || '-', t.data.parent || '-',
     ])
   );
 }
@@ -36,7 +36,7 @@ function tree(nodes, all) {
       const last = i === list.length - 1;
       const t = n.ticket;
       rows.push([
-        prefix + (root ? '' : last ? '└── ' : '├── ') + `${t.id}  ${t.data.title}`,
+        prefix + (root ? '' : last ? '└── ' : '├── ') + store.nameOf(t),
         t.data.status,
         treeNote(t, all, index),
       ]);
@@ -80,7 +80,7 @@ const blockText = (u) =>
 
 const blockedLines = (entries) =>
   entries.map(({ ticket, unmet }) =>
-    `  ${ticket.id}  ${ticket.data.title}\n` + unmet.map((u) => `        ${blockText(u)}`).join('\n')
+    `  ${store.nameOf(ticket)}\n` + unmet.map((u) => `        ${blockText(u)}`).join('\n')
   ).join('\n');
 
 /**
@@ -113,7 +113,8 @@ function show(ticket, tickets, root) {
   const kids = graph.children(tickets, ticket.id);
 
   const header = [
-    `${ticket.id}  ${ticket.data.title}`,
+    store.nameOf(ticket),
+    ticket.data.description || null,
     `status: ${ticket.data.status}   parent: ${ticket.data.parent || '-'}`,
     ticket.data.was ? `was:        ${ticket.data.was}` : null,
     branchLine(ticket, root),
@@ -235,7 +236,7 @@ function status(tickets, limit) {
   if (parked.length) {
     out.push('');
     out.push(`parked (${parked.length}):`);
-    out.push(indent(table(['ID', 'TITLE', 'REASON'], parked.map((t) => [t.id, t.data.title, t.data.reason || '-']))));
+    out.push(indent(table(['TICKET', 'REASON'], parked.map((t) => [store.nameOf(t), t.data.reason || '-']))));
   }
 
   return out.join('\n');
@@ -257,7 +258,7 @@ function brief(tickets, limit) {
   // noise. `closed` still decides which ticket this is; it just does not print.
   const last = graph.lastClosed(tickets);
   if (last) {
-    out.push(`last closed  ${last.id}  ${last.data.title}`);
+    out.push(`last closed  ${store.nameOf(last)}`);
     out.push('');
   }
 

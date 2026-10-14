@@ -23,7 +23,7 @@ const ticketFile = (dir, id) => {
   const archive = path.join(base, 'archive');
   for (const root of [base, archive]) {
     if (!fs.existsSync(root)) continue;
-    const hit = fs.readdirSync(root).find((f) => f.startsWith(`${id}-`));
+    const hit = fs.readdirSync(root).find((f) => f === id || f.startsWith(`${id}-`));
     if (hit) return path.join(root, hit, 'ticket.md');
   }
   return null;
@@ -32,29 +32,31 @@ const ticketFile = (dir, id) => {
 test('flow new with labels and parent, and no type or priority', () => {
   const dir = project('tickets-new-flags');
 
-  const r1 = flow(dir, ['new', 'Set up CI', '--label', 'chore,urgent']);
+  const r1 = flow(dir, ['new', 'Set up CI', '--title', 'set-up-ci', '--label', 'chore,urgent']);
   assert.strictEqual(r1.code, 0, r1.stderr);
   const [t1] = ticket(dir);
   assert.deepStrictEqual(t1.data.labels, ['chore', 'urgent']);
   assert.strictEqual(t1.data.type, undefined);
   assert.strictEqual(t1.data.priority, undefined);
   assert.strictEqual(t1.data.rank, undefined, 'a new ticket carries no rank');
-  assert.notStrictEqual(flow(dir, ['new', 'Typed', '--type', 'chore']).code, 0, '--type is gone');
-  assert.notStrictEqual(flow(dir, ['new', 'Prioritised', '--priority', 'high']).code, 0, '--priority is gone');
+  assert.notStrictEqual(flow(dir, ['new', 'Typed', '--title', 'typed', '--type', 'chore']).code, 0, '--type is gone');
+  assert.notStrictEqual(flow(dir, ['new', 'Prioritised', '--title', 'prioritised', '--priority', 'high']).code, 0, '--priority is gone');
 
-  const r2 = flow(dir, ['new', 'Lint config', '--parent', t1.id, '--label', 'lint,post-v1']);
+  const r2 = flow(dir, ['new', 'Lint config', '--title', 'lint-config', '--parent', t1.id, '--label', 'lint,post-v1']);
   assert.strictEqual(r2.code, 0, r2.stderr);
   const all = ticket(dir);
   const child = all.find((t) => t.id !== t1.id);
   assert.strictEqual(child.data.parent, t1.id);
   assert.deepStrictEqual(child.data.labels, ['lint', 'post-v1']);
-  assert.ok(child.folder.includes('lint-config'), `folder "${child.folder}" is named from the title`);
+  assert.strictEqual(child.folder, child.id, 'a new ticket\'s folder is its id alone');
+  assert.strictEqual(child.data.title, 'lint-config');
+  assert.strictEqual(child.data.description, 'Lint config');
 });
 
 test('flow new with --body sets the ticket body', () => {
   const dir = project('tickets-new-body');
 
-  const r = flow(dir, ['new', 'Write docs', '--body', 'Cover every flag.']);
+  const r = flow(dir, ['new', 'Write docs', '--title', 'write-docs', '--body', 'Cover every flag.']);
   assert.strictEqual(r.code, 0, r.stderr);
   const [t] = ticket(dir);
   assert.match(t.body, /Cover every flag/);
@@ -63,42 +65,42 @@ test('flow new with --body sets the ticket body', () => {
 test('flow new with --deps validates that each dep exists', () => {
   const dir = project('tickets-new-deps');
 
-  flow(dir, ['new', 'First ticket']);
-  const bad = flow(dir, ['new', 'Second ticket', '--deps', 'exp-999']);
+  flow(dir, ['new', 'First ticket', '--title', 'first-ticket']);
+  const bad = flow(dir, ['new', 'Second ticket', '--title', 'second-ticket', '--deps', 'exp-999']);
   assert.notStrictEqual(bad.code, 0);
   assert.match(bad.stderr, /exp-999/);
 });
 
 test('a deleted ticket keeps its number: the counter gives out the next one up', () => {
   const dir = project('tickets-counter-delete');
-  flow(dir, ['new', 'First']);
-  flow(dir, ['new', 'Second']);
+  flow(dir, ['new', 'First', '--title', 'first']);
+  flow(dir, ['new', 'Second', '--title', 'second']);
   assert.strictEqual(fs.readFileSync(path.join(dir, '.flow', 'ticket-counter'), 'utf8'), '2\n');
 
   fs.rmSync(path.dirname(ticketFile(dir, 'exp-2')), { recursive: true });
-  const r = flow(dir, ['new', 'Third']);
+  const r = flow(dir, ['new', 'Third', '--title', 'third']);
   assert.strictEqual(r.code, 0, r.stderr);
-  assert.match(r.stdout, /^created exp-3 /m);
+  assert.match(r.stdout, /^created exp-3-third$/m);
 });
 
 test('a ticket moved away keeps its number in the place it left', () => {
   const dir = project('tickets-counter-move');
-  flow(dir, ['new', 'First']);
-  flow(dir, ['new', 'Second']);
+  flow(dir, ['new', 'First', '--title', 'first']);
+  flow(dir, ['new', 'Second', '--title', 'second']);
   const moved = flow(dir, ['move', 'exp-2', 'home']);
   assert.strictEqual(moved.code, 0, moved.stderr);
 
-  assert.match(flow(dir, ['new', 'Third']).stdout, /^created exp-3 /m);
+  assert.match(flow(dir, ['new', 'Third', '--title', 'third']).stdout, /^created exp-3-third$/m);
   assert.strictEqual(fs.readFileSync(path.join(dir, 'flow-home', 'ticket-counter'), 'utf8'), '1\n');
 });
 
 test('a place with no counter starts from its highest ticket', () => {
   const dir = project('tickets-counter-missing');
-  flow(dir, ['new', 'First']);
-  flow(dir, ['new', 'Second']);
+  flow(dir, ['new', 'First', '--title', 'first']);
+  flow(dir, ['new', 'Second', '--title', 'second']);
   fs.rmSync(path.join(dir, '.flow', 'ticket-counter'));
 
-  assert.match(flow(dir, ['new', 'Third']).stdout, /^created exp-3 /m);
+  assert.match(flow(dir, ['new', 'Third', '--title', 'third']).stdout, /^created exp-3-third$/m);
   assert.strictEqual(fs.readFileSync(path.join(dir, '.flow', 'ticket-counter'), 'utf8'), '3\n');
 });
 
@@ -132,15 +134,23 @@ test('a folder on another disk is copied across, then deleted', () => {
   assert.match(fs.readFileSync(path.join(to, 'ticket.md'), 'utf8'), /Parser/);
 });
 
-test('flow edit changes title and labels', () => {
+test('flow edit changes title, description and labels', () => {
   const dir = project('tickets-edit');
 
-  flow(dir, ['new', 'Old title']);
+  flow(dir, ['new', 'Old description', '--title', 'old-title']);
   const [t] = ticket(dir);
 
-  flow(dir, ['edit', t.id, '--title', 'New title']);
+  flow(dir, ['edit', t.id, '--title', 'new-title']);
   const edited = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
-  assert.strictEqual(edited.data.title, 'New title');
+  assert.strictEqual(edited.data.title, 'new-title');
+  assert.strictEqual(edited.data.description, 'Old description', 'a rename leaves the description');
+  assert.deepStrictEqual(ticket(dir).map((x) => x.folder), [t.folder], 'a rename moves no folder');
+
+  flow(dir, ['edit', t.id, '--description', 'A better sentence']);
+  const reworded = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
+  assert.strictEqual(reworded.data.description, 'A better sentence');
+  assert.strictEqual(reworded.data.title, 'new-title', 'editing the description leaves the title');
+
   assert.notStrictEqual(flow(dir, ['edit', t.id, '--type', 'chore']).code, 0, '--type is gone');
   assert.notStrictEqual(flow(dir, ['edit', t.id, '--priority', 'low']).code, 0, '--priority is gone');
 
@@ -158,9 +168,9 @@ test('flow edit changes title and labels', () => {
 test('flow edit --parent detects and refuses a cycle', () => {
   const dir = project('tickets-edit-cycle');
 
-  flow(dir, ['new', 'Parent']);
+  flow(dir, ['new', 'Parent', '--title', 'parent']);
   const [p] = ticket(dir);
-  flow(dir, ['new', 'Child', '--parent', p.id]);
+  flow(dir, ['new', 'Child', '--title', 'child', '--parent', p.id]);
   const all = ticket(dir);
   const child = all.find((t) => t.id !== p.id);
 
@@ -172,9 +182,9 @@ test('flow edit --parent detects and refuses a cycle', () => {
 test('flow edit --deps replaces the whole list, and an empty value clears it', () => {
   const dir = project('tickets-dep');
 
-  flow(dir, ['new', 'First']);
-  flow(dir, ['new', 'Second']);
-  flow(dir, ['new', 'Third']);
+  flow(dir, ['new', 'First', '--title', 'first']);
+  flow(dir, ['new', 'Second', '--title', 'second']);
+  flow(dir, ['new', 'Third', '--title', 'third']);
   const [t1, t2, t3] = ticket(dir);
   const deps = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t3.id), 'utf8')).data.deps || [];
 
@@ -198,8 +208,8 @@ test('flow edit --deps replaces the whole list, and an empty value clears it', (
 test('flow edit --deps refuses to close a cycle', () => {
   const dir = project('tickets-dep-cycle');
 
-  flow(dir, ['new', 'Alpha']);
-  flow(dir, ['new', 'Beta']);
+  flow(dir, ['new', 'Alpha', '--title', 'alpha']);
+  flow(dir, ['new', 'Beta', '--title', 'beta']);
   const [a, b] = ticket(dir);
 
   flow(dir, ['edit', b.id, '--deps', a.id]);
@@ -212,7 +222,7 @@ test('flow edit --deps refuses to close a cycle', () => {
 test('parking stores the resume status, and reviving restores it', () => {
   const dir = project('tickets-park');
 
-  flow(dir, ['new', 'Build the widget']);
+  flow(dir, ['new', 'Build the widget', '--title', 'build-the-widget']);
   const [t] = ticket(dir);
 
   flow(dir, ['start', t.id]);
@@ -233,7 +243,7 @@ test('parking stores the resume status, and reviving restores it', () => {
 test('a field Flow does not know survives a move', () => {
   const dir = project('tickets-unknown-field');
 
-  flow(dir, ['new', 'Build the widget']);
+  flow(dir, ['new', 'Build the widget', '--title', 'build-the-widget']);
   const [t] = ticket(dir);
   const file = ticketFile(dir, t.id);
   fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/^---\n/, '---\nassignee: sam\nlabels: [ui, api]\n'));
@@ -248,9 +258,9 @@ test('a field Flow does not know survives a move', () => {
 test('flow done refuses on a parent with open children', () => {
   const dir = project('tickets-done-children');
 
-  flow(dir, ['new', 'Parent feature']);
+  flow(dir, ['new', 'Parent feature', '--title', 'parent-feature']);
   const [p] = ticket(dir);
-  flow(dir, ['new', 'Child task', '--parent', p.id]);
+  flow(dir, ['new', 'Child task', '--title', 'child-task', '--parent', p.id]);
   const all = ticket(dir);
   const child = all.find((t) => t.id !== p.id);
 
@@ -267,9 +277,9 @@ test('flow done refuses on a parent with open children', () => {
 
 test('flow get says a parent with open children is blocked on them, and ready once they close', () => {
   const dir = project('tickets-get-children');
-  flow(dir, ['new', 'Parent feature']);
+  flow(dir, ['new', 'Parent feature', '--title', 'parent-feature']);
   const [p] = ticket(dir);
-  flow(dir, ['new', 'Child task', '--parent', p.id]);
+  flow(dir, ['new', 'Child task', '--title', 'child-task', '--parent', p.id]);
   const child = ticket(dir).find((t) => t.id !== p.id);
 
   assert.match(flow(dir, ['get', p.id]).stdout, new RegExp(`blocked: {4}open children come first: ${child.id}\\n`));
@@ -281,8 +291,8 @@ test('flow get says a parent with open children is blocked on them, and ready on
 test('an unmet dep blocks pickup, and only done unblocks', () => {
   const dir = project('tickets-dep-block');
 
-  flow(dir, ['new', 'Dep target']);
-  flow(dir, ['new', 'Blocked ticket']);
+  flow(dir, ['new', 'Dep target', '--title', 'dep-target']);
+  flow(dir, ['new', 'Blocked ticket', '--title', 'blocked-ticket']);
   const [t1, t2] = ticket(dir);
 
   flow(dir, ['edit', t2.id, '--deps', t1.id]);
@@ -305,7 +315,7 @@ test('a new ticket with any label starts todo, and says how to pick it up', () =
   const dir = project('tickets-new-todo');
 
   for (const label of ['feature', 'bug', 'topic', 'research', 'v1']) {
-    const r = flow(dir, ['new', `A ${label}`, '--label', label]);
+    const r = flow(dir, ['new', `A ${label}`, '--title', `a-${label}`, '--label', label]);
     assert.strictEqual(r.code, 0, r.stderr);
     assert.match(r.stdout, /pick up with: flow start exp-\d+/);
   }
@@ -315,7 +325,7 @@ test('a new ticket with any label starts todo, and says how to pick it up', () =
 test('flow start reopens a done ticket, taking it out of the archive', () => {
   const dir = project('tickets-reopen');
 
-  flow(dir, ['new', 'Finished work']);
+  flow(dir, ['new', 'Finished work', '--title', 'finished-work']);
   const [t] = ticket(dir);
   flow(dir, ['start', t.id]);
   flow(dir, ['done', t.id]);
@@ -330,7 +340,7 @@ test('flow start reopens a done ticket, taking it out of the archive', () => {
 test('a parked ticket needs a reason, and comes back by flow todo or flow start', () => {
   const dir = project('tickets-park-back');
 
-  flow(dir, ['new', 'Waits on the vendor']);
+  flow(dir, ['new', 'Waits on the vendor', '--title', 'waits-on-the-vendor']);
   const [t] = ticket(dir);
   const status = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data;
 
@@ -355,7 +365,7 @@ test('a parked ticket needs a reason, and comes back by flow todo or flow start'
 
 test('the commands of the 8 statuses are gone', () => {
   const dir = project('tickets-old-commands');
-  flow(dir, ['new', 'Anything']);
+  flow(dir, ['new', 'Anything', '--title', 'anything']);
 
   for (const old of ['groundwork', 'plan', 'build', 'review']) {
     assert.notStrictEqual(flow(dir, [old, 'exp-1']).code, 0, `flow ${old} should refuse`);
@@ -366,9 +376,9 @@ test('the commands of the 8 statuses are gone', () => {
 test('flow drop requires --reason, refuses on dependents, --by repairs', () => {
   const dir = project('tickets-drop');
 
-  flow(dir, ['new', 'Will drop']);
-  flow(dir, ['new', 'Depends on it']);
-  flow(dir, ['new', 'Replacement']);
+  flow(dir, ['new', 'Will drop', '--title', 'will-drop']);
+  flow(dir, ['new', 'Depends on it', '--title', 'depends-on-it']);
+  flow(dir, ['new', 'Replacement', '--title', 'replacement']);
   const [t1, t2, t3] = ticket(dir);
 
   flow(dir, ['edit', t2.id, '--deps', t1.id]);
@@ -392,9 +402,9 @@ test('flow drop requires --reason, refuses on dependents, --by repairs', () => {
 test('flow drop --force cascades to transitive dependents', () => {
   const dir = project('tickets-drop-force');
 
-  flow(dir, ['new', 'Root']);
-  flow(dir, ['new', 'Middle']);
-  flow(dir, ['new', 'Leaf']);
+  flow(dir, ['new', 'Root', '--title', 'root']);
+  flow(dir, ['new', 'Middle', '--title', 'middle']);
+  flow(dir, ['new', 'Leaf', '--title', 'leaf']);
   const [t1, t2, t3] = ticket(dir);
 
   flow(dir, ['edit', t2.id, '--deps', t1.id]);
@@ -415,7 +425,7 @@ test('flow drop --force cascades to transitive dependents', () => {
 test('moving to the current status is a no-op', () => {
   const dir = project('tickets-noop-move');
 
-  flow(dir, ['new', 'Some work']);
+  flow(dir, ['new', 'Some work', '--title', 'some-work']);
   const [t] = ticket(dir);
 
   flow(dir, ['start', t.id]);
@@ -427,7 +437,7 @@ test('moving to the current status is a no-op', () => {
 test('flow file stamps a closed ticket, and --force re-stamps', () => {
   const dir = project('tickets-file');
 
-  flow(dir, ['new', 'Done thing']);
+  flow(dir, ['new', 'Done thing', '--title', 'done-thing']);
   const [t] = ticket(dir);
   flow(dir, ['start', t.id]);
   flow(dir, ['done', t.id]);
@@ -455,7 +465,7 @@ test('flow get needs an id: the board is flow next', () => {
 test('flow <id> still counts the questions of an old ticket\'s map', () => {
   const dir = project('tickets-map-count');
 
-  const created = flow(dir, ['new', 'Split the parser']);
+  const created = flow(dir, ['new', 'Split the parser', '--title', 'split-the-parser']);
   assert.strictEqual(created.code, 0, created.stderr);
   const [t] = ticket(dir);
 
@@ -482,7 +492,7 @@ test('flow <id> still counts the questions of an old ticket\'s map', () => {
 test('a new ticket is one file', () => {
   const dir = project('tickets-one-file');
 
-  const r = flow(dir, ['new', 'Split the parser']);
+  const r = flow(dir, ['new', 'Split the parser', '--title', 'split-the-parser']);
   assert.strictEqual(r.code, 0, r.stderr);
   const [t] = ticket(dir);
   assert.deepStrictEqual(fs.readdirSync(path.join(dir, '.flow', 'tickets', t.folder)), ['ticket.md']);
@@ -505,7 +515,7 @@ test('flow <id> counts ## Questions and ## Tasks, and lists decisions/', () => {
     '- [ ] not a task',
   ].join('\n');
 
-  flow(dir, ['new', 'Split the parser', '--body', body]);
+  flow(dir, ['new', 'Split the parser', '--title', 'split-the-parser', '--body', body]);
   const [t] = ticket(dir);
   write(dir, `.flow/tickets/${t.folder}/decisions/seam.md`, '# Seam\n');
 
@@ -518,10 +528,10 @@ test('flow <id> counts ## Questions and ## Tasks, and lists decisions/', () => {
 test('flow done ticks a child\'s line in the parent\'s ## Tasks, and a reopen clears it', () => {
   const dir = project('tickets-tick');
   const tasks = ['## Tasks', '', '- [ ] exp-2: First child', '- [ ] **exp-3**: Second child, after exp-2'].join('\n');
-  flow(dir, ['new', 'Parent', '--body', tasks]);
-  flow(dir, ['new', 'First child', '--parent', 'exp-1']);
-  flow(dir, ['new', 'Second child', '--parent', 'exp-1']);
-  flow(dir, ['new', 'Third child', '--parent', 'exp-1']);
+  flow(dir, ['new', 'Parent', '--title', 'parent', '--body', tasks]);
+  flow(dir, ['new', 'First child', '--title', 'first-child', '--parent', 'exp-1']);
+  flow(dir, ['new', 'Second child', '--title', 'second-child', '--parent', 'exp-1']);
+  flow(dir, ['new', 'Third child', '--title', 'third-child', '--parent', 'exp-1']);
   const parent = () => fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8');
 
   flow(dir, ['start', 'exp-2']);
@@ -543,9 +553,9 @@ test('flow done ticks a child\'s line in the parent\'s ## Tasks, and a reopen cl
 
 test('flow ls --label shows one set, and a label is free but plainly spelled', () => {
   const dir = project('tickets-labels');
-  flow(dir, ['new', 'Alpha', '--label', 'v1']);
-  flow(dir, ['new', 'Beta', '--label', 'v1,post-v1']);
-  flow(dir, ['new', 'Gamma']);
+  flow(dir, ['new', 'Alpha', '--title', 'alpha', '--label', 'v1']);
+  flow(dir, ['new', 'Beta', '--title', 'beta', '--label', 'v1,post-v1']);
+  flow(dir, ['new', 'Gamma', '--title', 'gamma']);
 
   const listed = flow(dir, ['ls', '--label', 'v1']).stdout;
   assert.match(listed, /exp-1/);
@@ -554,16 +564,16 @@ test('flow ls --label shows one set, and a label is free but plainly spelled', (
   assert.match(flow(dir, ['ls', '--label', 'never-used']).stdout, /no tickets\./);
   assert.match(flow(dir, ['get', 'exp-2']).stdout, /^labels: +v1, post-v1$/m);
 
-  const bad = flow(dir, ['new', 'Delta', '--label', 'Has Space']);
+  const bad = flow(dir, ['new', 'Delta', '--title', 'delta', '--label', 'Has Space']);
   assert.strictEqual(bad.code, 1);
   assert.match(bad.stderr, /cannot be a label/);
 });
 
 test('flow park --label parks every open ticket carrying it, and flow revive brings them back', () => {
   const dir = project('tickets-label-park');
-  flow(dir, ['new', 'Later one', '--label', 'post-v1']);
-  flow(dir, ['new', 'Later two', '--label', 'post-v1,v2', '--deps', 'exp-1']);
-  flow(dir, ['new', 'Now', '--label', 'v1']);
+  flow(dir, ['new', 'Later one', '--title', 'later-one', '--label', 'post-v1']);
+  flow(dir, ['new', 'Later two', '--title', 'later-two', '--label', 'post-v1,v2', '--deps', 'exp-1']);
+  flow(dir, ['new', 'Now', '--title', 'now', '--label', 'v1']);
   flow(dir, ['start', 'exp-1']);
   const state = (id) => frontmatter.parse(fs.readFileSync(ticketFile(dir, id), 'utf8')).data;
 
@@ -586,10 +596,54 @@ test('flow park --label parks every open ticket carrying it, and flow revive bri
   assert.strictEqual(state('exp-2').reason || '', '');
 });
 
+test('flow new cuts the title from the description', () => {
+  const dir = project('tickets-title-cut');
+
+  const colon = flow(dir, ['new', "Safari's cookie lost: the session cookie is gone after login"]);
+  assert.match(colon.stdout, /^created exp-1-safaris-cookie-lost$/m);
+  const plain = flow(dir, ['new', 'Export the login page to a CSV file']);
+  assert.match(plain.stdout, /^created exp-2-export-the-login-page$/m);
+  const long = flow(dir, ['new', 'Reconfigure internationalisation infrastructure provisioning: details']);
+  assert.match(long.stdout, /^created exp-3-reconfigure-internationalisation$/m);
+  const none = flow(dir, ['new', '!!!']);
+  assert.strictEqual(none.code, 1);
+  assert.match(none.stderr, /cannot be a title/);
+});
+
+test('flow new refuses a title that is not hyphenated words, and a rename never moves the folder', () => {
+  const dir = project('tickets-title');
+
+  const spaced = flow(dir, ['new', 'Export the login page', '--title', 'Login Page']);
+  assert.strictEqual(spaced.code, 1);
+  assert.match(spaced.stderr, /cannot be a title/);
+  assert.ok(!fs.existsSync(path.join(dir, '.flow', 'tickets')), 'a refusal makes no ticket');
+
+  const made = flow(dir, ['new', 'Export the login page', '--title', 'login-export']);
+  assert.match(made.stdout, /^created exp-1-login-export$/m);
+  assert.match(made.stdout, /tickets\/exp-1\/ticket\.md/);
+
+  flow(dir, ['edit', 'exp-1', '--title', 'login-csv']);
+  assert.strictEqual(flow(dir, ['edit', 'exp-1', '--title', 'Bad Title']).code, 1);
+  assert.deepStrictEqual(ticket(dir).map((t) => t.folder), ['exp-1']);
+  assert.match(flow(dir, ['ls']).stdout, /exp-1-login-csv/);
+});
+
+test('flow <id> reads only the id part of what is typed, and a title word finds a ticket', () => {
+  const dir = project('tickets-lookup');
+  flow(dir, ['new', 'Export the login page', '--title', 'login-export']);
+  flow(dir, ['new', 'Something else', '--title', 'other-work']);
+
+  assert.match(flow(dir, ['exp-1-an-old-name']).stdout, /^exp-1-login-export$/m);
+  assert.match(flow(dir, ['EXP-1-login-export']).stdout, /^exp-1-login-export$/m);
+  assert.match(flow(dir, ['login-export']).stdout, /^exp-1-login-export$/m);
+  assert.match(flow(dir, ['ls', 'sentence', 'login']).stdout, /no tickets/);
+  assert.match(flow(dir, ['ls', 'export', 'page']).stdout, /exp-1-login-export/, 'a word of the description finds it');
+});
+
 test('parking a blocked todo ticket works, and starting it still refuses', () => {
   const dir = project('tickets-park-blocked');
-  flow(dir, ['new', 'First']);
-  flow(dir, ['new', 'Second', '--deps', 'exp-1']);
+  flow(dir, ['new', 'First', '--title', 'first']);
+  flow(dir, ['new', 'Second', '--title', 'second', '--deps', 'exp-1']);
 
   assert.strictEqual(flow(dir, ['park', 'exp-2', '--reason', 'later']).code, 0);
   assert.strictEqual(flow(dir, ['todo', 'exp-2']).code, 0);

@@ -4,7 +4,10 @@
  * folder. Every other file asks this one, and anything outside Flow's scripts
  * runs `flow`. A ticket that breaks into parts has children.
  *
- *   .flow/tickets/exp-47-daemon-detection/ticket.md    folder from birth, constant inner name
+ *   .flow/tickets/exp-47/ticket.md    folder from birth, constant inner name
+ *
+ * A new ticket's folder is its id alone. Folders made before that keep the words
+ * after the id (`exp-47-daemon-detection`), and the id part is all a lookup reads.
  *
  * Frontmatter is owned by these commands; the body is written by hand. That is
  * why templates hold body only: the frontmatter is generated, never templated.
@@ -26,7 +29,9 @@ const paths = require('../paths');
 // `was` is the id a ticket held before `flow move` took it to another place,
 // or before a clash renumbered it, so the old id still finds it. `branch` is
 // the code branch the work is built on, written once: see ticket-history.js.
-const TICKET_KEYS = ['id', 'was', 'title', 'status', 'labels', 'rank', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
+// `title` is the short name, 2 to 4 hyphenated words; `description` is the
+// sentence saying what the ticket is for. Editing one never changes the other.
+const TICKET_KEYS = ['id', 'was', 'title', 'description', 'status', 'labels', 'rank', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
 
 // `labels` are free tags, several per ticket: `v1`, `post-v1`, `urgent`. Any
 // name that fits the pattern is allowed, and no label changes what Flow does.
@@ -83,10 +88,29 @@ const ARCHIVE = 'archive';
 
 const SLUG_MAX = 48;
 
-// The label on the end of an id: `exp-47-parser-split`. Short enough to read
-// at a glance in a list, and long enough to say what the ticket is. The number
-// stays the identity, so a label that goes stale breaks nothing.
-const LABEL_WORDS = 3;
+// Hyphenated so the id and the title join into one word, `exp-47-parser-split`,
+// which is how the badge and the board show a ticket.
+const TITLE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const TITLE_MAX = 40;
+
+/**
+ * A title cut from a description: up to 4 words before the first colon, else
+ * the first 4 words. `Safari cookie lost: gone after login` is `safari-cookie-lost`.
+ */
+const titleFrom = (description) => {
+  const colon = description.indexOf(':');
+  const head = colon > 0 ? description.slice(0, colon) : description;
+  const words = head.toLowerCase().replace(/['’]/g, '').split(/[^a-z0-9]+/).filter(Boolean);
+  let title = words.slice(0, 4).join('-');
+  while (title.length > TITLE_MAX && title.includes('-')) title = title.slice(0, title.lastIndexOf('-'));
+  return title.slice(0, TITLE_MAX);
+};
+
+/** The refusal for a title that cannot be one, or null. */
+const badTitle = (title) =>
+  TITLE.test(title) && title.length <= TITLE_MAX
+    ? null
+    : `"${title}" cannot be a title: use lowercase letters, digits and single hyphens, ${TITLE_MAX} characters at most, such as login-redirect-loop.`;
 
 // ---------------------------------------------------------------- places
 
@@ -184,8 +208,8 @@ function normalizeId(ref, prefix) {
   return full ? `${full[1]}-${parseInt(full[2], 10)}` : null;
 }
 
-/** The word of an id, `exp` for `exp-47`, or null. */
-const wordOf = (id) => (String(id).match(/^([a-z]{2,8})-\d+$/) || [])[1] || null;
+/** The word of an id, `exp` for `exp-47` or `exp-47-old-words`, or null. */
+const wordOf = (id) => (String(id).match(/^([a-z]{2,8})-\d+(?:-|$)/) || [])[1] || null;
 
 /** Sort key. String compare puts exp-182 between exp-1819 and exp-1820. */
 function idNumber(id) {
@@ -203,6 +227,15 @@ function requireId(ref, prefix) {
 
 /** The id at the front of a folder name, `exp-47` from `exp-47-parser-split`. */
 const idOfFolder = (name) => (String(name).match(/^([a-z]{2,8}-\d+)(?:-|$)/) || [])[1] || null;
+
+/** The id at the front of what was typed, `exp-47` from `EXP-47-old-words`, or null. */
+const idOfRef = (ref) => idOfFolder(String(ref || '').trim().toLowerCase());
+
+/** The folder for an id: the id alone for a new ticket, the id and its old words for an old one. */
+const folderName = (id, label = '') => (label ? `${id}-${label}` : id);
+
+/** A ticket as the badge and the board show it: `exp-47-parser-split`. */
+const nameOf = (t) => (t.data.title ? `${t.id}-${t.data.title}` : t.id);
 
 /** Local date, not UTC: a date stamped a day behind the user's own calendar
  *  is wrong in the only way this field can be wrong. */
@@ -232,18 +265,7 @@ function slugify(title) {
   return (lastDash > 12 ? cut.slice(0, lastDash) : cut).replace(/-+$/, '');
 }
 
-// Dropped before the label is cut to length. "Fix the login redirect loop"
-// would otherwise spend a third of the label on "the".
-const LABEL_SKIP = new Set(['a', 'an', 'the', 'of', 'to', 'in', 'on', 'for', 'and', 'or', 'into', 'with', 'from', 'that', 'this', 'its', 'it']);
-
-/** The 1-3 word label that follows the number in an id. */
-function labelize(text) {
-  const words = slugify(text).split('-');
-  const kept = words.filter((w) => !LABEL_SKIP.has(w));
-  return (kept.length ? kept : words).slice(0, LABEL_WORDS).join('-');
-}
-
-/** The label part of a folder name, with the id stripped off. */
+/** The words after the id in an old folder name, '' for a folder that is the id alone. */
 const labelOf = (t) => t.dirName.slice(t.id.length).replace(/^-/, '');
 
 function toIdList(v, prefix) {
@@ -292,6 +314,7 @@ function scanTicketDir(dir, root, prefix, out) {
     data.rank = toRank(data.rank);
     data.labels = toLabelList(data.labels).map((l) => l.toLowerCase());
     data.title = data.title || entry.name;
+    data.description = data.description ? String(data.description).trim() : '';
     data.reason = data.reason ? String(data.reason).trim() : '';
     data.closed = data.closed ? String(data.closed).trim() : '';
     data.filed = data.filed ? String(data.filed).trim() : '';
@@ -384,7 +407,7 @@ function setStatus(t, status, reason = '') {
  */
 function move(t, target, id, renamed) {
   const parent = TERMINAL_STATUSES.includes(t.data.status) ? archiveDir(target) : ticketsDir(target);
-  const folder = path.join(parent, `${id}-${labelOf(t)}`);
+  const folder = path.join(parent, folderName(id, labelOf(t)));
   if (fs.existsSync(folder)) throw new FlowError(`${folder} already exists.`);
   fs.mkdirSync(parent, { recursive: true });
   moveFolder(t.dir, folder);
@@ -427,7 +450,7 @@ function renumber(root, onRemote, { keepWas = true } = {}) {
     for (const t of list) {
       if (t === keep) continue;
       const to = nextId(readTickets(root), tickets.prefix);
-      const folder = path.join(path.dirname(t.dir), `${to}-${labelOf(t)}`);
+      const folder = path.join(path.dirname(t.dir), folderName(to, labelOf(t)));
       fs.renameSync(t.dir, folder);
       t.dir = folder;
       t.dirName = path.basename(folder);
@@ -475,16 +498,16 @@ function readHistory(t) {
  * `tickets` is passed in when the caller already read the pool: at a few
  * thousand tickets a second scan is the most expensive thing a command does.
  */
-function createTicket(root, { title, labels, parent, deps, tickets, body: given }) {
+function createTicket(root, { title, description, labels, parent, deps, tickets, body: given }) {
   const id = nextId(tickets || readTickets(root), prefixOf(root));
-  const slug = labelize(title);
-  const dir = path.join(ticketsDir(root), `${id}-${slug}`);
+  const dir = path.join(ticketsDir(root), folderName(id));
   if (fs.existsSync(dir)) throw new FlowError(`${dir} already exists.`);
 
   const data = {
     id,
     was: '',
     title: String(title).trim(),
+    description: String(description || '').trim(),
     status: 'todo',
     labels: labels || [],
     rank: '',
@@ -497,14 +520,14 @@ function createTicket(root, { title, labels, parent, deps, tickets, body: given 
   };
   // A supplied body replaces the template outright: the caller wrote the whole
   // file, so creating and filling a ticket is one command instead of two.
-  const body = given != null ? String(given).trim() + '\n' : renderTemplate('ticket.md', { id, slug, title: data.title });
+  const body = given != null ? String(given).trim() + '\n' : renderTemplate('ticket.md', {});
 
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, 'ticket.md');
   fs.writeFileSync(file, frontmatter.stringify(data, TICKET_KEYS, body));
   countNumber(root, id);
 
-  return { id, dirName: `${id}-${slug}`, dir, file, data, body, root };
+  return { id, dirName: path.basename(dir), dir, file, data, body, root };
 }
 
 /**
@@ -622,10 +645,11 @@ function tickTask(parent, childId, done) {
 
 /**
  * Resolves an id (exp-47, 47), an id the ticket held before it moved, a
- * label, or a folder name, within one place's list.
+ * folder name, or a word of a title, within one place's list. Only the id
+ * part of `exp-47-old-words` is read, so a title that was renamed still finds it.
  */
 function findTicket(tickets, ref) {
-  const id = normalizeId(ref, tickets.prefix);
+  const id = normalizeId(ref, tickets.prefix) || normalizeId(idOfRef(ref), tickets.prefix);
   if (id) {
     const hit = tickets.find((t) => t.id === id) || tickets.find((t) => t.data.was === id);
     if (!hit) throw new FlowError(`no ticket ${id}.`);
@@ -635,12 +659,11 @@ function findTicket(tickets, ref) {
   const needle = String(ref || '').trim();
   if (!needle) throw new FlowError('which ticket? give an id or a slug.');
 
-  const slugOf = (t) => labelOf(t);
-  const exact = tickets.filter((t) => slugOf(t) === needle || t.dirName === needle);
+  const exact = tickets.filter((t) => labelOf(t) === needle || t.dirName === needle || t.data.title === needle);
   if (exact.length === 1) return exact[0];
   if (exact.length > 1) throw new FlowError(ambiguous(needle, exact));
 
-  const partial = tickets.filter((t) => t.dirName.includes(needle));
+  const partial = tickets.filter((t) => t.dirName.includes(needle) || t.data.title.includes(needle));
   if (partial.length === 1) return partial[0];
   if (partial.length > 1) throw new FlowError(ambiguous(needle, partial));
 
@@ -649,7 +672,7 @@ function findTicket(tickets, ref) {
 
 function ambiguous(needle, matches) {
   return `"${needle}" matches ${matches.length} tickets:\n` +
-    matches.map((t) => `  ${t.id}  ${t.data.title}`).join('\n');
+    matches.map((t) => `  ${nameOf(t)}`).join('\n');
 }
 
 // ---------------------------------------------------------------- templates
@@ -665,7 +688,7 @@ function renderTemplate(name, vars) {
 module.exports = {
   TICKET_KEYS, HOME_WORD,
   recordsDir, isHome, homeRoot, ticketsDir, archiveDir, offerWord, badWord, prefixOf, wordOf, idOfFolder,
-  normalizeId, idNumber, requireId, slugify, labelize, labelOf, toIdList, toLabelList, badLabel, today, now,
+  normalizeId, idNumber, requireId, slugify, labelOf, idOfRef, folderName, nameOf, titleFrom, badTitle, toIdList, toLabelList, badLabel, today, now,
   COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,
   historyFile, appendHistory, readHistory,
   hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, questionCount, taskCount, tickTask,

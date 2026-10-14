@@ -1,5 +1,3 @@
-# {{title}}
-
 <!-- What changes and why. One paragraph. -->
 
 ## Done when

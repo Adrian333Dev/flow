@@ -194,7 +194,7 @@ function transition(t, tickets, root, status, { force, reason, verb, batch }) {
   if (entering && openKids.length && !force) {
     throw new FlowError(
       `${t.id} has ${openKids.length} open child ticket${openKids.length === 1 ? '' : 's'}, finish those first:\n` +
-      openKids.map((c) => `  ${c.id}  ${c.data.status.padEnd(10)} ${c.data.title}`).join('\n') +
+      openKids.map((c) => `  ${store.nameOf(c)}  ${c.data.status}`).join('\n') +
       `\n  Or override with: ${verb} --force`
     );
   }
@@ -205,7 +205,7 @@ function transition(t, tickets, root, status, { force, reason, verb, batch }) {
   if (status === 'done' && openKids.length && !force) {
     throw new FlowError(
       `${t.id} has ${openKids.length} open child ticket${openKids.length === 1 ? '' : 's'}, its work is theirs:\n` +
-      openKids.map((c) => `  ${c.id}  ${c.data.status.padEnd(10)} ${c.data.title}`).join('\n') +
+      openKids.map((c) => `  ${store.nameOf(c)}  ${c.data.status}`).join('\n') +
       `\n  Finish those, or close it anyway with: ${verb} --force`
     );
   }
@@ -221,7 +221,7 @@ function transition(t, tickets, root, status, { force, reason, verb, batch }) {
     records.commit(root, `${t.id}: ${from} → ${status}`);
     records.syncLater(root);
   }
-  out(`${t.id}  ${from} → ${status}   ${t.data.title}`);
+  out(`${store.nameOf(t)}  ${from} → ${status}`);
   if (t.data.reason && !batch) out(`      reason: ${t.data.reason}`);
   if (moved) out(`      moved → ${rel(root, moved.to)}`);
   if (revived && !batch) out(`      revived, cleared reason: ${revived}`);
@@ -299,7 +299,7 @@ const actions = {};
 
 actions.ls = {
   section: 'board',
-  summary: 'list many, filtered; words match the title, id, labels and body',
+  summary: 'list many, filtered; words match the title, description, id, labels and body',
   args: '[<words>...]',
   flags: {
     status: { values: statuses.NAMES, arg: '<status>' },
@@ -456,9 +456,10 @@ function takeBack(root, t) {
 
 actions.new = {
   section: 'tickets',
-  args: '"<title>"',
+  args: '"<description>"',
   summary: 'create one, last among its siblings unless a place is given',
   flags: {
+    title: { arg: '<words>' },
     parent: { arg: '<id>' },
     deps: { arg: '<id,id>' },
     label: { arg: '<label,label>' },
@@ -468,8 +469,12 @@ actions.new = {
     first: { bool: true },
   },
   run({ positional, flags, usage }) {
-    const title = positional.join(' ').trim();
-    if (!title) throw new FlowError(`usage: ${usage} "<title>"`);
+    const description = positional.join(' ').trim();
+    if (!description) throw new FlowError(`usage: ${usage}`);
+    // The description opens with the short name: `Safari cookie lost: gone after login`.
+    const title = flags.title !== undefined ? String(flags.title).trim() : store.titleFrom(description);
+    const refused = store.badTitle(title);
+    if (refused) throw new FlowError(refused);
 
     const body = readBody(flags);
     const labels = labelsFrom(flags.label);
@@ -498,7 +503,7 @@ actions.new = {
     const target = positionFrom(flags, tickets.prefix);
     if (target) order.place(order.siblingsOf(tickets, parent), { id: '' }, target);
 
-    let t = store.createTicket(root, { title, labels, parent, deps, tickets, body });
+    let t = store.createTicket(root, { title, description, labels, parent, deps, tickets, body });
 
     // Pushed before the id is shown, so nobody ever sees a number change. A
     // refused push means someone took the number first: the ticket is
@@ -510,7 +515,7 @@ actions.new = {
       throw new FlowError(notMade(claimed));
     }
 
-    out(`created ${t.id}  ${t.data.title}`);
+    out(`created ${store.nameOf(t)}`);
     out(`        ${rel(root, t.file)}`);
     if (target) {
       const notes = placeTicket(t, tickets, target);
@@ -537,20 +542,30 @@ actions.edit = {
   args: '<id>',
   summary: 'change a field',
   flags: {
-    title: { arg: '"<title>"' },
+    title: { arg: '<words>' },
+    description: { arg: '"<text>"' },
     label: { arg: '<label,label>' },
     parent: { arg: '<id>' },
     deps: { arg: '<id,id>' },
   },
   run({ positional, flags, usage }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--label ...]`);
+    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--description ...] [--label ...]`);
 
     const { root, tickets, t } = locate(positional[0]);
     const changes = [];
 
+    // The folder stays: a rename is this one field.
     if (flags.title !== undefined) {
-      changes.push(`title: "${t.data.title}" → "${flags.title}"`);
-      t.data.title = String(flags.title).trim();
+      const title = String(flags.title).trim();
+      const refused = store.badTitle(title);
+      if (refused) throw new FlowError(refused);
+      changes.push(`title: ${t.data.title} → ${title}`);
+      t.data.title = title;
+    }
+    if (flags.description !== undefined) {
+      const description = String(flags.description).trim();
+      changes.push(`description: "${t.data.description}" → "${description}"`);
+      t.data.description = description;
     }
     if (flags.parent !== undefined) {
       // Empty clears it: `--parent ""` un-splits a ticket.
@@ -586,7 +601,7 @@ actions.edit = {
 
     if (!changes.length) {
       throw new FlowError(
-        'nothing to change: pass --title, --label, --parent or --deps. Order is flow rank.\n' +
+        'nothing to change: pass --title, --description, --label, --parent or --deps. Order is flow rank.\n' +
         `  Status moves are their own commands: flow start ${t.id}, flow done ${t.id}, flow park ${t.id}.`
       );
     }
@@ -624,7 +639,7 @@ actions.rank = {
     const notes = placeTicket(t, tickets, target);
     records.commit(root, `${t.id}: ranked ${describePosition(target)}`);
     records.syncLater(root);
-    out(`${t.id}  ${describePosition(target)}   ${t.data.title}`);
+    out(`${store.nameOf(t)}  ${describePosition(target)}`);
     for (const note of notes) out(`      ${note}`);
     return 0;
   },
@@ -651,13 +666,13 @@ actions.file = {
 
     for (const t of targets) {
       if (t.data.filed && !flags.force) {
-        out(`${t.id}  already filed ${t.data.filed}   ${t.data.title}`);
+        out(`${store.nameOf(t)}  already filed ${t.data.filed}`);
         continue;
       }
       const previous = t.data.filed;
       t.data.filed = stamp;
       store.writeTicket(t);
-      out(`${t.id}  filed ${stamp}${previous ? ` (was ${previous})` : ''}   ${t.data.title}`);
+      out(`${store.nameOf(t)}  filed ${stamp}${previous ? ` (was ${previous})` : ''}`);
     }
 
     records.commit(root, `filed ${targets.map((t) => t.id).join(', ')}`);
@@ -732,7 +747,7 @@ actions.drop = {
     if (affected.length && !flags.by && !flags.force) {
       throw new FlowError(
         `${t.id} has ${affected.length} live dependent${affected.length === 1 ? '' : 's'}, directly or through others:\n` +
-        affected.map((d) => `  ${d.id}  ${d.data.status.padEnd(10)} ${d.data.title}`).join('\n') +
+        affected.map((d) => `  ${store.nameOf(d)}  ${d.data.status}`).join('\n') +
         '\n\nLeft alone they can never become ready. Pick one:\n' +
         `  flow drop ${t.id} --reason "${reason}" --by <id>    re-point them at the replacement\n` +
         `  flow drop ${t.id} --reason "${reason}" --force      drop them too`
@@ -740,7 +755,7 @@ actions.drop = {
     }
 
     const { from, moved } = store.setStatus(t, 'dropped', reason);
-    out(`${t.id}  ${from} → dropped   ${t.data.title}`);
+    out(`${store.nameOf(t)}  ${from} → dropped`);
     out(`      reason: ${reason}`);
     if (moved) out(`      moved → ${rel(root, moved.to)}`);
 
@@ -755,7 +770,7 @@ actions.drop = {
         store.writeTicket(d);
         repointed.push(d);
       }
-      out(`\nre-pointed to ${replacement.id} (${replacement.data.title}):`);
+      out(`\nre-pointed to ${store.nameOf(replacement)}:`);
       for (const d of repointed) out(`  ${d.id}  deps → [${d.data.deps.join(', ')}]`);
       if (!repointed.length) out('  nothing to re-point.');
       records.commit(root, `${t.id}: dropped, dependents re-pointed to ${replacement.id}`);
@@ -766,8 +781,8 @@ actions.drop = {
     if (flags.force && affected.length) {
       out(`\ndropped with it (${affected.length}):`);
       for (const d of affected) {
-        store.setStatus(d, 'dropped', `dropped with ${t.id} (${t.data.title}), which it depended on`);
-        out(`  ${d.id}  ${d.data.title}`);
+        store.setStatus(d, 'dropped', `dropped with ${store.nameOf(t)}, which it depended on`);
+        out(`  ${store.nameOf(d)}`);
       }
     }
     records.commit(root, `${t.id}: dropped`);
@@ -837,7 +852,7 @@ actions.move = {
     for (const t of moving) {
       const id = renamed.get(t.id);
       store.move(t, target, id, renamed);
-      out(`${t.data.was} → ${id}   ${t.data.title}`);
+      out(`${t.data.was} → ${id}-${t.data.title}`);
     }
 
     const said = [...renamed].map(([a, b]) => `${a} → ${b}`).join(', ');

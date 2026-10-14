@@ -28,7 +28,8 @@ Each status, and what moves a ticket into it:
 
 ### The ticket
 
-- `V1` **One folder per ticket**, `.flow/tickets/<id>-<words>/`: `ticket.md`, `history.md`, and what the work writes, such as `decisions/<subject>.md`, `reports/` and `protos/<name>/`. A ticket made earlier still holds its `groundwork/map.md`, `plan.md` and `issues.md`, until `/flow:file-findings` reads them.
+- `V1` **A ticket has a short `title` and a `description`.** The title is up to 4 hyphenated words, `login-redirect-loop`. The description is one sentence that opens with the short name and a colon: `Login redirect loop: the page reloads after a wrong password`. `flow new` cuts the title from the words before the first colon, else the first 4 words, and `--title` overrides the cut. `flow edit <id> --title` renames. Flow joins the id and the title as the ticket's name, `exp-47-login-redirect-loop`, in every list, message and badge. A title with capitals, spaces or over 40 characters is refused. Decided with the user 2026-10-14: a required `--title` made the agent write the same idea twice. Renames will be frequent, so the name leaves the folder (`fw-16` map `## 20.5.4`).
+- `V1` **One folder per ticket**, `.flow/tickets/<id>/`: `ticket.md`, `history.md`, and what the work writes, such as `decisions/<subject>.md`, `reports/` and `protos/<name>/`. A ticket made earlier still holds its `groundwork/map.md`, `plan.md` and `issues.md`, until `/flow:file-findings` reads them.
 - `V1` **A ticket is one file, `ticket.md`**: what it is for and how you know it is done, then `## Questions` if the work needs design, `## Tasks` if it needs building, and `## State`. Both lists are optional and flat, except `## Questions`, which keeps Title Case group headings. `flow <id>` counts the boxes in each, `questions: 3/7 answered` and `tasks: 2/5 done`, and skips a box inside an HTML comment. `flow new` writes no `map.md`, no `plan.md` and no `issues.md`.
 - `V1` **Decisions move to `decisions/<subject>.md` once they outgrow `ticket.md`**, past about 300 lines. `ticket.md` keeps the questions, the state and a line per file, and `flow <id>` lists the files.
 - `V1` **Big work is cut into children.** A child names its parent in `parent:`. The parent's `## Tasks` lists its children in build order, one line each that starts with the child's id: `- [ ] fw-127: …`. `flow done` on a child ticks that line, and reopening the child clears it. A parent closes after its last child. `deps` stays for the rare wait outside the family.
@@ -49,6 +50,7 @@ Each status, and what moves a ticket into it:
 - `V1` **Tickets outside any project use `home`**, live in `~/.flow/tickets/`, and their ids work from anywhere: `home-4`.
 - `V1` **A number is never given out twice in one place.** `ticket-counter`, beside `version`, holds the highest number the place ever gave out, committed with its tickets. The next number is the higher of the counter and the highest ticket, plus 1. Ruled with the user 2026-10-07: numbering from the tickets on disk freed the number of a ticket deleted, moved away or taken back, and `fw-16` went to a second ticket.
 - `V1` **A bare number means the current place's ticket**: `12` inside the expense app is `exp-12`.
+- `V1` **A typed name is read by its id alone.** `exp-47-old-words` finds `exp-47` after any rename. A title word that matches one ticket finds it too. A ticket made before the title moved out of the folder keeps its old folder name, and the same lookup finds it.
 - `V1` **`flow move <id> <home|folder>` renumbers into the target**, and the ticket keeps `was: exp-12`, so the old id still finds it. A link to a ticket staying behind refuses the move.
 
 ### Where a project's tickets live
@@ -66,7 +68,8 @@ Each status, and what moves a ticket into it:
 - `V1` **Every command writing a ticket commits**, the whole folder, so the user's hand edits ride along.
 - `V1` **A push follows a status move or a drop, in the background**, and after a reply once 30 minutes have passed with something changed, and at session end. The user asked for more than session end, and at most every half hour.
 - `V1` **A pull runs at session start, in the background, and right before a new ticket takes its number.**
-- `V1` **`flow new` pushes at once, or makes no ticket.** A refused push pulls, renumbers and tries again, up to 5 times, and the id shows only after the push lands. Offline, no ticket is made, and git's own words are printed. A number shown and then changed would stay wrong in every plan, commit message and conversation that already used it. Decided with the user 2026-09-29.
+- `V1` **`flow new` pushes at once, or makes no ticket.** Offline, no ticket is made, and git's own words are printed. A number shown and then changed would stay wrong in every plan, commit message and conversation that already used it. Decided with the user 2026-09-29.
+- `V1` **2 machines taking one number: the later `flow new` makes no ticket**, prints `no ticket was made: another machine took exp-5 first. Run it again.`, and leaves no trace on the branch. The retry takes the next number. Both folders are now `exp-5`, so the 2 tickets meet on the same file, and git cannot tell them apart or renumber one. A rebase replays every commit, so a ticket made and later removed would stop each later pull.
 - `V1` **The Flow home claims a number the same way**, for a home ticket and a private project's. `flow new` runs `flow sync` on `~/.flow/` before taking the number. Then it commits every changed file there, merges, and pushes before the id shows. Offline, on a clash in another file, or behind another machine's changelog entry, no ticket is made. Decided with the user 2026-10-07: a number taken on the spot was renumbered at the next sync, mostly in the background, and the new id printed nowhere. Every changed file goes up, not the ticket alone, since git refuses to merge in the other machine's work over an uncommitted file it changed.
 - `V1` **`flow sync` still renumbers a clash in the Flow home, keeping `was:`**, and prints `home-4 is now home-5: another machine took home-4 first.` Only a ticket made before claims existed, or while the Flow home had no remote, meets it. A Flow home with no remote numbers on the spot, as a branch with no remote does.
 - `V1` **A pull meeting the same lines of one ticket changed on both sides is put back**, with the local version committed for a merge by hand.
@@ -77,7 +80,7 @@ Each status, and what moves a ticket into it:
 - `V1` **`flow tree` shows a split feature whole**: every level, each parent's count of children done, what blocks each ticket, and why one is parked. Kept by the user 2026-10-01.
 - `V1` **`flow check` finds cycles, dangling ids, dropped blockers, orphaned parents and unknown statuses.**
 - `V1` **`flow ls` lists tickets filtered** by status, parent, label, or not yet filed by `/flow:file-findings`, in rank order.
-- `V1` **`flow ls <words>` matches loosely.** Every word must appear in the title, id, labels or body, and a word of 5 letters or more may be one typo away: `flow ls safary` finds "Safari". Backlog.md's search does this with Fuse.js, which Flow cannot take as a dependency, so `scripts/lib/tickets/search.js` is the small version.
+- `V1` **`flow ls <words>` matches loosely.** Every word must appear in the title, description, id, labels or body, and a word of 5 letters or more may be one typo away: `flow ls safary` finds "Safari". Backlog.md's search does this with Fuse.js, which Flow cannot take as a dependency, so `scripts/lib/tickets/search.js` is the small version.
 - `V1` **A status move is the command**: `flow start exp-47`, `flow done`, `flow park --reason "<why>"`, `flow todo`. `dropped` has only `flow drop`. `flow done` refuses a parent with open children, and `flow drop` refuses while live dependents exist.
 - `V1` **Only a pickup meets the refusals on unmet `deps` and open children**: a move into `in-progress` or `done`. Parking, and a move between `todo` and `parked`, start nothing, so parking a blocked ticket works.
 - `V1` **`flow park --label post-v1 --reason "after V1 ships"` parks every open ticket carrying the label**, in one commit. `flow revive --label post-v1` returns each parked one to the status it left. A label no ticket carries changes nothing and prints the labels in use, since labels are free and a typo should show.
@@ -93,7 +96,7 @@ Each status, and what moves a ticket into it:
 
 ### Ticket skills
 
-- `V1` **Each open ticket is a skill only the user can start**, `<project>/.claude/skills/exp-47/`, and `~/.claude/skills/home-4/` for home tickets. Typing `/exp` lists each with its status and title: `/exp-1   Ticket, in-progress: Daemon detection (project)`. A ticket that is `parked`, `done` or `dropped` gets none.
+- `V1` **Each open ticket is a skill only the user can start**, `<project>/.claude/skills/exp-47/`, and `~/.claude/skills/home-4/` for home tickets. Typing `/exp` lists each with its status and description, else its title: `/exp-1   Ticket, in-progress: Daemon detection (project)`. A ticket that is `parked`, `done` or `dropped` gets none.
 - `V1` **The skill holds a label only.** It runs `flow get exp-47 --files` when typed, so a stale skill shows an old row and never old data.
 - `V1` **A ticket reaches a phase through its own skill alone**: `/flow:execute /exp-47` loads both, the phase first. `/exp-47` alone prints the ticket. A typed id is plain text the agent looks up. Approved by the user 2026-09-30.
 - `V1` **The skills stay current**: rewritten after every `flow` command that writes a ticket, and at session start, which reloads the skill list.
@@ -161,8 +164,8 @@ src/parser.js:40-120   # where step 4 stopped
 ## How it fails
 
 - **Offline, `flow new`** → no ticket, and git's words printed.
-- **2 people take one number at once** → the later push is refused, pulls, renumbers, and shows its id only after it lands.
-- **2 machines take one `home-` number at once** → the later push is refused, merges, renumbers, and shows its id only after it lands.
+- **2 people take one number at once** → the later `flow new` makes no ticket, leaves no trace, and says to run it again.
+- **2 machines take one `home-` number at once** → the later `flow new` merges, finds the clash, makes no ticket, and says to run it again.
 - **A home ticket made before claims existed clashes** → `flow sync` renumbers it, with `was:`.
 - **The same ticket changed on both sides** → the pull is put back, the local version stays committed, and the user merges by hand.
 - **A remote refusing the user's pushes** → `flow init` stops before making the branch, and offers `--private`.

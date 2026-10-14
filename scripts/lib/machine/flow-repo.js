@@ -393,9 +393,11 @@ function sync(at, { roots = [], keepWas = true } = {}) {
     if (!merged.ok) {
       const clash = tickets.conflicted(at.flow);
       git(at.flow, ['merge', '--abort']);
-      throw new FlowError(`another machine changed the same lines of ${clash.join(', ') || 'a file'}, so nothing came down ` +
+      const stopped = new FlowError(`another machine changed the same lines of ${clash.join(', ') || 'a file'}, so nothing came down ` +
         `and nothing went up. What this machine wrote is kept, committed in ${at.flow}. ` +
         'Merge origin/main there by hand, then run flow sync again.');
+      stopped.clash = clash;
+      throw stopped;
     }
     const diff = git(at.flow, ['diff', '--name-only', before, 'HEAD']).out;
     came = diff ? diff.split('\n').length : 0;
@@ -461,6 +463,12 @@ function claimTicket(at, root, id) {
     });
   } catch (e) {
     if (!(e instanceof FlowError)) throw e;
+    // Both folders are named by the number alone, so the merge stops on both
+    // adding the same file. The caller takes the ticket back, and the next
+    // merge nets out: this side added the folder and then removed it.
+    if ((e.clash || []).some((f) => f.split('/').includes(current))) {
+      return { ok: false, id: current, why: `another machine took ${current} first. Run it again.` };
+    }
     return { ok: false, id: current, why: e.message };
   }
 }

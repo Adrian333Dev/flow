@@ -16,7 +16,7 @@ const { project, flow } = require('./helpers/scratch');
 test('a ticket is created, moved and archived', () => {
   const dir = project('flow-lifecycle');
 
-  const made = flow(dir, ['new', 'Split the parser']);
+  const made = flow(dir, ['new', 'Split the parser', '--title', 'split-the-parser']);
   assert.strictEqual(made.code, 0, made.stderr);
 
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets'));
@@ -26,7 +26,7 @@ test('a ticket is created, moved and archived', () => {
 
   const listed = flow(dir, ['ls']);
   assert.strictEqual(listed.code, 0, listed.stderr);
-  assert.match(listed.stdout, /Split the parser/);
+  assert.match(listed.stdout, /exp-1-split-the-parser/);
 
   assert.strictEqual(flow(dir, ['start', id]).code, 0);
   const shown = flow(dir, [id]);
@@ -75,7 +75,7 @@ test('--help after a command prints that command alone, and runs nothing', () =>
   const on = flow(dir, ['skills', 'on', '-h']);
   assert.match(on.stdout, /^flow skills on <name\.\.\.> /);
 
-  const made = flow(dir, ['new', 'Never made', '--help']);
+  const made = flow(dir, ['new', 'Never made', '--title', 'never-made', '--help']);
   assert.match(made.stdout, /^flow new /);
   assert.doesNotMatch(flow(dir, ['ls']).stdout, /Never made/);
 });

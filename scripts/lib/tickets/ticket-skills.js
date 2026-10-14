@@ -36,10 +36,10 @@ const OWN = ['SKILL.md', '.gitignore'];
 /** A project's folder of skills, the one `flow init` makes. */
 const folderOf = (project) => path.join(project, '.claude', 'skills');
 
-/** The row the `/` list shows: `Ticket, in-progress: Daemon detection`. */
+/** The row the `/` list shows: `Ticket, in-progress: Find the daemon`, the title where there is no description. */
 function describe(t, index) {
   const blocked = graph.unmetDeps(t, index).length ? ', blocked' : '';
-  return `Ticket, ${t.data.status}${blocked}: ${t.data.title}`;
+  return `Ticket, ${t.data.status}${blocked}: ${t.data.description || t.data.title}`;
 }
 
 function render(t, index) {

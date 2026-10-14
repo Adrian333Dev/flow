@@ -34,8 +34,8 @@ function statusLine(dir, data, args = []) {
 
 test('the ticket the user typed a skill for, with its status, and the size with --context', () => {
   const dir = repoProject('status-line-typed');
-  flow(dir, ['new', 'Login page']);
-  flow(dir, ['new', 'Export csv']);
+  flow(dir, ['new', 'Login page', '--title', 'login-page']);
+  flow(dir, ['new', 'Export csv', '--title', 'export-csv']);
   flow(dir, ['start', 'exp-2']);
   const transcript = path.join(dir, 'session.jsonl');
   fs.writeFileSync(transcript, typed('/exp-1'));
@@ -52,7 +52,7 @@ test('the ticket the user typed a skill for, with its status, and the size with 
 
 test('a ticket a skill moved for this session, where none was typed', () => {
   const dir = repoProject('status-line-history');
-  flow(dir, ['new', 'Crash on save']);
+  flow(dir, ['new', 'Crash on save', '--title', 'crash-on-save']);
   flow(dir, ['start', 'exp-1'], { CLAUDE_CODE_SESSION_ID: 's2' });
   const transcript = path.join(dir, 'session.jsonl');
   fs.writeFileSync(transcript, '');

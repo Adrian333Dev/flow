@@ -31,9 +31,11 @@
  * A new ticket is pushed before its id is shown, so a number never changes
  * once someone has seen it. 2 people taking the same number in the same
  * moment is the one clash one folder per ticket cannot avoid, and a refused
- * push is how it shows: the ticket is renumbered and pushed again. Where the
- * push fails for any other reason, offline or signed out, `flow new` makes no
- * ticket at all, and says what git said.
+ * push is how it shows. A new ticket's folder is its id alone, so the 2 folders
+ * collide: `flow new` makes no ticket, undoes its commit, and says to run it
+ * again. A folder made before that has words after the id, and is renumbered
+ * and pushed again. Where the push fails for any other reason, offline or
+ * signed out, `flow new` makes no ticket at all, and says what git said.
  *
  * Every git call in `.flow/` holds one lock, so the background push and a
  * command typed at the same moment never meet inside git.
@@ -264,8 +266,10 @@ function pull(root) {
 
 /**
  * Commit a new ticket and push it before its id is shown. A refused push
- * pulls, renumbers the ticket if its number was taken, and tries again. No
- * `was:` is written, since nobody saw the first number. `id` is the number the
+ * pulls and tries again. Where its number was taken, a ticket whose folder has
+ * words after the id is renumbered, and one whose folder is the id alone is
+ * given up, see the header. No `was:` is written, since nobody saw the first
+ * number. `id` is the number the
  * ticket took; the one it ends with comes back. A failure leaves the ticket
  * committed here, and the caller takes it back. The Flow home claims the same
  * way, through flow-repo.js.
@@ -282,7 +286,16 @@ function claim(root, id) {
       if (pushed.ok) return { ok: true, id: current };
       if (!pushed.rejected) return { ok: false, offline: true, id: current, why: pushed.why };
       const pulled = pullNow(root);
-      if (!pulled.ok) return { ...pulled, id: current };
+      if (!pulled.ok) {
+        // Another machine took this number, and both folders are named by it
+        // alone, so the replay stops on both adding the same file. The commit
+        // is undone here, or every later pull would replay it and stop again.
+        if ((pulled.clash || []).some((f) => f.split('/').includes(current))) {
+          git(recordsOf(root), ['reset', '--soft', 'HEAD~1']);
+          return { ok: false, id: current, why: `another machine took ${current} first. Run it again.` };
+        }
+        return { ...pulled, id: current };
+      }
       const moved = renumber(root, `${REMOTE}/${BRANCH}`, { keepWas: false }).find((r) => r.from === current);
       if (moved) current = moved.to;
     }

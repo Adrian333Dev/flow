@@ -2,7 +2,7 @@
 /**
  * Loose word search over tickets, for `flow ls <words>`. Backlog.md's search
  * uses Fuse.js, and Flow takes no dependencies, so this is the small version:
- * every word must appear in the title, id, labels or body, and a word of 5
+ * every word must appear in the title, description, id, labels or body, and a word of 5
  * letters or more may be one typo away from a word in the text.
  */
 
@@ -28,7 +28,8 @@ function withinOne(a, b) {
 function matcher(words) {
   const wanted = words.map((w) => String(w).trim().toLowerCase()).filter(Boolean);
   return (ticket) => {
-    const text = [ticket.data.title, ticket.id, ticket.data.labels.join(' '), ticket.body].join('\n').toLowerCase();
+    const { title, description, labels } = ticket.data;
+    const text = [title, description, ticket.id, labels.join(' '), ticket.body].join('\n').toLowerCase();
     let split = null;
     return wanted.every((word) => {
       if (text.includes(word)) return true;

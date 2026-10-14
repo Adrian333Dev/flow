@@ -12,6 +12,8 @@ const path = require('path');
 const { project, write, flow } = require('./helpers/scratch');
 const ticketSkills = require('../lib/tickets/ticket-skills');
 
+const slug = (text) => text.toLowerCase().replace(/ /g, '-');
+
 const skillsOf = (dir) => path.join(dir, '.claude', 'skills');
 const skillText = (dir, id) => fs.readFileSync(path.join(skillsOf(dir), id, 'SKILL.md'), 'utf8');
 const listed = (dir) => (fs.existsSync(skillsOf(dir)) ? fs.readdirSync(skillsOf(dir)).sort() : []);
@@ -22,9 +24,9 @@ function syncIn(dir, claude = path.join(dir, 'claude')) {
   return ticketSkills.sync({ project: dir, claude });
 }
 
-test('flow new writes a user-only skill for the ticket, labelled with its status and title', () => {
+test('flow new writes a user-only skill for the ticket, labelled with its status and description', () => {
   const dir = project('ticket-skills-new');
-  assert.strictEqual(flow(dir, ['new', 'Daemon "detection"']).code, 0);
+  assert.strictEqual(flow(dir, ['new', 'Daemon "detection"', '--title', 'daemon-detection']).code, 0);
 
   const text = skillText(dir, 'exp-1');
   assert.match(text, /^name: exp-1$/m);
@@ -35,13 +37,13 @@ test('flow new writes a user-only skill for the ticket, labelled with its status
   assert.strictEqual(fs.readFileSync(path.join(skillsOf(dir), 'exp-1', '.gitignore'), 'utf8'), '*\n');
 });
 
-test('a status move or a new title rewrites the skill, and a sync with nothing new changes nothing', () => {
+test('a status move or a new description rewrites the skill, and a sync with nothing new changes nothing', () => {
   const dir = project('ticket-skills-rewrite');
-  flow(dir, ['new', 'Parser']);
+  flow(dir, ['new', 'Parser', '--title', 'parser']);
   assert.strictEqual(flow(dir, ['start', 'exp-1']).code, 0);
   assert.match(skillText(dir, 'exp-1'), /"Ticket, in-progress: Parser"/);
 
-  flow(dir, ['edit', 'exp-1', '--title', 'Parser split']);
+  flow(dir, ['edit', 'exp-1', '--description', 'Parser split']);
   assert.match(skillText(dir, 'exp-1'), /"Ticket, in-progress: Parser split"/);
 
   assert.strictEqual(syncIn(dir), false);
@@ -49,7 +51,7 @@ test('a status move or a new title rewrites the skill, and a sync with nothing n
 
 test('a ticket parked, done or dropped loses its skill, and one brought back gets it again', () => {
   const dir = project('ticket-skills-remove');
-  for (const title of ['One', 'Two', 'Three']) flow(dir, ['new', title]);
+  for (const title of ['One', 'Two', 'Three']) flow(dir, ['new', title, '--title', slug(title)]);
   assert.deepStrictEqual(listed(dir), ['exp-1', 'exp-2', 'exp-3']);
 
   flow(dir, ['park', 'exp-1', '--reason', 'waiting on the vendor']);
@@ -64,8 +66,8 @@ test('a ticket parked, done or dropped loses its skill, and one brought back get
 
 test('a ticket waiting on another says blocked, until the other is done', () => {
   const dir = project('ticket-skills-blocked');
-  flow(dir, ['new', 'Base']);
-  flow(dir, ['new', 'On top', '--deps', 'exp-1']);
+  flow(dir, ['new', 'Base', '--title', 'base']);
+  flow(dir, ['new', 'On top', '--title', 'on-top', '--deps', 'exp-1']);
   assert.match(skillText(dir, 'exp-2'), /"Ticket, todo, blocked: On top"/);
 
   flow(dir, ['start', 'exp-1']);
@@ -78,7 +80,7 @@ test('a skill folder flow never wrote is left alone, even under a ticket id', ()
   const dir = project('ticket-skills-foreign');
   write(dir, '.claude/skills/exp-1/SKILL.md', '---\nname: exp-1\ndescription: mine\n---\n');
   write(dir, '.claude/skills/review-pr/SKILL.md', '---\nname: review-pr\ndescription: mine\n---\n');
-  flow(dir, ['new', 'Parser']);
+  flow(dir, ['new', 'Parser', '--title', 'parser']);
   assert.match(skillText(dir, 'exp-1'), /description: mine/);
 
   flow(dir, ['done', 'exp-1']);
@@ -87,7 +89,7 @@ test('a skill folder flow never wrote is left alone, even under a ticket id', ()
 
 test('a marked folder holding a file flow never wrote survives its ticket closing', () => {
   const dir = project('ticket-skills-extra');
-  flow(dir, ['new', 'Parser']);
+  flow(dir, ['new', 'Parser', '--title', 'parser']);
   write(dir, '.claude/skills/exp-1/notes.md', 'mine\n');
   flow(dir, ['done', 'exp-1']);
   assert.ok(fs.existsSync(path.join(skillsOf(dir), 'exp-1', 'notes.md')));

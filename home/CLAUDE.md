@@ -98,7 +98,7 @@ One phase at a time:
 
 - `flow <id>`: one ticket in full, such as `flow exp-47`. Ticket frontmatter changes through `flow` alone, never by hand.
 - `flow get <id> --files`: the ticket plus every file its `open` block names. Run it for a ticket id typed in the user's message.
-- `flow new "<title>"`: create a ticket. Outside a project, `FLOW_PROJECT=$HOME flow new "<title>"` keeps it in `~/.flow/tickets/`, numbered `home-1`, and its id works from anywhere.
+- `flow new "<short name>: <details>"`: create a ticket, titled from the words before the colon. Outside a project, `FLOW_PROJECT=$HOME flow new "<short name>: <details>"` keeps it in `~/.flow/tickets/`, numbered `home-1`, and its id works from anywhere.
 - `util fs tree [path]`: a folder as a tree, with each file's line count.
 
 ## Judgment

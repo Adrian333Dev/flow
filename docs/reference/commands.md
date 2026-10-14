@@ -17,7 +17,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
 - [One ticket](#one-ticket): show, create, change or remove one ticket
   - [`flow get`](#flow-get): show one ticket
   - [`flow new`](#flow-new): create a ticket
-  - [`flow edit`](#flow-edit): change a ticket's title, labels or links
+  - [`flow edit`](#flow-edit): change a ticket's title, description, labels or links
   - [`flow rank`](#flow-rank): put a ticket before or after another
   - [`flow file`](#flow-file): mark finished tickets as checked for lessons
   - [`flow drop`](#flow-drop): remove a ticket that will never be done
@@ -136,16 +136,16 @@ What to work on next: tickets in progress first, then ready tickets in rank orde
 $ flow next
 tickets: 6   todo 4   in-progress 1   done 1
 
-last closed  shop-5  Choose a chart library
+last closed  shop-5-chart-library
 
 in flight (1), finish these before starting more:
-  ID      STATUS       LABELS      PARENT  TITLE
-  shop-4  in-progress  bug,urgent  -       Safari loses the session cookie
+  TICKET                STATUS       LABELS      PARENT
+  shop-4-safari-cookie  in-progress  bug,urgent  -
 
 ready (2):
-  ID      STATUS  LABELS           PARENT  TITLE
-  shop-6  todo    feature,post-v1  -       Dark mode
-  shop-2  todo    feature          shop-1  Budget store
+  TICKET               STATUS  LABELS           PARENT
+  shop-6-dark-mode     todo    feature,post-v1  -
+  shop-2-budget-store  todo    feature          shop-1
 
 unfiled: 1 closed ticket not yet filed   (flow ls --unfiled)
          run /flow:file-findings to sweep them
@@ -160,23 +160,23 @@ Every ticket in a table, finished and dropped ones included.
 
 ```console
 $ flow ls
-ID      STATUS       LABELS           PARENT  TITLE
-shop-4  in-progress  bug,urgent       -       Safari loses the session cookie
-shop-6  todo         feature,post-v1  -       Dark mode
-shop-1  todo         feature,v1       -       Budget page
-shop-2  todo         feature          shop-1  Budget store
-shop-3  todo         feature,v1       -       CSV export
-shop-5  done         topic,post-v1    -       Choose a chart library
+TICKET                STATUS       LABELS           PARENT
+shop-4-safari-cookie  in-progress  bug,urgent       -
+shop-6-dark-mode      todo         feature,post-v1  -
+shop-1-budget-page    todo         feature,v1       -
+shop-2-budget-store   todo         feature          shop-1
+shop-3-csv-export     todo         feature,v1       -
+shop-5-chart-library  done         topic,post-v1    -
 
 6 of 6.
 ```
 
-**Words narrow the table to the tickets that hold every one.** A word matches anywhere in the title, id, labels or body. A word of 5 letters or more also matches a word in the text that is one typo away:
+**Words narrow the table to the tickets that hold every one.** A word matches anywhere in the title, description, id, labels or body. A word of 5 letters or more also matches a word in the text that is one typo away:
 
 ```console
 $ flow ls safary
-ID      STATUS       LABELS      PARENT  TITLE
-shop-4  in-progress  bug,urgent  -       Safari loses the session cookie
+TICKET                STATUS       LABELS      PARENT
+shop-4-safari-cookie  in-progress  bug,urgent  -
 
 1 of 6.
 ```
@@ -193,12 +193,12 @@ Tickets nested under the ticket they were split from, with what each one waits o
 
 ```console
 $ flow tree
-shop-3  CSV export                       todo         blocked by shop-2
-shop-7  Export to PDF                    todo         blocked by shop-2
-shop-6  Dark theme                       todo
-shop-4  Safari loses the session cookie  in-progress
-shop-1  Budget page                      todo         0/1 done
-└── shop-2  Budget store                 todo
+shop-3-csv-export             todo         blocked by shop-2
+shop-7-pdf-export             todo         blocked by shop-2
+shop-6-dark-theme             todo
+shop-4-safari-cookie          in-progress
+shop-1-budget-page            todo         0/1 done
+└── shop-2-budget-store       todo
 
 6 tickets, 1 done or dropped hidden: flow tree --all
 ```
@@ -217,7 +217,7 @@ no problems: no cycles, no dangling ids, no dropped blockers, no closed parents,
 
 ## One ticket
 
-A ticket's id is the project's prefix and a number, `shop-4`. Any part of its folder name that matches one ticket alone finds it too: `4`, or `safari` for `shop-4-login-fails-safari`. An id starting `home-` names a ticket kept in your Flow home, for work that belongs to no project.
+A ticket's id is the project's prefix and a number, `shop-4`. Its title is up to 4 hyphenated words, `safari-cookie`, and the two together name it everywhere: `shop-4-safari-cookie`. Its description is one sentence saying what the work is, opening with the short name. Any of these finds a ticket: `4`, `shop-4`, `shop-4-safari-cookie`, or a title word that matches one ticket alone, such as `safari`. Only the id part counts, so a name from before a rename, `shop-4-old-words`, still finds it. An id starting `home-` names a ticket kept in your Flow home, for work that belongs to no project.
 
 ### `flow get`
 
@@ -227,20 +227,20 @@ A `rank:` line shows only on a ticket that has a number.
 
 ```console
 $ flow get 4
-shop-4  Safari loses the session cookie
+shop-4-safari-cookie
+Safari loses the session cookie after login
 status: todo   parent: -
 rank:       0
 labels:     bug, urgent
 deps:       -
 dependents: -
 ready:      yes
-path:       .flow/tickets/shop-4-safari-loses-session/ticket.md
+path:       .flow/tickets/shop-4/ticket.md
 
 pick up with: flow start shop-4
 ------------------------------------------------------------
-# Safari loses the session cookie
-
 <!-- What changes and why. One paragraph. -->
+
 
 ## Done when
 
@@ -251,12 +251,12 @@ pick up with: flow start shop-4
 
 ### `flow new`
 
-`flow new "<title>"`: create a ticket.
+`flow new "<description>"`: create a ticket. The description is one sentence that opens with the ticket's short name, then a colon: `Export the budget as a PDF: ...`. The title is cut from it, up to 4 words before the colon, or the first 4 words where there is no colon. The ticket's folder is its id alone.
 
 ```console
-$ flow new "Export to PDF" --deps shop-2 --label feature,v1 --after shop-3
-created shop-7  Export to PDF
-        .flow/tickets/shop-7-export-pdf/ticket.md
+$ flow new "PDF export: the budget page as a PDF" --deps shop-2 --label feature,v1 --after shop-3
+created shop-7-pdf-export
+        .flow/tickets/shop-7/ticket.md
         rank: after shop-3
         labels: feature, v1
         deps: shop-2
@@ -264,8 +264,18 @@ created shop-7  Export to PDF
 pick up with: flow start shop-7
 ```
 
+A description with no words to cut a title from, such as `!!!`, is refused.
+
 A new ticket carries no rank and lands last. Add a place to put it elsewhere.
 
+When 2 computers take one number at the same moment, the later one makes no ticket and says so. Run `flow new` again, and it takes the next number:
+
+```console
+$ flow new "PDF export: the budget page as a PDF"
+flow: no ticket was made: another machine took shop-7 first. Run it again.
+```
+
+- **`--title <words>`**: the title in place of the cut one. Lowercase letters, digits and single hyphens, 40 characters at most, such as `login-redirect-loop`.
 - **`--before <id>`**, **`--after <id>`** or **`--first`**: where the ticket goes among its siblings. [`flow rank`](#flow-rank) explains the order.
 - **`--parent <id>`**: the ticket this one was split from.
 - **`--deps <id,id>`**: tickets that must reach `review` or `done` before this one can start.
@@ -277,9 +287,10 @@ A new ticket carries no rank and lands last. Add a place to put it elsewhere.
 `flow edit <id>`, with one flag per field to change. The status changes through its own commands, under [Ticket status](#ticket-status).
 
 ```console
-$ flow edit shop-6 --title "Dark theme" --label feature,v1
+$ flow edit shop-6 --title dark-theme --description "Dark theme for every page" --label feature,v1
 shop-6
-  title: "Dark mode" → "Dark theme"
+  title: dark-mode → dark-theme
+  description: "Dark mode for every page" → "Dark theme for every page"
   labels: [feature, post-v1] → [feature, v1]
 
 $ flow edit shop-3 --deps shop-5
@@ -287,7 +298,8 @@ shop-3
   deps: [shop-2, shop-5] → [shop-5]
 ```
 
-- **`--title "<title>"`**: the title. The folder name stays.
+- **`--title <words>`**: the short name, as in [`flow new`](#flow-new). The folder and its path stay, so a rename breaks no link.
+- **`--description "<text>"`**: the one-sentence description. The title stays.
 - **`--label <label,label>`**: the ticket's labels, replacing the whole list. An empty value clears it.
 - **`--parent <id>`**: the ticket this one was split from. An empty value removes it.
 - **`--deps <id,id>`**: the tickets this one waits on, replacing the whole list. An empty value clears it. A wait that would make a loop is refused.
@@ -300,11 +312,11 @@ The order changes through [`flow rank`](#flow-rank), never through `flow edit`.
 
 ```console
 $ flow rank shop-4 --before shop-1
-shop-4  before shop-1   Safari loses the session cookie
+shop-4-safari-cookie  before shop-1
       numbered 3 other tickets too, in their current order
 
 $ flow rank shop-3 --first
-shop-3  first   CSV export
+shop-3-csv-export  first
 ```
 
 A move writes a `rank:` number on the moved ticket alone, halfway between its new neighbours. **The first move among tickets with no number numbers all of them once**, in their current order, as the first example shows. A move into a gap too small to split numbers the group again.
@@ -325,8 +337,8 @@ Give one place. A `done` or `dropped` ticket has none.
 
 ```console
 $ flow file shop-1 shop-2
-shop-1  filed 2026-10-02   Budget page
-shop-2  filed 2026-10-02   Budget store
+shop-1-budget-page   filed 2026-10-02
+shop-2-budget-store  filed 2026-10-02
 
 nothing left unfiled.
 ```
@@ -344,11 +356,11 @@ nothing left unfiled.
 
 ```console
 $ flow drop shop-6 --reason "replaced by the new layout" --by shop-5
-shop-6  todo → dropped   Old budget layout
+shop-6-old-layout  todo → dropped
       reason: replaced by the new layout
-      moved → .flow/tickets/archive/shop-6-old-budget-layout
+      moved → .flow/tickets/archive/shop-6
 
-re-pointed to shop-5 (Choose a chart library):
+re-pointed to shop-5-chart-library:
   shop-3  deps → [shop-2, shop-5]
 ```
 
@@ -358,7 +370,7 @@ re-pointed to shop-5 (Choose a chart library):
 
 ```console
 $ flow move shop-4 home
-shop-4 → home-1   Login fails on Safari
+shop-4 → home-1-safari-cookie
 
 the old id still finds it from the project: flow shop-4
 ```
@@ -384,11 +396,11 @@ The skills move tickets for you. [Phases](../phases.md) covers which skill moves
 
 ```console
 $ flow review shop-2
-shop-2  building → review   Budget store
+shop-2-budget-store  building → review
 
 now ready:
-  ID      STATUS  LABELS      PARENT  TITLE
-  shop-3  todo    feature,v1  -       CSV export
+  TICKET             STATUS  LABELS      PARENT
+  shop-3-csv-export  todo    feature,v1  -
 ```
 
 **A ticket in `review` already counts as finished** for the tickets waiting on it.
@@ -405,7 +417,7 @@ now ready:
 ```console
 $ flow done shop-1
 flow: shop-1 has 1 open child ticket, finish those first:
-  shop-2  review     Budget store
+  shop-2-budget-store  review
   Or override with: flow done shop-1 --force
 ```
 
@@ -413,7 +425,7 @@ flow: shop-1 has 1 open child ticket, finish those first:
 
 ```console
 $ flow park shop-4 --reason "waiting on a Safari machine"
-shop-4  building → parked   Login fails on Safari
+shop-4-safari-cookie  building → parked
       reason: waiting on a Safari machine
 
 revive with: flow build shop-4
@@ -423,14 +435,14 @@ revive with: flow build shop-4
 
 ```console
 $ flow park --label post-v1 --reason "after V1 ships"
-shop-8  todo → parked   Dark mode
-shop-9  building → parked   Export to PDF
+shop-8-dark-mode  todo → parked
+shop-9-pdf-export  building → parked
 
 parked 2 tickets labelled post-v1: after V1 ships
 
 $ flow revive --label post-v1
-shop-8  parked → todo   Dark mode
-shop-9  parked → building   Export to PDF
+shop-8-dark-mode  parked → todo
+shop-9-pdf-export  parked → building
 
 revived 2 tickets labelled post-v1
 ```
