@@ -11,11 +11,10 @@ Find the cause by evidence, prove it, then fix it.
 
 Usually it is one command you run yourself. Where the failure lives out of reach (a browser, a phone, a service behind a login), the check is a short sequence the user runs and reports back, as exact and repeatable as a command.
 
-**On a ticket, read `## State` before step 1.** Resume at the first hypothesis nothing killed. Never restart the loop. Nothing written there → step 1.
+**On a ticket, read `reports/<failure>.md` before step 1**, if it exists. Resume at the first hypothesis nothing killed. Never restart the loop. No report → step 1.
 
-- **Sent from `/flow:execute` mid-build** → move no status. `/flow:execute` owns the moves.
-- **Any other ticket** → `flow build <id>`.
-- **No ticket** → `flow new "<what failed>" --type issue`, then `flow build <id>`, before the first hypothesis.
+- **On a ticket** → `flow start <id>` unless it is already `in-progress`, then `flow edit <id> --activity debugging`.
+- **No ticket** → `flow new "<what failed>" --label bug`, then the same two commands, before the first hypothesis.
 
 ## The loop
 
@@ -41,16 +40,14 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 4. **Fix the cause, then re-run the failing check.** A fix checked against a different command, a manual click, or your own reading of the diff is unverified.
 
-**Write the hunt down as it runs**: the failing check, every hypothesis and how it died, what survived, into the ticket's `## State`.
+**Open `reports/<failure>.md` at step 1**, in the ticket folder, named after what failed, and write the hunt into it as it runs: the failing check, every hypothesis and how it died, what survived. When the hunt ends, add the cause, the fix, and the output that proves it. A fact that outlives the bug entirely, a verified command, a settled convention, goes where `## Capture` sends it as well. A handoff mid-hunt writes one line in `## State` naming the report.
 
-**When the hunt ends, write the report**: `reports/<failure>.md` in the ticket folder, named after what failed: what failed, the failing check, which hypotheses died and how, the cause, the fix, and the output that proves it. A fact that outlives the bug entirely, a verified command, a settled convention, goes where `## Capture` sends it as well.
+**Close it with a status**: `FIXED`, `FOUND_NOT_FIXED` where the cause is proved and the fix needs a decision nobody gave, or `UNPROVEN` where the hypotheses ran out. `UNPROVEN` is a real result: what got ruled out is the deliverable.
 
-**Open it with a status**: `FIXED`, `FOUND_NOT_FIXED` where the cause is proved and the fix needs a decision nobody gave, or `UNPROVEN` where the hypotheses ran out. `UNPROVEN` is a real result: what got ruled out is the deliverable.
+**Then close the ticket by that status:**
 
-**Then move the ticket by that status**, unless `/flow:execute` sent you here:
-
-- **`FIXED`** → `flow review <id>`, then `flow done <id>` once the user confirms the fix. Then offer `/flow:file-findings`. A ticket a parent session handed you stops at `review`: the parent closes it.
-- **`FOUND_NOT_FIXED`, `UNPROVEN`** → it stays `building`. The user decides whether the hunt carries on, parks or drops.
+- **`FIXED`** → `flow done <id>` once the user confirms the fix, where the ticket has no parent and no open `## Tasks`. Otherwise report `FIXED` and stop: the parent session, or `/flow:execute`, closes it.
+- **`FOUND_NOT_FIXED`, `UNPROVEN`** → it stays `in-progress`. The user decides whether the hunt carries on, parks or drops.
 
 ### When the failure is somewhere you cannot reach
 
@@ -73,10 +70,6 @@ Raise the failure rate instead of chasing a clean reproduction. Loop the command
 
 Record what was different about the run that failed. Then split 4 ways: timing, environment, leftover state, ordering.
 
-### When it only fails in a browser
-
-DOM, events, network, rendering: anything that reproduces only inside a page → `/web-pages`. It builds the failing check; the 4 steps above still run here.
-
 ### When the hypotheses run out
 
 4 moves, in order.
@@ -92,37 +85,20 @@ Still nothing → say so, list what was ruled out and what would settle it, then
 
 Stop fixing: the shape of the code is the cause. Name the structure that makes this bug possible, and hand the decision back under `FOUND_NOT_FIXED`.
 
-## Handing it back
+## Handing the hunt to a subagent
 
-**Hunt here.**
+**Hunt here.** A fix that needs a decision nobody gave is the user's, and 3 failed fixes always mean one: ask here, and carry on with the answer. Only when the hypotheses ran out does a fresh subagent take the hunt.
 
-2 things end the hunt here:
+**Brief it with two things**: the report's path, and the failing check. No ticket is made.
 
-- **The fix needs a decision nobody gave**, and 3 failed fixes always mean one → ask the user, here, and carry on with the answer.
-- **The hypotheses ran out** → a fresh subagent takes the hunt.
+**It cannot ask the user.** A question it has ends its report. Ask the user, then resume the same subagent with `SendMessage` and the answer, so it keeps the hunt in its head.
 
-**Write the report first, then cut a thin ticket at it.**
-
-**The body carries 3 things and never the conversation:**
-
-- **What failed**, in one line: the step, the command, or what the user did
-- **The report**, by its path from the repo root, never a bare `reports/<failure>.md`
-- **What would settle it**: the evidence still missing
-
-```bash
-flow new "<what failed>" --type issue --parent exp-47 --body - <<'EOF'
-<the 3 things>
-EOF
-```
-
-Then start a subagent with `Run /flow:debug on <id>`. Pass on every question it ends a turn with, in one line: `<id> asks: <question> Answer in its row below the prompt.` Never answer one yourself. When a fix comes back, re-run the failing check yourself. It passes → `flow done <id>` closes the child. A session that ends first leaves the ticket in `building`, and `/flow:debug /exp-12` picks it up.
+**When a fix comes back, re-run the failing check yourself.** It passes → close the ticket by the rule above.
 
 ## Hard rules
 
 - **Never change code to see what happens.** That counts as a check only where you wrote down first what each outcome would mean.
-- **Never fix before the failing check exists.**
 - **Fix the cause, never the symptom.** Silencing the error, widening a type, adding a retry.
 - **Never widen the fix.** A cleanup spotted on the way gets named, never made.
 - **Never write the regression test here.** Where the failing check is already a test, the fix is covered. Where it is not, name the test that should exist and hand it to the ticket.
 - **Delete every debug print you added.** Tag them all with one unique prefix as you write them, so removing them is one grep.
-- **Keep observed apart from supposed.** Observed means a command ran and here is its output. Every sentence that drives the next action traces back to observed output.

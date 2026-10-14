@@ -215,7 +215,6 @@
     ]
   },
   "disableBundledSkills": true,
-  "disableWorkflows": true,
   "disableRemoteControl": true,
   "disableClaudeAiConnectors": true,
   "disableArtifact": true,
@@ -253,8 +252,6 @@
       "ExitPlanMode",
       "DesignSync",
       "NotebookEdit",
-      "ListAgents",
-      "PushNotification",
       "SendUserFile",
       "ShareOnboardingGuide",
       "RemoteTrigger",

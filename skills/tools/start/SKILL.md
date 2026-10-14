@@ -12,15 +12,13 @@ disable-model-invocation: true
 
 **The board says `no tickets yet`** → say so, and point to `/flow:groundwork` for the first piece of work.
 
-**The board is above**: recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new, whatever its priority. Then wait. The user picks.
+**The board is above**: recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new. Then wait. The user picks.
 
 ## When a ticket is above
 
 **Read any `open` block above before opening a file**: it already loaded the files it names.
 
 **A `branch:` line saying `checked out here:` another branch** → tell the user which branch the work is on before routing, and wait.
-
-**Leave the status.** The skill you route to writes it.
 
 Pick the skill, say in one line what decided it, then invoke it here with no argument. The ticket is already above.
 
