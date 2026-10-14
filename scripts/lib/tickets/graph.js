@@ -5,8 +5,7 @@
  * here (what is workable, what is broken, what would a drop damage) is a walk
  * over one of them.
  *
- * A dep is satisfied by `review` or `done`: review means built and checked, and
- * that is enough to unblock work that sits on top of it.
+ * A dep is satisfied by `done` alone.
  */
 
 // Every property of a status is a column in one table: see statuses.js. These
@@ -108,7 +107,7 @@ const rankByStatus = (list, pool) => {
 };
 
 /**
- * Ready tickets cut out of work that is still open: the child a groundwork session
+ * Ready tickets cut out of work that is still open: the child a session
  * split off so it could keep going, picked up in a later session.
  *
  * Membership carries the whole signal, so order inside the band stays
@@ -299,8 +298,8 @@ function check(tickets) {
     // ready, never in flight, and never reported below.
     if (!NAMES.includes(t.data.status)) unknownStatuses.push(t);
 
-    // Parent problems are judged over OPEN rather than LIVE: a ticket in
-    // review still owes work, so a broken parent above it is still a problem.
+    // Parent problems are judged over OPEN: a ticket that still owes work with
+    // a broken parent above it is a problem.
     if (OPEN.has(t.data.status) && t.data.parent) {
       const parent = index.get(t.data.parent);
       if (!parent) danglingParents.push({ ticket: t, parent: t.data.parent });

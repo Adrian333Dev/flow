@@ -4,7 +4,7 @@ How Flow holds a project's work. A ticket is one piece of work: its status, its 
 
 ## Scope
 
-- **In**: the ticket's folder and fields, ids, the 2 places a project's tickets live, sync of tickets, the `flow` ticket and board commands, the ticket skills, the status moves each phase makes, and what a ticket records about its sessions.
+- **In**: the ticket's folder and fields, ids, the 2 places a project's tickets live, sync of tickets, the `flow` ticket and board commands, the ticket skills, the status moves the agent makes, and what a ticket records about its sessions.
 - **Out**: `flow init` and the rest of setup, in `docs/spec/setup.md`. What `/flow:handoff` writes into a ticket, in `docs/spec/skills.md`.
 
 ## A ticket's life
@@ -12,24 +12,16 @@ How Flow holds a project's work. A ticket is one piece of work: its status, its 
 Each status, and what moves a ticket into it:
 
 ```text
-   todo                 waiting
-     │  /flow:groundwork enters it
+   todo           ready to work, nothing else
+     │  flow start: the agent, once it has read the ticket
      ▼
-   groundwork           the questions are still open
-     │  /flow:execute enters it, from todo or groundwork
+   in-progress    someone is on it, from the first question to the last check
+     │  flow done: the agent, once its own check passes
      ▼
-   planning             the plan is being written
-     │  the user approves the plan
-     ▼
-   building             the plan is approved, and code starts
-     │  every step done, and the tests pass
-     ▼
-   review               built and checked: a dependent ticket unblocks
-     │  the user's word
-     ▼
-   done
+   done           a dependent ticket unblocks here, and only here
 
-   parked and dropped sit beside the line, each with a reason.
+   flow start on a done ticket reopens it.
+   parked (put off) and dropped (cancelled) sit beside the line, each with a reason.
 ```
 
 ## Behaviors
@@ -38,8 +30,9 @@ Each status, and what moves a ticket into it:
 
 - `V1` **One folder per ticket**, `.flow/tickets/<id>-<words>/`: `ticket.md`, `history.md`, and what its phases write, such as `groundwork/map.md`, `plan.md`, `issues.md`, `reports/` and `protos/<name>/`.
 - `V1` **5 types**: `feature`, `issue`, `chore`, `topic`, `prototype`. Every type uses part of the one status order, never a different order.
-- `V1` **8 statuses**: `todo`, `groundwork`, `planning`, `building`, `review`, `done`, `parked`, `dropped`. One field says where the work is, since no file says groundwork finished or the plan was approved. Kept by the user 2026-10-01.
-- `V1` **`review` or `done` satisfies a dependency.** Built and checked is enough to unblock work on top of it.
+- `V1` **5 statuses**: `todo` is ready to work and nothing else. `in-progress` is under way, and a ticket waiting on the user stays there. `done` is closed by the agent once its own check passes, and the user reopens it in a word. `parked` is put off, with a reason saying what brings it back. `dropped` is cancelled, with a reason. No project adds a status. One field says where the work is.
+- `V1` **Only `done` satisfies a dependency.** A ticket still `in-progress` can change under the work built on top of it.
+- `V1` **A new ticket always starts `todo`**, whatever its type.
 - `V1` **3 priorities, `high`, `normal`, `low`, and a parent's priority passes to its children.** A parent cannot be picked up until its children close, so its priority acts only through them.
 - `V1` **Frontmatter changes only through `flow`.** A hand edit to the body rides along with the next commit.
 - `V1` **No ticket for 3 kinds of work**: a small task asked in chat, a `/flow:research` question, and a subagent's job, which works under the ticket that sent it. Agreed by the user 2026-10-01: the board would fill with 2-minute tickets.
@@ -78,20 +71,20 @@ Each status, and what moves a ticket into it:
 - `V1` **`flow tree` shows a split feature whole**: every level, each parent's count of children done, what blocks each ticket, and why one is parked. Kept by the user 2026-10-01.
 - `V1` **`flow check` finds cycles, dangling ids, dropped blockers, orphaned parents and unknown statuses.**
 - `V1` **`flow ls` lists tickets filtered** by status, type, parent, or not yet filed by `/flow:file-findings`.
-- `V1` **A status move is the command**: `flow build exp-47`. `flow done` refuses a parent with open children, and `flow drop` refuses while live dependents exist.
+- `V1` **A status move is the command**: `flow start exp-47`, `flow done`, `flow park --reason "<why>"`, `flow todo`. `dropped` has only `flow drop`. `flow done` refuses a parent with open children, and `flow drop` refuses while live dependents exist.
 - `later` **Colour in `flow`'s output**, only to a terminal and never with `NO_COLOR` set. Moved after V1 by the user 2026-10-04.
 - `later` **Box tables around command output.** Parked by the user 2026-10-03: their borders cost the agent tokens each time it reads `flow next`.
 - `later` **Wider tests over the ticket commands.** Moved after V1 by the user 2026-10-04.
 
 ### What a ticket records about its sessions
 
-- `V1` **`branch:` records the code branch** checked out when the ticket first reaches `building` or `review`, written once. `flow <id>` prints `branch: feature/budgets   (checked out here: main)` where they differ, and `/flow:start` stops on that line.
-- `V1` **`history.md` gets one line per status move and per handoff**: `2026-09-29 14:02  todo → building  <session id>  "<title>"  feature/budgets`. In the folder rather than in commit messages, so it travels with `flow move`.
+- `V1` **`branch:` records the code branch** checked out when the ticket first reaches `in-progress`, written once. `flow <id>` prints `branch: feature/budgets   (checked out here: main)` where they differ, and `/flow:start` stops on that line.
+- `V1` **`history.md` gets one line per status move and per handoff**: `2026-09-29 14:02  todo → in-progress  <session id>  "<title>"  feature/budgets`. In the folder rather than in commit messages, so it travels with `flow move`.
 - `V1` **The session id is `CLAUDE_CODE_SESSION_ID`**, and the title is the transcript's `/rename` title, else its generated one.
 
 ### Ticket skills
 
-- `V1` **Each open ticket is a skill only the user can start**, `<project>/.claude/skills/exp-47/`, and `~/.claude/skills/home-4/` for home tickets. Typing `/exp` lists each with its status and title: `/exp-1   Ticket, building: Daemon detection (project)`. A ticket that is `parked`, `done` or `dropped` gets none.
+- `V1` **Each open ticket is a skill only the user can start**, `<project>/.claude/skills/exp-47/`, and `~/.claude/skills/home-4/` for home tickets. Typing `/exp` lists each with its status and title: `/exp-1   Ticket, in-progress: Daemon detection (project)`. A ticket that is `parked`, `done` or `dropped` gets none.
 - `V1` **The skill holds a label only.** It runs `flow get exp-47 --files` when typed, so a stale skill shows an old row and never old data.
 - `V1` **A ticket reaches a phase through its own skill alone**: `/flow:execute /exp-47` loads both, the phase first. `/exp-47` alone prints the ticket. A typed id is plain text the agent looks up. Approved by the user 2026-09-30.
 - `V1` **The skills stay current**: rewritten after every `flow` command that writes a ticket, and at session start, which reloads the skill list.
@@ -102,11 +95,10 @@ Each status, and what moves a ticket into it:
 - `later` **A `ticketSkills` setting turning the list off.**
 - `later` **A hook moving the status before the phase skill loads.**
 
-### Status moves the phases make
+### Status moves the agent makes
 
-- `V1` **`/flow:groundwork` enters `groundwork` and never moves a ticket forward.** A finished map points to `/flow:execute`. A `topic` reaches `done` only on the user's word.
-- `V1` **`/flow:execute` enters `planning` from `todo` or `groundwork`**, `building` on the user's approval of the plan, `review` when every step is done and the tests pass, and `done` on the user's word.
-- `V1` **`/flow:debug` and `/flow:prototype` enter `building`.** `/flow:debug` moves its own ticket to `review` once the failing check passes after the fix, and to `done` once the user confirms.
+- `V1` **The agent moves the ticket as the work moves, and no skill types a phase command.** It runs `flow start` once it has read the ticket, and `flow done` when its own check passes. A `topic` reaches `done` only on the user's word.
+- `V1` **A ticket waiting on the user stays `in-progress`.** The user reopens a `done` ticket in a word, and the agent runs `flow start`.
 - `V1` **`/flow:start` moves no ticket.**
 - `V1` **A prototype lives in its ticket**, `.flow/tickets/<id>/protos/<name>/`. Inside a project with no ticket, `flow new "<question>" --type prototype` comes first.
 - `later` **2 tickets at once, in 2 sessions**, which needs a second checkout of the code, a git worktree. Flow's settings deny an agent one today. Parked.
@@ -130,7 +122,7 @@ A ticket skill's `SKILL.md`:
 ```markdown
 ---
 name: exp-47
-description: "Ticket, building: Daemon detection"
+description: "Ticket, in-progress: Daemon detection"
 disable-model-invocation: true
 ---
 <!-- flow: ticket exp-47, rewritten by flow on every ticket change -->
@@ -146,14 +138,14 @@ src/parser.js:40-120   # where step 4 stopped
 ```
 ````
 
-## One real case: building a ticket
+## One real case: working a ticket
 
 1. The user types `/flow:execute /exp-47`. Both skills load, and `flow get exp-47 --files` prints the ticket and its open files.
-2. `/flow:execute` moves it to `planning`. `history.md` gains a line with the session id. The move commits and pushes in the background.
-3. The user approves the plan. `flow build exp-47` records `branch: feature/budgets`.
+2. `/flow:execute` reads the ticket, then runs `flow start exp-47`. `history.md` gains a line with the session id, and `branch: feature/budgets` is recorded. The move commits and pushes in the background.
+3. The user approves the plan, and the agent builds it with the ticket still `in-progress`.
 4. The context fills. `/flow:handoff` writes `## State` and runs `flow handoff exp-47`, adding a `history.md` line.
-5. After `/clear`, the user types `/exp`, picks `/exp-47   Ticket, building: …`, and the next session starts from the state.
-6. The tests pass. `flow review exp-47` unblocks `exp-48`, which depended on it, and `flow next` ranks `exp-48` first.
+5. After `/clear`, the user types `/exp`, picks `/exp-47   Ticket, in-progress: …`, and the next session starts from the state.
+6. The tests pass. `flow done exp-47` unblocks `exp-48`, which depended on it, and `flow next` ranks `exp-48` first.
 
 ## How it fails
 

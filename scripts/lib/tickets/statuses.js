@@ -15,41 +15,33 @@
  */
 
 /*
- * Three statuses cover the work, and each names what is happening.
- * `groundwork`: the questions are still open. `planning`: they are settled
- * and the plan is being written. `building`: the plan is approved and code
- * starts. The trio replaces `in-progress`, which was true during all of it and
- * answered nothing, and then `thinking`, which covered the first two at once
- * and so could not say whether a ticket was still undecided.
- *
- * Every type uses a subsequence of this order, never a different order, which
- * is why one table covers all 5 types.
+ * Five statuses, and the agent moves them as the work moves.
+ * `todo`: ready to work, nothing else. `in-progress`: someone is on it, from
+ * the first question to the last check; a ticket waiting on the user stays
+ * here. `done`: the agent closes it once its own check passes, and the user
+ * reopens it in a word. `parked`: put off, with a reason saying what brings it
+ * back. `dropped`: cancelled, with a reason.
  *
  * Rows are in lifecycle order, which is the order the verbs print in help.
  * `rank` is separate because a list is read work-first rather than
  * lifecycle-first: what is in flight leads, then what could start, then what
  * was set aside, then history.
  *
- * `live` deliberately excludes `review` as well as the terminal pair. A ticket
- * built and being checked has already used its deps, so rewriting them would
- * rewrite history rather than rescue anything. `parked` is live, because the
- * verb for the status it was parked from brings it straight back.
+ * `parked` is live, because the verb for the status it was parked from brings
+ * it straight back.
  *
- * A dep is satisfied by `review` or `done`: review means built and checked, and
- * that is enough to unblock work sitting on top of it.
+ * A dep is satisfied by `done` alone. Work sitting on top of a ticket that is
+ * still `in-progress` is sitting on something that can change under it.
  *
  * `dropped` is the one status with no verb. Killing a ticket repairs whatever
  * depended on it, and that repair only exists in `flow drop`.
  */
 const STATUSES = [
-  { name: 'todo',       verb: 'todo',       rank: 4, open: true,  live: true,  inFlight: false, satisfies: false, terminal: false, reason: false },
-  { name: 'groundwork', verb: 'groundwork', rank: 0, open: true,  live: true,  inFlight: true,  satisfies: false, terminal: false, reason: false },
-  { name: 'planning',   verb: 'plan',       rank: 1, open: true,  live: true,  inFlight: true,  satisfies: false, terminal: false, reason: false },
-  { name: 'building',   verb: 'build',      rank: 2, open: true,  live: true,  inFlight: true,  satisfies: false, terminal: false, reason: false },
-  { name: 'review',     verb: 'review',     rank: 3, open: true,  live: false, inFlight: true,  satisfies: true,  terminal: false, reason: false },
-  { name: 'done',       verb: 'done',       rank: 6, open: false, live: false, inFlight: false, satisfies: true,  terminal: true,  reason: false },
-  { name: 'parked',     verb: 'park',       rank: 5, open: true,  live: true,  inFlight: false, satisfies: false, terminal: false, reason: true  },
-  { name: 'dropped',    verb: '',           rank: 7, open: false, live: false, inFlight: false, satisfies: false, terminal: true,  reason: true  },
+  { name: 'todo',        verb: 'todo',  rank: 1, open: true,  live: true,  inFlight: false, satisfies: false, terminal: false, reason: false },
+  { name: 'in-progress', verb: 'start', rank: 0, open: true,  live: true,  inFlight: true,  satisfies: false, terminal: false, reason: false },
+  { name: 'done',        verb: 'done',  rank: 3, open: false, live: false, inFlight: false, satisfies: true,  terminal: true,  reason: false },
+  { name: 'parked',      verb: 'park',  rank: 2, open: true,  live: true,  inFlight: false, satisfies: false, terminal: false, reason: true  },
+  { name: 'dropped',     verb: '',      rank: 4, open: false, live: false, inFlight: false, satisfies: false, terminal: true,  reason: true  },
 ];
 
 const NAMES = STATUSES.map((s) => s.name);
@@ -65,15 +57,6 @@ const NEEDS_REASON = setOf('reason');
 const RANK = Object.fromEntries(STATUSES.map((s) => [s.name, s.rank]));
 
 /**
- * How far along the line a status sits, for asking whether a ticket has already
- * passed some point. Row order is lifecycle order, so the index answers it.
- *
- * `parked` and `dropped` sit off the line and their numbers mean nothing here:
- * handle both before comparing.
- */
-const ORDER = Object.fromEntries(STATUSES.map((s, i) => [s.name, i]));
-
-/**
  * The verbs, and what each one does.
  *
  * A status move is the most-typed thing `flow` does, and it used to be spelled
@@ -86,28 +69,12 @@ const VERB_OF = Object.fromEntries(VERBS.map((s) => [s.name, s.verb]));
 
 const DOES = {
   todo: 'put it back in the queue',
-  groundwork: 'settle the open questions',
-  plan: 'write the plan',
-  build: 'build it',
-  review: 'hand the work over',
+  start: 'start working on it',
   done: 'close it',
   park: 'set it aside, with a reason',
 };
 
-/**
- * The first status a type actually uses. An `issue` and a `prototype` have no
- * questions to settle before work starts: a bug's cause is hunted while the
- * fix is written, and a prototype's question arrives with the ticket, so both
- * open at `building` rather than resting in a status that describes neither.
- *
- * Nothing performs this move. `flow <id>` prints the verb for it, and the skill
- * picking the ticket up types it: after reading the ticket, never before.
- */
-const ENTRY_STATUS = { issue: 'building', prototype: 'building' };
-const entryStatusFor = (type) => ENTRY_STATUS[type] || 'groundwork';
-
 module.exports = {
-  STATUSES, NAMES, RANK, ORDER, VERBS, VERB_OF, DOES,
+  STATUSES, NAMES, RANK, VERBS, VERB_OF, DOES,
   OPEN, LIVE, IN_FLIGHT, SATISFYING, TERMINAL, NEEDS_REASON,
-  entryStatusFor,
 };

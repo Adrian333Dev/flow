@@ -382,13 +382,11 @@ function setStatus(t, status, reason = '') {
   // A reason outlives only the status it explains. Carrying "waiting on the Q3
   // API" into a ticket now being built is worse than carrying nothing.
   t.data.reason = reason;
-  // Where a parked ticket comes back to. Nothing used to store this: revive
-  // recomputed the entry status from the type, so a feature parked at
-  // `building` came back at `groundwork`: losing two phases, on the command
-  // the tool printed for it. The status it left is the only thing that knows.
+  // Where a parked ticket comes back to: the status it left is the only thing
+  // that knows.
   t.data.resume = status === 'parked' ? from : '';
-  // The code branch is written once, when code work starts on the ticket.
-  if (status === 'building' || status === 'review') ticketHistory.claimBranch(t);
+  // The code branch is written once, when work starts on the ticket.
+  if (status === 'in-progress') ticketHistory.claimBranch(t);
 
   const moved = writeTicket(t);
   ticketHistory.append(t, `${from} → ${status}`);

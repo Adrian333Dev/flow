@@ -108,7 +108,7 @@ function runAction(action, argv, usage, check, extra) {
 
 /**
  * The first word is the command or the group. Tickets have no name of their
- * own here: `flow ls`, `flow build exp-47`. A word that names no command is a
+ * own here: `flow ls`, `flow start exp-47`. A word that names no command is a
  * ticket id, which is what makes `flow exp-47` show one.
  *
  * A group may name a default action, and the same rule then runs one level

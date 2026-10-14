@@ -4,7 +4,7 @@
  *
  * None of it is spelled `flow tickets ...`. A ticket is what this tool is
  * about, so these sit at the top level and the noun is left out: `flow ls`,
- * `flow build exp-47`. The groups (`cases`, `skills`, `settings`, `audit`,
+ * `flow start exp-47`. The groups (`cases`, `skills`, `settings`, `audit`,
  * `restore`) each name a different thing.
  *
  * The status verbs are generated from the status table rather than written out.
@@ -89,11 +89,8 @@ function locate(ref, unnamed) {
  * The one place a status is written. Every verb goes through it.
  *
  * Guards are keyed to where the ticket is coming from, never to where it is
- * going. The entry status varies by type, so a target-status test would let an
- * issue picked up at `building` walk past both refusals. `planning` is guarded
- * as well because groundwork is where children get cut: a parent whose work
- * just moved into its children cannot have a plan written for it until they
- * close.
+ * going: a ticket leaving `todo` or `parked` is being picked up, so it meets
+ * both refusals whatever it moves to.
  */
 function transition(t, tickets, root, status, { force, reason, verb }) {
   const from = t.data.status;
@@ -109,7 +106,7 @@ function transition(t, tickets, root, status, { force, reason, verb }) {
     );
   }
 
-  const entering = from === 'todo' || from === 'parked' || status === 'planning';
+  const entering = from === 'todo' || from === 'parked';
 
   // Starting a blocked ticket refuses rather than warns. A warning is a line of
   // text an agent reads past; a non-zero exit is the thing it cannot ignore.
@@ -399,7 +396,7 @@ actions.new = {
     if (t.data.priority) out(`        priority: ${t.data.priority}`);
     if (parent) out(`        parent: ${parent}`);
     if (deps.length) out(`        deps: ${deps.join(', ')}`);
-    out(`\npick up with: flow ${statuses.VERB_OF[statuses.entryStatusFor(t.data.type)]} ${t.id}`);
+    out(`\npick up with: flow start ${t.id}`);
     return 0;
   },
 };
@@ -476,7 +473,7 @@ actions.edit = {
     if (!changes.length) {
       throw new FlowError(
         'nothing to change: pass --title, --label, --type, --priority, --parent or --deps.\n' +
-        `  Status moves are their own commands: flow build ${t.id}, flow review ${t.id}, flow done ${t.id}.`
+        `  Status moves are their own commands: flow start ${t.id}, flow done ${t.id}, flow park ${t.id}.`
       );
     }
 

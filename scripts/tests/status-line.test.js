@@ -36,7 +36,7 @@ test('the ticket the user typed a skill for, with its status, and the size with 
   const dir = repoProject('status-line-typed');
   flow(dir, ['new', 'Login page']);
   flow(dir, ['new', 'Export csv']);
-  flow(dir, ['build', 'exp-2']);
+  flow(dir, ['start', 'exp-2']);
   const transcript = path.join(dir, 'session.jsonl');
   fs.writeFileSync(transcript, typed('/exp-1'));
   const data = {
@@ -46,17 +46,17 @@ test('the ticket the user typed a skill for, with its status, and the size with 
 
   assert.strictEqual(statusLine(dir, data).stdout, 'exp-1 todo\n');
   fs.appendFileSync(transcript, typed('/flow:execute', '/exp-2'));
-  assert.strictEqual(statusLine(dir, data, ['--context']).stdout, 'exp-2 building · 98k of 150k\n');
-  assert.strictEqual(statusLine(dir, data).stdout, 'exp-2 building\n', 'read from where it stopped, and kept');
+  assert.strictEqual(statusLine(dir, data, ['--context']).stdout, 'exp-2 in-progress · 98k of 150k\n');
+  assert.strictEqual(statusLine(dir, data).stdout, 'exp-2 in-progress\n', 'read from where it stopped, and kept');
 });
 
 test('a ticket a skill moved for this session, where none was typed', () => {
   const dir = repoProject('status-line-history');
   flow(dir, ['new', 'Crash on save', '--type', 'issue']);
-  flow(dir, ['build', 'exp-1'], { CLAUDE_CODE_SESSION_ID: 's2' });
+  flow(dir, ['start', 'exp-1'], { CLAUDE_CODE_SESSION_ID: 's2' });
   const transcript = path.join(dir, 'session.jsonl');
   fs.writeFileSync(transcript, '');
-  assert.strictEqual(statusLine(dir, { session_id: 's2', cwd: dir, transcript_path: transcript }).stdout, 'exp-1 building\n');
+  assert.strictEqual(statusLine(dir, { session_id: 's2', cwd: dir, transcript_path: transcript }).stdout, 'exp-1 in-progress\n');
 });
 
 test('nothing outside a project, before a ticket is picked, or on input it cannot read', () => {

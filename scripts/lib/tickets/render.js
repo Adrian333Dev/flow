@@ -163,29 +163,21 @@ function show(ticket, tickets, root) {
 
 /**
  * Where a parked ticket comes back to. Parking stores the status it left, so
- * this is a lookup rather than a guess: the guess is what sent a feature
- * parked at `building` back to `groundwork`. A ticket parked before that field
- * existed, or parked straight out of `done`, has nothing stored and falls back
- * to where its type opens.
+ * this is a lookup rather than a guess. A ticket parked straight out of `done`,
+ * or with nothing stored, falls back to `todo`.
  */
-const reviveVerb = (t) =>
-  statuses.VERB_OF[t.data.resume] || statuses.VERB_OF[statuses.entryStatusFor(t.data.type)];
+const reviveVerb = (t) => statuses.VERB_OF[t.data.resume] || 'todo';
 
 /**
- * The one command this ticket is waiting for: printed, never run.
+ * The one command this ticket is waiting for: printed, never run. The agent
+ * moves the ticket once it has read it, never before.
  *
- * `flow start` used to compute this status and write it, and `/flow:start` ran that
- * through an injected shell line, so a ticket moved before the model had read a
- * word of it. The move now belongs to whichever skill picks the ticket up,
- * after it opens the phase's own artifact. This line is what that skill copies.
- *
- * Only `todo` and `parked` get one. A ticket already in flight has no move to
- * make at pickup: whether groundwork is finished is a question about `map.md`,
- * and reading it is the skill's job.
+ * Only `todo` and `parked` get one. A ticket already `in-progress` has no move
+ * to make at pickup.
  */
 function pickupLine(ticket) {
-  const { status, type } = ticket.data;
-  if (status === 'todo') return `pick up with: flow ${statuses.VERB_OF[statuses.entryStatusFor(type)]} ${ticket.id}`;
+  const { status } = ticket.data;
+  if (status === 'todo') return `pick up with: flow start ${ticket.id}`;
   if (status === 'parked') return `pick up with: flow ${reviveVerb(ticket)} ${ticket.id}`;
   return null;
 }

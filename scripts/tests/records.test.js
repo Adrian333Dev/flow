@@ -147,9 +147,9 @@ test('each command that changes a ticket commits it, and flow runs from inside .
   t.branch(ana, 'exp');
   t.in(ana, 'new', 'Login page');
 
-  const moved = t.in(ana, 'groundwork', 'exp-1');
+  const moved = t.in(ana, 'start', 'exp-1');
   assert.strictEqual(moved.code, 0, moved.stderr);
-  assert.strictEqual(git(path.join(ana, '.flow'), 'log', '-1', '--format=%s').out, 'exp-1: todo → groundwork');
+  assert.strictEqual(git(path.join(ana, '.flow'), 'log', '-1', '--format=%s').out, 'exp-1: todo → in-progress');
 
   const inside = t.in(path.join(ana, '.flow', 'tickets'), 'exp-1');
   assert.strictEqual(inside.code, 0, inside.stderr);
@@ -166,7 +166,7 @@ test('a save syncs its objects to disk, so a crash right after it leaves no empt
   const seen = path.join(t.dir, 'fsync-seen');
   const hook = path.join(ana, '.git', 'hooks', 'post-commit');
   fs.writeFileSync(hook, `#!/bin/sh\ngit config --get core.fsync > '${seen}'\n`, { mode: 0o755 });
-  const moved = t.in(ana, 'groundwork', 'exp-1');
+  const moved = t.in(ana, 'start', 'exp-1');
   assert.strictEqual(moved.code, 0, moved.stderr);
   assert.strictEqual(fs.readFileSync(seen, 'utf8').trim(), 'committed');
   assert.ok(!git(ana, 'config', '--get', 'core.fsync').ok, 'the repository\'s own config is untouched');
@@ -182,13 +182,13 @@ test('a save git refuses says so, and stays an open issue until a save works', (
   const ref = path.join(ana, '.git', 'refs', 'heads', 'flow');
   const good = fs.readFileSync(ref, 'utf8');
   fs.writeFileSync(ref, `${'1'.repeat(40)}\n`);
-  const broken = t.in(ana, 'groundwork', 'exp-1');
+  const broken = t.in(ana, 'start', 'exp-1');
   assert.match(broken.stderr, /the tickets in .*\.flow were not saved: (fatal|error): /);
   const job = `save ${path.resolve(ana)}`;
   assert.ok(failures.open(t.home).some((issue) => issue.job === job), 'the failure log holds an open issue');
 
   fs.writeFileSync(ref, good);
-  const fixed = t.in(ana, 'plan', 'exp-1');
+  const fixed = t.in(ana, 'todo', 'exp-1');
   assert.strictEqual(fixed.code, 0, fixed.stderr);
   assert.doesNotMatch(fixed.stderr, /not saved/);
   assert.ok(!failures.open(t.home).some((issue) => issue.job === job), 'the next save that works closes it');
@@ -322,7 +322,7 @@ test('flow move takes tickets home, rewrites their links, keeps was, and carries
   assert.match(flow(dir, ['home-2']).stdout, /^home-2  Parser tests$/m);
 });
 
-test('a ticket records its code branch when building starts, and a history line per move and handoff', () => {
+test('a ticket records its code branch when work starts, and a history line per move and handoff', () => {
   const t = team('records-history');
   const ana = t.clone('ana');
   t.branch(ana, 'exp');
@@ -335,13 +335,13 @@ test('a ticket records its code branch when building starts, and a history line 
     '{"type":"ai-title","aiTitle":"Made up"}\n{"type":"custom-title","customTitle":"Budget \\"work\\""}\n');
   const as = (...args) => run('flow.js', args, { cwd: ana, env });
 
-  assert.strictEqual(as('build', 'exp-1').code, 0);
+  assert.strictEqual(as('start', 'exp-1').code, 0);
   assert.strictEqual(as('handoff', 'exp-1').code, 0);
   const dir = path.join(ana, '.flow', 'tickets', 'exp-1-budget-page');
   assert.match(fs.readFileSync(path.join(dir, 'ticket.md'), 'utf8'), /^branch: feature\/budgets$/m);
   const lines = fs.readFileSync(path.join(dir, 'history.md'), 'utf8').trim().split('\n');
   assert.strictEqual(lines.length, 2);
-  assert.match(lines[0], /^\d{4}-\d\d-\d\d \d\d:\d\d  todo → building\s+abc-123  "Budget \\"work\\""  feature\/budgets$/);
+  assert.match(lines[0], /^\d{4}-\d\d-\d\d \d\d:\d\d  todo → in-progress\s+abc-123  "Budget \\"work\\""  feature\/budgets$/);
   assert.match(lines[1], /  handoff\s+abc-123  /);
   assert.strictEqual(git(path.join(ana, '.flow'), 'log', '-1', '--format=%s').out, 'exp-1: handoff');
 

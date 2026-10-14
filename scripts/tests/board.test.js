@@ -40,9 +40,9 @@ test('flow ls --unfiled shows only done tickets without a filed date', () => {
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
   const [id1, id2] = folders.map((f) => f.match(/^[a-z]+-\d+/)[0]);
 
-  flow(dir, ['build', id1]);
+  flow(dir, ['start', id1]);
   flow(dir, ['done', id1]);
-  flow(dir, ['build', id2]);
+  flow(dir, ['start', id2]);
   flow(dir, ['done', id2]);
 
   flow(dir, ['file', id1]);
@@ -72,11 +72,11 @@ test('flow next counts only the statuses holding a ticket', () => {
   flow(dir, ['new', 'One']);
   flow(dir, ['new', 'Two']);
   const [id] = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive').map((f) => f.match(/^[a-z]+-\d+/)[0]);
-  flow(dir, ['build', id]);
+  flow(dir, ['start', id]);
 
   const next = flow(dir, ['next']);
   assert.strictEqual(next.code, 0, next.stderr);
-  assert.strictEqual(next.stdout.split('\n')[0], 'tickets: 2   todo 1   building 1');
+  assert.strictEqual(next.stdout.split('\n')[0], 'tickets: 2   todo 1   in-progress 1');
 });
 
 test('flow next shows in-flight tickets above the ready list', () => {
@@ -87,7 +87,7 @@ test('flow next shows in-flight tickets above the ready list', () => {
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
   const issueId = folders.find((f) => !f.includes('ready')).match(/^[a-z]+-\d+/)[0];
 
-  flow(dir, ['build', issueId]);
+  flow(dir, ['start', issueId]);
 
   const r = flow(dir, ['next']);
   assert.strictEqual(r.code, 0, r.stderr);
@@ -101,11 +101,11 @@ test('a parent with open children leaves in flight, and its children continue it
   const dir = project('board-parent-waits');
 
   write(dir, '.flow/tickets/exp-1-pricing/ticket.md',
-    '---\nid: exp-1\ntitle: Pricing\nstatus: groundwork\ntype: feature\ndeps: []\n---\n\n');
+    '---\nid: exp-1\ntitle: Pricing\nstatus: in-progress\ntype: feature\ndeps: []\n---\n\n');
   write(dir, '.flow/tickets/exp-2-tiers/ticket.md',
     '---\nid: exp-2\ntitle: Tiers\nstatus: todo\ntype: feature\nparent: exp-1\ndeps: []\n---\n\n');
   write(dir, '.flow/tickets/exp-3-other/ticket.md',
-    '---\nid: exp-3\ntitle: Other work\nstatus: building\ntype: feature\ndeps: []\n---\n\n');
+    '---\nid: exp-3\ntitle: Other work\nstatus: in-progress\ntype: feature\ndeps: []\n---\n\n');
 
   const r = flow(dir, ['next']);
   assert.strictEqual(r.code, 0, r.stderr);
@@ -172,7 +172,7 @@ test('flow check reports cycles, dangling deps, and dropped blockers', () => {
   assert.match(r2.stdout, /cycle/i);
 });
 
-test('flow check reports a status outside the 8', () => {
+test('flow check reports a status outside the 5', () => {
   const dir = project('board-check-status');
 
   write(dir, '.flow/tickets/exp-1-typo/ticket.md',
@@ -183,7 +183,7 @@ test('flow check reports a status outside the 8', () => {
   assert.match(r.stdout, /exp-1 has status buildng/);
 
   write(dir, '.flow/tickets/exp-1-typo/ticket.md',
-    '---\nid: exp-1\ntitle: Typo\nstatus: building\ntype: feature\ndeps: []\n---\n\n');
+    '---\nid: exp-1\ntitle: Typo\nstatus: in-progress\ntype: feature\ndeps: []\n---\n\n');
   const clean = flow(dir, ['check']);
   assert.strictEqual(clean.code, 0, clean.stdout);
 });

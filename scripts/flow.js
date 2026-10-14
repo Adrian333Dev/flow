@@ -37,7 +37,7 @@ const TITLE = 'flow: the board, setup, skills, settings and audit';
 
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
- * name of their own: `flow ls`, `flow build exp-47`. Everything else keeps a
+ * name of their own: `flow ls`, `flow start exp-47`. Everything else keeps a
  * group: `cases`, `skills`, `settings` and `audit`.
  *
  * The order inside each section is the order help prints it. A command whose

@@ -38,11 +38,11 @@ test('flow new writes a user-only skill for the ticket, labelled with its status
 test('a status move or a new title rewrites the skill, and a sync with nothing new changes nothing', () => {
   const dir = project('ticket-skills-rewrite');
   flow(dir, ['new', 'Parser']);
-  assert.strictEqual(flow(dir, ['build', 'exp-1']).code, 0);
-  assert.match(skillText(dir, 'exp-1'), /"Ticket, building: Parser"/);
+  assert.strictEqual(flow(dir, ['start', 'exp-1']).code, 0);
+  assert.match(skillText(dir, 'exp-1'), /"Ticket, in-progress: Parser"/);
 
   flow(dir, ['edit', 'exp-1', '--title', 'Parser split']);
-  assert.match(skillText(dir, 'exp-1'), /"Ticket, building: Parser split"/);
+  assert.match(skillText(dir, 'exp-1'), /"Ticket, in-progress: Parser split"/);
 
   assert.strictEqual(syncIn(dir), false);
 });
@@ -53,7 +53,7 @@ test('a ticket parked, done or dropped loses its skill, and one brought back get
   assert.deepStrictEqual(listed(dir), ['exp-1', 'exp-2', 'exp-3']);
 
   flow(dir, ['park', 'exp-1', '--reason', 'waiting on the vendor']);
-  flow(dir, ['build', 'exp-2']);
+  flow(dir, ['start', 'exp-2']);
   flow(dir, ['done', 'exp-2']);
   flow(dir, ['drop', 'exp-3', '--reason', 'not needed']);
   assert.deepStrictEqual(listed(dir), []);
@@ -68,8 +68,9 @@ test('a ticket waiting on another says blocked, until the other is done', () => 
   flow(dir, ['new', 'On top', '--deps', 'exp-1']);
   assert.match(skillText(dir, 'exp-2'), /"Ticket, todo, blocked: On top"/);
 
-  flow(dir, ['build', 'exp-1']);
-  flow(dir, ['review', 'exp-1']);
+  flow(dir, ['start', 'exp-1']);
+  assert.match(skillText(dir, 'exp-2'), /"Ticket, todo, blocked: On top"/);
+  flow(dir, ['done', 'exp-1']);
   assert.match(skillText(dir, 'exp-2'), /"Ticket, todo: On top"/);
 });
 
@@ -96,10 +97,10 @@ test('the tickets in ~/.flow/ get their skills in Claude Code\'s own folder', ()
   const dir = project('ticket-skills-home');
   const claude = path.join(dir, 'claude');
   write(dir, 'flow-home/tickets/home-4-backup-script/ticket.md',
-    '---\nid: home-4\ntitle: Backup script\nstatus: groundwork\ntype: chore\n---\n\nBody.\n');
+    '---\nid: home-4\ntitle: Backup script\nstatus: in-progress\ntype: chore\n---\n\nBody.\n');
 
   assert.strictEqual(syncIn(dir, claude), true);
   assert.match(fs.readFileSync(path.join(claude, 'skills', 'home-4', 'SKILL.md'), 'utf8'),
-    /"Ticket, groundwork: Backup script"/);
+    /"Ticket, in-progress: Backup script"/);
   assert.deepStrictEqual(listed(dir), []);
 });

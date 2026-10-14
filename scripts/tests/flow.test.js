@@ -28,9 +28,9 @@ test('a ticket is created, moved and archived', () => {
   assert.strictEqual(listed.code, 0, listed.stderr);
   assert.match(listed.stdout, /Split the parser/);
 
-  assert.strictEqual(flow(dir, ['build', id]).code, 0);
+  assert.strictEqual(flow(dir, ['start', id]).code, 0);
   const shown = flow(dir, [id]);
-  assert.match(shown.stdout, /building/);
+  assert.match(shown.stdout, /in-progress/);
 
   assert.strictEqual(flow(dir, ['done', id]).code, 0);
   assert.ok(

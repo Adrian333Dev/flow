@@ -205,17 +205,17 @@ test('parking stores the resume status, and reviving restores it', () => {
   flow(dir, ['new', 'Build the widget', '--type', 'issue']);
   const [t] = ticket(dir);
 
-  flow(dir, ['build', t.id]);
+  flow(dir, ['start', t.id]);
   flow(dir, ['park', t.id, '--reason', 'waiting on API']);
 
   const parked = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
   assert.strictEqual(parked.data.status, 'parked');
-  assert.strictEqual(parked.data.resume, 'building');
+  assert.strictEqual(parked.data.resume, 'in-progress');
   assert.match(parked.data.reason, /waiting on API/);
 
-  flow(dir, ['build', t.id]);
+  flow(dir, ['start', t.id]);
   const revived = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
-  assert.strictEqual(revived.data.status, 'building');
+  assert.strictEqual(revived.data.status, 'in-progress');
   assert.strictEqual(revived.data.reason || '', '');
   assert.strictEqual(revived.data.resume || '', '');
 });
@@ -228,9 +228,9 @@ test('a field Flow does not know survives a move', () => {
   const file = ticketFile(dir, t.id);
   fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/^---\n/, '---\nassignee: sam\nlabels: [ui, api]\n'));
 
-  flow(dir, ['build', t.id]);
+  flow(dir, ['start', t.id]);
   const moved = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
-  assert.strictEqual(moved.data.status, 'building');
+  assert.strictEqual(moved.data.status, 'in-progress');
   assert.strictEqual(moved.data.assignee, 'sam');
   assert.deepStrictEqual(moved.data.labels, ['ui', 'api']);
 });
@@ -244,12 +244,12 @@ test('flow done refuses on a parent with open children', () => {
   const all = ticket(dir);
   const child = all.find((t) => t.id !== p.id);
 
-  flow(dir, ['build', p.id, '--force']);
+  flow(dir, ['start', p.id, '--force']);
   const blocked = flow(dir, ['done', p.id]);
   assert.notStrictEqual(blocked.code, 0);
   assert.match(blocked.stderr, /open child/);
 
-  flow(dir, ['build', child.id]);
+  flow(dir, ['start', child.id]);
   flow(dir, ['done', child.id]);
   const ok = flow(dir, ['done', p.id]);
   assert.strictEqual(ok.code, 0, ok.stderr);
@@ -263,12 +263,12 @@ test('flow get says a parent with open children is blocked on them, and ready on
   const child = ticket(dir).find((t) => t.id !== p.id);
 
   assert.match(flow(dir, ['get', p.id]).stdout, new RegExp(`blocked: {4}open children come first: ${child.id}\\n`));
-  flow(dir, ['build', child.id]);
+  flow(dir, ['start', child.id]);
   flow(dir, ['done', child.id]);
   assert.match(flow(dir, ['get', p.id]).stdout, /ready: {6}yes\n/);
 });
 
-test('an unmet dep blocks pickup, and satisfying it unblocks', () => {
+test('an unmet dep blocks pickup, and only done unblocks', () => {
   const dir = project('tickets-dep-block');
 
   flow(dir, ['new', 'Dep target']);
@@ -276,16 +276,81 @@ test('an unmet dep blocks pickup, and satisfying it unblocks', () => {
   const [t1, t2] = ticket(dir);
 
   flow(dir, ['edit', t2.id, '--deps', t1.id]);
-  const blocked = flow(dir, ['groundwork', t2.id]);
+  const blocked = flow(dir, ['start', t2.id]);
   assert.notStrictEqual(blocked.code, 0);
   assert.match(blocked.stderr, /blocked/);
 
-  flow(dir, ['groundwork', t1.id]);
-  flow(dir, ['build', t1.id]);
+  flow(dir, ['start', t1.id]);
+  const stillBlocked = flow(dir, ['start', t2.id]);
+  assert.notStrictEqual(stillBlocked.code, 0, 'a dependency in progress does not clear');
+  assert.match(stillBlocked.stderr, /is in-progress/);
+
   flow(dir, ['done', t1.id]);
 
-  const unblocked = flow(dir, ['groundwork', t2.id]);
+  const unblocked = flow(dir, ['start', t2.id]);
   assert.strictEqual(unblocked.code, 0, unblocked.stderr);
+});
+
+test('a new ticket of any type starts todo, and says how to pick it up', () => {
+  const dir = project('tickets-new-todo');
+
+  for (const type of ['feature', 'issue', 'chore', 'topic', 'prototype']) {
+    const r = flow(dir, ['new', `A ${type}`, '--type', type]);
+    assert.strictEqual(r.code, 0, r.stderr);
+    assert.match(r.stdout, /pick up with: flow start exp-\d+/);
+  }
+  for (const t of ticket(dir)) assert.strictEqual(t.data.status, 'todo', `${t.id} should start todo`);
+});
+
+test('flow start reopens a done ticket, taking it out of the archive', () => {
+  const dir = project('tickets-reopen');
+
+  flow(dir, ['new', 'Finished work']);
+  const [t] = ticket(dir);
+  flow(dir, ['start', t.id]);
+  flow(dir, ['done', t.id]);
+  assert.match(ticketFile(dir, t.id), /archive/);
+
+  const r = flow(dir, ['start', t.id]);
+  assert.strictEqual(r.code, 0, r.stderr);
+  assert.doesNotMatch(ticketFile(dir, t.id), /archive/);
+  assert.strictEqual(frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data.status, 'in-progress');
+});
+
+test('a parked ticket needs a reason, and comes back by flow todo or flow start', () => {
+  const dir = project('tickets-park-back');
+
+  flow(dir, ['new', 'Waits on the vendor']);
+  const [t] = ticket(dir);
+  const status = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data;
+
+  const bare = flow(dir, ['park', t.id]);
+  assert.notStrictEqual(bare.code, 0);
+  assert.match(bare.stderr, /reason/);
+
+  flow(dir, ['park', t.id, '--reason', 'vendor ships in Q3']);
+  assert.strictEqual(status().status, 'parked');
+  assert.strictEqual(status().resume, 'todo');
+  assert.match(flow(dir, [t.id]).stdout, /pick up with: flow todo /);
+
+  flow(dir, ['todo', t.id]);
+  assert.strictEqual(status().status, 'todo');
+  flow(dir, ['start', t.id]);
+  flow(dir, ['park', t.id, '--reason', 'blocked again']);
+  assert.match(flow(dir, [t.id]).stdout, /pick up with: flow start /);
+
+  assert.strictEqual(flow(dir, ['start', t.id]).code, 0);
+  assert.strictEqual(status().status, 'in-progress');
+});
+
+test('the commands of the 8 statuses are gone', () => {
+  const dir = project('tickets-old-commands');
+  flow(dir, ['new', 'Anything']);
+
+  for (const old of ['groundwork', 'plan', 'build', 'review']) {
+    assert.notStrictEqual(flow(dir, [old, 'exp-1']).code, 0, `flow ${old} should refuse`);
+  }
+  assert.strictEqual(frontmatter.parse(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data.status, 'todo');
 });
 
 test('flow drop requires --reason, refuses on dependents, --by repairs', () => {
@@ -343,8 +408,8 @@ test('moving to the current status is a no-op', () => {
   flow(dir, ['new', 'Some work', '--type', 'issue']);
   const [t] = ticket(dir);
 
-  flow(dir, ['build', t.id]);
-  const r = flow(dir, ['build', t.id]);
+  flow(dir, ['start', t.id]);
+  const r = flow(dir, ['start', t.id]);
   assert.strictEqual(r.code, 0);
   assert.match(r.stdout, /already/);
 });
@@ -354,7 +419,7 @@ test('flow file stamps a closed ticket, and --force re-stamps', () => {
 
   flow(dir, ['new', 'Done thing', '--type', 'issue']);
   const [t] = ticket(dir);
-  flow(dir, ['build', t.id]);
+  flow(dir, ['start', t.id]);
   flow(dir, ['done', t.id]);
 
   const filed = flow(dir, ['file', t.id]);

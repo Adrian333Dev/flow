@@ -26,7 +26,7 @@ const store = require('./store');
 const paths = require('../paths');
 
 // Parked is left out as set aside, and done and dropped as closed.
-const LISTED = new Set(['todo', 'groundwork', 'planning', 'building', 'review']);
+const LISTED = new Set(['todo', 'in-progress']);
 
 const MARK = '<!-- flow: ticket ';
 
@@ -36,7 +36,7 @@ const OWN = ['SKILL.md', '.gitignore'];
 /** A project's folder of skills, the one `flow init` makes. */
 const folderOf = (project) => path.join(project, '.claude', 'skills');
 
-/** The row the `/` list shows: `Ticket, building: Daemon detection`. */
+/** The row the `/` list shows: `Ticket, in-progress: Daemon detection`. */
 function describe(t, index) {
   const blocked = graph.unmetDeps(t, index).length ? ', blocked' : '';
   return `Ticket, ${t.data.status}${blocked}: ${t.data.title}`;
