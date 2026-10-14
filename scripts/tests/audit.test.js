@@ -329,6 +329,23 @@ test('timeline lists every tool call in a session', () => {
   assert.match(result.stdout, /Grep\s+ERR/);
 });
 
+test('bare flow audit lists the sessions, and a bare id points at get', () => {
+  const { file, env } = roots('audit-default');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const listed = audit(env, []);
+  assert.strictEqual(listed.code, 0, listed.stderr);
+  assert.match(listed.stdout, new RegExp(SESSION.slice(0, 8)));
+
+  const one = audit(env, ['get', SESSION.slice(0, 8)]);
+  assert.strictEqual(one.code, 0, one.stderr);
+
+  const shortcut = audit(env, [SESSION.slice(0, 8)]);
+  assert.notStrictEqual(shortcut.code, 0);
+  assert.match(shortcut.stderr, /flow audit get /);
+});
+
 test('a query against a missing index says how to build one', () => {
   const { env } = roots('audit-empty');
   const result = audit(env, ['ls']);

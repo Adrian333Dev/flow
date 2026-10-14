@@ -8,16 +8,16 @@ A study case when **an artifact exists that will be gone tomorrow**: output the 
 
 ## Writing one
 
-    flow cases issues
-    flow cases new "<title>" --issue <issue> [--rule "<the rule that did not fire>"]
+    flow cases
+    flow cases new "<title>" --type <type> [--rule "<the rule that did not fire>"]
 
 `flow` owns the path, the date and the frontmatter. It fills in the project from where you stand, and the model and effort level from the running session. You write the body.
 
-**Run `flow cases issues` first, every time**, and reuse an issue that fits. Name the **kind of failure**, never this instance of it, `premature-implementation`, not `rewrote-the-rules-early`. A near-miss on an existing issue refuses; `--force` means it really is a new kind.
+**Run `flow cases` first, every time**, and reuse a type that fits. Name the **type of failure**, never this instance of it, `premature-implementation`, not `rewrote-the-rules-early`. A near-miss on an existing type refuses; `--force` means it really is a new type.
 
 `--rule` names the rule that was loaded and did not fire. Omit it when none was.
 
-Cases are files, at `~/.flow/study-cases/<issue>/<date>-<slug>.md`. A folder only when one carries attachments: a long pasted output, two versions of one file.
+Cases are files, at `~/.flow/study-cases/<type>/<date>-<slug>.md`. A folder only when one carries attachments: a long pasted output, two versions of one file.
 
 ## Two stages
 

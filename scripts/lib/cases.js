@@ -2,9 +2,9 @@
 /**
  * Study cases on disk. The one part of flow that is not per project.
  *
- *   ~/.flow/study-cases/<issue>/<date>-<slug>.md
+ *   ~/.flow/study-cases/<type>/<date>-<slug>.md
  *
- * Filed by issue, never by project: the payoff is seeing one failure three
+ * Filed by type of failure, never by project: the payoff is seeing one failure three
  * times, and a project folder scatters exactly that. The project is a field.
  *
  * Frontmatter is owned by these commands and the body is written by hand: the
@@ -94,10 +94,10 @@ function readCases() {
   const cases = [];
   if (!fs.existsSync(root)) return cases;
 
-  for (const issueEntry of fs.readdirSync(root, { withFileTypes: true })) {
-    if (!issueEntry.isDirectory()) continue;
-    const issue = issueEntry.name;
-    const dir = path.join(root, issue);
+  for (const typeEntry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (!typeEntry.isDirectory()) continue;
+    const type = typeEntry.name;
+    const dir = path.join(root, type);
 
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       // A case is one file. A folder appears only when it carries attachments,
@@ -119,7 +119,7 @@ function readCases() {
       data.rule = data.rule ? String(data.rule).trim() : '';
       data.fix = data.fix ? String(data.fix).trim() : '';
 
-      cases.push({ issue, name, slug: m ? m[2] : name, file, data, body });
+      cases.push({ type, name, slug: m ? m[2] : name, file, data, body });
     }
   }
 
@@ -133,18 +133,18 @@ function firstMarkdown(dir) {
   return hit ? path.join(dir, hit) : null;
 }
 
-/** Issue folders with the numbers that decide whether a new case joins one. */
-function readIssues(cases) {
+/** Type folders with the numbers that decide whether a new case joins one. */
+function readTypes(cases) {
   const root = casesDir();
   const all = cases || readCases();
   const names = fs.existsSync(root)
     ? fs.readdirSync(root, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort()
     : [];
 
-  return names.map((issue) => {
-    const mine = all.filter((c) => c.issue === issue);
+  return names.map((type) => {
+    const mine = all.filter((c) => c.type === type);
     return {
-      issue,
+      type,
       total: mine.length,
       open: mine.filter((c) => c.data.status === 'open').length,
       latest: mine.length ? mine[0].data.date : '',
@@ -156,15 +156,15 @@ function readIssues(cases) {
 
 /**
  * The whole mechanism rests on one failure having one folder. Two spellings of
- * the same issue split the count and nothing errors, so a near-miss refuses
- * instead. Exact matches never reach here; a genuinely new issue is silent.
+ * the same type split the count and nothing errors, so a near-miss refuses
+ * instead. Exact matches never reach here; a genuinely new type is silent.
  */
-function nearMatches(issue, existing) {
+function nearMatches(type, existing) {
   return existing.filter((e) => {
-    if (e === issue) return false;
-    const [short, long] = e.length <= issue.length ? [e, issue] : [issue, e];
+    if (e === type) return false;
+    const [short, long] = e.length <= type.length ? [e, type] : [type, e];
     if (short.length >= 4 && long.includes(short)) return true;
-    return editDistance(e, issue) <= 2;
+    return editDistance(e, type) <= 2;
   });
 }
 
@@ -185,12 +185,12 @@ function editDistance(a, b) {
   return prev[b.length];
 }
 
-/** Resolves a full name, a slug, or `issue/name`. Partial matches count. */
+/** Resolves a full name, a slug, or `type/name`. Partial matches count. */
 function findCase(cases, ref) {
   const needle = String(ref || '').trim().replace(/\.md$/, '');
-  if (!needle) throw new FlowError('which case? give its slug, or issue/slug.');
+  if (!needle) throw new FlowError('which case? give its slug, or type/slug.');
 
-  const key = (c) => `${c.issue}/${c.name}`;
+  const key = (c) => `${c.type}/${c.name}`;
   const exact = cases.filter((c) => c.name === needle || c.slug === needle || key(c) === needle);
   if (exact.length === 1) return exact[0];
   if (exact.length > 1) throw new FlowError(ambiguous(needle, exact));
@@ -204,12 +204,12 @@ function findCase(cases, ref) {
 
 const ambiguous = (needle, matches) =>
   `"${needle}" matches ${matches.length} study cases:\n` +
-  matches.map((c) => `  ${c.issue}/${c.name}`).join('\n');
+  matches.map((c) => `  ${c.type}/${c.name}`).join('\n');
 
 // ---------------------------------------------------------------- writing
 
-function createCase({ issue, title, rule, body: given }) {
-  const dir = path.join(casesDir(), issue);
+function createCase({ type, title, rule, body: given }) {
+  const dir = path.join(casesDir(), type);
   const date = today();
   const slug = slugify(title);
   const name = `${date}-${slug}`;
@@ -227,11 +227,11 @@ function createCase({ issue, title, rule, body: given }) {
   };
   const body = given != null
     ? String(given).trim() + '\n'
-    : renderTemplate('study-case.md', { title: String(title).trim(), issue, date });
+    : renderTemplate('study-case.md', { title: String(title).trim(), type, date });
 
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, frontmatter.stringify(data, CASE_KEYS, body));
-  return { issue, name, slug, file, data, body };
+  return { type, name, slug, file, data, body };
 }
 
 function writeCase(c) {
@@ -241,5 +241,5 @@ function writeCase(c) {
 module.exports = {
   CASE_KEYS, CASE_STATUSES,
   casesDir, today, currentProject, sessionModel,
-  readCases, readIssues, nearMatches, findCase, createCase, writeCase,
+  readCases, readTypes, nearMatches, findCase, createCase, writeCase,
 };

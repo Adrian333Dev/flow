@@ -105,7 +105,9 @@ actions.ls = {
     since: { arg: '<date>' },
     limit: { arg: '<n>' },
   },
-  run({ flags }) {
+  run({ positional, flags, usage }) {
+    // The group's default, so an id typed the old way lands here and would list everything.
+    if (positional.length) throw new FlowError(`${usage} takes no session id: \`flow audit get ${positional[0]}\` shows one.`);
     out(query.sessions(opened(true), {
       project: flags.project || null,
       since: flags.since || null,
@@ -288,6 +290,6 @@ actions.where = {
 
 module.exports = {
   summary: 'what Claude Code did, read back after the fact',
-  default: 'get',
+  default: 'ls',
   actions,
 };

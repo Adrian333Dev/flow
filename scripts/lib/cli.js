@@ -113,7 +113,7 @@ function runAction(action, argv, usage, check, extra) {
  *
  * A group may name a default action, and the same rule then runs one level
  * down: a word naming no action is that action's argument, which is what makes
- * `flow cases <ref>` reach `flow cases get <ref>`.
+ * `flow skills react` reach `flow skills ls react`.
  */
 function dispatch(argv, { commands, groups, fallback, sections, title, check }) {
   if (!argv.length || HELP_WORDS.includes(argv[0])) {
@@ -133,10 +133,9 @@ function dispatch(argv, { commands, groups, fallback, sections, title, check }) 
   const group = groups[name];
   const [typed, ...args] = rest;
 
-  // A group with nothing after it prints its help, unless its default action
-  // needs no argument, then the bare form is that action. `flow cases` has
-  // nothing to show without a name and helps instead; `flow skills` answers,
-  // since its patterns are optional.
+  // A group with nothing after it runs its default action when that needs no
+  // argument, which every group's `ls` does: `flow skills` lists. A group with
+  // no default, or one whose default needs an argument, prints its help.
   if (!typed || HELP_WORDS.includes(typed)) {
     const fallbackAction = group.default && group.actions[group.default];
     const optional = !fallbackAction?.args || fallbackAction.args.startsWith('[');
