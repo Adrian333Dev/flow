@@ -116,7 +116,8 @@ function serialize(data, keyOrder) {
     } else {
       const s = String(v);
       if (s === '') continue;
-      lines.push(`${key}: ${quoteIfNeeded(s)}`);
+      // A number stays bare, so `rank: 1500` is not written as `rank: "1500"`.
+      lines.push(`${key}: ${typeof v === 'number' ? s : quoteIfNeeded(s)}`);
     }
   }
   lines.push('---');

@@ -326,7 +326,7 @@ test('a ticket records its code branch when work starts, and a history line per 
   const t = team('records-history');
   const ana = t.clone('ana');
   t.branch(ana, 'exp');
-  t.in(ana, 'new', 'Budget page', '--type', 'issue');
+  t.in(ana, 'new', 'Budget page');
   git(ana, 'checkout', '-q', '-b', 'feature/budgets');
 
   const env = { ...process.env, FLOW_HOME: t.home, CLAUDE_CODE_SESSION_ID: 'abc-123', CLAUDE_CONFIG_DIR: path.join(t.dir, 'claude') };

@@ -14,10 +14,7 @@
 const statuses = require('./statuses');
 const { SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, NAMES } = statuses;
 const STATUS_RANK = statuses.RANK;
-
-// `normal` sits between the two deliberate answers, and is what an absent field
-// means, so a ticket nobody has judged never outranks one judged low.
-const PRIORITY_RANK = { high: 0, normal: 1, low: 2 };
+const order = require('./rank');
 
 const indexById = (tickets) => new Map(tickets.map((t) => [t.id, t]));
 
@@ -67,43 +64,22 @@ function blockedTickets(tickets) {
 }
 
 /**
- * A ticket's own priority, or the nearest ancestor's, or `normal`.
- *
- * Marking one parent high lifts a whole feature without touching a single
- * child, which is the case that makes the field worth having at all. An
- * explicit value always wins over an inherited one, so a low chore under a high
- * feature stays low. The walk goes the whole chain rather than one level: a
- * grandchild belongs to the feature as much as a child does. `seen` only
- * matters for a hand-edited parent cycle: `ticket edit` refuses to make one.
- */
-function effectivePriority(ticket, index) {
-  const seen = new Set();
-  let t = ticket;
-  while (t && !seen.has(t.id)) {
-    if (t.data.priority) return t.data.priority;
-    seen.add(t.id);
-    t = t.data.parent ? index.get(t.data.parent) : null;
-  }
-  return 'normal';
-}
-
-/**
- * Both sorts are stable and every list starts in id order, so tickets that tie
- * stay oldest-first, which is the direction stale work should drift when a
- * ceiling hides the tail of the list.
+ * Tickets in board order: see `rank.js`. `pool` is the full ticket set when
+ * `list` is a filtered slice of it, so a parent outside the slice still places
+ * its children. Tickets without a rank follow by id, which is the direction
+ * stale work should drift when a ceiling hides the tail of the list.
  */
 const rank = (list, pool) => {
   const index = indexById(pool || list);
-  return [...list].sort((a, b) =>
-    PRIORITY_RANK[effectivePriority(a, index)] - PRIORITY_RANK[effectivePriority(b, index)]);
+  return [...list].sort((a, b) => order.compareOrder(a, b, index));
 };
 
-/** Status first, then priority, for the views that hold more than one status. */
+/** Status first, then board order, for the views that hold more than one status. */
 const rankByStatus = (list, pool) => {
   const index = indexById(pool || list);
   return [...list].sort((a, b) =>
     (STATUS_RANK[a.data.status] ?? 99) - (STATUS_RANK[b.data.status] ?? 99) ||
-    PRIORITY_RANK[effectivePriority(a, index)] - PRIORITY_RANK[effectivePriority(b, index)]);
+    order.compareOrder(a, b, index));
 };
 
 /**
@@ -203,9 +179,9 @@ function descendants(tickets, id) {
  * The parent forest: roots first, each node carrying its children.
  *
  * Ordering here is structural, and that is the whole difference between this
- * and `flow next`: that list is flat and priority is its only key, so a high
- * child outranks its own parent. A tree cannot do that without lying about the
- * shape, so nesting wins and priority only orders siblings and roots.
+ * and `flow next`: that list is flat, and a child sits where its top parent
+ * sits. A tree cannot do that without lying about the shape, so nesting wins
+ * and rank only orders siblings and roots.
  *
  * Deps are not drawn. They cross the tree: a ticket can depend on anything,
  * anywhere, so they surface as a note on the blocked ticket instead.
@@ -341,9 +317,9 @@ function wouldCycle(tickets, ticketId, dep) {
 }
 
 module.exports = {
-  SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, PRIORITY_RANK, STATUS_RANK,
+  SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, STATUS_RANK,
   indexById, unmetDeps, readyTickets, blockedTickets, hasOpenChildren,
-  effectivePriority, rank, rankByStatus, continuingTickets, lastClosed,
+  rank, rankByStatus, continuingTickets, lastClosed,
   dependents, transitiveDependents, children, openChildren, descendants, forest, wouldOrphan,
   findCycles, check, hasProblems, wouldCycle,
 };

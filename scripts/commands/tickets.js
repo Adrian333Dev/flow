@@ -20,6 +20,8 @@ const { out, readBody } = require('../lib/cli');
 const { projectRoot } = require('../lib/project');
 const store = require('../lib/tickets/store');
 const graph = require('../lib/tickets/graph');
+const order = require('../lib/tickets/rank');
+const search = require('../lib/tickets/search');
 const render = require('../lib/tickets/render');
 const { indent } = require('../lib/render');
 const statuses = require('../lib/tickets/statuses');
@@ -48,6 +50,38 @@ function labelsFrom(value) {
     if (bad) throw new FlowError(bad);
   }
   return labels;
+}
+
+/**
+ * The place `--before <id>`, `--after <id>`, `--first` or `--last` names, as
+ * `rank.place` takes it, or null where none is given.
+ */
+function positionFrom(flags, prefix) {
+  const given = ['before', 'after', 'first', 'last'].filter((name) => flags[name]);
+  if (given.length > 1) throw new FlowError(`give one place, not ${given.map((name) => `--${name}`).join(' and ')}.`);
+  if (!given.length) return null;
+  const [name] = given;
+  return { [name]: name === 'before' || name === 'after' ? store.requireId(flags[name], prefix) : true };
+}
+
+const describePosition = (target) =>
+  target.before ? `before ${target.before}` : target.after ? `after ${target.after}` : target.first ? 'first' : 'last';
+
+/**
+ * Writes the numbers that put `t` where `target` says: its own, and the other
+ * tickets' where the group had to be numbered. Returns the lines to print.
+ */
+function placeTicket(t, tickets, target) {
+  const placed = order.place(order.siblingsOf(tickets, t.data.parent), t, target);
+  t.data.rank = placed.rank;
+  store.writeTicket(t);
+  for (const other of placed.others) {
+    other.ticket.data.rank = other.rank;
+    store.writeTicket(other.ticket);
+  }
+  return placed.others.length
+    ? [`numbered ${placed.others.length} other ticket${placed.others.length === 1 ? '' : 's'} too, in their current order`]
+    : [];
 }
 
 /**
@@ -265,20 +299,20 @@ const actions = {};
 
 actions.ls = {
   section: 'board',
-  summary: 'list many, filtered',
+  summary: 'list many, filtered; words match the title, id, labels and body',
+  args: '[<words>...]',
   flags: {
     status: { values: statuses.NAMES, arg: '<status>' },
-    type: { values: store.TICKET_TYPES, arg: '<type>' },
     parent: { arg: '<id>' },
     label: { arg: '<label>' },
     unfiled: { bool: true },
   },
-  run({ flags }) {
+  run({ positional, flags }) {
     const { tickets } = load();
     let list = tickets;
 
+    if (positional.length) list = list.filter(search.matcher(positional));
     if (flags.status) list = list.filter((t) => t.data.status === flags.status);
-    if (flags.type) list = list.filter((t) => t.data.type === flags.type);
     if (flags.label) list = list.filter((t) => t.data.labels.includes(flags.label.toLowerCase()));
     if (flags.parent) {
       const parent = store.requireId(flags.parent, tickets.prefix);
@@ -289,7 +323,7 @@ actions.ls = {
     // producing the material the pass would file.
     if (flags.unfiled) list = list.filter((t) => t.data.status === 'done' && !t.data.filed);
 
-    out(render.ticketTable(graph.rankByStatus(list, tickets), tickets));
+    out(render.ticketTable(graph.rankByStatus(list, tickets)));
     if (list.length) out(`\n${list.length} of ${tickets.length}.`);
     return 0;
   },
@@ -423,14 +457,15 @@ function takeBack(root, t) {
 actions.new = {
   section: 'tickets',
   args: '"<title>"',
-  summary: 'create one',
+  summary: 'create one, last among its siblings unless a place is given',
   flags: {
-    type: { values: store.TICKET_TYPES, arg: '<type>' },
-    priority: { values: store.TICKET_PRIORITIES, arg: '<level>' },
     parent: { arg: '<id>' },
     deps: { arg: '<id,id>' },
     label: { arg: '<label,label>' },
     body: { arg: '<text|->' },
+    before: { arg: '<id>' },
+    after: { arg: '<id>' },
+    first: { bool: true },
   },
   run({ positional, flags, usage }) {
     const title = positional.join(' ').trim();
@@ -458,10 +493,12 @@ actions.new = {
       if (!tickets.some((t) => t.id === parent)) throw new FlowError(`--parent names ${parent}, which does not exist.`);
     }
 
-    let t = store.createTicket(root, {
-      title, type: flags.type || 'feature', priority: flags.priority || '', labels,
-      parent, deps, tickets, body,
-    });
+    // Checked before anything is made, so a place that cannot be had creates no
+    // ticket. The empty id stands for the ticket not yet made.
+    const target = positionFrom(flags, tickets.prefix);
+    if (target) order.place(order.siblingsOf(tickets, parent), { id: '' }, target);
+
+    let t = store.createTicket(root, { title, labels, parent, deps, tickets, body });
 
     // Pushed before the id is shown, so nobody ever sees a number change. A
     // refused push means someone took the number first: the ticket is
@@ -475,7 +512,13 @@ actions.new = {
 
     out(`created ${t.id}  ${t.data.title}`);
     out(`        ${rel(root, t.file)}`);
-    if (t.data.priority) out(`        priority: ${t.data.priority}`);
+    if (target) {
+      const notes = placeTicket(t, tickets, target);
+      records.commit(root, `${t.id}: ranked ${describePosition(target)}`);
+      records.syncLater(root);
+      out(`        rank: ${describePosition(target)}`);
+      for (const note of notes) out(`        ${note}`);
+    }
     if (labels.length) out(`        labels: ${labels.join(', ')}`);
     if (parent) out(`        parent: ${parent}`);
     if (deps.length) out(`        deps: ${deps.join(', ')}`);
@@ -496,13 +539,11 @@ actions.edit = {
   flags: {
     title: { arg: '"<title>"' },
     label: { arg: '<label,label>' },
-    type: { values: store.TICKET_TYPES, arg: '<type>' },
-    priority: { values: store.TICKET_PRIORITIES, arg: '<level>' },
     parent: { arg: '<id>' },
     deps: { arg: '<id,id>' },
   },
   run({ positional, flags, usage }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--type ...]`);
+    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--label ...]`);
 
     const { root, tickets, t } = locate(positional[0]);
     const changes = [];
@@ -510,17 +551,6 @@ actions.edit = {
     if (flags.title !== undefined) {
       changes.push(`title: "${t.data.title}" → "${flags.title}"`);
       t.data.title = String(flags.title).trim();
-    }
-    if (flags.type !== undefined) {
-      changes.push(`type: ${t.data.type} → ${flags.type}`);
-      t.data.type = flags.type;
-    }
-    if (flags.priority !== undefined) {
-      // `normal` and `""` both clear it: the field goes away rather than
-      // storing the default, so an ordinary ticket has no priority line to go stale.
-      const priority = store.toPriority(flags.priority);
-      changes.push(`priority: ${t.data.priority || 'normal'} → ${priority || 'normal'}`);
-      t.data.priority = priority;
     }
     if (flags.parent !== undefined) {
       // Empty clears it: `--parent ""` un-splits a ticket.
@@ -556,7 +586,7 @@ actions.edit = {
 
     if (!changes.length) {
       throw new FlowError(
-        'nothing to change: pass --title, --label, --type, --priority, --parent or --deps.\n' +
+        'nothing to change: pass --title, --label, --parent or --deps. Order is flow rank.\n' +
         `  Status moves are their own commands: flow start ${t.id}, flow done ${t.id}, flow park ${t.id}.`
       );
     }
@@ -564,6 +594,38 @@ actions.edit = {
     store.writeTicket(t);
     records.commit(root, `${t.id}: ${changes.join('; ')}`);
     out(`${t.id}\n  ${changes.join('\n  ')}`);
+    return 0;
+  },
+};
+
+/**
+ * Moves a ticket among its siblings: the tickets that share its parent. Only an
+ * open ticket has a place, and only a sibling is a place to go beside.
+ */
+actions.rank = {
+  section: 'tickets',
+  args: '<id>',
+  summary: 'put it before or after a sibling, or first or last',
+  flags: {
+    before: { arg: '<id>' },
+    after: { arg: '<id>' },
+    first: { bool: true },
+    last: { bool: true },
+  },
+  run({ positional, flags, usage }) {
+    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> --before <id>`);
+
+    const { root, tickets, t } = locate(positional[0]);
+    const target = positionFrom(flags, tickets.prefix);
+    if (!target) throw new FlowError('say where: --before <id>, --after <id>, --first or --last.');
+    if (statuses.TERMINAL.has(t.data.status)) throw new FlowError(`${t.id} is ${t.data.status}: only open tickets have a place.`);
+    if (target.before === t.id || target.after === t.id) throw new FlowError(`${t.id} cannot go beside itself.`);
+
+    const notes = placeTicket(t, tickets, target);
+    records.commit(root, `${t.id}: ranked ${describePosition(target)}`);
+    records.syncLater(root);
+    out(`${t.id}  ${describePosition(target)}   ${t.data.title}`);
+    for (const note of notes) out(`      ${note}`);
     return 0;
   },
 };

@@ -16,7 +16,7 @@ const { project, flow } = require('./helpers/scratch');
 test('a ticket is created, moved and archived', () => {
   const dir = project('flow-lifecycle');
 
-  const made = flow(dir, ['new', 'Split the parser', '--type', 'chore']);
+  const made = flow(dir, ['new', 'Split the parser']);
   assert.strictEqual(made.code, 0, made.stderr);
 
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets'));

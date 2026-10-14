@@ -11,38 +11,20 @@ const store = require('./store');
 const statuses = require('./statuses');
 const ticketHistory = require('./ticket-history');
 
-/**
- * Effective priority, so a child of a high parent reads `high` even though its
- * own file says nothing. `normal` prints as `-`: the column exists to show the
- * exceptions, and a column full of the word "normal" would bury them.
- */
-const priCell = (t, index) => {
-  const p = graph.effectivePriority(t, index);
-  return p === 'normal' ? '-' : p;
-};
-
-const ticketRow = (t, index) => [
-  t.id, t.data.status, t.data.type, priCell(t, index),
-  t.data.parent || '-', t.data.title,
-];
-
-/**
- * `pool` is the full ticket set when the list being printed is a filtered slice
- * of it: priority is inherited, so a parent outside the slice still decides.
- */
-function ticketTable(tickets, pool) {
+function ticketTable(tickets) {
   if (tickets.length === 0) return 'no tickets.';
-  const index = graph.indexById(pool || tickets);
   return table(
-    ['ID', 'STATUS', 'TYPE', 'PRI', 'PARENT', 'TITLE'],
-    tickets.map((t) => ticketRow(t, index))
+    ['ID', 'STATUS', 'LABELS', 'PARENT', 'TITLE'],
+    tickets.map((t) => [
+      t.id, t.data.status, t.data.labels.join(',') || '-', t.data.parent || '-', t.data.title,
+    ])
   );
 }
 
 /**
- * The forest, drawn. One line per ticket: the branch, then status, priority and
- * whatever single fact matters most about it: how much of a parent is done,
- * what a blocked ticket waits on, why a parked one was set aside.
+ * The forest, drawn. One line per ticket: the branch, then status and whatever
+ * single fact matters most about it: how much of a parent is done, what a
+ * blocked ticket waits on, why a parked one was set aside.
  */
 function tree(nodes, all) {
   if (!nodes.length) return 'nothing to show.';
@@ -56,7 +38,6 @@ function tree(nodes, all) {
       rows.push([
         prefix + (root ? '' : last ? '└── ' : '├── ') + `${t.id}  ${t.data.title}`,
         t.data.status,
-        priCell(t, index),
         treeNote(t, all, index),
       ]);
       if (n.children.length) walk(n.children, root ? '' : prefix + (last ? '    ' : '│   '), false);
@@ -133,12 +114,10 @@ function show(ticket, tickets, root) {
 
   const header = [
     `${ticket.id}  ${ticket.data.title}`,
-    `status: ${ticket.data.status}   type: ${ticket.data.type}   parent: ${ticket.data.parent || '-'}`,
+    `status: ${ticket.data.status}   parent: ${ticket.data.parent || '-'}`,
     ticket.data.was ? `was:        ${ticket.data.was}` : null,
     branchLine(ticket, root),
-    // The one place inheritance is spelled out, so "which ticket do I edit to
-    // change this" has an answer somewhere. The daily lists stay uncluttered.
-    `priority:   ${priorityLine(ticket, index)}`,
+    typeof ticket.data.rank === 'number' ? `rank:       ${ticket.data.rank}` : null,
     ticket.data.labels.length ? `labels:     ${ticket.data.labels.join(', ')}` : null,
     ticket.data.reason ? `reason:     ${ticket.data.reason}` : null,
     ticket.data.status === 'parked' ? `resumes at: ${ticket.data.resume || '?'}` : null,
@@ -235,15 +214,6 @@ const decisionsLine = (ticket) => {
   return files.length ? `decisions:  ${files.map((f) => `decisions/${f}`).join(', ')}` : null;
 };
 
-function priorityLine(ticket, index) {
-  if (ticket.data.priority) return ticket.data.priority;
-  const effective = graph.effectivePriority(ticket, index);
-  if (effective === 'normal') return 'normal';
-  let p = ticket.data.parent ? index.get(ticket.data.parent) : null;
-  while (p && !p.data.priority) p = p.data.parent ? index.get(p.data.parent) : null;
-  return `${effective} (inherited from ${p ? p.id : '?'})`;
-}
-
 /**
  * Where the work stands: the count of each status holding a ticket, then the
  * 4 questions `brief` answers, then parked.
@@ -297,17 +267,17 @@ function brief(tickets, limit) {
     graph.IN_FLIGHT.has(t.data.status) && !graph.hasOpenChildren(tickets, t.id));
   if (inFlight.length) {
     out.push(`in flight (${inFlight.length}), finish these before starting more:`);
-    out.push(indent(ticketTable(graph.rank(inFlight, tickets), tickets)));
+    out.push(indent(ticketTable(graph.rank(inFlight, tickets))));
     out.push('');
   }
 
-  // Above the ready list even when a high-priority ticket is sitting in it:
+  // Above the ready list even when a top-ranked ticket is sitting in it:
   // unfinished work beats new work, and a ticket nobody has started is new
-  // however it is marked. Priority only orders inside a band.
+  // however it is ranked. Rank only orders inside a band.
   const continuing = graph.continuingTickets(tickets);
   if (continuing.length) {
     out.push(`continues open work (${continuing.length}):`);
-    out.push(indent(ticketTable(continuing, tickets)));
+    out.push(indent(ticketTable(graph.rank(continuing, tickets))));
     out.push('');
   }
 
@@ -316,7 +286,7 @@ function brief(tickets, limit) {
   if (ready.length) {
     const shown = graph.rank(ready, tickets).slice(0, limit);
     out.push(`ready (${shown.length < ready.length ? `${shown.length} of ${ready.length}` : ready.length}):`);
-    out.push(indent(ticketTable(shown, tickets)));
+    out.push(indent(ticketTable(shown)));
     if (shown.length < ready.length) out.push('  flow next --all for the rest');
     out.push('');
   } else if (!inFlight.length && !continuing.length) {

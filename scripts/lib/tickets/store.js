@@ -26,19 +26,7 @@ const paths = require('../paths');
 // `was` is the id a ticket held before `flow move` took it to another place,
 // or before a clash renumbered it, so the old id still finds it. `branch` is
 // the code branch the work is built on, written once: see ticket-history.js.
-const TICKET_KEYS = ['id', 'was', 'title', 'status', 'type', 'priority', 'labels', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
-
-// `topic` is a ticket whose deliverable is a settled answer rather than code.
-// It was called `research` until the name collided with the `research` skill,
-// which fetches documentation and decides nothing.
-const TICKET_TYPES = ['feature', 'issue', 'chore', 'topic', 'prototype'];
-
-// Only `high` and `low` reach disk. `normal` is the name for the missing field,
-// so an ordinary ticket carries no priority line at all, which is the whole
-// defence against the usual rot, where everything is stamped at creation and
-// `high` stops meaning anything a year in. Nothing sets it but the user asking.
-const TICKET_PRIORITIES = ['high', 'normal', 'low'];
-const STORED_PRIORITIES = ['high', 'low'];
+const TICKET_KEYS = ['id', 'was', 'title', 'status', 'labels', 'rank', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
 
 // `labels` are free tags, several per ticket: `v1`, `post-v1`, `urgent`. Any
 // name that fits the pattern is allowed, and no label changes what Flow does.
@@ -56,10 +44,11 @@ function toLabelList(v) {
 const badLabel = (label) =>
   LABEL.test(label) ? null : `"${label}" cannot be a label: use lowercase letters, digits and hyphens, 24 characters at most.`;
 
-/** Anything that is not a stored value (including `normal`) means unset. */
-const toPriority = (v) => {
-  const s = String(v || '').trim().toLowerCase();
-  return STORED_PRIORITIES.includes(s) ? s : '';
+/** A `rank` value as a number, or '' where the field is missing or not a number. */
+const toRank = (v) => {
+  if (v === undefined || v === null || v === '') return '';
+  const n = Number(v);
+  return Number.isFinite(n) ? n : '';
 };
 
 // `reason` is required and typed by the user for the statuses statuses.js
@@ -300,8 +289,7 @@ function scanTicketDir(dir, root, prefix, out) {
     // values survive as written so `check` can report them.
     data.parent = data.parent ? (normalizeId(data.parent, prefix) || String(data.parent).trim()) : '';
     data.status = data.status || 'todo';
-    data.type = data.type || 'feature';
-    data.priority = toPriority(data.priority);
+    data.rank = toRank(data.rank);
     data.labels = toLabelList(data.labels).map((l) => l.toLowerCase());
     data.title = data.title || entry.name;
     data.reason = data.reason ? String(data.reason).trim() : '';
@@ -487,7 +475,7 @@ function readHistory(t) {
  * `tickets` is passed in when the caller already read the pool: at a few
  * thousand tickets a second scan is the most expensive thing a command does.
  */
-function createTicket(root, { title, type, priority, labels, parent, deps, tickets, body: given }) {
+function createTicket(root, { title, labels, parent, deps, tickets, body: given }) {
   const id = nextId(tickets || readTickets(root), prefixOf(root));
   const slug = labelize(title);
   const dir = path.join(ticketsDir(root), `${id}-${slug}`);
@@ -498,9 +486,8 @@ function createTicket(root, { title, type, priority, labels, parent, deps, ticke
     was: '',
     title: String(title).trim(),
     status: 'todo',
-    type: type || 'feature',
-    priority: toPriority(priority),
     labels: labels || [],
+    rank: '',
     branch: '',
     parent: parent || '',
     deps: deps || [],
@@ -676,9 +663,9 @@ function renderTemplate(name, vars) {
 }
 
 module.exports = {
-  TICKET_KEYS, TICKET_TYPES, TICKET_PRIORITIES, HOME_WORD,
+  TICKET_KEYS, HOME_WORD,
   recordsDir, isHome, homeRoot, ticketsDir, archiveDir, offerWord, badWord, prefixOf, wordOf, idOfFolder,
-  normalizeId, idNumber, requireId, slugify, labelize, labelOf, toIdList, toLabelList, badLabel, toPriority, today, now,
+  normalizeId, idNumber, requireId, slugify, labelize, labelOf, toIdList, toLabelList, badLabel, today, now,
   COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,
   historyFile, appendHistory, readHistory,
   hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, questionCount, taskCount, tickTask,

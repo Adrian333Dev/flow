@@ -29,14 +29,18 @@ const ticketFile = (dir, id) => {
   return null;
 };
 
-test('flow new with type, priority, labels, and parent', () => {
+test('flow new with labels and parent, and no type or priority', () => {
   const dir = project('tickets-new-flags');
 
-  const r1 = flow(dir, ['new', 'Set up CI', '--type', 'chore', '--priority', 'high']);
+  const r1 = flow(dir, ['new', 'Set up CI', '--label', 'chore,urgent']);
   assert.strictEqual(r1.code, 0, r1.stderr);
   const [t1] = ticket(dir);
-  assert.strictEqual(t1.data.type, 'chore');
-  assert.strictEqual(t1.data.priority, 'high');
+  assert.deepStrictEqual(t1.data.labels, ['chore', 'urgent']);
+  assert.strictEqual(t1.data.type, undefined);
+  assert.strictEqual(t1.data.priority, undefined);
+  assert.strictEqual(t1.data.rank, undefined, 'a new ticket carries no rank');
+  assert.notStrictEqual(flow(dir, ['new', 'Typed', '--type', 'chore']).code, 0, '--type is gone');
+  assert.notStrictEqual(flow(dir, ['new', 'Prioritised', '--priority', 'high']).code, 0, '--priority is gone');
 
   const r2 = flow(dir, ['new', 'Lint config', '--parent', t1.id, '--label', 'lint,post-v1']);
   assert.strictEqual(r2.code, 0, r2.stderr);
@@ -128,17 +132,17 @@ test('a folder on another disk is copied across, then deleted', () => {
   assert.match(fs.readFileSync(path.join(to, 'ticket.md'), 'utf8'), /Parser/);
 });
 
-test('flow edit changes title, type, priority, and labels', () => {
+test('flow edit changes title and labels', () => {
   const dir = project('tickets-edit');
 
-  flow(dir, ['new', 'Old title', '--type', 'feature', '--priority', 'high']);
+  flow(dir, ['new', 'Old title']);
   const [t] = ticket(dir);
 
-  flow(dir, ['edit', t.id, '--title', 'New title', '--type', 'chore', '--priority', 'low']);
+  flow(dir, ['edit', t.id, '--title', 'New title']);
   const edited = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
   assert.strictEqual(edited.data.title, 'New title');
-  assert.strictEqual(edited.data.type, 'chore');
-  assert.strictEqual(edited.data.priority, 'low');
+  assert.notStrictEqual(flow(dir, ['edit', t.id, '--type', 'chore']).code, 0, '--type is gone');
+  assert.notStrictEqual(flow(dir, ['edit', t.id, '--priority', 'low']).code, 0, '--priority is gone');
 
   const labelsOf = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data.labels || [];
   const r = flow(dir, ['edit', t.id, '--label', 'ui,api']);
@@ -208,7 +212,7 @@ test('flow edit --deps refuses to close a cycle', () => {
 test('parking stores the resume status, and reviving restores it', () => {
   const dir = project('tickets-park');
 
-  flow(dir, ['new', 'Build the widget', '--type', 'issue']);
+  flow(dir, ['new', 'Build the widget']);
   const [t] = ticket(dir);
 
   flow(dir, ['start', t.id]);
@@ -246,7 +250,7 @@ test('flow done refuses on a parent with open children', () => {
 
   flow(dir, ['new', 'Parent feature']);
   const [p] = ticket(dir);
-  flow(dir, ['new', 'Child task', '--parent', p.id, '--type', 'issue']);
+  flow(dir, ['new', 'Child task', '--parent', p.id]);
   const all = ticket(dir);
   const child = all.find((t) => t.id !== p.id);
 
@@ -297,11 +301,11 @@ test('an unmet dep blocks pickup, and only done unblocks', () => {
   assert.strictEqual(unblocked.code, 0, unblocked.stderr);
 });
 
-test('a new ticket of any type starts todo, and says how to pick it up', () => {
+test('a new ticket with any label starts todo, and says how to pick it up', () => {
   const dir = project('tickets-new-todo');
 
-  for (const type of ['feature', 'issue', 'chore', 'topic', 'prototype']) {
-    const r = flow(dir, ['new', `A ${type}`, '--type', type]);
+  for (const label of ['feature', 'bug', 'topic', 'research', 'v1']) {
+    const r = flow(dir, ['new', `A ${label}`, '--label', label]);
     assert.strictEqual(r.code, 0, r.stderr);
     assert.match(r.stdout, /pick up with: flow start exp-\d+/);
   }
@@ -411,7 +415,7 @@ test('flow drop --force cascades to transitive dependents', () => {
 test('moving to the current status is a no-op', () => {
   const dir = project('tickets-noop-move');
 
-  flow(dir, ['new', 'Some work', '--type', 'issue']);
+  flow(dir, ['new', 'Some work']);
   const [t] = ticket(dir);
 
   flow(dir, ['start', t.id]);
@@ -423,7 +427,7 @@ test('moving to the current status is a no-op', () => {
 test('flow file stamps a closed ticket, and --force re-stamps', () => {
   const dir = project('tickets-file');
 
-  flow(dir, ['new', 'Done thing', '--type', 'issue']);
+  flow(dir, ['new', 'Done thing']);
   const [t] = ticket(dir);
   flow(dir, ['start', t.id]);
   flow(dir, ['done', t.id]);

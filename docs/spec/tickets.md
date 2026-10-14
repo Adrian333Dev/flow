@@ -32,12 +32,14 @@ Each status, and what moves a ticket into it:
 - `V1` **A ticket is one file, `ticket.md`**: what it is for and how you know it is done, then `## Questions` if the work needs design, `## Tasks` if it needs building, and `## State`. Both lists are optional and flat, except `## Questions`, which keeps Title Case group headings. `flow <id>` counts the boxes in each, `questions: 3/7 answered` and `tasks: 2/5 done`, and skips a box inside an HTML comment. `flow new` writes no `map.md`, no `plan.md` and no `issues.md`.
 - `V1` **Decisions move to `decisions/<subject>.md` once they outgrow `ticket.md`**, past about 300 lines. `ticket.md` keeps the questions, the state and a line per file, and `flow <id>` lists the files.
 - `V1` **Big work is cut into children.** A child names its parent in `parent:`. The parent's `## Tasks` lists its children in build order, one line each that starts with the child's id: `- [ ] fw-127: …`. `flow done` on a child ticks that line, and reopening the child clears it. A parent closes after its last child. `deps` stays for the rare wait outside the family.
-- `V1` **Labels are free tags**: `labels: [v1, post-v1]` in the frontmatter, several per ticket, each in lowercase letters, digits and hyphens, 24 characters at most. Nothing in Flow reads a label to decide what to do.
-- `V1` **5 types**: `feature`, `issue`, `chore`, `topic`, `prototype`. Every type uses part of the one status order, never a different order.
+- `V1` **Labels are tags**: `labels: [feature, v1]` in the frontmatter, several per ticket, each in lowercase letters, digits and hyphens, 24 characters at most. Flow works in full on a ticket with no label, and nothing in its code reads a label to decide what to do.
+- `V1` **Flow suggests 9 labels**: `feature`, `bug`, `chore`, `docs`, `refactor`, `research`, `topic`, `new-project` and `urgent`. They are named in docs and skills only. No list sits in the code, and every label is free, such as `v1`, `post-v1` or `security`. `new-project` marks a whole project brainstormed from scratch. Not suggested, on purpose: `wontfix`, `duplicate`, `invalid` (that is `dropped` with a reason), `blocked` (that is `deps`), `question` (that is a `topic`), `idea` (the inbox holds raw ideas, and `parked` holds put-off work), `epic` (children already show a big parent), and `enhancement`, `help wanted`, `good first issue`.
+- `V1` **`type` and `priority` are gone.** The kind of work is a label, and an urgent mark is the label `urgent`. Decided with the user 2026-10-11 and 2026-10-14: `type` was redundant, since a ticket's contents already say what kind of work it is.
 - `V1` **5 statuses**: `todo` is ready to work and nothing else. `in-progress` is under way, and a ticket waiting on the user stays there. `done` is closed by the agent once its own check passes, and the user reopens it in a word. `parked` is put off, with a reason saying what brings it back. `dropped` is cancelled, with a reason. No project adds a status. One field says where the work is.
 - `V1` **Only `done` satisfies a dependency.** A ticket still `in-progress` can change under the work built on top of it.
-- `V1` **A new ticket always starts `todo`**, whatever its type.
-- `V1` **3 priorities, `high`, `normal`, `low`, and a parent's priority passes to its children.** A parent cannot be picked up until its children close, so its priority acts only through them.
+- `V1` **A new ticket always starts `todo`.**
+- `V1` **One rule orders every ticket.** Tickets with the same parent are siblings, and top-level tickets share the empty parent. Among siblings, a ticket with `rank:` comes first, by number, and the tickets without one follow by id. A new ticket has no rank, so it lands last. A list across parents sorts level by level from the top parent down, so a child sits where its parent sits.
+- `V1` **`flow rank <id> --before <id>` (or `--after`, `--first`, `--last`) writes a number on the moved ticket alone.** The number is the middle of its new neighbours, after Backlog.md's `ordinal`. The first move in a group with unranked tickets numbers the whole group once (1000, 2000, …), then places the ticket. A gap too small to split numbers the group again. `flow new` takes `--before`, `--after` and `--first` too. Decided with the user 2026-10-14. Refused: an order field beside priority, a list file holding the order, and `flow move` as the command name.
 - `V1` **Frontmatter changes only through `flow`.** A hand edit to the body rides along with the next commit.
 - `V1` **No ticket for 3 kinds of work**: a small task asked in chat, a `/flow:research` question, and a subagent's job, which works under the ticket that sent it. Agreed by the user 2026-10-01: the board would fill with 2-minute tickets.
 
@@ -71,14 +73,15 @@ Each status, and what moves a ticket into it:
 
 ### The board
 
-- `V1` **`flow next` prints what to work on, ranked**: in flight first, then what could start, then what was set aside. A parent with open children stays out of `in flight`.
+- `V1` **`flow next` prints what to work on, in rank order**: in flight first, then what could start, then what was set aside. A parent with open children stays out of `in flight`. The tables show a `LABELS` column.
 - `V1` **`flow tree` shows a split feature whole**: every level, each parent's count of children done, what blocks each ticket, and why one is parked. Kept by the user 2026-10-01.
 - `V1` **`flow check` finds cycles, dangling ids, dropped blockers, orphaned parents and unknown statuses.**
-- `V1` **`flow ls` lists tickets filtered** by status, type, parent, label, or not yet filed by `/flow:file-findings`.
+- `V1` **`flow ls` lists tickets filtered** by status, parent, label, or not yet filed by `/flow:file-findings`, in rank order.
+- `V1` **`flow ls <words>` matches loosely.** Every word must appear in the title, id, labels or body, and a word of 5 letters or more may be one typo away: `flow ls safary` finds "Safari". Backlog.md's search does this with Fuse.js, which Flow cannot take as a dependency, so `scripts/lib/tickets/search.js` is the small version.
 - `V1` **A status move is the command**: `flow start exp-47`, `flow done`, `flow park --reason "<why>"`, `flow todo`. `dropped` has only `flow drop`. `flow done` refuses a parent with open children, and `flow drop` refuses while live dependents exist.
 - `V1` **Only a pickup meets the refusals on unmet `deps` and open children**: a move into `in-progress` or `done`. Parking, and a move between `todo` and `parked`, start nothing, so parking a blocked ticket works.
 - `V1` **`flow park --label post-v1 --reason "after V1 ships"` parks every open ticket carrying the label**, in one commit. `flow revive --label post-v1` returns each parked one to the status it left. A label no ticket carries changes nothing and prints the labels in use, since labels are free and a typo should show.
-- `later` **Colour in `flow`'s output**, only to a terminal and never with `NO_COLOR` set. Moved after V1 by the user 2026-10-04.
+- `later` **Colour in `flow`'s output**, only to a terminal and never with `NO_COLOR` set. Moved after V1 by the user 2026-10-04. Labels get a colour when the board ships, chosen by the kind of label for a dark terminal. No list or group sits in the code, and any label can later be given a colour of its own.
 - `later` **Box tables around command output.** Parked by the user 2026-10-03: their borders cost the agent tokens each time it reads `flow next`.
 - `later` **Wider tests over the ticket commands.** Moved after V1 by the user 2026-10-04.
 
@@ -106,15 +109,17 @@ Each status, and what moves a ticket into it:
 - `V1` **The agent moves the ticket as the work moves, and no skill types a phase command.** It runs `flow start` once it has read the ticket, and `flow done` when its own check passes. A `topic` reaches `done` only on the user's word.
 - `V1` **A ticket waiting on the user stays `in-progress`.** The user reopens a `done` ticket in a word, and the agent runs `flow start`.
 - `V1` **`/flow:start` moves no ticket.**
-- `V1` **A prototype lives in its ticket**, `.flow/tickets/<id>/protos/<name>/`. Inside a project with no ticket, `flow new "<question>" --type prototype` comes first.
+- `V1` **A prototype lives in its ticket**, `.flow/tickets/<id>/protos/<name>/`. Inside a project with no ticket, `flow new "<question>"` comes first.
 - `later` **2 tickets at once, in 2 sessions**, which needs a second checkout of the code, a git worktree. Flow's settings deny an agent one today. Parked.
 - `later` **Resuming after `/clear` with no id typed**: `/flow:handoff` leaves a marker, and the session start loads that ticket. Ruled after V1 by the user 2026-10-01.
 
 ## The parts
 
-- **`scripts/lib/tickets/store.js`**: the only code that reads or writes a ticket's folder, every status move included. Types, priorities and fields.
+- **`scripts/lib/tickets/store.js`**: the only code that reads or writes a ticket's folder, every status move included. Fields.
 - **`scripts/lib/tickets/statuses.js`**: the status table. Adding a status adds a row, and the row brings its command.
-- **`scripts/lib/tickets/graph.js`**: ranking, dependencies, priority passed to children.
+- **`scripts/lib/tickets/graph.js`**: dependencies, what is ready, the tree.
+- **`scripts/lib/tickets/rank.js`**: the order of tickets, and the number a move gives.
+- **`scripts/lib/tickets/search.js`**: the loose word match behind `flow ls <words>`.
 - **`scripts/lib/tickets/records.js`**: the branch `flow`, its checkout, commits, pushes and pulls. **`records-place.js`**: the Flow home as the second place.
 - **`scripts/jobs/records-sync.js`**: every send nobody typed.
 - **`scripts/lib/tickets/ticket-skills.js`**: writes and deletes the ticket skills.

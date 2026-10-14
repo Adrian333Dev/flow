@@ -52,7 +52,7 @@ test('the ticket the user typed a skill for, with its status, and the size with 
 
 test('a ticket a skill moved for this session, where none was typed', () => {
   const dir = repoProject('status-line-history');
-  flow(dir, ['new', 'Crash on save', '--type', 'issue']);
+  flow(dir, ['new', 'Crash on save']);
   flow(dir, ['start', 'exp-1'], { CLAUDE_CODE_SESSION_ID: 's2' });
   const transcript = path.join(dir, 'session.jsonl');
   fs.writeFileSync(transcript, '');
