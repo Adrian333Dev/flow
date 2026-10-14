@@ -69,32 +69,6 @@ function project(name) {
 }
 
 /**
- * The half of a machine `flow install` does not write: the rule file and the
- * link `~/.claude/CLAUDE.md` makes to it. A test that needs a finished machine
- * writes both here.
- */
-function setupMachine(root) {
-  const at = require('../../lib/paths').folders(root);
-  const rules = path.join(at.flow, 'CLAUDE.md');
-
-  fs.mkdirSync(at.flow, { recursive: true });
-  fs.copyFileSync(path.join(REPO, 'home', 'CLAUDE.md'), rules);
-
-  // Committed and sent where ~/.flow is a git checkout, as flow sync leaves
-  // it, so the rule file never reads as work no other machine has.
-  if (fs.existsSync(path.join(at.flow, '.git'))) {
-    spawnSync('git', ['-C', at.flow, 'add', 'CLAUDE.md']);
-    spawnSync('git', ['-C', at.flow, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'rules']);
-    spawnSync('git', ['-C', at.flow, 'push', '-q', 'origin', 'HEAD']);
-  }
-
-  fs.mkdirSync(at.claude, { recursive: true });
-  fs.symlinkSync(rules, path.join(at.claude, 'CLAUDE.md'));
-
-  return rules;
-}
-
-/**
  * A util on PATH answering the 3 commands Flow calls, or refusing every one.
  *
  * Every script that checks a prerequisite runs the real `util`, and the real
@@ -214,5 +188,5 @@ function flow(dir, args, extra = {}) {
 }
 
 module.exports = {
-  SCRIPTS, REPO, SCRATCH, project, setupMachine, utilStub, claudeStub, gitRepo, bareRepo, skillFile, pathWith, write, run, flow,
+  SCRIPTS, REPO, SCRATCH, project, utilStub, claudeStub, gitRepo, bareRepo, skillFile, pathWith, write, run, flow,
 };

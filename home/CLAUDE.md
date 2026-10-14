@@ -71,16 +71,14 @@ One phase at a time:
 - **`read-workflow-md`** `~/.flow/references/workflow.md` says how the pieces fit. Read it only when more context needed.
 - **`read-knowledge-md`** Read `~/.flow/references/knowledge.md` before adding a skill, a plugin or an MCP server.
 
-## The user
-
-## Preferences
+@~/.flow/profile.md
 
 ## Capture
 
 **`capture-at-checkpoints`** At a checkpoint, sweep the conversation since the last sweep and file what it holds. A checkpoint: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. On request, immediately. Unsure: write it.
 
 - Work committed to → `flow new "…"`, with `--priority` where it is plain.
-- How the user wants to work → `~/.flow/CLAUDE.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: a correction, irritation at a habit, something they said about themselves. Under 10 lines in the section, write on the first sign; after that, on the second. One sentence each, replacing a line it sharpens.
+- How the user wants to work → `~/.flow/profile.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: a correction, irritation at a habit, something they said about themselves. Under 10 lines in the section, write on the first sign; after that, on the second. One sentence each, replacing a line it sharpens.
 - About this project, needed in most sessions → the project's `CLAUDE.md`. A correction true here alone goes under `## Rules`, on its second sign.
 - Durable project fact only some work needs (a deploy path, a service's limit) → `docs/context/<subject>.md`
 - How an outside tool or field behaves (a quirk, a limit, a trap, a workaround) → the page owning the subject in `~/.flow/wiki/<subject>/`, edited in place by `~/.agents/skills/flow/skills/research/references/wiki.md`. Never a detail of the project or its client. Skip what the loaded skill already says.
@@ -129,7 +127,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 
 1. **`plan-before-writing`** Name every section and its order before the first sentence. One section per topic the user raised, in their order. Where the topics are parts of one thing, the first section says the thing whole.
    - **`topic-by-topic`** Never drop one, never rank them. Two with one answer share a section, headed by both. Each section reads on its own. Where the user's words fit more than one thing in the repo, name the file and the place in it.
-   - **`judge-against-the-user`** Judge what needs explaining against `#the-user`. It names a direction, not an inventory. Detail inside their expertise still gets explained. Outside it: one line, by what the thing does here. Say what and why, never how to type it.
+   - **`judge-against-the-user`** Judge what needs explaining against `~/.flow/profile.md#the-user`. It names a direction, not an inventory. Detail inside their expertise still gets explained. Outside it: one line, by what the thing does here. Say what and why, never how to type it.
 2. **`size-by-worth`** Length comes from how complicated the thing is, and from what the topic is worth to the user. Never from the work behind it, never from wanting to justify a choice.
    - **`short-is-the-default`** The user is always in a rush. Cut the output, never the thinking, the walk or the design.
    - **`findings-stay-out`** A walk's findings stay out of the reply unless one changes what the user decides.

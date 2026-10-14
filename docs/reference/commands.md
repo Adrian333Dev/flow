@@ -99,7 +99,7 @@ fail  util:
 ok    ~/.agents: 11 skills linked under skills/flow/, 1 switched off
 ok    ~/.claude: skills/flow, 1 agent, 1 rule and CLAUDE.md linked
 fail  settings.json:
-        /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow install, which merges /home/me/code/flow/home/settings.json into it
+        /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow update, whose setup session fixes settings.json from /home/me/code/flow/home/settings.json
 ok    ~/.flow: scripts, references and docs resolve into this clone
 ok    skills: 1 skill on everywhere, 1 more for shop
 

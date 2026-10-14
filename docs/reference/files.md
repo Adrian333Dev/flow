@@ -28,6 +28,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  └─ projects/                   Claude Code's record of every session
 ├─ .flow/
 │  ├─ CLAUDE.md                   your rules
+│  ├─ profile.md                  your preferences and facts about you
 │  ├─ scripts, references, docs   → folders in <clone>
 │  ├─ repos/                      every repository Flow downloads
 │  ├─ settings.json
@@ -81,7 +82,7 @@ A folder no single tool owns. `flow install` touches only this entry, and leaves
 Each folder here can also hold entries from other tools. `flow install` never replaces an entry that is not one of its links.
 
 - **`CLAUDE.md`**: the rules every session loads. A link to `~/.flow/CLAUDE.md`, so `flow sync` carries your rules to your other computers.
-- **`settings.json`**: Claude Code's settings, with Flow's keys added. [Settings](settings.md#claude-codes-settings-file) covers each key.
+- **`settings.json`**: Claude Code's settings. No Flow command writes it: a setup session adds Flow's keys and keeps yours. [Settings](settings.md#claude-codes-settings-file) covers each key.
 - **`skills/flow`**: a link to `~/.agents/skills/flow/`, which is how Claude Code finds Flow's skills.
 - **`skills/<name>`**: a link for each skill switched on everywhere. `flow skills on <name> --global` makes it.
 - **`skills/home-<n>/`**: a [ticket skill](skills.md#ticket-skills) for each open ticket in your Flow home.
@@ -95,7 +96,8 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ### Your rules and settings
 
-- **`CLAUDE.md`**: your rules. `~/.claude/CLAUDE.md` links to it. It starts from Flow's template and is yours after that: sessions add what they learn about you.
+- **`CLAUDE.md`**: your rules. `~/.claude/CLAUDE.md` links to it. It starts from Flow's template and is yours after that.
+- **`profile.md`**: your preferences and facts about you. `CLAUDE.md` imports it with `@~/.flow/profile.md`, so every session loads it. It starts from Flow's template, and `flow install` and `flow update` never write over it. Sessions add what they learn about you here.
 - **`settings.json`** and **`settings.local.json`**: Flow's settings. [Settings](settings.md) covers every key.
 - **`machines/<name>.json`**: one record per computer sharing this Flow home, saying when it joined: `{ "name": "macbook-pro", "joined": "2026-09-27" }`.
 - **`README.md`** and **`.gitignore`**: a warning for anyone opening the repository on GitHub, and the list of what stays on this computer.

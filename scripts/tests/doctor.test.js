@@ -16,7 +16,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { REPO, project, run, setupMachine, utilStub, claudeStub, pathWith, write, skillFile, bareRepo } = require('./helpers/scratch');
+const { REPO, project, run, utilStub, claudeStub, pathWith, write, skillFile, bareRepo } = require('./helpers/scratch');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
 function machine(name) {
@@ -30,12 +30,11 @@ function machine(name) {
   const installed = run('flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
   assert.strictEqual(installed.code, 0, installed.stderr);
 
-  // Install is half a machine. It writes no rule file and no link to it, so
-  // the test writes them itself.
-  setupMachine(root);
+  // The session install owes is finished by hand here too: the marker goes.
+  fs.rmSync(path.join(flowHome, 'logs', 'setup-pending'));
 
-  // `flow install` stops short of settings.json on purpose, so the merge a real
-  // machine does by hand happens here, with the hook paths pointed at this tree.
+  // `flow install` leaves settings.json to the setup session, so the edit that
+  // session makes happens here, with the hook paths pointed at this tree.
   const template = fs.readFileSync(path.join(REPO, 'home', 'settings.json'), 'utf8');
   fs.writeFileSync(
     path.join(home, 'settings.json'),
@@ -230,6 +229,23 @@ test('a CLAUDE.md that is not the link to the rules is named', () => {
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /CLAUDE\.md is a real file, not a link/);
   assert.doesNotMatch(report.stdout, /codex/i, 'Codex is not checked');
+});
+
+test('a setup session that never finished, and a missing profile, are each named', () => {
+  const m = machine('doctor-session');
+  const bin = utilStub(m.dir);
+
+  fs.writeFileSync(path.join(m.flowHome, 'logs', 'setup-pending'), 'now\n');
+  const pending = doctor(m, { bin });
+  assert.strictEqual(pending.code, 1);
+  assert.match(pending.stdout, /the setup session did not finish .*setup-pending stands.*: run flow install/);
+
+  fs.rmSync(path.join(m.flowHome, 'logs', 'setup-pending'));
+  fs.rmSync(path.join(m.flowHome, 'profile.md'));
+  const missing = doctor(m, { bin });
+  assert.strictEqual(missing.code, 1);
+  assert.match(missing.stdout, /profile\.md does not exist, so your preferences load from nowhere: run flow install/);
+  assert.doesNotMatch(missing.stdout, /did not finish/);
 });
 
 test('a plugin folder reached through a broken link is named', () => {

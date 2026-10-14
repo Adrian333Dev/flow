@@ -32,7 +32,8 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
   - **`write-dropped-proposals`** A proposal dropped, whoever dropped it, goes into the ticket or the spec file it belongs to, with why, in the same turn.
 - **`approval-exceptions`** Writing down a decision already locked, and scratch files in `tmp/`, need no approval.
 - **`one-sentence-where-one-works`** Skill content can be detailed. A trigger or routing line in a rule file cannot.
-- **`short-beats-the-checks`** Never let a check under `### Before sending` stretch a reply past what its topic is worth. Define a term in a clause, and restate only what the user needs to decide.
+- **`short-beats-the-checks`** Never let a check under `### Before sending` stretch a reply past what its topic is worth. Define a term in a clause, and restate only what the user needs to decide. A decision for approval takes the length `decisions-stated-whole` needs.
+- **`decisions-stated-whole`** Write each decision for approval as its own block: what happens today, with a real example from the code; what changes; why; what it costs; what would overturn it. Explain every mechanism in plain words before naming it. A decision squeezed into a clause the user cannot picture gets approved unread or stalls the work.
 - **`never-rule-against-uninstructed`** Never rule against a behavior nothing in Flow instructs.
 - **`skills-docs-move-together`** `docs/dev/skills.md` and `skills/tools/file-findings/references/write-skills.md` say the same rules. Edit both in the same pass.
 - **`phases-closed-at-4`** `groundwork`, `execute`, `prototype` and `debug`. Set by the user and not reopenable.

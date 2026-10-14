@@ -36,6 +36,7 @@ const failures = require('../lib/logs/failures');
 const installed = require('../lib/machine/installed');
 const { markdownFiles } = require('../lib/machine/links');
 const prereq = require('../lib/machine/prereq');
+const setupSession = require('../lib/machine/setup-session');
 const { projectRoot } = require('../lib/project');
 const links = require('../lib/skills/skill-links');
 const skills = require('../lib/skills/skills');
@@ -297,11 +298,21 @@ function checkClaude(clone, at) {
   const problems = checkLinks([
     { at: skills.pluginLink(at.claude), target: skills.pluginDir(at.agents), what: `skills/${skills.PLUGIN}` },
     // Without it Claude Code starts every session with none of the rules.
-    { at: path.join(at.claude, 'CLAUDE.md'), target: path.join(at.flow, 'CLAUDE.md'), what: 'CLAUDE.md', fix: 'link it to ~/.flow/CLAUDE.md' },
+    { at: path.join(at.claude, 'CLAUDE.md'), target: path.join(at.flow, 'CLAUDE.md'), what: 'CLAUDE.md' },
     ...agents.map((f) => ({ at: path.join(at.claude, 'agents', f), target: path.join(clone, 'claude', 'agents', f), what: `agents/${f}` })),
     ...rules.map((f) => ({ at: path.join(at.claude, 'rules', f), target: path.join(clone, 'claude', 'rules', f), what: `rules/${f}` })),
     ...commands.map((f) => ({ at: path.join(at.claude, 'commands', f), target: path.join(clone, 'claude', 'commands', f), what: `commands/${f}` })),
   ]);
+
+  // `flow install` starts the profile and owes the setup session, which finishes
+  // settings.json and moves old rules into the profile. A marker still standing
+  // means that session never reached its last step.
+  if (!fs.existsSync(path.join(at.flow, 'profile.md'))) {
+    problems.push(`${paths.shorten(path.join(at.flow, 'profile.md'))} does not exist, so your preferences load from nowhere: run flow install`);
+  }
+  if (setupSession.isPending(at)) {
+    problems.push(`the setup session did not finish (${paths.shorten(setupSession.pendingFile(at))} stands): run flow install`);
+  }
 
   const counted = [
     `skills/${skills.PLUGIN}`,
@@ -315,9 +326,10 @@ function checkClaude(clone, at) {
 /**
  * settings.json: the one file Flow shares rather than owns.
  *
- * `flow install` merges Flow's keys into it, key by key, because it
- * already holds your model, your plugins and your effort level. A merge that
- * stopped half way is the likeliest state on this whole page.
+ * It already holds your model, your plugins and your effort level, so no
+ * code writes it. The setup session `flow update` and `flow install` owe does:
+ * an agent reads it beside `home/settings.json` and adds what Flow needs. A
+ * session that never finished is the likeliest state on this whole page.
  */
 function checkSettings(clone, claude, catalog) {
   const problems = [];
@@ -331,7 +343,7 @@ function checkSettings(clone, claude, catalog) {
       : `does not parse: ${e.message}`;
     return {
       name: 'settings.json',
-      problems: [`${file} ${why}: run flow install, which merges ${path.join(clone, 'home', 'settings.json')} into it`],
+      problems: [`${file} ${why}: run flow update, whose setup session fixes settings.json from ${path.join(clone, 'home', 'settings.json')}`],
     };
   }
 
@@ -343,7 +355,7 @@ function checkSettings(clone, claude, catalog) {
     const match = installed.find((h) => h.event === row.event && h.matcher === row.matcher &&
       h.script && path.basename(h.script) === path.basename(row.script));
     if (!match) {
-      problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: run flow install, which merges it in`);
+      problems.push(`no ${label(row)} hook running ${path.basename(row.script)}: run flow update, whose setup session fixes settings.json`);
       continue;
     }
     const resolved = paths.expandHome(match.script);
@@ -361,8 +373,8 @@ function checkSettings(clone, claude, catalog) {
   }
 
   // With no mode set, Claude Code starts a session on a Pro, Max or Team plan
-  // in auto mode, and nothing on screen says so. A missing key is a merge that
-  // went wrong, so it fails. A different mode is somebody's choice, so it is a
+  // in auto mode, and nothing on screen says so. A missing key is a setup
+  // session that never finished, so it fails. A different mode is somebody's choice, so it is a
   // note: docs/spec/permissions.md argues the case, and this only reports it.
   const notes = [];
   const wantedMode = (template.permissions || {}).defaultMode;

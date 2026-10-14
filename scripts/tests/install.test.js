@@ -68,9 +68,19 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.ok(!fs.existsSync(path.join(at.claude, 'scripts')), 'scripts never land under ~/.claude');
   assert.ok(!fs.lstatSync(path.join(at.claude, 'commands')).isSymbolicLink(), 'commands/ holds other tools\' files too');
 
-  // Install writes no rule file and no link to one.
-  assert.ok(!fs.existsSync(path.join(at.flowHome, 'CLAUDE.md')), 'no rule file yet');
-  assert.ok(!fs.existsSync(path.join(at.claude, 'CLAUDE.md')), 'no link to it yet');
+  // A first machine has no rule file to join, so it starts from Flow's own.
+  // The link to it is made, a session is owed, and settings.json is the
+  // session's to write: install never edits it.
+  assert.strictEqual(fs.readFileSync(path.join(at.flowHome, 'CLAUDE.md'), 'utf8'),
+    fs.readFileSync(path.join(REPO, 'home', 'CLAUDE.md'), 'utf8'));
+  assert.strictEqual(linkTarget(path.join(at.claude, 'CLAUDE.md')), path.join(at.flowHome, 'CLAUDE.md'));
+  assert.ok(!fs.existsSync(path.join(at.claude, 'settings.json')), 'settings.json is the session\'s to write');
+  assert.ok(fs.existsSync(path.join(at.flowHome, 'logs', 'setup-pending')), 'a session is owed');
+  assert.match(first.stdout, /^started: .*\.flow\/CLAUDE\.md from Flow's own rules$/m);
+  assert.strictEqual(fs.readFileSync(path.join(at.flowHome, 'profile.md'), 'utf8'),
+    fs.readFileSync(path.join(REPO, 'home', 'profile.md'), 'utf8'));
+  assert.match(first.stdout, /^started: .*\.flow\/profile\.md, for your preferences/m);
+  assert.match(first.stdout, /claude --safe-mode --permission-mode acceptEdits/, 'under --root the line is printed, never run');
   assert.ok(!fs.existsSync(path.join(root, '.codex')), 'nothing under ~/.codex at all');
   assert.match(first.stdout, /^Flow is installed: \d+ skills/m, 'a summary comes first');
   assert.doesNotMatch(first.stdout, /^linked: /m, 'every link goes to the log, never the screen');
@@ -91,10 +101,17 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   // A skill renamed in the clone leaves a link pointing at nothing.
   fs.symlinkSync(path.join(REPO, 'skills', 'phases', 'write-tickets'), at.skill('write-tickets'));
 
+  // Both files are the user's after the first run, and a second run writes over neither.
+  fs.appendFileSync(path.join(at.flowHome, 'profile.md'), '- Replies stay short.\n');
+  fs.appendFileSync(path.join(at.flowHome, 'CLAUDE.md'), 'A line of my own.\n');
+
   const second = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.strictEqual(second.code, 0, second.stderr);
   assert.match(second.stdout, /unlinked \(gone\): .*\.agents\/skills\/flow\/skills\/write-tickets/);
   assert.ok(fs.existsSync(at.skill('groundwork')), 'still linked after a re-run');
+  assert.match(fs.readFileSync(path.join(at.flowHome, 'profile.md'), 'utf8'), /- Replies stay short\.\n$/);
+  assert.match(fs.readFileSync(path.join(at.flowHome, 'CLAUDE.md'), 'utf8'), /A line of my own\.\n$/);
+  assert.doesNotMatch(second.stdout, /^started: /m, 'a second run starts nothing');
 });
 
 test('a name that has left the BIN map is unlinked, and another tool keeps its own', () => {
@@ -118,21 +135,67 @@ test('a name that has left the BIN map is unlinked, and another tool keeps its o
   assert.ok(fs.existsSync(path.join(bin, 'flow')), 'the names still in the map stay');
 });
 
-test('install never touches the rule file or either way in to it', () => {
+test('a CLAUDE.md of the user\'s own moves aside, Flow\'s link takes its place, and settings.json is left alone', () => {
   const dir = project('install-claude-md');
   const root = path.join(dir, 'root');
   const at = paths(root);
   const claudeRules = path.join(at.claude, 'CLAUDE.md');
+  const before = path.join(at.flowHome, 'logs', 'before');
+  const remote = bareRepo(path.basename(dir));
 
-  // Rules of the user's own. Install reads none of it and writes none of it.
   fs.mkdirSync(at.claude, { recursive: true });
   fs.writeFileSync(claudeRules, 'My own rules.\n');
+  fs.writeFileSync(path.join(at.claude, 'settings.json'), '{"theme":"dark"}\n');
 
-  const written = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
+  const written = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: remote });
   assert.strictEqual(written.code, 0, written.stderr);
-  assert.strictEqual(fs.readFileSync(claudeRules, 'utf8'), 'My own rules.\n');
-  assert.ok(!fs.lstatSync(claudeRules).isSymbolicLink(), 'still the user\'s own file');
-  assert.ok(!fs.existsSync(path.join(at.flowHome, 'CLAUDE.md')));
+  assert.strictEqual(linkTarget(claudeRules), path.join(at.flowHome, 'CLAUDE.md'));
+  assert.strictEqual(fs.readFileSync(path.join(before, 'CLAUDE.md'), 'utf8'), 'My own rules.\n');
+  assert.strictEqual(fs.readFileSync(path.join(before, 'settings.json'), 'utf8'), '{"theme":"dark"}\n');
+  assert.strictEqual(fs.readFileSync(path.join(at.claude, 'settings.json'), 'utf8'), '{"theme":"dark"}\n');
+  assert.match(written.stdout, /^moved: .*CLAUDE\.md to .*logs\/before\/CLAUDE\.md$/m);
+
+  // The session is still owed, so a second run opens it again and copies nothing new.
+  fs.writeFileSync(path.join(at.claude, 'settings.json'), '{"theme":"light"}\n');
+  const again = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: remote });
+  assert.strictEqual(again.code, 0, again.stderr);
+  assert.strictEqual(fs.readFileSync(path.join(before, 'CLAUDE.md'), 'utf8'), 'My own rules.\n');
+  assert.strictEqual(fs.readFileSync(path.join(before, 'settings.json'), 'utf8'), '{"theme":"dark"}\n');
+  assert.match(again.stdout, /claude --safe-mode/);
+});
+
+test('a machine whose CLAUDE.md is already Flow\'s link owes no session', () => {
+  const dir = project('install-linked');
+  const root = path.join(dir, 'root');
+  const at = paths(root);
+  const remote = bareRepo(path.basename(dir));
+
+  assert.strictEqual(flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: remote }).code, 0);
+  fs.rmSync(path.join(at.flowHome, 'logs', 'setup-pending'));
+
+  const again = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: remote });
+  assert.strictEqual(again.code, 0, again.stderr);
+  assert.ok(!fs.existsSync(path.join(at.flowHome, 'logs', 'setup-pending')));
+  assert.doesNotMatch(again.stdout, /claude --safe-mode/);
+});
+
+test('a util install that fails is a line of the report and of the failure log', () => {
+  const dir = project('install-util-fails');
+  const root = path.join(dir, 'root');
+  const at = paths(root);
+  const remote = path.join(dir, 'remote');
+  gitRepo(path.join(remote, 'Adrian333Dev', 'util'), {
+    'util.js': "process.stderr.write('no bin folder\\n'); process.exit(1);\n",
+  });
+
+  const ran = run('flow.js', ['install', '--root', root], {
+    cwd: dir,
+    env: { ...process.env, FLOW_GIT_BASE: `${remote}${path.sep}`, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) },
+  });
+
+  assert.match(ran.stdout, /util install failed: no bin folder/);
+  const logged = fs.readFileSync(failures.file(at.flowHome), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.ok(logged.some((f) => f.source === 'install' && /^util install failed: no bin folder/.test(f.error)));
 });
 
 test('install never reaches outside the root it was given', () => {
@@ -209,6 +272,10 @@ test('install refuses when ~/.flow/repos/flow is another clone', () => {
   assert.notStrictEqual(refused.code, 0);
   assert.match(refused.stderr, /repos\/flow is .*other-clone, and this is /);
   assert.ok(!fs.existsSync(path.join(root, '.agents')), 'nothing was made');
+
+  // A refusal that throws writes its line too.
+  const logged = fs.readFileSync(failures.file(path.join(root, '.flow')), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.ok(logged.some((f) => f.source === 'install' && /repos\/flow is .*other-clone, and this is /.test(f.error)));
 });
 
 test('install checks the Flow home before it makes anything, and keeps it once connected', () => {
@@ -226,12 +293,16 @@ test('install checks the Flow home before it makes anything, and keeps it once c
   assert.match(signedOut.stdout, /stopped: gh (is not signed in|did not sign in)/);
   assert.doesNotMatch(fs.readFileSync(path.join(bin, 'calls'), 'utf8'), /repo|api/, 'no repository was looked for or made');
   assert.strictEqual(signedOut.stdout, 'stopped: gh is not signed in, and there is no terminal here to sign in. Run gh auth login, then flow install again.\n');
-  assert.ok(!fs.existsSync(root), 'nothing is made');
+  assert.ok(!fs.existsSync(path.join(root, '.agents')), 'nothing is linked');
+  const loggedLines = () => fs.readFileSync(failures.file(path.join(root, '.flow')), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.ok(loggedLines().some((f) => f.source === 'install' && /^stopped: gh is not signed in/.test(f.error)),
+    'a stop is a line of the failure log');
 
   const unreachable = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: path.join(dir, 'nothing-here.git') });
   assert.strictEqual(unreachable.code, 1);
   assert.match(unreachable.stdout, /^stopped: git cannot reach .*nothing-here\.git/);
   assert.ok(!fs.existsSync(path.join(root, '.agents')), 'nothing is linked');
+  assert.ok(loggedLines().some((f) => /^stopped: git cannot reach/.test(f.error)));
 
   // Once connected, the repository is kept, whatever the stand-in says next.
   const remote = bareRepo('install-no-repo');

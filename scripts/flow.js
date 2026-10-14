@@ -15,6 +15,7 @@ const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
 const skills = require('./commands/skills');
 const install = require('./commands/install');
+const update = require('./commands/update');
 const doctor = require('./commands/doctor');
 const sync = require('./commands/sync');
 const audit = require('./commands/audit');
@@ -45,7 +46,7 @@ const TITLE = 'flow: the board, setup, skills, settings and audit';
  * section and still never prints: `handoff`, which only `/flow:handoff` runs.
  */
 const commands = {
-  ...board, ...statusLine, ...tickets.actions, ...install, ...init, ...sync, ...doctor, ...scorecard,
+  ...board, ...statusLine, ...tickets.actions, ...install, ...update, ...init, ...sync, ...doctor, ...scorecard,
 };
 
 const SECTIONS = [

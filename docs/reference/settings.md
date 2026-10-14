@@ -31,7 +31,7 @@ Every key Flow reads from its own settings files, and every key it writes into C
 - **`~/.flow/settings.json`**: Flow's settings for all your computers. `flow sync` carries it to the others.
 - **`~/.flow/settings.local.json`**: Flow's settings for this computer alone. It holds the settings that name a folder, since your other computers keep their folders elsewhere.
 - **`<project>/.flow/settings.json`**: one project's settings, kept with its tickets.
-- **`~/.claude/settings.json`**: Claude Code's own file. `flow install` adds Flow's keys to it and leaves yours alone.
+- **`~/.claude/settings.json`**: Claude Code's own file. No Flow command writes it. `flow install` and `flow update` owe a setup session, a Claude Code session that reads it beside Flow's template, adds the keys Flow needs, removes any that conflict, and keeps the rest.
 
 Where a key can sit in both of Flow's computer-wide files, the local one wins. A change to Flow's files counts from the next command, with nothing to restart. A change to Claude Code's file counts once Claude Code restarts.
 

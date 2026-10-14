@@ -11,9 +11,13 @@
  * skill, a renamed command or a moved clone reaches this machine.
  *
  * It makes links into the clone, which `lib/machine/installed.js` lists, the
- * clones Flow reads, which `lib/skills/repos.js` lists, and the Flow home. It
- * writes no rule file, no link to one and nothing into
- * `~/.claude/settings.json`.
+ * clones Flow reads, which `lib/skills/repos.js` lists, and the Flow home.
+ * Where the Flow home brought no `~/.flow/CLAUDE.md` or `~/.flow/profile.md`,
+ * as on the first machine, it starts each from its template in `home/`, then
+ * links `~/.claude/CLAUDE.md` to the rules. It writes over neither file.
+ * It never edits `~/.claude/settings.json`. Where that link was not Flow's
+ * yet, it owes the setup session, which `lib/machine/setup-session.js`
+ * describes, and opens the session as its last step.
  *
  * Every clone lives in `~/.flow/repos/`. Flow's own is `repos/flow`, a link
  * where this clone sits somewhere else. util is cloned when missing, and a
@@ -58,6 +62,7 @@ const logs = require('../lib/logs/logs');
 const installed = require('../lib/machine/installed');
 const { link, pruneDead, pruneUnlisted, markdownFiles } = require('../lib/machine/links');
 const machineName = require('../lib/machine/machine-name');
+const setupSession = require('../lib/machine/setup-session');
 const repos = require('../lib/skills/repos');
 const links = require('../lib/skills/skill-links');
 const skills = require('../lib/skills/skills');
@@ -69,13 +74,13 @@ const actions = {};
 
 actions.install = {
   section: 'setup',
-  summary: 'put Flow on this machine: the links, the clones and the Flow home',
+  summary: 'put Flow on this machine: the links, the clones, the Flow home and its rules',
   flags: {
     root: { arg: '<dir>', hidden: true },
     'no-bin': { bool: true, hidden: true },
     'no-clone': { bool: true, hidden: true },
   },
-  run({ flags }) {
+  run: guarded(({ flags }) => {
     const clone = paths.cloneRoot();
     const at = paths.folders(flags.root);
     const done = [];
@@ -95,6 +100,7 @@ actions.install = {
     const checked = check(at);
     if (checked.stop) {
       out(`stopped: ${checked.stop}`);
+      failures.record(at.flow, { source: 'install', what: 'flow install', error: `stopped: ${checked.stop}` });
       return 1;
     }
 
@@ -200,6 +206,9 @@ actions.install = {
       const joined = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
       done.push(...joined.changed, ...joined.problems);
     }
+    // After the join: a rule file or profile written before it would block a
+    // second machine from joining, and theirs arrive with the download.
+    if (asked.ok) done.push(...startRules(at, clone), ...startProfile(at, clone), ...setupSession.linkRules(at));
     logs.recordHistory(at.flow, { type: 'install', clone });
 
     // Every line goes to the log. The screen gets the ones that say something
@@ -208,7 +217,7 @@ actions.install = {
     const log = path.join(logs.dir(at.flow), 'install.log');
     fs.mkdirSync(path.dirname(log), { recursive: true });
     fs.writeFileSync(log, `${new Date().toISOString()}\n${done.join('\n')}\n`);
-    for (const line of done.filter((l) => /^(could not|not sent:)/.test(l))) {
+    for (const line of done.filter((l) => /^(could not|not sent:|stopped:|util install failed)/.test(l))) {
       failures.record(at.flow, { source: 'install', what: 'flow install', error: line });
     }
     const count = skills.installable().filter(skills.essential).length;
@@ -223,9 +232,45 @@ actions.install = {
       out(`\n${show(bin)} is not on your PATH, so flow and util do not run by name yet. Add it, then open a new terminal.`);
     }
 
-    return asked.ok ? 0 : 1;
-  },
+    const opened = asked.ok ? setupSession.open(at, clone, { printOnly: Boolean(flags.root) }) : 'none';
+    if (opened === 'failed') {
+      failures.record(at.flow, { source: 'install', what: 'flow install', error: 'claude would not start the setup session' });
+    }
+    return asked.ok && opened !== 'failed' ? 0 : 1;
+  }),
 };
+
+/**
+ * Run an install and log the error of one that throws. A refusal, such as
+ * another clone at `repos/flow` or a real file in a link's way, is a failure
+ * too, and `check()` and `connectHome()` log theirs where they return.
+ */
+function guarded(perform) {
+  return (args) => {
+    try {
+      return perform(args);
+    } catch (e) {
+      failures.record(paths.folders(args.flags.root).flow, { source: 'install', what: 'flow install', error: e.message });
+      throw e;
+    }
+  };
+}
+
+/** Start `~/.flow/CLAUDE.md` from Flow's own rules where the Flow home brought none. */
+function startRules(at, clone) {
+  const rules = path.join(at.flow, 'CLAUDE.md');
+  if (fs.existsSync(rules)) return [];
+  fs.copyFileSync(path.join(clone, 'home', 'CLAUDE.md'), rules);
+  return [`started: ${show(rules)} from Flow's own rules`];
+}
+
+/** Start `~/.flow/profile.md`, the user's preferences and facts about them, where the Flow home brought none. */
+function startProfile(at, clone) {
+  const profile = path.join(at.flow, 'profile.md');
+  if (fs.existsSync(profile)) return [];
+  fs.copyFileSync(path.join(clone, 'home', 'profile.md'), profile);
+  return [`started: ${show(profile)}, for your preferences and facts about you`];
+}
 
 /** What `lstat` says about a path, or null where there is none. */
 function lstat(p) {
