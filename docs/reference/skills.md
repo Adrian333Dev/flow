@@ -8,7 +8,6 @@ Every skill Flow ships, and the skills Flow makes from your tickets. A skill is 
 - [Tools](#tools): the jobs that fit no phase
 - [Skills for working on Flow](#skills-for-working-on-flow): off until you turn one on
 - [Ticket skills](#ticket-skills): one skill per open ticket, `/shop-7`
-- [`/capture`](#capture): file what the conversation holds, now
 
 ## Phases
 
@@ -22,7 +21,6 @@ Each phase works on one ticket. Type the phase, then the ticket's id as a skill:
 ## Tools
 
 - **`/flow:start`** (only you can start it): open a session on the board, or on one ticket. Bare, it shows the board and recommends what to work on. With a ticket, `/flow:start /shop-7`, it picks the phase the ticket needs.
-- **`/flow:help`**: answer any question about Flow or Claude Code, and fix a problem with either. Ask in plain words, or type `/flow:help` and the question. Typed alone, it says what to do next. Each answer ends on the docs page to read for more.
 - **`/flow:handoff`**: write into the ticket what the next session needs to carry on, so `/clear` loses nothing. [Sessions](../sessions.md) covers when it runs.
 - **`/flow:research`**: find out how an outside tool really works, from its documentation and source. What it learns goes in `~/.flow/wiki/<tool>/`, shared by every project. [Learning](../learning.md) covers the wiki.
 - **`/flow:visualize`**: draw diagrams, screen mockups and HTML previews, in a message or in a document.
@@ -33,10 +31,9 @@ A skill only you can start never fires by itself, and its description costs the 
 
 ## Skills for working on Flow
 
-These 2 are off on a new computer, and the only Flow skills you can switch. `flow skills on review --global` turns one on in every project.
+This one is off on a new computer, and the only Flow skill you can switch. `flow skills on review --global` turns it on in every project.
 
 - **`/flow:review`**: look back over how Flow did. It finds where a rule failed, where the same friction came back, and where the design has a gap. It records each as a study case or a note.
-- **`/flow:apply-domain-findings <skill>`** (only you can start it): check the findings sent to one skill in a skill repository, and write the true ones into it.
 
 ## Ticket skills
 
@@ -55,7 +52,3 @@ Every open ticket is also a skill named after its id, so typing `/shop` lists yo
 - **Only you can start one**, so the list costs the agent nothing.
 
 Every `flow` command that changes a ticket rewrites them, and so does every session start. Never edit one: `flow` rewrites any folder it made.
-
-## `/capture`
-
-Look back over the conversation now and file what is worth keeping into your rules, skills and notes, the way the agent does at each checkpoint. Only you can start it. It is a command rather than a skill, so it is typed with no `flow:`.

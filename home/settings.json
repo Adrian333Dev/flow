@@ -271,15 +271,7 @@
       "Bash(sudo *)",
       "Bash(su *)",
       "Bash(mkfs*)",
-      "Bash(* --dangerously-skip-permissions *)",
-      "Bash(flow restore machine:*)",
-      "Bash(flow restore project:*)",
-      "Bash(flow uninstall:*)",
-      "Bash(fw restore machine:*)",
-      "Bash(fw restore project:*)",
-      "Bash(fw uninstall:*)",
-      "Bash(node ~/.flow/scripts/flow.js restore:*)",
-      "Bash(node ~/.flow/scripts/flow.js uninstall:*)"
+      "Bash(* --dangerously-skip-permissions *)"
     ],
     "additionalDirectories": [
       "~/.flow"

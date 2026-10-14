@@ -17,7 +17,6 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { REPO, project, run, setupMachine, utilStub, claudeStub, pathWith, write, skillFile, bareRepo } = require('./helpers/scratch');
-const version = require('../lib/machine/version');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
 function machine(name) {
@@ -26,15 +25,13 @@ function machine(name) {
   const home = path.join(root, '.claude');
   const flowHome = path.join(root, '.flow');
 
-  // No source, so nothing waits on a clone: the skills check has its own test.
   fs.mkdirSync(flowHome, { recursive: true });
-  fs.writeFileSync(path.join(flowHome, 'settings.json'), JSON.stringify({ sources: [] }));
 
   const installed = run('flow.js', ['install', '--root', root, '--no-bin', '--no-clone'], { env: { ...process.env, FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) } });
   assert.strictEqual(installed.code, 0, installed.stderr);
 
-  // Install is half a machine. The rule file and the link to it come from
-  // flow install's setup session, an agent's run, so the test writes them itself.
+  // Install is half a machine. It writes no rule file and no link to it, so
+  // the test writes them itself.
   setupMachine(root);
 
   // `flow install` stops short of settings.json on purpose, so the merge a real
@@ -52,7 +49,7 @@ function machine(name) {
  * Doctor against a scratch machine, with a stub util in front of the real PATH.
  *
  * A stub claude always goes in front too, listing the one plugin a fresh
- * install puts on disk, Flow's own: the survey check asks it, and the real one
+ * install puts on disk, Flow's own: the skills check asks it, and the real one
  * would read a scratch Claude Code folder it never signed in to.
  */
 function doctor(m, { bin, utilHome, inProject } = {}) {
@@ -78,17 +75,6 @@ test('a fresh install passes every check', () => {
   assert.match(report.stdout, /21 hooks registered, every file they name on disk, sessions start in "default" mode/);
 });
 
-test("a problem the survey names fails doctor's survey check", () => {
-  const m = machine('doctor-survey');
-  const source = path.join(m.root, 'util', 'commands');
-  fs.mkdirSync(source, { recursive: true });
-  write(m.root, '.util/sources', `${source}\n${source}\n`);
-  const report = doctor(m, { bin: utilStub(m.dir) });
-
-  assert.strictEqual(report.code, 1);
-  assert.match(report.stdout, /^fail {2}survey:\n {8}~\/\.util\/sources lists ~\/util\/commands twice$/m);
-});
-
 test('a machine with nothing installed says so once, rather than failing every check', () => {
   const dir = project('doctor-bare');
   const report = run('flow.js', ['doctor', '--root', path.join(dir, 'root'), '--no-bin']);
@@ -96,27 +82,6 @@ test('a machine with nothing installed says so once, rather than failing every c
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /Flow is not installed here/);
   assert.doesNotMatch(report.stdout, /^fail/m, 'the empty case is one message, not 20 failures');
-});
-
-test('a run that stopped part-way is reported first, and names both ways out', () => {
-  const m = machine('doctor-run');
-
-  // What flow update leaves behind when its session stops: the step it finished,
-  // and the migration folder it opened.
-  fs.writeFileSync(path.join(m.flowHome, 'run.json'), JSON.stringify({
-    started: '2026-09-20T10:12:40',
-    type: 'migrate',
-    migration: 'machine/2026-09-20T10-12-40',
-    step: 4,
-  }));
-
-  const report = doctor(m, { bin: utilStub(m.dir) });
-
-  assert.strictEqual(report.code, 1);
-  assert.strictEqual(report.stdout.split('\n')[0], 'fail  run.json:', 'it comes before every other check');
-  assert.match(report.stdout, /a migrate run stopped after step 4, started 2026-09-20T10:12:40/);
-  assert.match(report.stdout, /carry on: run flow update, which reads/);
-  assert.match(report.stdout, /go back: type flow restore machine/);
 });
 
 test('a background job whose last run failed is named until the same job works', () => {
@@ -132,46 +97,6 @@ test('a background job whose last run failed is named until the same job works',
   assert.match(doctor(m, { bin: utilStub(m.dir) }).stdout, /^ok {4}issues: every job running in the background worked last time$/m);
 });
 
-test('a machine behind the changelog is a note, and one above it fails', () => {
-  const m = machine('doctor-version');
-  const bin = utilStub(m.dir);
-  const stamp = path.join(m.flowHome, 'version');
-  const newest = version.newest(REPO);
-
-  fs.writeFileSync(stamp, `${newest - 1}\n`);
-  const behind = doctor(m, { bin });
-  assert.strictEqual(behind.code, 0, 'being behind still leaves a machine that works');
-  assert.match(behind.stdout, new RegExp(`this machine is at entry ${newest - 1}, 1 entry behind the changelog: run flow update`));
-
-  fs.writeFileSync(stamp, `${newest + 5}\n`);
-  const ahead = doctor(m, { bin });
-  assert.strictEqual(ahead.code, 1, 'only a clone that moved backwards puts a machine above the newest entry');
-  assert.match(ahead.stdout, /so the clone moved backwards/);
-
-  // The file held a date until 2026-09-20. A machine stamped then reads as a
-  // file somebody else wrote, rather than as a number to compare.
-  fs.writeFileSync(stamp, '2026-09-20\n');
-  const dated = doctor(m, { bin });
-  assert.strictEqual(dated.code, 1);
-  assert.match(dated.stdout, /holds "2026-09-20", and it holds one changelog entry number and nothing else/);
-});
-
-test('a project behind the machine it sits on is named, and the clone is not fetched by default', () => {
-  const m = machine('doctor-project-version');
-  const newest = version.newest(REPO);
-  fs.writeFileSync(path.join(m.dir, '.flow', 'version'), `${newest - 1}\n`);
-
-  const report = doctor(m, { bin: utilStub(m.dir), inProject: m.dir });
-
-  assert.strictEqual(report.code, 0, 'a project a migration never reached still works');
-  assert.match(report.stdout, new RegExp(`${path.basename(m.dir)} is at entry ${newest - 1} and this machine is at ${newest}`));
-  assert.match(report.stdout, /run flow update inside it/);
-
-  // The tag comparison is the one check that goes to the network, so nothing
-  // here reaches it. --updates is proved by typing it.
-  assert.match(report.stdout, /the remote is not read without --updates/);
-});
-
 test('a missing link, a missing hook, a stale override and a dead path are each named', () => {
   const m = machine('doctor-broken');
 
@@ -180,7 +105,6 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   const linked = path.join(m.root, '.agents', 'skills', 'flow', 'skills');
   const [skill] = fs.readdirSync(linked).sort();
   fs.unlinkSync(path.join(linked, skill));
-  fs.unlinkSync(path.join(m.home, 'commands', 'capture.md'));
 
   const settingsFile = path.join(m.home, 'settings.json');
   const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
@@ -196,7 +120,6 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, new RegExp(`skills/${skill} is not linked: run flow install`));
-  assert.match(report.stdout, /commands\/capture\.md is not linked: run flow install/);
   assert.match(report.stdout, /no InstructionsLoaded hook running instructions-loaded\.js/);
   assert.match(report.stdout, new RegExp(`skillOverrides names "${skill}", a Flow skill, and does nothing`));
   assert.match(report.stdout, /references points at .*gone, which is gone/);
@@ -223,8 +146,8 @@ test('a settings.json with no starting mode fails, and one starting in another m
   assert.match(chosen.stdout, /note  settings\.json: permissions\.defaultMode is "auto", and Flow's template starts every session in "default"/);
 });
 
-// Step 0 of a setup or a migration, on a machine Flow is not on yet. The
-// whole report would refuse such a machine, so this flag has to skip it.
+// On a machine Flow is not on yet. The whole report would refuse such a
+// machine, so this flag has to skip it.
 test('--prereq checks what Flow calls and nothing Flow installs', () => {
   const dir = project('doctor-prereq');
   const at = (bin, extra = {}) => run('flow.js', ['doctor', '--prereq'], {
@@ -241,8 +164,7 @@ test('--prereq checks what Flow calls and nothing Flow installs', () => {
   assert.match(broken.stdout, /git is not on PATH, and a project is found by asking git for its root/);
 });
 
-// The README names the same floor. A claude older than it stops the setup
-// session before it opens, and a migration before it writes.
+// The README names the same floor.
 test('--prereq refuses a Claude Code older than the release Flow needs', () => {
   const dir = project('doctor-claude-release');
   const claudeAt = (release) => {
@@ -323,32 +245,30 @@ test('a plugin folder reached through a broken link is named', () => {
   assert.match(report.stdout, /skills\/flow points at .*gone, which is gone/);
 });
 
-test('the skills check names a source not cloned, a line no source holds, and a missing link', () => {
+test('the skills check names a line no skill has and a missing link', () => {
   const m = machine('doctor-skills');
   const bin = utilStub(m.dir);
-  const source = path.join(m.flowHome, 'repos', 'sources', 'me_skills');
+  const source = path.join(m.flowHome, 'private-skills');
   write(source, 'react/SKILL.md', skillFile('react'));
   write(source, 'vue/SKILL.md', skillFile('vue'));
 
   // A dev skill switched off has no link, and that is not a problem. A line
   // naming an essential skill is one: it does nothing.
   fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({
-    sources: ['me/skills', 'me/absent'],
     skills: { review: 'off', groundwork: 'off', react: 'on', gone: 'on' },
   }));
 
   const report = doctor(m, { bin });
   assert.strictEqual(report.code, 1);
-  assert.match(report.stdout, /me\/absent is a source and is not cloned, so none of its skills can load: run flow install/);
-  assert.match(report.stdout, /"gone" is switched on at global level, and no source holds it: flow skills reset gone --global/);
+  assert.match(report.stdout, /"gone" is switched on at global level, and no skill has that name: flow skills reset gone --global/);
   assert.match(report.stdout, /react is switched on and .*\.claude\/skills\/react does not link to it: run flow skills ls/);
   assert.match(report.stdout, /"groundwork" is switched off at global level, and it is part of Flow's workflow, always on, so the line does nothing: flow skills reset groundwork --global/);
   assert.doesNotMatch(report.stdout, /skills\/review is not linked/);
   assert.doesNotMatch(report.stdout, /vue/, 'a skill switched off is not checked');
 
   fs.symlinkSync(path.join(source, 'react'), path.join(m.home, 'skills', 'react'));
-  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ sources: ['me/skills'], skills: { review: 'off', react: 'on' } }));
+  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ skills: { review: 'off', react: 'on' } }));
   const fixed = doctor(m, { bin });
   assert.strictEqual(fixed.code, 0, fixed.stdout);
-  assert.match(fixed.stdout, /skills: 1 source cloned, 1 skill on everywhere/);
+  assert.match(fixed.stdout, /skills: 1 skill on everywhere/);
 });

@@ -1,7 +1,7 @@
 'use strict';
 /**
- * `check-ticket`: the UserPromptExpansion hook that refuses a typed phase
- * skill on a machine or a project Flow was never set up in.
+ * `check-ticket`: the UserPromptExpansion hook that refuses a bare /flow:start
+ * where Flow was never set up in the project.
  */
 
 const { test } = require('node:test');
@@ -30,19 +30,13 @@ function check(name, args, dir, env = {}) {
   });
 }
 
-test('check-ticket blocks when setup never ran, and a bare /flow:start outside a project', () => {
+test('check-ticket blocks a bare /flow:start outside a project', () => {
   const dir = project('check-ticket-unset');
 
-  fs.rmSync(path.join(dir, 'flow-home', 'version'));
-  const machine = check('groundwork', '', dir);
-  assert.strictEqual(machine.code, 0);
-  assert.match(machine.stdout, /"decision":"block"/);
-  assert.match(machine.stdout, /not set up on this machine\. Run flow install\./);
-
-  fs.writeFileSync(path.join(dir, 'flow-home', 'version'), '2026-09-20\n');
   fs.rmSync(path.join(dir, '.flow'), { recursive: true });
   const board = check('flow:start', '', dir);
   assert.strictEqual(board.code, 0);
+  assert.match(board.stdout, /"decision":"block"/);
   assert.match(board.stdout, /not a Flow project yet.*flow init/);
 });
 

@@ -63,8 +63,8 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 ### `~/.flow/logs/`
 
 - `V1` **One folder for every record of what happened**, the user's ask: `install.log`, `history/<month>.jsonl`, `failures/<month>.jsonl` and `scorecards/`. One ignore line keeps it off the Flow home. `logs/` won over `records/`, which clashes with `machines/`, and over `reports/`, which fits only some files.
-- `V1` **The history log adds a line for every clone, pull, switch, install, migration and restore.**
-- `V1` **Left out of `logs/`**: `skills-update.json`, a waiting message deleted once printed; `audit/`, an index that rebuilds; `changes/`, working data a review reads mid-session.
+- `V1` **The history log adds a line for every clone, pull, switch and install.**
+- `V1` **Left out of `logs/`**: `audit/`, an index that rebuilds; `changes/`, working data a review reads mid-session.
 - `V1` **A log that grows is a file per month**, `<year>-<month>.jsonl`, started by the writer on its first line of the month. Nothing moves, trims or deletes one. A month is a few kilobytes. `install.log` holds the last run alone, and `scorecards/` is a file per session.
 - `never` **An `archive/` folder**: moving last month's file is a step that can fail halfway, and the name already separates old from new.
 - `later` **Months past a year deleted**, one line to add if the folder ever grows.

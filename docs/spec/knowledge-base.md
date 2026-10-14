@@ -5,7 +5,7 @@ How Flow learns about the world outside the project, and where it keeps what it 
 ## Scope
 
 - **In**: `/flow:research`, Context7, downloaded docs, the wiki of outside tools, research reports, capture's destinations for knowledge, findings, and `/flow:file-findings`' routing.
-- **Out**: what makes a rule or writes a check, in `docs/spec/rules.md`. Reviewing, adopting and harvesting an outside skill, and domain-skills, in `docs/spec/skills.md`. The failure log, in `docs/spec/failure-log.md`. Tickets, in `docs/spec/tickets.md`.
+- **Out**: what makes a rule or writes a check, in `docs/spec/rules.md`. Reviewing, adopting and harvesting an outside skill, in `docs/spec/skills.md`. The failure log, in `docs/spec/failure-log.md`. Tickets, in `docs/spec/tickets.md`.
 
 ## Where everything lands
 
@@ -32,7 +32,7 @@ Each path, and what writes it:
 ### Research
 
 - `V1` **A question about a tool or a field starts from its wiki folder**: a loaded skill covering it, then `index.md` and the pages whose names match, then the reports in its research topic folder, then outside sources, then what was learned written into the page. An answer found in the folder makes no outside request.
-- `V1` **Research searches for what already solves a need before building or reading anything**: `flow skills ls` and skills.sh at once, then skills, plugin marketplaces and MCP servers on GitHub and the web. An outside skill found is judged by `docs/spec/skills.md`.
+- `V1` **Research searches for what already solves a need before building or reading anything**: skills.sh first, then skills, plugin marketplaces and MCP servers on GitHub and the web. An outside skill found is judged by `docs/spec/skills.md`.
 - `never` **The toolbox as research's catalog of outside tools**, dropped 2026-10-12 (`fw-94`): most of its 166 cards are productivity tools and Flow alternatives no work needs. Nothing migrates. `fw-62`'s library is the later replacement.
 - `V1` **4 levels of depth, never starting higher than needed**: a targeted question answered inline, working against a tool from its downloaded docs, deep customization from its cloned source, and a landscape survey through a prompt the user runs in an outside LLM.
 - `V1` **A failure inside an outside tool is searched in its issues first**, by `/flow:debug`: `gh search issues <words> --repo <owner/repo>`, where most explanations live.
@@ -96,7 +96,6 @@ The wiki is `~/.flow/wiki/`: clean knowledge an agent can browse, one folder per
 Capture is the sweep the rule file runs at each checkpoint, filing what the conversation taught. `## Capture` in the rule file is the routing table. The knowledge it files:
 
 - `V1` **Capture runs at checkpoints, never on sight**: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. It reads the conversation in context, never the transcript on disk. A rule file written mid-session never reaches that session anyway.
-- `V1` **`/capture` runs the sweep now**, typed by the user.
 - `V1` **How an outside tool or a field behaves → the page in `~/.flow/wiki/<subject>/` that owns it, edited in place**, even while a skill covering it is loaded.
 - `V1` **Other reusable knowledge → `.flow/findings/<what-was-learned>.md`.** A finding about a skill carries a `skill: <name>` header.
 - `V1` **A project fact most sessions need → the project's `CLAUDE.md`. One only some work needs → `docs/context/<subject>.md`**, one question per file, rewritten rather than appended.
@@ -108,7 +107,6 @@ Capture is the sweep the rule file runs at each checkpoint, filing what the conv
 - `V1` **`/flow:file-findings`, user only, sorts the inbox, the findings and closed tickets' `issues.md` and `reports/` in one batch**, shows the plan and stops, then writes. A finding about an outside tool goes to the wiki. A rule goes to the rule file or a file with `paths:`. A project fact goes to `CLAUDE.md` or `docs/context/`.
 - `V1` **Reusable knowledge with no skill to hold it becomes a `needs skill:` line in the inbox.** Several on one subject earn a skill.
 - `V1` **Altitude decides the home**: a tool quirk or a framework pattern → that tool's wiki folder. A seam between 2 tools → the causing tool's folder, plus a line in the other's `index.md`. A broad principle → a concept skill.
-- `V1` **A finding about a domain-skills skill waits in `.flow/findings/<skill>/`** for the sharing command below.
 
 ### The harvest
 
@@ -127,7 +125,6 @@ The harvest reads raw reports or an outside skill, and writes what holds into wi
 - **`skills/tools/research/scripts/context7.sh`**: Bash over Context7's web API with `curl`. `search <name> <question>`, and `ask <id|folder[@version]> <question>`, `--tool <folder>` writing the id into `index.md`.
 - **`skills/tools/research/scripts/fetch-docs.sh`**: downloads into a tool's `downloads/` from any folder. `--package` or `--repo` names where the latest release is read, and `--clone` clones or pulls the source into `downloads/repo/`.
 - **`home/CLAUDE.md` → `## Capture`**: where each kind of knowledge goes. **`## Reading`**: work against an outside tool starts from its wiki folder.
-- **`claude/commands/capture.md`**: `/capture`.
 - **`skills/tools/file-findings/SKILL.md`**: the routing from the inbox and findings to their homes.
 - **`~/.flow/references/knowledge.md`**: the map of what an agent draws on past the rules, read before adding a skill, a plugin or an MCP server.
 

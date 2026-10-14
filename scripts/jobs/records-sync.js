@@ -28,7 +28,6 @@
 
 const path = require('path');
 const { spawn } = require('child_process');
-const machine = require('../lib/machine/machine');
 const records = require('../lib/tickets/records');
 const repo = require('../lib/machine/flow-repo');
 const failures = require('../lib/logs/failures');
@@ -67,7 +66,7 @@ function syncProject(at, root) {
   return done;
 }
 
-/** `flow sync`'s own save. A machine another one moved ahead of waits for `flow update`, as `flow sync` does. */
+/** `flow sync`'s own save. */
 function syncHome(at, linked) {
   if (!repo.isRepo(at)) return;
   try {

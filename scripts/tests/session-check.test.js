@@ -1,9 +1,7 @@
 'use strict';
 /**
- * `session-check`: the SessionStart hook that names what needs attention.
- *
- * The newest entry comes off the real CHANGELOG.md, the way the hook reads it,
- * so a new entry never leaves these tests naming a number that moved.
+ * `session-check`: the SessionStart hook that makes the skill links match the
+ * settings and suggests `flow init` where a repository has no `.flow/`.
  */
 
 const { test } = require('node:test');
@@ -11,12 +9,9 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { SCRATCH, REPO, run, write, skillFile } = require('./helpers/scratch');
-const version = require('../lib/machine/version');
+const { SCRATCH, run, write, skillFile } = require('./helpers/scratch');
 
-const NEWEST = version.newest(REPO);
-
-/** A throwaway machine and one project inside it, each stamped or not. A project is a git repository, as `flow init` leaves one. */
+/** A throwaway machine and one project inside it. A project is a git repository, as `flow init` leaves one. */
 function place(name, opts = {}) {
   const dir = path.join(SCRATCH, name);
   fs.rmSync(dir, { recursive: true, force: true });
@@ -28,10 +23,6 @@ function place(name, opts = {}) {
   fs.mkdirSync(path.join(project, '.flow'), { recursive: true });
   spawnSync('git', ['init', '-q'], { cwd: project });
 
-  if (opts.machine !== undefined) fs.writeFileSync(path.join(home, 'version'), `${opts.machine}\n`);
-  if (opts.project !== undefined) fs.writeFileSync(path.join(project, '.flow', 'version'), `${opts.project}\n`);
-  if (opts.run) fs.writeFileSync(path.join(home, 'run.json'), JSON.stringify(opts.run));
-  if (opts.note) fs.writeFileSync(path.join(home, 'skills-update.json'), JSON.stringify({ notes: [opts.note] }));
   if (opts.settings) fs.writeFileSync(path.join(home, 'settings.json'), JSON.stringify(opts.settings));
   return { home, project, user };
 }
@@ -48,67 +39,8 @@ const check = ({ home, project, user }) => run('hooks/session-check.js', [], {
   },
 });
 
-test('a current machine in a current project prints nothing at all', () => {
-  const result = check(place('session-current', { machine: NEWEST, project: NEWEST }));
-  assert.strictEqual(result.stdout, '');
-  assert.strictEqual(result.code, 0);
-});
-
-test('a machine behind the changelog and a project behind its machine each name flow update', () => {
-  const behind = check(place('session-behind', { machine: NEWEST - 1, project: NEWEST - 1 }));
-  assert.match(behind.stdout, new RegExp(`Flow: this machine is at changelog entry ${NEWEST - 1}, and ${NEWEST} is the newest`));
-  assert.match(behind.stdout, /Run flow update in a terminal\./);
-
-  const project = check(place('session-project', { machine: NEWEST, project: NEWEST - 1 }));
-  assert.match(project.stdout, new RegExp(`Flow: project is at changelog entry ${NEWEST - 1}, and this machine is at ${NEWEST}`));
-  assert.match(project.stdout, /Run flow update in a terminal, inside it\./);
-  assert.strictEqual(project.stdout.trim().split('\n').length, 1, 'the machine itself is current, so it says nothing');
-});
-
-test('a stopped run prints alone, and names the command that carries it on', () => {
-  const result = check(place('session-stopped', {
-    machine: NEWEST - 1,
-    project: NEWEST - 1,
-    run: { type: 'migrate', started: '2026-09-20T10:12:40.000Z', step: 4 },
-  }));
-
-  assert.strictEqual(result.stdout.trim().split('\n').length, 1, 'finishing the run is the only thing worth saying');
-  assert.match(result.stdout, /a migrate run stopped after step 4/);
-  assert.match(result.stdout, /To carry on, run flow update in a terminal/);
-});
-
-// A skill repository is a record of its own: it being behind is a pull,
-// where Flow being behind is a migration. No clone is made here, so the hook
-// prints what the last background run left and starts nothing.
-test('a skill repository prints its own line, a stopped run included', () => {
-  const current = check(place('session-skills', {
-    machine: NEWEST,
-    project: NEWEST,
-    note: { state: 'behind', count: 2, skills: ['react', 'sql'], clone: 'domain-skills' },
-  }));
-  assert.strictEqual(current.stdout.trim().split('\n').length, 1, 'the machine and the project are fine');
-  assert.match(current.stdout, /Flow: domain-skills is behind\. 2 skills changed: react, sql\./);
-
-  const stopped = check(place('session-skills-run', {
-    machine: NEWEST,
-    project: NEWEST,
-    run: { type: 'migrate', step: 2 },
-    note: { state: 'dirty', files: 3, clone: 'domain-skills' },
-  }));
-  const lines = stopped.stdout.trim().split('\n');
-  assert.strictEqual(lines.length, 2, 'a stopped run silences the version lines and not this one');
-  assert.match(lines[0], /a migrate run stopped after step 2/);
-  assert.match(lines[1], /has 3 uncommitted files/);
-});
-
-test('"sessionCheck": false silences a machine that needs every line', () => {
-  const result = check(place('session-off', {
-    machine: NEWEST - 1,
-    run: { type: 'migrate', step: 2 },
-    note: { state: 'dirty', files: 1, clone: 'domain-skills' },
-    settings: { sessionCheck: false },
-  }));
-
+test('a project with nothing to change prints nothing at all', () => {
+  const result = check(place('session-current'));
   assert.strictEqual(result.stdout, '');
   assert.strictEqual(result.code, 0);
 });
@@ -117,8 +49,8 @@ test('"sessionCheck": false silences a machine that needs every line', () => {
 // makes the link, and asks Claude Code to scan the skill folders again so
 // the first prompt already has it.
 test('a link the hook changed asks for a rescan, and a session with nothing to change prints nothing', () => {
-  const at = place('session-relink', { machine: NEWEST, project: NEWEST });
-  const source = path.join(at.home, 'repos', 'sources', 'Adrian333Dev_domain-skills');
+  const at = place('session-relink');
+  const source = path.join(at.home, 'private-skills');
   write(source, 'react/SKILL.md', skillFile('react'));
   fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
 
@@ -130,12 +62,9 @@ test('a link the hook changed asks for a rescan, and a session with nothing to c
   const second = check(at);
   assert.strictEqual(second.stdout, '', 'the link is there, so there is nothing to scan');
 
-  // A line to print rides along in the same answer.
   fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ skills: {} }));
-  fs.writeFileSync(path.join(at.home, 'version'), `${NEWEST - 1}\n`);
   const third = JSON.parse(check(at).stdout).hookSpecificOutput;
   assert.strictEqual(third.reloadSkills, true);
-  assert.match(third.additionalContext, /^Flow: this machine is at changelog entry/);
   assert.ok(!fs.existsSync(path.join(at.user, '.claude', 'skills', 'react')), 'switched off, so unlinked');
 });
 
@@ -149,8 +78,7 @@ test('a folder under the home folder with no .flow of its own is not a project',
   const playground = path.join(user, 'code', 'playground');
   fs.mkdirSync(playground, { recursive: true });
   fs.mkdirSync(home, { recursive: true });
-  fs.writeFileSync(path.join(home, 'version'), `${NEWEST}\n`);
-  const source = path.join(home, 'repos', 'sources', 'Adrian333Dev_domain-skills');
+  const source = path.join(home, 'private-skills');
   write(source, 'react/SKILL.md', skillFile('react'));
   fs.writeFileSync(path.join(home, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
 
@@ -165,7 +93,7 @@ test('a folder under the home folder with no .flow of its own is not a project',
 });
 
 test('a git repository with no .flow gets the setup line, shown to the user alone, unless a setting says not', () => {
-  const at = place('session-setup-line', { machine: NEWEST });
+  const at = place('session-setup-line');
   const shop = path.join(at.user, 'code', 'shop');
   fs.mkdirSync(path.join(shop, 'src'), { recursive: true });
   assert.strictEqual(spawnSync('git', ['init', '-q'], { cwd: shop }).status, 0);
@@ -181,43 +109,10 @@ test('a git repository with no .flow gets the setup line, shown to the user alon
   fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ setupReminderSkip: ['~/code/shop'] }));
   assert.strictEqual(check({ ...at, project: path.join(shop, 'src') }).stdout, '', 'a skipped folder, and everything below it');
 
+  fs.rmSync(path.join(at.home, 'settings.local.json'));
   fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ setupReminder: false }));
   assert.strictEqual(check({ ...at, project: shop }).stdout, '', 'off everywhere');
-});
 
-// The Flow home's last fetch holds every machine's record, so the hook reads
-// another machine moving ahead without touching the network.
-test('a machine another machine moved ahead of says to run flow update', () => {
-  const repo = require('../lib/machine/flow-repo');
-  const { git } = require('../lib/git');
-  const at = place('session-ahead', { machine: NEWEST, project: NEWEST });
-  const remote = path.join(SCRATCH, 'session-ahead', 'remote.git');
-  spawnSync('git', ['init', '-q', '--bare', '-b', 'main', remote]);
-
-  const other = { flow: path.join(SCRATCH, 'session-ahead', 'other-flow'), base: path.join(SCRATCH, 'session-ahead') };
-  fs.mkdirSync(other.flow, { recursive: true });
-  repo.connect(other, remote);
-  git(other.flow, ['config', 'flow.machine', 'laptop']);
-  repo.writeIgnore(other);
-  repo.writeRecord(other, NEWEST + 1);
-  repo.sync(other, NEWEST + 1);
-
-  const mine = { flow: at.home, base: at.user };
-  repo.connect(mine, remote);
-  assert.strictEqual(check(at).stdout, '', 'nothing fetched yet, so nothing known');
-  repo.fetch(mine);
-  assert.strictEqual(check(at).stdout, `Flow: laptop is on changelog entry ${NEWEST + 1}, and this machine is on ${NEWEST}. Run flow update in a terminal.\n`);
-});
-
-test('a project set up elsewhere, with old Claude Code memory on this machine, gets a line to fold it in', () => {
-  const at = place('session-memory', { machine: NEWEST, project: NEWEST });
-  const memory = path.join(at.user, '.claude', 'projects', at.project.replace(/[^A-Za-z0-9]/g, '-'), 'memory');
-  fs.mkdirSync(memory, { recursive: true });
-  assert.strictEqual(check(at).stdout, '', 'an empty folder holds nothing');
-
-  fs.writeFileSync(path.join(memory, 'MEMORY.md'), '- the deploy runs from main\n');
-  assert.deepStrictEqual(JSON.parse(check(at).stdout), { systemMessage: 'Flow: old Claude Code memory here. Run flow init to fold it in.' });
-
-  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ setupReminder: false }));
-  assert.strictEqual(check(at).stdout, '', 'the same switch as the setup line');
+  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ sessionCheck: false }));
+  assert.strictEqual(check({ ...at, project: shop }).stdout, '', 'the session check off');
 });

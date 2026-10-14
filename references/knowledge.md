@@ -4,8 +4,8 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 
 ## The pieces
 
-- **Flow's skills**: `/flow:<name>`, always on, from the Flow clone. The 2 in `dev/`, `/flow:review` and `/flow:apply-domain-findings`, are off until `flow skills on <name> --global`.
-- **A skill repository, or source**: a repository of skill folders, cloned whole into `~/.flow/repos/sources/<owner>_<repo>/` and listed under `sources` in `~/.flow/settings.json`. [`domain-skills`](https://github.com/Adrian333Dev/domain-skills) is the user's own and the first. Every other is someone else's.
+- **Flow's skills**: `/flow:<name>`, always on, from the Flow clone. The one in `dev/`, `/flow:review`, is off until `flow skills on review --global`.
+- **A skill repository**: someone else's repository of skill folders, cloned by hand into `~/.flow/private-skills/`, where `flow skills` finds the skills in it.
 - **Private skills**: `~/.flow/private-skills/<name>/`, the user's, not yet published.
 - **A plugin**: a bundle from a Claude Code marketplace: skills, often hooks, commands and an MCP server. Claude Code installs and updates it.
 - **An MCP server**: a running program that hands the agent extra tools. Configured per project in `.mcp.json`.
@@ -24,7 +24,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 Take the first that works:
 
 1. **The vendor's command-line tool**, such as `gh` or `supabase`, with a skill teaching the parts the work needs.
-2. **A small script over the service's web API**, bundled inside that service's skill in `domain-skills`. Flow's own `scripts/` holds only what Flow runs, such as `context7.sh`. Only for a service used across projects.
+2. **A small script over the service's web API**, bundled inside that service's skill. Flow's own `scripts/` holds only what Flow runs, such as `context7.sh`. Only for a service used across projects.
 3. **The MCP server**, for that project. Also the answer for a service that needs a live session no command holds, such as a browser.
 
 ## An outside skill: review it, then pick one of 2 states
@@ -52,13 +52,13 @@ Install counts and stars only pick which 3 to read.
 
 **How each arrives:**
 
-- **A standalone skill used whole** → `flow skills add <owner/repo>`, then `flow skills on <name>`: cloned, switched on here.
-- **A standalone skill to harvest** → `flow skills add <owner/repo>` alone: cloned, nothing switched on.
+- **A standalone skill used whole** → `git clone` it into `~/.flow/private-skills/`, then `flow skills on <name>`: switched on here.
+- **A standalone skill to harvest** → read it from a throwaway clone in `tmp/`: nothing switched on.
 - **A plugin** → Claude Code's `/plugin install`, then on for this project only. A plugin is used whole or not at all.
 
 **Updates:**
 
-- **A skill repository** → the background job pulls every clone at most every 6 hours, fast-forward only. A skill used whole is current after the pull.
+- **A skill repository** → `git pull` in its clone. A skill used whole is current after the pull.
 - **A plugin** → Claude Code's own plugin update. Flow never touches one.
 - **A harvested skill** → its pages never follow it. Research reviews it again once it changes past the commit its `## Skills` line names.
 
@@ -68,8 +68,7 @@ Where a finding goes first is `~/.flow/CLAUDE.md` → `## Capture`. From there:
 
 - **A lesson about an outside tool or field** → its wiki page, edited in place.
 - **A project finding** → `.flow/findings/` → `/flow:file-findings` (user only) turns it into a skill, a rule or a check.
-- **A change to a skill in `domain-skills`** → waits in `.flow/findings/<skill>/` until Flow's sharing command opens a pull request → `/flow:apply-domain-findings` (user only) writes it in.
-- **A new skill** → `~/.flow/private-skills/<name>/`, published by copying it into `domain-skills`.
+- **A new skill** → `~/.flow/private-skills/<name>/`.
 
 **A wiki page holds what the agent gets wrong without it:** changes since its training, traps the docs never warn about, the user's choices. The tool's docs stay in `downloads/`, per version. A tool the agent has never seen gets a page on how the tool thinks, and `index.md` says where its docs are.
 

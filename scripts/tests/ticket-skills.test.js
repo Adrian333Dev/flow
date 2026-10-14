@@ -92,7 +92,7 @@ test('a marked folder holding a file flow never wrote survives its ticket closin
   assert.ok(fs.existsSync(path.join(skillsOf(dir), 'exp-1', 'notes.md')));
 });
 
-test('the tickets in ~/.flow/ get their skills in Claude Code\'s own folder, and uninstall\'s step removes them', () => {
+test('the tickets in ~/.flow/ get their skills in Claude Code\'s own folder', () => {
   const dir = project('ticket-skills-home');
   const claude = path.join(dir, 'claude');
   write(dir, 'flow-home/tickets/home-4-backup-script/ticket.md',
@@ -102,9 +102,4 @@ test('the tickets in ~/.flow/ get their skills in Claude Code\'s own folder, and
   assert.match(fs.readFileSync(path.join(claude, 'skills', 'home-4', 'SKILL.md'), 'utf8'),
     /"Ticket, groundwork: Backup script"/);
   assert.deepStrictEqual(listed(dir), []);
-
-  write(dir, 'claude/skills/react/SKILL.md', '---\nname: react\ndescription: mine\n---\n');
-  const gone = ticketSkills.removeAll([path.join(claude, 'skills')]);
-  assert.deepStrictEqual(gone, [path.join(claude, 'skills', 'home-4')]);
-  assert.deepStrictEqual(fs.readdirSync(path.join(claude, 'skills')), ['react']);
 });

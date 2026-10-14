@@ -13,7 +13,7 @@
  * and `syncLater` does nothing for them:
  *
  *   linked      `.flow/` is a link into the Flow home, from
- *               `flow init --private`. lib/tickets/records-place.js holds how, and
+ *               `flow init`. lib/tickets/records-place.js holds how, and
  *               `flow sync` sends it with ~/.flow/
  *   folder      `.flow/` is a plain folder, from before the Flow home held
  *               projects. It never leaves the clone
@@ -58,7 +58,7 @@ const recordsOf = (root) => store.recordsDir(root);
 /** True where `.flow/` is a checkout of the `flow` branch. A checkout made by `git worktree` holds a `.git` file. */
 const onBranch = (root) => !store.isHome(root) && fs.existsSync(path.join(recordsOf(root), '.git'));
 
-/** True where `.flow/` is a link, which only `flow init --private` and `flow store` make. */
+/** True where `.flow/` is a link, which only `flow init` makes. */
 function linked(root) {
   try {
     return fs.lstatSync(recordsOf(root)).isSymbolicLink();
@@ -378,7 +378,7 @@ function linkedAt(from) {
  */
 function checkOut(root) {
   const dir = recordsOf(root);
-  // A `.flow/` deleted by hand, or by `flow restore project`, stays registered
+  // A `.flow/` deleted by hand stays registered
   // with git until pruned, and git refuses to check out over it.
   git(root, ['worktree', 'prune']);
   if (hasRemote(root)) git(root, ['fetch', '-q', REMOTE, BRANCH]);

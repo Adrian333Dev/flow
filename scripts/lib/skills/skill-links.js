@@ -3,13 +3,11 @@
  * Every skill Flow can switch, which ones are on, and the one step that makes
  * the links match.
  *
- * A skill comes from one of 3 places, each a source in `flow skills ls`:
+ * A skill comes from one of 2 places, each a group in `flow skills ls`:
  *
  *   flow      Flow's own, in this clone, linked into the plugin folder
  *             `~/.agents/skills/flow/skills/`
  *   private   `~/.flow/private-skills/<name>/`, the user's own
- *   a source  a skill repository cloned into `~/.flow/repos/sources/`, the
- *             domain-skills repository being the first
  *
  * Whether one is on is a line in a settings file, `"skills": { "react": "on" }`.
  * The 2 files are 2 levels, and the project's line wins, name by name:
@@ -27,8 +25,8 @@
  * A skill is on when its link exists, and nothing else switches one. `apply`
  * makes every link match the settings, and every command that can change them
  * runs it, the session-start hook included. A link is Flow's to add or remove
- * only when it points into a source or the private folder: a real folder, or a
- * link another installer made, is left alone and reported.
+ * only when it points into the private folder: a real folder, or a link
+ * another installer made, is left alone and reported.
  *
  * A project cannot hide a skill linked for the whole machine: that link loads
  * in every session. `off` refuses that case rather than write a line nothing
@@ -41,7 +39,6 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { FlowError } = require('../error');
 const frontmatter = require('../frontmatter');
-const repos = require('./repos');
 const settings = require('../settings');
 const skills = require('./skills');
 const paths = require('../paths');
@@ -155,43 +152,20 @@ function flowSkills() {
   return found;
 }
 
-/**
- * Every source of skills, in the order `ls` prints them: Flow's, each
- * repository in `sources`, then the private ones. A repository not cloned
- * yet is listed with no skills and `cloned: false`.
- */
+/** Every group of skills, in the order `ls` prints them: Flow's, then the private ones. */
 function catalog(home) {
-  const groups = [{ name: 'flow', type: 'flow', skills: flowSkills() }];
-  for (const source of repos.names(repos.sources(home))) {
-    const dir = repos.sourceDir(home, source);
-    const cloned = fs.existsSync(dir);
-    groups.push({ ...source, type: 'source', dir, cloned, skills: cloned ? scan(dir) : new Map() });
-  }
-  groups.push({ name: 'private', type: 'private', dir: privateDir(home), skills: scan(privateDir(home)) });
-  return groups;
+  return [
+    { name: 'flow', type: 'flow', skills: flowSkills() },
+    { name: 'private', type: 'private', dir: privateDir(home), skills: scan(privateDir(home)) },
+  ];
 }
 
-/**
- * One skill by name, or by `owner/repo:name` where 2 sources share it.
- * Refuses a name found nowhere, and a bare name found twice.
- */
-function find(groups, ref) {
-  const at = ref.lastIndexOf(':');
-  const [from, name] = at > 0 ? [ref.slice(0, at), ref.slice(at + 1)] : [null, ref];
-  const hits = groups
-    .filter((g) => !from || g.name === from || g.id === from)
-    .filter((g) => g.skills.has(name))
-    .map((g) => ({ group: g, skill: g.skills.get(name) }));
+/** One skill by name. Refuses a name found nowhere, and a name Flow and the private folder share. */
+function find(groups, name) {
+  const hits = groups.filter((g) => g.skills.has(name)).map((g) => ({ group: g, skill: g.skills.get(name) }));
   if (hits.length === 1) return hits[0];
-  if (!hits.length) {
-    const missing = groups.filter((g) => g.type === 'source' && !g.cloned).map((g) => g.name);
-    const hint = missing.length ? `\n  Not cloned yet: ${missing.join(', ')}. flow install clones them.` : '';
-    throw new FlowError(`no skill named "${ref}". flow skills ls <pattern> searches every source.${hint}`);
-  }
-  throw new FlowError(
-    `"${name}" is in ${hits.length} sources. Name the one you mean:\n` +
-    hits.map((h) => `  ${h.group.id || h.group.name}:${name}`).join('\n')
-  );
+  if (!hits.length) throw new FlowError(`no skill named "${name}". flow skills ls <pattern> searches every group.`);
+  throw new FlowError(`"${name}" is both a Flow skill and a private one. Rename the private one.`);
 }
 
 // --------------------------------------------------------------- the links
@@ -208,26 +182,22 @@ function slot(to) {
   return { state: 'link', target: fs.readlinkSync(to), live: fs.existsSync(to) };
 }
 
-/** Whether a link points somewhere Flow links from: a source clone or the private folder. */
-const ours = (target, home) =>
-  [path.join(repos.dir(home), 'sources'), privateDir(home)].some((d) => target.startsWith(d + path.sep));
+/** Whether a link points into the private folder, the one place Flow links from besides itself. */
+const ours = (target, home) => target.startsWith(privateDir(home) + path.sep);
 
 /** Whether a skill is one of Flow's essential ones, linked whatever the settings say. */
 const isEssential = (group, skill) => group.type === 'flow' && !!skill.essential;
 
-/** The line naming a skill: `owner/repo:name` where one was written, else the bare name. */
-const lineFor = (found, group, name) => (group.id && found.get(`${group.id}:${name}`)) || found.get(name);
-
 /** On or off for the whole machine: always on if essential, else the line, else off. */
 function machineState(skill, group, machineLines) {
   if (isEssential(group, skill)) return 'on';
-  const line = lineFor(machineLines, group, skill.name);
+  const line = machineLines.get(skill.name);
   return line ? line.state : 'off';
 }
 
 /**
  * Make every link match the settings. Returns what changed, what could not be
- * made, and the names a line mentions that no source holds.
+ * made, and the names a line mentions that no group holds.
  *
  *   claude  the Claude Code folder holding `skills/`
  *   agents  the folder holding Flow's plugin, or null to leave Flow's skills alone
@@ -279,14 +249,14 @@ function apply({ home, root = null, claude, agents = null }) {
       if (onMachine) put(machineDir, skill.name, skill.dir);
       else take(machineDir, skill.name);
       if (!projectDir) continue;
-      const line = lineFor(projectLines, group, skill.name);
+      const line = projectLines.get(skill.name);
       if (line && line.state === 'on' && !onMachine) put(projectDir, skill.name, skill.dir);
       else take(projectDir, skill.name);
     }
   }
 
-  // A link into a source whose skill is gone: a pull removed it, or a source
-  // was dropped. Nothing in the catalog reaches it, so it is swept here.
+  // A link into the private folder whose skill is gone. Nothing in the
+  // catalog reaches it, so it is swept here.
   for (const dir of [machineDir, projectDir].filter(Boolean)) {
     let entries = [];
     try {
@@ -302,7 +272,7 @@ function apply({ home, root = null, claude, agents = null }) {
 
   const known = new Set(groups.flatMap((g) => [...g.skills.keys()]));
   const everyLine = new Map([...machineLines, ...projectLines]);
-  const missing = [...everyLine.keys()].filter((n) => !known.has(n.split(':').pop())).sort();
+  const missing = [...everyLine.keys()].filter((n) => !known.has(n)).sort();
   return { changed, problems, missing, groups, machineLines, projectLines };
 }
 
@@ -348,6 +318,6 @@ function outside({ home, claude }) {
 }
 
 module.exports = {
-  LEVELS, levelFile, lines, lineFor, writeLine, scan, privateDir, catalog, find, apply, outside,
+  LEVELS, levelFile, lines, writeLine, scan, privateDir, catalog, find, apply, outside,
   machineState, isEssential,
 };

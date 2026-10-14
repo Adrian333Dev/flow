@@ -1,6 +1,3 @@
 [submodule "lab/util"]
 	path = lab/util
 	url = https://github.com/Adrian333Dev/util
-[submodule "lab/domain-skills"]
-	path = lab/domain-skills
-	url = https://github.com/Adrian333Dev/domain-skills.git

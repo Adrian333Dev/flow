@@ -1,17 +1,12 @@
 'use strict';
 /**
- * Where a project's tickets live. 2 places:
+ * Where a project's tickets live: `.flow/` is a link to
+ * ~/.flow/projects/<name>/, in the private Flow home, from `flow init`.
+ * `flow sync` carries it to the user's other machines, and nobody else sees it.
  *
- *   branch        `.flow/` is a checkout of the project's branch `flow`, pushed
- *                 with the repository. Everyone who can read the repository
- *                 reads the tickets. lib/tickets/records.js keeps it
- *   home          `.flow/` is a link to ~/.flow/projects/<name>/, in the
- *                 private Flow home, from `flow init --private`. `flow sync`
- *                 carries it to the user's other machines, and nobody else
- *                 sees it
- *
- * A plain `.flow/` folder, from before the Flow home held projects, reads as
- * `folder`: it never leaves the clone.
+ * Two older places still read, and neither is made any more. A plain `.flow/`
+ * folder reads as `folder`: it never leaves the clone. A checkout of the
+ * project's branch `flow` reads as `branch`: lib/tickets/records.js keeps it.
  *
  * The link and the folder name are this machine's. What ties a folder to its
  * project on every machine is `repository` in the folder's settings.json, the
@@ -24,18 +19,9 @@ const path = require('path');
 const records = require('./records');
 const settings = require('../settings');
 const paths = require('../paths');
-const { git, gh } = require('../git');
+const { git } = require('../git');
 
 const PROJECTS = 'projects';
-
-/** The lines Flow adds to the project's `.gitignore`. */
-const IGNORE_LINES = [
-  '',
-  '# Flow: .flow/ holds the tickets, checked out from the branch "flow", which',
-  '# shares no history with the code. Every branch sees the same tickets, and',
-  '# none of them is ever merged in.',
-  '.flow/',
-];
 
 /** The folder the Flow home keeps its project folders in. */
 const shelf = (home) => path.join(home, PROJECTS);
@@ -59,22 +45,6 @@ function repositoryOf(root) {
     .replace(/\.git$/, '')
     .replace(/\/+$/, '')
     .toLowerCase();
-}
-
-/**
- * Whether the project's repository is public: `public`, `private` or
- * `internal` from GitHub, `unknown` where gh could not tell, `other` for a
- * remote that isn't on GitHub, `none` with no remote. `FLOW_VISIBILITY`
- * stands in for GitHub in the tests, and is never a setting.
- */
-function visibility(root) {
-  if (process.env.FLOW_VISIBILITY) return process.env.FLOW_VISIBILITY;
-  const repo = repositoryOf(root);
-  if (!repo) return 'none';
-  const github = /^github\.com\/([^/]+\/[^/]+)$/.exec(repo);
-  if (!github) return 'other';
-  const asked = gh(['repo', 'view', github[1], '--json', 'visibility', '-q', '.visibility']);
-  return asked.ok && asked.out ? asked.out.toLowerCase() : 'unknown';
 }
 
 /**
@@ -154,39 +124,6 @@ function remember(root, dir) {
   if (saved.repository !== repo) settings.write(file, { ...saved, repository: repo });
 }
 
-/** Copy every file of `from` into `to`, leaving out git's own `.git`. */
-function copyRecords(from, to) {
-  fs.mkdirSync(to, { recursive: true });
-  for (const entry of fs.readdirSync(from)) {
-    if (entry === '.git') continue;
-    fs.cpSync(path.join(from, entry), path.join(to, entry), { recursive: true, verbatimSymlinks: true });
-  }
-}
-
-/** The ticket folders under `dir`, active and archived, by folder name. */
-function ticketFolders(dir) {
-  const names = [];
-  for (const sub of ['tickets', path.join('tickets', 'archive')]) {
-    const at = path.join(dir, sub);
-    if (!fs.existsSync(at)) continue;
-    for (const entry of fs.readdirSync(at, { withFileTypes: true })) {
-      if (entry.isDirectory() && entry.name !== 'archive' && fs.existsSync(path.join(at, entry.name, 'ticket.md'))) names.push(entry.name);
-    }
-  }
-  return names;
-}
-
-/** Add Flow's lines to `.gitignore`, keeping every line already there. */
-function addIgnore(project) {
-  const file = path.join(project, '.gitignore');
-  const had = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  const lines = new Set(had.split('\n').map((l) => l.trim()));
-  if (lines.has('.flow/') || lines.has('.flow')) return false;
-  fs.writeFileSync(file, `${had}${had && !had.endsWith('\n') ? '\n' : ''}${IGNORE_LINES.join('\n').replace(/^\n/, had ? '\n' : '')}\n`);
-  return true;
-}
-
 module.exports = {
-  PROJECTS, shelf, repositoryOf, visibility, placeOf, findFolder, newFolder, link, exclude, excludeFile, remember,
-  copyRecords, ticketFolders, addIgnore,
+  PROJECTS, shelf, repositoryOf, placeOf, findFolder, newFolder, link, exclude, excludeFile, remember,
 };

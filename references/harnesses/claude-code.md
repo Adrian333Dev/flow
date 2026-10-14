@@ -1,8 +1,8 @@
 # Claude Code: where it keeps its files
 
-One file per harness, in `~/.flow/references/harnesses/`, read whole by the sessions `flow install`, `flow init` and `flow update` open. A second harness is a second file here.
+One file per harness, in `~/.flow/references/harnesses/`, read when work touches the harness's files. A second harness is a second file here.
 
-Claude Code's own paths, never Flow's. `flow doctor` reports what Flow owns, and `scripts/lib/machine/installed.js` is the list behind it.
+Claude Code's own paths, never Flow's. `flow doctor` reports what Flow owns.
 
 **The config folder is `~/.claude`, and `CLAUDE_CONFIG_DIR` replaces it.** Read that variable before naming any path below. `~/.claude.json` sits beside the folder by default, and inside it as `$CLAUDE_CONFIG_DIR/.claude.json` once the variable is set.
 
@@ -33,19 +33,19 @@ Under the config folder, except the last 2.
 
 ## A session that loads no project files
 
-`claude --setting-sources user --strict-mcp-config`, started in the project. `flow init` opens its session this way, loading `~/.claude` alone:
+`claude --setting-sources user --strict-mcp-config`, started in the project, loads `~/.claude` alone:
 
 - **`--setting-sources user`** skips every project path above: the rules files at any depth, `.claude/` and `.mcp.json`.
 - **`--strict-mcp-config`** skips every MCP server not passed with `--mcp-config`, the ones `~/.claude.json` holds for this project included.
 
 A harness with no such launch gets its project files moved out before the session and back after.
 
-## What a migration may name
+## What Flow may change
 
-- **Every path above takes a `write`, a `delete` or a `move` line**, under the 4 rules below.
+- **Any path above, under the 4 rules below.**
 - **Never a transcript, a cache or the login.** `projects/`, `history.jsonl`, `file-history/`, `shell-snapshots/`, `paste-cache/`, `debug/`, `sessions/`, `backups/` and `.credentials.json`.
-- **`~/.claude.json` changes through a `run` line.**
-- **A project's auto memory is a machine path.** `~/.claude/projects/<project>/memory/` holds it, so a project's migration names a folder outside the project.
-- **Settings merge key by key**, an administrator's file over the project's local file, over the project's committed file, over the machine's. Permission rules from every one of them hold at once. A migration that moves 1 key names the file holding that key and leaves the rest where it is.
+- **`~/.claude.json` changes through Claude Code's own commands**, such as `claude plugin uninstall`, never an edit.
+- **A project's auto memory is a machine path.** `~/.claude/projects/<project>/memory/` holds it, so it sits outside the project.
+- **Settings merge key by key**, an administrator's file over the project's local file, over the project's committed file, over the machine's. Permission rules from every one of them hold at once. A change to 1 key names the file holding that key and leaves the rest where it is.
 
-**Every file here is read when a session starts.** What a migration changed reaches the next session, never the session that applied it.
+**Every file here is read when a session starts.** A change reaches the next session, never the one that made it.

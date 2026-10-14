@@ -17,7 +17,7 @@ Move at triage speed. Building a skill is the one slow step.
 1. Read the inputs below, whole.
 2. Sort every item by destination in one pass.
 3. Shape what needs it. A fragment has to read like the thing it is about to become.
-4. **Show the plan and stop.** One heading per destination file, every item listed under the file it goes into, every check listed under its rule. Items for a domain skill go under that skill, with one question for the batch: send them to `domain-skills`? `## A skill filing must not edit` below.
+4. **Show the plan and stop.** One heading per destination file, every item listed under the file it goes into, every check listed under its rule.
 5. Take the corrections, then write. A few grouped edits per destination.
 6. **Write or update a check for every rule you touched**, wherever a function can tell violations apart. `## Checks` below.
 7. Clear filed items from the inbox. Delete each filed finding, and clear the filed lines from `scorecard.md`, deleting it once empty. **Never empty an `issues.md`.**
@@ -27,7 +27,7 @@ Move at triage speed. Building a skill is the one slow step.
 ## Inputs
 
 - **`.flow/inbox.md`**, always. Knowledge needing an altitude call, items with no home yet, anything still too raw to file.
-- **`.flow/findings/*.md`**: reusable knowledge captured during work, one finding per file, named for what was learned. A `skill:` header names the skill it is about. `scorecard.md` is the exception: one line per wrong warning from a check. Never read a sub-folder: `.flow/findings/<skill>/` holds findings `flow contribute` has yet to send.
+- **`.flow/findings/*.md`**: reusable knowledge captured during work, one finding per file, named for what was learned. A `skill:` header names the skill it is about. `scorecard.md` is the exception: one line per wrong warning from a check.
 - **Closed tickets nobody has filed yet.** `flow ls --unfiled` gives the ids. In each folder read `issues.md` for what the build learned, and everything in `reports/` for what was answered.
 - **The groundwork this session closed.** Sweep its `map.md`: promote reusable lessons into skills, move strays out to where they belong. Never open a map this session did not work.
 - **`flow scorecard`**: how the existing checks are doing. It names the stale ones, the ones ready to move up a tier, and the rules nothing has applied to in a long time.
@@ -72,15 +72,14 @@ Match the note's scope to the home's scope:
 
 Never a "tool-A-with-tool-B" folder or skill. One home per fact, a pointer everywhere else.
 
-The group in a `needs skill:` flag: `tools/`, or `dev/` for a skill maintaining Flow or `domain-skills`. `phases/` is closed.
+The group in a `needs skill:` flag: `tools/`, or `dev/` for a skill maintaining Flow. `phases/` is closed.
 
 ## A skill filing must not edit
 
 Follow the skill's link to see where its folder lives: `.claude/skills/<name>` in the project, `~/.claude/skills/<name>` on the machine, or `~/.agents/skills/flow/skills/<name>` for one of Flow's own. 2 places are never edited here:
 
 - **A skill repository's clone**, a link into `~/.flow/repos/sources/`.
-  - The `domain-skills` clone → only `/flow:apply-domain-findings` writes there. Every item bound for it goes under the plan's batch question. Yes → move the finding into `.flow/findings/<skill>/`, its `skill:` header intact, where it waits for Flow's sharing command. An inbox item is written there as a finding, with the header. No → the skill's overlay, `~/.flow/skill-overlays/<skill>.md`, or a private skill
-  - Any other clone → the skill's overlay, `~/.flow/skill-overlays/<skill>.md`, or a private skill
+  - Its overlay, `~/.flow/skill-overlays/<skill>.md`, or a private skill, in its place
 - **Flow's own skills**, a link into Flow's `skills/`:
   - Knowledge for every project → `~/.flow/skill-overlays/<skill>.md`
   - Knowledge for this project → the project's `CLAUDE.md`

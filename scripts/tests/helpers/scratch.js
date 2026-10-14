@@ -13,16 +13,11 @@
  * `.flow/`. FLOW_PROJECT names the project outright, and `flow()` below sets
  * it. GIT_CEILING_DIRECTORIES below covers every command run without it.
  *
- * Every scratch project is a machine Flow is already set up on. `flow` refuses
- * every command where `~/.flow/version` is missing and every project where
- * `.flow/` is, so a test that skipped both would prove only the refusal. The
- * refusals have their own test, in flow.test.js.
  */
 
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const version = require('../../lib/machine/version');
 
 const SCRIPTS = path.resolve(__dirname, '..', '..');
 const REPO = path.resolve(SCRIPTS, '..');
@@ -69,29 +64,14 @@ function project(name) {
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(path.join(dir, '.flow'), { recursive: true });
   fs.writeFileSync(path.join(dir, '.flow', 'settings.json'), '{\n  "ticketPrefix": "exp"\n}\n');
-  setUp(path.join(dir, 'flow-home'));
+  fs.mkdirSync(path.join(dir, 'flow-home'), { recursive: true });
   return dir;
 }
 
 /**
- * A ~/.flow/ that a setup finished in: the version stamp is what says so. It
- * holds the number of the newest CHANGELOG.md entry the machine applied, read
- * off the changelog rather than written in, so a new entry never leaves the
- * suite reporting a machine behind.
- */
-function setUp(home) {
-  fs.mkdirSync(home, { recursive: true });
-  fs.writeFileSync(path.join(home, 'version'), `${version.newest(REPO)}\n`);
-  return home;
-}
-
-/**
- * The half of a machine `flow install` writes: the rule file, the link
- * `~/.claude/CLAUDE.md` makes to it, and the version stamp its last step leaves behind.
- *
- * `flow install` stopped writing all 3 on 2026-09-20, because the rule file is
- * written after the setup's survey, and a copy made before it holds nothing
- * of the user. A test that needs a finished machine does the setup's job here.
+ * The half of a machine `flow install` does not write: the rule file and the
+ * link `~/.claude/CLAUDE.md` makes to it. A test that needs a finished machine
+ * writes both here.
  */
 function setupMachine(root) {
   const at = require('../../lib/paths').folders(root);
@@ -111,7 +91,6 @@ function setupMachine(root) {
   fs.mkdirSync(at.claude, { recursive: true });
   fs.symlinkSync(rules, path.join(at.claude, 'CLAUDE.md'));
 
-  setUp(at.flow);
   return rules;
 }
 
@@ -235,5 +214,5 @@ function flow(dir, args, extra = {}) {
 }
 
 module.exports = {
-  SCRIPTS, REPO, SCRATCH, project, setUp, setupMachine, utilStub, claudeStub, gitRepo, bareRepo, skillFile, pathWith, write, run, flow,
+  SCRIPTS, REPO, SCRATCH, project, setupMachine, utilStub, claudeStub, gitRepo, bareRepo, skillFile, pathWith, write, run, flow,
 };

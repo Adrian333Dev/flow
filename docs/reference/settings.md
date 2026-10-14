@@ -9,17 +9,14 @@ Every key Flow reads from its own settings files, and every key it writes into C
   - [`reminder`](#reminder): a line beside every message you send
   - [`sessionCheck`](#sessioncheck): a line when a session opens and something needs attention
   - [`setupReminder`](#setupreminder): the suggestion to run `flow init`
-  - [`skillsAutoUpdate`](#skillsautoupdate): skill repositories updating themselves
   - [`wrapUp`](#wrapup): the warning that the conversation is getting long
 - [Other keys in Flow's files](#other-keys-in-flows-files): numbers, lists and names
   - [`wrapUpAt`](#wrapupat): how long a conversation gets before the warning
   - [`compact`](#compact): let `/compact` run
   - [`setupReminderSkip`](#setupreminderskip): folders that never suggest `flow init`
   - [`fileSuggestionIgnore`](#filesuggestionignore): paths the `@` list never offers
-  - [`sources`](#sources): the skill repositories Flow takes skills from
   - [`skills`](#skills): which skills are on
   - [`ticketPrefix`](#ticketprefix): the word every ticket id starts with
-  - [`repository`](#repository): the repository a privately kept project belongs to
 - [Claude Code's settings file](#claude-codes-settings-file): what `flow install` adds to `~/.claude/settings.json`
   - [`hooks`](#hooks): the scripts Claude Code runs at each moment of a session
   - [`permissions`](#permissions): what runs without asking, what asks, and what never runs
@@ -66,11 +63,10 @@ The text comes from `~/.flow/references/reminder.md`. [Sessions](../sessions.md)
 Prints a line when a session opens and something needs attention, and nothing otherwise:
 
 ```text
-Flow: this machine is at changelog entry 3, and 5 is the newest. Run flow update in a terminal.
-Flow: domain-skills is behind. 2 skills changed: react, sql. Update it when you want them, or set "skillsAutoUpdate": true.
+Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.
 ```
 
-Off, the lines stop. The work behind them goes on: skill links still match your settings, and skill repositories still update.
+Off, the line stops. The work behind it goes on: skill links still match your settings.
 
 ### `setupReminder`
 
@@ -80,13 +76,7 @@ Suggests setting Flow up when a session opens in a git repository Flow is not in
 Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.
 ```
 
-In a project set up on another computer, it also suggests folding in the memory Claude Code kept for it on this one. `false` turns both off everywhere. Typed inside a repository with no flag, `flow settings off setupReminder` turns them off for that repository alone, through [`setupReminderSkip`](#setupreminderskip).
-
-### `skillsAutoUpdate`
-
-Each skill repository in [`sources`](#sources) pulls itself in the background when a session opens, at most every 6 hours. A pull never runs over uncommitted work in the repository, or where it would have to merge: the next session names the repository instead.
-
-`false` swaps the pull for a line naming the skills that changed, every session until you pull by hand.
+`false` turns it off everywhere. Typed inside a repository with no flag, `flow settings off setupReminder` turns it off for that repository alone, through [`setupReminderSkip`](#setupreminderskip).
 
 ### `wrapUp`
 
@@ -141,16 +131,6 @@ Paths the `@` list never offers, on top of the folders it always skips:
 
 All 3 of Flow's files can hold it, and their lists add up.
 
-### `sources`
-
-The skill repositories Flow takes skills from, each `owner/repo` on GitHub or a full git address:
-
-```json
-"sources": ["Adrian333Dev/domain-skills", "mattpocock/skills"]
-```
-
-`flow skills add` and `flow skills drop` write it in `~/.flow/settings.json`. With no `sources` key, the list is `Adrian333Dev/domain-skills` alone. [Extend](../extend.md) covers adding a repository.
-
 ### `skills`
 
 Which skills are switched on, one line per skill you switched:
@@ -174,19 +154,9 @@ The word every ticket id in a project starts with, so its tickets read `shop-1`,
 
 `flow init` writes it. A prefix is 2 to 8 lowercase letters, and never `home`, which names the tickets in your Flow home. Changing it later renames no ticket: the old ones keep their ids, and new ones count from 1 under the new word.
 
-### `repository`
-
-The repository a project belongs to, for a project whose tickets are kept privately in your Flow home:
-
-```json
-"repository": "github.com/shop-co/shop"
-```
-
-`flow init --private` and `flow store private` write it, in the project's folder inside your Flow home. `flow init` on your other computer reads it to find that folder. [New project](../new-project.md) covers where tickets can live.
-
 ## Claude Code's settings file
 
-`flow install` adds these keys to `~/.claude/settings.json`. The setup session shows each one in its form before anything is written. Every other key in the file stays yours.
+These are the keys Flow keeps in `~/.claude/settings.json`. Every other key in the file stays yours.
 
 ### `hooks`
 
@@ -201,7 +171,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 - **`reminder.js`**, on every message you send: prints [`reminder`](#reminder).
 - **`context-check.js`**, on every message and after every batch of tool calls: prints [`wrapUp`](#wrapup).
 - **`compact-check.js`**, on a typed `/compact`: refuses it, unless [`compact`](#compact) is `true`.
-- **`session-check.js`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), matches skill links to your settings, and starts the background updates.
+- **`session-check.js`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), matches skill links to your settings, and starts the background sync.
 - **`failures.js`**, when a tool call or the API fails: adds a line to the failure log. [Learning](../learning.md) covers the log.
 - **`records-sync.js`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
 
@@ -227,10 +197,9 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
   - Claude Code tools Flow replaces or never uses, such as plan mode and scheduled jobs. Each one left out also saves the tokens its description costs.
   - Reading `~/.ssh` and `~/.aws`, the folders holding your keys.
   - `sudo`, `su`, `mkfs` and `--dangerously-skip-permissions`.
-  - `flow restore` and `flow uninstall`, so the agent can never take Flow off for you.
   - Worktrees and forked helper agents.
 - **`additionalDirectories`**: your Flow home counts as part of every project, so an edit there never asks.
-- **`Edit(//**/.flow/**)`**: an edit through a project's `.flow` link never asks. A project whose tickets moved to your Flow home with `flow store private` reaches them through that link, and Claude Code asks before any write that leads outside the project unless one rule matches both the link and where it points.
+- **`Edit(//**/.flow/**)`**: an edit through a project's `.flow` link never asks. A project's tickets live in your Flow home and are reached through that link, and Claude Code asks before any write that leads outside the project unless one rule matches both the link and where it points.
 
 [Safety](../safety.md) gives the reasons for each.
 
@@ -250,7 +219,7 @@ shop-7 building · 98k of 150k
 - **`--context`** adds how full the conversation is, against [`wrapUpAt`](#wrapupat).
 - **`⚠ 1 Flow issue: ask Claude to fix them`** is added, in every folder, while a background job such as a ticket sync is failing. It goes once the job next works.
 
-Nothing a status line prints reaches the agent, so it costs no tokens. The setup writes the key only where you have no status line of your own. With [ccstatusline](https://github.com/sirmalloc/ccstatusline), add `flow status-line` as a Custom Command widget instead.
+Nothing a status line prints reaches the agent, so it costs no tokens. Flow's key goes in only where you have no status line of your own. With [ccstatusline](https://github.com/sirmalloc/ccstatusline), add `flow status-line` as a Custom Command widget instead.
 
 ### `fileSuggestion`
 
@@ -280,7 +249,7 @@ Claude Code deletes a session's record once it is this many days old. Its defaul
 "skillOverrides": { "grill-me": "off" }
 ```
 
-Claude Code's switch for one skill. The setup session writes `off` for each skill synced from your Claude account that works against Flow, and only those you tick. It cannot reach Flow's own skills, which `flow skills` switches instead.
+Claude Code's switch for one skill, set to `off` for a skill synced from your Claude account that works against Flow. It cannot reach Flow's own skills, which `flow skills` switches instead.
 
 ### Features switched off
 

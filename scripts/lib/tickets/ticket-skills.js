@@ -22,7 +22,6 @@
 const fs = require('fs');
 const path = require('path');
 const graph = require('./graph');
-const skills = require('../skills/skills');
 const store = require('./store');
 const paths = require('../paths');
 
@@ -115,20 +114,4 @@ function sync({ project, claude = paths.claudeHome() } = {}) {
   return changed;
 }
 
-/** Every marked folder in these folders of skills, so a prompt can list them before they go. */
-function findAll(dirs) {
-  const found = [];
-  for (const dir of dirs) {
-    if (!fs.existsSync(dir)) continue;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const folder = path.join(dir, entry.name);
-      if (entry.isDirectory() && marked(folder)) found.push(folder);
-    }
-  }
-  return found;
-}
-
-/** Delete every marked folder in these folders of skills: `flow uninstall`'s step on a machine with no original. */
-const removeAll = (dirs) => findAll(dirs).filter(remove);
-
-module.exports = { sync, findAll, remove, removeAll, folderOf, isTicketSkill: marked };
+module.exports = { sync, folderOf, isTicketSkill: marked };

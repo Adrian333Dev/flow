@@ -7,12 +7,8 @@
  * `flow doctor`'s other checks, where a missing piece is repaired rather than
  * treated as a wall. util is one of those: `flow install` clones and links it.
  *
- * Two callers, and a failure stops both. The check each session Flow opens
- * runs first, `flow install --check` and `flow update --check`, runs this
- * list: one command with an exit code, in place of an agent typing shell lines and
- * reading them back. `record-originals.js` runs the same list again before a
- * setup session's first change, so a session that skipped its check stops
- * before it writes.
+ * `flow doctor` is the one caller: whole, or alone through `--prereq`, which
+ * works before Flow is installed.
  */
 
 const fs = require('fs');

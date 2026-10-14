@@ -18,22 +18,18 @@ const { spawnSync } = require('child_process');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { project, run, flow, bareRepo, REPO } = require('./helpers/scratch');
+const { project, run, flow, bareRepo } = require('./helpers/scratch');
 const repo = require('../lib/machine/flow-repo');
 const store = require('../lib/tickets/store');
 const { git } = require('../lib/git');
 const folders = require('../lib/paths').folders;
-const version = require('../lib/machine/version');
 
-const NEWEST = version.newest(REPO);
-
-/** A set-up machine with nothing in ~/.flow/ but the version stamp. */
+/** A machine with an empty ~/.flow/. */
 function machine(name) {
   const dir = project(name);
   const root = path.join(dir, 'root');
   const at = folders(root);
   fs.mkdirSync(at.flow, { recursive: true });
-  fs.writeFileSync(path.join(at.flow, 'version'), `${NEWEST}\n`);
   return { dir, root, at, name };
 }
 
@@ -96,23 +92,6 @@ test('sync on a ~/.flow that is not a repository says so and stops', () => {
   assert.match(refused.stderr, /is not a repository yet\. Run flow install, which connects it\./);
 });
 
-test('sync refuses on a machine where setup never finished', () => {
-  const m = machine('sync-unset');
-  fs.rmSync(path.join(m.at.flow, 'version'));
-
-  const refused = sync(m);
-  assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, /not set up on this machine\. Run flow install\./);
-
-  // A setup part way through runs flow commands of its own, and stamps the
-  // version only at its end, so its run.json lets them through.
-  fs.writeFileSync(path.join(m.at.flow, 'run.json'), JSON.stringify({ type: 'setup-machine', step: 5 }));
-  assert.doesNotMatch(sync(m).stderr, /not set up/);
-
-  fs.writeFileSync(path.join(m.at.flow, 'run.json'), JSON.stringify({ type: 'migrate', step: 5 }));
-  assert.match(sync(m).stderr, /not set up on this machine/, 'only a setup passes');
-});
-
 test('2 machines send and merge their work, and the same lines changed on both stop the sync', () => {
   const remote = bareRepo('sync-pair');
   const a = machine('sync-a');
@@ -127,9 +106,9 @@ test('2 machines send and merge their work, and the same lines changed on both s
 
   const b = machine('sync-b');
   connect(b, remote);
-  assert.deepStrictEqual(repo.inspect(b.at, NEWEST), { state: 'join', files: 3, from: [], taken: [] });
+  assert.deepStrictEqual(repo.inspect(b.at), { state: 'join', files: 3, from: [], taken: [] });
   repo.join(b.at);
-  assert.strictEqual(sync(b).stdout, 'nothing new came down.\nnothing changed here, so nothing went up.\n', 'version is ignored');
+  assert.strictEqual(sync(b).stdout, 'nothing new came down.\nnothing changed here, so nothing went up.\n');
 
   // Different files on each side, then the same file at different lines.
   fs.appendFileSync(path.join(b.at.flow, 'workflow-notes.md'), 'from b\n');
@@ -161,7 +140,7 @@ test('a project linked into the Flow home travels with it, and each number is cl
   assert.strictEqual(sync(a).code, 0);
   const b = machine('sync-linked-b');
   connect(b, remote);
-  repo.inspect(b.at, NEWEST);
+  repo.inspect(b.at);
   repo.join(b.at);
 
   // The same project cloned on both machines, its .flow/ linked into each Flow home.
@@ -216,7 +195,7 @@ function pair(name) {
   assert.strictEqual(sync(a).code, 0);
   const b = machine(`${name}-b`);
   connect(b, remote);
-  repo.inspect(b.at, NEWEST);
+  repo.inspect(b.at);
   repo.join(b.at);
   assert.strictEqual(sync(b).code, 0);
   return { remote, a, b };
@@ -285,38 +264,21 @@ test('a ticket made before claims existed: the counter keeps the higher, and syn
   assert.strictEqual(git(b.at.flow, ['status', '--porcelain']).out, '', 'no merge is left half done');
 });
 
-test('a machine behind another machine\'s record syncs nothing until it catches up', () => {
+test('a machine record holds the name and the day it joined, and a name another record holds is taken', () => {
   const remote = bareRepo('sync-records');
-  const a = machine('sync-ahead');
+  const a = machine('sync-first-record');
   connect(a, remote);
   repo.writeIgnore(a.at);
-  repo.writeRecord(a.at, NEWEST + 1);
+  repo.writeRecord(a.at);
   assert.strictEqual(sync(a).code, 0);
 
-  const b = machine('sync-behind');
+  const written = JSON.parse(read(path.join(a.at.flow, 'machines', 'sync-first-record.json')));
+  assert.deepStrictEqual(Object.keys(written), ['name', 'joined']);
+  assert.strictEqual(written.name, 'sync-first-record');
+
+  const b = machine('sync-second-record');
   connect(b, remote);
-  // The Flow home is on an entry this clone does not have, so nothing comes down.
-  assert.deepStrictEqual(repo.inspect(b.at, NEWEST), { state: 'version', home: NEWEST + 1, name: 'sync-ahead' });
-  assert.ok(!fs.existsSync(path.join(b.at.flow, 'machines')));
-  assert.deepStrictEqual(repo.inspect(b.at, NEWEST + 1).taken, ['sync-ahead']);
-  repo.join(b.at);
-
-  fs.writeFileSync(path.join(b.at.flow, 'workflow-notes.md'), 'from b\n');
-  const refused = sync(b);
-  assert.strictEqual(refused.code, 1);
-  assert.match(refused.stderr, new RegExp(`your Flow home is on changelog entry ${NEWEST + 1}, since sync-ahead moved to it, and this machine is on ${NEWEST}\\. Nothing was synced\\. Run flow update first\\.`));
-  assert.strictEqual(git(b.at.flow, ['rev-list', '--count', 'HEAD']).out, '1', 'nothing was committed');
-
-  // The session check reads the same record, from the fetch alone.
-  assert.deepStrictEqual(repo.ahead(b.at, NEWEST), { name: 'sync-ahead', number: NEWEST + 1 });
-  assert.strictEqual(repo.ahead(b.at, NEWEST + 1), null);
-
-  repo.writeRecord(b.at, NEWEST + 1);
-  fs.writeFileSync(path.join(b.at.flow, 'version'), `${NEWEST + 1}\n`);
-  const level = sync(b);
-  assert.strictEqual(level.code, 0, level.stderr);
-  assert.match(level.stdout, /went up: sync-behind: 2 files/);
-  assert.deepStrictEqual(JSON.parse(read(path.join(b.at.flow, 'machines', 'sync-behind.json'))).flowVersion, NEWEST + 1);
+  assert.deepStrictEqual(repo.inspect(b.at).taken, ['sync-first-record']);
 });
 
 test('a second machine joins through flow install, and a repository that is not a Flow home is refused', () => {
@@ -324,7 +286,7 @@ test('a second machine joins through flow install, and a repository that is not 
   const a = machine('sync-first');
   connect(a, remote);
   repo.writeIgnore(a.at);
-  repo.writeRecord(a.at, NEWEST);
+  repo.writeRecord(a.at);
   fs.writeFileSync(path.join(a.at.flow, 'CLAUDE.md'), 'rules from the first machine\n');
   fs.mkdirSync(path.join(a.at.flow, 'study-cases', 'guessing'), { recursive: true });
   fs.writeFileSync(path.join(a.at.flow, 'study-cases', 'guessing', 'one.md'), 'a case\n');
@@ -336,7 +298,6 @@ test('a second machine joins through flow install, and a repository that is not 
   const joined = install();
   assert.strictEqual(joined.code, 0, joined.stdout + joined.stderr);
   assert.match(joined.stdout, /joined: 4 files from sync-first, your Flow home as your other machine last sent it/);
-  assert.match(joined.stdout, /One step left: setting up this machine/, 'setup still runs, for this machine\'s own ~\/.claude');
   const home = path.join(root, '.flow');
   assert.strictEqual(read(path.join(home, 'CLAUDE.md')), 'rules from the first machine\n');
   assert.strictEqual(read(path.join(home, 'study-cases', 'guessing', 'one.md')), 'a case\n');
@@ -371,43 +332,6 @@ test('a second machine joins through flow install, and a repository that is not 
   assert.match(refused.stdout, /stopped: .*sync-not-flow\.git holds something other than a Flow home, so nothing came down\./);
 });
 
-test('install stops when the Flow home is on another release and this clone is one somebody works in', () => {
-  const remote = bareRepo('sync-release');
-  const a = machine('sync-release-a');
-  connect(a, remote);
-  repo.writeIgnore(a.at);
-  repo.writeRecord(a.at, NEWEST + 1);
-  assert.strictEqual(sync(a).code, 0);
-
-  const dir = project('sync-release-b');
-  const root = path.join(dir, 'root');
-  const stopped = flow(dir, ['install', '--root', root, '--no-bin', '--no-clone'], { FLOW_HOME_REMOTE: remote });
-  assert.strictEqual(stopped.code, 1);
-  assert.match(stopped.stdout, new RegExp(`stopped: your Flow home is on changelog entry ${NEWEST + 1}, since sync-release-a is on it, and this Flow is on ${NEWEST}\\. Switch .* to v${NEWEST + 1}, then run flow install again\\.`));
-  assert.ok(!fs.existsSync(path.join(root, '.flow', 'machines')), 'nothing came down');
-});
-
-test('a clone moves to the release a Flow home is on', () => {
-  const dir = project('sync-switch');
-  const origin = path.join(dir, 'origin');
-  fs.mkdirSync(origin, { recursive: true });
-  const git = (cwd, ...args) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd, encoding: 'utf8' });
-  git(origin, 'init', '-q', '-b', 'main');
-  fs.writeFileSync(path.join(origin, 'CHANGELOG.md'), '## 1, 2026-09-20\n');
-  git(origin, 'add', '-A');
-  git(origin, 'commit', '-q', '-m', 'one');
-  git(origin, 'tag', 'v1');
-  fs.writeFileSync(path.join(origin, 'CHANGELOG.md'), '## 2, 2026-10-01\n\n## 1, 2026-09-20\n');
-  git(origin, 'commit', '-qam', 'two');
-
-  const clone = path.join(dir, 'clone');
-  git(dir, 'clone', '-q', origin, clone);
-  assert.strictEqual(version.newest(clone), 2);
-  assert.strictEqual(repo.switchClone(clone, 1), null);
-  assert.strictEqual(version.newest(clone), 1);
-  assert.match(repo.switchClone(clone, 7), /could not fetch v7/);
-});
-
 test('the first install starts the Flow home, so a second machine joins it before the first ever syncs', () => {
   const remote = bareRepo('sync-start');
   const install = (name) => {
@@ -435,7 +359,6 @@ test('the first install starts the Flow home, so a second machine joins it befor
   // Both write on their own, then meet: one history, so the merge goes through.
   const a = { root: first.root, dir: first.dir };
   const b = { root: second.root, dir: second.dir };
-  for (const m of [a, b]) fs.writeFileSync(path.join(m.root, '.flow', 'version'), `${NEWEST}\n`);
   fs.writeFileSync(path.join(a.root, '.flow', 'workflow-notes.md'), 'from a\n');
   fs.mkdirSync(path.join(b.root, '.flow', 'study-cases'), { recursive: true });
   fs.writeFileSync(path.join(b.root, '.flow', 'study-cases', 'one.md'), 'from b\n');
@@ -450,7 +373,7 @@ test('a rebuilt computer that keeps its name joins again, with nothing new to se
   const a = machine('sync-rebuilt-first');
   connect(a, remote);
   repo.writeIgnore(a.at);
-  repo.writeRecord(a.at, NEWEST);
+  repo.writeRecord(a.at);
   assert.strictEqual(sync(a).code, 0);
 
   // The same computer, its disk wiped, its global git config kept.

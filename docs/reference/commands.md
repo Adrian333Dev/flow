@@ -7,11 +7,8 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
 - [Setting up](#setting-up): put Flow on your computer and your projects, and keep it current
   - [`flow install`](#flow-install): put Flow on this computer
   - [`flow init`](#flow-init): set up the project you are in
-  - [`flow update`](#flow-update): get the newest Flow, and bring this computer and project up to date
   - [`flow doctor`](#flow-doctor): check that Flow is installed correctly
-  - [`flow survey`](#flow-survey): list everything Claude Code loads, and whether each is on
   - [`flow sync`](#flow-sync): back up your workflow and share it between your computers
-  - [`flow store`](#flow-store): choose where a project's tickets are kept
 - [The board](#the-board): see all your tickets and what to work on next
   - [`flow next`](#flow-next): what to work on next
   - [`flow ls`](#flow-ls): every ticket in a table
@@ -28,11 +25,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
 - [Skills](#skills): see which skills are on, and turn them on or off
   - [`flow skills ls`](#flow-skills-ls): every skill, and whether it is on
   - [`flow skills on`, `off` and `reset`](#flow-skills-on-off-and-reset): turn a skill on or off
-  - [`flow skills add` and `drop`](#flow-skills-add-and-drop): add or remove a repository of skills
 - [Settings](#settings): turn Flow's own settings on or off
-- [Taking Flow off](#taking-flow-off): remove Flow, and put back what it changed
-  - [`flow uninstall`](#flow-uninstall): remove Flow from this computer
-  - [`flow restore`](#flow-restore): put this computer or a project back the way it was before Flow
 - [Rule checks](#rule-checks): see how well the agent follows your rules
 - [Cases](#cases): record the agent's mistakes, grouped by kind
   - [`flow cases new`](#flow-cases-new): record a mistake
@@ -57,16 +50,13 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
 
 ## Setting up
 
-`install`, `init` and `update` end by opening a Claude Code session, which shows every change in one form for you to approve. The session runs their `--check` and `--finish` flags itself: you never type them.
-
 ### `flow install`
 
-Put Flow on this computer. It links Flow's skills, rules and scripts, downloads the tools Flow uses, and connects your Flow home, then opens the setup session. Your Flow home is `~/.flow/`, the folder where Flow keeps your notes, settings and tickets. It is backed up to a private GitHub repository, `flow-home`, which your other computers join. Run again, `flow install` puts back anything missing. [Install](../install.md) covers each step.
+Put Flow on this computer. It links Flow's skills, rules and scripts, downloads the tools Flow uses, and connects your Flow home. Your Flow home is `~/.flow/`, the folder where Flow keeps your notes, settings and tickets. It is backed up to a private GitHub repository, `flow-home`, which your other computers join. Run again, `flow install` puts back anything missing, which is also how a computer takes a newer Flow: pull the clone, then run it.
 
 ```console
 $ flow install
 Flow is installed: 10 skills, each typed under the plugin name, as /flow:groundwork.
-wrote: ~/.flow/originals/machine, this machine as it was before Flow
 named: this machine is pc-wsl
 started: your Flow home, sent up so your other machines join it
 Every line of the install is in ~/.flow/logs/install.log.
@@ -74,36 +64,20 @@ Every line of the install is in ~/.flow/logs/install.log.
 
 ### `flow init`
 
-Set up the project you are in. An empty folder gets Flow's project files at once. A folder already holding files gets the setup session, which reads them first.
+Set up the project you are in. It links `.flow/` into your Flow home, where the project's tickets live, and writes Flow's project files wherever one is missing. A file the project already has stays as it is.
 
 ```console
 $ flow init --prefix shop
-.flow/: a new flow branch, sharing no history with the code, checked out
-.gitignore: .flow/ added
+.flow/: a link to ~/.flow/projects/shop, in your Flow home, listed in .git/info/exclude so git never sees it
 wrote: .claude/settings.json
 wrote: .gitignore
 wrote: .uncommitted-include
 wrote: CLAUDE.md
 
-set up: ~/code/shop is on entry 1. Nothing in the code is committed: CLAUDE.md, .gitignore and .claude/ wait for your next commit.
-A plugin or skill switched off on this computer is switched on here with: claude plugin enable <id> --scope project, or flow skills on <name>
+set up: ~/code/shop. Nothing in the code is committed: CLAUDE.md, .gitignore and .claude/ wait for your next commit.
 ```
 
 - **`--prefix <word>`**: the start of every ticket id, 2 to 8 lowercase letters, as `shop` in `shop-4`. Asked when left out, offering the folder's name: `shop` for `~/code/shop`, or the first 3 letters of a name over 8, `exp` for `expense-tracker`.
-- **`--private`**: keep the tickets in your Flow home, so nobody reading the repository sees them. Otherwise they go on the project's `flow` branch.
-- **`-y`**: let the setup session read the files already there, without asking.
-
-[New project](../new-project.md) covers where tickets can live.
-
-### `flow update`
-
-Get the newest Flow, then bring this computer and the project you are in up to date. Anything behind gets the update session, which shows what changes in one form.
-
-```console
-$ flow update
-Flow was already at its newest commit.
-Flow is up to date: this machine is at entry 1, and so is ~/code/shop.
-```
 
 ### `flow doctor`
 
@@ -111,10 +85,8 @@ Check that Flow is installed correctly. It changes nothing, names the fix on eac
 
 ```console
 $ flow doctor
-ok    run.json: no run stopped part-way
 ok    issues: every job running in the background worked last time
-ok    version: this machine is at entry 1, the newest one written, shop is at entry 1
-ok    clone: 3 submodules on the commit this clone points at, the remote is not read without --updates
+ok    clone: 3 submodules on the commit this clone points at
 ok    programs: node, git, claude, gh all resolve
 ok    claude code: 2.1.289, and Flow needs 2.1.287 or later
 fail  names:
@@ -124,52 +96,21 @@ fail  util:
         util fs tree does not run, and it is called by home/CLAUDE.md, in tree-for-structure
         util fs open does not run, and it is called by flow get --files, through tickets.js
         /home/me/.util/sources does not exist, so no source is registered: run flow install
-ok    survey: 13 sources read, none of the problems flow survey names
-ok    ~/.agents: 12 skills linked under skills/flow/, 1 switched off
-ok    ~/.claude: skills/flow, 1 agent, 1 rule, 1 command and CLAUDE.md linked
+ok    ~/.agents: 11 skills linked under skills/flow/, 1 switched off
+ok    ~/.claude: skills/flow, 1 agent, 1 rule and CLAUDE.md linked
 fail  settings.json:
         /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow install, which merges /home/me/code/flow/home/settings.json into it
 ok    ~/.flow: scripts, references and docs resolve into this clone
-ok    originals: 3 paths recorded before Flow, still open, and 1 project beside it
-note  originals: the machine's original is still open, so flow install has not run to the end. It closes the original on its way out
-ok    skills: 1 source cloned, 1 skill on everywhere, 1 more for shop
+ok    skills: 1 skill on everywhere, 1 more for shop
 
-3 of 15 checks failed.
+3 of 11 checks failed.
 ```
 
 - **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.287 or later. It works before Flow is installed.
-- **`--updates`**: also check whether a newer Flow is out. The one check that uses the network.
-
-### `flow survey`
-
-List everything Claude Code loads on this computer: rule files, skills, plugins, settings, agents, commands, and the folders util reads its commands from. Each item says whether it is on, and a plugin lists what it brings. The last group names what looks wrong, such as a plugin on disk that Claude Code doesn't list. It changes nothing, and works before setup has finished. Both setup sessions start from it, so it shows exactly what setup saw.
-
-```console
-$ flow survey
-skills (~/.claude/skills)
-  tdd        on    folder
-  grill-me   off   synced
-plugins
-  typescript-lsp@claude-plugins-official   on    user
-    folder: ~/.claude/plugins/cache/claude-plugins-official/typescript-lsp/1.0.0
-  engineering@synced                       off   synced
-    folder: ~/.claude/plugins/synced/account-1/engineering
-    skills: code-review, standup
-    mcp: github, linear
-util sources
-  ~/.flow/repos/util/commands
-  ~/code/util/commands
-problems
-  ~/.util/sources lists 2 clones of https://github.com/Adrian333Dev/util: ~/.flow/repos/util and ~/code/util
-```
-
-A source it cannot read prints `unread:` and why, and the rest still lists.
-
-- **`--project <folder>`**: list what loads in that project instead: its rule files, `.claude/` folder, MCP servers, and the plugins installed for it.
 
 ### `flow sync`
 
-Back up your workflow and share it between your computers. It sends your Flow home up and brings your other computers' work down. Inside a project keeping its tickets on its `flow` branch, it syncs the tickets too.
+Back up your workflow and share it between your computers. It sends your Flow home up and brings your other computers' work down. Inside a project, it syncs the project's tickets too.
 
 ```console
 $ flow sync
@@ -178,20 +119,7 @@ went up: pc-wsl: 1 file
 shop's tickets: nothing new came down, 1 commit went up.
 ```
 
-It runs by itself when a session ends, and every 30 minutes while you work, so you rarely type it. [Sync between computers](../sync.md) covers what travels.
-
-### `flow store`
-
-Bare, it says where the project's tickets are kept. `flow store private` moves them into your Flow home, and `flow store branch` onto the project's `flow` branch.
-
-```console
-$ flow store private
-moved: shop's tickets now live in ~/.flow/projects/shop.
-The flow branch keeps the tickets as they were, here and on the remote, and anyone who read the repository may hold a copy.
-To delete it: git branch -D flow, then git push origin --delete flow.
-```
-
-**`flow store branch` refuses when the branch holds a ticket the moving tickets lack**, since the move would delete that ticket.
+It runs by itself when a session ends, and every 30 minutes while you work, so you rarely type it.
 
 ## The board
 
@@ -321,8 +249,6 @@ pick up with: flow groundwork shop-3
 - **`--label <1-3 words>`**: the words in the folder name. Made from the title when left out.
 - **`--body <text>`**: the ticket's text, in place of the template. `--body -` reads it from standard input.
 
-**Offline, a project keeping its tickets on its `flow` branch creates no ticket.** A number is given out only once the remote has it, so the number you see never changes.
-
 ### `flow edit`
 
 `flow edit <id>`, with one flag per field to change. The status changes through its own commands, under [Ticket status](#ticket-status).
@@ -446,7 +372,7 @@ revive with: flow build shop-4
 
 ## Skills
 
-A skill is a folder of instructions Claude Code loads when its job comes up. Flow's own skills are always on, except 2 for working on Flow itself. Skills from a repository you added, and your private ones, start off. [Extend](../extend.md) covers where skills come from, and [Reference: skills](skills.md) lists Flow's.
+A skill is a folder of instructions Claude Code loads when its job comes up. Flow's own skills are always on, except the ones for working on Flow itself. Your private skills start off. [Extend](../extend.md) covers where skills come from, and [Reference: skills](skills.md) lists Flow's.
 
 **A switch works at one of 2 levels:**
 
@@ -455,25 +381,23 @@ A skill is a folder of instructions Claude Code loads when its job comes up. Flo
 
 ### `flow skills ls`
 
-Every skill, grouped by where it comes from, whether it is on, and the level that says so. A blank level means the skill's default. A skill repository lists only the skills switched at some level, and counts the rest. `outside` lists what another tool installed, which Flow never switches. `flow skills <pattern>` is `flow skills ls <pattern>`.
+Every skill, grouped by where it comes from, whether it is on, and the level that says so. A blank level means the skill's default. `outside` lists what another tool installed, which Flow never switches. `flow skills <pattern>` is `flow skills ls <pattern>`.
 
 ```console
 $ flow skills ls
                          state   level
 flow
-  apply-domain-findings  off
   review                 on      global
-domain-skills            1 more
-  react                  on      project
-  vitest                 on      global
 private
   my-notes               on      global
+  react                  on      project
+  vitest                 on      global
 outside
   flow                   plugin
 ```
 
 - **`[pattern...]`**: words or regular expressions, matched against each skill's name and description. A skill shows when it matches every one.
-- **`--source <name>`**: one source in full, by its name or its `owner/repo`.
+- **`--source <group>`**: one group in full: `flow`, `private` or `outside`.
 
 ### `flow skills on`, `off` and `reset`
 
@@ -500,39 +424,20 @@ What each refuses:
     flow skills off vitest --global switches it off everywhere.
   ```
 
-- **A name 2 skill repositories share.** Write it as `owner/repo:name`.
+- **A name a Flow skill and a private skill share.** Rename the private one.
 
 **A skills folder Flow had to create needs Claude Code restarted**, and the command says so.
 
-### `flow skills add` and `drop`
-
-`flow skills add <owner/repo>` downloads a GitHub repository of skills and lists them. It turns none of them on.
-
-```console
-$ flow skills add mattpocock/skills
-cloned: mattpocock/skills into ~/.flow/repos/sources/mattpocock_skills
-added: mattpocock/skills to sources in ~/.flow/settings.json
-
-2 skills, none switched on by this:
-  grill-me  Interview the user about a plan until every branch is resolved.
-  tdd       Test-driven development, red green refactor.
-
-flow skills on <name> turns one on here, --global everywhere.
-```
-
-`flow skills drop <owner/repo>...` removes a repository and deletes its download. Each repository updates itself when a session opens, unless the [`skillsAutoUpdate`](settings.md#skillsautoupdate) setting is off.
-
 ## Settings
 
-`flow settings` turns Flow's 5 on/off settings on or off, without opening a file. [Reference: settings](settings.md) explains each one.
+`flow settings` turns Flow's 4 on/off settings on or off, without opening a file. [Reference: settings](settings.md) explains each one.
 
 ```console
 $ flow settings ls
 setting           state  level
 reminder          on     everywhere   a line beside every message, pointing Claude at the reply rules
-sessionCheck      on                  what needs attention, when a session opens
-setupReminder     off    this folder  suggests flow init where a repository or old memory needs it
-skillsAutoUpdate  on                  each skill repository updates itself when a session opens
+sessionCheck      on                  the flow init suggestion, when a session opens
+setupReminder     off    this folder  suggests flow init where a repository has no .flow/
 wrapUp            on                  tells Claude to hand off once the conversation passes wrapUpAt tokens
 ```
 
@@ -550,48 +455,6 @@ $ flow settings on setupReminder --global
 on: setupReminder, everywhere.
 setupReminder is still off here, since this folder says so.
 ```
-
-## Taking Flow off
-
-Before Flow first changes a file, it saves a copy of the original in `~/.flow/originals/`: one set for the computer, and one per project. Both commands below put those copies back. [Install](../install.md) covers what gets saved.
-
-**4 locks make sure only you run them:**
-
-1. **Every Claude Code and Codex session must be closed:**
-
-   ```console
-   $ flow restore project
-   flow: Close these sessions first: claude 731544.
-   ```
-
-2. **You type `restore` or `uninstall` at the terminal.** A pipe, a script or an agent cannot type it.
-3. **No flag skips that word.**
-4. **Rules in `~/.claude/settings.json`** stop an agent from running either command at all.
-
-### `flow uninstall`
-
-Remove Flow from this computer. It puts back what Flow changed on the computer and in each project, through the same form as [`flow restore machine`](#flow-restore), then deletes `~/.flow/` and the folder holding Flow's code.
-
-- **Work in `~/.flow/` not yet backed up stops it**, before anything is removed. Run `flow sync` first.
-- **The folder holding Flow's code stays when deleting it would lose changes you made to Flow.** Its path is printed for you to delete.
-
-### `flow restore`
-
-Bare, or as `flow restore ls`, it lists the saved originals:
-
-```console
-$ flow restore
-machine  3 paths  written 2026-10-02T22:42:53  still being written
-~/code/shop  7 paths  written 2026-10-02T22:44:40  closed
-```
-
-`flow restore project` puts back the project you are in. `flow restore machine` puts back the computer, and offers each project in the same form. Neither deletes `~/.flow/`.
-
-**You pick each file first.** The command writes `~/.flow/restore.md`, one box per file, and waits:
-
-- **A ticked file** goes back to how it was, or is deleted where Flow created it.
-- **An unticked file** stays as it is.
-- **A project's `CLAUDE.md` and `docs/` start unticked**, since they hold what you learned about the project, and work without Flow.
 
 ## Rule checks
 

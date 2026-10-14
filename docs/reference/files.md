@@ -24,7 +24,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ skills/flow                 → ~/.agents/skills/flow
 │  ├─ skills/<name>               → a skill switched on everywhere
 │  ├─ skills/home-<n>/            a ticket skill
-│  ├─ agents/, rules/, commands/  → files in <clone>/claude/
+│  ├─ agents/, rules/             → files in <clone>/claude/
 │  └─ projects/                   Claude Code's record of every session
 ├─ .flow/
 │  ├─ CLAUDE.md                   your rules
@@ -32,7 +32,6 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ repos/                      every repository Flow downloads
 │  ├─ settings.json
 │  ├─ settings.local.json
-│  ├─ version
 │  ├─ machines/<name>.json
 │  ├─ tickets/
 │  ├─ ticket-counter
@@ -44,9 +43,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ private-skills/<name>/
 │  ├─ logs/
 │  ├─ audit/
-│  ├─ changes/<session>/
-│  ├─ migrations/<place>/<time>/
-│  └─ originals/<place>/
+│  └─ changes/<session>/
 └─ .local/bin/
    ├─ flow, fw                    → <clone>/scripts/flow.js
    └─ util, u                     → ~/.flow/repos/util
@@ -67,8 +64,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ findings/
 │  ├─ research/<topic>/
 │  ├─ overlays/<skill>.md
-│  ├─ settings.json
-│  └─ version
+│  └─ settings.json
 └─ docs/
    ├─ spec/
    └─ context/
@@ -87,11 +83,10 @@ Each folder here can also hold entries from other tools. `flow install` never re
 - **`CLAUDE.md`**: the rules every session loads. A link to `~/.flow/CLAUDE.md`, so `flow sync` carries your rules to your other computers.
 - **`settings.json`**: Claude Code's settings, with Flow's keys added. [Settings](settings.md#claude-codes-settings-file) covers each key.
 - **`skills/flow`**: a link to `~/.agents/skills/flow/`, which is how Claude Code finds Flow's skills.
-- **`skills/<name>`**: a link for each skill from a skill repository switched on everywhere. `flow skills on <name> --global` makes it.
+- **`skills/<name>`**: a link for each skill switched on everywhere. `flow skills on <name> --global` makes it.
 - **`skills/home-<n>/`**: a [ticket skill](skills.md#ticket-skills) for each open ticket in your Flow home.
 - **`agents/haiku-worker.md`**: the helper agent Flow hands simple jobs to. [Subagents](../subagents.md) covers it.
 - **`rules/comments.md`**: the rules for code comments, loaded only while the agent works on code.
-- **`commands/capture.md`**: [`/capture`](skills.md#capture).
 - **`projects/`**: Claude Code's record of every session. `flow audit` reads it.
 
 ## `~/.flow/`
@@ -100,10 +95,9 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ### Your rules and settings
 
-- **`CLAUDE.md`**: your rules. `~/.claude/CLAUDE.md` links to it. The setup session writes it from Flow's template and what it kept from your old rule files. After that it is yours, and sessions add what they learn about you.
+- **`CLAUDE.md`**: your rules. `~/.claude/CLAUDE.md` links to it. It starts from Flow's template and is yours after that: sessions add what they learn about you.
 - **`settings.json`** and **`settings.local.json`**: Flow's settings. [Settings](settings.md) covers every key.
-- **`version`**: the newest Flow change this computer has applied. `flow` refuses to run while it is missing, since that means the install never finished.
-- **`machines/<name>.json`**: one record per computer sharing this Flow home, saying which version of Flow it is on: `{ "name": "macbook-pro", "joined": "2026-09-27", "flowVersion": 12 }`.
+- **`machines/<name>.json`**: one record per computer sharing this Flow home, saying when it joined: `{ "name": "macbook-pro", "joined": "2026-09-27" }`.
 - **`README.md`** and **`.gitignore`**: a warning for anyone opening the repository on GitHub, and the list of what stays on this computer.
 
 ### Links into your clone
@@ -116,7 +110,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 - **`tickets/`**: tickets that belong to no project, with ids starting `home-`, such as `home-4`. Same shape as a project's.
 - **`ticket-counter`**: the highest `home-` number ever given out, so a deleted or moved ticket's number never goes to a new one.
-- **`projects/<project>/`**: the tickets of a project kept privately, which the project's `.flow/` links to. `flow init --private` and `flow store private` make it.
+- **`projects/<project>/`**: the tickets of a project kept privately, which the project's `.flow/` links to. `flow init` makes it.
 
 ### What sessions learn
 
@@ -131,13 +125,11 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 ### Records of what happened
 
 - **`logs/install.log`**: every line of this computer's last `flow install`.
-- **`logs/history/<month>.jsonl`**: one line per change Flow made to this computer: a skill switched, a repository downloaded, an install, a restore.
+- **`logs/history/<month>.jsonl`**: one line per change Flow made to this computer: a skill switched, a repository downloaded, an install.
 - **`logs/failures/<month>.jsonl`**: one line per failure of a Flow command, a hook, a tool from a plugin, or the API.
 - **`logs/scorecards/<session>.jsonl`**: one line per rule check that ran. `flow scorecard` reads them.
 - **`audit/`**: the index `flow audit` searches, built from `~/.claude/projects/`. `audit/kept/` holds the sessions `flow audit keep` saved.
 - **`changes/<session>/`**: what each helper agent changed. Deleted after 7 days untouched.
-- **`migrations/<place>/<time>/`**: each change a setup or an update session made, as a list of changes and the new files.
-- **`originals/<place>/`**: every path as it was before Flow first touched this computer or a project. `flow restore` puts them back.
 
 ### Downloaded repositories
 
@@ -146,7 +138,6 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 - **`repos/flow`**: Flow itself, as the install line downloaded it. Installed from a clone of your own, it is a link to that clone.
 - **`repos/util/`**: `util`, the second command-line tool Flow uses, for file trees and git shortcuts.
 - **`repos/toolbox/`**: a catalog of outside tools that `/flow:research` reads.
-- **`repos/sources/<owner>_<repo>/`**: one per skill repository in [`sources`](settings.md#sources). Each updates itself when a session opens.
 
 ## `~/.local/bin/`
 
@@ -171,7 +162,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ### `.flow/`
 
-The project's tickets and what sessions learn in it. It is the project's `flow` branch checked out here, sharing no history with your code. In a project kept privately, it is a link into `~/.flow/projects/` instead. [New project](../new-project.md) covers both.
+The project's tickets and what sessions learn in it. It is a link into `~/.flow/projects/<project>/`, in your Flow home, so the tickets never touch your code's history and `flow sync` carries them.
 
 - **`tickets/<id>-<label>/`**: one folder per ticket, such as `shop-7-safari-cookie/`. [Tickets](../tickets.md) shows what it holds.
 - **`tickets/archive/`**: finished and dropped tickets, moved here whole.
@@ -181,7 +172,6 @@ The project's tickets and what sessions learn in it. It is the project's `flow` 
 - **`research/<topic>/`**: the research reports this project asked for, one folder per topic. `/flow:research` writes them.
 - **`overlays/<skill>.md`**: lines this project adds to a skill. [Configure](../configure.md) covers overlays.
 - **`settings.json`**: this project's skill lines and [`ticketPrefix`](settings.md#ticketprefix).
-- **`version`**: the newest Flow change this project has applied.
 
 ### `docs/`
 
@@ -195,9 +185,9 @@ Sessions write here, and Flow owns none of it.
 
 `flow sync` carries everything else in `~/.flow/` to your other computers. These stay:
 
-- `settings.local.json`, `version`, `logs/`, `audit/`, `changes/` and `originals/`
-- `repos/`: each computer downloads its own, from the same `sources` list
+- `settings.local.json`, `logs/`, `audit/` and `changes/`
+- `repos/`: each computer downloads its own
 - each tool's `wiki/<tool>/downloads/`
-- the small files Flow keeps while it works: `run.json`, `records-sync.json`, `skills-update.json` and `status-line.json`
+- the small files Flow keeps while it works: `records-sync.json` and `status-line.json`
 
-Claude Code's `~/.claude/projects/` stays too. A project's `.flow/` travels with the project: on its `flow` branch, or inside your Flow home.
+Claude Code's `~/.claude/projects/` stays too. A project's `.flow/` travels inside your Flow home.

@@ -16,7 +16,7 @@
  * 3 overrides. FLOW_HOME moves the Flow home on its own and CLAUDE_CONFIG_DIR
  * Claude Code's folder, which is how a test points either somewhere else.
  * `--root <dir>` puts the whole machine under `<dir>` instead, which is how
- * the tests and lab/scripts/try.sh build one inside tmp/. One flag for all 3
+ * the tests build one inside tmp/. One flag for all 3
  * folders, so no run can redirect some of them and write the rest into the
  * real home folder. It wins over both variables.
  *

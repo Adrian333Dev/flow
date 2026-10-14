@@ -21,7 +21,6 @@ const path = require('path');
 const { out } = require('../lib/cli');
 const { FlowError } = require('../lib/error');
 const logs = require('../lib/logs/logs');
-const machine = require('../lib/machine/machine');
 const render = require('../lib/render');
 const settings = require('../lib/settings');
 const paths = require('../lib/paths');
@@ -30,9 +29,8 @@ const projects = require('../lib/project');
 /** Every on/off setting, on unless a file says false. `skip` names its list of folders. */
 const SETTINGS = [
   { key: 'reminder', says: 'a line beside every message, pointing Claude at the reply rules' },
-  { key: 'sessionCheck', says: 'what needs attention, when a session opens' },
-  { key: 'setupReminder', says: 'suggests flow init where a repository or old memory needs it', skip: 'setupReminderSkip' },
-  { key: 'skillsAutoUpdate', says: 'each skill repository updates itself when a session opens' },
+  { key: 'sessionCheck', says: 'the flow init suggestion, when a session opens' },
+  { key: 'setupReminder', says: 'suggests flow init where a repository has no .flow/', skip: 'setupReminderSkip' },
   { key: 'wrapUp', says: 'tells Claude to hand off once the conversation passes wrapUpAt tokens' },
 ];
 

@@ -217,11 +217,6 @@ function readiness(at) {
     const dir = repos.ownClone(at.flow, name);
     if (!fs.existsSync(dir)) problems.push(`${name} is not cloned into ${show(dir)}`);
   }
-  for (const entry of repos.sources(at.flow)) {
-    const source = repos.parse(entry);
-    const dir = repos.sourceDir(at.flow, source);
-    if (!fs.existsSync(dir)) problems.push(`${source.id} is not cloned into ${show(dir)}`);
-  }
 
   if (!flowRepo.isRepo(at) || !git(at.flow, ['remote', 'get-url', 'origin']).ok) {
     problems.push(`${show(at.flow)} has no repository to send your rules and notes to`);

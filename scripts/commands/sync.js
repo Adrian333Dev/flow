@@ -14,10 +14,6 @@
  * move, after a reply once 30 minutes have passed, and at session end. Typing
  * it sends at once.
  *
- * A machine on a lower changelog entry than another machine's record syncs
- * nothing until `flow update` brings it level: each machine migrates its own copy,
- * and a copy in the old shape must never meet one in the new.
- *
  * A pull can bring skill lines written on the other machine, so the links
  * are made to match right after it, the way a session start would.
  *
@@ -27,7 +23,6 @@
 
 const path = require('path');
 const { out } = require('../lib/cli');
-const machine = require('../lib/machine/machine');
 const repo = require('../lib/machine/flow-repo');
 const records = require('../lib/tickets/records');
 const links = require('../lib/skills/skill-links');
@@ -47,7 +42,7 @@ actions.sync = {
     try {
       result = repo.syncHome(at, linked);
     } catch (e) {
-      // A refusal, such as another machine being ahead, is the design working.
+      // A refusal, such as the same lines changed on 2 machines, is the design working.
       if (/^(could not|git |committed here)/.test(e.message)) {
         failures.record(at.flow, { source: 'sync', what: 'flow sync', job: 'sync ~/.flow', error: e.message });
       }

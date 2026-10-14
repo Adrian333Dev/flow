@@ -29,15 +29,13 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 - **A need with no tool yet** → anything that already solves it, fully or partly: a library, CLI, service, app, skill, plugin or MCP server. Name what a partial fit leaves unsolved.
 - **A tool already chosen** → its `index.md` → `## Skills` first, then a skill, plugin or MCP server for it, before reading a line of its documentation.
 
-1. **Search these at once:**
-   - **Every skill Flow can reach:** `flow skills ls <pattern>`. Each pattern is a regular expression over the name and the description, and a skill shows when it matches every one. It covers your private skills, the domain-skills repository and every other skill repository Flow has. `flow skills ls --source domain-skills` lists one repository whole.
-   - **skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill.
-2. **A skill `flow skills ls` found in `domain-skills` or your private skills needs no judging.** Turn it on: `flow skills on <name>`. One from any other repository is judged in step 4 first.
-3. **When nothing from step 1 fits, search outward:**
-   - **Skills on GitHub:** `gh search code <word> --filename SKILL.md`
-   - **Plugin marketplaces:** `gh search code <word> --filename marketplace.json`
+1. **Search skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill. A skill already installed is in the session's skill list, which the wiki steps above check first.
+2. **When nothing from step 1 fits, or the need is no skill:**
    - **MCP servers:** `curl 'https://registry.modelcontextprotocol.io/v0/servers?search=<word>'`
    - **The web.** For a chosen tool, name it with the words `skill`, `plugin` and `mcp`.
+3. **Rare, only when steps 1 and 2 found nothing:**
+   - **Skills on GitHub:** `gh search code <word> --filename SKILL.md`
+   - **Plugin marketplaces**, repositories holding `.claude-plugin/marketplace.json`, the file Claude Code reads to list plugins: `gh search code <word> --filename marketplace.json`
    - **Still nothing:** write a level 4 prompt, below, and name ChatGPT for it. It searches GitHub well.
 4. **Judge what comes back by `~/.flow/references/knowledge.md`.** A skill → `## An outside skill`: the review, then used whole or harvested. A service → `## Reach a service through a command`. Pick which to read first:
    - **Rank by publisher first:** the tool's own maker beats anyone else. Then the repo's stars and last push.
@@ -45,10 +43,11 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
    - **Read the top 3** in full before recommending one, and name what the others lose on.
 5. **Write down what you found, including finding nothing**: each skill reviewed into `index.md` → `## Skills`, the rest wherever this question's report goes, under `## Where it goes`.
 
-**Adopting a skill:**
+**Adopting a skill**, only on the user's yes, after step 4's review:
 
-- Used whole → `flow skills add <owner/repo>` clones the repository, then `flow skills on <name>` turns the skill on for this project.
-- Harvested → `flow skills add <owner/repo>` alone, then `## Harvest` on the user's yes.
+- Used whole, and its repository holds `.claude-plugin/marketplace.json` → it is a plugin: `claude plugin marketplace add <owner/repo>`, then `claude plugin install <name>@<marketplace> --scope project`. The default scope, user, loads it in every project. Each other machine runs the install once more, and a third-party marketplace updates only on `claude plugin update <name>@<marketplace>`.
+- Used whole, any other skill → `npx skills add <owner/repo> --skill <name>` installs it into the project's `.claude/skills/`, where git carries it. `-g` installs it into `~/.claude/skills/`, for every project on this machine. `npx skills update` brings it current, and `npx skills remove <name>` removes it.
+- Harvested → read it from a throwaway clone in `tmp/`, then `## Harvest` on the user's yes.
 
 ## How deep to go
 
@@ -179,4 +178,4 @@ Run when the user asks: reports, or an outside skill, into wiki pages.
 
 1. **Read the reports or the skill whole.**
 2. **Write what holds into the wiki pages owning it**, in your own words, by `references/wiki.md`. A passage copied word for word keeps its license notice. Never copy from a skill with no license.
-3. **Mark the source.** A report gets `harvested: <date>` in its header. A skill gets its `## Skills` line marked `harvested at <commit>`, then `flow skills drop <owner/repo>`, unless a skill from that repository is used whole.
+3. **Mark the source.** A report gets `harvested: <date>` in its header. A skill gets its `## Skills` line marked `harvested at <commit>`, then delete the throwaway clone, unless a skill from that repository is used whole.

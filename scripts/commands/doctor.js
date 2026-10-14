@@ -23,8 +23,8 @@
  * ~/.local/bin, so there are none to check).
  *
  * The 2 suites run only with `--tests`. They take about 14 seconds and hold a
- * test that fails now and then on its own, and the setup and update sessions
- * run this command, where a flaky failure reads as a broken install.
+ * test that fails now and then on its own, where a flaky failure would read as
+ * a broken install.
  */
 
 const fs = require('fs');
@@ -32,20 +32,14 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { out } = require('../lib/cli');
-const { FlowError } = require('../lib/error');
 const failures = require('../lib/logs/failures');
 const installed = require('../lib/machine/installed');
 const { markdownFiles } = require('../lib/machine/links');
-const migrations = require('../lib/machine/migrations');
-const originals = require('../lib/machine/originals');
 const prereq = require('../lib/machine/prereq');
 const { projectRoot } = require('../lib/project');
 const links = require('../lib/skills/skill-links');
 const skills = require('../lib/skills/skills');
-const survey = require('../lib/machine/survey');
-const version = require('../lib/machine/version');
 const paths = require('../lib/paths');
-const setup = require('../lib/setup');
 const { git } = require('../lib/git');
 
 /** Typed names util puts there, linked into util's clone at `~/.flow/repos/util/`. */
@@ -208,26 +202,6 @@ function checkUtil() {
 }
 
 /**
- * The problems `flow survey` names: a source listed twice, 2 clones of one
- * repository, the disk and Claude Code's plugin list disagreeing, a dead link,
- * a settings file that is not JSON, a link an older Flow left. Here they
- * surface on any day, not only at setup. Costs about a second, for the list.
- */
-function checkSurvey(at) {
-  const name = 'survey';
-  let found;
-  try {
-    found = survey.machine(at);
-  } catch (e) {
-    if (e instanceof FlowError) return { name, problems: [e.message], summary: '' };
-    throw e;
-  }
-  const unread = found.groups.filter((g) => g.unread).map((g) => g.title);
-  const notes = unread.length ? [`could not read ${unread.join(', ')}: flow survey says why`] : [];
-  return { name, problems: found.problems, notes, summary: `${found.groups.length} sources read, none of the problems flow survey names` };
-}
-
-/**
  * One util command's `--help`, retried up to 3 times while the process never
  * reaches an exit of its own, 200ms apart. Missing util is not retried.
  */
@@ -271,7 +245,7 @@ function checkAgents(at, catalog) {
   // prints. Two skills sharing a name is not a missing link: a link is named
   // for the skill, so one would silently overwrite the other.
   if (catalog.error) problems.push(catalog.error.message.split('\n')[0]);
-  const installable = catalog.skills.filter((s) => s.group !== skills.DRAFTS);
+  const installable = catalog.skills;
 
   const plugin = skills.pluginDir(at.agents);
   const found = inspect(plugin);
@@ -323,7 +297,7 @@ function checkClaude(clone, at) {
   const problems = checkLinks([
     { at: skills.pluginLink(at.claude), target: skills.pluginDir(at.agents), what: `skills/${skills.PLUGIN}` },
     // Without it Claude Code starts every session with none of the rules.
-    { at: path.join(at.claude, 'CLAUDE.md'), target: path.join(at.flow, 'CLAUDE.md'), what: 'CLAUDE.md', fix: "Flow's setup session links it: run flow install" },
+    { at: path.join(at.claude, 'CLAUDE.md'), target: path.join(at.flow, 'CLAUDE.md'), what: 'CLAUDE.md', fix: 'link it to ~/.flow/CLAUDE.md' },
     ...agents.map((f) => ({ at: path.join(at.claude, 'agents', f), target: path.join(clone, 'claude', 'agents', f), what: `agents/${f}` })),
     ...rules.map((f) => ({ at: path.join(at.claude, 'rules', f), target: path.join(clone, 'claude', 'rules', f), what: `rules/${f}` })),
     ...commands.map((f) => ({ at: path.join(at.claude, 'commands', f), target: path.join(clone, 'claude', 'commands', f), what: `commands/${f}` })),
@@ -389,7 +363,7 @@ function checkSettings(clone, claude, catalog) {
   // With no mode set, Claude Code starts a session on a Pro, Max or Team plan
   // in auto mode, and nothing on screen says so. A missing key is a merge that
   // went wrong, so it fails. A different mode is somebody's choice, so it is a
-  // note: docs/safety.md argues the case, and this only reports it.
+  // note: docs/spec/permissions.md argues the case, and this only reports it.
   const notes = [];
   const wantedMode = (template.permissions || {}).defaultMode;
   const liveMode = (live.permissions || {}).defaultMode;
@@ -442,42 +416,8 @@ function checkTests(clone, { bin }) {
 }
 
 /**
- * The record of this machine as it was before Flow, which is the whole of what
- * `flow restore machine` and `flow uninstall` put back.
- *
- * Every line here is a note rather than a problem. A machine with no original
- * works exactly as well as one with it, and nothing can write the original now:
- * the paths it would copy are Flow's own. It changes one thing, and that thing
- * only happens on the way out.
- */
-function checkOriginals(at) {
-  const notes = [];
-  const mine = originals.read(at);
-  if (!mine) {
-    notes.push('this machine has no original, so flow restore machine has nothing to put back ' +
-      'and flow uninstall removes Flow\'s own paths instead of restoring them');
-  } else if (!mine.closed) {
-    notes.push('the machine\'s original is still open, so flow install has not run to the end. ' +
-      'It closes the original on its way out');
-  }
-
-  const projects = originals.list(at).filter((row) => row.manifest.project);
-  for (const row of projects) {
-    if (!fs.existsSync(row.manifest.project)) {
-      notes.push(`the original of ${paths.shorten(row.manifest.project)} names a folder that is gone, so nothing in it can be put back`);
-    }
-  }
-
-  const summary = mine
-    ? `${count(mine.entries.length, 'path', 'paths')} recorded before Flow, ${mine.closed ? 'closed' : 'still open'}` +
-      (projects.length ? `, and ${count(projects.length, 'project', 'projects')} beside it` : '')
-    : 'nothing recorded';
-  return { name: 'originals', problems: [], notes, summary };
-}
-
-/**
  * The open issues: a job that runs with nobody watching, such as a ticket
- * sync or a skill repository's pull, whose last run failed. The next run that
+ * sync, whose last run failed. The next run that
  * works clears one by itself, so each line stays until its cause is fixed.
  */
 function checkIssues(at) {
@@ -510,23 +450,18 @@ function checkSkills(at) {
   }
   const projectLines = root ? links.lines({ home: at.flow, root, levels: ['project'] }) : new Map();
 
-  const sources = groups.filter((g) => g.type === 'source');
-  for (const g of sources.filter((g) => !g.cloned)) {
-    problems.push(`${g.id} is a source and is not cloned, so none of its skills can load: run flow install`);
-  }
-
   const known = new Set(groups.flatMap((g) => [...g.skills.keys()]));
   for (const [name, line] of new Map([...machineLines, ...projectLines])) {
-    if (known.has(name.split(':').pop())) continue;
+    if (known.has(name)) continue;
     const flag = line.level === 'project' ? '' : ` --${line.level}`;
-    problems.push(`"${name}" is switched ${line.state} at ${line.level} level, and no source holds it: flow skills reset ${name}${flag}`);
+    problems.push(`"${name}" is switched ${line.state} at ${line.level} level, and no skill has that name: flow skills reset ${name}${flag}`);
   }
 
   // A line naming an essential skill changes nothing, since that skill is
   // always linked, so it only misleads whoever reads the settings.
   const flow = groups.find((g) => g.type === 'flow');
   for (const [name, line] of new Map([...machineLines, ...projectLines])) {
-    const skill = flow.skills.get(name.split(':').pop());
+    const skill = flow.skills.get(name);
     if (!skill || !links.isEssential(flow, skill)) continue;
     const flag = line.level === 'project' ? '' : ` --${line.level}`;
     problems.push(`"${name}" is switched ${line.state} at ${line.level} level, and it is part of Flow's workflow, ` +
@@ -549,7 +484,7 @@ function checkSkills(at) {
         wanted(path.join(at.claude, 'skills'), skill);
         continue;
       }
-      const line = root && links.lineFor(projectLines, g, skill.name);
+      const line = root && projectLines.get(skill.name);
       if (line && line.state === 'on') {
         projectOn++;
         wanted(path.join(root, '.claude', 'skills'), skill);
@@ -557,121 +492,18 @@ function checkSkills(at) {
     }
   }
 
-  const summary = `${count(sources.filter((g) => g.cloned).length, 'source', 'sources')} cloned, ` +
-    `${count(machineOn, 'skill', 'skills')} on everywhere` +
+  const summary = `${count(machineOn, 'skill', 'skills')} on everywhere` +
     (root ? `, ${projectOn} more for ${path.basename(root)}` : '');
   return { name: 'skills', problems, summary };
 }
 
 /**
- * A run that stopped part-way, reported before anything else.
- *
- * `flow install`, `flow init` and `flow update` each write
- * ~/.flow/run.json before their first step and delete it at their last, so
- * the file on disk means a run never finished. Every check below it is then
- * reading a machine half way through a change, and reads it wrong.
- */
-function checkRun(at) {
-  const found = setup.inspectRun(at);
-  const file = paths.shorten(setup.runFile(at));
-  if (!found) return { name: 'run.json', problems: [], summary: 'no run stopped part-way' };
-  if (found.error) {
-    return { name: 'run.json', problems: [`${file} does not parse, and a run wrote it: ${found.error}`] };
-  }
-
-  const started = found.started ? `, started ${found.started}` : '';
-  const step = found.step ? `after step ${found.step}` : 'before its first step';
-  const inside = found.project ? `in ${paths.shorten(found.project)}, ` : '';
-  const resume = migrations.resume(found);
-  const back = found.project ? `${inside}type flow restore project` : 'type flow restore machine';
-
-  return {
-    name: 'run.json',
-    problems: [
-      `a ${found.type || 'Flow'} run stopped ${step}${started}, so this machine is part way through a change`,
-      `carry on: ${resume}, which reads ${file} and starts at that step`,
-      `go back: ${back} in a shell with no session open, which puts the place back to how it was before Flow`,
-    ],
-  };
-}
-
-/**
- * How far behind the changelog this machine is, and the project standing in.
- *
- * Behind is a note: the machine works, and one command answers it either way.
- * Ahead is a problem, because the only thing that puts a machine above the
- * newest entry is a clone that moved backwards, and then every migration
- * between the two numbers counts as applied and never runs.
- */
-function checkVersion(clone, at) {
-  const problems = [];
-  const notes = [];
-
-  const newest = version.newest(clone);
-  if (newest === null) {
-    return {
-      name: 'version',
-      problems: [`${path.join(clone, 'CHANGELOG.md')} names no entry, so nothing here can say how current this machine is`],
-    };
-  }
-
-  const file = path.join(at.flow, 'version');
-  const mine = version.applied(file);
-  if (mine.state === 'missing') {
-    notes.push(`${paths.shorten(file)} is missing, and the last step of flow install is what stamps it`);
-  } else if (mine.state === 'unreadable') {
-    problems.push(`${paths.shorten(file)} holds "${mine.text}", and it holds one changelog entry number and nothing else`);
-  } else if (mine.number > newest) {
-    problems.push(`this machine is at entry ${mine.number} and the changelog stops at ${newest}, so the clone moved backwards: ` +
-      'every entry between the two counts as applied and never runs');
-  } else if (mine.number < newest) {
-    notes.push(`this machine is at entry ${mine.number}, ${count(newest - mine.number, 'entry', 'entries')} behind the changelog: run flow update`);
-  }
-
-  const parts = [mine.state === 'ok'
-    ? `this machine is at entry ${mine.number}${mine.number === newest ? ', the newest one written' : ''}`
-    : 'this machine carries no entry number'];
-
-  let root = null;
-  try {
-    root = projectRoot();
-  } catch {
-    // Outside a project. The machine's own number is the whole check then.
-  }
-  if (root) {
-    const name = path.basename(root);
-    const theirs = version.applied(path.join(root, '.flow', 'version'));
-    if (theirs.state === 'missing') {
-      notes.push(`${name} has no .flow/version, and the last step of flow init is what stamps it`);
-    } else if (theirs.state === 'unreadable') {
-      problems.push(`${name}/.flow/version holds "${theirs.text}", and it holds one changelog entry number and nothing else`);
-    } else {
-      parts.push(`${name} is at entry ${theirs.number}`);
-      if (mine.state === 'ok' && theirs.number < mine.number) {
-        notes.push(`${name} is at entry ${theirs.number} and this machine is at ${mine.number}, ` +
-          'so the project half of a migration never ran: run flow update inside it');
-      } else if (mine.state === 'ok' && theirs.number > mine.number) {
-        problems.push(`${name} is at entry ${theirs.number}, above this machine's ${mine.number}, ` +
-          'and a project cannot be ahead of the machine it sits on');
-      }
-    }
-  }
-
-  return { name: 'version', problems, notes, summary: parts.join(', ') };
-}
-
-/**
- * The clone: where its submodules sit, and with --updates the newest version
- * tag the remote carries.
+ * The clone: where its submodules sit.
  *
  * Every line is a note. A submodule off its gitlink is somebody mid-work in
- * util or domain-skills, and a clone a few entries behind still runs.
- *
- * `git ls-remote` rather than a fetch, because it writes nothing at all and
- * the tag names are the whole of what is wanted. It is the one check on this
- * page that touches the network, which is why it takes a flag.
+ * util, and the clone still runs.
  */
-function checkClone(clone, { updates }) {
+function checkClone(clone) {
   const notes = [];
   const parts = [];
 
@@ -686,23 +518,9 @@ function checkClone(clone, { updates }) {
     const found = /^([-+U ])\S+ (\S+)/.exec(row);
     if (!found || found[1] === ' ') continue;
     off++;
-    notes.push(`${said[found[1]](found[2])}: flow update updates the submodules`);
+    notes.push(`${said[found[1]](found[2])}: git submodule update --init updates them`);
   }
   parts.push(`${count(rows.length - off, 'submodule', 'submodules')} on the commit this clone points at`);
-
-  if (!updates) {
-    parts.push('the remote is not read without --updates');
-  } else {
-    const tags = git(clone, ['ls-remote', '--tags', 'origin']);
-    const said2 = tags.err.split('\n')[0];
-    const numbers = [...tags.out.matchAll(/refs\/tags\/v(\d+)\b/g)].map((m) => Number(m[1]));
-    const highest = numbers.length ? Math.max(...numbers) : null;
-    const here = version.newest(clone);
-    if (!tags.ok) notes.push(`the remote could not be read, so nothing says whether a newer version exists: ${said2}`);
-    else if (highest === null) notes.push('the remote carries no version tag, so there is nothing to compare this clone against');
-    else if (here !== null && highest > here) notes.push(`the remote is tagged v${highest} and this clone stops at entry ${here}: run flow update`);
-    else parts.push(`the remote's newest tag is v${highest}`);
-  }
 
   return { name: 'clone', problems: [], notes, summary: parts.join(', ') };
 }
@@ -753,19 +571,17 @@ function report(checks) {
 
 actions.doctor = {
   section: 'setup',
-  anywhere: true,
-  summary: 'check that Flow is installed correctly: version, links, PATH, util, skills and hooks',
+  summary: 'check that Flow is installed correctly: links, PATH, util, skills and hooks',
   flags: {
     root: { arg: '<dir>', hidden: true },
     'no-bin': { bool: true, hidden: true },
     tests: { bool: true, hidden: true },
-    updates: { bool: true },
     prereq: { bool: true },
   },
   run({ flags }) {
-    // Step 0 of a setup or a migration, so it runs on a machine Flow is not on
-    // yet: what Flow calls and never installs, and nothing else. Everything
-    // below this line describes an install and would refuse such a machine.
+    // Runs on a machine Flow is not on yet: what Flow calls and never
+    // installs, and nothing else. Everything below this line describes an
+    // install and would refuse such a machine.
     if (flags.prereq) return report(prereq.checks());
 
     const clone = paths.cloneRoot();
@@ -786,20 +602,16 @@ actions.doctor = {
     const catalog = readCatalog();
 
     const checks = [
-      checkRun(at),
       checkIssues(at),
-      checkVersion(clone, at),
-      checkClone(clone, { updates: flags.updates }),
+      checkClone(clone),
       prereq.checkPrograms(),
       prereq.checkClaude(),
       bin ? checkNames(clone, { bin }) : { name: 'names', skipped: '--no-bin' },
       checkUtil(),
-      checkSurvey(at),
       checkAgents(at, catalog),
       checkClaude(clone, at),
       checkSettings(clone, at.claude, catalog),
       checkFlowHome(clone, at.flow),
-      checkOriginals(at),
       checkSkills(at),
       // Hidden from help, so the report never names it when it was left out.
       flags.tests && checkTests(clone, { bin }),

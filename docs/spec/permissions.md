@@ -5,7 +5,7 @@ What runs without asking, what asks, and how a question reaches the user. A sess
 ## Scope
 
 - **In**: the `permissions` block of `home/settings.json`, the guard (`scripts/hooks/guard.js` and `scripts/lib/guard/`), the pane in Flow's mod, the log in `~/.flow/logs/permissions/`, and `flow audit`'s permissions view.
-- **Out**: Flow's mod itself and its layout, in `fw-16` and `fw-14`. The other hooks, in `docs/spec/product.md` → `### Hooks and guardrails`. The locks on `flow restore` and `flow uninstall`, in `docs/spec/setup.md` → `### Undoing`.
+- **Out**: Flow's mod itself and its layout, in `fw-16` and `fw-14`. The other hooks, in `docs/spec/product.md` → `### Hooks and guardrails`.
 
 ## How a call is decided
 
@@ -59,7 +59,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
   - A write to the files that can switch the guard off: `~/.claude/settings.json`, `settings.local.json`, `~/.claude/plugins`, `~/.claude/dev-mods`, `~/.flow/repos/flow/scripts` and a project's `.claude/settings*.json`.
 - `V1` **The guard judges `Edit` and `Write` as well as `Bash` and `Read`.** The matcher in `home/settings.json` widens to `^(Edit|Write|Bash|Read)$`, and `guard.js` gains one branch, the folder rule above. The old limit was a choice in the matcher, not in Claude Code.
 - `V1` **Each ask stays an ask, never a deny.** A deny cannot be overridden and sends the agent into a retry loop.
-- `V1` **The deny list stays**: `sudo`, `su`, `mkfs`, `--dangerously-skip-permissions`, `flow restore`, `flow uninstall`, reads of `~/.ssh` and `~/.aws`, plan mode, and the tools Flow replaces. `AskUserQuestion` leaves it.
+- `V1` **The deny list stays**: `sudo`, `su`, `mkfs`, `--dangerously-skip-permissions`, reads of `~/.ssh` and `~/.aws`, plan mode, and the tools Flow replaces. `AskUserQuestion` leaves it.
 - `V1` **The guard's sentence says what the command does to what**, in plain words, with no hook name: `Deletes 14 files git cannot restore, under src/old`.
 - `V1` **The guard fails closed.** A top-level catch answers an ask with `The guard failed, so this command asks first.` and never lets a call through on an error. A safety net that fails open is the worst case.
 - `V1` **The guard is the only judge.** Why: a mod that throws is skipped, and the guard would vanish with it while `Bash` is allowed outright. A command hook has no such gap, and `npm test` covers it. Overturned by: a way to make a failing mod fall back to refusing.

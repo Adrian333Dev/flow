@@ -116,7 +116,6 @@ function line(data, withContext) {
 const actions = {};
 
 actions['status-line'] = {
-  anywhere: true,
   summary: 'this session\'s ticket and its status, for Claude Code\'s status line; --context adds its size',
   flags: { context: { bool: true } },
   run({ flags }) {

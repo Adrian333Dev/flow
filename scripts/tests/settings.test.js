@@ -10,7 +10,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { SCRATCH, run, setUp } = require('./helpers/scratch');
+const { SCRATCH, run } = require('./helpers/scratch');
 
 function place(name) {
   const dir = path.join(SCRATCH, name);
@@ -19,7 +19,7 @@ function place(name) {
   const home = path.join(user, '.flow');
   const shop = path.join(user, 'code', 'shop');
   fs.mkdirSync(shop, { recursive: true });
-  setUp(home);
+  fs.mkdirSync(home, { recursive: true });
   assert.strictEqual(spawnSync('git', ['init', '-q'], { cwd: shop }).status, 0);
 
   const env = {
@@ -83,6 +83,6 @@ test('a setting with no folder list, and a word naming no setting, each refuse a
   assert.match(folder.stderr, /reminder has no per-folder switch\. Add --global to switch it everywhere\./);
 
   const unknown = at.flow('off', 'reminders', '--global');
-  assert.match(unknown.stderr, /no setting "reminders", one of: reminder, sessionCheck, setupReminder, skillsAutoUpdate, wrapUp/);
+  assert.match(unknown.stderr, /no setting "reminders", one of: reminder, sessionCheck, setupReminder, wrapUp/);
   assert.ok(!fs.existsSync(path.join(at.home, 'settings.json')), 'nothing written');
 });

@@ -12,7 +12,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { project, run, flow, gitRepo, bareRepo, skillFile, setUp, pathWith, REPO } = require('./helpers/scratch');
+const { project, run, flow, gitRepo, bareRepo, skillFile, pathWith, REPO } = require('./helpers/scratch');
 const logs = require('../lib/logs/logs');
 const failures = require('../lib/logs/failures');
 
@@ -31,30 +31,6 @@ function paths(root) {
     skill: (name) => path.join(plugin, 'skills', name),
   };
 }
-
-// The one behaviour that needs a skill on disk: a group folder is the whole
-// mechanism, so faking it anywhere else would test nothing.
-test('a skill in drafts/ does not install', () => {
-  const dir = project('install-drafts');
-  const root = path.join(dir, 'root');
-  const at = paths(root);
-  const draft = path.join(REPO, 'skills', 'drafts', 'test-only-draft');
-
-  fs.mkdirSync(draft, { recursive: true });
-  fs.writeFileSync(path.join(draft, 'SKILL.md'),
-    '---\nname: test-only-draft\ndescription: A draft written by the test suite.\n---\n');
-  try {
-    flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
-    assert.ok(!fs.existsSync(at.skill('test-only-draft')), 'a draft is skipped by the linker');
-    assert.ok(fs.existsSync(at.skill('groundwork')), 'every other group still links');
-
-    flow(dir, ['install', '--root', root, '--no-bin', '--drafts'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
-    assert.ok(fs.existsSync(at.skill('test-only-draft')),
-      '--drafts links it, which is what the scratch session passes');
-  } finally {
-    fs.rmSync(draft, { recursive: true, force: true });
-  }
-});
 
 test('install builds a whole machine, is idempotent, and prunes a dead link', () => {
   const dir = project('install-home');
@@ -88,19 +64,14 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.strictEqual(linkTarget(path.join(at.flowHome, 'scripts')), path.join(REPO, 'scripts'));
   assert.strictEqual(linkTarget(path.join(at.flowHome, 'references')), path.join(REPO, 'references'));
   assert.strictEqual(linkTarget(path.join(at.flowHome, 'docs')), path.join(REPO, 'docs'),
-    '/flow:help reads a manual page through this link');
+    'a session reads a manual page through this link');
   assert.ok(!fs.existsSync(path.join(at.claude, 'scripts')), 'scripts never land under ~/.claude');
   assert.ok(!fs.lstatSync(path.join(at.claude, 'commands')).isSymbolicLink(), 'commands/ holds other tools\' files too');
-  assert.strictEqual(linkTarget(path.join(at.claude, 'commands', 'capture.md')), path.join(REPO, 'claude', 'commands', 'capture.md'),
-    'a command links per file, typed /capture with no prefix');
 
-  // The rule file and the link to it are /flow:setup-machine's.
-  // Install leaves both alone and says which command finishes the machine.
+  // Install writes no rule file and no link to one.
   assert.ok(!fs.existsSync(path.join(at.flowHome, 'CLAUDE.md')), 'no rule file yet');
   assert.ok(!fs.existsSync(path.join(at.claude, 'CLAUDE.md')), 'no link to it yet');
   assert.ok(!fs.existsSync(path.join(root, '.codex')), 'nothing under ~/.codex at all');
-  // A scratch root hands the rest to flow install, which has its own tests.
-  assert.match(first.stdout, /One step left: setting up this machine\. Start it from a terminal:\n\n {2}flow install --root /);
   assert.match(first.stdout, /^Flow is installed: \d+ skills/m, 'a summary comes first');
   assert.doesNotMatch(first.stdout, /^linked: /m, 'every link goes to the log, never the screen');
   assert.match(fs.readFileSync(path.join(at.flowHome, 'logs', 'install.log'), 'utf8'), /^linked: .*skills\/flow\/skills\/groundwork$/m);
@@ -124,41 +95,6 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.strictEqual(second.code, 0, second.stderr);
   assert.match(second.stdout, /unlinked \(gone\): .*\.agents\/skills\/flow\/skills\/write-tickets/);
   assert.ok(fs.existsSync(at.skill('groundwork')), 'still linked after a re-run');
-});
-
-test('install writes the machine as it was before Flow, once', () => {
-  const dir = project('install-original');
-  const root = path.join(dir, 'root');
-  const at = paths(root);
-
-  // One path that was already there, so the original holds a real copy beside
-  // its absent entries.
-  fs.mkdirSync(path.join(at.claude, 'agents'), { recursive: true });
-  fs.writeFileSync(path.join(at.claude, 'agents', 'mine.md'), 'my own agent\n');
-
-  const first = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
-  assert.strictEqual(first.code, 0, first.stderr);
-  assert.match(first.stdout, /wrote: .*originals\/machine, this machine as it was before Flow/);
-
-  const file = path.join(at.flowHome, 'originals', 'machine', 'manifest.json');
-  const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
-  assert.strictEqual(manifest.place, 'machine');
-  assert.strictEqual(manifest.project, null);
-  assert.strictEqual(manifest.closed, false, '/flow:setup-machine closes it, not install');
-
-  // ~/.agents did not exist, so the whole folder is recorded absent and a
-  // restore takes it away again. Nothing under ~/.flow is ever recorded.
-  const byPath = Object.fromEntries(manifest.entries.map((e) => [e.path, e.type]));
-  assert.strictEqual(byPath[at.agents], 'absent');
-  assert.strictEqual(byPath[path.join(at.claude, 'skills')], 'absent');
-  assert.ok(!Object.keys(byPath).some((p) => p.startsWith(at.flowHome)), 'nothing under ~/.flow/');
-
-  // The second run finds Flow's own links in place. Recording them would make
-  // Flow the state to go back to.
-  const second = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
-  assert.strictEqual(second.code, 0, second.stderr);
-  assert.doesNotMatch(second.stdout, /this machine as it was before Flow/);
-  assert.deepStrictEqual(JSON.parse(fs.readFileSync(file, 'utf8')), manifest, 'nothing was added');
 });
 
 test('a name that has left the BIN map is unlinked, and another tool keeps its own', () => {
@@ -188,8 +124,7 @@ test('install never touches the rule file or either way in to it', () => {
   const at = paths(root);
   const claudeRules = path.join(at.claude, 'CLAUDE.md');
 
-  // Rules of the user's own, in the file /flow:setup-machine will later ask
-  // about. Install reads none of it and writes none of it.
+  // Rules of the user's own. Install reads none of it and writes none of it.
   fs.mkdirSync(at.claude, { recursive: true });
   fs.writeFileSync(claudeRules, 'My own rules.\n');
 
@@ -220,7 +155,7 @@ test('the flags that took one folder each are gone', () => {
   assert.deepStrictEqual(fs.readdirSync(dir).sort(), before, 'nothing was written before the refusal');
 });
 
-test('install clones what is missing, links a skill switched on, and never clones twice', () => {
+test('install clones util when it is missing, links a private skill switched on, and never clones twice', () => {
   const dir = project('install-clones');
   const root = path.join(dir, 'root');
   const at = paths(root);
@@ -234,7 +169,9 @@ test('install clones what is missing, links a skill switched on, and never clone
       "const bin = process.argv[process.argv.indexOf('--bin') + 1];\n" +
       "fs.mkdirSync(bin, { recursive: true }); fs.symlinkSync(__filename, path.join(bin, 'util'));\n",
   });
-  gitRepo(path.join(remote, 'Adrian333Dev', 'domain-skills'), { 'react/SKILL.md': skillFile('react') });
+  fs.mkdirSync(at.flowHome, { recursive: true });
+  fs.mkdirSync(path.join(at.flowHome, 'private-skills', 'react'), { recursive: true });
+  fs.writeFileSync(path.join(at.flowHome, 'private-skills', 'react', 'SKILL.md'), skillFile('react'));
 
   const env = { FLOW_GIT_BASE: `${remote}${path.sep}` };
   const remoteRepo = bareRepo('install-clones');
@@ -242,28 +179,22 @@ test('install clones what is missing, links a skill switched on, and never clone
 
   const first = install();
   assert.strictEqual(first.code, 0, first.stderr);
-  for (const id of ['Adrian333Dev/util', 'Adrian333Dev/domain-skills']) {
-    assert.match(first.stdout, new RegExp(`cloned: ${id} into `));
-  }
-  assert.ok(fs.existsSync(path.join(at.flowHome, 'repos', 'sources', 'Adrian333Dev_domain-skills', 'react', 'SKILL.md')));
+  assert.match(first.stdout, /cloned: Adrian333Dev\/util into /);
   assert.ok(fs.lstatSync(path.join(bin, 'util')).isSymbolicLink(), 'util installed its own name');
-  assert.ok(!fs.existsSync(path.join(at.claude, 'skills', 'react')), 'a source skill starts off');
+  assert.ok(!fs.existsSync(path.join(at.claude, 'skills', 'react')), 'a private skill starts off');
 
   fs.writeFileSync(path.join(at.flowHome, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
   fs.rmSync(path.join(bin, 'util'));
-  setUp(at.flowHome);
 
   const second = install();
   assert.strictEqual(second.code, 0, second.stderr);
   assert.doesNotMatch(second.stdout, /cloned:/, 'nothing is cloned twice');
   assert.strictEqual(linkTarget(path.join(at.claude, 'skills', 'react')),
-    path.join(at.flowHome, 'repos', 'sources', 'Adrian333Dev_domain-skills', 'react'));
-  assert.match(second.stdout, /Flow is already set up on this machine, so there is nothing more to do\./);
-  assert.doesNotMatch(second.stdout, /One step left/);
+    path.join(at.flowHome, 'private-skills', 'react'));
 
   const types = fs.readFileSync(logs.historyFile(at.flowHome), 'utf8').trim().split('\n')
     .map((l) => JSON.parse(l).type);
-  assert.deepStrictEqual(types, ['clone', 'clone', 'install', 'install']);
+  assert.deepStrictEqual(types, ['clone', 'install', 'install']);
 });
 
 test('install refuses when ~/.flow/repos/flow is another clone', () => {

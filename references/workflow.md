@@ -5,7 +5,6 @@ Every place in the workflow and the routes between them. For how to do a step, r
 ## The pieces
 
 - **Ticket**: one unit of committed work, and the only thing that ever gets built. On disk, a folder under `.flow/tickets/` holding `ticket.md` (what to do, why, where it stands) beside whatever the work produces. Its status, parent and dependencies live in that file's frontmatter, written only by `flow`.
-- **Migration**: a change to where Flow and the harnesses keep their files, written only by `flow install`, `flow init` and `flow update`, carried out by a script after one yes. `flow restore` puts back each path ticked in its form as it was before Flow first touched it: the only undo. A ticket is the project's own work, undone with git. Real project work a project setup finds, such as an old `docs/` full of plans, becomes tickets: a migration does only what one yes covers.
 - **Groundwork**: a list of open branches walked until each is resolved. It produces tickets, a spec, a design, or nothing.
 - **Design**: the shape of one solution, its parts and how they talk. Written in one pass when groundwork closes, beside its map, or in `docs/spec/` when it outlives the build. Only earned when the answer was a structure.
 - **Plan**: the numbered steps that build one ticket, in `plan.md` inside that ticket's folder. Written at pickup. Each step's detail fills in as the build reaches it.

@@ -10,49 +10,35 @@
  * Everything after that is `flow install`, and re-running it is how a new
  * skill, a renamed command or a moved clone reaches this machine.
  *
- * This is half of putting Flow on a machine: links into the clone, which
- * `lib/machine/installed.js` lists, and the clones Flow reads, which `lib/skills/repos.js`
- * lists. `lib/machine/machine.js` says which folder holds what. The other half is
- * the setup session this opens at the end: a Claude Code session that
- * writes the rule file and the link to it, merges Flow's hooks into
- * `~/.claude/settings.json`, and closes the original. A rule file written here
- * would be the template with nothing of the user in it, so this writes none.
- * `lib/setup.js` says how the session opens.
+ * It makes links into the clone, which `lib/machine/installed.js` lists, the
+ * clones Flow reads, which `lib/skills/repos.js` lists, and the Flow home. It
+ * writes no rule file, no link to one and nothing into
+ * `~/.claude/settings.json`.
  *
  * Every clone lives in `~/.flow/repos/`. Flow's own is `repos/flow`, a link
- * where this clone sits somewhere else. util and every skill repository in
- * `sources` are cloned when missing, and a clone that fails is a warning:
- * running install again changes nothing that exists, so it is always the fix.
- * util gets its names through its own `util install`. `--no-clone` skips
- * every clone, for the tests.
- *
- * On a machine where setup already finished, `~/.flow/version` exists and the
- * run ends without sending the user to setup again.
- *
- * Before it creates anything, the first run writes the machine's original: a
- * copy of every path it is about to make, as that path was before Flow.
- * `flow restore machine` puts all of them back, `~/.local/bin/flow` included.
+ * where this clone sits somewhere else. util is cloned when missing, and a
+ * clone that fails is a warning: running install again changes nothing that
+ * exists, so it is always the fix. util gets its names through its own
+ * `util install`. `--no-clone` skips every clone, for the tests.
  *
  * It checks before it makes anything. `check()` signs `gh` in where it is
  * not, finds the Flow home's repository, `<login>/flow-home` on GitHub, reads
  * what the other machines left in it, and asks this machine's name, the one
- * question. A check that fails stops the install with nothing linked. A Flow
- * home on another release moves this clone to that release first, and the
- * install runs again from it. Then the links, and `connectHome()`: on the
- * first machine the repository is made and started, and on every machine
- * after it the other machines' `~/.flow/` comes down before setup starts.
+ * question. A check that fails stops the install with nothing linked. Then
+ * the links, and `connectHome()`: on the first machine the repository is made
+ * and started, and on every machine after it the other machines' `~/.flow/`
+ * comes down.
  *
  * The screen gets a summary and every line that changed or failed. The whole
  * run goes to `~/.flow/logs/install.log`, and a line that failed also to the
  * failure log.
  *
  * `--root <dir>` puts the whole install under `<dir>` in place of the home
- * folder, `~/.local/bin` included. The tests and lab/scripts/try.sh use it to
- * build a machine inside tmp/.
+ * folder, `~/.local/bin` included. The tests use it to build a machine inside
+ * tmp/.
  *
- * Which skills link is read off the tree: every group except `drafts/`, which
- * `--drafts` adds back for the scratch session. There is no list to keep in
- * step, so a skill is typeable the moment its folder exists.
+ * Which skills link is read off the tree: every group. There is no list to
+ * keep in step, so a skill is typeable the moment its folder exists.
  *
  * The plugin manifest is what makes every skill typed as `/flow:groundwork`
  * rather than `/groundwork`. Both harnesses read it, which is why the clone
@@ -71,14 +57,10 @@ const failures = require('../lib/logs/failures');
 const logs = require('../lib/logs/logs');
 const installed = require('../lib/machine/installed');
 const { link, pruneDead, pruneUnlisted, markdownFiles } = require('../lib/machine/links');
-const machine = require('../lib/machine/machine');
 const machineName = require('../lib/machine/machine-name');
-const originals = require('../lib/machine/originals');
 const repos = require('../lib/skills/repos');
 const links = require('../lib/skills/skill-links');
 const skills = require('../lib/skills/skills');
-const version = require('../lib/machine/version');
-const setup = require('../lib/setup');
 const paths = require('../lib/paths');
 const { git } = require('../lib/git');
 
@@ -87,31 +69,22 @@ const actions = {};
 
 actions.install = {
   section: 'setup',
-  anywhere: true,
-  summary: 'put Flow on this machine: the links, the clones, then the setup session; --check and --finish are that session\'s own steps',
+  summary: 'put Flow on this machine: the links, the clones and the Flow home',
   flags: {
-    ...setup.STEP_FLAGS,
     root: { arg: '<dir>', hidden: true },
     'no-bin': { bool: true, hidden: true },
     'no-clone': { bool: true, hidden: true },
-    drafts: { bool: true, hidden: true },
   },
-  run({ positional, flags }) {
-    const word = setup.stepOf(positional, flags, 'flow install [--check|--finish]');
-    if (word === 'check') return setup.check(paths.folders(flags.root));
-    if (word === 'finish') return setup.finish(paths.folders(flags.root));
-
+  run({ flags }) {
     const clone = paths.cloneRoot();
     const at = paths.folders(flags.root);
-    const newest = version.newest(clone);
     const done = [];
     const bin = flags['no-bin'] ? null : path.join(at.base, '.local', 'bin');
-    const setUp = fs.existsSync(path.join(at.flow, 'version'));
 
     // Refused before anything is made: 2 clones would each think the other's
     // skills and scripts were their own.
     const flowClone = repos.flowClone(at.flow);
-    const found = originals.lstat(flowClone);
+    const found = lstat(flowClone);
     if (found && found.isSymbolicLink() && !fs.existsSync(flowClone)) fs.unlinkSync(flowClone);
     const already = fs.existsSync(flowClone) ? realpath(flowClone) : null;
     if (already && already !== realpath(clone)) {
@@ -119,22 +92,10 @@ actions.install = {
         'Run flow install from that clone, or remove the link first.');
     }
 
-    const checked = check(at, newest);
-    if (checked.switchTo) return switchAndRerun(clone, flowClone, checked.switchTo, newest);
+    const checked = check(at);
     if (checked.stop) {
       out(`stopped: ${checked.stop}`);
       return 1;
-    }
-
-    // Before anything is created, and only on a machine Flow was never on. A
-    // later run would copy Flow's own links into the original and call them the
-    // state to go back to. `~/.flow/scripts` is the tell: this command is the
-    // only thing that makes it, and it makes it on every run.
-    const fresh = !originals.lstat(path.join(at.flow, 'scripts'));
-    if (fresh && !originals.read(at)) {
-      originals.start(at);
-      for (const p of installed.paths(clone, at, { bin })) originals.record(at, null, p);
-      done.push(`wrote: ${show(originals.dir(at))}, this machine as it was before Flow`);
     }
 
     // Per item, never per folder: all four hold entries Flow does not own.
@@ -165,7 +126,7 @@ actions.install = {
     }
     // The essential skills only: a dev skill starts off, and apply below links
     // one switched on.
-    for (const skill of skills.installable({ drafts: flags.drafts }).filter(skills.essential)) {
+    for (const skill of skills.installable().filter(skills.essential)) {
       link(skill.dir, path.join(linkDir, skill.name));
       done.push(`linked: ${show(path.join(linkDir, skill.name))}`);
     }
@@ -187,14 +148,8 @@ actions.install = {
       done.push(`linked: ${show(path.join(at.claude, 'rules', file))}`);
     }
 
-    // A command is typed by its file name alone, /capture, with no plugin prefix.
-    for (const file of markdownFiles(path.join(clone, 'claude', 'commands'))) {
-      link(path.join(clone, 'claude', 'commands', file), path.join(at.claude, 'commands', file));
-      done.push(`linked: ${show(path.join(at.claude, 'commands', file))}`);
-    }
-
     // Named by path rather than typed: settings.json points hooks at
-    // ~/.flow/scripts, a skill reads ~/.flow/references, and /flow:help reads
+    // ~/.flow/scripts, a skill reads ~/.flow/references, and a session reads
     // ~/.flow/docs. Claude Code reads none of the 3, which is why they sit
     // outside ~/.claude. A link rather than a copy, so a page edited in the
     // clone is the page a session reads.
@@ -237,9 +192,9 @@ actions.install = {
     done.push(...applied.changed);
     done.push(...applied.problems);
 
-    const asked = connectHome(at, checked, newest);
+    const asked = connectHome(at, checked);
     done.push(...asked.lines);
-    // Another machine's settings came down with its sources and its skills.
+    // Another machine's settings came down with its skills.
     if (asked.joined) {
       if (!flags['no-clone']) done.push(...cloneMissing(at));
       const joined = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
@@ -256,8 +211,8 @@ actions.install = {
     for (const line of done.filter((l) => /^(could not|not sent:)/.test(l))) {
       failures.record(at.flow, { source: 'install', what: 'flow install', error: line });
     }
-    const count = skills.installable({ drafts: flags.drafts }).filter(skills.essential).length;
-    const shown = done.filter((line) => !/^(linked|wrote): /.test(line) || /originals/.test(line));
+    const count = skills.installable().filter(skills.essential).length;
+    const shown = done.filter((line) => !/^(linked|wrote): /.test(line));
     out([
       `Flow is installed: ${count} skills, each typed under the plugin name, as /${skills.PLUGIN}:groundwork.`,
       ...shown,
@@ -268,23 +223,18 @@ actions.install = {
       out(`\n${show(bin)} is not on your PATH, so flow and util do not run by name yet. Add it, then open a new terminal.`);
     }
 
-    if (!asked.ok) return 1;
-    if (setUp) {
-      out('\nFlow is already set up on this machine, so there is nothing more to do.');
-      return 0;
-    }
-    // A scratch root, or a test's install skipping the clones or the links,
-    // can leave what the session's check refuses. The next full run opens it.
-    if ((flags.root || flags['no-clone'] || flags['no-bin']) && setup.readiness(at).length) {
-      out(`\nOne step left: setting up this machine. Start it from a terminal:\n\n  flow install${flags.root ? ` --root ${flags.root}` : ''}`);
-      return 0;
-    }
-    // A scratch root is never the machine a session would read, so there
-    // the session's command line is printed rather than run.
-    out('');
-    return setup.start(at, clone, flags.root);
+    return asked.ok ? 0 : 1;
   },
 };
+
+/** What `lstat` says about a path, or null where there is none. */
+function lstat(p) {
+  try {
+    return fs.lstatSync(p);
+  } catch {
+    return null;
+  }
+}
 
 /** True when `dir` is one of the folders on PATH. */
 function onPath(dir) {
@@ -301,18 +251,12 @@ function realpath(p) {
 }
 
 /**
- * Clone util and every source missing from `~/.flow/repos/`.
+ * Clone util if it is missing from `~/.flow/repos/`.
  * A failure is a line of the report, never a stop: every link is already made.
  */
 function cloneMissing(at) {
   const done = [];
-  const wanted = [
-    ...Object.entries(repos.OWN).map(([name, entry]) => ({ source: repos.parse(entry), to: repos.ownClone(at.flow, name) })),
-    ...repos.sources(at.flow).map((entry) => {
-      const source = repos.parse(entry);
-      return { source, to: repos.sourceDir(at.flow, source) };
-    }),
-  ];
+  const wanted = Object.entries(repos.OWN).map(([name, entry]) => ({ source: repos.parse(entry), to: repos.ownClone(at.flow, name) }));
   for (const { source, to } of wanted) {
     if (fs.existsSync(to)) continue;
     const cloned = repos.clone(source.url, to);
@@ -346,8 +290,7 @@ function installUtil(at, bin) {
  * name. Writes nothing but git's own copy of the repository's history, under
  * `~/.flow/.git`.
  *
- * Returns `{ stop }` with why it cannot go on, `{ switchTo }` where the Flow
- * home is on another release, or what `connectHome()` acts on.
+ * Returns `{ stop }` with why it cannot go on, or what `connectHome()` acts on.
  *
  * The repository has no skip. `~/.flow/` holds the rules, the notes and the
  * study cases, and the repository is both their backup and how another
@@ -355,7 +298,7 @@ function installUtil(at, bin) {
  * `<login>/flow-home`, so nothing about it is asked. A repository already set
  * is kept.
  */
-function check(at, newest) {
+function check(at) {
   const lines = [];
   const terminal = confirm.hasTerminal();
   if (!process.env.FLOW_HOME_REMOTE) {
@@ -375,11 +318,10 @@ function check(at, newest) {
         lines.push(`repository: ${located.said}`);
       } else make = located;
     }
-    found = make ? { state: 'first', taken: [] } : flowRepo.inspect(at, newest);
+    found = make ? { state: 'first', taken: [] } : flowRepo.inspect(at);
   } catch (e) {
     return { stop: e.message };
   }
-  if (found.state === 'version') return { switchTo: found };
 
   const kept = flowRepo.machineName(at);
   if (kept) lines.push(`kept: this machine is called ${kept}`);
@@ -412,7 +354,7 @@ function askName(taken, terminal) {
  * Returns the lines to print, whether the Flow home is in place, and
  * `joined` once another machine's files came down.
  */
-function connectHome(at, checked, newest) {
+function connectHome(at, checked) {
   const lines = [...checked.lines];
   if (checked.name) {
     const why = flowRepo.saveName(checked.name);
@@ -431,7 +373,7 @@ function connectHome(at, checked, newest) {
     }
     flowRepo.writeIgnore(at);
     if (state === 'first') {
-      flowRepo.seed(at, newest);
+      flowRepo.seed(at);
       lines.push('started: your Flow home, sent up so your other machines join it');
     }
     if (state !== 'join') return { lines, ok: true };
@@ -442,7 +384,7 @@ function connectHome(at, checked, newest) {
   const { files, from } = checked.found;
   const names = from.length ? ` from ${from.join(', ')}` : '';
   lines.push(`joined: ${files} file${files === 1 ? '' : 's'}${names}, your Flow home as your other machine last sent it`);
-  const failed = flowRepo.claim(at, newest);
+  const failed = flowRepo.claim(at);
   if (failed) lines.push(`not sent: this machine's record, which the next flow sync sends. ${failed}`);
   return { lines, ok: true, joined: true };
 }
@@ -476,29 +418,6 @@ function signIn(terminal) {
   }
   const git = spawnSync('gh', ['auth', 'setup-git'], { encoding: 'utf8' });
   return git.status === 0 ? null : `gh could not set git up to use its sign-in: ${(git.stderr || '').trim()}`;
-}
-
-/**
- * Move the clone `install.sh` made to the release the Flow home is on, then
- * run the install again from it. Nothing is linked yet, so the second run is
- * the only one that links. A clone somebody works in is never moved: that is
- * any clone outside `~/.flow/repos/flow`, where `install.sh` puts its own, and
- * the install stops and says what to do.
- */
-function switchAndRerun(clone, flowClone, wanted, newest) {
-  const place = `your Flow home is on changelog entry ${wanted.home}, since ${wanted.name} is on it, and this Flow is on ${newest}`;
-  if (realpath(clone) !== path.resolve(flowClone)) {
-    out(`stopped: ${place}. Switch ${clone} to v${wanted.home}, then run flow install again.`);
-    return 1;
-  }
-  const why = flowRepo.switchClone(clone, wanted.home);
-  if (why) {
-    out(`stopped: ${place}, and ${why}.`);
-    return 1;
-  }
-  out(`switched: Flow to v${wanted.home}, since ${place}. Installing again from it.\n`);
-  const again = spawnSync(process.execPath, [path.join(clone, 'scripts', 'flow.js'), ...process.argv.slice(2)], { stdio: 'inherit' });
-  return again.status === null ? 1 : again.status;
 }
 
 module.exports = actions;

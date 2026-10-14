@@ -7,8 +7,8 @@
  * user's GitHub account. The name never changes, so every machine finds it
  * through `gh` without asking, and a second repository made by mistake cannot
  * happen: GitHub refuses the name, and install joins the one already there.
- * `FLOW_HOME_REMOTE` stands in for GitHub in the tests and in
- * lab/scripts/try.sh, and is never a way to pick another repository.
+ * `FLOW_HOME_REMOTE` stands in for GitHub in the tests, and is never a way to
+ * pick another repository.
  *
  * Everything of the user's that should travel lives in `~/.flow/` already: the
  * rules and profile, the workflow notes, the study cases, the private skills,
@@ -18,25 +18,13 @@
  * What describes this machine alone never travels, and `IGNORED` below is that
  * list:
  *
- *   version       the changelog entry this machine reached. Another machine's
- *                 number here claims migrations that never ran
- *   run.json      a half-finished run on this machine
- *   setup-prompt.md, setup-settings.json, migrate-prompt.md   what a setup
- *                 or an update session was handed, rebuilt each run
- *   originals/    this machine's disk as it was before Flow. Putting another
- *                 machine's back would write its files over this one's
- *   restore.md    the form `flow restore` and `flow uninstall` hand over,
- *                 about this machine's paths, deleted once read
  *   settings.local.json   every setting holding a path, the clone included
  *   scripts, references, docs   links into this machine's clone, which sits
  *                 somewhere else on the other machine
- *   repos/        this machine's clones: Flow, util and every source.
- *                 `sources` travels, and `flow install` clones them
+ *   repos/        this machine's clones: Flow and util
  *   logs/         what happened on this machine: the last install, every
  *                 change Flow made, every failure, every rule check
- *   skills-update.*   what this machine's source clones are behind by, and
- *                 the lock the job that reads it holds
- *   records-sync.json   when this machine last sent each project's tickets
+ *   records-sync.json  when this machine last sent each project's tickets
  *                 and this folder, which paces the Stop hook's sends
  *   status-line.json   which ticket each of this machine's sessions works on,
  *                 and how far `flow status-line` read its transcript
@@ -45,26 +33,27 @@
  *   a wiki tool's downloads   pages fetched once per machine
  *   node_modules/   what a prototype in a ticket installed, fetched again
  *                 wherever it runs
+ *   version, run.json, setup-prompt.md, setup-settings.json, migrate-prompt.md,
+ *   originals/, restore.md, skills-update.json, skills-update.lock   retired:
+ *                 the setup sessions' files, the version stamp and the skill
+ *                 repositories' pull. They stay on disk until the user deletes
+ *                 them, and without a line here `flow sync` would send them
  *
  * Each machine keeps one record in the repository, `machines/<name>.json`:
- * its name, the day it joined, and the changelog entry it is on. `flow install`
- * sends it up the moment the machine joins, so a name is claimed before
- * another machine can be offered it. The highest
- * entry among them is the entry the Flow home is on. A machine below it has
- * not run the migration another machine already ran on its own copy, so it
- * neither sends nor fetches until `flow update` brings it level.
+ * its name and the day it joined. `flow install` sends it up the moment the
+ * machine joins, so a name is claimed before another machine can be offered
+ * it.
  *
  * A commit is named for the machine that made it, `pc-wsl: 2 files`, so a
  * line in a note can be traced to where it was written.
  *
  * `README.md` warns whoever opens the repository on GitHub. The first machine
- * sends it with the first commit, and `flow update` rewrites it.
+ * sends it with the first commit.
  *
  * `flow sync` can be typed, and `flow install` connects the repository once.
  * It also runs by itself, from scripts/jobs/records-sync.js: after a status move on
  * a ticket here, after a reply once 30 minutes have passed, and when a session
- * ends. `skills-pull.js` fetches it too, so a session can say another machine
- * moved ahead.
+ * ends.
  */
 
 const fs = require('fs');
@@ -73,7 +62,6 @@ const path = require('path');
 const { FlowError } = require('../error');
 const { git, gh, DURABLE } = require('../git');
 const tickets = require('../tickets/records');
-const version = require('./version');
 
 /** The repository's name on the user's GitHub account. Never configurable. */
 const NAME = 'flow-home';
@@ -229,31 +217,12 @@ function fetch(at) {
   return true;
 }
 
-/** How long a fetch counts as fresh, the same 6 hours the skill repositories wait. */
-const FETCH_HOURS = 6;
-
-/**
- * Whether the background job should fetch: a repository with a remote, last
- * fetched more than 6 hours ago. What it fetches is what `ahead()` reads.
- */
-function fetchDue(at) {
-  if (!connected(at)) return false;
-  try {
-    return Date.now() - fs.statSync(path.join(at.flow, '.git', 'FETCH_HEAD')).mtimeMs > FETCH_HOURS * 60 * 60 * 1000;
-  } catch {
-    return true;
-  }
-}
-
 // ------------------------------------------------------ the machine records
 
 const recordFile = (at, name) => path.join(at.flow, 'machines', `${name}.json`);
 
-/**
- * Write this machine's record: the entry it is on now. The day it joined is
- * kept from the record already there.
- */
-function writeRecord(at, number) {
+/** Write this machine's record: its name and the day it joined, kept from the record already there. */
+function writeRecord(at) {
   const name = nameOf(at);
   const file = recordFile(at, name);
   let joined = new Date().toISOString().slice(0, 10);
@@ -263,7 +232,7 @@ function writeRecord(at, number) {
     // No record yet: this machine joins today.
   }
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify({ name, joined, flowVersion: number }, null, 2) + '\n');
+  fs.writeFileSync(file, JSON.stringify({ name, joined }, null, 2) + '\n');
   return file;
 }
 
@@ -280,27 +249,12 @@ function records(at, ref) {
     const shown = git(at.flow, ['show', `${ref}:machines/${file}`]);
     try {
       const record = JSON.parse(shown.out);
-      if (Number.isInteger(record.flowVersion)) found.push({ name: record.name || file.slice(0, -5), number: record.flowVersion });
+      found.push({ name: record.name || file.slice(0, -5) });
     } catch {
       // Not a record Flow wrote.
     }
   }
   return found;
-}
-
-/** The record with the highest entry, which is the entry the Flow home is on, or null. */
-function highest(at, ref) {
-  return records(at, ref).reduce((best, r) => (!best || r.number > best.number ? r : best), null);
-}
-
-/**
- * The machine ahead of this one, from what was last fetched: `{ name, number }`
- * or null. Reads no network, so the session check can ask it.
- */
-function ahead(at, mine) {
-  if (!isRepo(at) || !git(at.flow, ['rev-parse', '-q', '--verify', 'origin/main']).ok) return null;
-  const top = highest(at, 'origin/main');
-  return top && mine !== null && top.number > mine ? top : null;
 }
 
 // ------------------------------------------------------------ joining
@@ -313,9 +267,6 @@ const hasHead = (at) => git(at.flow, ['rev-parse', '-q', '--verify', 'HEAD']).ok
  *
  *   { state: 'kept', taken }      this machine has committed before
  *   { state: 'first', taken }     the repository holds nothing yet
- *   { state: 'version', home, name }   the Flow home is on another entry
- *                                 than this clone, which `flow install` fixes
- *                                 by switching the clone first
  *   { state: 'join', files, from, taken }   another machine's files, ready
  *                                 to come down
  *
@@ -323,7 +274,7 @@ const hasHead = (at) => git(at.flow, ['rev-parse', '-q', '--verify', 'HEAD']).ok
  * Flow home, and a `~/.flow/` already holding a file the download would
  * write over.
  */
-function inspect(at, newest) {
+function inspect(at) {
   if (hasHead(at)) return { state: 'kept', taken: records(at, 'HEAD').map((r) => r.name) };
   if (!fetch(at)) return { state: 'first', taken: [] };
 
@@ -335,9 +286,6 @@ function inspect(at, newest) {
   }
 
   const found = records(at, 'origin/main');
-  const top = highest(at, 'origin/main');
-  if (top && newest !== null && top.number !== newest) return { state: 'version', home: top.number, name: top.name };
-
   const files = git(at.flow, ['ls-tree', '-r', '--name-only', 'origin/main']).out.split('\n').filter(Boolean);
   const inTheWay = files.filter((f) => f !== '.gitignore' && fs.existsSync(path.join(at.flow, f)));
   if (inTheWay.length) {
@@ -376,8 +324,8 @@ function commitAndPush(at, files, message) {
  * A push that fails is not a stop: the files are here, and the next
  * `flow sync` sends the record. Returns the push's error, or null.
  */
-function claim(at, number) {
-  const file = path.relative(at.flow, writeRecord(at, number));
+function claim(at) {
+  const file = path.relative(at.flow, writeRecord(at));
   return commitAndPush(at, [file], `${nameOf(at)}: joins`);
 }
 
@@ -388,36 +336,19 @@ function claim(at, number) {
  * where an empty repository would have made it a first machine too, with a
  * history git refuses to merge.
  */
-function seed(at, number) {
+function seed(at) {
   writeIgnore(at);
   writeReadme(at);
-  const file = path.relative(at.flow, writeRecord(at, number));
+  const file = path.relative(at.flow, writeRecord(at));
   const failed = commitAndPush(at, ['.gitignore', 'README.md', file], `${nameOf(at)}: the Flow home starts`);
   if (failed) throw new FlowError(`committed here, and the push failed:\n  ${failed}`);
-}
-
-/**
- * Switch a clone to the release a Flow home is on, `v<number>`. Only ever
- * called on the clone `install.sh` made, never on one somebody works in.
- */
-function switchClone(clone, number) {
-  const tag = `v${number}`;
-  const fetched = git(clone, ['fetch', '-q', 'origin', 'tag', tag]);
-  if (!fetched.ok) return `could not fetch ${tag}: ${fetched.err.split('\n').pop()}`;
-  const moved = git(clone, ['checkout', '-q', tag]);
-  if (!moved.ok) return `could not switch to ${tag}: ${moved.err.split('\n').pop()}`;
-  const subs = git(clone, ['submodule', 'update', '--init', '--recursive']);
-  return subs.ok ? null : `switched to ${tag}, then could not update the submodules: ${subs.err.split('\n').pop()}`;
 }
 
 // ------------------------------------------------------------ syncing
 
 /**
  * Save this machine's work, bring the other machines' down, send the result
- * up. `mine` is this machine's entry.
- *
- * Refuses before anything moves when another machine is on a higher entry:
- * this machine's copy still has the old shape, and a merge would mix the two.
+ * up.
  *
  * A commit first, then a merge, so the same file changed on 2 machines merges
  * where the changes touch different lines. Changes to the same lines stop it:
@@ -431,16 +362,9 @@ function switchClone(clone, number) {
  * another machine pushed between the fetch and the push. Every other failure
  * throws.
  */
-function sync(at, mine, { roots = [], keepWas = true } = {}) {
+function sync(at, { roots = [], keepWas = true } = {}) {
   if (!isRepo(at)) throw new FlowError(`${at.flow} is not a repository yet. Run flow install, which connects it.`);
   const remote = fetch(at);
-  if (remote) {
-    const top = highest(at, 'origin/main');
-    if (top && top.number > mine) {
-      throw new FlowError(`your Flow home is on changelog entry ${top.number}, since ${top.name} moved to it, ` +
-        `and this machine is on ${mine}. Nothing was synced. Run flow update first.`);
-    }
-  }
   // What the other machines had sent, before this machine's push joins it:
   // the one a clash on a ticket number is judged against.
   const theirs = remote ? git(at.flow, ['rev-parse', '-q', '--verify', 'origin/main']).out || null : null;
@@ -490,12 +414,6 @@ function sync(at, mine, { roots = [], keepWas = true } = {}) {
   return { came, sent, pushed: unsent, renumbered };
 }
 
-/** This machine's changelog entry, 0 where setup never stamped one. */
-function entryOf(at) {
-  const mine = version.applied(path.join(at.flow, 'version'));
-  return mine.state === 'ok' ? mine.number : 0;
-}
-
 /**
  * Run `fn` holding the Flow home's lock, the one `flow new` and every sync
  * take, so a background sync and a typed command never meet inside git.
@@ -507,15 +425,14 @@ function withLock(at, fn) {
 }
 
 /**
- * `sync` at this machine's own entry, renumbering the tickets of ~/.flow/ and
- * of `linked`, a project whose `.flow/` links into the Flow home. A ticket
+ * `sync`, renumbering the tickets of ~/.flow/ and of `linked`, a project whose `.flow/` links into the Flow home. A ticket
  * reaches the remote through `claimTicket` before anyone sees its number, so
  * a clash here is one made before that rule, or with no remote: its old id is
  * kept as `was:`. Returns what `sync` does, and throws what it throws.
  */
 function syncHome(at, linked = null) {
   return withLock(at, () => {
-    const result = sync(at, entryOf(at), { roots: [at.flow, linked].filter(Boolean) });
+    const result = sync(at, { roots: [at.flow, linked].filter(Boolean) });
     if (result.rejected) throw new FlowError(`committed here, and the push failed:\n  ${result.why}`);
     return result;
   });
@@ -535,7 +452,7 @@ function claimTicket(at, root, id) {
   try {
     return withLock(at, () => {
       for (let attempt = 0; attempt < 5; attempt++) {
-        const result = sync(at, entryOf(at), { roots: [root], keepWas: false });
+        const result = sync(at, { roots: [root], keepWas: false });
         const moved = result.renumbered.find((r) => r.from === current);
         if (moved) current = moved.to;
         if (!result.rejected) return { ok: true, id: current };
@@ -551,6 +468,5 @@ function claimTicket(at, root, id) {
 module.exports = {
   syncHome, claimTicket,
   NAME, MARK, IGNORED, isRepo, connected, machineName, saveName, nameOf, changed, writeIgnore, writeReadme,
-  locate, create, connect, fetch, fetchDue, writeRecord, records, highest, ahead, inspect, join, claim, seed,
-  switchClone, sync,
+  locate, create, connect, fetch, writeRecord, records, inspect, join, claim, seed, sync,
 };

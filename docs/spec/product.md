@@ -65,7 +65,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 ## The parts, one file each
 
-- `docs/spec/setup.md`: installing Flow on a machine, setting up a project, updating, syncing machines, restoring and uninstalling.
+- `docs/spec/setup.md`: installing Flow on a machine, setting up a project, updating by a pull and `flow install`, and syncing machines.
 - `docs/spec/tickets.md`: the ticket store, the `flow` ticket commands, the ticket skills, and the status moves each phase makes.
 - `docs/spec/skills.md`: Flow's skills and its 4 phases, how skills install and switch on, outside skills and their sources, and overlays.
 - `docs/spec/permissions.md`: what runs without asking, what asks, the guard, the dialog that asks, and the log of asks.
@@ -73,7 +73,6 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 - `docs/spec/knowledge-base.md`: research, the wiki of outside tools and fields, Context7, capture and findings.
 - `docs/spec/drawing.md`: `/flow:visualize`, and how a diagram is drawn and checked.
 - `docs/spec/failure-log.md`: the failure log and `~/.flow/logs/`.
-- `docs/spec/manual.md`: `docs/`, the README, and how Flow describes itself.
 
 ## Behaviors with no part file
 
@@ -86,7 +85,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 - `V1` **Flow never compacts.** A typed `/compact` is refused with `Run /flow:handoff, then /clear.`, and Claude Code's own compacting is off. A handoff keeps what the next session needs, where a summary keeps the conversation.
 - `V1` **One reminder line beside every message the user sends**, naming `## The reply` and `## Capture`. `"reminder": false` turns it off.
 - `V1` **`@` lists every file, git-ignored ones included, most recently changed first**, answered from a saved walk in about 50 ms.
-- `V1` **The session start prints one line only when something needs attention**: a stopped setup, a version behind, a git repository with no Flow, old Claude Code memory to fold in. It also makes every skill link and ticket skill match the settings, and starts the background pull and sync.
+- `V1` **The session start prints one line only when something needs attention**: a git repository with no Flow. It also makes every skill link and ticket skill match the settings, and starts the background pull and sync.
 - `never` **A typed `/compact` let through on the second try**, refused 2026-10-01: people learn to type it twice.
 
 ### Subagents
@@ -127,7 +126,6 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 - `V1` **A release copy and a dev copy.** Every session runs `~/.flow/repos/flow`. A session started with `alias claude-dev='claude --plugin-dir ~/code/flow-dev/skills'` loads the skills and mods from the dev copy, in any project. Hooks, the `flow` command and the status line stay on the release. Ruled 2026-10-06: the simplest version, gaps accepted.
 - `V1` **A test of a command that exists to print compares its whole output against a literal**, set 2026-09-11. A test reading only the filesystem passed over a command that described the filesystem wrongly.
-- `V1` **`lab/scripts/try.sh`, its saved computers and the practice projects stay.** A change deep enough to need a test from scratch needs a pretend computer, and `tmp/computers/before-flow/` cannot be saved again once Flow is installed.
 - `later` **The whole repository as one plugin**, so a dev session runs the dev copy's hooks too. Parked until a hook waiting for a release blocks real work.
 - `later` **Flow in a plugin marketplace**, the plugin shipping the install script.
 
@@ -146,7 +144,7 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 - `V1` **`flow audit`**, read by `/flow:review` and by the update's proof step.
 - `V1` **`flow cases`**, proposed as a merge into workflow notes. A case keeps the output for good and closes naming the file that fixed it, so a rule shortened later still shows why it exists. A note is one line, deleted once filed.
 - `V1` **The settings levels and the overlays**, which make Flow flexible.
-- `V1` **The ticket skills, the skill updater, the `@` file list, and the restore and uninstall forms**: each small and asked for, or the undo the beta needs.
+- `V1` **The ticket skills and the `@` file list**: each small and asked for. The skill updater and the restore and uninstall forms left 2026-10-14 (`fw-124`).
 
 ### Other harnesses, models and platforms
 
@@ -195,5 +193,4 @@ What Flow rests on that nobody has checked, and what happens if each one fails.
 - **The Flow home**: the private GitHub repository holding `~/.flow/`, one per user.
 - **The guard**: the hook that reads each shell command and asks before one that can do harm.
 - **Change record**: the list of files one subagent's own tool calls changed.
-- **Original**: every path as it was before Flow first touched it, kept so a restore or an uninstall puts it back.
 - **Study case**: the exact output the user rejected, kept for good, with the file that fixed it.
