@@ -312,9 +312,15 @@ function brief(tickets, limit) {
 }
 
 function checkReport(problems) {
-  if (!graph.hasProblems(problems)) return 'no problems: no cycles, no dangling ids, no dropped blockers, no closed parents, no unknown statuses.';
+  if (!graph.hasProblems(problems)) return 'no problems: no cycles, no dangling ids, no dropped blockers, no closed parents, no unknown statuses, every ticket has a title and a description.';
 
   const out = [];
+  if (problems.unnamed.length) {
+    out.push(`no title or description (${problems.unnamed.length}), add them with flow edit:`);
+    for (const t of problems.unnamed.slice(0, 10)) out.push(`  ${t.id}`);
+    if (problems.unnamed.length > 10) out.push(`  and ${problems.unnamed.length - 10} more`);
+    out.push('');
+  }
   if (problems.unknownStatuses.length) {
     out.push(`unknown statuses (${problems.unknownStatuses.length}), valid ones are ${statuses.NAMES.join(', ')}:`);
     for (const t of problems.unknownStatuses) out.push(`  ${t.id} has status ${t.data.status ?? '(none)'}`);

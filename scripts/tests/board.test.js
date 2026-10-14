@@ -292,14 +292,14 @@ test('flow check reports a status outside the 5', () => {
   const dir = project('board-check-status');
 
   write(dir, '.flow/tickets/exp-1-typo/ticket.md',
-    '---\nid: exp-1\ntitle: Typo\nstatus: buildng\ntype: feature\ndeps: []\n---\n\n');
+    '---\nid: exp-1\ntitle: typo\ndescription: A typo\nstatus: buildng\ndeps: []\n---\n\n');
   const r = flow(dir, ['check']);
   assert.strictEqual(r.code, 1, 'check should exit 1 on an unknown status');
   assert.match(r.stdout, /unknown statuses \(1\)/);
   assert.match(r.stdout, /exp-1 has status buildng/);
 
   write(dir, '.flow/tickets/exp-1-typo/ticket.md',
-    '---\nid: exp-1\ntitle: Typo\nstatus: in-progress\ntype: feature\ndeps: []\n---\n\n');
+    '---\nid: exp-1\ntitle: typo\ndescription: A typo\nstatus: in-progress\ndeps: []\n---\n\n');
   const clean = flow(dir, ['check']);
   assert.strictEqual(clean.code, 0, clean.stdout);
 });

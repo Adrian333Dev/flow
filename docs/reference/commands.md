@@ -21,8 +21,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow rank`](#flow-rank): put a ticket before or after another
   - [`flow file`](#flow-file): mark finished tickets as checked for lessons
   - [`flow drop`](#flow-drop): remove a ticket that will never be done
-  - [`flow move`](#flow-move): move tickets to another project, or to your Flow home
-- [Ticket status](#ticket-status): move a ticket from one stage to the next
+  - [`flow move`](#flow-move): move tickets to another project, or to your Flow home- [Ticket status](#ticket-status): move a ticket from one stage to the next
 - [Skills](#skills): see which skills are on, and turn them on or off
   - [`flow skills ls`](#flow-skills-ls): every skill, and whether it is on
   - [`flow skills on`, `off` and `reset`](#flow-skills-on-off-and-reset): turn a skill on or off
@@ -208,11 +207,11 @@ shop-1-budget-page            todo         0/1 done
 
 ### `flow check`
 
-Find broken links between tickets: tickets waiting on each other in a loop, a link to a ticket that does not exist, a wait on a dropped ticket, an open ticket under a closed one, a misspelled status. It exits 1 when it finds one, and `flow next` says when to run it.
+Find broken links between tickets: tickets waiting on each other in a loop, a link to a ticket that does not exist, a wait on a dropped ticket, an open ticket under a closed one, a misspelled status, a ticket with no title or description. It exits 1 when it finds one, and `flow next` says when to run it.
 
 ```console
 $ flow check
-no problems: no cycles, no dangling ids, no dropped blockers, no closed parents, no unknown statuses.
+no problems: no cycles, no dangling ids, no dropped blockers, no closed parents, no unknown statuses, every ticket has a title and a description.
 ```
 
 ## One ticket
@@ -376,6 +375,7 @@ the old id still finds it from the project: flow shop-4
 ```
 
 **A link to a ticket staying behind refuses the whole move.** Move the linked tickets in the same command, or remove the link first with `flow edit --deps` or `--parent`.
+
 
 ## Ticket status
 

@@ -15,6 +15,7 @@ const statuses = require('./statuses');
 const { SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, NAMES } = statuses;
 const STATUS_RANK = statuses.RANK;
 const order = require('./rank');
+const store = require('./store');
 
 const indexById = (tickets) => new Map(tickets.map((t) => [t.id, t]));
 
@@ -267,8 +268,11 @@ function check(tickets) {
   const danglingParents = [];
   const closedParents = [];
   const unknownStatuses = [];
+  const unnamed = [];
 
   for (const t of tickets) {
+    if (!t.data.description || store.badTitle(t.data.title)) unnamed.push(t);
+
     // Nothing refuses a status written by hand, and a misspelt one matches no
     // column in statuses.js: the ticket drops out of every set, so it is never
     // ready, never in flight, and never reported below.
@@ -295,12 +299,12 @@ function check(tickets) {
     }
   }
 
-  return { cycles: findCycles(tickets), dangling, droppedBlockers, danglingParents, closedParents, unknownStatuses };
+  return { cycles: findCycles(tickets), dangling, droppedBlockers, danglingParents, closedParents, unknownStatuses, unnamed };
 }
 
 const hasProblems = (p) =>
   p.cycles.length + p.dangling.length + p.droppedBlockers.length +
-  p.danglingParents.length + p.closedParents.length + p.unknownStatuses.length > 0;
+  p.danglingParents.length + p.closedParents.length + p.unknownStatuses.length + p.unnamed.length > 0;
 
 /** Would adding `dep` to `ticket` close a loop? */
 function wouldCycle(tickets, ticketId, dep) {
