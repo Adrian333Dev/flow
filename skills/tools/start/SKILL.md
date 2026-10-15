@@ -22,19 +22,13 @@ disable-model-invocation: true
 
 Pick the skill, say in one line what decided it, then invoke it here with no argument. The ticket is already above.
 
-- `issue` → `/flow:debug`
-- `prototype` → `/flow:prototype`
-- `topic` → `/flow:groundwork`
-- `feature`, `chore`: read the body, the `map:` line and `## State`. What they leave open decides:
-  - decisions still open → `/flow:groundwork`
-  - decided, nothing built → `/flow:execute`, which opens it at `planning`
-  - code in progress, or waiting on review → `/flow:execute`
-  - too little written to tell → the status: `todo`, `groundwork` → `/flow:groundwork`; `planning`, `building`, `review` → `/flow:execute`
+Take the first line that matches:
 
-**`status: parked`** → route on the `resumes at:` line, which names the status the ticket left. The command that revives it prints underneath.
+- **An open `## Questions` line** (the `questions:` line short of its total) → `/flow:groundwork`
+- **An open `## Tasks` line** (the `tasks:` line short of its total) → `/flow:execute`
+- **A `bug` label, or a failure with no known cause** → `/flow:debug`
+- **Neither list written** → read the body: a decision still to make → `/flow:groundwork`; the change already clear → `/flow:execute`
 
 **`status: done` or `dropped`** → say the ticket is closed, and stop. Reopening is the user's call.
-
-**Neither a long body nor code left to read sends a ticket to `/flow:groundwork`.** Only open decisions do.
 
 **Route, and stop.** Whether the ticket splits, and whether it is worth building, are `/flow:groundwork`'s to answer.

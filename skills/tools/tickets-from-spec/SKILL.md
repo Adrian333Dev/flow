@@ -30,16 +30,16 @@ Words after the command narrow the pick. Without them, decide.
 
 One ticket per unit of work: something a session can pick up, plan and build without waiting on a decision nobody has made.
 
-- A behavior needing an unmade decision is still one ticket. The decision gets made at pickup, in that ticket's own `groundwork/`.
-- A behavior too big for one pickup gets a parent ticket plus children carrying `parent:`. The parent keeps only what no child holds (the wiring, the test covering them together). `flow` withholds it until they close.
-- **Record order that matters as `deps`.** Sequence in the spec file carries none.
+- A behavior needing an unmade decision is still one ticket. The decision gets made at pickup, in that ticket's own `## Questions`.
+- A behavior too big for one pickup gets a parent ticket plus children made with `--parent`. `flow new` writes no line in the parent's `## Tasks`, so add one per child, in build order, each starting with the child's id: `- [ ] exp-48: …`. The parent keeps only what no child holds (the wiring, the test covering them together) and closes after its last child.
+- **Record a wait outside the family as `deps`.** Order among siblings is the parent's `## Tasks`; sequence in the spec file carries none.
 
 ## Writing each one
 
 Create and fill in one command. Never create, then edit:
 
 ```bash
-flow new "Title" --type feature --deps exp-45 --body - <<'EOF'
+flow new "<short name>: <sentence>" --label feature --deps exp-45 --body - <<'EOF'
 What changes and why. One paragraph, from the spec section this came from.
 
 ## References

@@ -170,7 +170,7 @@ A value holding `: ` goes in double quotes.
 
 **Never put a report inside a ticket or a groundwork folder.**
 
-**A question reading can answer never becomes a ticket of its own.** It runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a `prototype` ticket, and `/flow:groundwork` cuts it.
+**A question reading can answer never becomes a ticket of its own.** It runs here, inside whatever work raised it, or goes to a subagent. A question needing something built and run is a prototype, and `/flow:groundwork` runs it in the walk.
 
 ## Harvest
 
