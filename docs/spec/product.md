@@ -108,8 +108,10 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 ### The audit and study cases
 
 - `V1` **`flow audit` indexes Claude Code's transcripts into SQLite** and answers queries over it. `/flow:review` reads it.
+- `V1` **Every indexed session carries its machine's name, and every audit answer opens with one coverage line per machine**: its session count and newest day. A split between machines never misleads an agent. Set 2026-10-11.
 - `V1` **`flow cases` keeps the exact output the user reacted to, for good**, grouped by kind of failure across projects. The third case in a folder is the evidence a rule is needed.
 - `V1` **Study cases and workflow notes keep the output word for word, and the project's name**, though both sync to GitHub. Set 2026-09-30.
+- `later` **A session sync between machines**, its own ticket after release 1: rclone sends each machine's `~/.claude/projects/` to a folder named for the machine. Until then the PC's folder is copied by hand before it is wiped for Linux.
 - `later` **`flow audit prune`**, by run rather than by age, never touching what a case cites.
 - `later` **A subagent's transcript joined to its parent's**, and its tool calls counted in the parent's totals.
 - `later` **A run wired to the sessions it spans**, and a daily sweep over every session since yesterday.

@@ -157,7 +157,7 @@ Every step `[x]` → run the full suite Pass 1 named → review it → `flow rev
 Then 2 separate passes over the same diff, read once:
 
 - **Against the plan**: every step delivered, and nothing delivered that no step asked for.
-- **Against the code**: read `references/review-code.md`. A ticket that produced a document reads `style.md` instead, with `write-docs.md` beside it for a documentation page, `write-rules.md` for a rule file, and `cut-loaded-files.md` for any file an agent loads. A ticket that produced a decision reads none of them.
+- **Against the code**: read `~/.flow/references/review-code.md`. A ticket that produced a document reads `style.md` instead, with `write-docs.md` beside it for a documentation page, `write-rules.md` for a rule file, and `cut-loaded-files.md` for any file an agent loads. A ticket that produced a decision reads none of them.
 
 **Move anything durable in `## State` to `issues.md`, then delete the section from `ticket.md`.**
 

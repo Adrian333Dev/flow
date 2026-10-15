@@ -245,10 +245,10 @@ function statements(db) {
       (session_id, turn_id, segment_id, tool_call_id, line, path, given, type, start_line,
        end_line, total_lines, bytes, confidence, via)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`),
-    session: db.prepare(`INSERT INTO session (id, project, cwd, git_branch, version, slug, started_at, ended_at)
-      VALUES (?,?,?,?,?,?,?,?)
+    session: db.prepare(`INSERT INTO session (id, project, machine, cwd, git_branch, version, slug, started_at, ended_at)
+      VALUES (?,?,?,?,?,?,?,?,?)
       ON CONFLICT(id) DO UPDATE SET
-        cwd = excluded.cwd, git_branch = excluded.git_branch, version = excluded.version,
+        machine = excluded.machine, cwd = excluded.cwd, git_branch = excluded.git_branch, version = excluded.version,
         slug = COALESCE(excluded.slug, session.slug),
         started_at = MIN(COALESCE(session.started_at, excluded.started_at),
                          COALESCE(excluded.started_at, session.started_at)),
@@ -493,7 +493,7 @@ function indexTranscript(db, stmt, entry) {
       // --- cost is cumulative and rewritten as the session runs; the last wins
       if (e.type === 'cost-state') {
         const began = e.startTime ? new Date(e.startTime).toISOString() : null;
-        stmt.session.run(entry.sessionId, entry.project, (head && head.cwd) || null,
+        stmt.session.run(entry.sessionId, entry.project, entry.machine || null, (head && head.cwd) || null,
           (head && head.gitBranch) || null, (head && head.version) || null,
           (head && head.slug) || null, began, null);
         stmt.cost.run(e.totalCostUSD ?? null, e.totalLinesAdded ?? null,
@@ -513,7 +513,7 @@ function indexTranscript(db, stmt, entry) {
         segmentTurns, segment);
     }
 
-    stmt.session.run(entry.sessionId, entry.project, (head && head.cwd) || null,
+    stmt.session.run(entry.sessionId, entry.project, entry.machine || null, (head && head.cwd) || null,
       (head && head.gitBranch) || null, (head && head.version) || null,
       (head && head.slug) || null, firstAt, lastAt);
     stmt.turnTokens.run(entry.sessionId);
@@ -534,15 +534,16 @@ function indexTranscript(db, stmt, entry) {
 
 /**
  * Every transcript, filtered to a project when one is named. Returns a summary
- * rather than printing: what to say about a run belongs to the command.
+ * rather than printing: what to say about a run belongs to the command. Every
+ * session read is tagged with `machine`, since a transcript names none.
  */
-function indexAll(db, root, { project = null, onFile = null } = {}) {
+function indexAll(db, root, { project = null, machine = null, onFile = null } = {}) {
   const stmt = statements(db);
   const all = findTranscripts(root).filter((t) => !project || t.project.includes(project));
   const result = { files: 0, skipped: 0, lines: 0, events: 0, sessions: new Set() };
 
   for (const entry of all) {
-    const one = indexTranscript(db, stmt, entry);
+    const one = indexTranscript(db, stmt, { ...entry, machine });
     result.sessions.add(entry.sessionId);
     if (one.skipped) result.skipped += 1;
     else {

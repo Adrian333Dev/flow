@@ -37,7 +37,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`never-rule-against-uninstructed`** Never rule against a behavior nothing in Flow instructs.
 - **`skills-docs-move-together`** `docs/dev/skills.md` and `skills/tools/file-findings/references/write-skills.md` say the same rules. Edit both in the same pass.
 - **`phases-closed-at-4`** `groundwork`, `execute`, `prototype` and `debug`. Set by the user and not reopenable.
-- **`no-code-review-skill`** Review runs in the same session, never a subagent. The criteria live beside the skill that produced the artifact: `skills/phases/execute/references/review-code.md` for code.
+- **`no-code-review-skill`** Review runs in the same session, never a subagent. The criteria live in `references/`: `review-code.md` for code, `write-spec.md` for the spec.
 - **`short-skill-no-arguments`** A skill invoked over and over stays short. The 4 phase skills and `/flow:handoff` take no argument, since a ticket arrives through its own skill. A long skill takes one only where it names what the skill opens. Binds Flow's own skills only.
 - **`file-findings-density`** `skills/tools/file-findings` is the density to aim for.
 - **`plain-words-in-skills`** Plain, common words, with no invented or rare terms. Binds what a skill produces as hard as what it says.

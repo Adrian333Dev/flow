@@ -135,6 +135,47 @@ test('a transcript becomes sessions, segments, turns, tools and file touches', (
   assert.match(rows("SELECT name, is_error FROM tool_call WHERE is_error = 1"), /Grep +1/);
 });
 
+test('every session carries the name of the machine that indexed it', () => {
+  const named = roots('audit-machine');
+  fs.writeFileSync(named.file, asLines(firstHalf()));
+  const config = path.join(named.dir, 'gitconfig');
+  fs.writeFileSync(config, '[flow]\n\tmachine = pc-test\n');
+  assert.strictEqual(audit({ ...named.env, GIT_CONFIG_GLOBAL: config }, ['index', '--quiet']).code, 0);
+  assert.match(audit(named.env, ['sql', 'SELECT machine FROM session']).stdout, /^pc-test$/m);
+
+  // Before `flow install` saved a name, the tag says so rather than guessing one.
+  const bare = roots('audit-machine-unnamed');
+  fs.writeFileSync(bare.file, asLines(firstHalf()));
+  assert.strictEqual(audit(bare.env, ['index', '--quiet']).code, 0);
+  assert.match(audit(bare.env, ['sql', 'SELECT machine FROM session']).stdout, /^unnamed$/m);
+});
+
+test('every answer from the index opens with one coverage line per machine', () => {
+  const { dir, file, env } = roots('audit-coverage');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  const config = path.join(dir, 'gitconfig');
+  fs.writeFileSync(config, '[flow]\n\tmachine = pc-test\n');
+  const named = { ...env, GIT_CONFIG_GLOBAL: config };
+  assert.strictEqual(audit(named, ['index', '--quiet']).code, 0);
+
+  const line = /^pc-test: 1 session, newest 2026-09-02\n\n/;
+  const id = SESSION.slice(0, 8);
+  for (const args of [[], ['get', id], ['turns', id], ['read', id, '--turns', '1'], ['summary'],
+    ['timeline', id], ['context', id], ['sql', 'SELECT 1 n']]) {
+    const shown = audit(named, args);
+    assert.strictEqual(shown.code, 0, shown.stderr);
+    assert.match(shown.stdout, line, `flow audit ${args.join(' ')}`);
+  }
+
+  // A filter narrows the rows and leaves the coverage whole.
+  assert.match(audit(named, ['ls', '--project', 'nothing-like-it']).stdout, line);
+
+  // What does not answer from the index opens with nothing.
+  for (const args of [['where'], ['schema']]) {
+    assert.doesNotMatch(audit(named, args).stdout, /pc-test/, `flow audit ${args.join(' ')}`);
+  }
+});
+
 test('a long prompt is stored whole, and a listing still trims it', () => {
   const { file, env } = roots('audit-long-prompt');
   const long = 'word '.repeat(400) + 'the end';

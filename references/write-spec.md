@@ -6,7 +6,7 @@
 
 One test, asked of each decision: **does it outlive the thing being built?**
 
-- **No, it dies with the build** → `design.md` beside `map.md`, or `groundwork/design.md` in the ticket that owns it.
+- **No, it dies with the build** → `## Decisions` in the ticket's `ticket.md`, or `decisions/<subject>.md` once it passes about 300 lines.
 - **Yes, and it belongs to one part of the product** → that part's file, `docs/spec/<part>.md`, both what the part does and how it is built. No file for the part yet → its section in `product.md`.
 - **Yes, and it covers the whole product**: what it is, who it is for, the bets → `docs/spec/product.md`.
 - **Yes, and it is a build decision every part shares**: the stack, the repo layout → `docs/spec/tech.md`.
@@ -23,11 +23,11 @@ Create `docs/spec/` where there is none. **`product.md` is the one file every sp
 
 ## 2. Before writing
 
-1. **Re-read `map.md`.** Open `[ ]` branches → name them and confirm they're deferred, or go back and walk them.
-2. **Read what exists**: code, the current spec, whatever this touches. A contradiction with a settled decision → raise it and reopen that branch. Never quietly write around it.
-3. **List every closed branch, one line each, with the file it lands in.**
+1. **Re-read `## Questions` in `ticket.md`.** Open `[ ]` questions → name them and confirm they're deferred, or go back and walk them. A ticket made earlier holds its questions in `groundwork/map.md`.
+2. **Read what exists**: code, the current spec, whatever this touches. A contradiction with a settled decision → raise it and reopen that question. Never quietly write around it.
+3. **List every closed question, one line each, with the file it lands in.**
 
-**List branches, never behaviors**: a UI decision, a refused approach and a cost ceiling are all branches, and none is a behavior. A 5,000-line map is maybe 120 lines of this. Several map files → one at a time.
+**List questions, never behaviors**: a UI decision, a refused approach and a cost ceiling are all questions, and none is a behavior. A 5,000-line ticket is maybe 120 lines of this. Several tickets → one at a time.
 
 Write the list before any prose. Tick each line as it lands. At the end, check every line is ticked.
 
@@ -50,7 +50,7 @@ Always, however small the product:
 3. **Every behavior**, grouped how the product is actually shaped: by surface, by job, by whatever the map used. Each carries a mark. A part with its own file holds its behaviors there, and `product.md` keeps only the index line.
 4. **How you know it worked**: the observable outcome, the check, the number.
 
-Then only what a branch covered, usually 3 or 4 of these:
+Then only what a question covered, usually 3 or 4 of these:
 
 - **The domain model**: the concepts this is built on, and how they relate.
 - **Named principles**: the constraints that settle later arguments before they start.
@@ -95,12 +95,13 @@ Same skeleton at every scope. A part's file covers that part, and `tech.md` what
 
 Written under the decision, in whichever file holds it.
 
-- **The reason**: a line or two, dated. Longer reasoning stays in `map.md`, named from the line.
+- **The reason**: a line or two, dated. Longer reasoning stays in the ticket's `## Decisions`, named from the line.
+- **What it makes harder**: a line, only where the decision has a cost the reader would not guess.
 - **What was refused, and why**, under the decision it lost to.
 - **The bets** → `product.md` → `## Bets`. Phase 3 names them. A risk goes there too, with what happens if it fires.
 - **What is still open** → a ticket each, once the spec is approved: `## 5. Show it and stop`.
 
-A ticket-sized call stays in `map.md`.
+A ticket-sized call stays in the ticket.
 
 ## 4. Review it yourself
 
@@ -109,9 +110,9 @@ Read it once with fresh eyes and fix what you find inline:
 - **Placeholders**: any TBD, TODO, or half-written section.
 - **Contradictions**: sections that disagree, or a drawing that doesn't match the parts under it.
 - **Vague requirements**: anything not concrete and checkable.
-- **Invented material**: anything in the document that no branch decided.
+- **Invented material**: anything in the document that no question decided.
 - **Ambiguity**: any requirement that could be read 2 ways. Pick one and say it.
-- **The branch list**: every line ticked.
+- **The question list**: every line ticked.
 
 No second review. Fix and move on.
 
@@ -119,9 +120,9 @@ No second review. Fix and move on.
 
 Give the paths. The user reads and approves before anything is created from it.
 
-**An objection is not new groundwork.** It reopens the one branch it came from, in `map.md`. Walk that branch, then rewrite the affected section.
+**An objection is not new groundwork.** It reopens the one question it came from, in the ticket's `## Questions`. Walk that question, then rewrite the affected section.
 
-Approved, with questions still open → one ticket per question: `flow new "<the question>" --type topic --body -`, the body saying what would settle it.
+Approved, with questions still open → each stays a `## Questions` line in the ticket that owns it. One that stands alone becomes a ticket: `flow new "<the question>" --body -`, the body saying what would settle it.
 
 Approved, with work to cut → `/flow:tickets-from-spec`. **Never cut a work ticket from here.**
 
@@ -142,6 +143,6 @@ Same steps, scoped to what changed.
 - the history of the conversation
 - anything still open, which becomes a ticket
 
-A reason that outlives the build goes under its decision. Everything else stays in `map.md`.
+A reason that outlives the build goes under its decision. Everything else stays in the ticket.
 
 **No fact in 2 files.** One live copy, a pointer everywhere else. A decision resting on evidence (a research report, a prototype, a drawing) names it **inline, on that decision**, plus a short reference list at the end of the file. No list of evidence across files.

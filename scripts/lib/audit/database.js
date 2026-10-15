@@ -28,7 +28,7 @@ const { FlowError } = require('../error');
 
 // Bumping this throws the file away on the next index. Every row is derived,
 // so the cost of a rebuild is time, never data.
-const SCHEMA = 10;
+const SCHEMA = 11;
 
 const auditDir = () => path.join(paths.flowHome(), 'audit');
 const dbPath = () => path.join(auditDir(), 'audit.db');
@@ -67,6 +67,7 @@ CREATE TABLE transcript (
 CREATE TABLE session (
   id            TEXT PRIMARY KEY,
   project       TEXT,
+  machine       TEXT,                 -- the name flow install saved; transcripts carry none
   cwd           TEXT,
   git_branch    TEXT,
   version       TEXT,

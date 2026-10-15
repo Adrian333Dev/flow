@@ -36,11 +36,13 @@ Match only what the ticket changed.
 - **The project overrides.** A convention named in `## References` or in the project's rule file wins. Where it endorses what the baseline would flag, drop the flag.
 - **Every one is a judgement call.** Report "possible feature envy", never a violation. Skip anything a linter already catches.
 
-## 3 conditional checks
+## 5 conditional checks
 
 - **Input, auth, secrets or data from outside → check the boundary.** Is the input validated where it arrives, is the query parameterized, is the secret out of the file.
 - **A loop over a collection that grows → check the cost.** A query per item, an unbounded fetch, a list endpoint with no limit.
 - **A small diff into an already large file → check the file's size.** Past a healthy size, flag it for a split.
+- **Shared state, async work or threads → check concurrency.** Two writers on one value, a check and the act it guards with a gap between, 2 locks taken in opposite orders, a callback that runs after its owner is gone.
+- **A file, connection, handle, timer or subscription opened → check that it closes** on every path, the error path included.
 
 ## Dead code
 

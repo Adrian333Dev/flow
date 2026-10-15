@@ -22,6 +22,10 @@
  * and `flow audit index` writes it again. `permissions` alone skips the index
  * and reads the log Flow's mod keeps in `~/.flow/logs/permissions/`.
  *
+ * A transcript names no machine, so each session is tagged with the one that
+ * indexed it, and every answer from the index opens with one coverage line per
+ * machine. Copies of another machine's sessions then never pass as the whole.
+ *
  * It works with no ticket and outside any project. A run (the piece of work a
  * ticket names) is optional everywhere, which is what makes that true.
  */
@@ -34,12 +38,23 @@ const scan = require('../lib/audit/scan');
 const query = require('../lib/audit/query');
 const reader = require('../lib/audit/read');
 const permissions = require('../lib/audit/permissions');
+const flowRepo = require('../lib/machine/flow-repo');
+const paths = require('../lib/paths');
 const { out } = require('../lib/cli');
 const { FlowError } = require('../lib/error');
 
 const actions = {};
 
 const opened = (readonly) => store.open({ readonly });
+
+/** The name `flow install` saved for this machine, or `unnamed` before Flow is set up. */
+const thisMachine = () => flowRepo.machineName(paths.folders()) || 'unnamed';
+
+/** An answer from the index, opened by the coverage line. */
+const answer = (db, text) => {
+  const covered = query.coverage(db);
+  return covered ? `${covered}\n\n${text}` : text;
+};
 
 const one = (positional, usage, what) => {
   const [value, ...extra] = positional;
@@ -82,6 +97,7 @@ actions.index = {
     const db = opened(false);
     const result = scan.indexAll(db, root, {
       project: flags.project || null,
+      machine: thisMachine(),
       onFile: flags.quiet ? null : (entry, added) => {
         if (added.skipped || !added.lines) return;
         out(`  ${query.short(entry.sessionId)}  ${entry.project}  +${added.lines} lines`);
@@ -108,11 +124,12 @@ actions.ls = {
   run({ positional, flags, usage }) {
     // The group's default, so an id typed the old way lands here and would list everything.
     if (positional.length) throw new FlowError(`${usage} takes no session id: \`flow audit get ${positional[0]}\` shows one.`);
-    out(query.sessions(opened(true), {
+    const db = opened(true);
+    out(answer(db, query.sessions(db, {
       project: flags.project || null,
       since: flags.since || null,
       limit: Number(flags.limit || 30),
-    }));
+    })));
     return 0;
   },
 };
@@ -121,7 +138,8 @@ actions.get = {
   args: '<id>',
   summary: 'one session in full, segments, tools, files, heaviest turns',
   run({ positional, usage }) {
-    out(query.session(opened(true), one(positional, usage, 'session id')));
+    const db = opened(true);
+    out(answer(db, query.session(db, one(positional, usage, 'session id'))));
     return 0;
   },
 };
@@ -135,10 +153,11 @@ actions.turns = {
   summary: 'the turns of one session, with the line range of each',
   flags: { from: { arg: '<turn>' }, limit: { arg: '<n>' } },
   run({ positional, flags, usage }) {
-    out(query.turns(opened(true), one(positional, usage, 'session id'), {
+    const db = opened(true);
+    out(answer(db, query.turns(db, one(positional, usage, 'session id'), {
       from: flags.from ? Number(flags.from) : null,
       limit: Number(flags.limit || 60),
-    }));
+    })));
     return 0;
   },
 };
@@ -152,11 +171,12 @@ actions.read = {
     thinking: { bool: true },
   },
   run({ positional, flags, usage }) {
-    out(reader.read(opened(true), one(positional, usage, 'session id'), {
+    const db = opened(true);
+    out(answer(db, reader.read(db, one(positional, usage, 'session id'), {
       range: flags.turns,
       full: flags.full,
       thinking: flags.thinking,
-    }));
+    })));
     return 0;
   },
 };
@@ -170,11 +190,12 @@ actions.summary = {
   },
   run({ positional, flags }) {
     const [id] = positional;
-    out(query.summary(opened(true), {
+    const db = opened(true);
+    out(answer(db, query.summary(db, {
       session: id || null,
       project: flags.project || null,
       since: flags.since || null,
-    }));
+    })));
     return 0;
   },
 };
@@ -184,9 +205,10 @@ actions.timeline = {
   summary: 'every tool call in one session, in order',
   flags: { limit: { arg: '<n>' } },
   run({ positional, usage, flags }) {
-    out(query.timeline(opened(true), one(positional, usage, 'session id'), {
+    const db = opened(true);
+    out(answer(db, query.timeline(db, one(positional, usage, 'session id'), {
       limit: Number(flags.limit || 500),
-    }));
+    })));
     return 0;
   },
 };
@@ -196,9 +218,10 @@ actions.context = {
   summary: 'the context size at each request, marking the first edit',
   flags: { limit: { arg: '<n>' } },
   run({ positional, usage, flags }) {
-    out(query.context(opened(true), one(positional, usage, 'session id'), {
+    const db = opened(true);
+    out(answer(db, query.context(db, one(positional, usage, 'session id'), {
       limit: Number(flags.limit || 200),
-    }));
+    })));
     return 0;
   },
 };
@@ -228,7 +251,8 @@ actions.sql = {
   args: '<query>',
   summary: 'any question the named ones do not cover',
   run({ positional, usage }) {
-    out(query.sql(opened(true), one(positional, usage, 'query: quote it')));
+    const db = opened(true);
+    out(answer(db, query.sql(db, one(positional, usage, 'query: quote it'))));
     return 0;
   },
 };

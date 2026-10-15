@@ -646,6 +646,18 @@ skipped-walk     1      1     2026-10-02  walk-a-real-case
 
 `flow audit` reads the transcripts Claude Code keeps of every session into an index, `~/.flow/audit/audit.db`, and answers questions from it. Run `flow audit index` first. A session id can be any start of it that matches one session alone, such as `a1b2`. [Learning](../learning.md) covers segments, turns and what the audit is for.
 
+A transcript names no machine, so the index tags each session with the name `flow install` saved for this computer, or `unnamed` before one is saved. Every answer from the index opens with one line per machine, its session count and its newest day. That line counts the whole index, whatever `--project` or `--since` narrows. The examples below leave it out.
+
+```console
+$ flow audit ls
+pc-wsl: 1 session, newest 2026-10-02
+
+SESSION   PROJECT  FROM        TO          SEG  TURNS  TOOLS  ERR  OUT  CACHE   COST
+a1b2c3d4  shop     2026-10-02  2026-10-02  1    2      6      1    840  330.0k  -
+```
+
+`ls`, `get`, `turns`, `read`, `summary`, `timeline`, `context` and `sql` print it. `index`, `schema`, `keep`, `where` and `permissions` do not, since none of them answers from the sessions indexed. Release 1 copies no sessions between machines.
+
 ### `flow audit index`
 
 Read every new transcript line into the index. A second run reads only what changed.
@@ -658,7 +670,7 @@ $ flow audit index
 ```
 
 - **`--project <name>`**: one project's transcripts.
-- **`--rebuild`**: delete the index and read everything again. Nothing is lost.
+- **`--rebuild`**: delete the index and read everything again. Nothing is lost. It also tags every session with the machine's current name, which a rename does not change in rows already indexed.
 - **`--quiet`**: print the totals alone.
 
 ### `flow audit ls`

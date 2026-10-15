@@ -33,7 +33,7 @@ One line per file: what it is, whether it is still live, what it is worth.
 
 - `00-master-index.md`: handoff from the design sessions. Read first, it grades the rest
 - `04-feed-mechanics.md`: **rejected**, the mechanism was faulty. Needs a replacement, so keep it
-- `06-architecture.md`: costs, data, storage. Live, 410 lines, open when a cost branch comes up
+- `06-architecture.md`: costs, data, storage. Live, 410 lines, open when a cost question comes up
 - `bible.md`: superseded by `bible-v2.md`. **Propose deleting**
 - `watched-list.md`: 8 titles. Sample data, not design material
 - `sessions.md`: links to chats nobody can open. Keep as a record, use for nothing
@@ -55,10 +55,10 @@ Each of these goes to the user for a yes. Never delete without one.
 
 ## 5. Leave the big files closed
 
-Open a design document of thousands of lines in Phase 2, from the branch that needs it, never here.
+Open a design document of thousands of lines in Phase 2, from the question that needs it, never here.
 
 ## What it is reliable about
 
 **Trust a constraint somebody hit.** "6 languages forced the polymorphic schema" is a fact. Whether 6 is right is still open.
 
-**Attribute what was thought before**, beside the branch it opens.
+**Attribute what was thought before**, beside the question it opens.

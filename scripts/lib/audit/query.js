@@ -73,6 +73,22 @@ function findSession(db, id) {
   );
 }
 
+// ---------------------------------------------------------------- coverage
+
+/**
+ * One line per machine: the sessions the index holds from it, and its newest
+ * day. It opens every answer, so a split between machines never misleads a
+ * reader. Empty where nothing is indexed.
+ */
+function coverage(db) {
+  const rows = db.prepare(`SELECT COALESCE(machine, 'unnamed') machine, COUNT(*) n,
+    MAX(COALESCE(ended_at, started_at)) newest FROM session
+    GROUP BY 1 ORDER BY newest DESC`).all();
+  return rows
+    .map((r) => `${r.machine}: ${r.n} ${r.n === 1 ? 'session' : 'sessions'}, newest ${day(r.newest)}`)
+    .join('\n');
+}
+
 // ---------------------------------------------------------------- listings
 
 function sessions(db, { project = null, limit = 30, since = null } = {}) {
@@ -333,6 +349,6 @@ function schema(db) {
 }
 
 module.exports = {
-  sessions, session, turns, summary, timeline, context, sql, schema, findSession,
+  coverage, sessions, session, turns, summary, timeline, context, sql, schema, findSession,
   num, bytes, ms, money, short, trim,
 };
