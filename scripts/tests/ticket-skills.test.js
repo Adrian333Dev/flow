@@ -49,7 +49,7 @@ test('a status move or a new description rewrites the skill, and a sync with not
   assert.strictEqual(syncIn(dir), false);
 });
 
-test('a ticket parked, done or dropped loses its skill, and one brought back gets it again', () => {
+test('a ticket done or dropped loses its skill, a parked one keeps it, and one reopened gets it again', () => {
   const dir = project('ticket-skills-remove');
   for (const title of ['One', 'Two', 'Three']) flow(dir, ['new', title, '--title', slug(title)]);
   assert.deepStrictEqual(listed(dir), ['exp-1', 'exp-2', 'exp-3']);
@@ -58,10 +58,11 @@ test('a ticket parked, done or dropped loses its skill, and one brought back get
   flow(dir, ['start', 'exp-2']);
   flow(dir, ['done', 'exp-2']);
   flow(dir, ['drop', 'exp-3', '--reason', 'not needed']);
-  assert.deepStrictEqual(listed(dir), []);
-
-  flow(dir, ['todo', 'exp-1']);
   assert.deepStrictEqual(listed(dir), ['exp-1']);
+  assert.match(skillText(dir, 'exp-1'), /"Ticket, parked: One"/);
+
+  flow(dir, ['start', 'exp-2']);
+  assert.deepStrictEqual(listed(dir), ['exp-1', 'exp-2']);
 });
 
 test('a ticket waiting on another says blocked, until the other is done', () => {

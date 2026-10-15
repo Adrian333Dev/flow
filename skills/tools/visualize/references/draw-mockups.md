@@ -32,7 +32,7 @@ Every rule in `SKILL.md` binds here too.
 
 For colour, shade, density, elevation, type weight. Budget several internal rounds. One self-contained file in `tmp/`, opened from disk in a browser. **Not** the Artifact tool, **not** published, no server, no build step.
 
-**Needs the running stack**: real components, real data at volume, motion → build a `/flow:prototype`.
+**Needs the running stack**: real components, real data at volume, motion → build a prototype, by `/flow:groundwork`.
 
 **Never show one variant.** Show 2 or 3, same page, same content.
 

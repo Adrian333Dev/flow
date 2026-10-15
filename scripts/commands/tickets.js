@@ -518,11 +518,11 @@ actions.new = {
     out(`created ${store.nameOf(t)}`);
     out(`        ${rel(root, t.file)}`);
     if (target) {
-      const notes = placeTicket(t, tickets, target);
+      const renumbered = placeTicket(t, tickets, target);
       records.commit(root, `${t.id}: ranked ${describePosition(target)}`);
       records.syncLater(root);
       out(`        rank: ${describePosition(target)}`);
-      for (const note of notes) out(`        ${note}`);
+      for (const line of renumbered) out(`        ${line}`);
     }
     if (labels.length) out(`        labels: ${labels.join(', ')}`);
     if (parent) out(`        parent: ${parent}`);
@@ -636,11 +636,11 @@ actions.rank = {
     if (statuses.TERMINAL.has(t.data.status)) throw new FlowError(`${t.id} is ${t.data.status}: only open tickets have a place.`);
     if (target.before === t.id || target.after === t.id) throw new FlowError(`${t.id} cannot go beside itself.`);
 
-    const notes = placeTicket(t, tickets, target);
+    const renumbered = placeTicket(t, tickets, target);
     records.commit(root, `${t.id}: ranked ${describePosition(target)}`);
     records.syncLater(root);
     out(`${store.nameOf(t)}  ${describePosition(target)}`);
-    for (const note of notes) out(`      ${note}`);
+    for (const line of renumbered) out(`      ${line}`);
     return 0;
   },
 };

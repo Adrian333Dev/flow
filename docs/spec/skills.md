@@ -67,12 +67,10 @@ Closed at 4, set by the user.
 ### `/flow:handoff`
 
 - `V1` **A handoff writes the state a session that was not here needs.** One test decides each line: would that session get it wrong without it? It runs the capture sweep first.
-- `V1` **Working a ticket, the state is `## State` at the bottom of `ticket.md`**, under 4 labels. `Now`: half-done or in flight. `Found`: what cost effort to learn and lives in no file. `Open`: decisions half-made. `Touched`: files changed that no plan step names. `Now` and `Touched` are rewritten whole, `Found` and `Open` added to.
+- `V1` **Working a ticket, the state is `## State` at the bottom of `ticket.md`**, under 3 labels, written once at the handoff. `Now`: half-done or in flight. `Found`: what cost effort to learn and lives in no file. `Open`: decisions half-made. `Now` is rewritten whole, `Found` and `Open` keep the lines still true. The files a session changed are not written: the mod records them (`fw-97`).
 - `V1` **`## State` never restates `plan.md`, `map.md`, the ticket body or a research report.**
-- `V1` **The `open` block names the files the first action opens**, with a line range where known, and `flow get --files` loads them before the next session's first turn. Kept by the user 2026-10-02.
-- `V1` **Work with no ticket gets one**, and a job handed to another session gets a child ticket whose body carries everything, written once.
-- `V1` **`flow handoff <id>` adds the session to `history.md`**, and the reply ends on what to type: `/clear`, then `/flow:execute /exp-47`.
-- `V1` **At `review`, `Found` empties into `issues.md`** and the section goes.
+- `V1` **Work with no ticket gets one.** Work continuing in another session or model also gets a note, `.flow/handoffs/<name>.md`, holding only what fits no ticket. A job for a session that reports back gets a child ticket, and a subagent a prompt, both written once from `references/dispatch.md`.
+- `V1` **The reply opens with the path of each file written and ends on what to type**: `/clear`, then `/flow:start /exp-47`, which picks the phase from the ticket's status.
 - `later` **A resumed session told the old transcript is there**: a detail the handoff lacks → the last session in `history.md`, opened with `flow audit`.
 
 ### Arguments

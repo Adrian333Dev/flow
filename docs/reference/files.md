@@ -137,7 +137,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 `repos/` holds every repository Flow downloads. `flow install` downloads each one that is missing.
 
-- **`repos/flow`**: Flow itself, as the install line downloaded it. Installed from a clone of your own, it is a link to that clone.
+- **`repos/flow`**: Flow itself, as the install line downloaded it. Installed from a clone of your own, it is a link to that clone. Its `mods/flow-session/` folder holds the mod Claude Code loads, named by `CLAUDE_CODE_PLUGIN_DIRS` in [`env`](settings.md#env).
 - **`repos/util/`**: `util`, the second command-line tool Flow uses, for file trees and git shortcuts.
 - **`repos/toolbox/`**: a catalog of outside tools that `/flow:research` reads.
 

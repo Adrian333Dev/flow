@@ -78,15 +78,15 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 ### Hooks and guardrails
 
-12 hook scripts, registered 21 times in `home/settings.json`.
+10 hook scripts, registered 18 times in `home/settings.json`.
 
 - `V1` **Permissions have their own file**: what runs unasked, the guard, the dialog and the log, in `docs/spec/permissions.md`.
-- `V1` **The session hands off at 150,000 tokens.** `context-check.js` tells the agent to run `/flow:handoff` at the next checkpoint, then again every 20,000 tokens past it. The user set the limit 2026-09-27, since answers degrade past about 140,000.
-- `V1` **Flow never compacts.** A typed `/compact` is refused with `Run /flow:handoff, then /clear.`, and Claude Code's own compacting is off. A handoff keeps what the next session needs, where a summary keeps the conversation.
+- `V1` **The session hands off at 150,000 tokens.** The `flow-session` mod tells the agent to run `/flow:handoff` at the next checkpoint and then call its restart tool, and says so again every 20,000 tokens past the limit. The user set the limit 2026-09-27, since answers degrade past about 140,000.
+- `V1` **Flow never lets Claude Code write the summary.** The agent hands off, then calls the mod's restart tool. The mod compacts the conversation in place and answers the compaction with the agent's note, each ticket in flight and the last exchange. The session and its transcript stay. Every other compaction is refused, a typed `/compact` included, and Claude Code's own compacting is off. Decided 2026-10-10 (`fw-16`, `## 17.1`).
 - `V1` **One reminder line beside every message the user sends**, naming `## The reply` and `## Capture`. `"reminder": false` turns it off.
 - `V1` **`@` lists every file, git-ignored ones included, most recently changed first**, answered from a saved walk in about 50 ms.
 - `V1` **The session start prints one line only when something needs attention**: a git repository with no Flow. It also makes every skill link and ticket skill match the settings, and starts the background pull and sync.
-- `never` **A typed `/compact` let through on the second try**, refused 2026-10-01: people learn to type it twice.
+- `never` **A typed `/compact` let through on the second try**, refused 2026-10-01: people learn to type it twice. The mod refuses it every time, with no override setting.
 
 ### Subagents
 
@@ -118,7 +118,8 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 ### Mods
 
-- `next` **Flow built into Claude Code through mods.** Ruled by the user 2026-10-02: the beta ships on command hooks, and mods get built during the beta, in this repo. First the 4 open questions get probed, then watch-only mods replace `context-check.js`, `compact-check.js` and the status line. Later steps bring a ticket board in its own pane, every reply checked against the rules before the user reads it, sessions on one repository kept from editing over each other, and a rule loaded the moment a matching file is written. `fw-14`, and `.flow/research/claude-code-mods/flow-fixes-and-ideas.md` → `## Build order`.
+- `V1` **The `flow-session` mod, in `mods/flow-session/`, owns the restart and the wrap-up warning** (`fw-136`). `CLAUDE_CODE_PLUGIN_DIRS` in `home/settings.json` loads it. It replaced `context-check.js` and `compact-check.js`, which sit in `lab/archive/`. It also turns a file dragged into the prompt box into an `@` mention, and removes a note left in `.flow/handoffs/` once the session that opened it answers.
+- `next` **Flow built into Claude Code through mods.** Ruled by the user 2026-10-02: the beta ships on command hooks, and mods get built during the beta, in this repo. First the 4 open questions get probed, then watch-only mods replace the status line. Later steps bring a ticket board in its own pane, every reply checked against the rules before the user reads it, sessions on one repository kept from editing over each other, and a rule loaded the moment a matching file is written. `fw-14`, and `.flow/research/claude-code-mods/flow-fixes-and-ideas.md` → `## Build order`.
 
 ### Pace
 

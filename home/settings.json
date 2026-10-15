@@ -1,7 +1,8 @@
 {
   "cleanupPeriodDays": 365,
   "env": {
-    "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS": "1"
+    "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS": "1",
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/.flow/repos/flow/mods/flow-session"
   },
   "fileSuggestion": {
     "type": "command",
@@ -174,20 +175,6 @@
           {
             "type": "command",
             "command": "node \"$HOME/.flow/scripts/hooks/reminder.js\""
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/context-check.js\""
-          }
-        ]
-      }
-    ],
-    "PostToolBatch": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/context-check.js\""
           }
         ]
       }
@@ -198,17 +185,6 @@
           {
             "type": "command",
             "command": "node \"$HOME/.flow/scripts/hooks/session-check.js\""
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "matcher": "manual",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/compact-check.js\""
           }
         ]
       }

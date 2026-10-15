@@ -1,7 +1,8 @@
 'use strict';
 /**
- * One user-only skill per open ticket, so typing `/exp` lists the tickets with
- * their title and status, the way the `/` list shows any skill.
+ * One user-only skill per ticket not yet `done` or `dropped`, so typing `/exp`
+ * lists the tickets with their title and status, the way the `/` list shows
+ * any skill. A note gets none: it is found by `#` in the prompt box.
  *
  *   <project>/.claude/skills/exp-47/SKILL.md    a project's ticket
  *   ~/.claude/skills/home-4/SKILL.md            a ticket in ~/.flow/
@@ -23,10 +24,12 @@ const fs = require('fs');
 const path = require('path');
 const graph = require('./graph');
 const store = require('./store');
+const statuses = require('./statuses');
 const paths = require('../paths');
 
-// Parked is left out as set aside, and done and dropped as closed.
-const LISTED = new Set(['todo', 'in-progress']);
+// Every open ticket, parked ones included: a parked ticket is found by typing
+// its words, which is how it is browsed. Done and dropped are closed.
+const listed = (t) => !statuses.TERMINAL.has(t.data.status);
 
 const MARK = '<!-- flow: ticket ';
 
@@ -77,7 +80,7 @@ function remove(folder) {
 function syncPlace(tickets, dir) {
   const done = { written: [], removed: [] };
   const index = graph.indexById(tickets);
-  const wanted = new Map(tickets.filter((t) => LISTED.has(t.data.status)).map((t) => [t.id, render(t, index)]));
+  const wanted = new Map(tickets.filter(listed).map((t) => [t.id, render(t, index)]));
   if (!wanted.size && !fs.existsSync(dir)) return done;
   fs.mkdirSync(dir, { recursive: true });
 

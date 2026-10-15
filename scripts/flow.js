@@ -13,6 +13,7 @@ const cli = require('./lib/cli');
 const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
+const notes = require('./commands/notes');
 const skills = require('./commands/skills');
 const install = require('./commands/install');
 const update = require('./commands/update');
@@ -38,15 +39,17 @@ const TITLE = 'flow: the board, setup, skills, settings and audit';
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
  * name of their own: `flow ls`, `flow start exp-47`. Everything else keeps a
- * group: `cases`, `skills`, `settings` and `audit`.
+ * group: `cases`, `notes`, `skills`, `settings` and `audit`.
  *
  * The order inside each section is the order help prints it. A command whose
  * section is missing here still runs and never prints: `status-line`, which
- * Claude Code runs and nobody types. A command marked `hidden` sits in a
- * section and still never prints: `handoff`, which only `/flow:handoff` runs.
+ * Claude Code runs and nobody types. A command marked `hidden` still never
+ * prints: `note`, the short form of `flow notes new`, which the notes group's
+ * summary names.
  */
 const commands = {
   ...board, ...statusLine, ...tickets.actions, ...install, ...update, ...init, ...sync, ...doctor, ...scorecard,
+  note: notes.note,
 };
 
 const SECTIONS = [
@@ -60,7 +63,7 @@ const SECTIONS = [
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, skills, settings: settingsCommand, audit },
+    groups: { cases, notes, skills, settings: settingsCommand, audit },
     check: (_, flags) => {
       paths.useRoot(flags.root);
     },

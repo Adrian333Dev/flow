@@ -12,13 +12,13 @@ Every key Flow reads from its own settings files, and every key it writes into C
   - [`wrapUp`](#wrapup): the warning that the conversation is getting long
 - [Other keys in Flow's files](#other-keys-in-flows-files): numbers, lists and names
   - [`wrapUpAt`](#wrapupat): how long a conversation gets before the warning
-  - [`compact`](#compact): let `/compact` run
   - [`setupReminderSkip`](#setupreminderskip): folders that never suggest `flow init`
   - [`fileSuggestionIgnore`](#filesuggestionignore): paths the `@` list never offers
   - [`skills`](#skills): which skills are on
   - [`ticketPrefix`](#ticketprefix): the word every ticket id starts with
 - [Claude Code's settings file](#claude-codes-settings-file): what `flow install` adds to `~/.claude/settings.json`
   - [`hooks`](#hooks): the scripts Claude Code runs at each moment of a session
+  - [`env`](#env): the variables Claude Code sets for every session, among them the one that loads Flow's mod
   - [`permissions`](#permissions): what runs without asking, what asks, and what never runs
   - [`statusLine`](#statusline): the line under the box you type in
   - [`fileSuggestion`](#filesuggestion): the list of files `@` opens
@@ -80,13 +80,13 @@ Flow: not set up here. Run flow init to set it up on this computer, or flow sett
 
 ### `wrapUp`
 
-Tells the agent to stop at a safe point and hand off once the conversation passes [`wrapUpAt`](#wrapupat):
+Tells the agent to hand off once the conversation passes [`wrapUpAt`](#wrapupat), then restart the session. Flow's mod prints it:
 
 ```text
-The context is at 152k. At the next checkpoint, run /flow:handoff, report in full, and stop.
+The context is at 152k. At the next checkpoint, run /flow:handoff, then call the restart tool with its note.
 ```
 
-Every 20,000 tokens past the limit it says it again, more firmly. [Sessions](../sessions.md) covers the handoff.
+Every 20,000 tokens past the limit it says it again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, with each ticket in flight and your last exchange. [Sessions](../sessions.md) covers the handoff.
 
 ## Other keys in Flow's files
 
@@ -97,16 +97,6 @@ The conversation size, in tokens, at which [`wrapUp`](#wrapup) speaks. Unset, it
 ```json
 "wrapUpAt": 140000
 ```
-
-### `compact`
-
-`true` lets a `/compact` you type run. Unset, Flow refuses it, and you see:
-
-```text
-Flow does not compact. Run /flow:handoff, then /clear. "compact": true in ~/.flow/settings.json allows /compact.
-```
-
-Either computer-wide file holds it. [Sessions](../sessions.md) says why Flow hands off instead.
 
 ### `setupReminderSkip`
 
@@ -169,11 +159,21 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 - **`check-ticket.js`**, when you type a phase skill or `/flow:start`: refuses where Flow is not set up.
 - **`overlays.js`**, when a skill loads: adds the project's own lines for that skill. [Configure](../configure.md) covers overlays.
 - **`reminder.js`**, on every message you send: prints [`reminder`](#reminder).
-- **`context-check.js`**, on every message and after every batch of tool calls: prints [`wrapUp`](#wrapup).
-- **`compact-check.js`**, on a typed `/compact`: refuses it, unless [`compact`](#compact) is `true`.
 - **`session-check.js`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), matches skill links to your settings, and starts the background sync.
 - **`failures.js`**, when a tool call or the API fails: adds a line to the failure log. [Learning](../learning.md) covers the log.
 - **`records-sync.js`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
+
+### `env`
+
+```json
+"env": {
+  "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS": "1",
+  "CLAUDE_CODE_PLUGIN_DIRS": "~/.flow/repos/flow/mods/flow-session"
+}
+```
+
+- **`CLAUDE_CODE_PLUGIN_DIRS`**: loads Flow's mod, `flow-session`, from your clone. The mod prints [`wrapUp`](#wrapup), restarts a session in place, and turns a file dragged into the box into an `@` mention. It refuses every compaction it did not start, so a typed `/compact` prints `Flow compacts only at its own restart. Run /flow:handoff.`
+- **`CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS`**: switches off Claude Code's Explore and Plan helper agents. Explore skips every `CLAUDE.md`, so no Flow rule would reach its searches.
 
 ### `permissions`
 

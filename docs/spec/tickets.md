@@ -92,7 +92,7 @@ Each status, and what moves a ticket into it:
 ### What a ticket records about its sessions
 
 - `V1` **`branch:` records the code branch** checked out when the ticket first reaches `in-progress`, written once. `flow <id>` prints `branch: feature/budgets   (checked out here: main)` where they differ, and `/flow:start` stops on that line.
-- `V1` **`history.md` gets one line per status move and per handoff**: `2026-09-29 14:02  todo → in-progress  <session id>  "<title>"  feature/budgets`. In the folder rather than in commit messages, so it travels with `flow move`.
+- `V1` **`history.md` gets one line per status move**: `2026-09-29 14:02  todo → in-progress  <session id>  "<title>"  feature/budgets`. In the folder rather than in commit messages, so it travels with `flow move`.
 - `V1` **The session id is `CLAUDE_CODE_SESSION_ID`**, and the title is the transcript's `/rename` title, else its generated one.
 
 ### Ticket skills
@@ -158,7 +158,7 @@ src/parser.js:40-120   # where step 4 stopped
 1. The user types `/flow:execute /exp-47`. Both skills load, and `flow get exp-47 --files` prints the ticket and its open files.
 2. `/flow:execute` reads the ticket, then runs `flow start exp-47`. `history.md` gains a line with the session id, and `branch: feature/budgets` is recorded. The move commits and pushes in the background.
 3. The user approves the plan, and the agent builds it with the ticket still `in-progress`.
-4. The context fills. `/flow:handoff` writes `## State` and runs `flow handoff exp-47`, adding a `history.md` line.
+4. The context fills. `/flow:handoff` writes `## State`.
 5. After `/clear`, the user types `/exp`, picks `/exp-47   Ticket, in-progress: …`, and the next session starts from the state.
 6. The tests pass. `flow done exp-47` unblocks `exp-48`, which depended on it, and `flow next` ranks `exp-48` first.
 
