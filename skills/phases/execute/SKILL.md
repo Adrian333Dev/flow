@@ -28,7 +28,6 @@ Read the code the ticket changes first. Then the tasks.
 
 Build to the end. Run each step's check, tick it, start the next. Stop only for a decision that is really the user's.
 
-- **Keep `## State` current**: work in flight, a step that landed differently, a decision deferred.
 - **File a lesson the moment it lands**, by `## Capture`.
 - **A discovery that changes a decision** → rewrite that decision in this ticket. Keep the dropped direction as one line with its reason.
 - **Plan wrong** → rewrite the tasks and say what changed. **Separable work found** → propose a child ticket. **The ticket no longer makes sense** → propose `flow drop <id> --reason "<why>" --by <id>`.

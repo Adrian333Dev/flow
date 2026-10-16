@@ -66,11 +66,11 @@ Closed at 4, set by the user.
 
 ### `/flow:handoff`
 
-- `V1` **A handoff writes the state a session that was not here needs.** One test decides each line: would that session get it wrong without it? It runs the capture sweep first.
+- `V1` **A handoff writes the state a session that was not here needs.** One test decides each line: would that session get it wrong without it? Capture is step 4, run when this conversation ends here: a restart replaces it, or all remaining work moves on.
 - `V1` **Working a ticket, the state is `## State` at the bottom of `ticket.md`**, under 3 labels, written once at the handoff. `Now`: half-done or in flight. `Found`: what cost effort to learn and lives in no file. `Open`: decisions half-made. `Now` is rewritten whole, `Found` and `Open` keep the lines still true. The files a session changed are not written: the mod records them (`fw-97`).
 - `V1` **`## State` never restates `plan.md`, `map.md`, the ticket body or a research report.**
-- `V1` **Work with no ticket gets one.** Work continuing in another session or model also gets a note, `.flow/handoffs/<name>.md`, holding only what fits no ticket. A job for a session that reports back gets a child ticket, and a subagent a prompt, both written once from `references/dispatch.md`.
-- `V1` **The reply opens with the path of each file written and ends on what to type**: `/clear`, then `/flow:start /exp-47`, which picks the phase from the ticket's status.
+- `V1` **Work with no ticket gets one.** Work continuing in another session or model also gets a handoff file, `.flow/handoffs/<name>.md`, holding only what fits no ticket. The mod deletes it after one clean turn. A job for a session that reports back gets a child ticket, and a subagent a prompt, both written once from `references/dispatch.md`.
+- `V1` **The reply opens with the path of each file written.** A restart ends there: the agent writes the start message when the restart begins, by `references/start-message.md`. Work for another session or model ends on what the user types there: the ticket's skill (`/exp-47`), then each skill the work needs, after a check that the ticket's status matches where the work stands. `/flow:start` is for a user who does not know what to work on.
 - `later` **A resumed session told the old transcript is there**: a detail the handoff lacks → the last session in `history.md`, opened with `flow audit`.
 
 ### Arguments
