@@ -51,7 +51,7 @@ function append(home, name, entry) {
  * state can be traced back to what did it.
  *
  *   {"at":"…","type":"clone","source":"mattpocock/skills","commit":"4f2a91c"}
- *   {"at":"…","type":"skill","name":"grill-me","state":"on","level":"machine","by":"flow skills on"}
+ *   {"at":"…","type":"install","clone":"/home/me/code/flow-dev"}
  */
 const historyFile = (home) => monthFile(home, 'history');
 

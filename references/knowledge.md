@@ -4,9 +4,9 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 
 ## The pieces
 
-- **Flow's skills**: `/flow:<name>`, always on, from the Flow clone. The one in `dev/`, `/flow:review`, is off until `flow skills on review --global`.
-- **A skill repository**: someone else's repository of skill folders, cloned by hand into `~/.flow/private-skills/`, where `flow skills` finds the skills in it.
-- **Private skills**: `~/.flow/private-skills/<name>/`, the user's, not yet published.
+- **Flow's skills**: `/flow:<name>`, always on, from the Flow clone.
+- **A skill repository**: someone else's repository of skill folders, cloned by hand. Its skills are linked one at a time into a skills folder of Claude Code's.
+- **Personal skills**: `~/.claude/skills/<name>/` for every project, `<project>/.claude/skills/<name>/` for one. Claude Code loads them, and Flow neither links nor switches them.
 - **A plugin**: a bundle from a Claude Code marketplace: skills, often hooks, commands and an MCP server. Claude Code installs and updates it.
 - **An MCP server**: a running program that hands the agent extra tools. Configured per project in `.mcp.json`.
 - **The wiki**: `~/.flow/wiki/<subject>/`, one folder per outside tool or field, every project's: `index.md`, topic pages edited in place, downloads. `/flow:research`'s own `references/wiki.md` holds its layout. Never loads by itself: the rule file's `## Reading` sends work there.
@@ -15,7 +15,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 
 ## Everything starts on for one project
 
-- **A skill** → `flow skills on`, with no flag, switches it on for this project. Add `--global` once a second project needs it.
+- **A skill** → `<project>/.claude/skills/<name>/`. Move it to `~/.claude/skills/` once a second project needs it.
 - **A plugin** → off everywhere, switched on in the project's `.claude/settings.json`: `claude plugin enable <id> --scope project`.
 - **An MCP server** → the project's `.mcp.json`. Never for the whole machine.
 
@@ -52,7 +52,7 @@ Install counts and stars only pick which 3 to read.
 
 **How each arrives:**
 
-- **A standalone skill used whole** → `git clone` it into `~/.flow/private-skills/`, then `flow skills on <name>`: switched on here.
+- **A standalone skill used whole** → `git clone` it, then link its folder into `<project>/.claude/skills/`: used in this project.
 - **A standalone skill to harvest** → read it from a throwaway clone in `tmp/`: nothing switched on.
 - **A plugin** → Claude Code's `/plugin install`, then on for this project only. A plugin is used whole or not at all.
 
@@ -68,7 +68,7 @@ Where a finding goes first is `~/.flow/CLAUDE.md` → `## Capture`. From there:
 
 - **A lesson about an outside tool or field** → its wiki page, edited in place.
 - **A project finding** → `.flow/findings/` → `/flow:file-findings` (user only) turns it into a skill, a rule or a check.
-- **A new skill** → `~/.flow/private-skills/<name>/`.
+- **A new skill** → `<project>/.claude/skills/<name>/` for one project, `~/.claude/skills/<name>/` for every project.
 
 **A wiki page holds what the agent gets wrong without it:** changes since its training, traps the docs never warn about, the user's choices. The tool's docs stay in `downloads/`, per version. A tool the agent has never seen gets a page on how the tool thinks, and `index.md` says where its docs are.
 

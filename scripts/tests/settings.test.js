@@ -1,7 +1,7 @@
 'use strict';
 /**
- * `flow settings`: the on/off settings Flow reads, switched at the 2 levels
- * `flow skills` uses. Each test builds a scratch machine with a home folder
+ * `flow settings`: the on/off settings Flow reads, switched for one folder or
+ * for every project (`--global`). Each test builds a scratch machine with a home folder
  * holding one git repository, so a folder switch has a folder to name.
  */
 

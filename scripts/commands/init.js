@@ -54,8 +54,8 @@ const { git } = require('../lib/git');
  * would need a record of what was switched off, since the user switches things
  * off too, and Flow keeps none.
  */
-const SWITCH_ON = 'A plugin or skill switched off on this computer is switched on here with: ' +
-  'claude plugin enable <id> --scope project, or flow skills on <name>';
+const SWITCH_ON = 'A plugin switched off on this computer is switched on here with: ' +
+  'claude plugin enable <id> --scope project';
 
 /** What `.flow/` itself ignores: whatever a prototype installed. */
 const RECORDS_IGNORE = [

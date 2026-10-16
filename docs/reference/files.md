@@ -22,7 +22,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ CLAUDE.md                   → ~/.flow/CLAUDE.md
 │  ├─ settings.json
 │  ├─ skills/flow                 → ~/.agents/skills/flow
-│  ├─ skills/<name>               → a skill switched on everywhere
+│  ├─ skills/<name>               a skill of your own, for every project
 │  ├─ skills/home-<n>/            a ticket skill
 │  ├─ agents/, rules/             → files in <clone>/claude/
 │  └─ projects/                   Claude Code's record of every session
@@ -41,7 +41,6 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ study-cases/<issue>/
 │  ├─ wiki/<tool>/
 │  ├─ research/<topic>/
-│  ├─ private-skills/<name>/
 │  ├─ logs/
 │  ├─ audit/
 │  └─ changes/<session>/
@@ -75,7 +74,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 
 A folder no single tool owns. `flow install` touches only this entry, and leaves anything else there alone.
 
-- **`skills/flow/`**: a link for each Flow skill that is on, beside the file that names the set `flow`, so each one is typed `/flow:<name>`.
+- **`skills/flow/`**: a link for each Flow skill, beside the file that names the set `flow`, so each one is typed `/flow:<name>`.
 
 ## `~/.claude/`
 
@@ -84,7 +83,7 @@ Each folder here can also hold entries from other tools. `flow install` never re
 - **`CLAUDE.md`**: the rules every session loads. A link to `~/.flow/CLAUDE.md`, so `flow sync` carries your rules to your other computers.
 - **`settings.json`**: Claude Code's settings. No Flow command writes it: a setup session adds Flow's keys and keeps yours. [Settings](settings.md#claude-codes-settings-file) covers each key.
 - **`skills/flow`**: a link to `~/.agents/skills/flow/`, which is how Claude Code finds Flow's skills.
-- **`skills/<name>`**: a link for each skill switched on everywhere. `flow skills on <name> --global` makes it.
+- **`skills/<name>`**: a skill of your own, loaded in every project. Claude Code reads it, and Flow never writes it.
 - **`skills/home-<n>/`**: a [ticket skill](skills.md#ticket-skills) for each open ticket in your Flow home.
 - **`agents/haiku-worker.md`**: the helper agent Flow hands simple jobs to. [Subagents](../subagents.md) covers it.
 - **`rules/comments.md`**: the rules for code comments, loaded only while the agent works on code.
@@ -122,12 +121,10 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 - **`study-cases/<issue>/`**: one file per recorded mistake, filed under the kind of mistake. `flow cases new` writes them.
 - **`wiki/<tool>/`**: what Flow knows about one outside tool, shared by every project. `/flow:research` writes it.
 - **`research/<topic>/`**: research reports asked outside any project, one folder per topic and one file per question. Empty until one is asked.
-- **`private-skills/<name>/`**: skills you write for yourself and never share. [Extend](../extend.md) covers writing one.
-
 ### Records of what happened
 
 - **`logs/install.log`**: every line of this computer's last `flow install`.
-- **`logs/history/<month>.jsonl`**: one line per change Flow made to this computer: a skill switched, a repository downloaded, an install.
+- **`logs/history/<month>.jsonl`**: one line per change Flow made to this computer: a repository downloaded, an install.
 - **`logs/failures/<month>.jsonl`**: one line per failure of a Flow command, a hook, a tool from a plugin, or the API.
 - **`logs/scorecards/<session>.jsonl`**: one line per rule check that ran. `flow scorecard` reads them.
 - **`audit/`**: the index `flow audit` searches, built from `~/.claude/projects/`. `audit/kept/` holds the sessions `flow audit keep` saved.
@@ -159,7 +156,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 ### `.claude/`
 
 - **`settings.json`**: this project's Claude Code settings, added on top of `~/.claude/settings.json`.
-- **`skills/<name>`**: a link for each skill switched on for this project, or a real folder for a skill this project keeps for itself.
+- **`skills/<name>`**: a skill this project keeps for itself, loaded in this project alone.
 - **`skills/<id>/`**: a [ticket skill](skills.md#ticket-skills) for each open ticket. git never sees them.
 
 ### `.flow/`
@@ -173,7 +170,7 @@ The project's tickets and what sessions learn in it. It is a link into `~/.flow/
 - **`findings/`**: one file per lesson a session learned, waiting for `/flow:file-findings`.
 - **`research/<topic>/`**: the research reports this project asked for, one folder per topic. `/flow:research` writes them.
 - **`overlays/<skill>.md`**: lines this project adds to a skill. [Configure](../configure.md) covers overlays.
-- **`settings.json`**: this project's skill lines and [`ticketPrefix`](settings.md#ticketprefix).
+- **`settings.json`**: this project's [`ticketPrefix`](settings.md#ticketprefix).
 
 ### `docs/`
 

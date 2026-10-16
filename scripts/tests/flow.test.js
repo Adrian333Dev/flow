@@ -72,8 +72,8 @@ test('--help after a command prints that command alone, and runs nothing', () =>
   assert.strictEqual(next.code, 0, next.stderr);
   assert.match(next.stdout, /^flow next +what to work on, ranked\n +\[--limit <n>\] \[--all\]\n$/);
 
-  const on = flow(dir, ['skills', 'on', '-h']);
-  assert.match(on.stdout, /^flow skills on <name\.\.\.> /);
+  const on = flow(dir, ['settings', 'on', '-h']);
+  assert.match(on.stdout, /^flow settings on <name> /);
 
   const made = flow(dir, ['new', 'Never made', '--title', 'never-made', '--help']);
   assert.match(made.stdout, /^flow new /);

@@ -22,9 +22,6 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow file`](#flow-file): mark finished tickets as checked for lessons
   - [`flow drop`](#flow-drop): remove a ticket that will never be done
   - [`flow move`](#flow-move): move tickets to another project, or to your Flow home- [Ticket status](#ticket-status): move a ticket from one stage to the next
-- [Skills](#skills): see which skills are on, and turn them on or off
-  - [`flow skills ls`](#flow-skills-ls): every skill, and whether it is on
-  - [`flow skills on`, `off` and `reset`](#flow-skills-on-off-and-reset): turn a skill on or off
 - [Settings](#settings): turn Flow's own settings on or off
 - [Rule checks](#rule-checks): see how well the agent follows your rules
 - [Cases](#cases): record the agent's mistakes, grouped by kind
@@ -96,7 +93,7 @@ fail  util:
         util fs tree does not run, and it is called by home/CLAUDE.md, in tree-for-structure
         util fs open does not run, and it is called by flow get --files, through tickets.js
         /home/me/.util/sources does not exist, so no source is registered: run flow install
-ok    ~/.agents: 11 skills linked under skills/flow/, 1 switched off
+ok    ~/.agents: 12 skills linked under skills/flow/
 ok    ~/.claude: skills/flow, 1 agent, 1 rule and CLAUDE.md linked
 fail  settings.json:
         /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow update, whose setup session fixes settings.json from /home/me/code/flow/home/settings.json
@@ -446,64 +443,6 @@ shop-9-pdf-export  parked → building
 
 revived 2 tickets labelled post-v1
 ```
-
-## Skills
-
-A skill is a folder of instructions Claude Code loads when its job comes up. Flow's own skills are always on, except the ones for working on Flow itself. Your private skills start off. [Extend](../extend.md) covers where skills come from, and [Reference: skills](skills.md) lists Flow's.
-
-**A switch works at one of 2 levels:**
-
-- **No flag**: this project.
-- **`--global`**: every project, on every computer.
-
-### `flow skills ls`
-
-Every skill, grouped by where it comes from, whether it is on, and the level that says so. A blank level means the skill's default. `outside` lists what another tool installed, which Flow never switches. `flow skills <pattern>` is `flow skills ls <pattern>`.
-
-```console
-$ flow skills ls
-                         state   level
-flow
-  review                 on      global
-private
-  my-notes               on      global
-  react                  on      project
-  vitest                 on      global
-outside
-  flow                   plugin
-```
-
-- **`[pattern...]`**: words or regular expressions, matched against each skill's name and description. A skill shows when it matches every one.
-- **`--source <group>`**: one group in full: `flow`, `private` or `outside`.
-
-### `flow skills on`, `off` and `reset`
-
-`on` and `off` switch skills at one level. `reset` removes that level's switch, so the default decides again.
-
-```console
-$ flow skills on react
-on: react, this project.
-linked: ~/code/shop/.claude/skills/react
-
-$ flow skills on vitest --global
-on: vitest, everywhere. Every session now loads its description, in projects it has nothing to do with too.
-linked: ~/.claude/skills/vitest
-```
-
-What each refuses:
-
-- **A Flow skill with no flag.** Flow's skills load in every project: add `--global`.
-- **Turning a skill off for one project while it is on everywhere:**
-
-  ```console
-  $ flow skills off vitest
-  flow: vitest is on everywhere (--global), and a project cannot hide a skill linked for the whole machine yet.
-    flow skills off vitest --global switches it off everywhere.
-  ```
-
-- **A name a Flow skill and a private skill share.** Rename the private one.
-
-**A skills folder Flow had to create needs Claude Code restarted**, and the command says so.
 
 ## Settings
 

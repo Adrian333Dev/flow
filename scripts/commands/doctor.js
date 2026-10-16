@@ -37,8 +37,6 @@ const installed = require('../lib/machine/installed');
 const { markdownFiles } = require('../lib/machine/links');
 const prereq = require('../lib/machine/prereq');
 const setupSession = require('../lib/machine/setup-session');
-const { projectRoot } = require('../lib/project');
-const links = require('../lib/skills/skill-links');
 const skills = require('../lib/skills/skills');
 const paths = require('../lib/paths');
 const { git } = require('../lib/git');
@@ -253,13 +251,8 @@ function checkAgents(at, catalog) {
     problems.push(`${paths.shorten(plugin)} is a link: it has to be the real folder, and ~/.claude/skills/flow the link to it`);
   }
 
-  // A Flow skill switched off has no link, on purpose, so only the ones on
-  // everywhere are checked: every essential one, and a dev one with a line.
-  const machineLines = links.lines({ home: at.flow, root: null, levels: ['global'] });
-  const on = installable.filter((s) =>
-    links.machineState({ name: s.name, essential: skills.essential(s) }, { type: 'flow' }, machineLines) === 'on');
   const linkDir = skills.linkDir(at.agents);
-  problems.push(...checkLinks(on.map((s) => ({
+  problems.push(...checkLinks(installable.map((s) => ({
     at: path.join(linkDir, s.name), target: s.dir, what: `skills/${s.name}`,
   }))));
 
@@ -281,8 +274,7 @@ function checkAgents(at, catalog) {
   return {
     name: paths.shorten(at.agents),
     problems,
-    summary: `${count(on.length, 'skill', 'skills')} linked under skills/${skills.PLUGIN}/` +
-      `${on.length < installable.length ? `, ${installable.length - on.length} switched off` : ''}`,
+    summary: `${count(installable.length, 'skill', 'skills')} linked under skills/${skills.PLUGIN}/`,
   };
 }
 
@@ -441,74 +433,6 @@ function checkIssues(at) {
 }
 
 /**
- * The skills Flow switches, read against the settings: every source cloned,
- * every line naming a skill some source holds and none naming an essential
- * one, and every skill switched on linked where it loads from.
- *
- * Read-only like everything here. A link out of step is a problem even
- * though the next session start fixes it, since until then the skill list
- * is wrong. `flow skills ls` makes the links match now.
- */
-function checkSkills(at) {
-  const problems = [];
-  const groups = links.catalog(at.flow);
-  const machineLines = links.lines({ home: at.flow, root: null, levels: ['global'] });
-  let root = null;
-  try {
-    root = projectRoot();
-  } catch {
-    // Outside a project: the machine's links are the whole check.
-  }
-  const projectLines = root ? links.lines({ home: at.flow, root, levels: ['project'] }) : new Map();
-
-  const known = new Set(groups.flatMap((g) => [...g.skills.keys()]));
-  for (const [name, line] of new Map([...machineLines, ...projectLines])) {
-    if (known.has(name)) continue;
-    const flag = line.level === 'project' ? '' : ` --${line.level}`;
-    problems.push(`"${name}" is switched ${line.state} at ${line.level} level, and no skill has that name: flow skills reset ${name}${flag}`);
-  }
-
-  // A line naming an essential skill changes nothing, since that skill is
-  // always linked, so it only misleads whoever reads the settings.
-  const flow = groups.find((g) => g.type === 'flow');
-  for (const [name, line] of new Map([...machineLines, ...projectLines])) {
-    const skill = flow.skills.get(name);
-    if (!skill || !links.isEssential(flow, skill)) continue;
-    const flag = line.level === 'project' ? '' : ` --${line.level}`;
-    problems.push(`"${name}" is switched ${line.state} at ${line.level} level, and it is part of Flow's workflow, ` +
-      `always on, so the line does nothing: flow skills reset ${name}${flag}`);
-  }
-
-  // Flow's own skills link into the plugin folder, which checkAgents reads.
-  let machineOn = 0;
-  let projectOn = 0;
-  const wanted = (dir, skill) => {
-    const found = inspect(path.join(dir, skill.name));
-    if (found.state !== 'ok' || found.target !== fs.realpathSync(skill.dir)) {
-      problems.push(`${skill.name} is switched on and ${paths.shorten(path.join(dir, skill.name))} does not link to it: run flow skills ls`);
-    }
-  };
-  for (const g of groups.filter((g) => g.type !== 'flow')) {
-    for (const skill of g.skills.values()) {
-      if (links.machineState(skill, g, machineLines) === 'on') {
-        machineOn++;
-        wanted(path.join(at.claude, 'skills'), skill);
-        continue;
-      }
-      const line = root && projectLines.get(skill.name);
-      if (line && line.state === 'on') {
-        projectOn++;
-        wanted(path.join(root, '.claude', 'skills'), skill);
-      }
-    }
-  }
-
-  const summary = `${count(machineOn, 'skill', 'skills')} on everywhere` +
-    (root ? `, ${projectOn} more for ${path.basename(root)}` : '');
-  return { name: 'skills', problems, summary };
-}
-
-/**
  * The clone: where its submodules sit.
  *
  * Every line is a note. A submodule off its gitlink is somebody mid-work in
@@ -623,7 +547,6 @@ actions.doctor = {
       checkClaude(clone, at),
       checkSettings(clone, at.claude, catalog),
       checkFlowHome(clone, at.flow),
-      checkSkills(at),
       // Hidden from help, so the report never names it when it was left out.
       flags.tests && checkTests(clone, { bin }),
     ].filter(Boolean);

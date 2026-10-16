@@ -12,7 +12,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { project, run, flow, gitRepo, bareRepo, skillFile, pathWith, REPO } = require('./helpers/scratch');
+const { project, run, flow, gitRepo, bareRepo, pathWith, REPO } = require('./helpers/scratch');
 const logs = require('../lib/logs/logs');
 const failures = require('../lib/logs/failures');
 
@@ -55,9 +55,7 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.strictEqual(linkTarget(at.skill('start')), path.join(REPO, 'skills', 'tools', 'start'),
     'a user-only skill installs like any other');
   assert.strictEqual(linkTarget(at.skill('debug')), path.join(REPO, 'skills', 'phases', 'debug'),
-    'every essential skill is linked');
-  assert.ok(!fs.existsSync(at.skill('review')), 'a dev skill starts off');
-  assert.doesNotMatch(first.stdout, /skills\/review/, 'never linked and then unlinked');
+    'every skill is linked');
 
   // scripts, references and docs live under ~/.flow: Claude Code reads none of
   // them, and the hooks and skills name all 3 by path.
@@ -218,7 +216,7 @@ test('the flags that took one folder each are gone', () => {
   assert.deepStrictEqual(fs.readdirSync(dir).sort(), before, 'nothing was written before the refusal');
 });
 
-test('install clones util when it is missing, links a private skill switched on, and never clones twice', () => {
+test('install clones util when it is missing, and never clones twice', () => {
   const dir = project('install-clones');
   const root = path.join(dir, 'root');
   const at = paths(root);
@@ -233,8 +231,6 @@ test('install clones util when it is missing, links a private skill switched on,
       "fs.mkdirSync(bin, { recursive: true }); fs.symlinkSync(__filename, path.join(bin, 'util'));\n",
   });
   fs.mkdirSync(at.flowHome, { recursive: true });
-  fs.mkdirSync(path.join(at.flowHome, 'private-skills', 'react'), { recursive: true });
-  fs.writeFileSync(path.join(at.flowHome, 'private-skills', 'react', 'SKILL.md'), skillFile('react'));
 
   const env = { FLOW_GIT_BASE: `${remote}${path.sep}` };
   const remoteRepo = bareRepo('install-clones');
@@ -244,16 +240,11 @@ test('install clones util when it is missing, links a private skill switched on,
   assert.strictEqual(first.code, 0, first.stderr);
   assert.match(first.stdout, /cloned: Adrian333Dev\/util into /);
   assert.ok(fs.lstatSync(path.join(bin, 'util')).isSymbolicLink(), 'util installed its own name');
-  assert.ok(!fs.existsSync(path.join(at.claude, 'skills', 'react')), 'a private skill starts off');
-
-  fs.writeFileSync(path.join(at.flowHome, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
   fs.rmSync(path.join(bin, 'util'));
 
   const second = install();
   assert.strictEqual(second.code, 0, second.stderr);
   assert.doesNotMatch(second.stdout, /cloned:/, 'nothing is cloned twice');
-  assert.strictEqual(linkTarget(path.join(at.claude, 'skills', 'react')),
-    path.join(at.flowHome, 'private-skills', 'react'));
 
   const types = fs.readFileSync(logs.historyFile(at.flowHome), 'utf8').trim().split('\n')
     .map((l) => JSON.parse(l).type);

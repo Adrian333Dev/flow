@@ -16,7 +16,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { REPO, project, run, utilStub, claudeStub, pathWith, write, skillFile, bareRepo } = require('./helpers/scratch');
+const { REPO, project, run, utilStub, claudeStub, pathWith, bareRepo } = require('./helpers/scratch');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
 function machine(name) {
@@ -259,32 +259,4 @@ test('a plugin folder reached through a broken link is named', () => {
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /skills\/flow points at .*gone, which is gone/);
-});
-
-test('the skills check names a line no skill has and a missing link', () => {
-  const m = machine('doctor-skills');
-  const bin = utilStub(m.dir);
-  const source = path.join(m.flowHome, 'private-skills');
-  write(source, 'react/SKILL.md', skillFile('react'));
-  write(source, 'vue/SKILL.md', skillFile('vue'));
-
-  // A dev skill switched off has no link, and that is not a problem. A line
-  // naming an essential skill is one: it does nothing.
-  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({
-    skills: { review: 'off', groundwork: 'off', react: 'on', gone: 'on' },
-  }));
-
-  const report = doctor(m, { bin });
-  assert.strictEqual(report.code, 1);
-  assert.match(report.stdout, /"gone" is switched on at global level, and no skill has that name: flow skills reset gone --global/);
-  assert.match(report.stdout, /react is switched on and .*\.claude\/skills\/react does not link to it: run flow skills ls/);
-  assert.match(report.stdout, /"groundwork" is switched off at global level, and it is part of Flow's workflow, always on, so the line does nothing: flow skills reset groundwork --global/);
-  assert.doesNotMatch(report.stdout, /skills\/review is not linked/);
-  assert.doesNotMatch(report.stdout, /vue/, 'a skill switched off is not checked');
-
-  fs.symlinkSync(path.join(source, 'react'), path.join(m.home, 'skills', 'react'));
-  fs.writeFileSync(path.join(m.flowHome, 'settings.json'), JSON.stringify({ skills: { review: 'off', react: 'on' } }));
-  const fixed = doctor(m, { bin });
-  assert.strictEqual(fixed.code, 0, fixed.stdout);
-  assert.match(fixed.stdout, /skills: 1 skill on everywhere/);
 });

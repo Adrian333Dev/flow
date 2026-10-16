@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * flow: the board, setup, skills, settings and audit.
+ * flow: the board, setup, settings and audit.
  *
  * The entry point only: it names the commands and hands argv to the argument
  * layer. Every command and its flags are listed in docs/reference/commands.md.
@@ -14,7 +14,6 @@ const board = require('./commands/board');
 const tickets = require('./commands/tickets');
 const cases = require('./commands/cases');
 const notes = require('./commands/notes');
-const skills = require('./commands/skills');
 const install = require('./commands/install');
 const update = require('./commands/update');
 const doctor = require('./commands/doctor');
@@ -34,12 +33,12 @@ process.stdout.on('error', (e) => {
   throw e;
 });
 
-const TITLE = 'flow: the board, setup, skills, settings and audit';
+const TITLE = 'flow: the board, setup, settings and audit';
 
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
  * name of their own: `flow ls`, `flow start exp-47`. Everything else keeps a
- * group: `cases`, `notes`, `skills`, `settings` and `audit`.
+ * group: `cases`, `notes`, `settings` and `audit`.
  *
  * The order inside each section is the order help prints it. A command whose
  * section is missing here still runs and never prints: `status-line`, which
@@ -63,7 +62,7 @@ const SECTIONS = [
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, notes, skills, settings: settingsCommand, audit },
+    groups: { cases, notes, settings: settingsCommand, audit },
     check: (_, flags) => {
       paths.useRoot(flags.root);
     },

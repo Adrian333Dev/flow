@@ -64,7 +64,6 @@ const { link, pruneDead, pruneUnlisted, markdownFiles } = require('../lib/machin
 const machineName = require('../lib/machine/machine-name');
 const setupSession = require('../lib/machine/setup-session');
 const repos = require('../lib/skills/repos');
-const links = require('../lib/skills/skill-links');
 const skills = require('../lib/skills/skills');
 const paths = require('../lib/paths');
 const { git } = require('../lib/git');
@@ -130,9 +129,7 @@ actions.install = {
     for (const gone of pruneDead(linkDir, clone)) {
       done.push(`unlinked (gone): ${show(path.join(linkDir, gone))}`);
     }
-    // The essential skills only: a dev skill starts off, and apply below links
-    // one switched on.
-    for (const skill of skills.installable().filter(skills.essential)) {
+    for (const skill of skills.installable()) {
       link(skill.dir, path.join(linkDir, skill.name));
       done.push(`linked: ${show(path.join(linkDir, skill.name))}`);
     }
@@ -191,21 +188,9 @@ actions.install = {
 
     if (bin && !flags['no-clone']) done.push(...installUtil(at, bin));
 
-    // Last, once every skill link is made and every clone is in place: a
-    // skill switched off loses its link, and one switched on for the machine
-    // gets its own.
-    const applied = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
-    done.push(...applied.changed);
-    done.push(...applied.problems);
-
     const asked = connectHome(at, checked);
     done.push(...asked.lines);
-    // Another machine's settings came down with its skills.
-    if (asked.joined) {
-      if (!flags['no-clone']) done.push(...cloneMissing(at));
-      const joined = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
-      done.push(...joined.changed, ...joined.problems);
-    }
+    if (asked.joined && !flags['no-clone']) done.push(...cloneMissing(at));
     // After the join: a rule file or profile written before it would block a
     // second machine from joining, and theirs arrive with the download.
     if (asked.ok) done.push(...startRules(at, clone), ...startProfile(at, clone), ...setupSession.linkRules(at));
@@ -220,7 +205,7 @@ actions.install = {
     for (const line of done.filter((l) => /^(could not|not sent:|stopped:|util install failed)/.test(l))) {
       failures.record(at.flow, { source: 'install', what: 'flow install', error: line });
     }
-    const count = skills.installable().filter(skills.essential).length;
+    const count = skills.installable().length;
     const shown = done.filter((line) => !/^(linked|wrote): /.test(line));
     out([
       `Flow is installed: ${count} skills, each typed under the plugin name, as /${skills.PLUGIN}:groundwork.`,

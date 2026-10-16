@@ -6,16 +6,13 @@
  *
  * `~/.flow/` is one private git repository, and that repository is the whole
  * of how Flow reaches another machine: the rules, the workflow notes, the
- * study cases, the private skills, the wiki and the tickets that belong to no
- * project all live in it already. A project's tickets travel on the project's
+ * study cases, the wiki and the tickets that belong to no project all live in
+ * it already. A project's tickets travel on the project's
  * own `flow` branch, and `lib/tickets/records.js` holds how.
  *
  * Both also run by themselves, from `scripts/jobs/records-sync.js`: after a status
  * move, after a reply once 30 minutes have passed, and at session end. Typing
  * it sends at once.
- *
- * A pull can bring skill lines written on the other machine, so the links
- * are made to match right after it, the way a session start would.
  *
  * `lib/machine/flow-repo.js` holds the repository, the machine records, the commit
  * named for the machine, and the list of what never travels.
@@ -25,7 +22,6 @@ const path = require('path');
 const { out } = require('../lib/cli');
 const repo = require('../lib/machine/flow-repo');
 const records = require('../lib/tickets/records');
-const links = require('../lib/skills/skill-links');
 const failures = require('../lib/logs/failures');
 const paths = require('../lib/paths');
 
@@ -53,10 +49,6 @@ actions.sync = {
     const { came, sent, pushed, renumbered } = result;
     failures.cleared(at.flow, 'sync ~/.flow');
     out(came ? `came down: ${came} file${came === 1 ? '' : 's'}` : 'nothing new came down.');
-    if (came) {
-      const done = links.apply({ home: at.flow, root: null, claude: at.claude, agents: at.agents });
-      if (done.changed.length) out(done.changed.join('\n'));
-    }
     if (sent) out(`went up: ${sent}`);
     else if (pushed) out(`went up: ${pushed} commit${pushed === 1 ? '' : 's'} an earlier sync could not send`);
     else out('nothing changed here, so nothing went up.');

@@ -1,7 +1,7 @@
 'use strict';
 /**
- * `session-check`: the SessionStart hook that makes the skill links match the
- * settings and suggests `flow init` where a repository has no `.flow/`.
+ * `session-check`: the SessionStart hook that makes the ticket skills match the
+ * tickets and suggests `flow init` where a repository has no `.flow/`.
  */
 
 const { test } = require('node:test');
@@ -9,7 +9,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { SCRATCH, run, write, skillFile } = require('./helpers/scratch');
+const { SCRATCH, run, write } = require('./helpers/scratch');
 
 /** A throwaway machine and one project inside it. A project is a git repository, as `flow init` leaves one. */
 function place(name, opts = {}) {
@@ -45,29 +45,6 @@ test('a project with nothing to change prints nothing at all', () => {
   assert.strictEqual(result.code, 0);
 });
 
-// A switch made on another machine arrives as a settings line. The hook
-// makes the link, and asks Claude Code to scan the skill folders again so
-// the first prompt already has it.
-test('a link the hook changed asks for a rescan, and a session with nothing to change prints nothing', () => {
-  const at = place('session-relink');
-  const source = path.join(at.home, 'private-skills');
-  write(source, 'react/SKILL.md', skillFile('react'));
-  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
-
-  const first = check(at);
-  assert.strictEqual(first.code, 0);
-  assert.deepStrictEqual(JSON.parse(first.stdout), { hookSpecificOutput: { hookEventName: 'SessionStart', reloadSkills: true } });
-  assert.strictEqual(fs.readlinkSync(path.join(at.user, '.claude', 'skills', 'react')), path.join(source, 'react'));
-
-  const second = check(at);
-  assert.strictEqual(second.stdout, '', 'the link is there, so there is nothing to scan');
-
-  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ skills: {} }));
-  const third = JSON.parse(check(at).stdout).hookSpecificOutput;
-  assert.strictEqual(third.reloadSkills, true);
-  assert.ok(!fs.existsSync(path.join(at.user, '.claude', 'skills', 'react')), 'switched off, so unlinked');
-});
-
 // On a real machine ~/.flow sits in the home folder, so every folder under it
 // has a `.flow/` above it. That one is the machine's, never a project's.
 test('a folder under the home folder with no .flow of its own is not a project', () => {
@@ -78,18 +55,19 @@ test('a folder under the home folder with no .flow of its own is not a project',
   const playground = path.join(user, 'code', 'playground');
   fs.mkdirSync(playground, { recursive: true });
   fs.mkdirSync(home, { recursive: true });
-  const source = path.join(home, 'private-skills');
-  write(source, 'react/SKILL.md', skillFile('react'));
-  fs.writeFileSync(path.join(home, 'settings.json'), JSON.stringify({ skills: { react: 'on' } }));
+  write(home, 'tickets/home-4-backup-script/ticket.md',
+    '---\nid: home-4\ntitle: Backup script\nstatus: in-progress\ntype: chore\n---\n\nBody.\n');
 
+  // The ticket in ~/.flow/ gets its skill in Claude Code's folder, and the hook
+  // asks Claude Code to scan the skill folders again so the first prompt has it.
   const at = { home, project: playground, user };
-  assert.strictEqual(JSON.parse(check(at).stdout).hookSpecificOutput.reloadSkills, true);
-  const link = path.join(user, '.claude', 'skills', 'react');
-  assert.strictEqual(fs.readlinkSync(link), path.join(source, 'react'), 'on for the whole machine, so linked');
+  const first = check(at);
+  assert.deepStrictEqual(JSON.parse(first.stdout), { hookSpecificOutput: { hookEventName: 'SessionStart', reloadSkills: true } });
+  assert.ok(fs.existsSync(path.join(user, '.claude', 'skills', 'home-4', 'SKILL.md')), 'a ticket of the machine, so a skill');
 
   const second = check(at);
-  assert.strictEqual(second.stdout, '', 'the link stays, and the home folder is never read as a project');
-  assert.strictEqual(fs.readlinkSync(link), path.join(source, 'react'));
+  assert.strictEqual(second.stdout, '', 'the skill is there, so there is nothing to scan');
+  assert.ok(!fs.existsSync(path.join(playground, '.claude')), 'the home folder is never read as a project');
 });
 
 test('a git repository with no .flow gets the setup line, shown to the user alone, unless a setting says not', () => {

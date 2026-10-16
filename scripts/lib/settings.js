@@ -13,14 +13,13 @@
  * The 2 machine files are read as one, and the local file wins key by key.
  * `readGlobal` is that pair; `read` is one named file.
  *
- * A switch, a skill's line or an on/off setting, is read from settings.json
- * alone. A switch has 2 levels, this project and every project, and a third
- * file holding one would make a switch nobody can find from `flow settings`.
+ * An on/off setting is read from settings.json alone. A switch has 2 levels,
+ * this project and every project, and a third file holding one would make a
+ * switch nobody can find from `flow settings`.
  *
- * Keys sit at the top level: `sources`, `skills`, and one per line Flow
- * prints by itself. A new setting is a new key, and nothing here is shaped
- * around a fixed set. `skills` is the one key merged name by name, across the
- * project's file and settings.json, and `lib/skills/skill-links.js` does that merge.
+ * Keys sit at the top level: `sources`, and one per line Flow prints by
+ * itself. A new setting is a new key, and nothing here is shaped around a
+ * fixed set.
  *
  * Reading never throws. A hook reads these files as a session opens and on
  * every message, and a missing, empty or corrupt file has to mean the

@@ -1,19 +1,16 @@
 'use strict';
 /**
- * What the SessionStart hook does: make the skill links match, start the
- * background sync, and suggest `flow init` where a repository has no `.flow/`.
- * `hooks/session-check.js` is the wiring.
+ * What the SessionStart hook does: make the ticket skills match the tickets,
+ * start the background sync, and suggest `flow init` where a repository has no
+ * `.flow/`. `hooks/session-check.js` is the wiring.
  *
  * It waits for nothing. `flow doctor` stays the full check, since it runs both
  * test suites and takes seconds.
  *
- * It makes every skill link match the settings, the step every `flow skills`
- * command runs, so a switch made on another machine or pulled with a project
- * applies here. It makes the ticket skills match the tickets too, which a
- * ticket edited by hand or pulled from another machine needs:
- * `tickets/ticket-skills.js`. When either changed a skill it asks Claude Code
- * to scan the skill folders again (`reloadSkills`), so the first prompt
- * already sees the change.
+ * It makes the ticket skills match the tickets, which a ticket edited by hand
+ * or pulled from another machine needs: `tickets/ticket-skills.js`. When that
+ * changed a skill it asks Claude Code to scan the skill folders again
+ * (`reloadSkills`), so the first prompt already sees the change.
  *
  * It starts one job, detached. In a project linked into the Flow home,
  * `jobs/records-sync.js` syncs the Flow home. Starting a process is not
@@ -28,7 +25,6 @@ const path = require('path');
 const { spawn } = require('child_process');
 const records = require('./tickets/records');
 const ticketSkills = require('./tickets/ticket-skills');
-const links = require('./skills/skill-links');
 const settings = require('./settings');
 const paths = require('./paths');
 const project = require('./project');
@@ -76,15 +72,6 @@ function setupReminder(at, cwd) {
 }
 
 /**
- * Make every skill link match the settings. Returns whether a link changed,
- * which is when the skill folders need scanning again.
- */
-function relink(at, cwd) {
-  const done = links.apply({ home: at.flow, root: project.around(cwd, at), claude: paths.claudeHome(), agents: at.agents });
-  return done.changed.length > 0;
-}
-
-/**
  * Bring the project's tickets up to date, and send what this machine left
  * unsent, without waiting: `records-sync.js` runs it detached. Where `.flow/`
  * links into the Flow home it syncs the Flow home. A folder without that link
@@ -103,7 +90,7 @@ function startRecordsPull(at, cwd) {
 /**
  * What the session opens with: `reminder` for the user alone, and `reload`
  * where a skill changed. `"sessionCheck": false` in ~/.flow/settings.json
- * silences the reminder, and never the links.
+ * silences the reminder, and never the ticket skills.
  */
 function check(at, cwd) {
   let reminder = null;
@@ -111,14 +98,9 @@ function check(at, cwd) {
 
   let reload = false;
   try {
-    reload = relink(at, cwd);
+    reload = ticketSkills.sync({ project: project.around(cwd, at), claude: paths.claudeHome() });
   } catch {
-    // A link that cannot be made is flow doctor's to report, never a session's.
-  }
-  try {
-    if (ticketSkills.sync({ project: project.around(cwd, at), claude: paths.claudeHome() })) reload = true;
-  } catch {
-    // The same: a ticket skill that cannot be written never stops a session.
+    // A ticket skill that cannot be written never stops a session.
   }
   return { reminder, reload };
 }

@@ -14,7 +14,6 @@ Every key Flow reads from its own settings files, and every key it writes into C
   - [`wrapUpAt`](#wrapupat): how long a conversation gets before the warning
   - [`setupReminderSkip`](#setupreminderskip): folders that never suggest `flow init`
   - [`fileSuggestionIgnore`](#filesuggestionignore): paths the `@` list never offers
-  - [`skills`](#skills): which skills are on
   - [`ticketPrefix`](#ticketprefix): the word every ticket id starts with
 - [Claude Code's settings file](#claude-codes-settings-file): what `flow install` adds to `~/.claude/settings.json`
   - [`hooks`](#hooks): the scripts Claude Code runs at each moment of a session
@@ -66,7 +65,7 @@ Prints a line when a session opens and something needs attention, and nothing ot
 Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.
 ```
 
-Off, the line stops. The work behind it goes on: skill links still match your settings.
+Off, the line stops. The work behind it goes on: the ticket skills still match your tickets.
 
 ### `setupReminder`
 
@@ -120,19 +119,6 @@ Paths the `@` list never offers, on top of the folders it always skips:
 - **An entry with a `/` is a path** from the project's top folder: `public/assets` skips that folder alone.
 
 All 3 of Flow's files can hold it, and their lists add up.
-
-### `skills`
-
-Which skills are switched on, one line per skill you switched:
-
-```json
-"skills": { "react": "on", "review": "on" }
-```
-
-- **In a project's `.flow/settings.json`**: on or off for that project. `flow skills on <name>` writes it.
-- **In `~/.flow/settings.json`**: on or off in every project. `flow skills on <name> --global` writes it.
-
-A project's line wins over the global one. A skill no line names is off, except Flow's own workflow skills, which are always on. [Configure](../configure.md) covers the levels.
 
 ### `ticketPrefix`
 
@@ -249,7 +235,7 @@ Claude Code deletes a session's record once it is this many days old. Its defaul
 "skillOverrides": { "grill-me": "off" }
 ```
 
-Claude Code's switch for one skill, set to `off` for a skill synced from your Claude account that works against Flow. It cannot reach Flow's own skills, which `flow skills` switches instead.
+Claude Code's switch for one skill, set to `off` for a skill synced from your Claude account that works against Flow. It cannot reach Flow's own skills, which are always on.
 
 ### Features switched off
 

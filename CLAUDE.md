@@ -16,6 +16,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 ## Rules
 
 - **`design-lives-in-the-map`** Cite `fw-16`'s map before the spec, whenever you answer or decide anything about the redesign. The spec lags the redesign until its build lands.
+- **`work-by-the-loaded-design`** Until the migration starts, the loaded skills, rules and `flow` (the old design) say how to work: handoff, capture, review, status moves. Never follow the dev copies in `skills/`, `scripts/` or `home/`, and never run `flow note`. Name which design a claim comes from.
 - **`read-the-spec-first`** Read `docs/spec/product.md` and the spec file of the part you touch, before changing skills, installation, the scripts or the docs tree.
 - **`drain-workflow-notes`** Before choosing the next work, read `~/.flow/workflow-notes.md` and the current month of `~/.flow/logs/failures/`. File each note as a ticket through `flow new`, or join it to the ticket it repeats, then delete the note. A failure worth fixing gets a ticket the same way, and the log stays untouched.
 - **`never-suggest-file-findings`** Never offer `/flow:file-findings`, and never count the closed tickets waiting for it. End with the next ticket instead: the user runs it when they choose, and each reminder costs them a line to skip.
@@ -23,7 +24,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`retired-stays-retired`** Never cite a mechanism the user retired (the `open` block, `flow get --files`) as current, in a plan, a proposal or an explanation. A skill, a doc or a script still holding one is stale, never evidence it lives.
 - **`design-rules-can-be-overturned`** Paths, types, file shapes, what a skill owns: a better idea wins. Say what the rule protected, whether that still holds, and recommend. The conduct rules, git, installing, deletes and forks hold regardless.
 - **`no-commit-no-push`** Never run `git commit` or `git push`, here or in a submodule, unless the user asks. Every other git command is fine, but never discard the user's uncommitted work.
-- **`deletes-need-confirmation`** A delete needs its own confirmation, even inside an approved plan. Moving is not deleting. Pre-approved: something this session superseded, cleanup of what a change left behind, and your own scratch in `tmp/`.
+- **`deletes-need-confirmation`** A delete needs its own confirmation, even inside an approved plan. Moving is not deleting. Pre-approved: something this session superseded, cleanup of what a change left behind, your own scratch in `tmp/`, and a ticket drop, repoint or merge (ruled 2026-10-16, never ask).
 - **`design-in-conversation`** Design this workflow in plain conversation. Never invoke a brainstorming skill for it.
 - **`no-fork-subagent`** Never use a fork, the subagent that starts with a copy of the whole conversation. Never propose one, never write one into a skill.
 - **`no-commit-step`** Flow never commits a project's code, and no skill, rule or hook tells the agent to. The user commits when they judge the work done. A missing commit step is never a fault: never raise one.

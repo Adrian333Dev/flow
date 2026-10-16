@@ -6,8 +6,8 @@
  *   on | off <name>       write that setting at one level
  *   reset <name>          remove it from that level, so the level above decides
  *
- * The levels are `flow skills`' own: no flag for this folder, `--global` for
- * every project on every machine. The folder is the enclosing git repository.
+ * The levels: no flag for this folder, `--global` for every project on every
+ * machine. The folder is the enclosing git repository.
  * A setting works per folder only where it has a list of folders to skip,
  * since a line like the reminder has nowhere to say "not here". That list
  * holds paths, so it lives in `settings.local.json`; every switch lives in
