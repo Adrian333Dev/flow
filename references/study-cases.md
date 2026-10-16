@@ -2,9 +2,9 @@
 
 ## Note or case
 
-`~/.flow/workflow-notes.md` when there is nothing to preserve: friction hit twice, a gap, a rule that fought the work. One line.
-
 A study case when **an artifact exists that will be gone tomorrow**: output the user reacted to, a file that came out wrong, a rule that was loaded and did not fire.
+
+Nothing to preserve (friction hit twice, a gap, a rule that fought the work) → `flow note "…"`.
 
 ## Writing one
 
@@ -34,6 +34,12 @@ Cases are files, at `~/.flow/study-cases/<type>/<date>-<slug>.md`. A folder only
 - **Root cause**: one sentence.
 - **What would have been right.**
 - **The rule that failed**, where one existed. A rule that was loaded and did not fire is a defective rule, not a defective reading: say what it fails to name.
+
+## Whether a rule loaded
+
+`grep '"loaded"' ~/.flow/logs/scorecards/<session-id>.jsonl` prints one line per `CLAUDE.md`, file it imports, or `.claude/rules/*.md` file that entered the session's context. A path-scoped rule loads only after a matching file is read, so its line can be missing. The current session's id is `$CLAUDE_CODE_SESSION_ID`, and `flow audit sessions` lists past ones. A skill leaves no line: find its invocation in the transcript.
+
+A rule that loaded and stayed silent is defective. A rule that never loaded is absent: the fault is whatever should have loaded it.
 
 ## Closing
 

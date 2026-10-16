@@ -9,21 +9,24 @@
 
 ## Where it lives
 
-**Every skill lives once, in the Flow clone**, inside the group folder that files it.
+**A new skill is project-level by default**: `<project>/.claude/skills/<name>/`. It goes global, in `~/.claude/skills/<name>/`, only when the same steps serve other projects.
 
-- **`phases/`**: what you are doing, one at a time
+**Flow's own skills live once, in the Flow clone**, inside the group folder that files it. Only Flow's own workflow gets one.
+
+- **`phases/`**: what you are doing, one at a time. Closed to new skills.
 - **`tools/`**: what you reach for around the work. It starts, produces something, finishes
-- **`dev/`**: maintaining Flow. The one group that switches: each skill starts off
 
-**Every skill installs on every machine**, so a skill is typeable the moment its folder exists. A new skill ships user-only (`disable-model-invocation: true`), which costs nothing until it is typed, and loses the flag once it has proven itself. A skill that is not Flow's belongs in the project that uses it: copy the folder into `<project>/.claude/skills/<name>/` and commit it. A skill of your own that no repository should carry goes in `~/.flow/private-skills/<name>/`, under a name no Flow skill uses, and `flow skills on <name>` turns it on. `--global` turns it on everywhere.
+**Every Flow skill installs on every machine**, so a skill is typeable the moment its folder exists.
+
+**A new skill is user-only (`disable-model-invocation: true`) unless the agent has to start it itself.** A user-only skill costs nothing until it is typed. An agent-reachable skill puts its description in every session.
 
 ## The name, and the prefix
 
 **Name the folder bare and write the same bare word as `name` in the frontmatter.** A folder called `groundwork` holding `name: groundwork` is typed `/flow:groundwork`. Never write the prefix into either one.
 
-Claude Code names the command after the folder, Codex after the frontmatter `name`, so the 2 must match. The `flow:` comes from `.claude-plugin/plugin.json` beside the skills, holding `"name": "flow"`. Codex types it `$flow:groundwork`.
+Claude Code names the command after the folder, so the folder and `name` match. The `flow:` comes from `.claude-plugin/plugin.json` beside the skills, holding `"name": "flow"`.
 
-**Every skill outside `dev/` is shown in every session, and nothing switches it off.** A `dev/` skill is shown once `flow skills on <name> --global` adds its link. A Flow skill has no switch for one project: `skillOverrides`, the settings key that hides a skill, skips a plugin's skills.
+**Every Flow skill is shown in every session, and nothing switches it off.** A Flow skill has no switch for one project: `skillOverrides`, the settings key that hides a skill, skips a plugin's skills.
 
 ## Shape
 

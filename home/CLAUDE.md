@@ -67,13 +67,13 @@ One phase at a time:
 ```text
 /flow:groundwork      → decisions written, and the tickets they commit to
 /flow:execute         → one ticket built and reviewed
-/flow:file-findings   → the lessons taken out of it
+/flow:upkeep          → the lessons taken out of it
 ```
 
 - **`invoke-the-skill`** Invoke the skill that fits, never improvise its job. A small obvious task takes none.
   - Anything drawn: structure, architecture, layout, density, hierarchy, colour → `/flow:visualize`
   - Context filling, a stretch of work closing, or a job needing its own session → `/flow:handoff`
-- **`user-only-skills`** Suggest `/flow:start`, `/flow:tickets-from-spec`, `/flow:file-findings` and `/flow:apply-domain-findings` to the user.
+- **`user-only-skills`** Suggest `/flow:start`, `/flow:tickets-from-spec`, `/flow:upkeep` and `/flow:apply-domain-findings` to the user.
 - **`skip-a-step`** Skip a Flow step that makes the work worse. Name the step and the reason. Never ask first.
 - **`read-workflow-md`** `~/.flow/references/workflow.md` says how the pieces fit. Read it only when more context needed.
 - **`read-knowledge-md`** Read `~/.flow/references/knowledge.md` before adding a skill, a plugin or an MCP server.

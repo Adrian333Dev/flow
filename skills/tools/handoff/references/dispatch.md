@@ -28,6 +28,8 @@ Plus 4 where someone waits on an answer:
 
 **A subagent also gets a stopping point**: "stop after these 3 sources and write the file". Never a time limit.
 
+**Never cut one body of evidence into chunks across agents.** Analysis is a loop: read for the shape, plan, read what the plan names, plan again. A chunk read blind answers nothing, and the loop stays in this session. A subagent gets a question one source can answer.
+
 ## Where the answer goes
 
 The brief names it. A dispatched job ends by saying its answers in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, the research file `/flow:research` names for a question. The ticket's `## State` carries the job's progress, never its answer.

@@ -6,7 +6,6 @@ Every skill Flow ships, and the skills Flow makes from your tickets. A skill is 
 
 - [Phases](#phases): the 4 kinds of work a ticket goes through
 - [Tools](#tools): the jobs that fit no phase
-- [Skills for working on Flow](#skills-for-working-on-flow): off until you turn one on
 - [Ticket skills](#ticket-skills): one skill per open ticket, `/shop-7`
 
 ## Phases
@@ -24,16 +23,10 @@ Each phase works on one ticket. Type the phase, then the ticket's id as a skill:
 - **`/flow:handoff`**: write into the ticket what the next session needs to carry on, so `/clear` loses nothing. [Sessions](../sessions.md) covers when it runs.
 - **`/flow:research`**: find out how an outside tool really works, from its documentation and source. What it learns goes in `~/.flow/wiki/<tool>/`, shared by every project. [Learning](../learning.md) covers the wiki.
 - **`/flow:visualize`**: draw diagrams, screen mockups and HTML previews, in a message or in a document.
-- **`/flow:file-findings`** (only you can start it): file what a session learned into skills, rules and checks.
+- **`/flow:upkeep`** (only you can start it): fold closed tickets, notes, findings and the failure log into the wiki, rules and skills. It shows one plan first.
 - **`/flow:tickets-from-spec`** (only you can start it): cut the next chunk of planned work out of `docs/spec/` into tickets, earliest release first.
 
 A skill only you can start never fires by itself, and its description costs the agent nothing. When one is the next step, the agent tells you to type it.
-
-## Skills for working on Flow
-
-This one is off on a new computer, and the only Flow skill you can switch. `flow skills on review --global` turns it on in every project.
-
-- **`/flow:review`**: look back over how Flow did. It finds where a rule failed, where the same friction came back, and where the design has a gap. It records each as a study case or a note.
 
 ## Ticket skills
 

@@ -12,6 +12,7 @@ const { projectRoot } = require('../lib/project');
 const store = require('../lib/tickets/store');
 const graph = require('../lib/tickets/graph');
 const render = require('../lib/tickets/render');
+const waiting = require('../lib/waiting');
 
 const load = () => store.readTickets(projectRoot());
 
@@ -42,7 +43,9 @@ board.next = {
   summary: 'what to work on, ranked',
   flags: { limit: { arg: '<n>' }, all: { bool: true } },
   run({ flags }) {
-    out(render.status(load(), nextLimit(flags)));
+    const root = projectRoot();
+    const tickets = store.readTickets(root);
+    out(render.status(tickets, nextLimit(flags), waiting.count(root, tickets)));
     return 0;
   },
 };

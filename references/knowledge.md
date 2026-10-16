@@ -9,7 +9,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 - **Personal skills**: `~/.claude/skills/<name>/` for every project, `<project>/.claude/skills/<name>/` for one. Claude Code loads them, and Flow neither links nor switches them.
 - **A plugin**: a bundle from a Claude Code marketplace: skills, often hooks, commands and an MCP server. Claude Code installs and updates it.
 - **An MCP server**: a running program that hands the agent extra tools. Configured per project in `.mcp.json`.
-- **The wiki**: `~/.flow/wiki/<subject>/`, one folder per outside tool or field, every project's: `index.md`, topic pages edited in place, downloads. `/flow:research`'s own `references/wiki.md` holds its layout. Never loads by itself: the rule file's `## Reading` sends work there.
+- **The wiki**: `~/.flow/wiki/<subject>/`, one folder per outside tool or field, every project's: `index.md`, topic pages edited in place, downloads. `references/wiki.md` holds its layout. Never loads by itself: the rule file's `## Reading` sends work there.
 - **Findings**: `.flow/findings/`, one file per lesson from a project. A lesson about an outside tool or field goes to its wiki page instead.
 - **An overlay**: `~/.flow/skill-overlays/<skill>.md`, the user's additions to any skill, handed over in every project as it loads. No plugin prefix in the name.
 
@@ -67,7 +67,7 @@ Install counts and stars only pick which 3 to read.
 Where a finding goes first is `~/.flow/CLAUDE.md` → `## Capture`. From there:
 
 - **A lesson about an outside tool or field** → its wiki page, edited in place.
-- **A project finding** → `.flow/findings/` → `/flow:file-findings` (user only) turns it into a skill, a rule or a check.
+- **A project finding** → `.flow/findings/` → `/flow:upkeep` (user only) folds it into a page, a rule or a skill.
 - **A new skill** → `<project>/.claude/skills/<name>/` for one project, `~/.claude/skills/<name>/` for every project.
 
 **A wiki page holds what the agent gets wrong without it:** changes since its training, traps the docs never warn about, the user's choices. The tool's docs stay in `downloads/`, per version. A tool the agent has never seen gets a page on how the tool thinks, and `index.md` says where its docs are.

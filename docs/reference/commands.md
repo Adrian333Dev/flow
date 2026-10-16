@@ -143,8 +143,7 @@ ready (2):
   shop-6-dark-mode     todo    feature,post-v1  -
   shop-2-budget-store  todo    feature          shop-1
 
-unfiled: 1 closed ticket not yet filed   (flow ls --unfiled)
-         run /flow:file-findings to sweep them
+waiting for /flow:upkeep: 1 closed ticket, 2 notes, 3 findings
 ```
 
 - **`--limit <n>`**: at most `n` ready tickets. 10 by default.
@@ -329,7 +328,7 @@ Give one place. A `done` or `dropped` ticket has none.
 
 ### `flow file`
 
-`flow file <id>...`: mark finished tickets as checked for lessons. `/flow:file-findings` runs it once it has moved what a ticket taught into your skills and rules. Mark a ticket that taught nothing too, so it leaves `flow ls --unfiled`.
+`flow file <id>...`: mark finished tickets as checked for lessons. `/flow:upkeep` runs it once it has written what a ticket taught into the wiki, your rules and your skills. Mark a ticket that taught nothing too, so it leaves `flow ls --unfiled`.
 
 ```console
 $ flow file shop-1 shop-2

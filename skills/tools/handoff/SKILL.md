@@ -54,7 +54,7 @@ Change `## Done when` only when a skill re-decides what the ticket is.
 Run it when this conversation ends here: a restart replaces it, or all remaining work moves to another session or model. Skip it when part of the work stays here, and for a subagent's brief. Unclear → run it.
 
 1. **Start after the last quote list in this conversation.** None → the first message.
-2. **Walk the user's messages to the last, in your visible turn.** Never in thinking. For each message that corrects, decides, sets something aside or leaves it undone, write one line: their words in quotes, the route, the file.
+2. **Walk the user's messages to the last, in your visible turn.** Never in thinking. For each message that corrects, decides, sets something aside, leaves it undone, or shows irritation or doubt, write one line: their words in quotes, the route, the file. A user still unhappy after a fix is one case, never waiting for a repeat: `flow cases new "<the area>" --type rework-loop`.
 
    ```text
    "never write kind in a profile line" → a correction → ~/.flow/notes/never-write-kind-in-a-profile-line.md

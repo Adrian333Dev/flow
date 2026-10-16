@@ -121,7 +121,7 @@ The harvest reads raw reports or an outside skill, and writes what holds into wi
 ## The parts
 
 - **`skills/tools/research/SKILL.md`**: the steps from the wiki folder, the search for what already solves a need, the 4 levels, and where a report goes.
-- **`skills/tools/research/references/wiki.md`**: a wiki folder's layout, `index.md`, `_sources.md`, a page's version lines, and how a page changes. Read before any write into the wiki, by research and capture both.
+- **`references/wiki.md`**: a wiki folder's layout, `index.md`, `_sources.md`, a page's version lines, and how a page changes. Read before any write into the wiki, by research and capture both.
 - **`skills/tools/research/scripts/context7.sh`**: Bash over Context7's web API with `curl`. `search <name> <question>`, and `ask <id|folder[@version]> <question>`, `--tool <folder>` writing the id into `index.md`.
 - **`skills/tools/research/scripts/fetch-docs.sh`**: downloads into a tool's `downloads/` from any folder. `--package` or `--repo` names where the latest release is read, and `--clone` clones or pulls the source into `downloads/repo/`.
 - **`home/CLAUDE.md` → `## Capture`**: where each kind of knowledge goes. **`## Reading`**: work against an outside tool starts from its wiki folder.

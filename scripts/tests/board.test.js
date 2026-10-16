@@ -55,6 +55,27 @@ test('flow ls --unfiled shows only done tickets without a filed date', () => {
   assert.ok(!unfiled.stdout.includes('alpha'));
 });
 
+test('flow next counts what waits for /flow:upkeep, and prints nothing where nothing waits', () => {
+  const dir = project('board-next-waiting');
+  flow(dir, ['new', 'Alpha', '--title', 'alpha']);
+  assert.doesNotMatch(flow(dir, ['next']).stdout, /waiting for/);
+
+  flow(dir, ['start', 'exp-1']);
+  flow(dir, ['done', 'exp-1']);
+  flow(dir, ['note', 'use', 'two', 'spaces', '--label', 'profile']);
+  flow(dir, ['note', 'an', 'idea', '--label', 'ui']);
+  write(dir, '.flow/findings/a-lesson.md', 'a lesson\n');
+  write(dir, '.flow/findings/scorecard.md', 'a wrong warning\n');
+  write(dir, 'flow-home/wiki/tool/findings/another-lesson.md', 'another lesson\n');
+
+  const waiting = flow(dir, ['next']).stdout.split('\n').find((l) => l.startsWith('waiting for'));
+  assert.strictEqual(waiting, 'waiting for /flow:upkeep: 1 closed ticket, 1 note, 2 findings');
+
+  flow(dir, ['file', 'exp-1']);
+  const filed = flow(dir, ['next']).stdout.split('\n').find((l) => l.startsWith('waiting for'));
+  assert.strictEqual(filed, 'waiting for /flow:upkeep: 1 note, 2 findings', 'a part at 0 is left out');
+});
+
 const ticketText = (dir, id) => {
   const folder = fs.readdirSync(path.join(dir, '.flow', 'tickets')).find((f) => f === id || f.startsWith(`${id}-`));
   return fs.readFileSync(path.join(dir, '.flow', 'tickets', folder, 'ticket.md'), 'utf8');

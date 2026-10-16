@@ -66,7 +66,7 @@ Any run routes what it decided, to several places or to none:
 - **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.
 - **`CLAUDE.md`**: what every session in this project needs: what the project is, its own rules, and whatever else most sessions would get wrong without.
 - **`docs/context/<subject>.md`**: durable project facts only some work needs, one file per subject: a deploy path, a service's limit, any command past install, run, test and check.
-- **`.flow/findings/<lesson>.md`**: a lesson or fact about this project, filed by the capture sweep and promoted by `/flow:file-findings`.
+- **`.flow/findings/<lesson>.md`**: a lesson or fact about this project, filed at a checkpoint and folded into a page, a rule or a skill by `/flow:upkeep`.
 - **`.flow/handoffs/<name>.md`**: what fits no ticket, written for work continuing in another session. The mod deletes it after one clean turn.
 
 ## Departing

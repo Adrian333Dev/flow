@@ -37,7 +37,6 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ tickets/
 │  ├─ ticket-counter
 │  ├─ projects/<project>/         a project's tickets, kept privately
-│  ├─ workflow-notes.md
 │  ├─ study-cases/<issue>/
 │  ├─ wiki/<tool>/
 │  ├─ research/<topic>/
@@ -117,7 +116,6 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 [Learning](../learning.md) covers each of these.
 
-- **`workflow-notes.md`**: one dated line per bit of friction worth remembering.
 - **`study-cases/<issue>/`**: one file per recorded mistake, filed under the kind of mistake. `flow cases new` writes them.
 - **`wiki/<tool>/`**: what Flow knows about one outside tool, shared by every project. `/flow:research` writes it.
 - **`research/<topic>/`**: research reports asked outside any project, one folder per topic and one file per question. Empty until one is asked.
@@ -166,8 +164,8 @@ The project's tickets and what sessions learn in it. It is a link into `~/.flow/
 - **`tickets/<id>-<label>/`**: one folder per ticket, such as `shop-7-safari-cookie/`. [Tickets](../tickets.md) shows what it holds.
 - **`tickets/archive/`**: finished and dropped tickets, moved here whole.
 - **`ticket-counter`**: the highest ticket number this project ever gave out, such as `75`, so a deleted or moved ticket's number never goes to a new one.
-- **`inbox.md`**: notes with no home yet. `/flow:file-findings` sorts them.
-- **`findings/`**: one file per lesson a session learned, waiting for `/flow:file-findings`.
+- **`inbox.md`**: notes with no home yet. The first `/flow:upkeep` run sorts them, and `flow note` replaces the file.
+- **`findings/`**: one file per lesson a session learned, waiting for `/flow:upkeep`.
 - **`research/<topic>/`**: the research reports this project asked for, one folder per topic. `/flow:research` writes them.
 - **`overlays/<skill>.md`**: lines this project adds to a skill. [Configure](../configure.md) covers overlays.
 - **`settings.json`**: this project's [`ticketPrefix`](settings.md#ticketprefix).

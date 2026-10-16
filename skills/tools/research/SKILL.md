@@ -13,11 +13,11 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 
 ## A question starts from the wiki
 
-`~/.flow/wiki/<subject>/` holds what Flow knows about one outside tool or field: `index.md`, topic pages, and this machine's downloads. Read `references/wiki.md` before any write into it.
+`~/.flow/wiki/<subject>/` holds what Flow knows about one outside tool or field: `index.md`, topic pages, and this machine's downloads. Read `~/.flow/references/wiki.md` before any write into it.
 
 1. **A loaded skill covering the subject comes first.**
 2. **Read `index.md` and the pages whose names match the question.** Answered → stop, with no outside request.
-3. **Read the reports whose names match**, in the project's `.flow/research/<topic>/`, or `~/.flow/research/<topic>/` outside a project.
+3. **Read the reports whose names match**, in the project's `.flow/research/<topic>/`, or `~/.flow/research/<topic>/` outside a project. A report with no `harvested:` line → run `## Harvest` on it.
 4. **Follow `index.md`**: the doc page listed for the topic, or the Context7 id, which skips Context7's search.
 5. **Go outside**, by the levels below.
 6. **Write back**: what was learned into the page owning it, a line in `index.md` for the doc page that answered, and a report past level 1. No folder → make it with `index.md` on the first write.
@@ -109,7 +109,7 @@ Using what came back:
 1. **List the candidates** in one search, here or in one `general-purpose` agent. No deep reading yet.
 2. **Pick the few worth a full read.**
 3. **Read a short source here**: a page or two, one grep for a signature, a file whose name you already have.
-4. **Send each long source to its own `general-purpose` subagent**: a cloned codebase, megabytes of downloaded docs, a question that means opening 20 files. Never 2 agents on one source. A file every agent needs → read it here once, and put its facts in each brief.
+4. **Send each long source to its own `general-purpose` subagent**: a cloned codebase, megabytes of downloaded docs, a question that means opening 20 files. Never 2 agents on one source, and never one body of evidence cut into chunks by size: analysis is a loop of reading for the shape, planning, reading what the plan names and planning again, and the loop runs here. A file every agent needs → read it here once, and put its facts in each brief.
 
 **Dispatch on how much there is to read, never on the level.**
 
@@ -174,8 +174,9 @@ A value holding `: ` goes in double quotes.
 
 ## Harvest
 
-Run when the user asks: reports, or an outside skill, into wiki pages.
+Runs at the end of every research pass, on the report just written.
 
-1. **Read the reports or the skill whole.**
-2. **Write what holds into the wiki pages owning it**, in your own words, by `references/wiki.md`. A passage copied word for word keeps its license notice. Never copy from a skill with no license.
-3. **Mark the source.** A report gets `harvested: <date>` in its header. A skill gets its `## Skills` line marked `harvested at <commit>`, then delete the throwaway clone, unless a skill from that repository is used whole.
+1. **Walk the report section by section.** Keep each lasting fact about the tool or field that would make a fresh agent wrong without it, whatever the question was.
+2. **Add each fact to the page owning it**, or start a page, by `~/.flow/references/wiki.md`. Only add. A fact contradicting a line already there stays out, and the report stays unstamped: `/flow:upkeep` settles it.
+3. **Write `harvested: <date>` in the report's header**, last.
+4. **An outside skill** is read whole and harvested the same way. Mark its `## Skills` line `harvested at <commit>`, then delete the throwaway clone, unless a skill from that repository is used whole.

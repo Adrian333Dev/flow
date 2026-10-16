@@ -15,7 +15,6 @@
  * short form is typed most.
  */
 
-const path = require('path');
 const { FlowError } = require('../lib/error');
 const { out } = require('../lib/cli');
 const { projectRoot } = require('../lib/project');
@@ -40,13 +39,10 @@ function labelsFrom(value) {
   return labels;
 }
 
-/** The project name a root files its notes under: its folder name, `global` for the Flow home. */
-const nameOf = (root) => (store.isHome(root) ? notes.GLOBAL : path.basename(root));
-
 /** The project the command runs in, or null outside a Flow project, which only `here` needs. */
 function hereName() {
   try {
-    return nameOf(projectRoot());
+    return notes.projectOf(projectRoot());
   } catch (e) {
     if (e instanceof FlowError) return null;
     throw e;
@@ -143,7 +139,7 @@ actions.promote = {
   run({ positional, usage }) {
     const root = projectRoot();
     const note = notes.findNote(notes.readNotes(), needsRef(positional, usage));
-    const here = nameOf(root);
+    const here = notes.projectOf(root);
     if (note.data.project.toLowerCase() !== here.toLowerCase()) {
       const where = note.data.project === notes.GLOBAL ? 'in ~/.flow' : `inside ${note.data.project}`;
       throw new FlowError(`${note.id} belongs to ${note.data.project}, not ${here}: run promote ${where}.`);

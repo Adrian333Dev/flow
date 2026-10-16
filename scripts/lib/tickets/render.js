@@ -225,12 +225,12 @@ const decisionsLine = (ticket) => {
  * design, and this is the one place they surface: a deliberate "not now"
  * cannot quietly become "forgotten".
  */
-function status(tickets, limit) {
+function status(tickets, limit, waiting) {
   if (!tickets.length) return 'no tickets yet.';
   const by = (s) => tickets.filter((t) => t.data.status === s);
 
   const counts = statuses.NAMES.filter((name) => by(name).length).map((name) => `${name} ${by(name).length}`).join('   ');
-  const out = [`tickets: ${tickets.length}   ${counts}`, '', brief(tickets, limit)];
+  const out = [`tickets: ${tickets.length}   ${counts}`, '', brief(tickets, limit, waiting)];
 
   const parked = by('parked');
   if (parked.length) {
@@ -243,12 +243,25 @@ function status(tickets, limit) {
 }
 
 /**
+ * `waiting for /flow:upkeep: 3 closed tickets, 2 notes, 4 findings`, a part
+ * left out at 0, or null where nothing waits. The counts come from
+ * `lib/waiting.js`, because this file reads no disk.
+ */
+function waitingLine(waiting) {
+  if (!waiting) return null;
+  const parts = [[waiting.tickets, 'closed ticket'], [waiting.notes, 'note'], [waiting.findings, 'finding']]
+    .filter(([n]) => n)
+    .map(([n, word]) => `${n} ${word}${n === 1 ? '' : 's'}`);
+  return parts.length ? `waiting for /flow:upkeep: ${parts.join(', ')}` : null;
+}
+
+/**
  * The session opener, printed by `flow next`. Four questions
  * what did I finish last, what is still open, what continues it, what could
  * start. Read-only on purpose: this is the view for not knowing what is next,
  * and picking is a separate act.
  */
-function brief(tickets, limit) {
+function brief(tickets, limit, waiting) {
   if (!tickets.length) return 'no tickets yet.';
   const out = [];
 
@@ -300,11 +313,8 @@ function brief(tickets, limit) {
 
   // Both print only when owed. A line that reads "none" every run is a line
   // the reader learns to skip, and these exist to be noticed.
-  const unfiled = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
-  if (unfiled.length) {
-    out.push(`unfiled: ${unfiled.length} closed ticket${unfiled.length === 1 ? '' : 's'} not yet filed   (flow ls --unfiled)`);
-    out.push('         run /flow:file-findings to sweep them');
-  }
+  const owed = waitingLine(waiting);
+  if (owed) out.push(owed);
   const problems = graph.check(tickets);
   if (graph.hasProblems(problems)) out.push('the ticket graph has problems: flow check');
 

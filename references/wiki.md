@@ -97,13 +97,11 @@ version: 2.1.300
 
 ## Changing a page
 
-Research and the upkeep skill change a page. Capture adds findings and changes no page.
+Research adds to a page. `/flow:upkeep` deletes a fact and rewrites a page, since both change existing text. Capture adds findings and changes no page.
 
 1. **Read the page first.**
-2. **Edit the page owning the subject.** None owns it → start one.
-3. **Delete a fact proven wrong.**
-4. **Rewrite a page whole** when its subject changed shape.
-5. **Split by topic** past about 150 lines.
+2. **Add to the page owning the subject.** None owns it → start one. A fact contradicting a line there stays in the report, and upkeep settles it.
+3. **Split by topic** past about 150 lines.
 
 2 machines edited one page → `flow sync` stops, naming the file. Merge by hand, keeping both sides.
 

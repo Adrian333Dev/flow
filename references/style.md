@@ -112,7 +112,7 @@ Cut what lengthens a sentence without clarifying it. Readability first. Last pas
 - Grammar bends where meaning survives. A fragment beats a padded sentence.
 - Delete a whole sentence when it changes no behavior. Never trim it.
 - **Assume an intelligent reader.** Never write the consequence of a rule, the mechanism behind it, or the case it plainly covers. A command is one executable line, then what it prints. A rule is the rule, then nothing.
-- **Mark a skill only the user can start (`disable-model-invocation: true`) as `(user only)` once**, where the agent reads it before any bare mention: `/flow:file-findings` (user only). One listed in `home/CLAUDE.md` → `user-only-skills` needs no other mark.
+- **Mark a skill only the user can start (`disable-model-invocation: true`) as `(user only)` once**, where the agent reads it before any bare mention: `/flow:upkeep` (user only). One listed in `home/CLAUDE.md` → `user-only-skills` needs no other mark.
 
 ## 7. Never cut these
 

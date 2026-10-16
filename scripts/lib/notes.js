@@ -36,6 +36,9 @@ const TITLE_COLON_MAX = 60;
 
 const notesDir = () => path.join(store.homeRoot(), 'notes');
 
+/** The project name a root files its notes under: its folder name, `global` for the Flow home. */
+const projectOf = (root) => (store.isHome(root) ? GLOBAL : path.basename(root));
+
 /** A note's file name, or null for a file that is not one. */
 const stemOf = (name) => (name.endsWith('.md') && !name.startsWith('.') ? name.slice(0, -3) : null);
 
@@ -149,5 +152,5 @@ function remove(note) {
 }
 
 module.exports = {
-  GLOBAL, notesDir, readNotes, firstLine, titleOf, findNote, create, remove, writeNote,
+  GLOBAL, notesDir, projectOf, readNotes, firstLine, titleOf, findNote, create, remove, writeNote,
 };
