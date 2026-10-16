@@ -165,7 +165,6 @@ function checkNames(clone, { bin }) {
  */
 const UTIL_COMMANDS = [
   { name: 'fs tree', callers: 'home/CLAUDE.md, in tree-for-structure' },
-  { name: 'fs open', callers: 'flow get --files, through tickets.js' },
 ];
 
 /**
@@ -183,7 +182,7 @@ function checkUtil() {
     if (run.error && run.error.code === 'ENOENT') {
       return {
         name: 'util',
-        problems: [`util is not on PATH at all, so none of the ${UTIL_COMMANDS.length} commands Flow calls can run`],
+        problems: ['util is not on PATH at all, so the util commands Flow calls cannot run'],
       };
     }
     // A null status means the process never ran to an exit: the system
@@ -199,7 +198,7 @@ function checkUtil() {
   // command comes out of a directory named there.
   if (problems.length) problems.push(...registryDiagnosis());
 
-  return { name: 'util', problems, summary: `${UTIL_COMMANDS.map((c) => c.name).join(', ')} all run` };
+  return { name: 'util', problems, summary: `${UTIL_COMMANDS.map((c) => c.name).join(', ')} ${UTIL_COMMANDS.length === 1 ? 'runs' : 'all run'}` };
 }
 
 /**

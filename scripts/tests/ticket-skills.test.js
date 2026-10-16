@@ -33,7 +33,8 @@ test('flow new writes a user-only skill for the ticket, labelled with its status
   assert.match(text, /^description: "Ticket, todo: Daemon \\"detection\\""$/m);
   assert.match(text, /^disable-model-invocation: true$/m);
   assert.match(text, /^<!-- flow: ticket exp-1, /m);
-  assert.match(text, /^!`flow get exp-1 --files 2>&1 \|\| true`$/m);
+  assert.match(text, /^!`flow exp-1 2>&1 \|\| true`$/m);
+  assert.match(text, /^On what exists, the files win\. On decisions and what is still open, `## State` wins/m);
   assert.strictEqual(fs.readFileSync(path.join(skillsOf(dir), 'exp-1', '.gitignore'), 'utf8'), '*\n');
 });
 

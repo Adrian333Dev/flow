@@ -14,7 +14,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
 const { FlowError } = require('../lib/error');
 const { out, readBody } = require('../lib/cli');
 const { projectRoot } = require('../lib/project');
@@ -26,7 +25,6 @@ const render = require('../lib/tickets/render');
 const { indent } = require('../lib/render');
 const statuses = require('../lib/tickets/statuses');
 const records = require('../lib/tickets/records');
-const ticketHistory = require('../lib/tickets/ticket-history');
 const ticketSkills = require('../lib/tickets/ticket-skills');
 
 function load() {
@@ -104,11 +102,10 @@ function followInParent(t, tickets, from, status) {
 }
 
 /**
- * `flow exp-47` and `flow get exp-47` both land on the same lookup. The first
- * got here because `exp-47` matched no command, which means a mistyped
- * command, `flow buidl exp-47`, arrives here too and would fail with a message
- * about tickets. `unnamed` is passed on that path only, and says what else it
- * tried.
+ * `flow exp-47` reaches the lookup because `exp-47` matched no command, which
+ * means a mistyped command, `flow buidl exp-47`, arrives here too and would
+ * fail with a message about tickets. `unnamed` is passed on that path only, and
+ * says what else it tried.
  */
 function find(tickets, ref, unnamed) {
   try {
@@ -363,77 +360,25 @@ actions.tree = {
 
 // ---------------------------------------------------------------- one ticket
 
-const RULE = '-'.repeat(60);
-
 /**
- * The files a document names in its own `open` block, printed under a rule.
- *
- * `util fs open` owns the format, the parse and the merge, because the block is
- * not a ticket format: a handoff, a spec or a loose note carries one on the
- * same terms. What stays here is where Flow runs it from. That command resolves
- * a path beside the document first and then from its working directory, so
- * running it at the repo root against `ticket.md` gives exactly the two bases a
- * ticket needs.
- *
- * `--files-only` because `get` has already printed the ticket by the time this
- * runs. Without the flag the command prints the document too, which is what it
- * should do for anyone opening a document cold.
+ * The fallback: `flow exp-47` matches no command, so it lands here. The word
+ * must be or hold an id, since a title word would otherwise find a ticket and
+ * a mistyped command, `flow get exp-47`, would read as a title. `flow ls
+ * <words>` finds a ticket by its words.
  */
-function loadOpen(file, cwd) {
-  let printed;
-  try {
-    printed = execFileSync('util', ['fs', 'open', '--files-only', file], {
-      cwd,
-      encoding: 'utf8',
-      maxBuffer: 64 * 1024 * 1024,
-    });
-  } catch (e) {
-    const why = e.code === 'ENOENT'
-      ? 'util is not on PATH: install it, then run flow get --files again'
-      : String(e.stderr || e.message).trim();
-    printed = `unread: util fs open failed, ${why}`;
-  }
-  out(`\n${RULE}\n${printed.trimEnd()}`);
-}
-
-actions.get = {
+actions.show = {
   section: 'tickets',
-  helpName: '[get]',
-  args: '<id>',
+  helpName: '<id>',
   summary: 'one ticket in full',
-  flags: { files: { bool: true } },
-  run({ positional, flags, unnamed }) {
-    const [first] = positional;
-    if (!first) throw new FlowError('flow get takes a ticket id, such as flow get exp-47. The board is flow next.');
-
-    const { root, tickets, t } = locate(first, unnamed);
-
-    out(render.show(t, tickets, root));
-    if (flags.files) {
-      loadOpen(t.file, root);
-    }
-    return 0;
-  },
-};
-
-/**
- * `flow handoff <id>`: a line in the ticket's `history.md` saying this session
- * handed the work on. `/flow:handoff` runs it after writing `## State`, so the
- * history names every session the work passed through, not only the ones that
- * moved its status. Hidden from help: only that skill runs it.
- */
-actions.handoff = {
-  section: 'tickets',
-  hidden: true,
-  args: '<id>',
-  summary: 'note in the ticket\'s history that this session handed it on',
-  run({ positional, usage }) {
+  run({ positional, unnamed }) {
     const [ref] = positional;
-    if (!ref) throw new FlowError(`usage: ${usage}`);
-    const { root, t } = locate(ref);
-    ticketHistory.append(t, 'handoff');
-    records.commit(root, `${t.id}: handoff`);
-    out(`${t.id}  handoff noted in ${rel(root, store.historyFile(t))}`);
+    if (!ref) throw new FlowError('flow takes a ticket id, such as flow exp-47. The board is flow next.');
+    if (!/^\d+$/.test(ref) && !store.idOfRef(ref)) {
+      throw new FlowError(`"${ref}" is not a command or a ticket id: flow --help lists the commands.`);
+    }
+
+    const { root, tickets, t } = locate(ref, unnamed);
+    out(render.show(t, tickets, root));
     return 0;
   },
 };
@@ -969,4 +914,4 @@ for (const name of WRITES) {
   };
 }
 
-module.exports = { actions, fallback: actions.get, transition };
+module.exports = { actions, fallback: actions.show, transition };

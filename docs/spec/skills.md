@@ -35,7 +35,7 @@ How Flow's skills are shaped, installed and switched on, and how outside skills 
 - `V1` **The 10 outside `dev/` are always on**: `flow skills` leaves them out of its list and refuses to switch one. The one in `dev/` starts off, and `flow skills on review --global` links it.
 - `V1` **3 skills only the user can start**: `/flow:start`, `/flow:tickets-from-spec` and `/flow:file-findings`, each `disable-model-invocation: true`. `home/CLAUDE.md` → `user-only-skills` names them, so the agent suggests them.
 - `V1` **A description says what the skill is and what it covers**, never its steps and never when to fire it. Claude Code loads every description at session start and fires a skill from it alone. A description summing up the steps gets followed in place of the file.
-- `V1` **A shell line in a skill runs one named command**, never logic written inline: `` !`flow get exp-47 --files 2>&1 || true` ``.
+- `V1` **A shell line in a skill runs one named command**, never logic written inline: `` !`flow exp-47 2>&1 || true` ``.
 - `V1` **A skill splits into files only where a part is read on some runs and not others.** `references/` holds those parts, `scripts/` what the skill runs.
 - `V1` **An edit to a skill is live at once**, in every project and in sessions already open, since every link points into the clone. Adding, renaming or removing one needs `flow install`.
 - `V1` **`/flow:execute`, `/flow:debug` and their review stay as they are**, agreed by the user 2026-10-02. Newer models may run many of the checks unasked, but nobody knows which, and Flow is meant for weaker models too. A check goes once beta sessions show it adds nothing.

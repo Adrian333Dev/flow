@@ -74,7 +74,7 @@ test('a compound command is Flow\'s only where Flow\'s part could have set the e
   const is = (command) => failures.flowCommand(command);
   assert.ok(is('cd /x && util fs tree docs'));
   assert.ok(is('ls; flow sync'));
-  assert.ok(is('git status | flow get fw-1'));
+  assert.ok(is('git status | flow fw-1'));
   assert.ok(is('node "$HOME/.flow/scripts/hooks/x.js" && flow doctor'));
   assert.ok(!is('util fs tree lab; ls .flow/research'), 'the ls set the exit code');
   assert.ok(!is('grep -n "^#" a.md && git diff --stat && util fs tree scripts'), 'the grep may have stopped the chain');

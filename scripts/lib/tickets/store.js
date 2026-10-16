@@ -478,7 +478,7 @@ function renumber(root, onRemote, { keepWas = true } = {}) {
 
 // ---------------------------------------------------------------- history.md
 
-/** A ticket's `history.md`: one line per status move or handoff, which `ticket-history.js` builds. */
+/** A ticket's `history.md`: one line per status move, which `ticket-history.js` builds. */
 const historyFile = (t) => path.join(t.dir, 'history.md');
 
 function appendHistory(t, line) {

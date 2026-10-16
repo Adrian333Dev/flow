@@ -147,7 +147,7 @@ A cheap check (one command, a 10-second script) just runs. Anything bigger is a 
 - **Prove the machinery runs once** on the simplest input, before asking it anything.
 - **Build only what the question needs.** No tests, no error handling past runnable, no abstractions, no persistence the question doesn't test. Print the full state after every action.
 - **One prototype per unknown.** Four unknowns are four prototypes. Wiring them together is fine, and they stay naive.
-- **The report is the result, never the code.** In a ticket: code in `protos/<name>/`, report in `reports/<question>.md`, with measured answers first in the question's words and the numbers. With no ticket: scratch in `tmp/`, and the answer goes where its decision lands. The code is never promoted into the real build.
+- **The report is the result, never the code.** In a ticket: code in `protos/<name>/`, report in `reports/<question>.md`, with measured answers first in the question's words and the numbers, then the steps that worked, in order, and where each failed. With no ticket: scratch in `tmp/`, and the answer goes where its decision lands. The code is never promoted into the real build.
 - **Where it runs:** here by default. One subagent is allowed. A chain of subagents needs a serious reason, stated in the brief.
 
 ### When the question is genuinely hard

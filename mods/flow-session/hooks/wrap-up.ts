@@ -6,6 +6,7 @@
  * then every 20k past it. It replaces `scripts/hooks/context-check.js`, which
  * read the size from the session file.
  */
+import { restartSteps } from './ask'
 
 const LIMIT = 150000
 const STEP = 20000
@@ -33,12 +34,15 @@ export function wrapUpSettings(globalText?: string, localText?: string): { wrapU
   return { wrapUp: global.wrapUp !== false, limit: set > 0 ? set : LIMIT }
 }
 
-/** The line to send, or undefined. `before` is the size at the last check, 0 at the first. */
-export function wrapUpLine(before: number, now: number, limit: number): string | undefined {
+/**
+ * The line to send, or undefined. `before` is the size at the last check, 0 at the first.
+ * `handoffFresh` is true while a handoff stands and nothing changed after it.
+ */
+export function wrapUpLine(before: number, now: number, limit: number, handoffFresh = false): string | undefined {
   if (now < limit) return undefined
   const mark = limit + Math.floor((now - limit) / STEP) * STEP
   if (before >= mark) return undefined
-  const next = 'run /flow:handoff, then call the restart tool with its note'
+  const next = restartSteps(handoffFresh)
   if (before < limit) return `The context is at ${kilo(now)}. At the next checkpoint, ${next}.`
   return `The context is at ${kilo(now)}, past the ${kilo(limit)} limit. Stop at the step you are on: finish it, ${next}.`
 }

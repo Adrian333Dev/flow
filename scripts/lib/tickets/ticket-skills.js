@@ -7,9 +7,10 @@
  *   <project>/.claude/skills/exp-47/SKILL.md    a project's ticket
  *   ~/.claude/skills/home-4/SKILL.md            a ticket in ~/.flow/
  *
- * A skill holds a label only. Its body runs `flow get <id> --files` when typed,
- * so the ticket is read at that moment, and a stale skill shows an old row but
- * never old data. `disable-model-invocation` keeps every name out of context.
+ * A skill holds a label and one rule. Its body runs `flow <id>` when typed, so
+ * the ticket is read at that moment, and a stale skill shows an old row but
+ * never old data. The rule is what a session needs when `## State` and the
+ * files disagree. `disable-model-invocation` keeps every name out of context.
  * Each folder carries a `.gitignore` holding `*`, so git ignores it without an
  * edit to the project's own.
  *
@@ -54,7 +55,9 @@ function render(t, index) {
     'disable-model-invocation: true',
     '---',
     `${MARK}${t.id}, rewritten by flow on every ticket change -->`,
-    `!\`flow get ${t.id} --files 2>&1 || true\``,
+    `!\`flow ${t.id} 2>&1 || true\``,
+    '',
+    'On what exists, the files win. On decisions and what is still open, `## State` wins over the rest of the ticket.',
     '',
   ].join('\n');
 }

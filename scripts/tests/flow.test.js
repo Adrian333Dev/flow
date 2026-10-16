@@ -53,7 +53,7 @@ test('a name is typed in full, never matched by its first letters', () => {
   // so it falls through to the one thing an unknown word means.
   const short = flow(dir, ['ne']);
   assert.notStrictEqual(short.code, 0);
-  assert.match(short.stderr, /no ticket matching "ne"/);
+  assert.match(short.stderr, /"ne" is not a command or a ticket id/);
 });
 
 test('--help prints the surface without needing a project', () => {
@@ -63,7 +63,7 @@ test('--help prints the surface without needing a project', () => {
   assert.match(result.stdout, /flow new/);
   assert.match(result.stdout, /flow next/);
   assert.match(result.stdout, /flow scorecard/);
-  assert.doesNotMatch(result.stdout, /handoff|--root|--no-bin|--no-clone|--tests/, 'hidden from a person, still run by tests and skills');
+  assert.doesNotMatch(result.stdout, /--root|--no-bin|--no-clone|--tests/, 'hidden from a person, still run by tests and skills');
 });
 
 test('--help after a command prints that command alone, and runs nothing', () => {

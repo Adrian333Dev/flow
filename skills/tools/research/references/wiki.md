@@ -8,6 +8,7 @@
 ~/.flow/wiki/next.js/
 ├─ index.md               what it is, the version in use, skills reviewed, doc shortcuts
 ├─ <topic>.md             one page per topic, edited in place
+├─ findings/<lesson>.md   one file per lesson, not yet folded into a page
 └─ downloads/             this machine's alone, never synced
    ├─ _sources.md         what was downloaded, when, and the tool's latest release then
    ├─ llms.txt
@@ -18,7 +19,7 @@
 
 - **A tool's folder** takes its GitHub repository name: `next.js`. No repository → the product's name. 2 repositories sharing a name → `owner_repo`. A standard with its own docs, such as OAuth 2.1, gets a folder like a tool.
 - **A field's folder** takes a plain name: `text-to-speech`, `chrome-extensions`.
-- **Make the folder with its `index.md`**, on the first write about its subject.
+- **Make the folder with its `index.md`**, on the first page written about its subject. A finding makes the folder alone.
 - **Never write a global index.** `util fs tree ~/.flow/wiki` lists every folder.
 
 ## `index.md`
@@ -80,7 +81,23 @@ Checked against Claude Code 2.1.296, 2026-10-12.
 - **A field page** has no version line.
 - **Evidence** is a link to a doc page or an issue, only where one exists. Never stamp every line.
 
+## A finding
+
+One lesson, one file, named for it in 4 to 8 words: `compound-command-saves-one-rule-per-piece.md`. Capture adds it with no read of any page and no choice of page: the subject's folder name is all it needs. A subject with no folder yet gets the folder alone, and the first page written for it adds `index.md`. The upkeep skill (`/flow:upkeep`) folds findings into the pages, then deletes the folded files.
+
+```md
+checked: 2026-10-16
+version: 2.1.300
+
+"Always allow" on a compound command saves one rule per piece.
+```
+
+- **Both header lines are optional.** `checked: <date>` for a fact that expires (a price, a limit). `version: <x>` for one bound to a version.
+- **A finding that contradicts an older one** replaces that file's text. Read only that file.
+
 ## Changing a page
+
+Research and the upkeep skill change a page. Capture adds findings and changes no page.
 
 1. **Read the page first.**
 2. **Edit the page owning the subject.** None owns it → start one.

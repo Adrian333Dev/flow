@@ -275,17 +275,17 @@ test('flow done refuses on a parent with open children', () => {
   assert.strictEqual(ok.code, 0, ok.stderr);
 });
 
-test('flow get says a parent with open children is blocked on them, and ready once they close', () => {
+test('flow <id> says a parent with open children is blocked on them, and ready once they close', () => {
   const dir = project('tickets-get-children');
   flow(dir, ['new', 'Parent feature', '--title', 'parent-feature']);
   const [p] = ticket(dir);
   flow(dir, ['new', 'Child task', '--title', 'child-task', '--parent', p.id]);
   const child = ticket(dir).find((t) => t.id !== p.id);
 
-  assert.match(flow(dir, ['get', p.id]).stdout, new RegExp(`blocked: {4}open children come first: ${child.id}\\n`));
+  assert.match(flow(dir, [p.id]).stdout, new RegExp(`blocked: {4}open children come first: ${child.id}\\n`));
   flow(dir, ['start', child.id]);
   flow(dir, ['done', child.id]);
-  assert.match(flow(dir, ['get', p.id]).stdout, /ready: {6}yes\n/);
+  assert.match(flow(dir, [p.id]).stdout, /ready: {6}yes\n/);
 });
 
 test('an unmet dep blocks pickup, and only done unblocks', () => {
@@ -455,11 +455,15 @@ test('flow file stamps a closed ticket, and --force re-stamps', () => {
   assert.match(forced.stdout, /filed/);
 });
 
-test('flow get needs an id: the board is flow next', () => {
-  const dir = project('tickets-get-needs-id');
-  const r = flow(dir, ['get']);
-  assert.strictEqual(r.code, 1);
-  assert.match(r.stderr, /takes a ticket id.*The board is flow next/);
+test('flow refuses a word that is no command and holds no id, flow get included', () => {
+  const dir = project('tickets-needs-id');
+  flow(dir, ['new', 'Export the login page', '--title', 'login-export']);
+
+  for (const args of [['get'], ['get', 'exp-1'], ['login-export']]) {
+    const r = flow(dir, args);
+    assert.strictEqual(r.code, 1, `flow ${args.join(' ')}`);
+    assert.match(r.stderr, new RegExp(`"${args[0]}" is not a command or a ticket id: flow --help lists the commands\\.`));
+  }
 });
 
 test('flow <id> still counts the questions of an old ticket\'s map', () => {
@@ -470,7 +474,7 @@ test('flow <id> still counts the questions of an old ticket\'s map', () => {
   const [t] = ticket(dir);
 
   // A new ticket holds no map, so the line stays away until an old one has it.
-  const fresh = flow(dir, ['get', t.id]);
+  const fresh = flow(dir, [t.id]);
   assert.strictEqual(fresh.code, 0, fresh.stderr);
   assert.doesNotMatch(fresh.stdout, /^map:/m, 'no map is no count');
 
@@ -484,7 +488,7 @@ test('flow <id> still counts the questions of an old ticket\'s map', () => {
     '',
   ].join('\n'));
 
-  const worked = flow(dir, ['get', t.id]);
+  const worked = flow(dir, [t.id]);
   assert.strictEqual(worked.code, 0, worked.stderr);
   assert.match(worked.stdout, /^map: +groundwork\/map\.md +2\/4 answered$/m);
 });
@@ -519,7 +523,7 @@ test('flow <id> counts ## Questions and ## Tasks, and lists decisions/', () => {
   const [t] = ticket(dir);
   write(dir, `.flow/tickets/${t.folder}/decisions/seam.md`, '# Seam\n');
 
-  const shown = flow(dir, ['get', t.id]).stdout;
+  const shown = flow(dir, [t.id]).stdout;
   assert.match(shown, /^questions: +1\/2 answered$/m);
   assert.match(shown, /^tasks: +1\/2 done$/m);
   assert.match(shown, /^decisions: +decisions\/seam\.md$/m);
@@ -562,7 +566,7 @@ test('flow ls --label shows one set, and a label is free but plainly spelled', (
   assert.match(listed, /exp-2/);
   assert.doesNotMatch(listed, /exp-3/);
   assert.match(flow(dir, ['ls', '--label', 'never-used']).stdout, /no tickets\./);
-  assert.match(flow(dir, ['get', 'exp-2']).stdout, /^labels: +v1, post-v1$/m);
+  assert.match(flow(dir, ['exp-2']).stdout, /^labels: +v1, post-v1$/m);
 
   const bad = flow(dir, ['new', 'Delta', '--title', 'delta', '--label', 'Has Space']);
   assert.strictEqual(bad.code, 1);
@@ -628,14 +632,13 @@ test('flow new refuses a title that is not hyphenated words, and a rename never 
   assert.match(flow(dir, ['ls']).stdout, /exp-1-login-csv/);
 });
 
-test('flow <id> reads only the id part of what is typed, and a title word finds a ticket', () => {
+test('flow <id> reads only the id part of what is typed, and flow ls finds a ticket by its words', () => {
   const dir = project('tickets-lookup');
   flow(dir, ['new', 'Export the login page', '--title', 'login-export']);
   flow(dir, ['new', 'Something else', '--title', 'other-work']);
 
   assert.match(flow(dir, ['exp-1-an-old-name']).stdout, /^exp-1-login-export$/m);
   assert.match(flow(dir, ['EXP-1-login-export']).stdout, /^exp-1-login-export$/m);
-  assert.match(flow(dir, ['login-export']).stdout, /^exp-1-login-export$/m);
   assert.match(flow(dir, ['ls', 'sentence', 'login']).stdout, /no tickets/);
   assert.match(flow(dir, ['ls', 'export', 'page']).stdout, /exp-1-login-export/, 'a word of the description finds it');
 });

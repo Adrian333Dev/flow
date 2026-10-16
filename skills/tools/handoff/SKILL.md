@@ -1,84 +1,97 @@
 ---
 name: handoff
-description: 'Writes what a session that was not here needs: the state itself, never a reading list.'
+description: 'Hands work to a session that was not here: a restart, another session or model, or a subagent. Writes the state of each ticket and files what the conversation taught.'
 ---
 
 # Handoff
 
-Write what a session that was not here needs to carry on.
+The next session knows the repo and nothing about this conversation.
 
-It knows the repo. It knows nothing about this conversation.
+One test decides every line: would that session get it wrong without it? Whether it mattered here decides nothing.
 
-**One test decides every line: would that session get this wrong without it?** Never whether it mattered here.
+Where the work continues sets the steps:
 
-**First, run the sweep in `## Capture`.**
+- **Here, after a restart** → steps 1 to 4, then 6.
+- **Another session or model** → steps 1 to 6.
+- **A session that reports back, or a subagent starting now** → `references/dispatch.md` alone.
 
-## 1. Pick where it goes
+## 1. Pick where the state goes
 
-- **Working a ticket** → `## State` inside that ticket's `ticket.md`. Every ticket worked this session gets its own.
-- **Work with no ticket** → a new ticket, `flow new "…" --type <what the work is> --body -`, then `flow build <id>` for code in progress or `flow groundwork <id>` while decisions are still open. The body: one paragraph on the job and why, then `## State`.
-- **Work continuing in another session or model** → also a note, `## 3`.
-- **A job for a session that reports back, or a subagent starting now** → read `references/dispatch.md` instead of the steps below.
+- **Working a ticket** → `## State` at the bottom of that ticket's `ticket.md`. Each ticket this session worked gets its own.
+- **Work with no ticket** → `flow new "…" --body -`, then `flow start <id>`. The body: one paragraph on the job and why, a `## Done when`, then `## State`.
 
-**`## State` is written once, at the handoff**, never during the work. A sentence from the user counts as state: a constraint, a correction, a leaning they have not locked.
+A sentence from the user counts as state: a constraint, a correction, a leaning not yet locked.
 
 ## 2. Write `## State`
 
-Never restate what 4 other files carry:
+Write it once, at the handoff, never during the work.
 
-- **`plan.md`** holds the steps and which ones landed.
-- **`groundwork/map.md`** holds every decision and its reasoning.
-- **The ticket body** holds why the work exists; `## Done when` holds what finishes it.
-- **The research report** holds the findings, wherever `/flow:research` filed it.
+Write only what no other part of the ticket holds:
 
-What is left is what nobody wrote down, under 3 labels:
+- **The body and `## Done when`** hold why the work exists and what finishes it.
+- **`## Decisions`** holds each decision with its reason. `## Questions` holds the open ones.
+- **`## Tasks`** holds the steps and which are done.
+- **The research report** holds its findings, wherever `/flow:research` filed it.
 
-- **Now**: half-done, broken, half-applied, or in flight this second. Name a file only where the next session must act on it.
-- **Found**: what cost real effort to learn and lives in no file: the version that turned out to matter, the exact payload, the trap already hit.
-- **Open**: decisions half-made, threads nobody closed, the option you were leaning toward and why.
+3 labels:
 
-**A later handoff rewrites `Now` whole.** `Found` and `Open` keep every line still true. A line goes when a decision closes or a fact moves to `docs/context/`.
+- **Now**: half-done, broken, half-applied, or running this second.
+- **Found**: what cost real effort to learn and lives in no file. The version that mattered, the exact payload, the trap already hit.
+- **Open**: decisions half-made, threads nobody closed, the option you lean toward and why.
 
-**Most of the time 2 fill.** A build fills *Now* and *Found*. Groundwork fills *Now* and *Open*. A bug fills all 3 and runs long. A fat section on a build ticket means the plan carries too little.
+A later handoff rewrites `Now` whole. `Found` and `Open` keep every line still true. A line goes when its question closes or its fact is filed elsewhere.
 
-## 3. Write a note when the work moves
+Most handoffs fill 2 labels. A build fills `Now` and `Found`. A design fills `Now` and `Open`. A bug fills all 3. A fat section on a build means `## Tasks` carries too little.
 
-Only for work continuing in another session or model, and only what fits no ticket:
+## 3. Update the rest of the ticket
 
-- the order of the next work
-- work that mixes tickets
+Add a line to `## References` for anything this session read that the next session needs.
+
+Change `## Done when` only when a skill re-decides what the ticket is.
+
+## 4. Capture the conversation
+
+Run it when this conversation ends here: a restart replaces it, or all remaining work moves to another session or model. Skip it when part of the work stays here, and for a subagent's brief. Unclear → run it.
+
+1. **Start after the last quote list in this conversation.** None → the first message.
+2. **Walk the user's messages to the last, in your visible turn.** Never in thinking. For each message that corrects, decides, sets something aside or leaves it undone, write one line: their words in quotes, the route, the file.
+
+   ```text
+   "never write kind in a profile line" → a correction → ~/.flow/notes/never-write-kind-in-a-profile-line.md
+   "we'll do the board page after release 1" → work left undone → `## Tasks` of fw-16
+   ```
+
+3. **File each line by `file-by-type` in `## Capture`.** A line with no written file is a skipped line.
+4. **File what you learned about your own work** from the same pass: tool lessons, failed attempts, mistakes, procedures done before.
+
+A quote can only come from a real message, so a skipped message shows as a missing line.
+
+## 5. Write the handoff file when the work moves
+
+Only for work continuing in another session or model. Write none where the tickets hold everything.
+
+The file is `.flow/handoffs/<name>.md`, named for the work and written once. The mod deletes it after the new session reads it. It holds only what fits no ticket:
+
+- the order of the next work across tickets
+- mixed work, such as research or a test to run
 - the question waiting on the user
-- the skill to continue in
+- the skills to continue in
 
-The note is `.flow/handoffs/<name>.md`, named for the work and written once. Write none where the tickets hold everything.
+## 6. End the reply
 
-## 4. Land it
+Open with the full path of each file written. Then end by where the work continues:
 
-`## State` goes at the bottom of `ticket.md`, plus a line in `## References` for anything this session read that the build will need. While `map.md` is still open its own `## References` holds those, and Phase 4 splits them into the tickets it cuts.
+- **Here, after a restart** → end with the paths alone. The start message is written when the restart begins, by `references/start-message.md`, which the mod hands over.
+- **Another session or model** → end with what the user types there: the ticket's skill (`/exp-47`) if applies, then each skill the work needs (`/flow:groundwork`, `/flow:execute`, etc.). Write it by `references/start-message.md`, at the length the work needs.
 
-`## Done when` moves only when a skill re-decides what the ticket is.
+  - **Run `flow <id>` first.** Fix a status that no longer matches where the work stands.
+  - **Several tickets** → the one to continue first.
+  - **A handoff file** → its path after them.
+  - **A helper agent still running** → put `Wait for the helper's finished notice, then type:` above them. The notice and its change record arrive in this session.
 
-## 5. End on what to type
+## Rules
 
-Open the reply with the full path of each file written. End with what the user types in a new session:
-
-```text
-/clear
-/flow:start /exp-47
-```
-
-- **Check the status first**: `flow <id>`. `/flow:start` picks the phase from the ticket's type and status, so the status must match where the work stands.
-- **Several tickets** → the one to continue first.
-- **A note** → its path under the lines. The user drags it into the new session's box.
-- **A helper agent still running** → put `Wait for the helper's finished notice, then type:` above the lines. Claude Code's docs do not say `/clear` spares a running helper, and its change record would go with it.
-
-Add words after the line only for an instruction the ticket does not hold.
-
-## Hard rules
-
-- **Write what is true now.** Never replay the session. A decision made out loud and written nowhere is state.
-- **Never write into a section another skill owns.**
-- **Never restate what an existing file already holds.**
-- **Write at a clean point.** Finish the task, land the edit, run the verification, then write. No room left for that → describe the half-state honestly.
-- **Write out what the next session must know. A path is for a file it must open.** Never name a file whose content you wrote out here. Never name a file the session must not act on: write that sentence and drop the path.
-- **Verify every path before writing it down.**
+- **Write what is true now.** A decision made out loud and written nowhere is state. Never replay the session.
+- **Write at a clean point.** Finish the task, land the edit, run the verification, then write. No room for that → describe the half-state.
+- **Name a path only for a file the next session must open.** Write out what you wrote there. Drop the path of any file it must not act on.
+- **Verify every path before writing it.** Never write into a section another skill owns.

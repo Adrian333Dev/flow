@@ -12,8 +12,8 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
    - Read it whole, and every file it imports with `@`.
    - Sort every line into 1 of 3 places:
      - A rule in `~/.flow/CLAUDE.md` does the same job → drop it. Name that rule before dropping.
-     - How the user wants Claude to work, and they would still want it had Flow been there from the start → `## Preferences` in `~/.flow/profile.md`. `Never use em dashes` passes. `Always show me a diff before you edit` fails: it works around a missing workflow.
-     - True of the user, and it changes what Claude does → `## The user` in `~/.flow/profile.md`. Never a skill level, what they don't know, or what they are working on.
+     - How the user wants Claude to work, and they would still want it had Flow been there from the start → a line in `~/.flow/profile.md`. `Never use em dashes` passes. `Always show me a diff before you edit` fails: it works around a missing workflow.
+     - True of the user, and it changes what Claude does → a line in `~/.flow/profile.md`. Never a skill level, what they don't know, or what they are working on.
    - Add only what `~/.flow/CLAUDE.md` and `~/.flow/profile.md` do not say already. One sentence per line, in plain words, replacing a line it sharpens.
    - `~/.flow/CLAUDE.md` holds no line `@~/.flow/profile.md` → say so in the last message: no session loads the profile until it does.
 2. **Settings.** Read `~/.claude/settings.json` and `home/settings.json`.

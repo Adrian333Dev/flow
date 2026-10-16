@@ -34,7 +34,7 @@ const board = {};
 
 /**
  * The board, which `/flow:start` opens a session on. `next` once ranked with
- * logic of its own, beside the board `flow get` printed with nothing named,
+ * logic of its own, beside the board the old `flow get` printed with nothing named,
  * and the 2 disagreed about the child of open work.
  */
 board.next = {

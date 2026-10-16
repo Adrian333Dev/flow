@@ -1,30 +1,30 @@
 /**
  * register.ts: the hooks module of Flow's session mod.
  *
- * The restart: at its wrap-up checkpoint the agent calls the `restart` tool
- * with its handoff note. The mod ends that turn, compacts between turns, and
- * answers the compaction itself with the note, so the session and its
- * transcript stay and no model writes a summary.
+ * The restart: at its wrap-up checkpoint, or when the user types `/restart`,
+ * the agent calls the `restart` tool with the start message it wrote. The mod
+ * ends that turn, compacts between turns, and answers the compaction itself
+ * with that message, so the session and its transcript stay and no model
+ * writes a summary.
  *
  * Also: dragged files load as mentions, a handoff note is removed once read,
  * the agent is warned at the wrap-up mark, and `#` in the prompt box lists
  * the notes of `flow notes`.
  */
 import type { EngineInterface, Register } from 'claude-code'
-import { firstMessage, lastExchange } from './exchange'
+import { INSTRUCTIONS_PATH, restartAsk, startInstructions, withInstructions } from './ask'
+import { firstMessage } from './first-message'
 import { mention, pastedPaths, relativeTo } from './drag'
 import { isNote } from './note'
 import { parseNote, rows, type Note } from './notes'
 import { kilo, wrapUpLine, wrapUpSettings } from './wrap-up'
 
 const TOOL = /^mcp__flow-session__restart$/
-const REFUSAL = 'Flow compacts only at its own restart. Run /flow:handoff.'
+const EDIT = /^(Edit|Write|MultiEdit|NotebookEdit)$/
+const REFUSAL = 'Flow compacts only at its own restart. Run /restart.'
 
 type Restart = {
-  note: string
-  skill?: string
-  args?: string
-  tickets: string[]
+  message: string
   size: number
   started: boolean
 }
@@ -33,6 +33,9 @@ let pending: Restart | null = null
 let mainTurn: string | undefined
 let sizeBefore: number | undefined
 let lastChecked = 0
+// A handoff stands from the moment its skill loads until work changes a file in a later turn.
+let handoffFresh = false
+let handoffTurn: string | undefined
 let mentionedNotes: string[] = []
 const noteTurns = new Map<string, string[]>()
 // The `#` list runs on every keystroke, so a note file is parsed again only when its change time moves.
@@ -46,19 +49,10 @@ async function logSize($: EngineInterface): Promise<void> {
   sizeBefore = undefined
 }
 
-/** What the agent passed, checked: a bad ticket id or skill name is dropped, never read as a path. */
-function readInput(e: object): { note: string; skill?: string; args?: string; tickets: string[] } {
-  const input = e as { note?: unknown; skill?: unknown; args?: unknown; tickets?: unknown }
-  const skill = typeof input.skill === 'string' && /^[\w:-]+$/.test(input.skill) ? input.skill : undefined
-  const tickets = Array.isArray(input.tickets)
-    ? input.tickets.filter((id): id is string => typeof id === 'string' && /^[a-z]{2,8}-\d+$/.test(id))
-    : []
-  return {
-    note: typeof input.note === 'string' ? input.note.trim() : '',
-    skill,
-    args: typeof input.args === 'string' ? input.args : undefined,
-    tickets,
-  }
+/** The start message the agent passed, trimmed. */
+function readMessage(e: object): string {
+  const input = e as { message?: unknown }
+  return typeof input.message === 'string' ? input.message.trim() : ''
 }
 
 /** A settings file's text, or undefined when it is missing or unreadable. */
@@ -66,6 +60,15 @@ const readText = ($: EngineInterface, file: string) => $.fs.read(file).catch(() 
 
 /** The Flow home: `FLOW_HOME`, else `~/.flow`. */
 const flowHome = async ($: EngineInterface) => (await $.env.get('FLOW_HOME')) ?? `${await $.env.get('HOME')}/.flow`
+
+/** The instructions for the start message, read when the ask is built. */
+async function startText($: EngineInterface): Promise<string> {
+  try {
+    return startInstructions(await readText($, `${await flowHome($)}/${INSTRUCTIONS_PATH}`))
+  } catch {
+    return startInstructions(undefined)
+  }
+}
 
 /** The wrap-up line for the size now, or undefined. Remembers the size, so each mark speaks once. */
 async function wrapUp($: EngineInterface): Promise<string | undefined> {
@@ -78,9 +81,10 @@ async function wrapUp($: EngineInterface): Promise<string | undefined> {
   if (!on || now === undefined) return undefined
   const before = lastChecked
   lastChecked = now
-  const line = wrapUpLine(before, now, limit)
-  if (line) $.ui.log(`wrap-up line sent at ${kilo(now)}`)
-  return line
+  const line = wrapUpLine(before, now, limit, handoffFresh)
+  if (!line) return undefined
+  $.ui.log(`wrap-up line sent at ${kilo(now)}`)
+  return withInstructions(line, await startText($))
 }
 
 /** A paste of paths that all exist under the session's folder, as mentions. Undefined for any other edit. */
@@ -129,26 +133,18 @@ async function removeNotes($: EngineInterface, paths: readonly string[]): Promis
   for (const path of paths) await $.process.run(['rm', '--', path]).catch(() => undefined)
 }
 
-/** One ticket's file. Its folder is the id, or the id and a slug. */
-async function ticketText($: EngineInterface, root: string, id: string): Promise<string> {
-  try {
-    const dir = `${root}/.flow/tickets`
-    const found = (await $.fs.list(dir)).find((entry) => entry.name === id || entry.name.startsWith(`${id}-`))
-    if (!found) return `${id}: no ticket folder found.`
-    return `## ${id}\n\n${await $.fs.read(`${dir}/${found.name}/ticket.md`)}`
-  } catch {
-    return `${id}: ticket.md could not be read.`
-  }
-}
-
-/** Starts the compaction, then the next turn. Not awaited by its caller, so it owns its errors. */
+/**
+ * Starts the compaction, then the turn that works from the start message.
+ * The message is in the compacted conversation by then, so a crash before the
+ * turn loses nothing. Not awaited by its caller, so it owns its errors.
+ */
 async function runRestart($: EngineInterface, restart: Restart): Promise<void> {
   restart.started = true
+  handoffFresh = false
   try {
     await $.command.run({ command: 'compact' })
     sizeBefore = restart.size
-    if (restart.skill) await $.command.run({ command: restart.skill, args: restart.args ?? '' })
-    else await $.prompt.submit({ text: 'Continue from the note.', asUser: true })
+    await $.prompt.submit({ text: 'Continue from the start message.', asUser: true })
   } catch (error) {
     $.ui.log(`restart failed, the session is as it was: ${error instanceof Error ? error.message : String(error)}`)
   } finally {
@@ -160,20 +156,43 @@ export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {
     await $.tool.register({
       name: 'restart',
-      description:
-        'Restarts this session in place once /flow:handoff has finished: the conversation is replaced by `note` and the tickets named, and the skill starts again. Call it last. Nothing you write after the call is read.',
+      description: `Restarts this session in place once the handoff is written: the conversation is replaced by \`message\`, and the work continues from it. Call it last. Nothing you write after the call is read.`,
       isDeferred: false,
       inputSchema: {
         type: 'object',
         properties: {
-          note: { type: 'string', description: 'The handoff note: what the next stretch of work needs.' },
-          skill: { type: 'string', description: 'The skill the work continues in, without the slash, such as flow:execute.' },
-          args: { type: 'string', description: 'What follows the skill name, such as a ticket id.' },
-          tickets: { type: 'array', items: { type: 'string' }, description: 'Ids of the tickets in flight. Each ticket.md joins the first message.' },
+          message: { type: 'string', description: 'The start message: what to load first, then what the next stretch of work needs.' },
         },
-        required: ['note'],
+        required: ['message'],
       },
     })
+    await $.command
+      .register({ name: 'restart', description: 'Restart this session in place, from a start message the agent writes.' })
+      .catch(() => undefined)
+    return next(e)
+  })
+
+  // `/restart` asks the agent for the handoff, if none stands, and the start message.
+  // A command's hidden `context` starts no turn (probed 2.1.301), so the ask is
+  // submitted as a prompt once the command has returned.
+  on('command.run', { command: 'restart' }, async ($, e) => {
+    const ask = restartAsk(handoffFresh, e.args ?? '', await startText($))
+    void $.clock
+      .sleep(100)
+      .then(() => $.prompt.submit({ text: ask, asUser: true }))
+      .catch((error) => $.ui.log(`/restart could not start the agent: ${error instanceof Error ? error.message : String(error)}`))
+    return { text: 'Restarting: the agent writes the start message.' }
+  }).catch(() => ({ text: 'The restart command failed, so nothing restarted.' }))
+
+  // A handoff stands once its skill loads. A file changed in a later turn ends it.
+  on('skill.prompt', { skill: /(^|:)handoff$/ }, async (_$, e, next) => {
+    handoffFresh = true
+    handoffTurn = mainTurn
+    return next(e)
+  })
+
+  on('tool.call', { tool: EDIT }, async (_$, e, next) => {
+    if (mainTurn !== handoffTurn) handoffFresh = false
     return next(e)
   })
 
@@ -226,10 +245,10 @@ export const register: Register = (on) => {
   on('tool.call', { tool: TOOL }, async ($, e) => {
     if (e.agentId !== undefined) return { deny: 'Only the main session restarts.' }
     if (pending) return { deny: 'A restart is already under way.' }
-    const input = readInput(e)
-    if (!input.note) return { deny: 'Pass the handoff note as `note`.' }
+    const message = readMessage(e)
+    if (!message) return { deny: 'Pass the start message as `message`.' }
     const usage = await $.session.usage().catch(() => undefined)
-    pending = { ...input, size: usage?.context.tokens ?? 0, started: false }
+    pending = { message, size: usage?.context.tokens ?? 0, started: false }
     if (mainTurn) await $.turn.abort({ turnId: mainTurn }).catch(() => undefined)
     return { result: 'Restarting. Write nothing more.' }
   }).catch(() => ({ deny: 'The restart hook failed, so nothing restarted.' }))
@@ -248,16 +267,10 @@ export const register: Register = (on) => {
     return done
   })
 
-  on('session.compact', async ($, e, next) => {
+  // The restart's compaction becomes one message, the one the agent wrote.
+  on('session.compact', async (_$, e, next) => {
     if (e.agentId !== undefined) return next(e)
     if (e.trigger !== 'manual' || !pending?.started) return { skip: REFUSAL }
-    const root = await $.session.root()
-    const tickets = await Promise.all(pending.tickets.map((id) => ticketText($, root, id)))
-    return {
-      messages: [
-        { role: 'user', text: firstMessage(pending.note, tickets), toolUses: [] },
-        ...lastExchange(e.messages),
-      ],
-    }
+    return { messages: [{ role: 'user', text: firstMessage(pending.message), toolUses: [] }] }
   }).catch(() => ({ skip: REFUSAL }))
 }

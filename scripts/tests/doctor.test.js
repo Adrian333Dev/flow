@@ -70,7 +70,7 @@ test('a fresh install passes every check', () => {
 
   assert.strictEqual(report.code, 0, report.stdout + report.stderr);
   assert.match(report.stdout, /nothing to fix\./);
-  assert.match(report.stdout, /util: fs tree, fs open all run/);
+  assert.match(report.stdout, /util: fs tree runs/);
   assert.match(report.stdout, /18 hooks registered, every file they name on disk, sessions start in "default" mode/);
 });
 
@@ -193,7 +193,7 @@ test('a util that does not run is diagnosed against its source registry', () => 
   const report = doctor(m, { bin: utilStub(m.dir, { works: false }), utilHome });
 
   assert.strictEqual(report.code, 1);
-  assert.match(report.stdout, /util fs open does not run, and it is called by flow get --files/);
+  assert.match(report.stdout, /util fs tree does not run, and it is called by home\/CLAUDE\.md, in tree-for-structure/);
   assert.match(report.stdout, /no source is registered: run flow install/);
 });
 
@@ -214,7 +214,7 @@ test('a util run the system kills before it exits is retried, never counted', ()
 
   const report = doctor(m, { bin });
 
-  assert.match(report.stdout, /util: fs tree, fs open all run/);
+  assert.match(report.stdout, /util: fs tree runs/);
   assert.doesNotMatch(report.stdout, /does not run/);
 });
 

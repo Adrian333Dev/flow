@@ -332,7 +332,7 @@ test('flow move takes tickets home, rewrites their links, keeps was, and carries
   assert.match(flow(dir, ['home-2']).stdout, /^home-2-parser-tests$/m);
 });
 
-test('a ticket records its code branch when work starts, and a history line per move and handoff', () => {
+test('a ticket records its code branch when work starts, and a history line per move', () => {
   const t = team('records-history');
   const ana = t.clone('ana');
   t.branch(ana, 'exp');
@@ -346,14 +346,12 @@ test('a ticket records its code branch when work starts, and a history line per 
   const as = (...args) => run('flow.js', args, { cwd: ana, env });
 
   assert.strictEqual(as('start', 'exp-1').code, 0);
-  assert.strictEqual(as('handoff', 'exp-1').code, 0);
   const dir = path.join(ana, '.flow', 'tickets', 'exp-1');
   assert.match(fs.readFileSync(path.join(dir, 'ticket.md'), 'utf8'), /^branch: feature\/budgets$/m);
   const lines = fs.readFileSync(path.join(dir, 'history.md'), 'utf8').trim().split('\n');
-  assert.strictEqual(lines.length, 2);
+  assert.strictEqual(lines.length, 1);
   assert.match(lines[0], /^\d{4}-\d\d-\d\d \d\d:\d\d  todo → in-progress\s+abc-123  "Budget \\"work\\""  feature\/budgets$/);
-  assert.match(lines[1], /  handoff\s+abc-123  /);
-  assert.strictEqual(git(path.join(ana, '.flow'), 'log', '-1', '--format=%s').out, 'exp-1: handoff');
+  assert.strictEqual(git(path.join(ana, '.flow'), 'log', '-1', '--format=%s').out, 'exp-1: todo → in-progress');
 
   git(ana, 'checkout', '-q', 'main');
   assert.match(t.in(ana, 'exp-1').stdout, /^branch:\s+feature\/budgets   \(checked out here: main\)$/m);

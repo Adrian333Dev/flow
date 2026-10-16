@@ -98,7 +98,8 @@ Each status, and what moves a ticket into it:
 ### Ticket skills
 
 - `V1` **Each open ticket is a skill only the user can start**, `<project>/.claude/skills/exp-47/`, and `~/.claude/skills/home-4/` for home tickets. Typing `/exp` lists each with its status and description, else its title: `/exp-1   Ticket, in-progress: Daemon detection (project)`. A ticket that is `parked`, `done` or `dropped` gets none.
-- `V1` **The skill holds a label only.** It runs `flow get exp-47 --files` when typed, so a stale skill shows an old row and never old data.
+- `V1` **The skill holds a label and one rule.** It runs `flow exp-47` when typed, so a stale skill shows an old row and never old data. The rule: on what exists the files win, and on decisions and what is still open `## State` wins over the rest of the ticket.
+- `V1` **`flow <id>` takes an id and nothing else.** `exp-47`, `47` and `exp-47-old-words` all find the ticket. A word that is no command and holds no id is refused, so a mistyped command never reads as a title word. `flow ls <words>` finds a ticket by its words.
 - `V1` **A ticket reaches a phase through its own skill alone**: `/flow:execute /exp-47` loads both, the phase first. `/exp-47` alone prints the ticket. A typed id is plain text the agent looks up. Approved by the user 2026-09-30.
 - `V1` **The skills stay current**: rewritten after every `flow` command that writes a ticket, and at session start, which reloads the skill list.
 - `V1` **A user-only skill's description costs no context**, confirmed with `/context`.
@@ -141,21 +142,14 @@ description: "Ticket, in-progress: Daemon detection"
 disable-model-invocation: true
 ---
 <!-- flow: ticket exp-47, rewritten by flow on every ticket change -->
-!`flow get exp-47 --files 2>&1 || true`
-```
+!`flow exp-47 2>&1 || true`
 
-The `open` block in a ticket's `## State`, which `flow get --files` reads to load each file named:
-
-````markdown
-```open
-plan.md
-src/parser.js:40-120   # where step 4 stopped
+On what exists, the files win. On decisions and what is still open, `## State` wins over the rest of the ticket.
 ```
-````
 
 ## One real case: working a ticket
 
-1. The user types `/flow:execute /exp-47`. Both skills load, and `flow get exp-47 --files` prints the ticket and its open files.
+1. The user types `/flow:execute /exp-47`. Both skills load, and `flow exp-47` prints the ticket.
 2. `/flow:execute` reads the ticket, then runs `flow start exp-47`. `history.md` gains a line with the session id, and `branch: feature/budgets` is recorded. The move commits and pushes in the background.
 3. The user approves the plan, and the agent builds it with the ticket still `in-progress`.
 4. The context fills. `/flow:handoff` writes `## State`.

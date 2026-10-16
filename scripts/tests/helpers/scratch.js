@@ -81,7 +81,7 @@ function utilStub(dir, { works = true } = {}) {
   fs.mkdirSync(bin, { recursive: true });
   const file = path.join(bin, 'util');
   fs.writeFileSync(file, works
-    ? '#!/usr/bin/env bash\ncase "$1 $2" in\n  "fs tree"|"fs merge"|"fs open") exit 0 ;;\nesac\nexit 1\n'
+    ? '#!/usr/bin/env bash\ncase "$1 $2" in\n  "fs tree") exit 0 ;;\nesac\nexit 1\n'
     : '#!/usr/bin/env bash\nexit 1\n');
   fs.chmodSync(file, 0o755);
   return bin;

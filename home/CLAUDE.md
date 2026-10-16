@@ -27,7 +27,14 @@ One user message, your work, one reply. In that order, every time.
 - **`search-wide`** A search that missed → retry with several patterns in one call, `grep -rn -e a -e b`. Never one guess per request.
 - **`read-in-parallel`** Files → `Read`, all of them in one message. The shell reads only what `Read` cannot: command output, a log's end, a binary.
 - **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
-- **`wiki-first`** Work against an outside tool or field → its `~/.flow/wiki/<subject>/` first, then its docs. Never training memory alone.
+- **`wiki-first`** Work against an outside tool or field → its `~/.flow/wiki/<subject>/` first, `findings/` not yet folded included, then its docs. Never training memory alone.
+- **`know-where-knowledge-lives`** Look where a thing is filed before asking or guessing:
+  - A fact of this project → `docs/context/`. Why it was built so → `docs/spec/`.
+  - A mistake of a type → `flow cases`.
+  - Ideas and put-off work → `flow notes "label:<subject>"`.
+  - Earlier research → `.flow/research/<topic>/`.
+  - Steps that repeat → a how-to page in the wiki, or a skill.
+  - How the user wants to work → `~/.flow/profile.md`, already loaded.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
 - **`past-sessions-through-audit`** A past session → `flow audit`: `ls` finds it, `context` and `timeline` narrow it, `read --turns` opens it. Never the raw transcript.
 ## Writing files
@@ -75,29 +82,39 @@ One phase at a time:
 
 ## Capture
 
-**`capture-at-checkpoints`** At a checkpoint, sweep the conversation since the last sweep and file what it holds. A checkpoint: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. On request, immediately. Unsure: write it.
+**`capture-at-checkpoints`** At a checkpoint, file what the conversation since the last checkpoint holds. A checkpoint: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. On request, file at once. Unsure: file it.
 
-- Work committed to → `flow new "…" --label bug`. Labels are optional and free: `feature`, `bug`, `chore`, `topic`, `urgent`, or any label.
-- How the user wants to work → `~/.flow/profile.md#preferences`. A fact about the user → `#the-user`, never a skill level and never what they don't know. Both inferred from evidence, never announced: a correction, irritation at a habit, something they said about themselves. Under 10 lines in the section, write on the first sign; after that, on the second. One sentence each, replacing a line it sharpens.
-- About this project, needed in most sessions → the project's `CLAUDE.md`. A correction true here alone goes under `## Rules`, on its second sign.
-- Durable project fact only some work needs (a deploy path, a service's limit) → `docs/context/<subject>.md`
-- How an outside tool or field behaves (a quirk, a limit, a trap, a workaround) → the page owning the subject in `~/.flow/wiki/<subject>/`, edited in place by `~/.agents/skills/flow/skills/research/references/wiki.md`. Never a detail of the project or its client. Skip what the loaded skill already says.
-- Other reusable knowledge (a pattern that works, a rule worth keeping) → its own file, `.flow/findings/<what-was-learned>.md`, named in 4 to 8 words: what went wrong, what fixed it, the rule that follows. `/flow:file-findings` promotes it to a skill or a rule later.
-  - About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`
-- A warning from a rule check that was wrong → `.flow/findings/scorecard.md`
-- A decision the user confirmed with no open threads → the file under `docs/spec/` that owns it, with its reason, or the groundwork map that owns the subject. Batched, never mid-discussion.
-- Flow itself failed (a rule that didn't fire, friction that repeated, output the user rejected) → `/flow:review`, if it's in your skill list
+**`file-by-type`** Every route adds a new file or a new line:
+- A lesson or fact about a tool or this project, a failed attempt with its cause, a procedure done before → a finding: `~/.flow/wiki/<tool>/findings/<lesson>.md` for any project, `.flow/findings/<lesson>.md` for this project.
+- A correction, or a fact about the user → `flow note "…" --label profile --project global`. True in this project alone → `flow note "…" --label rule`. A fact about the user is never a skill level, what they don't know, or what they work on.
+- A decision → the `docs/spec/` file that owns it, with its reason, or the groundwork map that owns the subject. None owns it → `flow note "…"`. One batch, never mid-discussion.
+- Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow note "…"`.
+- Your own mistake, a rule that did not fire or output the user rejected included → `flow cases new --type <type>`. `flow cases` lists the types. A type already listed is a repeat.
+- A wrong rule-check warning → `.flow/findings/scorecard.md`
 - Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
-- Everything else → `.flow/inbox.md`, raw. Never shape it. Past 200 lines, offer `/flow:file-findings`.
+- Anything else worth keeping, friction that repeated included → `flow note "…"`
 
-**`docs-context-holds-verified-facts`** One question per file, facts and never process, rewritten rather than appended.
+**`name-the-finding`** Name a finding for its lesson in 4 to 8 words: what went wrong, what fixed it, the rule that follows. Skip what a loaded skill already says. Never put a project's or a client's detail in `~/.flow`. About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`.
+
+**`write-straight-the-users-words`** Write into an existing file only what the user said outright:
+- A decision confirmed with no open threads → its spec file.
+- A rule reversed → replace that one line.
+- A correction, or a fact about them, that would still hold next week in another task → a new line in `~/.flow/profile.md`. True in this project alone → under the project's `## Rules`.
+- "Make a ticket" → `flow new`.
+
+What you inferred stays a note or a new file. `/flow:upkeep` shows it in its plan.
+
+**`tickets-follow-the-ask`** The user asks for a ticket → `flow ls` for one on the subject, then `flow new "…"` with its reason and a `## Done when`. A list is one ticket with a checklist. A fault in work just built reopens the ticket that built it. "This session's ticket" is the one this session works, never any ticket in progress: parallel sessions share the checkout.
+
+**`capture-reads-nothing`** Read no file to file. Two exceptions: a finding that contradicts an older one (read that one file, replace its text), and `flow cases`, to spot a repeat.
+
+**`name-what-was-filed`** When capture wrote files at a checkpoint, end the reply with `Filed: <path>, <path>`. Nothing written, no line.
 
 ## Scripts
 
 `util` and `flow` are commands on the `PATH`, run through Bash. `flow` alone and `util ls` print every command with its options.
 
-- `flow <id>`: one ticket in full, such as `flow exp-47`. Ticket frontmatter changes through `flow` alone, never by hand.
-- `flow get <id> --files`: the ticket plus every file its `open` block names. Run it for a ticket id typed in the user's message.
+- `flow <id>`: one ticket in full, such as `flow exp-47`. Run it for a ticket id typed in the user's message. Ticket frontmatter changes through `flow` alone, never by hand.
 - `flow new "<short name>: <details>"`: create a ticket, titled from the words before the colon. Outside a project, `FLOW_PROJECT=$HOME flow new "<short name>: <details>"` keeps it in `~/.flow/tickets/`, numbered `home-1`, and its id works from anywhere.
 - `util fs tree [path]`: a folder as a tree, with each file's line count.
 
@@ -127,7 +144,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 
 1. **`plan-before-writing`** Name every section and its order before the first sentence. One section per topic the user raised, in their order. Where the topics are parts of one thing, the first section says the thing whole.
    - **`topic-by-topic`** Never drop one, never rank them. Two with one answer share a section, headed by both. Each section reads on its own. Where the user's words fit more than one thing in the repo, name the file and the place in it.
-   - **`judge-against-the-user`** Judge what needs explaining against `~/.flow/profile.md#the-user`. It names a direction, not an inventory. Detail inside their expertise still gets explained. Outside it: one line, by what the thing does here. Say what and why, never how to type it.
+   - **`judge-against-the-user`** Judge what needs explaining against `~/.flow/profile.md`. It names a direction, not an inventory. Detail inside their expertise still gets explained. Outside it: one line, by what the thing does here. Say what and why, never how to type it.
 2. **`size-by-worth`** Length comes from how complicated the thing is, and from what the topic is worth to the user. Never from the work behind it, never from wanting to justify a choice.
    - **`short-is-the-default`** The user is always in a rush. Cut the output, never the thinking, the walk or the design.
    - **`findings-stay-out`** A walk's findings stay out of the reply unless one changes what the user decides.

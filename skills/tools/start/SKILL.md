@@ -16,7 +16,7 @@ disable-model-invocation: true
 
 ## When a ticket is above
 
-**Read any `open` block above before opening a file**: it already loaded the files it names.
+**Read the ticket's `## State` above before opening a file**: it says where the work stopped and what is still open.
 
 **A `branch:` line saying `checked out here:` another branch** → tell the user which branch the work is on before routing, and wait.
 

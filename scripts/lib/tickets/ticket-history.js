@@ -1,12 +1,12 @@
 'use strict';
 /**
  * What a ticket records about the work done on it: the code branch it is
- * built on, and `history.md`, one line per status move or handoff.
+ * built on, and `history.md`, one line per status move.
  *
  *   branch: feature/budgets                       in ticket.md, written once
  *
  *   2026-09-29 14:02  todo → building  a1b2c3d4-…  "Budget page"  feature/budgets
- *   2026-09-30 09:40  handoff          e5f6a7b8-…  "Budget tests"  feature/budgets
+ *   2026-09-30 09:40  review → done     e5f6a7b8-…  "Budget tests"  feature/budgets
  *
  * Tickets live on the branch `flow`, apart from the code, so nothing else says
  * which code branch a ticket's work is on, or which sessions worked on it.
@@ -60,7 +60,7 @@ function sessionTitle(session) {
   return '';
 }
 
-/** Add one line to the ticket's `history.md`. `move` is `todo → building` or `handoff`. */
+/** Add one line to the ticket's `history.md`. `move` is `todo → building`. */
 function append(t, move) {
   try {
     const session = process.env.CLAUDE_CODE_SESSION_ID || '';
