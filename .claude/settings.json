@@ -17,6 +17,10 @@
     "ask": [
       "Bash(git commit *)",
       "Bash(git push *)",
+      "Bash(util git save *)",
+      "Bash(util g save *)",
+      "Bash(u git save *)",
+      "Bash(u g save *)",
       "Bash(npm publish *)",
       "Bash(pnpm publish *)",
       "Bash(yarn publish *)",
