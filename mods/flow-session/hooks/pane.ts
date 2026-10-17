@@ -1,0 +1,124 @@
+/**
+ * pane.ts: the logic of the permission dialog, with no call to the engine.
+ *
+ * What the dialog says and cuts, what the draw needs, and the verdict of a
+ * refusal that the second hook (`classic.PermissionRequest`) answers from.
+ * Both live in module state: the draw is keyed by the exact question text, the
+ * verdict by the tool and what it touches, since that hook sees no call id.
+ */
+import type { PermissionRequestDecision } from 'claude-code'
+import { mainField } from './headline'
+
+/** The dialog cuts its question at 2000 characters with a bare `…`, so the mod cuts first. */
+const MAX_QUESTION = 1999
+/** A sentence plus 11 lines of command fit the 12 rows the engine lets a draw use. */
+const MAX_COLOUR_LINES = 11
+const WRITE_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
+const OWN_ID = 'toolu_plugin_'
+const NOBODY = 'No one is here to ask. Choose another way, or stop.'
+
+export type Shown = {
+  /** The text given to `$.ui.ask`: the sentence, a blank line, the text. */
+  question: string
+  sentence: string
+  /** The text as shown, with the notice of what was cut on its last line. */
+  text: string
+  cut: boolean
+}
+
+const plural = (n: number, word: string) => `${n} more ${word}${n === 1 ? '' : 's'} not shown`
+
+/**
+ * The question for a sentence and the text beneath it. A text too long for the
+ * dialog is cut on a line and ends `N more lines not shown`. One line longer
+ * than the room is cut where it stands and ends `N more characters not shown`.
+ */
+export function questionText(sentence: string, text: string): Shown {
+  const full = `${sentence}\n\n${text}`
+  if (full.length <= MAX_QUESTION) return { question: full, sentence, text, cut: false }
+  const notice = `\n${text.length} more characters not shown`
+  const room = Math.max(0, MAX_QUESTION - sentence.length - 2 - notice.length)
+  const head = text.slice(0, room)
+  const newline = head.lastIndexOf('\n')
+  const kept = newline < 0 ? head : head.slice(0, newline)
+  const hidden =
+    newline < 0
+      ? plural(text.length - head.length, 'character')
+      : plural(text.split('\n').length - kept.split('\n').length, 'line')
+  const shown = `${kept}\n${hidden}`
+  return { question: `${sentence}\n\n${shown}`, sentence, text: shown, cut: true }
+}
+
+/** Whether the draw can carry the text in colour: nothing cut, and 11 lines or fewer. */
+export const drawsInColour = (shown: Shown) => !shown.cut && shown.text.split('\n').length <= MAX_COLOUR_LINES
+
+export type Draw = {
+  sentence: string
+  text: string
+  colour: boolean
+  /** The question the dialog is rewritten to. */
+  asks: string
+}
+
+const draws = new Map<string, { draw: Draw; open: number }>()
+
+/** Keeps what the draw needs while the dialog is open. Two asks with the same text share one entry. */
+export function rememberDraw(question: string, draw: Draw): void {
+  const kept = draws.get(question)
+  if (kept) kept.open++
+  else draws.set(question, { draw, open: 1 })
+}
+
+export const recallDraw = (question: string): Draw | undefined => draws.get(question)?.draw
+
+export function forgetDraw(question: string): void {
+  const kept = draws.get(question)
+  if (!kept) return
+  if (--kept.open <= 0) draws.delete(question)
+}
+
+/** The mod's own question carries a `toolu_plugin_` id, the model's own a `toolu_` one. */
+export const isOwnQuestion = (requestId: string) => requestId.startsWith(OWN_ID)
+
+export type Answer = 'allow' | 'refuse' | 'note'
+
+/** The answer by its label. Any other text came from the typed row. */
+export const classify = (label: string): Answer => (label === 'Allow' ? 'allow' : label === 'Refuse' ? 'refuse' : 'note')
+
+export type Verdict = { interrupt: true } | { interrupt: false; note: string }
+
+const verdicts = new Map<string, Verdict>()
+
+/** Tool and what it touches. The second hook has the tool's input but no call id. */
+export const verdictKey = (tool: string, input: unknown) => `${tool}\n${mainField(input) ?? JSON.stringify(input ?? {})}`
+
+export const storeVerdict = (key: string, verdict: Verdict) => void verdicts.set(key, verdict)
+
+/** The verdict for a call, removed as it is read. */
+export function takeVerdict(key: string): Verdict | undefined {
+  const verdict = verdicts.get(key)
+  verdicts.delete(key)
+  return verdict
+}
+
+/** A refusal stops the turn. A typed note denies without stopping, and the agent reads the note. */
+export function denyFor(verdict: Verdict): PermissionRequestDecision {
+  if (verdict.interrupt) return { behavior: 'deny', message: 'The user refused this call.', interrupt: true }
+  return { behavior: 'deny', message: `The user did not allow this call and wrote: "${verdict.note}". Read it and answer it.` }
+}
+
+/** What an ask answers where no one can: a deny the agent reads, with no interrupt. */
+export const nobodyReason = () => NOBODY
+
+type Decided = { decision: string; hook?: string; rule?: string }
+
+/**
+ * A core ask on a write under a `.claude` folder, with no guard reason and no
+ * settings rule behind it. Claude Code asks for every such write, and the
+ * mod's allow is the only way to remove that ask.
+ */
+export function isAutoAllow(tool: string, input: unknown, decided: Decided): boolean {
+  if (decided.decision !== 'ask' || decided.hook === 'PreToolUse' || decided.rule !== undefined) return false
+  if (!WRITE_TOOLS.has(tool)) return false
+  return /(^|\/)\.claude\//.test(mainField(input) ?? '')
+}

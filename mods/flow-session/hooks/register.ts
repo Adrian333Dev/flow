@@ -8,15 +8,34 @@
  * writes a summary.
  *
  * Also: dragged files load as mentions, a handoff note is removed once read,
- * the agent is warned at the wrap-up mark, and `#` in the prompt box lists
- * the notes of `flow notes`.
+ * the agent is warned at the wrap-up mark, `#` in the prompt box lists the
+ * notes of `flow notes`, and every permission ask opens Claude Code's question
+ * dialog (hooks/pane.ts) and is logged (hooks/log.ts).
  */
 import type { EngineInterface, Register } from 'claude-code'
 import { INSTRUCTIONS_PATH, restartAsk, startInstructions, withInstructions } from './ask'
 import { firstMessage } from './first-message'
 import { mention, pastedPaths, relativeTo } from './drag'
+import { drawRows, type MakeText } from './draw'
+import { headline, questionFor } from './headline'
+import { appendCommand, logLine, logPath, sourceOf, type LogAnswer, type LogFields } from './log'
 import { isNote } from './note'
 import { parseNote, rows, type Note } from './notes'
+import {
+  classify,
+  denyFor,
+  drawsInColour,
+  forgetDraw,
+  isAutoAllow,
+  isOwnQuestion,
+  nobodyReason,
+  questionText,
+  recallDraw,
+  rememberDraw,
+  storeVerdict,
+  takeVerdict,
+  verdictKey,
+} from './pane'
 import { kilo, wrapUpLine, wrapUpSettings } from './wrap-up'
 
 const TOOL = /^mcp__flow-session__restart$/
@@ -40,6 +59,8 @@ let mentionedNotes: string[] = []
 const noteTurns = new Map<string, string[]>()
 // The `#` list runs on every keystroke, so a note file is parsed again only when its change time moves.
 const listedNotes = new Map<string, Note>()
+// Whether a person is at the prompt (false for `claude -p`). Unknown after a hot reload, which counts as somebody.
+let interactive: boolean | undefined
 
 /** Prints the size change once the new conversation has a response: `usage()` has no figure before that. */
 async function logSize($: EngineInterface): Promise<void> {
@@ -152,8 +173,81 @@ async function runRestart($: EngineInterface, restart: Restart): Promise<void> {
   }
 }
 
+const reasonOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
+
+type Check = { tool: string; input: unknown; agentId?: string }
+type Decided = { decision: 'allow' | 'ask' | 'deny'; reason?: string; hook?: string; rule?: string }
+
+/** One line in the permission log. Never throws: a lost line must not change the answer. */
+async function logAsk($: EngineInterface, fields: Omit<LogFields, 'at' | 'project' | 'session'>): Promise<void> {
+  try {
+    const home = await flowHome($)
+    const now = new Date()
+    const session = await $.session.id().catch(() => '')
+    const line = logLine({ ...fields, at: now, project: await projectName($, home), session })
+    await $.process.run(appendCommand(line, logPath(home, now)), { timeoutMs: 5000 })
+  } catch (error) {
+    $.ui.log(`permission log line lost: ${reasonOf(error)}`)
+  }
+}
+
+/**
+ * A permission ask, put to the user in the question dialog. Allow returns an
+ * allow. A refusal, Esc or the dialog's fourth row stores a verdict and returns
+ * the ask unchanged, so `classic.PermissionRequest` can deny with an interrupt.
+ * A typed note stores a verdict without one. A dialog that fails for any other
+ * reason returns the ask unchanged with no verdict, so Claude Code asks itself.
+ */
+async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<Decided> {
+  const shown = headline(e.tool, e.input)
+  const sentence = decided.hook === 'PreToolUse' && decided.reason?.trim() ? decided.reason.trim() : shown.sentence
+  const entry = { tool: e.tool, agent: e.agentId, rule: decided.rule, source: sourceOf(decided.hook, decided.rule), headline: sentence, command: shown.text }
+  const done = (answer: LogAnswer, ms?: number) => logAsk($, { ...entry, answer, ms })
+
+  if (isAutoAllow(e.tool, e.input, decided)) {
+    await done('auto-allow')
+    return { decision: 'allow' }
+  }
+  if (interactive === false) {
+    await done('nobody')
+    return { decision: 'deny', reason: nobodyReason() }
+  }
+
+  const text = questionText(sentence, shown.text)
+  const colour = drawsInColour(text)
+  if (colour) rememberDraw(text.question, { sentence, text: text.text, colour, asks: questionFor(shown.kind) })
+  const started = Date.now()
+  let label: string | undefined
+  let failure = ''
+  try {
+    label = await $.ui.ask(text.question, { options: ['Allow', 'Refuse'], header: 'Permission' })
+  } catch (error) {
+    failure = reasonOf(error)
+  } finally {
+    if (colour) forgetDraw(text.question)
+  }
+  const ms = Date.now() - started
+
+  // Esc and the fourth row reject with "no answer (…)". Anything else is the dialog failing.
+  if (label === undefined && !/no answer/i.test(failure)) {
+    $.ui.log(`permission dialog failed, Claude Code asks instead: ${failure}`)
+    return decided
+  }
+  const answer = label === undefined ? 'refuse' : classify(label)
+  const key = verdictKey(e.tool, e.input)
+  if (answer === 'allow') {
+    takeVerdict(key)
+    await done('allow', ms)
+    return { decision: 'allow' }
+  }
+  storeVerdict(key, answer === 'note' ? { interrupt: false, note: label ?? '' } : { interrupt: true })
+  await done(answer, ms)
+  return decided
+}
+
 export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {
+    interactive = e.isInteractive
     await $.tool.register({
       name: 'restart',
       description: `Restarts this session in place once the handoff is written: the conversation is replaced by \`message\`, and the work continues from it. Call it last. Nothing you write after the call is read.`,
@@ -265,6 +359,31 @@ export const register: Register = (on) => {
       else if (sizeBefore !== undefined) void logSize($).catch(() => undefined)
     }
     return done
+  })
+
+  // Every ask the rules and the guard leave open goes to the question dialog.
+  // A hook that throws is skipped, and Claude Code's own prompt appears.
+  on('tool.check', async ($, e, next) => {
+    const decided = await next(e)
+    return decided.decision === 'ask' ? askUser($, e, decided) : decided
+  }).catch(() => ({ decision: 'ask' as const }))
+
+  // The second half of a refusal: the call is denied, and a refusal also stops the turn.
+  on('classic.PermissionRequest', async (_$, e, next) => {
+    const verdict = takeVerdict(verdictKey(e.tool_name, e.tool_input))
+    return verdict ? { decision: denyFor(verdict) } : next(e)
+  }).catch(() => ({}))
+
+  // The mod's own question draws in colour above the dialog, which is
+  // reworded to ask `Allow this command?`. The model's own questions pass.
+  // Nothing is read and nothing runs in here: the draw comes from module state.
+  on('ui.render', { component: 'AskUserQuestion' }, async ($, e, next) => {
+    const questions = e.props.questions as { question?: string }[]
+    const draw = isOwnQuestion(e.requestId) ? recallDraw(questions[0]?.question ?? '') : undefined
+    if (!draw) return next(e)
+    const { Box, Text } = $.ui.resolve(e)
+    const dialog = await next({ ...e, props: { ...e.props, questions: questions.map((q) => ({ ...q, question: draw.asks })) } })
+    return Box({ flexDirection: 'column', children: [...drawRows(draw, Text as unknown as MakeText), dialog] })
   })
 
   // The restart's compaction becomes one message, the one the agent wrote.
