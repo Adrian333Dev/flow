@@ -6,6 +6,7 @@ import {
   forgetDraw,
   isAutoAllow,
   isOwnQuestion,
+  keepsBlanks,
   questionText,
   recallDraw,
   rememberDraw,
@@ -18,6 +19,31 @@ const SENTENCE = 'Deletes 3 files.'
 
 /** A text whose question with SENTENCE is `total` characters long. */
 const filler = (total: number) => 'x'.repeat(total - SENTENCE.length - 2)
+
+describe('drawsInColour', () => {
+  const shown = (text: string) => questionText(SENTENCE, text)
+
+  test('counts 11 lines, not the blank ones', () => {
+    expect(drawsInColour(shown(Array(11).fill('ls').join('\n')))).toBe(true)
+    expect(drawsInColour(shown(Array(12).fill('ls').join('\n')))).toBe(false)
+    expect(drawsInColour(shown(`${Array(11).fill('ls').join('\n\n')}`))).toBe(true)
+  })
+
+  test('a cut text never draws in colour', () => {
+    expect(drawsInColour(shown('y'.repeat(3000)))).toBe(false)
+  })
+
+  test('an empty command draws', () => {
+    expect(drawsInColour(shown(''))).toBe(true)
+  })
+})
+
+describe('keepsBlanks', () => {
+  test('keeps blank lines only while every line fits in 11 rows', () => {
+    expect(keepsBlanks(['a', '', 'b'].join('\n'))).toBe(true)
+    expect(keepsBlanks([...Array(10).fill('a'), '', 'b'].join('\n'))).toBe(false)
+  })
+})
 
 describe('questionText', () => {
   test('is the sentence, a blank line and the text', () => {

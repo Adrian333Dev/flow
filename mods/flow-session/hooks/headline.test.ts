@@ -12,6 +12,45 @@ describe('headline', () => {
     expect(headline('Bash', { command: 'npm publish' }).sentence).toBe('Publishes a package.')
   })
 
+  test('finds a commit, a push or both anywhere a command starts', () => {
+    expect(headline('Bash', { command: 'git add -A && git commit -q -m x' }).sentence).toBe('Makes a git commit.')
+    expect(headline('Bash', { command: 'cd /p; git push' }).sentence).toBe('Pushes commits to a remote.')
+    expect(headline('Bash', { command: 'git add .\ngit commit -m x\ngit push' }).sentence).toBe('Makes a git commit and pushes it.')
+    expect(headline('Bash', { command: 'git commit -m x && npm publish' }).sentence).toBe('Publishes a package.')
+  })
+
+  test('util git save stages, commits and pushes, in any of its 4 spellings', () => {
+    for (const spelling of ['util git save', 'util g save', 'u git save', 'u g save']) {
+      expect(headline('Bash', { command: `${spelling} "fix the parser"` }).sentence).toBe('Stages everything, commits it and pushes.')
+    }
+    expect(headline('Bash', { command: 'util git save' }).sentence).toBe('Stages everything, commits it and pushes.')
+    expect(headline('Bash', { command: 'cd /p && u g save -m "x"' }).sentence).toBe('Stages everything, commits it and pushes.')
+  })
+
+  test('a save with -n does not push, with -p names paths, with --dry-run only shows', () => {
+    expect(headline('Bash', { command: 'util git save -n "msg"' }).sentence).toBe('Stages everything and commits it.')
+    expect(headline('Bash', { command: 'util git save --no-push' }).sentence).toBe('Stages everything and commits it.')
+    expect(headline('Bash', { command: 'util git save -p src,docs "msg"' }).sentence).toBe('Stages the listed paths, commits them and pushes.')
+    expect(headline('Bash', { command: 'util git save -p src -n "msg"' }).sentence).toBe('Stages the listed paths and commits them.')
+    expect(headline('Bash', { command: 'util git save --dry-run' }).sentence).toBe('Shows the git commands a save would run.')
+  })
+
+  test('a flag inside the message is no flag', () => {
+    expect(headline('Bash', { command: 'util git save "drop -n and --dry-run from the docs"' }).sentence).toBe('Stages everything, commits it and pushes.')
+  })
+
+  test('save is no save in another command', () => {
+    expect(headline('Bash', { command: 'util git status' }).sentence).toBe('Runs a shell command.')
+    expect(headline('Bash', { command: 'echo util git save' }).sentence).toBe('Runs a shell command.')
+    expect(headline('Bash', { command: 'util git saves' }).sentence).toBe('Runs a shell command.')
+  })
+
+  test('the words alone are no commit', () => {
+    expect(headline('Bash', { command: 'echo git commit' }).sentence).toBe('Runs a shell command.')
+    expect(headline('Bash', { command: 'git log --grep=commit' }).sentence).toBe('Runs a shell command.')
+    expect(headline('Bash', { command: 'git commits' }).sentence).toBe('Runs a shell command.')
+  })
+
   test('a write names its path and asks about a write', () => {
     const edit = headline('Edit', { file_path: '/p/.claude/skills/x/SKILL.md', old_string: 'a', new_string: 'b' })
     expect(edit).toEqual({ sentence: 'Edits this file.', text: '/p/.claude/skills/x/SKILL.md', kind: 'write' })

@@ -103,6 +103,51 @@ describe('the draw above the dialog', () => {
     await dialog.finish()
   })
 
+  test('a here-doc message draws green and its EOF magenta', async ($, on) => {
+    const dialog = openDialog(on, $, { command: "git commit -F - <<'EOF'\nfix the parser\nEOF" })
+    await dialog.asked
+    const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_06')
+    expect(await ui.find({ type: 'Text', text: 'fix the parser' })).toMatchObject({ children: [{ props: { color: 'green' }, children: ['fix the parser'] }] })
+    expect(await ui.find({ type: 'Text', text: /^EOF$/ })).toMatchObject({ children: [{ props: { color: 'magenta' }, children: ['EOF'] }] })
+    await ui.unmount()
+    await dialog.finish()
+  })
+
+  test('a piece of 40 characters or more is cut into texts under 40, with the line unchanged', async ($, on) => {
+    const long = 'echo alpha beta gamma delta epsilon zeta eta theta iota kappa lambda'
+    const dialog = openDialog(on, $, { command: `${long}\n${long}` })
+    await dialog.asked
+    const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_07')
+    const line = (await ui.find({ type: 'Text', text: long })) as { children: { children: string[] }[] }
+    expect(line.children.length).toBeGreaterThan(1)
+    for (const piece of line.children) expect(piece.children.join('').length).toBeLessThan(40)
+    await ui.unmount()
+    await dialog.finish()
+  })
+
+  test('blank lines stay while the command fits in 11 rows', async ($, on) => {
+    const dialog = openDialog(on, $, { command: 'ls\n\nls -a' })
+    await dialog.asked
+    const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_08')
+    expect(await ui.find({ type: 'Text', text: /^ $/ })).toBeDefined()
+    await ui.unmount()
+    await dialog.finish()
+  })
+
+  test('a commit of 13 lines with 2 blank ones draws, without the blank rows', async ($, on) => {
+    const command = ["git add . && git commit -q -F - <<'EOF'", 'subject', '', ...Array(6).fill('a line of the message'), '', 'Co-Authored-By: x', 'EOF', 'git status'].join('\n')
+    expect(command.split('\n')).toHaveLength(13)
+    const dialog = openDialog(on, $, { command })
+    await dialog.asked
+    expect(dialog.questions[0]).toContain(command)
+    const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_09')
+    expect(await ui.find({ type: 'Text', text: SENTENCE })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /^ $/ })).toBeUndefined()
+    expect(await ui.find({ type: 'Text', text: /^git status$/ })).toBeDefined()
+    await ui.unmount()
+    await dialog.finish()
+  })
+
   test('a write asks about a write', async ($, on) => {
     const dialog = openDialog(on, $, { file_path: '/p/src/a.ts', old_string: 'a', new_string: 'b' }, 'Edit')
     await dialog.asked

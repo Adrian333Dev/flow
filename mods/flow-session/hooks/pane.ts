@@ -49,8 +49,13 @@ export function questionText(sentence: string, text: string): Shown {
   return { question: `${sentence}\n\n${shown}`, sentence, text: shown, cut: true }
 }
 
-/** Whether the draw can carry the text in colour: nothing cut, and 11 lines or fewer. */
-export const drawsInColour = (shown: Shown) => !shown.cut && shown.text.split('\n').length <= MAX_COLOUR_LINES
+const nonBlank = (text: string) => text.split('\n').filter((line) => line.trim()).length
+
+/** Whether the draw keeps the blank lines: each costs a row, so only while every line fits. */
+export const keepsBlanks = (text: string) => text.split('\n').length <= MAX_COLOUR_LINES
+
+/** Whether the draw can carry the text in colour: nothing cut, and 11 lines or fewer, not counting the blank ones. */
+export const drawsInColour = (shown: Shown) => !shown.cut && nonBlank(shown.text) <= MAX_COLOUR_LINES
 
 export type Draw = {
   sentence: string
