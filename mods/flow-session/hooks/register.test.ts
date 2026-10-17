@@ -119,11 +119,41 @@ describe('an ask the guard raised', () => {
     expect(seen.lines).toHaveLength(0)
   })
 
-  test('a long command is cut below 2000 characters and says how much', async ($, on) => {
+  test('a long line is cut below 2000 characters and ends with a line that has no count', async ($, on) => {
     const seen = claudeCode(on, GUARD_ASK, 'Allow')
     await $.tool.check({ tool: 'Bash', input: { command: 'echo ' + 'a'.repeat(3000) } })
     expect(seen.asks[0]!.question.length).toBeLessThan(2000)
-    expect(seen.asks[0]!.question).toMatch(/\d+ more characters not shown$/)
+    expect(seen.asks[0]!.question).toMatch(/\n… the rest is not shown$/)
+    expect((seen.lines[0]!.command as string).length).toBe(200)
+  })
+})
+
+describe('a command too long to colour', () => {
+  const lines = Array.from({ length: 36 }, (_, i) => `echo line ${i}`)
+  const LONG = { command: lines.join('\n') }
+  const labels = (options: unknown) => (options as { label: string }[]).map((option) => option.label)
+
+  test('opens folded with the first 11 lines, the last ending …, and two rows', async ($, on) => {
+    const seen = claudeCode(on, GUARD_ASK, 'Allow')
+    expect(await $.tool.check({ tool: 'Bash', input: LONG })).toEqual({ decision: 'allow' })
+    expect(seen.asks).toHaveLength(1)
+    expect(seen.asks[0]!.question).toBe(`Pushes 3 commits to origin/main.\n\n${[...lines.slice(0, 10), 'echo line 10…'].join('\n')}`)
+    expect(labels(seen.asks[0]!.options)).toEqual(['Allow', 'Refuse'])
+    expect(seen.lines).toHaveLength(1)
+    expect(seen.lines[0]).toMatchObject({ answer: 'allow' })
+  })
+
+  test('a refusal of a folded command stops the turn', async ($, on) => {
+    const seen = claudeCode(on, GUARD_ASK, 'Refuse')
+    await $.tool.check({ tool: 'Bash', input: LONG })
+    expect(await $.classic.PermissionRequest({ tool_name: 'Bash', tool_input: LONG } as never)).toMatchObject({ decision: { behavior: 'deny', interrupt: true } })
+    expect(seen.lines[0]).toMatchObject({ answer: 'refuse' })
+  })
+
+  test('the log line holds the whole command, cut at 200 characters', async ($, on) => {
+    const seen = claudeCode(on, GUARD_ASK, 'Allow')
+    await $.tool.check({ tool: 'Bash', input: LONG })
+    expect((seen.lines[0]!.command as string).startsWith('echo line 0\necho line 1')).toBe(true)
     expect((seen.lines[0]!.command as string).length).toBe(200)
   })
 })

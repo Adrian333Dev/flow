@@ -168,11 +168,35 @@ describe('the draw above the dialog', () => {
     await dialog.finish()
   })
 
-  test('leaves a command of 12 lines to the engine as plain text', async ($, on) => {
+  test('folds a command of 12 lines: draws the first 11 in colour, the last ending …', async ($, on) => {
     const dialog = openDialog(on, $, { command: Array(12).fill('ls').join('\n') })
     await dialog.asked
-    expect(dialog.questions[0]).toBe(`${SENTENCE}\n\n${Array(12).fill('ls').join('\n')}`)
+    expect(dialog.questions[0]).toBe(`${SENTENCE}\n\n${[...Array(10).fill('ls'), 'ls…'].join('\n')}`)
     const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_03')
+    expect(await ui.find({ type: 'Text', text: SENTENCE })).toMatchObject({ props: { bold: true, color: 'yellow' } })
+    expect(await ui.find({ type: 'Text', text: 'ls…' })).toMatchObject({ props: { color: 'cyan' } })
+    expect(dialog.rendered).toEqual(['Allow this command?'])
+    await ui.unmount()
+    await dialog.finish()
+  })
+
+  test('draws a folded commit message in green, with no row for a notice', async ($, on) => {
+    const message = Array.from({ length: 30 }, (_, i) => `message line ${i}`)
+    const dialog = openDialog(on, $, { command: ["git commit -F - <<'EOF'", ...message, 'EOF'].join('\n') })
+    await dialog.asked
+    const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_10')
+    expect(await ui.find({ type: 'Text', text: 'message line 8' })).toMatchObject({ children: [{ props: { color: 'green' }, children: ['message line 8'] }] })
+    expect(await ui.find({ type: 'Text', text: 'message line 9…' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'message line 10' })).toBeUndefined()
+    expect(await ui.find({ type: 'Text', text: /not shown/ })).toBeUndefined()
+    await ui.unmount()
+    await dialog.finish()
+  })
+
+  test('leaves a cut line to the engine as plain text', async ($, on) => {
+    const dialog = openDialog(on, $, { command: `echo ${'a'.repeat(3000)}` })
+    await dialog.asked
+    const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_11')
     expect(await ui.find({ type: 'Text', text: SENTENCE })).toBeUndefined()
     expect(await ui.find({ type: 'engine' })).toBeDefined()
     await ui.unmount()

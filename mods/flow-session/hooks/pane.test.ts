@@ -3,6 +3,7 @@ import {
   classify,
   denyFor,
   drawsInColour,
+  foldedText,
   forgetDraw,
   isAutoAllow,
   isOwnQuestion,
@@ -38,6 +39,36 @@ describe('drawsInColour', () => {
   })
 })
 
+describe('foldedText', () => {
+  test('is undefined for a command that fits in colour', () => {
+    expect(foldedText(Array(11).fill('ls').join('\n'))).toBeUndefined()
+    expect(foldedText('ls')).toBeUndefined()
+    expect(foldedText('')).toBeUndefined()
+  })
+
+  test('keeps 11 lines and ends the 11th with …', () => {
+    const lines = Array.from({ length: 36 }, (_, i) => `line ${i}`)
+    const folded = foldedText(lines.join('\n'))!
+    expect(folded.split('\n')).toEqual([...lines.slice(0, 10), 'line 10…'])
+  })
+
+  test('counts a command of 12 lines as long, and shows 11', () => {
+    const folded = foldedText(Array(12).fill('ls').join('\n'))!
+    expect(folded.split('\n')).toHaveLength(11)
+    expect(folded.endsWith('ls…')).toBe(true)
+  })
+
+  test('keeps the blank lines before the 11th line but never counts them', () => {
+    const lines = ['a', '', 'b', ...Array.from({ length: 12 }, (_, i) => `c${i}`)]
+    const folded = foldedText(lines.join('\n'))!
+    expect(folded.split('\n')).toEqual(['a', '', 'b', ...Array.from({ length: 8 }, (_, i) => `c${i}`), 'c8…'])
+  })
+
+  test('has no count in it', () => {
+    expect(foldedText(Array(40).fill('ls').join('\n'))).not.toMatch(/\d+ more/)
+  })
+})
+
 describe('keepsBlanks', () => {
   test('keeps blank lines only while every line fits in 11 rows', () => {
     expect(keepsBlanks(['a', '', 'b'].join('\n'))).toBe(true)
@@ -60,33 +91,22 @@ describe('questionText', () => {
     expect(questionText(SENTENCE, filler(2000)).cut).toBe(true)
   })
 
-  test('cuts on a line and counts the lines hidden', () => {
+  test('cuts on a line and ends with a line that has no count', () => {
     const text = Array.from({ length: 300 }, (_, i) => `echo line number ${i}`).join('\n')
     const shown = questionText(SENTENCE, text)
     expect(shown.cut).toBe(true)
     expect(shown.question.length).toBeLessThan(2000)
-    const hidden = Number(/(\d+) more lines not shown$/.exec(shown.text)?.[1])
-    const kept = shown.text.split('\n').length - 1
-    expect(kept + hidden).toBe(300)
-    expect(shown.text.startsWith('echo line number 0\n')).toBe(true)
-    expect(shown.text.split('\n')[kept - 1]).toMatch(/^echo line number \d+$/)
+    const lines = shown.text.split('\n')
+    expect(lines.at(-1)).toBe('… the rest is not shown')
+    expect(lines[0]).toBe('echo line number 0')
+    for (const line of lines.slice(0, -1)) expect(line).toMatch(/^echo line number \d+$/)
   })
 
-  test('one line over the room is cut by characters', () => {
+  test('one line over the room is cut where it stands', () => {
     const shown = questionText(SENTENCE, 'y'.repeat(3000))
     expect(shown.cut).toBe(true)
     expect(shown.question.length).toBeLessThan(2000)
-    expect(shown.text).toMatch(/\n\d+ more characters not shown$/)
-    const kept = shown.text.split('\n')[0]!.length
-    const hidden = Number(/(\d+) more characters/.exec(shown.text)?.[1])
-    expect(kept + hidden).toBe(3000)
-  })
-
-  test('says "1 more line" for one line', () => {
-    const lines = Array.from({ length: 2 }, () => 'z'.repeat(995))
-    const shown = questionText(SENTENCE, lines.join('\n'))
-    expect(shown.cut).toBe(true)
-    expect(shown.text.endsWith('\n1 more line not shown')).toBe(true)
+    expect(shown.text).toMatch(/^y+\n… the rest is not shown$/)
   })
 
   test('an empty text is a sentence and a blank line', () => {

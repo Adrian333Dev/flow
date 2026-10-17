@@ -25,6 +25,7 @@ import {
   classify,
   denyFor,
   drawsInColour,
+  foldedText,
   forgetDraw,
   isAutoAllow,
   isOwnQuestion,
@@ -35,6 +36,7 @@ import {
   storeVerdict,
   takeVerdict,
   verdictKey,
+  type Shown,
 } from './pane'
 import { kilo, wrapUpLine, wrapUpSettings } from './wrap-up'
 
@@ -197,6 +199,7 @@ async function logAsk($: EngineInterface, fields: Omit<LogFields, 'at' | 'projec
  * the ask unchanged, so `classic.PermissionRequest` can deny with an interrupt.
  * A typed note stores a verdict without one. A dialog that fails for any other
  * reason returns the ask unchanged with no verdict, so Claude Code asks itself.
+ * A command too long to colour is cut to its first lines, the last ending `…`.
  */
 async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<Decided> {
   const shown = headline(e.tool, e.input)
@@ -213,8 +216,9 @@ async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<
     return { decision: 'deny', reason: nobodyReason() }
   }
 
-  const text = questionText(sentence, shown.text)
-  const colour = drawsInColour(text)
+  const fold = foldedText(shown.text)
+  const text: Shown = fold === undefined ? questionText(sentence, shown.text) : { question: `${sentence}\n\n${fold}`, sentence, text: fold, cut: false }
+  const colour = fold !== undefined || drawsInColour(text)
   if (colour) rememberDraw(text.question, { sentence, text: text.text, colour, asks: questionFor(shown.kind) })
   const started = Date.now()
   let label: string | undefined

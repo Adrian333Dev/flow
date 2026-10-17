@@ -1,7 +1,7 @@
 /**
  * pane.ts: the logic of the permission dialog, with no call to the engine.
  *
- * What the dialog says and cuts, what the draw needs, and the verdict of a
+ * What the dialog says, folds and cuts, what the draw needs, and the verdict of a
  * refusal that the second hook (`classic.PermissionRequest`) answers from.
  * Both live in module state: the draw is keyed by the exact question text, the
  * verdict by the tool and what it touches, since that hook sees no call id.
@@ -26,26 +26,21 @@ export type Shown = {
   cut: boolean
 }
 
-const plural = (n: number, word: string) => `${n} more ${word}${n === 1 ? '' : 's'} not shown`
+/** Ends a text the mod cut. No count: the user only needs to know that not all of it shows. */
+const CUT_NOTICE = '… the rest is not shown'
 
 /**
  * The question for a sentence and the text beneath it. A text too long for the
- * dialog is cut on a line and ends `N more lines not shown`. One line longer
- * than the room is cut where it stands and ends `N more characters not shown`.
+ * dialog is cut on a line, or where one line stands when no break fits, and
+ * ends with a line saying the rest is not shown.
  */
 export function questionText(sentence: string, text: string): Shown {
   const full = `${sentence}\n\n${text}`
   if (full.length <= MAX_QUESTION) return { question: full, sentence, text, cut: false }
-  const notice = `\n${text.length} more characters not shown`
-  const room = Math.max(0, MAX_QUESTION - sentence.length - 2 - notice.length)
+  const room = Math.max(0, MAX_QUESTION - sentence.length - 2 - 1 - CUT_NOTICE.length)
   const head = text.slice(0, room)
   const newline = head.lastIndexOf('\n')
-  const kept = newline < 0 ? head : head.slice(0, newline)
-  const hidden =
-    newline < 0
-      ? plural(text.length - head.length, 'character')
-      : plural(text.split('\n').length - kept.split('\n').length, 'line')
-  const shown = `${kept}\n${hidden}`
+  const shown = `${newline < 0 ? head : head.slice(0, newline)}\n${CUT_NOTICE}`
   return { question: `${sentence}\n\n${shown}`, sentence, text: shown, cut: true }
 }
 
@@ -56,6 +51,19 @@ export const keepsBlanks = (text: string) => text.split('\n').length <= MAX_COLO
 
 /** Whether the draw can carry the text in colour: nothing cut, and 11 lines or fewer, not counting the blank ones. */
 export const drawsInColour = (shown: Shown) => !shown.cut && nonBlank(shown.text) <= MAX_COLOUR_LINES
+
+/**
+ * A command too long to colour whole, folded: up to its 11th non-blank line,
+ * with `…` ending that line. Undefined for a command that fits.
+ */
+export function foldedText(text: string): string | undefined {
+  if (nonBlank(text) <= MAX_COLOUR_LINES) return undefined
+  const lines = text.split('\n')
+  let seen = 0
+  let end = 0
+  for (; end < lines.length; end++) if (lines[end]!.trim() && ++seen === MAX_COLOUR_LINES) break
+  return `${lines.slice(0, end + 1).join('\n')}…`
+}
 
 export type Draw = {
   sentence: string
