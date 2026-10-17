@@ -45,13 +45,22 @@ describe('tokenize', () => {
     expect(lines('echo "a \\" b" c')).toEqual([['plain:echo ', 'string:"a \\" b"', 'plain: c']])
   })
 
-  test('a here-doc body is plain, and its closing line ends it', () => {
+  test('a here-doc body is a string, and its closing line is a control word that ends it', () => {
     const command = "cat <<'EOF' > f.txt\nfor # \"x\n#!/bin/sh\nEOF\nls && pwd"
     const result = lines(command)
-    expect(result[1]).toEqual(['plain:for # "x'])
-    expect(result[2]).toEqual(['plain:#!/bin/sh'])
-    expect(result[3]).toEqual(['plain:EOF'])
+    expect(result[1]).toEqual(['string:for # "x'])
+    expect(result[2]).toEqual(['string:#!/bin/sh'])
+    expect(result[3]).toEqual(['control:EOF'])
     expect(result[4]).toContain('control:&&')
+  })
+
+  test('a commit message in a here-doc is the string between the command and EOF', () => {
+    const command = "git commit -q -F - <<'EOF'\nsubject line\n\nbody && more\nEOF\ngit status"
+    const result = lines(command)
+    expect(result[0]).toContain('control:<<')
+    expect(result.slice(1, 4)).toEqual([['string:subject line'], [], ['string:body && more']])
+    expect(result[4]).toEqual(['control:EOF'])
+    expect(result[5]).toEqual(['plain:git status'])
   })
 
   test('a continued line does not start a new command', () => {

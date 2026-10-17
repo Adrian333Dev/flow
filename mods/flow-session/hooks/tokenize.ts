@@ -3,7 +3,8 @@
  *
  * Four kinds only, so the dialog never turns into a rainbow: strings, comments,
  * control words and operators (`for`, `then`, `|`, `&&`, `;`, `>`), and
- * everything else as plain. A scanner of its own, since scripts/lib/guard/parse.js
+ * everything else as plain. A here-doc's body is a string, such as a commit
+ * message, and its closing line is a control word. A scanner of its own, since scripts/lib/guard/parse.js
  * reads a command into words and keeps no positions in the text. Naive on
  * purpose: joining a line's pieces always gives the line back.
  */
@@ -47,11 +48,12 @@ function closeOf(line: string, from: number, quote: string): number {
 function scanLine(line: string, state: State): Piece[] {
   if (state.body) {
     const { delimiter, dash } = state.body
-    if ((dash ? line.replace(/^\t+/, '') : line) === delimiter) {
+    const closing = (dash ? line.replace(/^\t+/, '') : line) === delimiter
+    if (closing) {
       state.body = state.waiting.shift() ?? null
       state.atCommand = true
     }
-    return line ? [{ text: line, type: 'plain' }] : []
+    return line ? [{ text: line, type: closing ? 'control' : 'string' }] : []
   }
 
   const out: Piece[] = []
