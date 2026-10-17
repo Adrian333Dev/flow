@@ -39,6 +39,12 @@ Batch every step. Never carry one item to its home before the next is sorted.
 - **`flow scorecard` and `.flow/findings/scorecard.md`**: the rules broken most, and the wrong warnings. A wrong warning → fix the check, or rewrite the rule when it is too vague for any check. Clear the filed lines, and delete the file once empty.
 - **A report research left unstamped** because it contradicts a page line: settle it in the plan. Sweep no other report.
 
+## Old records (temporary)
+
+Delete this whole section once `flow ls --unfiled` lists no ticket with an `issues.md`.
+
+- **`issues.md` in a closed ticket**: the old design's list of defects found during the build. Read it beside the ticket's other files. An item still open → a ticket. A fixed or stale one → drop it.
+
 ## Efficiency
 
 Observations for the plan, never tickets: the user decides what becomes one. One struggle is enough, and no count gates it.
