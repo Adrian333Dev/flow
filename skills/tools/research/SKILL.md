@@ -109,7 +109,7 @@ Using what came back:
 1. **List the candidates** in one search, here or in one `general-purpose` agent. No deep reading yet.
 2. **Pick the few worth a full read.**
 3. **Read a short source here**: a page or two, one grep for a signature, a file whose name you already have.
-4. **Send each long source to its own `general-purpose` subagent**: a cloned codebase, megabytes of downloaded docs, a question that means opening 20 files. Never 2 agents on one source, and never one body of evidence cut into chunks by size: analysis is a loop of reading for the shape, planning, reading what the plan names and planning again, and the loop runs here. A file every agent needs → read it here once, and put its facts in each brief.
+4. **Send each long source to its own `general-purpose` subagent**: a cloned codebase, megabytes of downloaded docs, a question that means opening 20 files. Never 2 agents on one source. `~/.flow/references/subagents.md` says the rest.
 
 **Dispatch on how much there is to read, never on the level.**
 

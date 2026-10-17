@@ -26,9 +26,7 @@ Plus 4 where someone waits on an answer:
 
 **A bug with no failing check built yet** → its `## Done when` is the observable: the failure as seen, and what not seeing it would look like.
 
-**A subagent also gets a stopping point**: "stop after these 3 sources and write the file". Never a time limit.
-
-**Never cut one body of evidence into chunks across agents.** Analysis is a loop: read for the shape, plan, read what the plan names, plan again. A chunk read blind answers nothing, and the loop stays in this session. A subagent gets a question one source can answer.
+**A subagent also follows `~/.flow/references/subagents.md`**: its size, its stopping point, its model.
 
 ## Where the answer goes
 
