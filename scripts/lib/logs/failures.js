@@ -24,8 +24,8 @@
  * failed. Its lines carry `job`, which names it: `sync /home/me/code/shop`,
  * `sync ~/.flow`, `skills obra/superpowers`. The next run of the same job that
  * works adds a line closing it, `{"job":"sync ~/.flow","cleared":true}`, so an
- * issue goes away by itself once its cause is fixed. The status line counts
- * the open ones, and `flow doctor` lists them.
+ * issue goes away by itself once its cause is fixed. The band counts the
+ * open ones, and `flow doctor` lists them.
  *
  * **A sweep marker**, `{"at":"…","swept":true}`, is appended by `/flow:upkeep`
  * once it has made a ticket for each failure worth fixing. It carries no

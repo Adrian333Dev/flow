@@ -105,7 +105,7 @@ test('a hook call it cannot read writes nothing and exits 0', () => {
   assert.ok(!fs.existsSync(logs.dir(home)));
 });
 
-test('a sweep marker is no issue: open() and the status line skip a line with no job', () => {
+test('a sweep marker is no issue: open() skips a line with no job', () => {
   const home = flowHome('failures-marker');
   logs.append(home, failures.NAME, { swept: true });
   assert.deepStrictEqual(failures.open(home), []);
@@ -113,9 +113,6 @@ test('a sweep marker is no issue: open() and the status line skip a line with no
   failures.record(home, { source: 'records', what: 'sync /p', job: 'sync /p', error: 'merge conflict' });
   logs.append(home, failures.NAME, { swept: true });
   assert.deepStrictEqual(failures.open(home).map((i) => i.job), ['sync /p']);
-
-  const line = run('flow.js', ['status-line'], { env: { ...process.env, FLOW_HOME: home }, input: '{}' });
-  assert.strictEqual(line.stdout, '⚠ 1 Flow issue: ask Claude to fix them\n');
 });
 
 test('a background job that failed stays an open issue until the same job works again', () => {
@@ -133,7 +130,4 @@ test('a background job that failed stays an open issue until the same job works 
   failures.cleared(home, 'sync /elsewhere');
   assert.deepStrictEqual(failures.open(home).map((i) => i.job), ['skills a/b']);
   assert.strictEqual(read(home).filter((l) => l.cleared).length, 1, 'a job with nothing open writes no line');
-
-  const line = run('flow.js', ['status-line'], { env: { ...process.env, FLOW_HOME: home }, input: '{}' });
-  assert.strictEqual(line.stdout, '⚠ 1 Flow issue: ask Claude to fix them\n');
 });

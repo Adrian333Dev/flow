@@ -171,7 +171,7 @@ The machine's, the project's and the restore's. An update has none, under `### U
 
 ### Checking
 
-- `V1` **`flow doctor` checks everything Flow put on the machine**, and names the command or skill that fixes each problem. A stopped run comes first, then the open issues, then each background job whose last run failed. Being behind is a note suggesting `flow update`, never a problem.
+- `V1` **`flow doctor` checks everything Flow put on the machine**, and names the command or skill that fixes each problem. A stopped run comes first, then the open issues, then each background job whose last run failed. Being behind is a note suggesting `flow update`, never a problem. Inside a project it also names each ticket still in the old format: a folder named with more than its id, a `groundwork/map.md` that is only the empty template, and a title that is one of the ticket's own labels. Decided with the user 2026-10-18, so a ticket made before the format is never fixed by hand unseen.
 - `V1` **`flow doctor --prereq`** checks the prerequisites alone, the one form that runs where Flow was never installed. **`--updates`** reads the remote's newest tag, the one check that touches the network.
 
 ### Undoing

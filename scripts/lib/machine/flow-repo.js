@@ -26,8 +26,7 @@
  *                 change Flow made, every failure, every rule check
  *   records-sync.json  when this machine last sent each project's tickets
  *                 and this folder, which paces the Stop hook's sends
- *   status-line.json   which ticket each of this machine's sessions works on,
- *                 and how far `flow status-line` read its transcript
+ *   status-line.json   left by the retired status line on older machines
  *   audit/, changes/   what this machine's sessions left: the transcript
  *                 index, and what each subagent changed
  *   a wiki tool's downloads   pages fetched once per machine

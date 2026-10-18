@@ -82,3 +82,39 @@ export function readTicket(text: string, map?: string): Ticket | undefined {
 
 /** The ticket ids a command or a path names, such as `fw-137`. */
 export const idsIn = (text: string): string[] => [...new Set(text.match(/\b[a-z]+-\d+\b/g) ?? [])]
+
+/** Where a click on a badge's word lands: a file of the ticket and a line in it, counted from 1. */
+export type Target = { file: 'ticket' | 'map'; line: number }
+
+/** The line of the first open box in `text`, or in the lines under `## <heading>` when one is named. Commented-out lines are skipped. */
+function firstOpen(text: string, pattern: RegExp, heading?: string): number | undefined {
+  const lines = text.split('\n')
+  let inside = heading === undefined
+  let commented = false
+  for (const [at, line] of lines.entries()) {
+    if (heading !== undefined && /^## /.test(line)) inside = line.trim() === `## ${heading}`
+    if (commented || line.includes('<!--')) commented = !line.includes('-->')
+    else if (inside && pattern.exec(line)?.[1] === ' ') return at + 1
+  }
+  return undefined
+}
+
+/**
+ * Where the word of `ticket` points: `BUILD` at the first open task, `DESIGN` at the first open
+ * question (the map's, when the ticket has none), any other word at the top of the ticket.
+ */
+export function target(ticket: string, map: string | undefined, word: string): Target {
+  const top: Target = { file: 'ticket', line: 1 }
+  const first = word.split(' ')[0]?.toLowerCase()
+  if (first === 'build') {
+    const line = firstOpen(ticket, STEP, 'Tasks')
+    return line ? { file: 'ticket', line } : top
+  }
+  if (first === 'design') {
+    const line = firstOpen(ticket, QUESTION, 'Questions')
+    if (line) return { file: 'ticket', line }
+    const inMap = map === undefined ? undefined : firstOpen(map, QUESTION)
+    return inMap ? { file: 'map', line: inMap } : top
+  }
+  return top
+}

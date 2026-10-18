@@ -19,7 +19,6 @@ Every key Flow reads from its own settings files, and every key it writes into C
   - [`hooks`](#hooks): the scripts Claude Code runs at each moment of a session
   - [`env`](#env): the variables Claude Code sets for every session, among them the one that loads Flow's mod
   - [`permissions`](#permissions): what runs without asking, what asks, and what never runs
-  - [`statusLine`](#statusline): the line under the box you type in
   - [`fileSuggestion`](#filesuggestion): the list of files `@` opens
   - [`cleanupPeriodDays`](#cleanupperioddays): how long Claude Code keeps old sessions
   - [`skillOverrides`](#skilloverrides): skills from your Claude account switched off
@@ -188,24 +187,6 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 - **`Edit(//**/.flow/**)`**: an edit through a project's `.flow` link never asks. A project's tickets live in your Flow home and are reached through that link, and Claude Code asks before any write that leads outside the project unless one rule matches both the link and where it points.
 
 [Safety](../safety.md) gives the reasons for each.
-
-### `statusLine`
-
-```json
-"statusLine": { "type": "command", "command": "node \"$HOME/.flow/scripts/flow.js\" status-line --context" }
-```
-
-The line under the box you type in. Claude Code runs `flow status-line` after each message and shows what it prints:
-
-```text
-shop-7 building · 98k of 150k
-```
-
-- **The ticket** is the last one you typed as a skill in this session, `/flow:execute /shop-7`. With none typed, it is the ticket a skill last moved. Outside a Flow project the line is empty.
-- **`--context`** adds how full the conversation is, against [`wrapUpAt`](#wrapupat).
-- **`⚠ 1 Flow issue: ask Claude to fix them`** is added, in every folder, while a background job such as a ticket sync is failing. It goes once the job next works.
-
-Nothing a status line prints reaches the agent, so it costs no tokens. Flow's key goes in only where you have no status line of your own. With [ccstatusline](https://github.com/sirmalloc/ccstatusline), add `flow status-line` as a Custom Command widget instead.
 
 ### `fileSuggestion`
 

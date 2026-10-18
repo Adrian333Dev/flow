@@ -5,7 +5,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 ## Scope
 
 - **In**: what counts as a failure, the 3 writers, the line, open issues and how they reach the user, `~/.flow/logs/` and its files, and how a log stops growing.
-- **Out**: friction with Flow's rules, which goes to workflow notes and study cases through `/flow:review`, in `docs/spec/product.md` → `### The audit and study cases`. The scorecard's files, in `docs/spec/rules.md`. The status line as a whole, in `docs/spec/product.md`.
+- **Out**: friction with Flow's rules, which goes to workflow notes and study cases through `/flow:review`, in `docs/spec/product.md` → `### The audit and study cases`. The scorecard's files, in `docs/spec/rules.md`. The meters and the band as a whole, in `docs/spec/product.md`.
 
 ## From a failure to the user
 
@@ -27,7 +27,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
                                    │  a job whose last run failed
                                    ▼
                ┌───────────────────────────────────────┐
-               │  the status line: ⚠ 2 Flow issues     │
+               │  the band: 2 open Flow issues         │
                │  flow doctor: listed under issues     │
                └───────────────────────────────────────┘
 ```
@@ -54,11 +54,11 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 ### Open issues
 
 - `V1` **An open issue is a job whose last line is a failure.** Asked for by the user 2026-10-01: a sync failing on every run had stayed silent, so a second machine lacked the tickets with nobody knowing.
-- `V1` **The status line counts them in every folder**: `⚠ 2 Flow issues: ask Claude to fix them`. The job fails after its hook has returned, so no hook could show it mid-session.
+- `V1` **The band above the prompt counts them at its right edge**. The job fails after its hook has returned, so no hook could show it mid-session. The count is the jobs whose last line is a failure, so a line with no `job` never counts.
 - `V1` **`flow doctor` lists them under `issues`**, and `home/CLAUDE.md` → `fix-flow-issues` runs it when the user asks. A line goes by itself once its job next works.
 - `never` **`flow failures`, a command to read the log**, rejected by the user: the agent reads the file.
 - `never` **A skill for fixing issues**: it would only say "run `flow doctor`, fix each line".
-- `never` **A session-start line counting failures**: the status line shows a failure moments after it happens, mid-session too.
+- `never` **A session-start line counting failures**: the band shows a failure moments after it happens, mid-session too.
 
 ### `~/.flow/logs/`
 
@@ -76,7 +76,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 - **`scripts/hooks/failures.js`**: the hook, and the filter on which commands count.
 - **`scripts/lib/logs/failures.js`**: `record()`, the line, and which jobs are open.
 - **`scripts/lib/logs/logs.js`**: the folder and the file per month.
-- **`scripts/commands/status-line.js`** and **`scripts/commands/doctor.js`**: the 2 readers of open issues.
+- **`mods/flow-session/hooks/issues.ts`** and **`scripts/commands/doctor.js`**: the 2 readers of open issues.
 
 ## What passes between them
 
@@ -96,9 +96,9 @@ A background job failing, then clearing:
 ## One real case: a sync breaks with nobody watching
 
 1. `flow sync` runs for the Flow home, and git cannot reach GitHub. It writes a line carrying `job: "sync ~/.flow"`.
-2. The status line counts one open issue: `⚠ 1 Flow issue: ask Claude to fix them`.
+2. The band counts one open issue at its right edge.
 3. The user asks. The agent runs `flow doctor`, which names the job and git's words, then fixes the cause.
-4. The next sync works and adds the `cleared` line. The status line drops the count.
+4. The next sync works and adds the `cleared` line. The band drops the count.
 
 ## How it fails
 
@@ -115,5 +115,5 @@ A background job failing, then clearing:
 
 - **Only Flow's own machinery is logged**: a log of every stumble would bury the failures anyone acts on.
 - **The line points into the transcript**, since Claude Code already keeps the whole failure.
-- **The status line shows open issues**, never a session-start line or a command.
+- **The band shows open issues**, never a session-start line or a command.
 - **A file per month, never moved or trimmed.**

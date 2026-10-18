@@ -185,6 +185,6 @@ Sessions write here, and Flow owns none of it.
 - `settings.local.json`, `logs/`, `audit/` and `changes/`
 - `repos/`: each computer downloads its own
 - each tool's `wiki/<tool>/downloads/`
-- the small files Flow keeps while it works: `records-sync.json` and `status-line.json`
+- the small files Flow keeps while it works: `records-sync.json`
 
 Claude Code's `~/.claude/projects/` stays too. A project's `.flow/` travels inside your Flow home.

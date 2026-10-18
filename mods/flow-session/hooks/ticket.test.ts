@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { idsIn, readTicket } from './ticket'
+import { idsIn, readTicket, target } from './ticket'
 
 const ticket = (fields: string, body = '') => `---\nid: fw-9\ntitle: band-test\nstatus: in-progress\n${fields}---\n\n${body}`
 
@@ -69,5 +69,28 @@ describe('idsIn', () => {
 
   test('finds none in plain text', () => {
     expect(idsIn('ls -la')).toEqual([])
+  })
+})
+
+describe('target', () => {
+  const body = ticket('', '## Questions\n\n- [x] a\n- [ ] b\n\n' + tasks('- [x] one', '<!-- - [ ] gone -->', '- [ ] two'))
+  const lineOf = (text: string, needle: string) => text.split('\n').findIndex((line) => line.includes(needle)) + 1
+
+  test('build points at the first open task', () => {
+    expect(target(body, undefined, 'BUILD 1/2')).toEqual({ file: 'ticket', line: lineOf(body, '- [ ] two') })
+  })
+
+  test('design points at the first open question', () => {
+    expect(target(body, undefined, 'DESIGN 1/2')).toEqual({ file: 'ticket', line: lineOf(body, '- [ ] b') })
+  })
+
+  test('design with no question of its own points at the map', () => {
+    const own = ticket('', tasks('- [ ] t'))
+    expect(target(own, '# Map\n\n- [x] a\n- [ ] b\n', 'DESIGN 1/2')).toEqual({ file: 'map', line: 4 })
+  })
+
+  test('any other word, and a list with nothing open, point at the top', () => {
+    expect(target(body, undefined, 'DEBUG')).toEqual({ file: 'ticket', line: 1 })
+    expect(target(ticket('', tasks('- [x] a')), undefined, 'BUILD 1/1')).toEqual({ file: 'ticket', line: 1 })
   })
 })

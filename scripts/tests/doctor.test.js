@@ -56,10 +56,9 @@ function doctor(m, { bin, utilHome, inProject } = {}) {
   const claude = claudeStub(m.dir, { list: [{ id: 'flow@skills-dir', scope: 'user', enabled: true }] });
   env.PATH = pathWith(bin ? `${claude}${path.delimiter}${bin}` : claude);
   if (utilHome) env.UTIL_HOME = utilHome;
-  // Without this, doctor runs in the scratch folder, which is no project, and
-  // reports on the machine alone. Run from the clone, it would report on Flow's
-  // own repo.
-  if (inProject) env.FLOW_PROJECT = inProject;
+  // Without this, doctor asks git, which finds Flow's own repo around tmp/ and
+  // reads its real tickets.
+  env.FLOW_PROJECT = inProject || m.dir;
   const args = ['doctor', '--root', m.root, '--no-bin'];
   return run('flow.js', args, { cwd: m.dir, env });
 }
@@ -143,6 +142,37 @@ test('a settings.json with no starting mode fails, and one starting in another m
 
   assert.strictEqual(chosen.code, 0, chosen.stdout + chosen.stderr);
   assert.match(chosen.stdout, /note  settings\.json: permissions\.defaultMode is "auto", and Flow's template starts every session in "default"/);
+});
+
+test('a ticket still in the old format is named, and a current one is not', () => {
+  const m = machine('doctor-tickets');
+  const bin = utilStub(m.dir);
+  const tickets = path.join(m.dir, '.flow', 'tickets');
+  const ticket = (folder, title, labels) => {
+    fs.mkdirSync(path.join(tickets, folder), { recursive: true });
+    fs.writeFileSync(path.join(tickets, folder, 'ticket.md'),
+      `---\nid: ${folder.match(/^exp-\d+/)[0]}\ntitle: ${title}\ndescription: "x: y"\nstatus: todo\nlabels: [${labels}]\n---\n\nbody\n`);
+  };
+  const template = '# {{title}}: groundwork\n\n<!-- Empty until this ticket is picked up.\n\n     - [ ] 0: A Group Of Questions\n     -->\n';
+
+  ticket('exp-1', 'login-loop', 'bug');
+  fs.mkdirSync(path.join(tickets, 'exp-1', 'groundwork'));
+  fs.writeFileSync(path.join(tickets, 'exp-1', 'groundwork', 'map.md'), `${template}\n## 1. A real decision\n\nKept.\n`);
+  const clean = doctor(m, { bin });
+  assert.strictEqual(clean.code, 0, clean.stdout);
+  assert.match(clean.stdout, /^ok {4}tickets: 1 ticket in the current format$/m);
+
+  ticket('exp-2-old-words', 'old-words', 'chore');
+  ticket('exp-3', 'feature', 'feature');
+  fs.mkdirSync(path.join(tickets, 'exp-3', 'groundwork'));
+  fs.writeFileSync(path.join(tickets, 'exp-3', 'groundwork', 'map.md'), template);
+
+  const old = doctor(m, { bin });
+  assert.strictEqual(old.code, 1);
+  assert.match(old.stdout, /exp-2-old-words is in a folder not named by its id: rename the folder to exp-2/);
+  assert.match(old.stdout, /exp-3 holds a groundwork\/map\.md that is only the empty template: delete it/);
+  assert.match(old.stdout, /exp-3 is titled "feature", a label and no name: flow edit exp-3 --title/);
+  assert.doesNotMatch(old.stdout, /exp-1 /, 'a map holding a decision is not the template');
 });
 
 // On a machine Flow is not on yet. The whole report would refuse such a

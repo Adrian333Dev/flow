@@ -39,6 +39,8 @@ const prereq = require('../lib/machine/prereq');
 const setupSession = require('../lib/machine/setup-session');
 const skills = require('../lib/skills/skills');
 const paths = require('../lib/paths');
+const project = require('../lib/project');
+const store = require('../lib/tickets/store');
 const { git } = require('../lib/git');
 
 /** Typed names util puts there, linked into util's clone at `~/.flow/repos/util/`. */
@@ -433,6 +435,43 @@ function checkIssues(at) {
 }
 
 /**
+ * The project's tickets, for any still in the format from before `ticket.md`
+ * stood alone: a folder named with more than its id, a `groundwork/map.md` that
+ * is the empty template, a title that is one of the ticket's own labels.
+ */
+function checkTickets(root) {
+  if (!root) return { name: 'tickets', skipped: 'not inside a Flow project' };
+  let tickets;
+  try {
+    tickets = store.readTickets(root);
+  } catch (e) {
+    // A project with no ticket prefix, or a ticket file that does not parse,
+    // must not take the machine's report down with it.
+    return { name: 'tickets', problems: [`the tickets could not be read: ${e.message.split('\n')[0]}`] };
+  }
+  const problems = [];
+  for (const t of tickets) {
+    if (t.dirName !== t.id) {
+      problems.push(`${t.dirName} is in a folder not named by its id: rename the folder to ${t.id}`);
+    }
+    const map = path.join(t.dir, 'groundwork', 'map.md');
+    if (fs.existsSync(map) && emptyMap(fs.readFileSync(map, 'utf8'))) {
+      problems.push(`${t.id} holds a groundwork/map.md that is only the empty template: delete it`);
+    }
+    if (t.data.labels.includes(t.data.title)) {
+      problems.push(`${t.id} is titled "${t.data.title}", a label and no name: flow edit ${t.id} --title <up to 4 words>`);
+    }
+  }
+  return { name: 'tickets', problems, summary: `${count(tickets.length, 'ticket', 'tickets')} in the current format` };
+}
+
+/** True for a map with the empty template's comment and nothing else but headings. */
+function emptyMap(text) {
+  return /Empty until this ticket is picked up/.test(text) &&
+    !text.replace(/<!--[\s\S]*?-->/g, '').replace(/^#.*$/gm, '').trim();
+}
+
+/**
  * The clone: where its submodules sit.
  *
  * Every line is a note. A submodule off its gitlink is somebody mid-work in
@@ -547,6 +586,7 @@ actions.doctor = {
       checkClaude(clone, at),
       checkSettings(clone, at.claude, catalog),
       checkFlowHome(clone, at.flow),
+      checkTickets(project.around(null, at)),
       // Hidden from help, so the report never names it when it was left out.
       flags.tests && checkTests(clone, { bin }),
     ].filter(Boolean);

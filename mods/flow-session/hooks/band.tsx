@@ -21,7 +21,7 @@ import { SPIN_CELLS, apply, currentId, layout, mix, setActing, spinnerAt, waveSh
 import { failureFiles, openIssues } from './issues'
 import { DEFAULT_LOOK, parseLook, type Look } from './look'
 import { isExpired, isRecordKey, makeRecord, parseRecord, recordKey } from './record'
-import { idsIn, readTicket } from './ticket'
+import { idsIn, readTicket, target } from './ticket'
 
 const band = atom({ plugin: 'flow-session', key: 'band' } as const, [] as Entry[])
 const issues = atom({ plugin: 'flow-session', key: 'issues' } as const, 0)
@@ -84,6 +84,25 @@ async function folderOf($: EngineInterface, id: string): Promise<string | undefi
     if (found) return `${dir}/${found.name}`
   }
   return undefined
+}
+
+/**
+ * A click on a badge opens the ticket in VS Code through `code`. The name opens `ticket.md`;
+ * the word opens the file at the open list its word names (ticket.ts `target`), read as it is now.
+ */
+async function openTicket($: EngineInterface, id: string, atWord: boolean): Promise<void> {
+  const folder = await folderOf($, id)
+  if (!folder) return
+  const file = `${folder}/ticket.md`
+  let path = file
+  if (atWord) {
+    const text = await readText($, file)
+    const map = await readText($, `${folder}/groundwork/map.md`)
+    const found = text === undefined ? undefined : target(text, map, readTicket(text, map)?.word ?? '')
+    if (found) path = `${found.file === 'map' ? `${folder}/groundwork/map.md` : file}:${found.line}`
+  }
+  const result = await $.process.run(atWord ? ['code', '-g', path] : ['code', path], { timeoutMs: 10000 })
+  if (result.exitCode !== 0) $.ui.log(`opening ${id} failed: ${result.stderr.trim() || `code exited ${result.exitCode}`}`)
 }
 
 /** Reads the ticket again from its file and applies it to the band. */
@@ -347,11 +366,14 @@ export async function drawBand(
             {badge.status}
           </Text>,
         ]
+    const press = (atWord: boolean) => () => void openTicket($, badge.id, atWord).catch((error) => lost($, 'open', error))
     return [
       at ? <Text key={`gap-${badge.id}`}>{'  '}</Text> : '',
-      <Button key={`badge-${badge.id}`} plain onPress={() => undefined}>
+      <Button key={`badge-${badge.id}`} plain onPress={press(false)}>
         <Text color={colour}>▐</Text>
         {name}
+      </Button>,
+      <Button key={`word-${badge.id}`} plain onPress={press(true)}>
         {status}
         {spins
           ? [' ', spinnerAt(tick)].map((cell, i) => {

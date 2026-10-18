@@ -197,10 +197,6 @@
   "disableArtifact": true,
   "autoMemoryEnabled": false,
   "autoCompactEnabled": false,
-  "statusLine": {
-    "type": "command",
-    "command": "node \"$HOME/.flow/scripts/flow.js\" status-line --context"
-  },
   "respondToBashCommands": false,
   "worktree": {
     "bgIsolation": "none"

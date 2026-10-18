@@ -20,6 +20,7 @@ import { INSTRUCTIONS_PATH, restartAsk, startInstructions, withInstructions } fr
 import { firstMessage } from './first-message'
 import { mention, pastedPaths, relativeTo } from './drag'
 import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './band'
+import { drawMeters, metersMeasure, metersRead, metersStart, metersSwitch } from './meters-row'
 import { drawRows, type MakeText } from './draw'
 import { guardedSentence, headline, questionFor } from './headline'
 import { appendCommand, logLine, logPath, sourceOf, type LogAnswer, type LogFields } from './log'
@@ -264,6 +265,7 @@ export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {
     interactive = e.isInteractive
     await bandStart($)
+    await metersStart($).catch(() => undefined)
     await $.tool.register({
       name: 'restart',
       description: `Restarts this session in place once the handoff is written: the conversation is replaced by \`message\`, and the work continues from it. Call it last. Nothing you write after the call is read.`,
@@ -420,6 +422,25 @@ export const register: Register = (on) => {
 
   // The band of tickets the session works (hooks/band.tsx).
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => drawBand($, e, next))
+
+  // The meters row (hooks/meters-row.tsx): figures from the session, the model, effort and cache from the transcript's end.
+  on('session.measure', async ($, e, next) => {
+    await metersMeasure($, e).catch(() => undefined)
+    return next(e)
+  })
+  on('classic.SessionStart', async ($, e, next) => {
+    await metersRead($, e.transcript_path).catch(() => undefined)
+    return next(e)
+  })
+  on('classic.Stop', async ($, e, next) => {
+    await metersRead($, e.transcript_path).catch(() => undefined)
+    return next(e)
+  })
+  on('classic.PostModelSwitch', async ($, e, next) => {
+    await metersSwitch($, e.to_model).catch(() => undefined)
+    return next(e)
+  })
+  on('ui.render', { component: 'PromptHint' }, async ($, e, next) => drawMeters($, e, next))
 
   // The restart's compaction becomes one message, the one the agent wrote.
   on('session.compact', async (_$, e, next) => {

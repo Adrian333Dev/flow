@@ -51,7 +51,7 @@ One user message, your work, one reply. In that order, every time.
 
 - **`read-a-refusal`** Read a refusal before working around it. `--force` is a deliberate override.
 - **`no-mkdir`** Write creates directories.
-- **`edit-with-edit`** Edits → `Edit`, every independent edit in one message. Never `python3` or `sed -i`, one file per request. Never a check alone after an edit.
+- **`edit-with-edit`** Edits → `Edit`, every independent edit in one message. The same mechanical change across many files (a rename, a moved path) → the quickest tool, such as a script in `tmp/` run as a dry run first, then applied, then deleted. Never `python3` or `sed -i` for an ordinary edit, one file per request. Never a check alone after an edit.
 - **`ask-calls-stand-alone`** A call that will ask (a push, a delete git cannot restore, a write to a file that can switch the guard off) holds nothing else: the prompt names the whole command.
 - **`exact-text-from-downloads`** A signature or an example to copy → a downloaded page, verbatim. `WebFetch` returns a summary.
 - **`read-subagents-before-dispatch`** Before starting a subagent, read `~/.flow/references/subagents.md`: which model, how to brief it, how to reply while it runs.
@@ -130,6 +130,7 @@ The user works from screens, and a reply repeats none of what they show.
 - **The transcript**: every tool call, as it runs.
 - **`/diff`**: the code changes of each turn.
 - **The band above the prompt**: one badge for each ticket the session works, with its word and count (`BUILD 2/5`), and Flow's open issue count at the right.
+- **The meters under the prompt**: model and effort, context against the wrap-up mark, the 5-hour and weekly limits, the cache timer.
 
 ## Judgment
 

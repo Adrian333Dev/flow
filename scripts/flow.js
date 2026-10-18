@@ -21,7 +21,6 @@ const sync = require('./commands/sync');
 const audit = require('./commands/audit');
 const init = require('./commands/init');
 const settingsCommand = require('./commands/settings');
-const statusLine = require('./commands/status-line');
 const scorecard = require('./commands/scorecard');
 
 // `flow ls | head -2` closes the pipe while node is still writing into it. The
@@ -41,13 +40,12 @@ const TITLE = 'flow: the board, setup, settings and audit';
  * group: `cases`, `notes`, `settings` and `audit`.
  *
  * The order inside each section is the order help prints it. A command whose
- * section is missing here still runs and never prints: `status-line`, which
- * Claude Code runs and nobody types. A command marked `hidden` still never
- * prints: `note`, the short form of `flow notes new`, which the notes group's
- * summary names.
+ * section is missing here still runs and never prints. A command marked
+ * `hidden` still never prints: `note`, the short form of `flow notes new`,
+ * which the notes group's summary names.
  */
 const commands = {
-  ...board, ...statusLine, ...tickets.actions, ...install, ...update, ...init, ...sync, ...doctor, ...scorecard,
+  ...board, ...tickets.actions, ...install, ...update, ...init, ...sync, ...doctor, ...scorecard,
   note: notes.note,
 };
 

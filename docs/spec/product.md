@@ -99,10 +99,10 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 - `later` **A fixed output, tool list and model per subagent**, so a report comes back in a known shape.
 - `later` **Measuring the 2 snapshots taken per command a worker runs**, slow on a very large repository.
 
-### The status line
+### The meters
 
-- `V1` **`flow status-line --context` shows the ticket in work, its status, the context size and Flow's open issues**: `fw-28 building · 98k of 150k`, then `⚠ 2 Flow issues: ask Claude to fix them` while a background job's last run failed.
-- `next` **A status line worth reading**, showing what a session needs: `fw-37`.
+- `V1` **The `flow-session` mod draws the meters on the row under the prompt** (`fw-138`): model with effort, context against `wrapUpAt` (`74k/150k`, never the 1M window), the 5-hour and weekly limits, and the prompt cache's countdown. A narrow row drops whole meters, never part of one. The old status line (`flow status-line`) is in `lab/archive/status-line/`.
+- `V1` **Claude Code's agent panel shows one row per agent in the same style**, through `subagentStatusLine` in the mod's `settings.json`: what the agent does, model and effort, time running, tokens (green, amber from 100k, red past 150k).
 - `next` **Every session named by itself**, so the right one is easy to find after `/clear`: `fw-38`.
 
 ### The audit and study cases

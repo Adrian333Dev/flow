@@ -14,8 +14,19 @@ export type Entry = {
   acting: boolean
 }
 
+/** The meters row's figures (hooks/meters.ts `Reading`), and `beat`, a counter the 30-second timer bumps to redraw. */
+export type MeterState = {
+  model?: string
+  effort?: string | number
+  tokens?: number
+  limit: number
+  rates: { kind: string; percentUsed: number; resetsAt?: string }[]
+  coldAt?: number
+  beat: number
+}
+
 declare module 'claude-code' {
   interface PluginState {
-    'flow-session': { band: Entry[]; issues: number; frame: number }
+    'flow-session': { band: Entry[]; issues: number; frame: number; meters: MeterState }
   }
 }

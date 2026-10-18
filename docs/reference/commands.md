@@ -99,9 +99,14 @@ fail  settings.json:
         /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow update, whose setup session fixes settings.json from /home/me/code/flow/home/settings.json
 ok    ~/.flow: scripts, references and docs resolve into this clone
 ok    skills: 1 skill on everywhere, 1 more for shop
+fail  tickets:
+        shop-5-old-words is in a folder not named by its id: rename the folder to shop-5
+        shop-9 is titled "feature", a label and no name: flow edit shop-9 --title <up to 4 words>
 
-3 of 11 checks failed.
+4 of 12 checks failed.
 ```
+
+- **`tickets`**: inside a project, names each ticket made before the current format: a folder named with more than its id, a `groundwork/map.md` that is only the empty template, and a title that is one of the ticket's own labels. Outside a project it is skipped.
 
 - **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.287 or later. It works before Flow is installed.
 
