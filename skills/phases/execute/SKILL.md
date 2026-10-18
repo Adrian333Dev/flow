@@ -10,7 +10,7 @@ One ticket, from pickup to `done`. No ticket named → `flow next`, and recommen
 ## Pick up
 
 1. Read `ticket.md`: the decisions, `## Questions`, `## Tasks`, `## State`.
-2. `flow start <id>`.
+2. `flow start <id> --activity build`.
 3. `## Questions` still open → name them. The user decides whether the build waits for `/flow:groundwork`.
 4. A child's work is built in the child, never in its parent.
 5. No `## Done when` → write one before building.

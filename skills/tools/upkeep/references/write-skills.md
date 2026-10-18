@@ -6,6 +6,7 @@
 
 - **One job, sayable in a sentence.** 2 sentences means 2 skills.
 - **Nothing already covers it.** Something close → extend that skill.
+- **Aim for the density of `skills/tools/upkeep`.**
 
 ## Where it lives
 
@@ -38,6 +39,10 @@ Claude Code names the command after the folder, so the folder and `name` match. 
 - **`knowledge/`**: accumulated facts, one file per topic. Let the layout emerge; never design it up front.
 
 One file until one file stops working.
+
+**Plain, common words, no invented or rare terms**, in what a skill says and in what it produces.
+
+**A command on the `PATH` is written bare**: `flow next`, `util fs tree docs`. Every other script is `~/.flow/scripts/<file.ext>`. A script is `flow.js` on disk and `flow` to type, since the symlink drops the extension.
 
 ## Knowledge files
 

@@ -454,9 +454,12 @@ reminder          on     everywhere   a line beside every message, pointing Clau
 sessionCheck      on                  the flow init suggestion, when a session opens
 setupReminder     off    this folder  suggests flow init where a repository has no .flow/
 wrapUp            on                  tells Claude to hand off once the conversation passes wrapUpAt tokens
+
+value             default  yours
+wrapUpAt          150000   200000  the conversation size in tokens at which wrapUp speaks
 ```
 
-- **`flow settings ls`**: every setting, and the level that decides it. A bare `flow settings` prints the same.
+- **`flow settings ls`**: every setting, and the level that decides it, then each number setting with its default and your value. `yours` is blank while the default decides. A bare `flow settings` prints the same.
 - **`flow settings on <name>`** and **`off <name>`**: switch a setting.
 - **`flow settings reset <name>`**: remove that level's switch, so the default decides.
 - **`--global`**: every project, on every computer. With no flag, the switch is for this folder.
@@ -759,7 +762,7 @@ peak: 61.0k · 6 requests
 
 ### `flow audit permissions`
 
-`flow audit permissions [id]`: count the permission questions Flow asked you, by where each came from and by what it said. A normal ticket build asks nothing except before a commit, a push or a publish, so the last section lists every other ask. Each of those is a rule to narrow.
+`flow audit permissions [id]`: count the permission questions Flow asked you, by where each came from and by what it said. A normal ticket build asks nothing except before a push or a publish, so the last section lists every other ask. Each of those is a rule to narrow.
 
 This reads the permission log in `~/.flow/logs/permissions/`, never the index, so `flow audit index` is not needed first. A line that does not parse is skipped and counted. A missing log is an error, since `0 asks` there would read as a pass.
 
@@ -780,7 +783,7 @@ ASKS  AUTO  HEADLINE
 1     0     Writes into ~/.claude/settings.json, which could switch the guard off
 0     1     Writes .claude/skills/x/SKILL.md
 
-THE TARGET: asks other than commit, push and publish
+THE TARGET: asks other than push and publish
 1 ask outside the list:
 AT                PROJECT  SOURCE  ANSWER  HEADLINE
 2026-10-13 09:31  shop     guard   refuse  Writes into ~/.claude/settings.json, which could switch the guard off

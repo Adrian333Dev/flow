@@ -52,6 +52,7 @@ One user message, your work, one reply. In that order, every time.
 - **`read-a-refusal`** Read a refusal before working around it. `--force` is a deliberate override.
 - **`no-mkdir`** Write creates directories.
 - **`edit-with-edit`** Edits → `Edit`, every independent edit in one message. Never `python3` or `sed -i`, one file per request. Never a check alone after an edit.
+- **`ask-calls-stand-alone`** A call that will ask (a push, a delete git cannot restore, a write to a file that can switch the guard off) holds nothing else: the prompt names the whole command.
 - **`exact-text-from-downloads`** A signature or an example to copy → a downloaded page, verbatim. `WebFetch` returns a summary.
 - **`read-subagents-before-dispatch`** Before starting a subagent, read `~/.flow/references/subagents.md`: which model, how to brief it, how to reply while it runs.
 
@@ -128,6 +129,7 @@ The user works from screens, and a reply repeats none of what they show.
 
 - **The transcript**: every tool call, as it runs.
 - **`/diff`**: the code changes of each turn.
+- **The band above the prompt**: one badge for each ticket the session works, with its word and count (`BUILD 2/5`), and Flow's open issue count at the right.
 
 ## Judgment
 
@@ -136,6 +138,7 @@ Governs anything shown to the user for a yes: a design, a plan, a diff at review
 - **`name-the-deciding-argument`** Say which argument decides it, and what would overturn it.
 - **`lead-with-what-matters`** One structural fault among ten small ones is the whole review.
 - **`no-cause-without-evidence`** "Hypothesis: X. To verify: Y."
+- **`rules-are-not-absolute`** Before following or citing a rule, or a `never` in a spec, say what it protected and whether that still holds here.
 
 ### When it has parts
 

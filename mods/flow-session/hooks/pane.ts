@@ -125,13 +125,33 @@ export const nobodyReason = () => NOBODY
 
 type Decided = { decision: string; hook?: string; rule?: string }
 
+// A loaded mod's folder is protected like `.claude`. The manifests stay asked: they decide which hooks load.
+const MOD_FOLDER = /(^|\/)mods\/flow-session\//
+const MOD_MANIFEST = /(^|\/)mods\/flow-session\/(\.claude-plugin\/plugin\.json|hooks\/hooks\.json)$/
+
 /**
- * A core ask on a write under a `.claude` folder, with no guard reason and no
- * settings rule behind it. Claude Code asks for every such write, and the
- * mod's allow is the only way to remove that ask.
+ * A core ask on a write under a `.claude` folder, or from the main agent under
+ * this mod's folder bar its manifests, with no guard reason and no settings
+ * rule behind it. Claude Code asks for every such write, and the mod's allow
+ * is the only way to remove that ask.
  */
-export function isAutoAllow(tool: string, input: unknown, decided: Decided): boolean {
+export function isAutoAllow(tool: string, input: unknown, decided: Decided, agentId?: string): boolean {
   if (decided.decision !== 'ask' || decided.hook === 'PreToolUse' || decided.rule !== undefined) return false
   if (!WRITE_TOOLS.has(tool)) return false
-  return /(^|\/)\.claude\//.test(mainField(input) ?? '')
+  const file = mainField(input) ?? ''
+  if (/(^|\/)\.claude\//.test(file)) return true
+  return agentId === undefined && MOD_FOLDER.test(file) && !MOD_MANIFEST.test(file)
 }
+
+/** Files whose guard ask got a yes this session. Lost on a restart, which asks again. */
+const covered = new Set<string>()
+
+/** The file a write asked about by the guard touches, or undefined for any other ask. */
+export function guardedWrite(tool: string, input: unknown, decided: Decided): string | undefined {
+  if (decided.decision !== 'ask' || decided.hook !== 'PreToolUse' || !WRITE_TOOLS.has(tool)) return undefined
+  return mainField(input)
+}
+
+export const isCovered = (file: string) => covered.has(file)
+
+export const cover = (file: string) => void covered.add(file)

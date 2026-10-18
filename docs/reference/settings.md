@@ -91,7 +91,7 @@ Every 20,000 tokens past the limit it says it again, more firmly. The restart ke
 
 ### `wrapUpAt`
 
-The conversation size, in tokens, at which [`wrapUp`](#wrapup) speaks. Unset, it is 150,000. Either computer-wide file holds it:
+The conversation size, in tokens, at which [`wrapUp`](#wrapup) speaks. Unset, it is 150,000. `flow settings` shows the default beside your value. Either computer-wide file holds it:
 
 ```json
 "wrapUpAt": 140000
@@ -168,7 +168,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
   "defaultMode": "default",
   "disableBypassPermissionsMode": "disable",
   "allow": ["Edit", "Edit(//**/.flow/**)", "Read", "WebFetch", "WebSearch", "Bash"],
-  "ask": ["Bash(git commit *)", "Bash(git push *)", "Bash(npm publish *)",
+  "ask": ["Bash(git push *)", "Bash(util git save *)", "Bash(npm publish *)",
           "Bash(pnpm publish *)", "Bash(yarn publish *)", "Bash(cargo publish *)"],
   "deny": ["…"],
   "additionalDirectories": ["~/.flow"]
@@ -178,7 +178,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 - **`defaultMode`**: every session starts in Claude Code's ordinary mode, which asks only where a rule or a hook says to.
 - **`disableBypassPermissionsMode`**: the mode that skips every question can never be switched on.
 - **`allow`**: every edit, read, web fetch, web search and shell command runs without asking. The guard and the `ask` rules are what stop a harmful one.
-- **`ask`**: a commit, a push or a publish always asks, since each puts work where other people see it. Delete a line to let that command run unasked.
+- **`ask`**: a push, a publish or `util git save` (which pushes) always asks, since each puts work where other people see it. A plain `git commit` runs. Delete a line to let that command run unasked.
 - **`deny`**: never runs, in any mode:
   - Claude Code tools Flow replaces or never uses, such as plan mode and scheduled jobs. Each one left out also saves the tokens its description costs.
   - Reading `~/.ssh` and `~/.aws`, the folders holding your keys.

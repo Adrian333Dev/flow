@@ -313,9 +313,10 @@ function context(db, id, { limit = 200 } = {}) {
 
 // A query that writes would corrupt an index nothing re-derives on demand, and
 // the whole surface is a reader. PRAGMA is refused with the rest: it can turn
-// writing back on.
+// writing back on. `replace` is refused as a statement (REPLACE INTO) and
+// allowed as the string function, which is always followed by a parenthesis.
 const READ_ONLY = /^\s*(select|with)\b/i;
-const FORBIDDEN = /\b(insert|update|delete|drop|alter|create|replace|attach|detach|pragma|vacuum)\b/i;
+const FORBIDDEN = /\b(insert|update|delete|drop|alter|create|attach|detach|pragma|vacuum)\b|\breplace\b(?!\s*\()/i;
 
 function sql(db, text) {
   if (!text) throw new FlowError('flow audit sql needs a query, in quotes.');
@@ -326,7 +327,12 @@ function sql(db, text) {
     );
   }
 
-  const rows = db.prepare(text).all();
+  let rows;
+  try {
+    rows = db.prepare(text).all();
+  } catch (err) {
+    throw new FlowError(`flow audit sql: ${err.message}\n  flow audit schema lists the tables and columns.`);
+  }
   if (!rows.length) return 'no rows.';
   const headers = Object.keys(rows[0]);
   return table(

@@ -127,9 +127,8 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 ### Working on Flow itself
 
-- `V1` **A release copy and a dev copy.** Every session runs `~/.flow/repos/flow`. A session started with `alias claude-dev='claude --plugin-dir ~/code/flow-dev/skills'` loads the skills and mods from the dev copy, in any project. Hooks, the `flow` command and the status line stay on the release. Ruled 2026-10-06: the simplest version, gaps accepted.
+- `V1` **One copy: `~/.flow/repos/flow` is a link to the dev checkout, `~/code/flow-dev`.** Every session on the machine runs it. A skill edit reaches a session at once, a hook and the `flow` command on their next call, and the mod when a hook file is saved. `flow update` leaves a linked clone alone, and another machine pulls from GitHub. Ruled by the user 2026-10-18, replacing the release copy and the `claude-dev` alias (2026-10-06): the user alone runs Flow, so a stable release protected no one. Costs: a half-edited hook breaks every project's session until it is fixed, and the checked-out branch is what runs. Rejected: working inside the old release clone, which would move the project record, the session history keyed by folder, `repos/`, `tmp/` and the uncommitted work to a new folder.
 - `V1` **A test of a command that exists to print compares its whole output against a literal**, set 2026-09-11. A test reading only the filesystem passed over a command that described the filesystem wrongly.
-- `later` **The whole repository as one plugin**, so a dev session runs the dev copy's hooks too. Parked until a hook waiting for a release blocks real work.
 - `later` **Flow in a plugin marketplace**, the plugin shipping the install script.
 
 ### Flow for teams

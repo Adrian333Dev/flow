@@ -1,0 +1,54 @@
+{
+  "one": {
+    "badges": [{ "id": "fw-137", "slug": "mod-band", "word": "BUILD 2/5" }]
+  },
+  "two": {
+    "badges": [
+      { "id": "fw-137", "slug": "mod-band", "word": "BUILD 2/5" },
+      { "id": "fw-138", "slug": "meters-row", "word": "DESIGN 1/3" }
+    ]
+  },
+  "wave": {
+    "badges": [
+      { "id": "fw-137", "slug": "mod-band", "word": "BUILD 2/5", "acting": true },
+      { "id": "fw-138", "slug": "meters-row", "word": "DESIGN 1/3" }
+    ]
+  },
+  "done": {
+    "badges": [
+      { "id": "fw-35", "slug": "permission-system", "word": "DONE ✓", "done": true },
+      { "id": "fw-137", "slug": "mod-band", "word": "BUILD 2/5" }
+    ]
+  },
+  "fold": {
+    "badges": [
+      { "id": "fw-137", "slug": "mod-band", "word": "BUILD 2/5" },
+      { "id": "fw-138", "slug": "meters-row", "word": "DESIGN 1/3" },
+      { "id": "fw-139", "slug": "status-line", "word": "BUILD 0/4" },
+      { "id": "fw-140", "slug": "board", "word": "DESIGN 2/6" },
+      { "id": "fw-141", "slug": "archive", "word": "DEBUG 1/2" }
+    ]
+  },
+  "narrow": {
+    "badges": [
+      { "id": "fw-137", "slug": "mod-band", "word": "BUILD 2/5" },
+      { "id": "fw-138", "slug": "meters-row", "word": "DESIGN 1/3" }
+    ],
+    "issues": 2,
+    "columns": 60
+  },
+  "issues": {
+    "badges": [{ "id": "fw-137", "slug": "mod-band", "word": "BUILD 2/5" }],
+    "issues": 3
+  },
+  "nocount": {
+    "badges": [{ "id": "fw-142", "slug": "quick-fix", "word": "BUILD" }]
+  },
+  "agent-word": {
+    "badges": [{ "id": "fw-143", "slug": "spike", "word": "PROTO 0/4" }]
+  },
+  "long": {
+    "badges": [{ "id": "fw-144", "slug": "a-very-long-ticket-name-that-takes-most-of-the-row-by-itself", "word": "RESEARCH 12/40" }],
+    "issues": 1
+  }
+}

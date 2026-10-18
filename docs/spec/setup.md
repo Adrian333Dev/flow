@@ -5,7 +5,7 @@ How Flow gets onto a machine and into a project, stays current, travels to a sec
 ## Scope
 
 - **In**: `install.sh`, `flow install`, the machine's setup session and its form, `flow init` and the project's setup session, `flow update` and its session, the changelog and the version stamps, `flow sync` and the Flow home, `flow doctor`, the originals, `flow restore` and `flow uninstall`.
-- **Out**: where a project's tickets live and `flow store`, in `docs/spec/tickets.md`. Switching skills on and off, and skill sources, in `docs/spec/skills.md`. The hooks and the session-start line, in `docs/spec/product.md` → `### Hooks and guardrails`. The permissions, in `docs/spec/permissions.md`.
+- **Out**: where a project's tickets live and `flow store`, in `docs/spec/tickets.md`. Skills and their sources, in `docs/spec/skills.md`. The hooks and the session-start line, in `docs/spec/product.md` → `### Hooks and guardrails`. The permissions, in `docs/spec/permissions.md`.
 
 ## A machine, from nothing to set up
 
@@ -95,7 +95,7 @@ A migration is what a setup session proposes: `migration.md`, the form the user 
 
 ### The forms
 
-The machine's, the project's and the restore's. An update has none, under `### Updating`. Each template's instructions point here, so a section added later keeps the same shape. The design behind each line: `.flow/tickets/fw-83-setup-forms-are/groundwork/map.md`.
+The machine's, the project's and the restore's. An update has none, under `### Updating`. Each template's instructions point here, so a section added later keeps the same shape. The design behind each line: `.flow/tickets/archive/fw-83/groundwork/map.md`.
 
 - `V1` **A ticked box means Flow acts, and an unticked box means Flow leaves the thing as it is.** Never a box ticked to stop an action. Ruled by the user 2026-10-08, after a `Keep Codex as it is` box was ticked to do nothing.
 - `V1` **A change an untick cannot leave undone takes no box.** Moving the old rules and facts into Flow's files is listed under ✅ with its counts, and the user edits the new file under `files/` before go. Unticked, setup would still replace the old file, so the rules would be lost, never left as they were.
@@ -155,7 +155,7 @@ The machine's, the project's and the restore's. An update has none, under `### U
 - `V1` **An update that changed a hook, the rule file or the skills proves itself** with `claude -p` and a read of that session through `flow audit`.
 - `never` **An update form, approved once, then written by a script.** Dropped by the user 2026-10-08: its boxes held only the user's own lines, and unticking one deleted the line, against the rule that an unticked box leaves a thing as it is.
 - `V1` **Nothing behind prints one line and runs nothing.** A pull git refuses stops with git's message.
-- `never` **Version numbers of the `1.4.2` sort**: Flow is a clone the user pulls, with no registry and nobody pinning a range. Ruled by the user 2026-09-20.
+- `never` **Version numbers of the `1.4.2` sort**: Flow is a clone the user pulls, with no registry and nobody pinning a range. `flow install` likewise records no list of what it installed. Ruled by the user 2026-09-20.
 
 ### Syncing machines
 
@@ -279,4 +279,4 @@ A machine's record in the Flow home, `~/.flow/machines/pc-wsl.json`:
 ## References
 
 - `lab/context/management.md` in git history: the full design behind every ruling here.
-- `.flow/tickets/fw-83-setup-forms-are/groundwork/`: the forms' design, with an example machine form and project form in the agreed layout, each beside an `actions.json` from a dropped design.
+- `.flow/tickets/archive/fw-83/groundwork/`: the forms' design, with an example machine form and project form in the agreed layout, each beside an `actions.json` from a dropped design.

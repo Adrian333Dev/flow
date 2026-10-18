@@ -330,6 +330,18 @@ test('sql reads and never writes', () => {
   assert.notStrictEqual(sneaky.code, 0);
 
   assert.strictEqual(audit(env, ['sql', 'SELECT COUNT(*) n FROM event']).code, 0);
+
+  const fn = audit(env, ['sql', "SELECT replace('abc','b','x') r"]);
+  assert.strictEqual(fn.code, 0);
+  assert.match(fn.stdout, /axc/);
+
+  const statement = audit(env, ['sql', "REPLACE INTO meta (key, value) VALUES ('a', 'b')"]);
+  assert.notStrictEqual(statement.code, 0);
+
+  const unknown = audit(env, ['sql', 'SELECT * FROM nothing_here']);
+  assert.notStrictEqual(unknown.code, 0);
+  assert.match(unknown.stderr, /no such table: nothing_here/);
+  assert.doesNotMatch(unknown.stderr, /\n\s+at /);
 });
 
 test('summary shows compact metrics for one session', () => {

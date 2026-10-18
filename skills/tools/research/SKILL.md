@@ -10,7 +10,6 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 **Research before recommending.**
 
 **Research any subject.** A question with no tool behind it, such as market research, uses level 4 and the report file below.
-
 ## A question starts from the wiki
 
 `~/.flow/wiki/<subject>/` holds what Flow knows about one outside tool or field: `index.md`, topic pages, and this machine's downloads. Read `~/.flow/references/wiki.md` before any write into it.

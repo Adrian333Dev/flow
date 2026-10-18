@@ -2,7 +2,8 @@
 /**
  * `flow settings`: switch the settings Flow reads on or off, at one level.
  *
- *   ls                    every setting, whether it is on here, and which level says so
+ *   ls                    every setting, whether it is on here, and which level says so,
+ *                         then each number setting beside its default
  *   on | off <name>       write that setting at one level
  *   reset <name>          remove it from that level, so the level above decides
  *
@@ -32,6 +33,11 @@ const SETTINGS = [
   { key: 'sessionCheck', says: 'the flow init suggestion, when a session opens' },
   { key: 'setupReminder', says: 'suggests flow init where a repository has no .flow/', skip: 'setupReminderSkip' },
   { key: 'wrapUp', says: 'tells Claude to hand off once the conversation passes wrapUpAt tokens' },
+];
+
+/** The number settings, shown beside their default so an override shows. Changed by editing `settings.json`. */
+const VALUES = [
+  { key: 'wrapUpAt', says: 'the conversation size in tokens at which wrapUp speaks' },
 ];
 
 const LEVEL_FLAGS = { global: { bool: true } };
@@ -80,6 +86,15 @@ actions.ls = {
       rows.push([s.key, now.on ? 'on' : 'off', LEVEL_NAMES[now.level] || '', s.says]);
     }
     out(render.columns(rows));
+
+    // `yours` is blank while the default decides, and differs from it only by an override.
+    const all = settings.readGlobal();
+    const values = [['value', 'default', 'yours', '']];
+    for (const v of VALUES) {
+      const set = Number(all[v.key]) > 0 ? Number(all[v.key]) : '';
+      values.push([v.key, String(settings.DEFAULTS[v.key]), String(set), v.says]);
+    }
+    out(`\n${render.columns(values)}`);
     return 0;
   },
 };

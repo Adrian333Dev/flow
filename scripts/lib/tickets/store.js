@@ -31,7 +31,9 @@ const paths = require('../paths');
 // the code branch the work is built on, written once: see ticket-history.js.
 // `title` is the short name, 2 to 4 hyphenated words; `description` is the
 // sentence saying what the ticket is for. Editing one never changes the other.
-const TICKET_KEYS = ['id', 'was', 'title', 'description', 'status', 'labels', 'rank', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
+// `activity` is the kind of work under way on an in-progress ticket, which the
+// band shows in capitals. Any status move clears it.
+const TICKET_KEYS = ['id', 'was', 'title', 'description', 'status', 'activity', 'labels', 'rank', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
 
 // `labels` are free tags, several per ticket: `v1`, `post-v1`, `urgent`. Any
 // name that fits the pattern is allowed, and no label changes what Flow does.
@@ -48,6 +50,13 @@ function toLabelList(v) {
 /** The refusal for a label that cannot be one, or null. */
 const badLabel = (label) =>
   LABEL.test(label) ? null : `"${label}" cannot be a label: use lowercase letters, digits and hyphens, 24 characters at most.`;
+
+// An open word, not a list: `design`, `build`, `debug`, `research`, `proto`. Letters only keeps it one word in the band.
+const ACTIVITY = /^[a-z]{1,8}$/;
+
+/** The refusal for an activity that cannot be one, or null. */
+const badActivity = (word) =>
+  ACTIVITY.test(word) ? null : `"${word}" cannot be an activity: use 1 to 8 lowercase letters, such as build.`;
 
 /** A `rank` value as a number, or '' where the field is missing or not a number. */
 const toRank = (v) => {
@@ -311,6 +320,7 @@ function scanTicketDir(dir, root, prefix, out) {
     // values survive as written so `check` can report them.
     data.parent = data.parent ? (normalizeId(data.parent, prefix) || String(data.parent).trim()) : '';
     data.status = data.status || 'todo';
+    data.activity = data.activity ? String(data.activity).trim().toLowerCase() : '';
     data.rank = toRank(data.rank);
     data.labels = toLabelList(data.labels).map((l) => l.toLowerCase());
     data.title = data.title || entry.name;
@@ -378,11 +388,14 @@ function moveFolder(from, to) {
  * line in `history.md`. Returns `{ from, moved }`, `moved` as `writeTicket`
  * gives it. The refusals belong to the command, which knows why it moves.
  */
-function setStatus(t, status, reason = '') {
+function setStatus(t, status, reason = '', activity = '') {
   // ticket-history.js reads this file for the time, so it loads here.
   const ticketHistory = require('./ticket-history');
   const from = t.data.status;
   t.data.status = status;
+  // The kind of work belongs to the stretch of work in progress; a move ends it.
+  // Only a pickup (`flow start --activity`) hands the next stretch its word.
+  t.data.activity = status === 'in-progress' ? activity : '';
   // The moment work stopped. Any move back to a live status clears it, because
   // a ticket in flight has no finish to point at.
   t.data.closed = statuses.TERMINAL.has(status) ? now() : '';
@@ -688,7 +701,7 @@ function renderTemplate(name, vars) {
 module.exports = {
   TICKET_KEYS, HOME_WORD,
   recordsDir, isHome, homeRoot, ticketsDir, archiveDir, offerWord, badWord, prefixOf, wordOf, idOfFolder,
-  normalizeId, idNumber, requireId, slugify, labelOf, idOfRef, folderName, nameOf, titleFrom, badTitle, toIdList, toLabelList, badLabel, today, now,
+  normalizeId, idNumber, requireId, slugify, labelOf, idOfRef, folderName, nameOf, titleFrom, badTitle, toIdList, toLabelList, badLabel, badActivity, today, now,
   COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,
   historyFile, appendHistory, readHistory,
   hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, questionCount, taskCount, tickTask,

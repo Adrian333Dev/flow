@@ -37,7 +37,7 @@ const store = require('../lib/tickets/store');
 const paths = require('../lib/paths');
 const project = require('../lib/project');
 
-const LIMIT = 150000;
+const LIMIT = settings.DEFAULTS.wrapUpAt;
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 const cacheFile = () => path.join(paths.flowHome(), 'status-line.json');

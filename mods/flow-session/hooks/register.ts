@@ -11,23 +11,30 @@
  * the agent is warned at the wrap-up mark, `#` in the prompt box lists the
  * notes of `flow notes`, and every permission ask opens Claude Code's question
  * dialog (hooks/pane.ts) and is logged (hooks/log.ts).
+ *
+ * The band above the prompt, one badge for each ticket the session works, is
+ * hooks/band.tsx, registered from here.
  */
 import type { EngineInterface, Register } from 'claude-code'
 import { INSTRUCTIONS_PATH, restartAsk, startInstructions, withInstructions } from './ask'
 import { firstMessage } from './first-message'
 import { mention, pastedPaths, relativeTo } from './drag'
+import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './band'
 import { drawRows, type MakeText } from './draw'
-import { headline, questionFor } from './headline'
+import { guardedSentence, headline, questionFor } from './headline'
 import { appendCommand, logLine, logPath, sourceOf, type LogAnswer, type LogFields } from './log'
 import { isNote } from './note'
 import { parseNote, rows, type Note } from './notes'
 import {
   classify,
+  cover,
   denyFor,
   drawsInColour,
   foldedText,
   forgetDraw,
+  guardedWrite,
   isAutoAllow,
+  isCovered,
   isOwnQuestion,
   nobodyReason,
   questionText,
@@ -68,7 +75,8 @@ let interactive: boolean | undefined
 async function logSize($: EngineInterface): Promise<void> {
   const after = (await $.session.usage().catch(() => undefined))?.context.tokens
   if (after === undefined || sizeBefore === undefined) return
-  $.ui.log(`restart: context ${kilo(sizeBefore)} → ${kilo(after)}`)
+  // The engine puts `flow-session:` in front of a log line, so no colon of our own.
+  $.ui.log(`context ${kilo(sizeBefore)} → ${kilo(after)} after restart`)
   sizeBefore = undefined
 }
 
@@ -203,11 +211,13 @@ async function logAsk($: EngineInterface, fields: Omit<LogFields, 'at' | 'projec
  */
 async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<Decided> {
   const shown = headline(e.tool, e.input)
-  const sentence = decided.hook === 'PreToolUse' && decided.reason?.trim() ? decided.reason.trim() : shown.sentence
+  const guarded = guardedWrite(e.tool, e.input, decided)
+  const guardReason = decided.hook === 'PreToolUse' ? decided.reason?.trim() : undefined
+  const sentence = guarded !== undefined ? guardedSentence(e.tool, guarded) : guardReason || shown.sentence
   const entry = { tool: e.tool, agent: e.agentId, rule: decided.rule, source: sourceOf(decided.hook, decided.rule), headline: sentence, command: shown.text }
   const done = (answer: LogAnswer, ms?: number) => logAsk($, { ...entry, answer, ms })
 
-  if (isAutoAllow(e.tool, e.input, decided)) {
+  if (isAutoAllow(e.tool, e.input, decided, e.agentId) || (guarded !== undefined && isCovered(guarded))) {
     await done('auto-allow')
     return { decision: 'allow' }
   }
@@ -241,6 +251,7 @@ async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<
   const key = verdictKey(e.tool, e.input)
   if (answer === 'allow') {
     takeVerdict(key)
+    if (guarded !== undefined) cover(guarded)
     await done('allow', ms)
     return { decision: 'allow' }
   }
@@ -252,6 +263,7 @@ async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<
 export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {
     interactive = e.isInteractive
+    await bandStart($)
     await $.tool.register({
       name: 'restart',
       description: `Restarts this session in place once the handoff is written: the conversation is replaced by \`message\`, and the work continues from it. Call it last. Nothing you write after the call is read.`,
@@ -267,8 +279,16 @@ export const register: Register = (on) => {
     await $.command
       .register({ name: 'restart', description: 'Restart this session in place, from a start message the agent writes.' })
       .catch(() => undefined)
+    await $.command
+      .register({ name: 'band', description: 'Switch the test band on or off: /band, /band <number>, next, list, act, off.' })
+      .catch(() => undefined)
     return next(e)
   })
+
+  // `/band` shows a test scenario in place of the real band (hooks/band-mock.ts).
+  on('command.run', { command: 'band' }, async ($, e) => ({ text: await bandMock($, e.args ?? '') })).catch(() => ({
+    text: 'The band command failed, so nothing changed.',
+  }))
 
   // `/restart` asks the agent for the handoff, if none stands, and the start message.
   // A command's hidden `context` starts no turn (probed 2.1.301), so the ask is
@@ -301,7 +321,8 @@ export const register: Register = (on) => {
     return next(e)
   })
 
-  on('turn.start', async (_$, e, next) => {
+  on('turn.start', async ($, e, next) => {
+    await bandTurnStart($, e)
     if (e.agentId === undefined) {
       mainTurn = e.turnId
       if (mentionedNotes.length) noteTurns.set(e.turnId, mentionedNotes)
@@ -334,10 +355,16 @@ export const register: Register = (on) => {
   })
 
   on('tool.call', async ($, e, next) => {
-    const done = await next(e)
+    const done = await bandToolCall($, e, () => next(e))
     if (e.agentId !== undefined || TOOL.test(e.tool) || done.result === undefined) return done
     const line = await wrapUp($).catch(() => undefined)
     return line ? { ...done, context: [...(done.context ?? []), line] } : done
+  })
+
+  on('session.append', async ($, e, next) => {
+    const kept = await next(e)
+    await bandShell($, e).catch(() => undefined)
+    return kept
   })
 
   on('tool.call', { tool: TOOL }, async ($, e) => {
@@ -353,6 +380,7 @@ export const register: Register = (on) => {
 
   on('turn.complete', async ($, e, next) => {
     const done = await next(e)
+    await bandTurnComplete($, e)
     const notes = noteTurns.get(e.turnId)
     if (notes) {
       noteTurns.delete(e.turnId)
@@ -389,6 +417,9 @@ export const register: Register = (on) => {
     const dialog = await next({ ...e, props: { ...e.props, questions: questions.map((q) => ({ ...q, question: draw.asks })) } })
     return Box({ flexDirection: 'column', children: [...drawRows(draw, Text as unknown as MakeText), dialog] })
   })
+
+  // The band of tickets the session works (hooks/band.tsx).
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => drawBand($, e, next))
 
   // The restart's compaction becomes one message, the one the agent wrote.
   on('session.compact', async (_$, e, next) => {

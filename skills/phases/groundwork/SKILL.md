@@ -29,7 +29,7 @@ Same 4 phases at any size, however much the first message already settles.
 - **Every `[x]`** → Phase 4 routes what the ticket decided
 - **An older ticket holds `groundwork/map.md`.** Treat it as the questions and start no second one.
 
-**Then `flow start <id>`**, unless the ticket is already `in-progress`.
+**Then `flow start <id> --activity design`**, also where the ticket is already `in-progress`.
 
 **A ticket that reads both ways stops the run.** Questions ticked with nothing written under them, a section abandoned mid-sentence, a ticket about another subject: say what you found and ask.
 
@@ -139,8 +139,7 @@ A feature rarely spawns one. A whole product usually spawns several.
 
 ### When nothing written can answer it: prototype
 
-A cheap check (one command, a 10-second script) just runs. Anything bigger is a prototype: naive code answering one question, run here in the walk. Set `flow edit <id> --activity prototyping` while it runs.
-
+A cheap check (one command, a 10-second script) just runs. Anything bigger is a prototype: naive code answering one question, run here in the walk.
 - **Build only once talking and reading have both failed.** Documentation that settles it → read it. Layout, colour, density → draw it first, as below. Prototype only where the running stack answers it: real components, real data at volume, motion, a device.
 - **Write the question first**, in one sentence, with what a pass and a fail would mean and change. A question only the user can judge by eye gets several variants, never one, and no pass or fail: their reaction is the result.
 - **Approach not obvious → confirm it in one message first:** what gets built, the library and version, the fallback if the machinery won't run.

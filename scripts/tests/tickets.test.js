@@ -165,6 +165,70 @@ test('flow edit changes title, description and labels', () => {
   assert.deepStrictEqual(labelsOf(), []);
 });
 
+test('flow edit --activity sets the kind of work on an in-progress ticket, and any status move clears it', () => {
+  const dir = project('tickets-activity');
+  flow(dir, ['new', 'Build the widget', '--title', 'build-the-widget']);
+  const activityOf = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data.activity || '';
+
+  const early = flow(dir, ['edit', 'exp-1', '--activity', 'build']);
+  assert.strictEqual(early.code, 1, 'a todo ticket has no activity');
+  assert.match(early.stderr, /only an in-progress ticket/);
+
+  flow(dir, ['start', 'exp-1']);
+  const set = flow(dir, ['edit', 'exp-1', '--activity', 'BUILD']);
+  assert.strictEqual(set.code, 0, set.stderr);
+  assert.match(set.stdout, /activity: - → build/);
+  assert.strictEqual(activityOf(), 'build', 'stored in lowercase');
+  assert.match(flow(dir, ['exp-1']).stdout, /^activity: +build$/m);
+
+  for (const bad of ['two words', 'design1', 'toolongword', 'a-b']) {
+    const r = flow(dir, ['edit', 'exp-1', '--activity', bad]);
+    assert.strictEqual(r.code, 1, bad);
+    assert.match(r.stderr, /cannot be an activity/);
+  }
+  assert.strictEqual(activityOf(), 'build', 'a refusal changes nothing');
+
+  flow(dir, ['edit', 'exp-1', '--activity', '']);
+  assert.strictEqual(activityOf(), '', 'an empty value clears it');
+  assert.doesNotMatch(flow(dir, ['exp-1']).stdout, /^activity:/m);
+
+  flow(dir, ['edit', 'exp-1', '--activity', 'debug']);
+  flow(dir, ['park', 'exp-1', '--reason', 'later']);
+  assert.strictEqual(activityOf(), '', 'parking clears it');
+  flow(dir, ['start', 'exp-1']);
+  flow(dir, ['edit', 'exp-1', '--activity', 'proto']);
+  flow(dir, ['done', 'exp-1']);
+  assert.strictEqual(activityOf(), '', 'done clears it');
+});
+
+test('flow start --activity names the work at pickup, also on a ticket already in progress', () => {
+  const dir = project('tickets-start-activity');
+  flow(dir, ['new', 'Build the widget', '--title', 'build-the-widget']);
+  const data = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data;
+
+  const bad = flow(dir, ['start', 'exp-1', '--activity', 'two words']);
+  assert.strictEqual(bad.code, 1);
+  assert.match(bad.stderr, /cannot be an activity/);
+  assert.strictEqual(data().status, 'todo', 'a refused word moves nothing');
+
+  const started = flow(dir, ['start', 'exp-1', '--activity', 'Design']);
+  assert.strictEqual(started.code, 0, started.stderr);
+  assert.match(started.stdout, /activity: design/);
+  assert.strictEqual(data().status, 'in-progress');
+  assert.strictEqual(data().activity, 'design');
+
+  const again = flow(dir, ['start', 'exp-1', '--activity', 'build']);
+  assert.strictEqual(again.code, 0, again.stderr);
+  assert.match(again.stdout, /already in-progress/);
+  assert.strictEqual(data().activity, 'build', 'a resumed ticket takes the new word');
+
+  flow(dir, ['start', 'exp-1']);
+  assert.strictEqual(data().activity, 'build', 'a start with no word leaves it');
+  flow(dir, ['park', 'exp-1', '--reason', 'later']);
+  flow(dir, ['start', 'exp-1']);
+  assert.strictEqual(data().activity || '', '', 'a pickup with no word starts clear');
+});
+
 test('flow edit --parent detects and refuses a cycle', () => {
   const dir = project('tickets-edit-cycle');
 

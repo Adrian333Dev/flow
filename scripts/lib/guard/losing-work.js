@@ -18,7 +18,7 @@ const REBUILT = new Set(['node_modules', 'dist', 'build', 'out', 'target', '.nex
 // The project's own `tmp/` is scratch: the agent makes it, and clears it without asking.
 const scratch = (p, ctx) => isInside(path.join(ctx.root, 'tmp'), p);
 const rebuilt = (p, ctx) => scratch(p, ctx) || path.relative(ctx.root, p).split(path.sep).some((part) => REBUILT.has(part));
-const shown = (files, ctx) => listed(files.map((f) => path.relative(ctx.root, f) || '.'));
+const shown = (files, ctx) => listed(files.map((f) => (isInside(ctx.root, f) ? path.relative(ctx.root, f) || '.' : tilde(f, ctx))));
 
 const WHY_LOST = {
   new: ['a new file git has no copy of', 'new files git has no copy of'],
@@ -59,9 +59,13 @@ function locate(one, glob, ctx) {
   if (real === path.parse(real).root || isInside(real, world.home) || isInside(real, ctx.root)) {
     return { reason: `Deletes ${tilde(one, ctx)}, which holds your home folder or this project` };
   }
-  if (!isInside(ctx.root, real)) return { reason: `Deletes ${tilde(one, ctx)}, outside this project` };
+  // ~/.flow is a git repository the sync saves, so git judges a delete there as it does in a project.
+  const flow = path.join(world.home, '.flow');
+  const inFlow = real !== flow && isInside(flow, real);
+  if (inFlow && isInside(path.join(flow, '.git'), real)) return { reason: `Deletes ${tilde(one, ctx)}, the history of ~/.flow` };
+  if (!inFlow && !isInside(ctx.root, real)) return { reason: `Deletes ${tilde(one, ctx)}, outside this project` };
   if (!glob && !world.exists(real)) return {};
-  if (scratch(real, ctx)) return {};
+  if (!inFlow && scratch(real, ctx)) return {};
   if (!glob && world.exists(path.join(real, '.git'))) return { reason: `Deletes ${one}, a whole git repository`, whole: true };
   return { real, spec: glob ? path.join(real, path.relative(base, full)) : real };
 }

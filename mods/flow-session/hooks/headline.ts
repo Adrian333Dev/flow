@@ -89,5 +89,14 @@ function fieldLines(input: unknown): string {
   return { sentence: `Calls the tool ${tool}.`, text: fieldLines(input), kind: 'command' }
 }
 
+/**
+ * The sentence for a write the guard asked about. The guard's own sentence
+ * does not survive: Claude Code swaps in its long `requested permissions` text.
+ */
+export function guardedSentence(tool: string, file: string): string {
+  if (/(^|\/)\.ssh\//.test(file)) return 'Writes into ~/.ssh.'
+  return `${(WRITES[tool] ?? 'Edits this file.').replace(/\.$/, '')}, which could switch the guard off.`
+}
+
 /** The dialog's own question, which the draw rewrites to. */
 export const questionFor = (kind: Headline['kind']) => (kind === 'write' ? 'Allow this write?' : 'Allow this command?')

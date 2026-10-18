@@ -15,7 +15,6 @@
       "Bash"
     ],
     "ask": [
-      "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(util git save *)",
       "Bash(util g save *)",

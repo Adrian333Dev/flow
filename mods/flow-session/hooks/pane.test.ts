@@ -1,11 +1,14 @@
 import { describe, expect, test } from 'claude-code/testing'
 import {
   classify,
+  cover,
   denyFor,
   drawsInColour,
   foldedText,
   forgetDraw,
+  guardedWrite,
   isAutoAllow,
+  isCovered,
   isOwnQuestion,
   keepsBlanks,
   questionText,
@@ -211,5 +214,35 @@ describe('isAutoAllow', () => {
 
   test('never when the decision is not an ask', () => {
     expect(isAutoAllow('Write', input, { decision: 'allow' })).toBe(false)
+  })
+
+  test('allows the main agent under the mod folder, bar the two manifests', () => {
+    const base = '/p/mods/flow-session'
+    expect(isAutoAllow('Edit', { file_path: `${base}/hooks/pane.ts` }, core)).toBe(true)
+    expect(isAutoAllow('Write', { file_path: `${base}/types/index.d.ts` }, core)).toBe(true)
+    expect(isAutoAllow('Edit', { file_path: `${base}/.claude-plugin/plugin.json` }, core)).toBe(false)
+    expect(isAutoAllow('Edit', { file_path: `${base}/hooks/hooks.json` }, core)).toBe(false)
+  })
+
+  test('never for a subagent under the mod folder, or a folder with a similar name', () => {
+    expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-session/hooks/pane.ts' }, core, 'agent-1')).toBe(false)
+    expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-session-copy/hooks/pane.ts' }, core)).toBe(false)
+  })
+})
+
+describe('one yes covers the same guard-asked file', () => {
+  const guard = { decision: 'ask', hook: 'PreToolUse' }
+
+  test('a write the guard asked about names its file', () => {
+    expect(guardedWrite('Edit', { file_path: '/h/.claude/settings.json' }, guard)).toBe('/h/.claude/settings.json')
+    expect(guardedWrite('Bash', { command: 'rm x' }, guard)).toBeUndefined()
+    expect(guardedWrite('Edit', { file_path: '/p/a.ts' }, { decision: 'ask' })).toBeUndefined()
+  })
+
+  test('a covered file stays covered, another does not', () => {
+    expect(isCovered('/h/.claude/settings.json')).toBe(false)
+    cover('/h/.claude/settings.json')
+    expect(isCovered('/h/.claude/settings.json')).toBe(true)
+    expect(isCovered('/h/.claude/settings.local.json')).toBe(false)
   })
 })

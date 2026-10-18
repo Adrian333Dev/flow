@@ -193,6 +193,7 @@
   "disableBundledSkills": true,
   "disableRemoteControl": true,
   "disableClaudeAiConnectors": true,
+  "feedbackSurveyRate": 0,
   "disableArtifact": true,
   "autoMemoryEnabled": false,
   "autoCompactEnabled": false,
@@ -216,7 +217,6 @@
       "Bash"
     ],
     "ask": [
-      "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(util git save *)",
       "Bash(util g save *)",
@@ -242,7 +242,6 @@
       "CronList",
       "EnterWorktree",
       "Agent(isolation:worktree)",
-      "Agent(fork)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
       "Bash(sudo *)",

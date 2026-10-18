@@ -1,6 +1,6 @@
 # Permissions
 
-What runs without asking, what asks, and how a question reaches the user. A session on a set-up project builds a ticket and asks only before a commit, a push or a publish. Three layers decide: the settings rules, the guard, and Flow's mod, which draws every question and writes the log. The guard stops a helpful agent's accidents. It is no defense against a deliberate attack.
+What runs without asking, what asks, and how a question reaches the user. A session on a set-up project builds a ticket and asks only before a push or a publish. Three layers decide: the settings rules, the guard, and Flow's mod, which draws every question and writes the log. The guard stops a helpful agent's accidents. It is no defense against a deliberate attack.
 
 ## Scope
 
@@ -15,7 +15,7 @@ What runs without asking, what asks, and how a question reaches the user. A sess
              ▼
  ┌───────────────────────┐
  │    SETTINGS RULES     │   allow Bash, Edit, Read and the web tools.
- └───────────────────────┘   Ask on commit, push, publish. Deny a short list.
+ └───────────────────────┘   Ask on push, publish. Deny a short list.
              │
              ▼
  ┌───────────────────────┐
@@ -39,18 +39,20 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 
 ### What runs without asking
 
+- `V1` **A prompt asks only for what git cannot undo or what leaves the machine**: a push, a publish, a deploy, sending data, deleting files git has no copy of. Everything else runs. Decided 2026-10-18 from the log of 2026-10-17 and 2026-10-18: all 67 asks were approved and none refused, and the 53 asks of one cause had a median answer of 0.9 s, so they were clicked unread. Overturned by: a harm reaching the user that the guard never asked about.
 - `V1` **Every shell command, edit, read and web call runs unasked.** `permissions.allow` holds a bare `Bash`, `Edit`, `Read`, `WebFetch` and `WebSearch`. Ruled 2026-09-28: a list of allowed programs asked on half of real commands.
 - `V1` **Anything not serious always runs.** Reading a `.env` file, a write to a shell startup file or the global git settings, a global install and a scheduled job leave the guard's list. Ruled 2026-10-12: the user wants as few prompts as possible.
 - `V1` **A write under `~/.claude`, `~/.flow` and `~/.agents` runs unchecked**, except the files that can switch the guard off. Tickets, the wiki, logs, `workflow-notes.md`, skills, rules and `CLAUDE.md` steer the agent and cannot disable the guard. Ruled 2026-10-12. Overturned by: evidence that the guard's files are reachable another way.
 - `V1` **A project's `.flow` is a symlink into `~/.flow/projects/<name>`, so `~/.flow/projects/` stays off the guard's list.** The old rule judged the real path, and 50 asks in 35 minutes came from appends to `.flow/inbox.md` and scratch files under a ticket.
-- `V1` **A write to a protected path with no guard reason is allowed by the mod and logged `auto-allow`.** Claude Code asks for every write under `.claude`, and no settings rule removes the ask. The mod's allow does (probed in `fw-110`).
-- `V1` **The target is zero asks in a normal ticket build**, commit, push and publish aside. `flow audit`'s permissions view reads it. An ask outside that list is a fault, fixed by narrowing a rule. Approved 2026-10-12.
+- `V1` **A write to a protected path with no guard reason is allowed by the mod and logged `auto-allow`.** Claude Code asks for every write under `.claude`, and no settings rule removes the ask. The mod's allow does (probed in `fw-110`). The same holds for Edit and Write from the main agent under `mods/flow-session/`, a loaded mod folder: 53 of the 67 logged asks, and only while the mod itself is edited. `.claude-plugin/plugin.json` and `hooks/hooks.json` still ask, since a manifest decides which hooks load. Decided 2026-10-18.
+- `V1` **The target is zero asks in a normal ticket build**, push and publish aside. `flow audit`'s permissions view reads it. An ask outside that list is a fault, fixed by narrowing a rule. Approved 2026-10-12, commit dropped from the list 2026-10-18.
 
 ### What asks
 
-- `V1` **A commit, a push and a package publish always ask**, through 6 `permissions.ask` lines. A user who wants them silent deletes the lines. Ruled 2026-10-12: they are rare and follow finished work.
+- `V1` **A push and a package publish always ask**, and so does `util git save`, which stages, commits and pushes. A plain `git commit` runs. A user who wants a push silent deletes its `permissions.ask` line. Ruled 2026-10-18: the user asks for each commit and git undoes it, and the 5 commit asks in the log were all approved. Commits asked before (ruled 2026-10-12: rare, after finished work). Overturned by: an agent commit the user never asked for.
 - `V1` **The guard asks before 7 kinds of harm.** It never allows.
   - Losing work: a delete git cannot give back, a delete outside the project, a delete aimed at a variable, and the git commands that throw work away. A delete inside the project's `tmp/` never asks.
+  - A delete inside `~/.flow` is judged like one in a project. Git holds the file, so it runs. Git ignores it (`repos/`, `logs/`, `wiki/*/downloads/`) or has never seen it, so it asks. `~/.flow` itself still asks, and a path that does not exist runs. Decided 2026-10-18: `~/.flow` is a git repository the sync saves, and 3 of the 4 logged deletes were inside it.
   - Sending data off the machine: `curl` or `wget` sending data, a copy to another host, `ssh`.
   - A deploy, a cloud write or a database drop.
   - Running downloaded or unknown code: a download run at once, `npx` of a package the project lacks.
@@ -61,6 +63,8 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 - `V1` **Each ask stays an ask, never a deny.** A deny cannot be overridden and sends the agent into a retry loop.
 - `V1` **The deny list stays**: `sudo`, `su`, `mkfs`, `--dangerously-skip-permissions`, reads of `~/.ssh` and `~/.aws`, plan mode, and the tools Flow replaces. `AskUserQuestion` leaves it.
 - `V1` **The guard's sentence says what the command does to what**, in plain words, with no hook name: `Deletes 14 files git cannot restore, under src/old`.
+- `V1` **A call that will ask holds only the risky part.** A rule for the agent, one line in `home/CLAUDE.md`: split a command so the call that asks holds nothing else. Why: a sentence names one part of a compound command, such as `Deletes ~/.flow/notes/…` over a command that also ran `flow note`, `ls` and `grep`. One part per call makes the sentence and the command agree, with no new code. Decided 2026-10-18.
+- `V1` **One yes covers the same file for the rest of the session**, for a write the guard asked about (the files that can switch it off). The mod keeps the answer in its state, so a restart asks again. Why: the log's 4 edits of one settings file came within 6 seconds. A narrow exception to the `never` on a saved decision below. Decided 2026-10-18. Overturned by: a second edit of the same file refused in the log.
 - `V1` **The guard fails closed.** A top-level catch answers an ask with `The guard failed, so this command asks first.` and never lets a call through on an error. A safety net that fails open is the worst case.
 - `V1` **The guard is the only judge.** Why: a mod that throws is skipped, and the guard would vanish with it while `Bash` is allowed outright. A command hook has no such gap, and `npm test` covers it. Overturned by: a way to make a failing mod fall back to refusing.
 
@@ -92,7 +96,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 
 ### Refused
 
-- `never` **A saved decision, or an "always allow" row in the dialog.** A settings allow rule cannot silence a guard ask, so it would need an allow file the guard reads and code in the mod to write it. The asks left are the rare serious kinds, where a one-click shortcut is what the guard prevents. A command that annoys the user is fixed by telling the agent. Decided 2026-10-13. Reopen if the log shows the same serious ask many times a week.
+- `never` **A saved decision, or an "always allow" row in the dialog.** A settings allow rule cannot silence a guard ask, so it would need an allow file the guard reads and code in the mod to write it. The asks left are the rare serious kinds, where a one-click shortcut is what the guard prevents. A command that annoys the user is fixed by telling the agent. Decided 2026-10-13. Reopen if the log shows the same serious ask many times a week. The one exception is the same file within one session, under `What asks` (2026-10-18).
 - `never` **An undo layer**: snapshots, a trash in place of `rm`, an overlay. No undo covers a push, a deploy or a leaked secret, and 42% of 290 public incidents reached outside the project. Git covers the project. Ruled 2026-10-12.
 - `never` **A defense against hidden instructions in web pages or repository files.** A filter on command text misses effects (52 of 290 public incidents), and the real defenses are ruled out or deferred. Reading secrets and sending data off the machine stay on the guard's list, since they cover the worst result at no cost in asks. Reopen if the agent works in repositories the user does not control. Ruled 2026-10-12.
 - `never` **A sandbox, or a short tool list, for agents that read outside material.** A sandbox wraps shell commands only, so it misses `WebFetch` and `Read`. A reader agent adds a file and a change to the research skill. Ruled 2026-10-12.
@@ -100,7 +104,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 - `never` **A `PermissionRequest` hook as the judge or the recorder.** It does not see the reason a `PreToolUse` hook gave, and it never fires for what the mod answers.
 - `never` **Blast Radius as shipped**, an Anthropic sample mod. Its hold sits before the permission check, so the guard would ask a second time. Its measuring code (Apache-2.0) is reusable.
 - `never` **A pane in the band above the input, or in the side column.** The band cannot take Enter. The side column shows only at 144 columns or more, which means 2 designs for one box.
-- `never` **Auto mode**: it costs extra, its reviews fail with no verdict, and it blocks what the conversation agreed. Ruled 2026-09-28.
+- `never` **Auto mode**: it costs extra, its reviews fail with no verdict, and it blocks what the conversation agreed. Ruled 2026-09-28. Read again 2026-10-18 against Claude Code 2.1.302 (`permission-modes.md`): entering it drops the bare `Bash` allow, so a second model reviews every shell command, and commits and the guard's asks still prompt in it. It would remove only the mod-folder asks, which the mod's allow removes for free. `bypassPermissions` stays disabled by the user, and `dontAsk` denies what would ask, which stops a working session.
 - `never` **Claude Code's sandbox in place of the guard**, ruled 2026-09-28.
 - `never` **A hook approving a command whose programs are all on a list**: built and removed 2026-09-28, since every missed shape meant editing the list.
 - `never` **A timed switch letting commits and pushes run without asking**: removed by the user 2026-09-25, since Claude Code's own prompt covers it. `git log -S gitMode` finds the code.
@@ -146,9 +150,9 @@ One log line:
 1. A session builds a ticket on a set-up project. The agent appends to `.flow/inbox.md`. The guard follows the symlink to `~/.flow/projects/flow-dev/`, finds no file that can switch it off, and stays silent. The rules allow the edit. It runs, and nothing is logged.
 2. The agent writes `.claude/skills/x/SKILL.md`. Claude Code would ask, since `.claude` is protected. The mod's hook sees the ask with no guard reason, allows it, and logs `auto-allow`.
 3. The agent runs `npm test`, then `rm -rf tmp/scratch`. Both run unasked.
-4. The agent runs `git commit`. The rule asks. The mod opens the dialog with `Commits 4 files to main`. The user presses Enter. The log gets `answer: "allow"`.
+4. The agent runs `git commit`. It runs, and nothing is logged. Then `git push`: the rule asks. The mod opens the dialog with `Pushes 3 commits to origin/main`. The user presses Enter. The log gets `answer: "allow"`.
 5. The agent edits `~/.claude/settings.json`. The guard asks with `Writes into ~/.claude/settings.json, which could switch the guard off`. The user presses Esc. The mod stores the verdict, and `classic.PermissionRequest` answers deny with `interrupt`. The screen reads `Interrupted · What should Claude do instead?` and the user types the next instruction.
-6. `flow audit`'s permissions view shows 2 asks: a commit, and a refused settings edit. The second is outside the target's list, so it is read as a fault to look at, here a deliberate test.
+6. `flow audit`'s permissions view shows 2 asks: a push, and a refused settings edit. The second is outside the target's list, so it is read as a fault to look at, here a deliberate test.
 
 ## How it fails
 
@@ -165,7 +169,7 @@ One log line:
 
 ## How you know it worked
 
-- **One ticket built in a real session on a set-up project raises 0 asks apart from commit, push and publish.** `flow audit`'s permissions view shows it. The user waived the dedicated test (`fw-118`) on 2026-10-17: the log since the mod went live held only commit asks, and the live sessions covered the dialog and the refusal. Read the view again after the first release-day ticket.
+- **One ticket built in a real session on a set-up project raises 0 asks apart from push and publish.** `flow audit`'s permissions view shows it. The user waived the dedicated test (`fw-118`) on 2026-10-17: the log since the mod went live held only commit asks, and the live sessions covered the dialog and the refusal. Read the view again after the first release-day ticket.
 - **A write through the project's `.flow` symlink, to `.flow/inbox.md` and to a ticket file, asks nothing.** A test in `scripts/` covers it.
 - **An `Edit` of `settings.json` asks.** So does each kind above, and so does a crash in the guard.
 - **A refused ask ends on `Interrupted · What should Claude do instead?`** Seen in a real session.
@@ -185,11 +189,12 @@ One log line:
 
 ## References
 
-- `.flow/tickets/fw-35-permission-system-redesigned/groundwork/map.md`: every decision above, with its reasoning and the rejected options
-- `.flow/tickets/archive/fw-110-prototype-mods-tool/reports/tool-check-answers-from-the-band.md`: a mod's allow covers `.claude`, `tool.check` fires for a subagent
-- `.flow/tickets/archive/fw-112-prototype-does-mods/reports/dialog-answers-from-tool-check.md`: the `AskUserQuestion` deny kills the dialog
-- `.flow/tickets/archive/fw-113-prototype-permission-dialog/reports/`: colour, the 12-row budget, expand
-- `.flow/tickets/archive/fw-114-prototype-refusal-stops/reports/`: route A2
-- `.flow/tickets/fw-35-permission-system-redesigned/groundwork/permission-palette.html`: the restrained palette on 4 real cases, dark and light
+- `.flow/tickets/archive/fw-35/groundwork/map.md`: the decisions up to 2026-10-17, with their reasoning and the rejected options
+- `.flow/tickets/archive/fw-35/ticket.md` → `## Decisions`: the decisions of 2026-10-18, and the log counts behind them (`~/.flow/logs/permissions/2026-10.jsonl`)
+- `.flow/tickets/archive/fw-110/reports/tool-check-answers-from-the-band.md`: a mod's allow covers `.claude`, `tool.check` fires for a subagent
+- `.flow/tickets/archive/fw-112/reports/dialog-answers-from-tool-check.md`: the `AskUserQuestion` deny kills the dialog
+- `.flow/tickets/archive/fw-113/reports/`: colour, the 12-row budget, expand
+- `.flow/tickets/archive/fw-114/reports/`: route A2
+- `.flow/tickets/archive/fw-35/groundwork/permission-palette.html`: the restrained palette on 4 real cases, dark and light
 - `~/.flow/research/how-agents-cut-permission-prompts-and-undo-mistakes.md`: other agents' approval models, and undo layers
 - `.flow/research/fast-mode/where-flow-slowed-the-work.md`: the 25 guard asks that started it

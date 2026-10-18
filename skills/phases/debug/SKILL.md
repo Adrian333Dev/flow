@@ -13,8 +13,8 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 **On a ticket, read `reports/<failure>.md` before step 1**, if it exists. Resume at the first hypothesis nothing killed. Never restart the loop. No report → step 1.
 
-- **On a ticket** → `flow start <id>` unless it is already `in-progress`, then `flow edit <id> --activity debugging`.
-- **No ticket** → `flow new "<what failed>" --label bug`, then the same two commands, before the first hypothesis.
+- **On a ticket** → `flow start <id> --activity debug`, also where it is already `in-progress`.
+- **No ticket** → `flow new "<what failed>" --label bug`, then the same command, before the first hypothesis.
 
 ## The loop
 

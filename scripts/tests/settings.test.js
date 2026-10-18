@@ -76,6 +76,18 @@ test('--global writes the shared file, and the local file switches nothing', () 
   assert.match(machine.stderr, /unknown flag "--machine", one of: --global/);
 });
 
+test('ls shows each number setting beside its default, and yours once a file sets it', () => {
+  const at = place('settings-values');
+  assert.match(at.flow().stdout, /^value\s+default\s+yours\s*$/m);
+  assert.match(at.flow().stdout, /^wrapUpAt\s+150000\s{2,}the conversation size/m, 'nothing set: yours is blank');
+
+  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ wrapUpAt: 200000 }));
+  assert.match(at.flow().stdout, /^wrapUpAt\s+150000\s+200000\s+the conversation size/m);
+
+  fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ wrapUpAt: 120000 }));
+  assert.match(at.flow().stdout, /^wrapUpAt\s+150000\s+120000\s/m, 'the local file wins');
+});
+
 test('a setting with no folder list, and a word naming no setting, each refuse and say what works', () => {
   const at = place('settings-refusals');
   const folder = at.flow('off', 'reminder');

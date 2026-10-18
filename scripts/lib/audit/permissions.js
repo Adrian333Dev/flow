@@ -6,8 +6,8 @@
  * Flow's mod appends to, and never the transcript index. A line holds the
  * source of an ask (`guard`, `rule`, `core`), its headline, and the answer.
  *
- * The target is zero asks in a normal ticket build apart from commit, push
- * and publish. Those are the asks the shipped `permissions.ask` rules raise,
+ * The target is zero asks in a normal ticket build apart from push and
+ * publish. Those are the asks the shipped `permissions.ask` rules raise,
  * read from `home/settings.json` so the list lives once.
  */
 
@@ -62,7 +62,7 @@ function matches(entry, { id, project, since, until }) {
   return true;
 }
 
-/** The rules that ask before a commit, a push and a publish. */
+/** The rules that ask before a push, a save (which pushes) and a publish. */
 const targetRules = () =>
   (settings.read(path.join(paths.cloneRoot(), 'home', 'settings.json')).permissions || {}).ask || [];
 
@@ -111,9 +111,9 @@ function view({ home, id, project, since, until, limit = 20 }) {
     .filter((entry) => !(entry.source === 'rule' && exempt.includes(entry.rule)))
     .sort((a, b) => (String(a.at) < String(b.at) ? -1 : String(a.at) > String(b.at) ? 1 : 0));
 
-  out.push('', 'THE TARGET: asks other than commit, push and publish');
+  out.push('', 'THE TARGET: asks other than push and publish');
   if (!outside.length) {
-    out.push('0 asks other than commit, push and publish.');
+    out.push('0 asks other than push and publish.');
   } else {
     out.push(`${plural(outside.length, 'ask')} outside the list:`);
     out.push(table(['AT', 'PROJECT', 'SOURCE', 'ANSWER', 'HEADLINE'],

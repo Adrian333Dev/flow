@@ -1,5 +1,6 @@
 {
   "name": "flow-session",
   "version": "0.1.0",
-  "description": "Flow's session mod: restarts a long session in place, loads dragged files and handoff notes, and warns the agent at the wrap-up mark."
+  "description": "Flow's session mod: restarts a long session in place, loads dragged files and handoff notes, warns the agent at the wrap-up mark, and draws the band of tickets above the prompt.",
+  "types": "./types/index.d.ts"
 }

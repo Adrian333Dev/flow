@@ -17,6 +17,7 @@ const { project, run } = require('./helpers/scratch');
 const GUARD = 'Writes into ~/.claude/settings.json, which could switch the guard off';
 const DELETE = 'Deletes 14 files git cannot restore, under src/old';
 const PUSH = 'Pushes 3 commits to origin/main';
+const SAVE = 'Stages everything, commits it and pushes.';
 
 const line = (at, where, session, source, headline, answer, rule = null) => JSON.stringify({
   at, project: where, session, agent: 'main', tool: 'Bash', source, headline,
@@ -40,7 +41,7 @@ const permissions = (env, args = []) => run('flow.js', ['audit', 'permissions', 
 const both = () => roots('audit-permissions', {
   // The laptop's first month.
   '2026-09.jsonl': [
-    line('2026-09-30T08:00:00Z', 'flow-dev', '17da95cd', 'rule', 'Commits 4 files to main', 'allow', 'Bash(git commit *)'),
+    line('2026-09-30T08:00:00Z', 'flow-dev', '17da95cd', 'rule', SAVE, 'allow', 'Bash(util git save *)'),
     line('2026-09-30T08:05:00Z', 'flow-dev', '17da95cd', 'core', 'Writes .claude/skills/x/SKILL.md', 'auto-allow'),
   ],
   // After the sync: the laptop's new lines, a conflict marker, then the PC's
@@ -73,11 +74,11 @@ test('every month file is counted by source and headline, and the asks outside t
     'ASKS  AUTO  HEADLINE',
     `2     0     ${DELETE}`,
     `2     0     ${PUSH}`,
-    '1     0     Commits 4 files to main',
+    `1     0     ${SAVE}`,
     `1     0     ${GUARD}`,
     '0     2     Writes .claude/skills/x/SKILL.md',
     '',
-    'THE TARGET: asks other than commit, push and publish',
+    'THE TARGET: asks other than push and publish',
     '3 asks outside the list:',
     'AT                PROJECT   SOURCE  ANSWER  HEADLINE',
     `2026-10-12 09:10  shop      guard   refuse  ${GUARD}`,
@@ -103,11 +104,11 @@ test('a session is found by the start of its id', () => {
     'BY HEADLINE',
     'ASKS  AUTO  HEADLINE',
     `2     0     ${DELETE}`,
-    '1     0     Commits 4 files to main',
     `1     0     ${PUSH}`,
+    `1     0     ${SAVE}`,
     '0     2     Writes .claude/skills/x/SKILL.md',
     '',
-    'THE TARGET: asks other than commit, push and publish',
+    'THE TARGET: asks other than push and publish',
     '2 asks outside the list:',
     'AT                PROJECT   SOURCE  ANSWER  HEADLINE',
     `2026-10-13 10:02  flow-dev  guard   refuse  ${DELETE}`,
@@ -134,7 +135,7 @@ test('a project narrows the counts, and one ask outside the target reads in the 
     `1     0     ${PUSH}`,
     `1     0     ${GUARD}`,
     '',
-    'THE TARGET: asks other than commit, push and publish',
+    'THE TARGET: asks other than push and publish',
     '1 ask outside the list:',
     'AT                PROJECT  SOURCE  ANSWER  HEADLINE',
     `2026-10-12 09:10  shop     guard   refuse  ${GUARD}`,
@@ -157,13 +158,13 @@ test('a session with no lines prints that plainly', () => {
     'permission log: 0 lines, 1 skipped (did not parse)',
     '0 asks · 0 auto-allowed',
     '',
-    'THE TARGET: asks other than commit, push and publish',
-    '0 asks other than commit, push and publish.',
+    'THE TARGET: asks other than push and publish',
+    '0 asks other than push and publish.',
     '',
   ].join('\n'));
 });
 
-test('a build with only commit and push asks meets the target', () => {
+test('a build with only a push ask meets the target', () => {
   const env = roots('audit-permissions-clean', {
     '2026-10.jsonl': [
       line('2026-10-13T10:00:00Z', 'shop', 'aa11bb22', 'rule', PUSH, 'allow', 'Bash(git push *)'),
@@ -173,7 +174,7 @@ test('a build with only commit and push asks meets the target', () => {
   const result = permissions(env);
   assert.strictEqual(result.code, 0, result.stderr);
   assert.match(result.stdout, /^1 ask · 1 auto-allowed$/m);
-  assert.match(result.stdout, /^0 asks other than commit, push and publish\.$/m);
+  assert.match(result.stdout, /^0 asks other than push and publish\.$/m);
   assert.doesNotMatch(result.stdout, /outside the list/);
 });
 

@@ -157,9 +157,18 @@ function locate(ref, unnamed) {
  * `batch` is a move inside a larger one (a label parked whole): the caller
  * commits and sends once, so the move prints its own line and nothing else.
  */
-function transition(t, tickets, root, status, { force, reason, verb, batch }) {
+function transition(t, tickets, root, status, { force, reason, verb, batch, activity }) {
   const from = t.data.status;
   if (from === status) {
+    // A skill resuming a ticket in progress still names its kind of work.
+    if (activity && status === 'in-progress' && t.data.activity !== activity) {
+      const was = t.data.activity || '-';
+      t.data.activity = activity;
+      store.writeTicket(t);
+      records.commit(root, `${t.id}: activity ${was} → ${activity}`);
+      out(`${t.id} is already ${status}.\n      activity: ${was} → ${activity}`);
+      return 0;
+    }
     out(`${t.id} is already ${status}.`);
     return 0;
   }
@@ -210,7 +219,7 @@ function transition(t, tickets, root, status, { force, reason, verb, batch }) {
   const before = graph.readyTickets(tickets).map((x) => x.id);
   const revived = from === 'parked' && t.data.reason;
 
-  const { moved } = store.setStatus(t, status, reason || '');
+  const { moved } = store.setStatus(t, status, reason || '', activity || '');
   const inParent = followInParent(t, tickets, from, status);
   // A status move is a checkpoint: saved on the `flow` branch now, and sent
   // in the background, so the move never waits on the network.
@@ -220,6 +229,7 @@ function transition(t, tickets, root, status, { force, reason, verb, batch }) {
   }
   out(`${store.nameOf(t)}  ${from} → ${status}`);
   if (t.data.reason && !batch) out(`      reason: ${t.data.reason}`);
+  if (t.data.activity) out(`      activity: ${t.data.activity}`);
   if (moved) out(`      moved → ${rel(root, moved.to)}`);
   if (revived && !batch) out(`      revived, cleared reason: ${revived}`);
   if (inParent) out(`      ${inParent}`);
@@ -492,9 +502,10 @@ actions.edit = {
     label: { arg: '<label,label>' },
     parent: { arg: '<id>' },
     deps: { arg: '<id,id>' },
+    activity: { arg: '<word>' },
   },
   run({ positional, flags, usage }) {
-    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--description ...] [--label ...]`);
+    if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--description ...] [--label ...] [--activity ...]`);
 
     const { root, tickets, t } = locate(positional[0]);
     const changes = [];
@@ -544,9 +555,23 @@ actions.edit = {
       t.data.labels = labels;
     }
 
+    if (flags.activity !== undefined) {
+      // The kind of work under way, shown on the band. Empty clears it.
+      const activity = String(flags.activity).trim().toLowerCase();
+      if (activity) {
+        const refused = store.badActivity(activity);
+        if (refused) throw new FlowError(refused);
+        if (t.data.status !== 'in-progress') {
+          throw new FlowError(`${t.id} is ${t.data.status}: only an in-progress ticket has an activity. Start it with flow start ${t.id}.`);
+        }
+      }
+      changes.push(`activity: ${t.data.activity || '-'} → ${activity || '-'}`);
+      t.data.activity = activity;
+    }
+
     if (!changes.length) {
       throw new FlowError(
-        'nothing to change: pass --title, --description, --label, --parent or --deps. Order is flow rank.\n' +
+        'nothing to change: pass --title, --description, --label, --parent, --deps or --activity. Order is flow rank.\n' +
         `  Status moves are their own commands: flow start ${t.id}, flow done ${t.id}, flow park ${t.id}.`
       );
     }
@@ -833,6 +858,7 @@ for (const s of statuses.VERBS) {
     summary: s.name === 'parked' ? `${statuses.DOES[s.verb]}; --label parks every open ticket with it` : statuses.DOES[s.verb],
     flags: {
       ...(s.name === 'parked' ? { label: { arg: '<label>' } } : {}),
+      ...(s.name === 'in-progress' ? { activity: { arg: '<word>' } } : {}),
       ...(needsReason
         ? { reason: { required: true, arg: '"<why>"', missing: `${s.verb}ing needs a reason: in six months it is the only thing that explains the ticket.` } }
         : {}),
@@ -851,8 +877,12 @@ for (const s of statuses.VERBS) {
         });
       }
       if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
+      const activity = flags.activity ? String(flags.activity).trim().toLowerCase() : '';
+      const refused = activity && store.badActivity(activity);
+      if (refused) throw new FlowError(refused);
       const { root, tickets, t } = locate(positional[0]);
       return transition(t, tickets, root, s.name, {
+        activity,
         force: flags.force,
         reason: flags.reason ? String(flags.reason).trim() : '',
         verb: `flow ${s.verb} ${t.id}`,

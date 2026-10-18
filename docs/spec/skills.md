@@ -1,10 +1,10 @@
 # Skills
 
-How Flow's skills are shaped, installed and switched on, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 11, typed `/flow:<name>`. 4 of them are the phases, the 4 kinds of work. The rest are the tools around the work.
+How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 11, typed `/flow:<name>`. 4 of them are the phases, the 4 kinds of work. The rest are the tools around the work.
 
 ## Scope
 
-- **In**: Flow's 11 skills and what each does, the 4 phases, `/flow:handoff`, how skills install and switch on, outside skills and their sources, overlays and arguments.
+- **In**: Flow's 11 skills and what each does, the 4 phases, `/flow:handoff`, how skills install, outside skills and their sources, overlays and arguments.
 - **Out**: ticket skills, in `docs/spec/tickets.md`. `/flow:research`, the wiki and how `/flow:file-findings` routes a finding, in `docs/spec/knowledge-base.md`. `/flow:visualize`, in `docs/spec/drawing.md`. The checks `/flow:file-findings` writes, in `docs/spec/rules.md`.
 
 ## Where a skill lives
@@ -14,10 +14,10 @@ How Flow's skills are shaped, installed and switched on, and how outside skills 
 ├─ phases/    groundwork, execute, prototype, debug
 ├─ tools/     start, handoff, file-findings, research,
 │             tickets-from-spec, visualize
-└─ dev/       review                             starts off
+└─ dev/       review
 ~/.agents/skills/flow/                     the plugin folder
 ├─ .claude-plugin/plugin.json              copied, names the set "flow"
-└─ skills/<name> → the clone               one link per skill switched on
+└─ skills/<name> → the clone               one link per skill
 ~/.claude/skills/flow → ~/.agents/skills/flow    loaded as flow@skills-dir
 
 ~/.flow/private-skills/<name>/             the user's own skills, and any skill repository cloned by hand
@@ -32,7 +32,7 @@ How Flow's skills are shaped, installed and switched on, and how outside skills 
 
 - `V1` **11 skills in 3 groups**: `phases/` (`groundwork`, `execute`, `prototype`, `debug`), `tools/` (`start`, `handoff`, `file-findings`, `research`, `tickets-from-spec`, `visualize`) and `dev/` (`review`).
 - `V1` **Every skill is typed `/flow:<name>`, and no folder or `name` carries the prefix.** `skills/.claude-plugin/plugin.json` names the set `flow`, and Claude Code adds the prefix as the skill loads. Decided 2026-09-18: bare, `setup`, `help` and `migrate` claimed ground on a machine with other skills.
-- `V1` **The 10 outside `dev/` are always on**: `flow skills` leaves them out of its list and refuses to switch one. The one in `dev/` starts off, and `flow skills on review --global` links it.
+- `V1` **Every skill is always on**: `flow install` links each one, and nothing switches one off.
 - `V1` **3 skills only the user can start**: `/flow:start`, `/flow:tickets-from-spec` and `/flow:file-findings`, each `disable-model-invocation: true`. `home/CLAUDE.md` → `user-only-skills` names them, so the agent suggests them.
 - `V1` **A description says what the skill is and what it covers**, never its steps and never when to fire it. Claude Code loads every description at session start and fires a skill from it alone. A description summing up the steps gets followed in place of the file.
 - `V1` **A shell line in a skill runs one named command**, never logic written inline: `` !`flow exp-47 2>&1 || true` ``.
@@ -84,10 +84,9 @@ Closed at 4, set by the user.
 ### Installing and switching
 
 - `V1` **`flow install` builds one plugin folder, `~/.agents/skills/flow/`**: one link per skill into the clone, and the manifest copied, since Codex ignores a linked one. `~/.claude/skills/flow` links to it, the one folder Flow links whole.
-- `V1` **A skill is on while its link exists.** `flow skills on`, `off` and `reset` write a line `"skills": { "react": "on" }` at one of 2 levels: the project's `.flow/settings.json`, or `~/.flow/settings.json` with `--global`. The project wins name by name. Every command and every session start makes the links match.
-- `never` **`flow skills add|drop`, the `sources` list and the pull at session start.** Left Flow 2026-10-14 (`fw-124`): `domain-skills` was the only source. An outside skill repository is cloned by hand into the skills folder, which `flow skills` reads at any depth, and updated with `git pull`. `.flow/research/skill-curation/outside-skill-repositories-dropped-in-v1.md` says what the commands did and what leans on them, for when the research skill is reworked.
+- `never` **`flow skills add|drop`, the `sources` list and the pull at session start.** Left Flow 2026-10-14 (`fw-124`): `domain-skills` was the only source. An outside skill repository is cloned by hand into the skills folder and updated with `git pull`. `.flow/research/skill-curation/outside-skill-repositories-dropped-in-v1.md` says what the commands did and what leans on them, for when the research skill is reworked.
 - `V1` **A Flow skill has no switch per project.** `skillOverrides` does not reach a plugin's skills.
-- `V1` **A dev session loads the dev copy's skills**: `claude --plugin-dir ~/code/flow-dev/skills`, in `docs/spec/product.md` → `### Working on Flow itself`.
+- `V1` **A skill edit in the dev checkout reaches every session at once**, since `~/.flow/repos/flow` links to it (`docs/spec/product.md` → `### Working on Flow itself`).
 - `later` **A skill update's new commands, hosts and paths listed before it lands.** Each skill links into its clone, so an update gaining `curl … | bash` reaches every project the next session. SkilLock lists what a change adds.
 - `later` **`paths:` on an outside skill**, so it loads only beside matching files. Parked until a project uses 5 or more outside skills.
 
@@ -121,19 +120,12 @@ Closed at 4, set by the user.
 ## The parts
 
 - **`skills/`**: Flow's skills, and `skills/.claude-plugin/plugin.json`.
-- **`scripts/lib/skills/skills.js`**: which skills are essential. **`skill-links.js`**: makes the links match the settings.
-- **`scripts/commands/skills.js`**: `flow skills`.
+- **`scripts/lib/skills/skills.js`**: the skill catalog and what installs.
 - **`scripts/hooks/overlays.js`**: the overlays.
 - **`references/knowledge.md`**: used whole or harvested, and the order for reaching a service.
 - **`skills/tools/file-findings/references/write-skills.md`**: how a skill is written.
 
 ## What passes between them
-
-A project's settings switching 2 skills:
-
-```json
-{ "skills": { "react": "on", "nestjs": "off" } }
-```
 
 An overlay, `~/.flow/skill-overlays/execute.md`, reaching the agent as `/flow:execute` loads:
 
@@ -146,23 +138,21 @@ End every review with the next ticket to take, and why.
 ## One real case: a project takes on a skill
 
 1. `/flow:research` finds 3 NestJS skills and reads them. One is the makers' own.
-2. The user agrees to use the makers' skill whole. They clone `nestjs/skills` into `~/.flow/private-skills/`, and `flow skills on nestjs` links it into the project's `.claude/skills/`.
+2. The user agrees to use the makers' skill whole. They clone `nestjs/skills` into `~/.flow/private-skills/`, and links it into the project's `.claude/skills/` by hand.
 3. The next session lists it. Its description loads, and the agent starts it on a NestJS file.
 4. The user writes `~/.flow/skill-overlays/nestjs.md`. Every load, in every project, hands it over.
 5. The makers push a change. The user runs `git pull` in the clone, and every project with the link reads the new version.
 
 ## How it fails
 
-- **A Flow skill and a private skill share a name** → `flow skills on` refuses, and asks to rename the private one.
-- **`flow skills off` in a project on a skill on everywhere** → refused, naming `--global`.
 - **A link someone replaced with a real folder** → `flow install` refuses to overwrite it.
 - **An overlay is missing, or the hook fails** → the skill loads with nothing added.
-- **A line in settings names an essential Flow skill** → `flow doctor` reports it.
+- **A `skillOverrides` key names a Flow skill** → `flow doctor` reports it, since the key does nothing.
 
 ## How you know it worked
 
 - **Claude Code loads `flow@skills-dir` and names its skills `flow:<name>`**: proven 2026-09-18 in a scratch install.
-- **`npm test` covers the links, the 2 levels and the overlays.**
+- **`npm test` covers the links and the overlays.**
 - **`overlays.js` in a live session.** Not yet: its test feeds it the calls the docs describe.
 - **The beta runs each phase on real work**, `fw-2` to `fw-14`.
 

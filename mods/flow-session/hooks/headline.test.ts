@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { headline, mainField, questionFor } from './headline'
+import { guardedSentence, headline, mainField, questionFor } from './headline'
 
 describe('headline', () => {
   test('a shell command keeps itself as the text', () => {
@@ -80,6 +80,14 @@ describe('mainField', () => {
     expect(mainField({ command: 'ls', file_path: '/a' })).toBe('ls')
     expect(mainField({ url: 'https://x.dev' })).toBe('https://x.dev')
     expect(mainField({ other: 1 })).toBeUndefined()
+  })
+})
+
+describe('guardedSentence', () => {
+  test('names the file kind a guard ask protects, in the mod\'s own words', () => {
+    expect(guardedSentence('Edit', '/h/.claude/settings.json')).toBe('Edits this file, which could switch the guard off.')
+    expect(guardedSentence('Write', '/h/.claude/settings.json')).toBe('Writes this file, which could switch the guard off.')
+    expect(guardedSentence('Write', '/h/.ssh/config')).toBe('Writes into ~/.ssh.')
   })
 })
 

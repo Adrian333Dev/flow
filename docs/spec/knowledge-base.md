@@ -230,7 +230,7 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
 
 ## References
 
-- `.flow/tickets/fw-94-research-cleanup/groundwork/map.md`: section 1, the wiki and research layout, and the reasoning behind it.
+- `.flow/tickets/archive/fw-94/groundwork/map.md`: section 1, the wiki and research layout, and the reasoning behind it.
 
 - `.flow/research/context7/how-it-retrieves-docs.md`: how Context7 retrieves docs, supplied by the user.
 - `.flow/research/context7/which-tools-compete.md`: the tools competing with Context7, supplied by the user.

@@ -116,6 +116,7 @@ function show(ticket, tickets, root) {
     store.nameOf(ticket),
     ticket.data.description || null,
     `status: ${ticket.data.status}   parent: ${ticket.data.parent || '-'}`,
+    ticket.data.activity ? `activity:   ${ticket.data.activity}` : null,
     ticket.data.was ? `was:        ${ticket.data.was}` : null,
     branchLine(ticket, root),
     typeof ticket.data.rank === 'number' ? `rank:       ${ticket.data.rank}` : null,

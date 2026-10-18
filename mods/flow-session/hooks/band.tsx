@@ -1,0 +1,379 @@
+/**
+ * band.tsx: the band above the prompt, one badge for each ticket the session works.
+ *
+ * A badge is the ticket's id and short name in black on `#ffb703`, joined to its word and
+ * count on the terminal's background plus 7% of that colour. A ticket lights when
+ * `flow <id>` reads one in progress or `flow start <id>` moves one, and its file is read
+ * again whenever a command or an edit touches it, and at each turn's end. For as long as a turn
+ * runs, the badge the session works (the last one lit) shows a pale bar 3 cells wide moving along
+ * it and a spinner turning after its word; `band-settings.json` switches either off. The rules
+ * for joining and leaving are in band-model.ts; this file only feeds them and draws the result.
+ *
+ * register.ts calls these from its own hooks: a mod's hooks on one event are one hook,
+ * and the validator follows `on` only where it is spelled out.
+ */
+import { atom, read, update } from 'claude-code'
+import type { EngineInterface, RenderElement, RenderInput, SessionAppendInput, ToolCallInput, TurnCompleteInput, TurnStartInput } from 'claude-code'
+
+import type { Entry } from '../types'
+import { describeScenario, parseMock, parseScenarios, usage, withActing, type Scenario } from './band-mock'
+import { SPIN_CELLS, apply, currentId, layout, mix, setActing, spinnerAt, waveShares } from './band-model'
+import { failureFiles, openIssues } from './issues'
+import { DEFAULT_LOOK, parseLook, type Look } from './look'
+import { isExpired, isRecordKey, makeRecord, parseRecord, recordKey } from './record'
+import { idsIn, readTicket } from './ticket'
+
+const band = atom({ plugin: 'flow-session', key: 'band' } as const, [] as Entry[])
+const issues = atom({ plugin: 'flow-session', key: 'issues' } as const, 0)
+const frame = atom({ plugin: 'flow-session', key: 'frame' } as const, 0)
+
+const ORANGE = '#ffb703'
+const GREEN = '#22c55e'
+const BLACK = '#000000'
+const WHITE = '#ffffff'
+// How far toward white the wave's centre cell goes: pale enough to stay behind black text.
+const WASH = 0.75
+// The terminal's background is not readable from a mod, so the status part mixes with this one.
+const TERMINAL = '#16191d'
+const WAVE_MS = 70
+const FILE_TOOL = /^(Read|Edit|Write|MultiEdit|NotebookEdit)$/
+
+// True from the main session's turn start to its end. A hot reload starts it over as false.
+let turnRunning = false
+// The ticket the last `flow <id>` or `flow start <id>` named: the badge the session works.
+let current: string | undefined
+let wave: { cancel: () => void } | undefined
+// Which working signs show, read from `band-settings.json` at session start and at each turn's start.
+let look: Look = DEFAULT_LOOK
+// The test band `/band` shows in place of the real one. It is never saved: a hot reload, a restart,
+// `/band off` and the next turn's start all clear it. `mockActing` puts the signs on its open badges.
+let mock: { name: string; scenario: Scenario } | undefined
+let lastMock: string | undefined
+let mockActing = false
+
+/** What a tool call names: ticket ids, and whether the call is `flow <id>` or `flow start <id>`, which lights. The call's fields sit on the event itself. */
+function namedBy(tool: string, call: object): { ids: string[]; lights: boolean } {
+  const fields = call as { command?: unknown; file_path?: unknown }
+  if (tool === 'Bash' && typeof fields.command === 'string') {
+    const command = fields.command
+    if (!/\bflow\b|\bfw\s/.test(command)) return { ids: [], lights: false }
+    return { ids: idsIn(command), lights: /\b(?:flow|fw)\s+(start\s+)?[a-z]+-\d+\b/.test(command) }
+  }
+  if (FILE_TOOL.test(tool) && typeof fields.file_path === 'string' && fields.file_path.includes('/tickets/')) {
+    return { ids: idsIn(fields.file_path), lights: false }
+  }
+  return { ids: [], lights: false }
+}
+
+/** The Flow home: `FLOW_HOME`, else `~/.flow`. */
+async function flowHome($: EngineInterface): Promise<string> {
+  return (await $.env.get('FLOW_HOME')) ?? `${await $.env.get('HOME')}/.flow`
+}
+
+/** A file's text, or undefined when it is missing or unreadable. */
+function readText($: EngineInterface, file: string): Promise<string | undefined> {
+  return $.fs.read(file).catch(() => undefined)
+}
+
+/** A ticket's folder: `tickets/<id>` or `tickets/<id>-<words>`, open or in `tickets/archive/`. */
+async function folderOf($: EngineInterface, id: string): Promise<string | undefined> {
+  const tickets = `${await $.session.root()}/.flow/tickets`
+  for (const dir of [tickets, `${tickets}/archive`]) {
+    const entries = await $.fs.list(dir).catch(() => [])
+    const found = entries.find((entry) => entry.kind === 'dir' && (entry.name === id || entry.name.startsWith(`${id}-`)))
+    if (found) return `${dir}/${found.name}`
+  }
+  return undefined
+}
+
+/** Reads the ticket again from its file and applies it to the band. */
+async function refresh($: EngineInterface, id: string, lights: boolean): Promise<void> {
+  const folder = await folderOf($, id)
+  const text = folder ? await readText($, `${folder}/ticket.md`) : undefined
+  if (!folder || text === undefined) return
+  const ticket = readTicket(text, await readText($, `${folder}/groundwork/map.md`))
+  if (ticket) await update($, band, (entries) => apply(entries ?? [], ticket, lights))
+}
+
+/** A failure of the saved record, put in the log so a band that never comes back is not silent. */
+function lost($: EngineInterface, what: string, error: unknown): void {
+  $.ui.log(`band ${what} failed: ${error instanceof Error ? error.message : String(error)}`)
+}
+
+/** Writes the band to this session's record. A lost write is rewritten at the next turn's end. */
+async function save($: EngineInterface): Promise<void> {
+  const entries = await read($, band)
+  await $.store.set(recordKey(await $.session.id()), makeRecord(entries, new Date()))
+}
+
+/** Deletes the records nobody has written for 14 days, and any key that holds no record. */
+async function prune($: EngineInterface): Promise<void> {
+  const now = new Date()
+  for (const key of (await $.store.keys()).filter(isRecordKey)) {
+    if (isExpired(await $.store.get(key), now)) await $.store.delete(key)
+  }
+}
+
+/**
+ * Puts the saved band back after a reopen, each ticket read again from its file: one that is
+ * done turns green, one parked or dropped leaves. A hot reload keeps `$.state`, so a band
+ * already there is left as it is.
+ */
+async function restore($: EngineInterface): Promise<void> {
+  if ((await read($, band)).length) return
+  const saved = parseRecord(await $.store.get(recordKey(await $.session.id())))
+  if (!saved?.band.length) return
+  await update($, band, () => saved.band)
+  for (const entry of saved.band) await refresh($, entry.id, false).catch(() => undefined)
+  $.ui.log(`band restored: ${saved.band.length} from ${saved.updated}`)
+}
+
+/** Starts or stops the wave's timer: one frame every 70 ms while any badge shown is acting and a sign is on. */
+async function runWave($: EngineInterface): Promise<void> {
+  const shown = mock ? withActing(mock.scenario.entries, mockActing) : await read($, band)
+  const anyActing = (look.sweep || look.spinner) && shown.some((entry) => entry.acting)
+  if (anyActing && !wave) wave = $.clock.every(WAVE_MS, () => void update($, frame, (n) => (n ?? 0) + 1).catch(() => undefined))
+  if (!anyActing && wave) {
+    wave.cancel()
+    wave = undefined
+  }
+}
+
+/** Puts the signs on the badge the session works while a turn runs, and takes them off every badge otherwise. */
+async function pointWave($: EngineInterface): Promise<void> {
+  await update($, band, (entries) => setActing(entries ?? [], turnRunning ? currentId(entries ?? [], current) : undefined))
+  await runWave($)
+}
+
+/** Puts the real band back and redraws. */
+async function clearMock($: EngineInterface): Promise<void> {
+  mock = undefined
+  mockActing = false
+  await runWave($)
+  await update($, frame, (n) => (n ?? 0) + 1)
+}
+
+/** The mod's own folder, found from `CLAUDE_CODE_PLUGIN_DIRS` (`~` expanded), or undefined. */
+async function modFolder($: EngineInterface): Promise<string | undefined> {
+  const dir = ((await $.env.get('CLAUDE_CODE_PLUGIN_DIRS')) ?? '').split(':').find((path) => /flow-session\/?$/.test(path))
+  return dir?.replace(/^~/, (await $.env.get('HOME')) ?? '~')
+}
+
+/** Reads `band-settings.json` in the mod folder, so an edit shows from the next turn. */
+async function readLook($: EngineInterface): Promise<void> {
+  const dir = await modFolder($)
+  look = parseLook(dir ? await readText($, `${dir}/band-settings.json`) : undefined)
+}
+
+/** The scenarios in `band-scenarios.json` beside the mod's manifest, read afresh. */
+async function readScenarios($: EngineInterface): Promise<{ scenarios: Record<string, Scenario>; error?: string }> {
+  const dir = await modFolder($)
+  if (!dir) return { scenarios: {}, error: 'The mod folder is not in CLAUDE_CODE_PLUGIN_DIRS, so band-scenarios.json cannot be found.' }
+  const file = `${dir}/band-scenarios.json`
+  const text = await readText($, file)
+  return text === undefined ? { scenarios: {}, error: `No scenarios file at ${file}.` } : parseScenarios(text)
+}
+
+/** `/band`: shows a test scenario in place of the real band, or puts the real one back. Returns the reply. */
+export async function bandMock($: EngineInterface, args: string): Promise<string> {
+  if (args.trim().toLowerCase() === 'off') {
+    await clearMock($)
+    return 'Band shows the real tickets.'
+  }
+  const { scenarios, error } = await readScenarios($)
+  if (error) return error
+  const names = Object.keys(scenarios)
+  const command = parseMock(args, names, mock?.name, lastMock)
+  if ('help' in command) return usage(names)
+  if ('list' in command) return names.map((name, i) => describeScenario(`${i + 1} ${name}`, scenarios[name] as Scenario)).join('\n')
+  if ('acting' in command) {
+    if (!names.length) return usage(names)
+    if (mock) mockActing = !mockActing
+    else {
+      // After a reopen no scenario is shown: `act` shows the last one, or the first, with the signs on.
+      const name = lastMock && scenarios[lastMock] ? lastMock : (names[0] as string)
+      mock = { name, scenario: scenarios[name] as Scenario }
+      lastMock = name
+      mockActing = true
+    }
+    await readLook($)
+  } else if ('show' in command) {
+    mock = { name: command.show, scenario: scenarios[command.show] as Scenario }
+    lastMock = command.show
+  } else {
+    await clearMock($)
+    return 'Band shows the real tickets.'
+  }
+  await runWave($)
+  await update($, frame, (n) => (n ?? 0) + 1)
+  return `Band shows scenario ${names.indexOf(mock?.name ?? '') + 1}, ${mock?.name}${mockActing ? ', act' : ''}.`
+}
+
+async function countIssues($: EngineInterface): Promise<void> {
+  const texts = await Promise.all(failureFiles(await flowHome($), new Date()).map((file) => readText($, file)))
+  await update($, issues, () => openIssues(texts.filter((text): text is string => text !== undefined)))
+}
+
+/** The session is ready: reads the settings, puts the saved band back and counts the open issues. */
+export async function bandStart($: EngineInterface): Promise<void> {
+  await readLook($).catch(() => undefined)
+  await restore($).catch((error) => lost($, 'restore', error))
+  await prune($).catch((error) => lost($, 'prune', error))
+  await countIssues($).catch(() => undefined)
+}
+
+/** A turn began: the main session's puts the signs on the badge it works, and ends a test band. */
+export async function bandTurnStart($: EngineInterface, e: TurnStartInput): Promise<void> {
+  if (e.agentId !== undefined) return
+  turnRunning = true
+  if (mock) await clearMock($).catch(() => undefined)
+  await readLook($).catch(() => undefined)
+  await pointWave($).catch(() => undefined)
+}
+
+/**
+ * Runs a tool call. `run` is the call itself; the tickets it names are read again after it.
+ * A `flow <id>` or `flow start <id>` makes that ticket the one the session works.
+ */
+export async function bandToolCall<R>($: EngineInterface, e: ToolCallInput, run: () => Promise<R>): Promise<R> {
+  const { ids, lights } = namedBy(e.tool, e)
+  try {
+    return await run()
+  } finally {
+    // The call has run: the file says what it did.
+    await touched($, ids, lights)
+  }
+}
+
+/** Tickets a command named were changed or looked at: reads them again, and the lit one becomes the one the session works. */
+async function touched($: EngineInterface, ids: string[], lights: boolean): Promise<void> {
+  for (const id of ids) await refresh($, id, lights).catch(() => undefined)
+  if (!ids.length) return
+  if (lights) {
+    const lit = (await read($, band).catch(() => [])).find((entry) => ids.includes(entry.id) && !entry.isDone)
+    if (lit) current = lit.id
+  }
+  await pointWave($).catch(() => undefined)
+  await save($).catch((error) => lost($, 'save', error))
+}
+
+// The command the person last ran with `!`. Its output row comes after the command has run, and that row is the cue.
+let shell: string | undefined
+// `flow [start|done|park|drop] [fw-]137`, or `fw` for `flow`: the person may type the number alone.
+const SHELL_FLOW = /\b(?:flow|fw)\s+(?:(start|done|park|drop)\s+)?(?:[a-z]+-)?(\d+)\b/
+
+/**
+ * A row was added to the conversation. The person's own `!` commands raise no tool call, so a
+ * `flow` command typed that way is read here: the `<bash-input>` row keeps the command, the
+ * `<bash-stdout>` row after it says the command is done and names the ticket in full.
+ */
+export async function bandShell($: EngineInterface, e: SessionAppendInput): Promise<void> {
+  if (e.agentId !== undefined) return
+  const text = e.message.content.map((block) => (typeof block.text === 'string' ? block.text : '')).join('')
+  const input = /<bash-input>([\s\S]*?)<\/bash-input>/.exec(text)
+  if (input) {
+    shell = input[1]
+    return
+  }
+  if (!shell || !text.includes('<bash-stdout>')) return
+  const command = shell
+  shell = undefined
+  const named = SHELL_FLOW.exec(command)
+  if (!named) return
+  const [, verb, number] = named
+  const ids = idsIn(text).filter((id) => id.endsWith(`-${number}`))
+  await touched($, ids.length ? ids : idsIn(command), verb === undefined || verb === 'start')
+}
+
+/** A turn ended: every badge is read again from its file, the signs stop, and the issue count is read again. */
+export async function bandTurnComplete($: EngineInterface, e: TurnCompleteInput): Promise<void> {
+  if (e.agentId !== undefined) return
+  turnRunning = false
+  for (const entry of await read($, band).catch(() => [])) await refresh($, entry.id, false).catch(() => undefined)
+  await pointWave($).catch(() => undefined)
+  await save($).catch((error) => lost($, 'save', error))
+  await countIssues($).catch(() => undefined)
+}
+
+/** The band's row, or what the engine drew where there is nothing to show. */
+export async function drawBand(
+  $: EngineInterface,
+  e: RenderInput<'AbovePrompt'>,
+  next: (e: RenderInput<'AbovePrompt'>) => Promise<RenderElement>,
+): Promise<RenderElement> {
+  const scenario = mock?.scenario
+  const entries = scenario ? withActing(scenario.entries, mockActing) : await read($, band)
+  const open = scenario ? scenario.issues : await read($, issues)
+  const tick = await read($, frame)
+  if (e.props.hasSurvey || (!entries.length && !open)) return next(e)
+
+  const elements = $.ui.resolve(e)
+  const { Box, Button, Text } = elements
+  const row = layout(entries, scenario?.columns ?? e.props.bodyColumns, open, look.spinner)
+
+  // Each badge is one plain Button, so the engine's own hover and pointer zone apply. A press
+  // does nothing until the board exists.
+  const badges = row.badges.flatMap((badge, at) => {
+    const colour = badge.isDone ? GREEN : ORANGE
+    const dark = mix(TERMINAL, colour, 0.07)
+    const waves = badge.acting && look.sweep
+    const spins = badge.acting && look.spinner
+    const shares = waves ? waveShares(badge.name.length + badge.status.length + (spins ? SPIN_CELLS : 0), tick) : undefined
+    // While the wave runs each letter of the name has its own background. On the status and the
+    // spinner only the bar's centre cell shows, in the badge's colour with black text.
+    const lit = (at: number) => shares?.[at] === 1
+    const name = shares
+      ? [...badge.name].map((letter, i) => (
+          <Text key={`n${i}`} color={BLACK} backgroundColor={mix(colour, WHITE, (shares[i] ?? 0) * WASH)}>
+            {letter}
+          </Text>
+        ))
+      : [
+          <Text key="name" color={BLACK} backgroundColor={colour}>
+            {badge.name}
+          </Text>,
+        ]
+    const status = shares
+      ? [...badge.status].map((letter, i) => {
+          const on = lit(badge.name.length + i)
+          return (
+            <Text key={`s${i}`} color={on ? BLACK : colour} backgroundColor={on ? colour : dark}>
+              {letter}
+            </Text>
+          )
+        })
+      : [
+          <Text key="status" color={colour} backgroundColor={dark}>
+            {badge.status}
+          </Text>,
+        ]
+    return [
+      at ? <Text key={`gap-${badge.id}`}>{'  '}</Text> : '',
+      <Button key={`badge-${badge.id}`} plain onPress={() => undefined}>
+        <Text color={colour}>▐</Text>
+        {name}
+        {status}
+        {spins
+          ? [' ', spinnerAt(tick)].map((cell, i) => {
+              const on = lit(badge.name.length + badge.status.length + i)
+              return (
+                <Text key={`p${i}`} color={on ? BLACK : colour} backgroundColor={on ? colour : dark}>
+                  {cell}
+                </Text>
+              )
+            })
+          : ''}
+        <Text color={dark}>▌</Text>
+      </Button>,
+    ]
+  })
+
+  return (
+    <Box marginTop={1}>
+      {badges}
+      {row.folded ? <Text dimColor> +{row.folded}</Text> : ''}
+      {row.issues ? <Text>{' '.repeat(row.space)}</Text> : ''}
+      {row.issues ? <Text color="warning">{row.issues}</Text> : ''}
+    </Box>
+  )
+}

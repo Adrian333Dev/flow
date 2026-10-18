@@ -126,6 +126,32 @@ test('a delete inside the project\'s tmp/ never asks, unless a link leads out of
   ]);
 });
 
+test('a delete inside ~/.flow is judged by git: a tracked file runs, an ignored or new one asks', () => {
+  const w = world('guard-flow-home');
+  const flow = path.join(w.home, '.flow');
+  for (const f of ['.gitignore', 'notes/a.md', 'wiki/x/page.md', 'logs/x.log']) {
+    fs.mkdirSync(path.dirname(path.join(flow, f)), { recursive: true });
+    fs.writeFileSync(path.join(flow, f), f === '.gitignore' ? 'logs/\n' : 'x\n');
+  }
+  const git = (...args) => spawnSync('git', ['-C', flow, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { encoding: 'utf8' });
+  git('init', '-q');
+  git('add', '.');
+  git('commit', '-q', '-m', 'start');
+  fs.writeFileSync(path.join(flow, 'notes', 'new.md'), 'x\n');
+  expect(w, [
+    'rm ~/.flow/logs/x.log',
+    'rm ~/.flow/notes/new.md',
+    'rm -rf ~/.flow',
+    'rm -rf ~/.flow/.git',
+    'rm ~/.flow/.git/HEAD',
+    'rm ~/flow-release-old',
+  ], [
+    'rm ~/.flow/notes/a.md',
+    'rm -rf ~/.flow/wiki',
+    'rm -f ~/.flow/notes/missing.md',
+  ]);
+});
+
 test('a delete whose target is only known when it runs asks, in every shape', () => {
   expect(world('guard-dynamic'), [
     'for d in ../a ../b; do rm -rf "$d"; done',
