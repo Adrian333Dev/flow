@@ -1,25 +1,25 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { parseNote, rows, titleOf } from './notes'
+import { parseNote, rows, ticketPrefix, titleOf } from './notes'
 
 const file = (labels: string, project: string, body: string) =>
   `---\ndate: 2026-10-16\nlabels: [${labels}]\nproject: ${project}\n---\n\n${body}\n`
 
-const board = parseNote('/h/.flow/notes/board-notes-page.md', 30, file('board, ui', 'flow-dev', 'Board notes page: a full editor'))
-const restart = parseNote('/h/.flow/notes/restart.md', 20, file('board', 'flow-dev', 'Restart keeps the files open'))
-const kind = parseNote('/h/.flow/notes/never-write-kind.md', 40, file('profile', 'global', 'never write kind'))
-const cache = parseNote('/h/.flow/notes/cache-the-parse.md', 50, file('perf', 'lumacraft', 'cache the parse'))
+const board = parseNote('/h/.flow/notes/board-notes-page.md', 30, file('board, ui', 'fw', 'Board notes page: a full editor'))
+const restart = parseNote('/h/.flow/notes/restart.md', 20, file('board', 'fw', 'Restart keeps the files open'))
+const kind = parseNote('/h/.flow/notes/never-write-kind.md', 40, file('profile', 'home', 'never write kind'))
+const cache = parseNote('/h/.flow/notes/cache-the-parse.md', 50, file('perf', 'luma', 'cache the parse'))
 const all = [board, restart, kind, cache]
 
 describe('parseNote', () => {
   test('reads the header and the title', () => {
     expect(board.labels).toEqual(['board', 'ui'])
-    expect(board.project).toBe('flow-dev')
+    expect(board.project).toBe('fw')
     expect(board.title).toBe('Board notes page')
   })
 
-  test('a file with no header is a global note titled by its first line', () => {
+  test('a file with no header is a home note titled by its first line', () => {
     const bare = parseNote('/h/.flow/notes/x.md', 1, 'see https://example.com for the idea\n')
-    expect(bare.project).toBe('global')
+    expect(bare.project).toBe('home')
     expect(bare.labels).toEqual([])
     expect(bare.title).toBe('see https://example.com for the idea')
   })
@@ -27,6 +27,16 @@ describe('parseNote', () => {
   test('reads quoted and empty labels', () => {
     expect(parseNote('/p', 1, file('"a", \'b\'', 'x', 'text')).labels).toEqual(['a', 'b'])
     expect(parseNote('/p', 1, file('', 'x', 'text')).labels).toEqual([])
+  })
+})
+
+describe('ticketPrefix', () => {
+  test('reads the prefix of a settings file, and nothing from a missing or odd one', () => {
+    expect(ticketPrefix('{"ticketPrefix":"fw"}')).toBe('fw')
+    expect(ticketPrefix(undefined)).toBeUndefined()
+    expect(ticketPrefix('not json')).toBeUndefined()
+    expect(ticketPrefix('{}')).toBeUndefined()
+    expect(ticketPrefix('{"ticketPrefix":"Flow-Dev"}')).toBeUndefined()
   })
 })
 
@@ -39,7 +49,7 @@ describe('titleOf', () => {
 
 describe('rows', () => {
   test('# alone lists labels by count, then the current project first', () => {
-    const list = rows(all, '#', 'flow-dev')
+    const list = rows(all, '#', 'fw')
     expect(list.slice(0, 2)).toEqual([
       { text: '#board', label: '#board', description: '2 notes' },
       { text: '#perf', label: '#perf', description: '1 note' },
@@ -47,20 +57,20 @@ describe('rows', () => {
     expect(list.filter((r) => r.text.startsWith('@')).map((r) => r.label)).toEqual([
       'Board notes page',
       'Restart keeps the files open',
-      'lumacraft: cache the parse',
-      'global: never write kind',
+      'luma: cache the parse',
+      'home: never write kind',
     ])
   })
 
   test('a note row writes an @ mention of the file, and shows its labels', () => {
-    const [row] = rows([board], '#boa', 'flow-dev').filter((r) => r.text.startsWith('@'))
+    const [row] = rows([board], '#boa', 'fw').filter((r) => r.text.startsWith('@'))
     expect(row).toEqual({ text: '@/h/.flow/notes/board-notes-page.md ', label: 'Board notes page', description: '#board #ui' })
   })
 
   test('a word narrows labels and notes, and reads the project too', () => {
-    expect(rows(all, '#bo', 'flow-dev').map((r) => r.label)).toEqual(['#board', 'Board notes page', 'Restart keeps the files open'])
-    expect(rows(all, '#lumacraft', 'flow-dev').map((r) => r.label)).toEqual(['lumacraft: cache the parse'])
-    expect(rows(all, '#nothing', 'flow-dev')).toEqual([])
+    expect(rows(all, '#bo', 'fw').map((r) => r.label)).toEqual(['#board', 'Board notes page', 'Restart keeps the files open'])
+    expect(rows(all, '#luma', 'fw').map((r) => r.label)).toEqual(['luma: cache the parse'])
+    expect(rows(all, '#nothing', 'fw')).toEqual([])
   })
 
   test('caps the rows', () => {

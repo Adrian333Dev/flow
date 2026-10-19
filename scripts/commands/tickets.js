@@ -27,6 +27,7 @@ const { indent } = require('../lib/render');
 const statuses = require('../lib/tickets/statuses');
 const records = require('../lib/tickets/records');
 const registry = require('../lib/registry');
+const paths = require('../lib/paths');
 const ticketSkills = require('../lib/tickets/ticket-skills');
 
 // True while a write runs (set around it, below): a write outside a project
@@ -45,8 +46,8 @@ const outside = () => new FlowError(
 
 /**
  * The tickets of the project this runs in. Outside one, a read shows the home
- * place and says so, and a write refuses. `here` is passed by a caller that
- * has already looked; null means it looked and found none.
+ * place under its header line, and a write refuses. `here` is passed by a
+ * caller that has already looked; null means it looked and found none.
  */
 function load(here = projectRootOrNull()) {
   if (here) {
@@ -54,8 +55,13 @@ function load(here = projectRootOrNull()) {
     return { root: here, tickets: store.readTickets(here) };
   }
   if (writing) throw outside();
-  out('outside a project: showing ~/.flow/tickets');
+  out(placeLine(store.homeRoot()));
   return loadHome();
+}
+
+/** The header over a project's tickets in a listing: its prefix, then its folder. */
+function placeLine(root) {
+  return `${store.prefixOf(root)}  ${paths.shorten(root)}`;
 }
 
 /** The home place: the tickets in ~/.flow/, which belong to no project. */
@@ -75,12 +81,42 @@ function needProject(flags = {}) {
   return root;
 }
 
-/** The tickets a read lists: the project `--project` names, else `load`'s. */
+/**
+ * The tickets `ls` and `next` list: the project `--project` names, else the
+ * one this runs in, else home. The project's header line prints first, so
+ * every listing has one shape.
+ */
 function loadFor(flags = {}) {
-  if (flags.project === undefined) return load();
-  const root = projectNamed(flags.project, '--project');
+  const root = flags.project === undefined ? projectRootOrNull() : projectNamed(flags.project, '--project');
+  if (!root) return load(null);
   touched.add(root);
+  out(placeLine(root));
   return { root, tickets: store.readTickets(root) };
+}
+
+/** True when a query names the `flow-issue` label, which is filed where the fault arose and so is read from every project. */
+function wantsIssues(positional) {
+  return query.parse(positional.join(' '), QUERY_FIELDS).some((term) => term.field === 'label' && term.values.includes('flow-issue'));
+}
+
+/**
+ * The tickets of every project this machine knows and of home, joined into
+ * one list, plus the project this runs in before it has registered. `places`
+ * holds each project's own tickets, the project you stand in first and home
+ * last. A registered path that is gone is skipped, and `flow doctor` names it.
+ */
+function loadAll() {
+  const here = projectRootOrNull();
+  const folders = registry.projects()
+    .filter((p) => p.exists && (p.prefix === store.HOME_WORD || fs.existsSync(path.join(p.folder, '.flow'))))
+    .map((p) => p.folder);
+  if (here && !store.isHome(here) && !registry.registeredAs(here)) folders.push(here);
+  const places = folders.map((root) => ({ root, tickets: store.readTickets(root) }));
+  const rank = ({ root }) => (store.isHome(root) ? 2 : here && store.prefixOf(root) === store.prefixOf(here) ? 0 : 1);
+  places.sort((a, b) => rank(a) - rank(b));
+  const tickets = places.flatMap((place) => place.tickets);
+  tickets.prefix = here ? store.prefixOf(here) : store.HOME_WORD;
+  return { root: here || store.homeRoot(), tickets, places };
 }
 
 /**
@@ -481,10 +517,19 @@ actions.ls = {
   args: '["<query>"]',
   flags: { project: PROJECT_FLAG },
   run({ positional, flags }) {
-    const { tickets } = loadFor(flags);
+    const across = flags.project === undefined && wantsIssues(positional);
+    const { tickets, places } = across ? loadAll() : loadFor(flags);
     const { list, hidden, parked } = select(tickets, positional);
 
-    out(render.ticketTable(graph.rankByStatus(list, tickets)));
+    // Issues across projects print one group per project; any other listing is the one group loadFor headed.
+    if (places) {
+      places.forEach(({ root }, i) => {
+        out(`${i ? '\n' : ''}${placeLine(root)}`);
+        out(render.ticketTable(graph.rankByStatus(list.filter((t) => t.root === root), tickets)));
+      });
+    } else {
+      out(render.ticketTable(graph.rankByStatus(list, tickets)));
+    }
     const note = hiddenNote(hidden, parked);
     if (list.length) out(`\n${list.length} of ${tickets.length}${note ? `, ${note}` : ''}.`);
     else if (note) out(note);
@@ -501,7 +546,7 @@ actions.labels = {
   summary: 'the labels on the tickets a quoted query names, with counts; the tickets too when 10 or fewer',
   args: '["<query>"]',
   run({ positional }) {
-    const { tickets } = load();
+    const { tickets } = wantsIssues(positional) ? loadAll() : load();
     const { terms, list, hidden, parked } = select(tickets, positional);
     const asked = new Set(terms.filter((t) => t.field === 'label').flatMap((t) => t.values));
     const counts = new Map();

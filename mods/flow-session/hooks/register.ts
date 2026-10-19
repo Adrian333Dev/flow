@@ -29,7 +29,7 @@ import { drawRows, type MakeText } from './draw'
 import { guardedSentence, headline, questionFor } from './headline'
 import { appendCommand, logLine, logPath, sourceOf, type LogAnswer, type LogFields } from './log'
 import { isNote } from './note'
-import { parseNote, rows, type Note } from './notes'
+import { parseNote, rows, ticketPrefix, type Note } from './notes'
 import {
   classify,
   cover,
@@ -153,10 +153,21 @@ async function readNotes($: EngineInterface, home: string): Promise<Note[]> {
   return found.filter((note): note is Note => note !== undefined)
 }
 
-/** The project name `flow note` files under: the session folder's name, `global` in the Flow home. */
+/** The project name the ask log records: the session folder's name, `global` in the Flow home. */
 async function projectName($: EngineInterface, home: string): Promise<string> {
   const root = (await $.session.root()).replace(/\/+$/, '')
   return root === home || `${root}/.flow` === home ? 'global' : root.slice(root.lastIndexOf('/') + 1)
+}
+
+/**
+ * The word the notes of this session's project carry in `project:`: its ticket
+ * prefix, `home` in the Flow home. A folder with no prefix falls back to its
+ * name, which matches no note.
+ */
+async function noteProject($: EngineInterface, home: string): Promise<string> {
+  const root = (await $.session.root()).replace(/\/+$/, '')
+  if (root === home || `${root}/.flow` === home) return 'home'
+  return ticketPrefix(await readText($, `${root}/.flow/settings.json`)) ?? root.slice(root.lastIndexOf('/') + 1)
 }
 
 /** `$.fs` has no delete, so the notes go through `rm`. */
@@ -360,7 +371,7 @@ export const register: Register = (on) => {
   // join beneath the engine's own, so a failure here shows no rows at all.
   on('prompt.autocomplete', { token: /^#/ }, async ($, e, next) => {
     const home = await flowHome($)
-    const found = rows(await readNotes($, home), e.token, await projectName($, home))
+    const found = rows(await readNotes($, home), e.token, await noteProject($, home))
     const before = await next(e)
     return { suggestions: [...before.suggestions, ...found] }
   }).catch(() => ({ suggestions: [] }))

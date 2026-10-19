@@ -111,23 +111,24 @@ test('flow move takes the destination project as a prefix, and refuses a folder'
   assert.ok(Object.keys(registry.read(home)).includes('bee'));
 });
 
-test('a read in a folder with no project shows the home tickets, says so, and creates nothing', () => {
+test('a read in a folder with no project shows the home tickets under a header line, and creates nothing', () => {
   const { a, home } = pair('routing-outside');
   flow(a, ['new', 'Kept', '--title', 'kept']);
   assert.strictEqual(flow(a, ['move', 'exp-1', 'home']).code, 0);
 
   const ls = outside('routing-outside', home, ['ls']);
   assert.strictEqual(ls.code, 0, ls.stderr);
-  assert.match(ls.stdout, /^outside a project: showing ~\/\.flow\/tickets\n/);
+  assert.match(ls.stdout, /^home {2}\S+\n/);
+  assert.doesNotMatch(ls.stdout, /outside a project/);
   assert.match(ls.stdout, /home-1-kept/);
 
   const next = outside('routing-outside', home, ['next']);
   assert.strictEqual(next.code, 0, next.stderr);
-  assert.match(next.stdout, /^outside a project: showing ~\/\.flow\/tickets\n/);
+  assert.match(next.stdout, /^home {2}\S+\n/);
 
   const named = outside('routing-outside', home, ['home-1']);
   assert.strictEqual(named.code, 0, named.stderr);
-  assert.doesNotMatch(named.stdout, /outside a project/, 'an id that names its place defaults to nothing');
+  assert.doesNotMatch(named.stdout, /^home {2}\S+$/m, 'an id that names its place prints no header');
   assert.deepStrictEqual(fs.readdirSync(ls.cwd), [], 'nothing was initialized in the folder');
 });
 
@@ -214,4 +215,57 @@ test('a write whose id names its place works from a folder with no project', () 
   const bee1 = outside('routing-named', home, ['start', 'bee-1']);
   assert.strictEqual(bee1.code, 0, bee1.stderr);
   assert.match(fs.readFileSync(path.join(b, '.flow', 'tickets', '1', 'ticket.md'), 'utf8'), /^status: in-progress$/m);
+});
+
+test('every ls and next list begins with its header line, inside a project too', () => {
+  const { a } = pair('routing-header');
+  flow(a, ['new', 'Mine', '--title', 'mine']);
+
+  const lists = [
+    [['ls'], 'exp'], [['next'], 'exp'], [['ls', '-p', 'exp'], 'exp'], [['next', '-p', 'exp'], 'exp'],
+    [['ls', '-p', 'bee'], 'bee'], [['next', '-p', 'bee'], 'bee'], [['ls', '-p', 'home'], 'home'],
+  ];
+  for (const [args, prefix] of lists) {
+    const out = flow(a, args).stdout;
+    assert.match(out, new RegExp(`^${prefix} {2}~?\\S+\\n`), args.join(' '));
+    assert.strictEqual(out.match(/^(exp|bee|home) {2}\S+$/gm).length, 1, `${args.join(' ')} has one header`);
+  }
+});
+
+test('flow-issue queries read every project and home, and skip a registered path that is gone', () => {
+  const { a, b, home } = pair('routing-issues');
+  flow(a, ['new', 'Fault A', '--title', 'fault-a', '--label', 'flow-issue,rework-loop']);
+  flow(b, ['new', 'Fault B', '--title', 'fault-b', '--label', 'flow-issue,wrong-output'], { FLOW_HOME: home });
+  flow(a, ['new', 'Fault H', '--title', 'fault-h', '--label', 'flow-issue,hook', '-p', 'home']);
+  registry.write({ ...registry.read(home), gone: path.join(a, 'moved-away') }, home);
+
+  const ls = outside('routing-issues', home, ['ls', 'label:flow-issue']);
+  assert.strictEqual(ls.code, 0, ls.stderr);
+  const groups = (out) => out.split(/^(?=(?:exp|bee|home|gone) {2}\S+$)/m).filter((g) => /^\w+ {2}\S+\n/.test(g));
+  const prefixes = (out) => groups(out).map((g) => g.split(' ')[0]);
+  const under = (out, prefix, id) => groups(out).find((g) => g.startsWith(`${prefix}  `))?.includes(id);
+
+  assert.strictEqual(under(ls.stdout, 'exp', 'exp-1-fault-a'), true, 'fault A sits under exp');
+  assert.strictEqual(under(ls.stdout, 'bee', 'bee-2-fault-b'), true, 'fault B sits under bee');
+  assert.strictEqual(under(ls.stdout, 'home', 'home-1-fault-h'), true, 'fault H sits under home');
+  assert.doesNotMatch(ls.stdout, /bee-1-thing/, 'a ticket without the label stays out');
+  assert.ok(!prefixes(ls.stdout).includes('gone'), 'a registered path that is gone has no group');
+  assert.strictEqual(ls.stdout.match(/^\d+ of \d+/gm).length, 1, 'one count line');
+
+  const labels = outside('routing-issues', home, ['labels', 'label:flow-issue']);
+  assert.strictEqual(labels.code, 0, labels.stderr);
+  assert.match(labels.stdout, /^3 tickets, 3 open$/m);
+  assert.match(labels.stdout, /^more labels: .*rework-loop 1/m);
+  assert.match(labels.stdout, /^bee-2 +todo /m);
+
+  const inside = flow(a, ['ls', 'label:flow-issue']).stdout;
+  assert.deepStrictEqual(prefixes(inside), ['exp', 'bee', 'home'], 'the project you stand in first, home last');
+  assert.strictEqual(under(inside, 'bee', 'bee-2-fault-b'), true, 'from inside a project too');
+  assert.doesNotMatch(labels.stdout, /^(exp|bee|home) {2}\S+$/m, 'labels stays merged, with no group headers');
+
+  const named = flow(a, ['ls', 'label:flow-issue', '-p', 'bee']).stdout;
+  assert.match(named, /bee-2-fault-b/);
+  assert.doesNotMatch(named, /exp-1-fault-a/, '-p limits it to one project');
+
+  assert.doesNotMatch(flow(a, ['ls', 'label:rework-loop,hook']).stdout, /home-1|bee-2/, 'any other query reads the current project');
 });

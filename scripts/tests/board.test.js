@@ -176,7 +176,8 @@ test('a new label one typo from an existing one is refused unless --force', () =
 test('flow next counts what waits for /flow:upkeep, and prints nothing where nothing waits', () => {
   const dir = project('board-next-waiting');
   flow(dir, ['new', 'Alpha', '--title', 'alpha']);
-  assert.doesNotMatch(flow(dir, ['next']).stdout, /waiting/);
+  const body = () => flow(dir, ['next']).stdout.split('\n').slice(1).join('\n');
+  assert.doesNotMatch(body(), /waiting/);
 
   flow(dir, ['start', 'exp-1']);
   flow(dir, ['done', 'exp-1']);
@@ -365,7 +366,7 @@ test('flow next counts nothing it does not print', () => {
 
   const next = flow(dir, ['next']);
   assert.strictEqual(next.code, 0, next.stderr);
-  assert.match(next.stdout, /^in flight \(1\)\n/);
+  assert.match(next.stdout, /^exp {2}\S+\nin flight \(1\)\n/);
 });
 
 test('flow next shows in-flight tickets above the ready list', () => {

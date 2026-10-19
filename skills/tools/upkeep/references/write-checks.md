@@ -64,7 +64,7 @@ Every check gets a test in `~/.flow/scripts/tests/`, holding at minimum one real
 
 **Most checks stay at `measure` forever, and that is success.**
 
-**A rule the user has called minor stays at `measure` whatever the evidence says.** Comment shape is the standing example.
+**A rule the user has called minor stays at `measure` whatever the evidence says.**
 
 **A path-scoped rule that matters starts at `warn`, never `measure`.** A rule with `paths:` loads only when a matching file is read, so a brand-new file is written without it. `warn` injects the rule's whole text beside the message.
 

@@ -53,7 +53,7 @@ What happens each time the agent edits or writes a file:
 - `never` **The machine's rules in `~/.agents/AGENTS.md`, imported by `~/.claude/CLAUDE.md`**, the layout until 2026-10-08: 2 files for one set of rules, so another agent could read them. Flow supports no other agent yet.
 - `never` **A project's rules in `AGENTS.md`, imported by `CLAUDE.md`**, the layout until 2026-10-08: it let Codex read Flow's rules, and let Codex write into them. No setting blocks every agent's edits, since every agent runs as the user's account.
 - `never` **A project's rules in `.agents/AGENTS.md`, imported by `CLAUDE.md`**, proposed 2026-10-08 because Codex never reads that path and its sandbox cannot write it. `CLAUDE.md` alone does the same job with 1 file and no import.
-- `V1` **`claude/rules/comments.md` holds the comment rules**, 13 of them, loaded only for JS, TS, Python, shell, SQL and CSS files through `paths:`. The user ruled comment shape minor.
+- `never` **Comment rules in `claude/rules/comments.md`**, loaded for code files through `paths:` from 2026-09-10, with their check `js-and-ts.js`. Archived by the user 2026-10-20 in `lab/archive/comment-rules/`: comment shape is minor, and Flow needs none of its 13 rules. The rule checks stay, and take real rules once they exist.
 - `V1` **One rule set for every model.** No model detection and no rule written for one model. A rule that works on any model is what makes the default-action rule below required.
 - `V1` **Stack content lives in a domain skill, never in a rule file with `paths:`.** Set by the user 2026-09-10, rejecting a `rules/typescript.md`.
 - `V1` **Block-level HTML comments cost nothing**: Claude Code strips them before a `CLAUDE.md` enters context, so placeholder comments in a template are free.
@@ -85,9 +85,9 @@ What happens each time the agent edits or writes a file:
 - `V1` **A warning carries the rule's id where its file is loaded, and its whole text where not.** `instructions-loaded.js` records each rule file as it enters context, on the `InstructionsLoaded` event.
 - `V1` **A warning reaches the agent through `additionalContext`.** `permissionDecisionReason` on an allow reaches the terminal alone.
 - `V1` **The hook never allows, and a failure inside it lets the edit through silently.** It cannot widen what the permissions allow. Breaking every edit over one bad check costs more than the counts are worth.
-- `V1` **A rule the user called minor stays at `measure`**, whatever the counts say. Comment shape is the case.
+- `V1` **A rule the user called minor stays at `measure`**, whatever the counts say.
 - `V1` **A wrong warning goes to `.flow/findings/scorecard.md`**, which `/flow:file-findings` reads. A wrong check gets fixed. A rule too vague for any check gets rewritten.
-- `V1` **About 10 checks before V1**, chosen from rules real sessions break, where a script can decide from the edit alone: `fw-12`. Today there is one, `js-and-ts.js`, counting a run of `//` lines above a function. The checks stay, ruled by the user 2026-10-01: they are a major feature, and one check says nothing about its worth.
+- `V1` **About 10 checks before V1**, chosen from rules real sessions break, where a script can decide from the edit alone: `fw-12`. Today there are none: the first, `js-and-ts.js`, went with the comment rules on 2026-10-20. The checks stay, ruled by the user 2026-10-01 and again 2026-10-20: they are a major feature, and the next check comes with a real rule.
 - `later` **A project's own checks, in `.flow/checks/<id>.js`**, loaded beside the global ones. Skipped 2026-09-07: no project needs one, and a mechanism built before its first case gets built wrong.
 - `later` **A linter as a check**: ESLint, ruff or shellcheck run by a check and filed under a Flow rule id, or Flow writing linter settings from its rules. Flow reads a linter a project already has, and adding one stays the user's call.
 - `later` **A sweep of the whole tree against every rule, ending in one report.** The hook sees one edit's added text. The open problem: every check judges new text, and handing one a file older than its rule turns a clean tree into thousands of findings.
@@ -110,7 +110,6 @@ What happens each time the agent edits or writes a file:
 
 - **`home/CLAUDE.md`**: the template of the rule file every session loads.
 - **`project-template/CLAUDE.md`**: a project's rule file before setup fills it.
-- **`claude/rules/comments.md`**: the comment rules, linked into `~/.claude/rules/` by `flow install`.
 - **`references/style.md`, `write-rules.md`, `cut-loaded-files.md`**: how a rule file is written.
 - **`scripts/hooks/rule-check.js`**: the wiring. **`scripts/lib/checks/judge.js`** judges the edit, and **`checks.js`** loads the checks and reads a rule's text out of its file.
 - **`scripts/hooks/instructions-loaded.js`**: records each rule file loaded.
@@ -121,7 +120,7 @@ What happens each time the agent edits or writes a file:
 
 ## What passes between them
 
-A check file, the one there is:
+A check file, `js-and-ts.js`, archived 2026-10-20 in `lab/archive/comment-rules/`:
 
 ```js
 module.exports = {
@@ -163,7 +162,7 @@ A line in a session's scorecard file:
 
 ## How you know it worked
 
-- **`js-and-ts.js` fired correctly in a live session** on 2026-09-10.
+- **A check fired correctly in a live session** on 2026-09-10: `js-and-ts.js`, since archived.
 - **A warning carrying a rule's whole text reaches a live session.** Not yet: unit-tested only, and no `warn` check exists.
 - **A rule filed changes what the agent does**: the same rejected reply does not come back once its rule lands. Not yet shown. The 3 study cases of 2026-09-06 (since retired into issue tickets) were marked fixed the day `## The turn` was written from them, so fixed records a rule written, never a rule that worked.
 - **About 10 checks recording across real sessions**, and `flow scorecard` naming at least one ready to move up: `fw-12`.

@@ -135,7 +135,18 @@ A ticket is one piece of work, kept as a folder in the project's `.flow/tickets/
 
 **Tickets come in rank order.** Tickets with the same parent are siblings, and top-level tickets share the empty parent. Among siblings, a ticket with a `rank:` number comes first, by number. The tickets without one follow by id, so a new ticket lands last. [`flow rank`](#flow-rank) moves a ticket.
 
-**Outside a project, a read shows your Flow home.** In a folder that is no project, `flow ls`, `flow next` and the other reads run on the tickets in `~/.flow/tickets/` and begin with one line, `outside a project: showing ~/.flow/tickets`. They create nothing. A command that writes (`flow new`, `flow note`, a status move on a bare number) refuses and names the choices: `flow init` here, or `-p home`.
+**Outside a project, a read shows your Flow home.** In a folder that is no project, `flow ls`, `flow next` and the other reads run on the tickets in `~/.flow/tickets/`. They create nothing. A command that writes (`flow new`, `flow note`, a status move on a bare number) refuses and names the choices: `flow init` here, or `-p home`.
+
+**Every `flow ls` and `flow next` list begins with one line naming its project**: the prefix, then the project's folder. It is the same in a project, with `-p`, and in a folder that is no project, where it names your Flow home.
+
+```console
+$ flow ls -p home
+home  ~/.flow
+TICKET               STATUS  LABELS  PARENT
+home-3-backup-notes  todo    chore   -
+
+1 of 1.
+```
 
 **`-p <prefix>` runs a command in another project.** `flow new`, `flow ls`, `flow next` and `flow note` take `-p`, or `--project`, with the prefix of any project on this computer, from any folder. `home` is your Flow home. A command with an id reads the project from the id and takes no flag.
 
@@ -159,6 +170,7 @@ What to work on next: tickets in progress first, then the ones that continue ope
 
 ```console
 $ flow next
+shop  ~/code/shop
 last closed  shop-5-chart-library
 
 in flight (1)
@@ -188,6 +200,7 @@ The open tickets in a table. Parked, done and dropped ones stay out, as a count,
 
 ```console
 $ flow ls
+shop  ~/code/shop
 TICKET                STATUS       LABELS           PARENT
 shop-4-safari-cookie  in-progress  bug,urgent       -
 shop-6-dark-mode      todo         feature,post-v1  -
@@ -202,6 +215,7 @@ shop-3-csv-export     todo         feature,v1       -
 
 ```console
 $ flow ls "safary"
+shop  ~/code/shop
 TICKET                STATUS       LABELS      PARENT
 shop-4-safari-cookie  in-progress  bug,urgent  -
 
@@ -217,9 +231,27 @@ shop-4-safari-cookie  in-progress  bug,urgent  -
 - **`filed:no`**: finished tickets not yet checked for lessons. [`flow file`](#flow-file) marks them, and `filed:yes` finds the ones it marked.
 - **`-p`, `--project <prefix>`**: another project's tickets, or `home`'s. This is a flag beside the query, never a term inside it.
 
+**A query with `label:flow-issue` reads every project on this computer, and `home`.** A Flow issue is filed in the project where the fault arose, so the list gathers them all, one group per project: the header line, then that project's table. The project you stand in comes first and `home` last. A project with no match shows `no tickets.`. One count line closes the list. `-p` limits it to one project. Every other query reads the project you stand in. A project whose folder is gone is skipped, and `flow doctor` names it.
+
+```console
+$ flow ls "label:flow-issue"
+shop  ~/code/shop
+TICKET              STATUS  LABELS                   PARENT
+shop-9-wrong-total  todo    flow-issue,wrong-output  -
+
+fw  ~/code/flow-dev
+TICKET                  STATUS  LABELS                  PARENT
+fw-214-hand-run-in-tmp  todo    flow-issue,rework-loop  -
+
+home  ~/.flow
+no tickets.
+
+2 of 21, 4 done or dropped hidden: "status:all".
+```
+
 ### `flow labels`
 
-`flow labels "<query>"`: the labels on the tickets a query names, each with how many of those tickets carry it. Add a label to the query to narrow the set, until it is small enough to read. The labels in the query itself are left out of the count.
+`flow labels "<query>"`: the labels on the tickets a query names, each with how many of those tickets carry it. Add a label to the query to narrow the set, until it is small enough to read. The labels in the query itself are left out of the count. A query with `label:flow-issue` counts the tickets of every project and `home` together, in one count line and one list, since the repeat check asks whether a type is filed anywhere. Each id starts with its project's prefix, such as `shop-9`.
 
 ```console
 $ flow labels "label:flow-issue"
@@ -561,10 +593,10 @@ The scorecard lists checks that fail to load, checks naming a rule that no longe
 
 ```console
 $ flow scorecard
-never applied: loaded every session, never once relevant
-  js-and-ts
+nothing to report yet.
 
-1 rules measured, 147 not measurable. 0 results over 0 days.
+0 rules measured, 121 not measurable. 0 results over 0 days.
+No checks yet. One file each in ~/.flow/repos/flow/scripts/rule-checks.
 ```
 
 ## Audit

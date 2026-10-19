@@ -84,7 +84,6 @@ Each folder here can also hold entries from other tools. `flow install` never re
 - **`skills/<name>`**: a skill of your own, loaded in every project. Claude Code reads it, and Flow never writes it.
 - **`skills/home-<n>/`**: a [ticket skill](skills.md#ticket-skills) for each open ticket in your Flow home.
 - **`agents/haiku-worker.md`**: the helper agent Flow hands simple jobs to. [Subagents](../subagents.md) covers it.
-- **`rules/comments.md`**: the rules for code comments, loaded only while the agent works on code.
 - **`projects/`**: Claude Code's record of every session. `flow audit` reads it.
 
 ## `~/.flow/`

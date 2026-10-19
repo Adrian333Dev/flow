@@ -51,12 +51,22 @@ export function titleOf(body: string): string {
   return (cut?.[1]?.trim() || line)
 }
 
-/** One note file. `project` is `global` where the header names none. */
+/** The `ticketPrefix` in the text of a `.flow/settings.json`, or undefined when it holds none. */
+export function ticketPrefix(settings: string | undefined): string | undefined {
+  try {
+    const word = (JSON.parse(settings ?? '') as { ticketPrefix?: unknown }).ticketPrefix
+    return typeof word === 'string' && /^[a-z]{2,8}$/.test(word) ? word : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/** One note file. `project` is the prefix its header names, `home` where it names none. */
 export function parseNote(path: string, changed: number, raw: string): Note {
   const { header, body } = split(raw)
   const inner = (header.get('labels') ?? '').replace(/^\[|\]$/g, '')
   const labels = inner.split(',').map((l) => unquote(l).toLowerCase()).filter(Boolean)
-  const project = unquote(header.get('project') ?? '') || 'global'
+  const project = unquote(header.get('project') ?? '') || 'home'
   return {
     path,
     changed,
@@ -69,7 +79,7 @@ export function parseNote(path: string, changed: number, raw: string): Note {
 
 const cut = (text: string, width: number) => (text.length > width ? `${text.slice(0, width - 1).trimEnd()}…` : text)
 
-/** The word a row's title starts with: none for the current project, `global:` or `<project>:` for the rest. */
+/** The word a row's title starts with: none for the current project, `home:` or `<prefix>:` for the rest. */
 const prefixOf = (note: Note, here: string) =>
   note.project.toLowerCase() === here.toLowerCase() ? '' : `${note.project}: `
 

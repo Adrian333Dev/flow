@@ -31,3 +31,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`read-repos-with-cat`** `repos/` holds other people's clones. Read them with `cat`, never `Read`, and never edit them.
 - **`home-files-exist-twice`** `home/CLAUDE.md` and `home/settings.json` are the public templates, `~/.flow/CLAUDE.md` and `~/.claude/settings.json` the personalized copies, and this file is neither. Never write personal content into this repo. Always carry an edit to one copy across to its twin by hand, in the same turn and whichever way it was made. The same holds for any other file with a twin: look in `home/` and `project-template/` before finishing. Only a line that is personal stays out, and the reply names it. A setting with no template line, such as `wrapUpAt` in `~/.flow/settings.json`, goes to its documented default in `docs/reference/settings.md`.
 - **`no-status-in-claude-md`** No counts, no dates and no build status here. What Flow does goes in `docs/spec/`, open work in tickets.
+
+## Temporary
+
+Flow runs on one machine and one project, this one. A second machine joins about two weeks after Flow is done. Never suggest setting it up or running anything for it. Keep changes compatible with it. Delete this section when it joins.
