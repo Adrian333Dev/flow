@@ -478,8 +478,8 @@ function checkTickets(root) {
   }
   const problems = [];
   for (const t of tickets) {
-    if (t.dirName !== t.id) {
-      problems.push(`${t.dirName} is in a folder not named by its id: rename the folder to ${t.id}`);
+    if (t.dirName !== store.folderName(t.id)) {
+      problems.push(`${t.dirName} is in a folder not named by its number: rename the folder to ${store.folderName(t.id)}`);
     }
     const map = path.join(t.dir, 'groundwork', 'map.md');
     if (fs.existsSync(map) && emptyMap(fs.readFileSync(map, 'utf8'))) {

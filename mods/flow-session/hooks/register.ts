@@ -5,8 +5,8 @@
  * the agent calls the `restart` tool with the start message it wrote. The mod
  * ends that turn, compacts between turns, and answers the compaction itself,
  * so the session and its transcript stay and no model writes a summary. The
- * answer is the note, then what the mod tracked: the last reply, the user's
- * messages since it and the files changed (30 at most). A typed `/restart`
+ * answer is the note, then the last reply read from the conversation and what
+ * the mod tracked: the user's messages since it and the files changed (30 at most). A typed `/restart`
  * stops after the compaction. An automatic one submits `Continue.`.
  *
  * Also: dragged files load as mentions, a handoff note is removed once read,
@@ -19,12 +19,12 @@
  */
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
-import type { Tracked } from '../types'
+import type { Restart, Tracked } from '../types'
 import { INSTRUCTIONS_PATH, restartAsk, startInstructions, withInstructions } from './ask'
-import { afterAnswer, restartMessages } from './first-message'
+import { addAsked, afterAnswer, lastReply, restartMessages } from './first-message'
 import { mention, pastedPaths, relativeTo } from './drag'
 import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './band'
-import { drawMeters, metersMeasure, metersRead, metersStart, metersSwitch } from './meters-row'
+import { drawMeters, metersClear, metersMeasure, metersRead, metersRefresh, metersStart, metersSwitch } from './meters-row'
 import { drawRows, type MakeText } from './draw'
 import { guardedSentence, headline, questionFor } from './headline'
 import { appendCommand, logLine, logPath, sourceOf, type LogAnswer, type LogFields } from './log'
@@ -52,25 +52,15 @@ import {
 } from './pane'
 import { kilo, wrapUpLine, wrapUpSettings } from './wrap-up'
 
-const TOOL = /^mcp__flow-session__restart$/
+const RESTART_TOOL = 'mcp__flow-session__restart'
+const TOOL = new RegExp(`^${RESTART_TOOL}$`)
 const EDIT = /^(Edit|Write|MultiEdit|NotebookEdit)$/
 const REFUSAL = 'Flow compacts only at its own restart. Run /restart.'
 
-type Restart = {
-  message: string
-  size: number
-  started: boolean
-  // Typed by the user as /restart: the compaction ends it and no turn follows.
-  manual: boolean
-}
-
-let pending: Restart | null = null
 let sizeBefore: number | undefined
 let lastChecked = 0
-// What the restart keeps word for word, and the turn it ends. The host holds it: a hot reload empties module variables.
+// What the restart keeps word for word, the turn it ends and the restart itself. The host holds it: a hot reload empties module variables.
 const tracked = atom({ plugin: 'flow-session', key: 'tracked' } as const, { asked: [], changed: [] } as Tracked)
-// Set by /restart, taken by the restart tool. A hot reload empties it, which makes that restart automatic.
-let typed = false
 // A handoff stands from the moment its skill loads until work changes a file in a later turn.
 let handoffFresh = false
 let handoffTurn: string | undefined
@@ -192,7 +182,7 @@ function editedFile(e: object): string | undefined {
  */
 async function askForRestart($: EngineInterface, args: string): Promise<void> {
   const ask = restartAsk(handoffFresh, args, await startText($))
-  typed = true
+  await update($, tracked, (t) => ({ ...t, typed: true }))
   void $.clock
     .sleep(100)
     .then(() => $.prompt.submit({ text: ask, asUser: true }))
@@ -206,7 +196,8 @@ async function askForRestart($: EngineInterface, args: string): Promise<void> {
  * Not awaited by its caller, so it owns its errors.
  */
 async function runRestart($: EngineInterface, restart: Restart): Promise<void> {
-  restart.started = true
+  await update($, tracked, (t) => ({ ...t, restart: { ...restart, started: true } }))
+  await metersClear($).catch(() => undefined)
   handoffFresh = false
   try {
     await $.command.run({ command: 'compact' })
@@ -216,7 +207,7 @@ async function runRestart($: EngineInterface, restart: Restart): Promise<void> {
   } catch (error) {
     $.ui.log(`restart failed, the session is as it was: ${error instanceof Error ? error.message : String(error)}`)
   } finally {
-    pending = null
+    await update($, tracked, ({ restart: _, ...t }) => t).catch(() => undefined)
   }
 }
 
@@ -384,12 +375,13 @@ export const register: Register = (on) => {
   // The warning rides on the next message the user types, or on a tool result
   // when a long turn has no message in it. A subagent's size is its own.
   on('prompt.submit', async ($, e, next) => {
-    if (usersOwn(e)) await update($, tracked, (t) => ({ ...t, asked: [...t.asked, e.text] }))
+    if (usersOwn(e)) await update($, tracked, (t) => ({ ...t, asked: addAsked(t.asked, e.text) }))
     const line = await wrapUp($).catch(() => undefined)
     return next(line ? { ...e, context: [...(e.context ?? []), line] } : e)
   })
 
   on('tool.call', async ($, e, next) => {
+    if (e.agentId === undefined) void metersRefresh($).catch(() => undefined)
     const done = await bandToolCall($, e, () => next(e))
     if (e.agentId !== undefined || TOOL.test(e.tool) || done.result === undefined) return done
     const line = await wrapUp($).catch(() => undefined)
@@ -404,13 +396,13 @@ export const register: Register = (on) => {
 
   on('tool.call', { tool: TOOL }, async ($, e) => {
     if (e.agentId !== undefined) return { deny: 'Only the main session restarts.' }
-    if (pending) return { deny: 'A restart is already under way.' }
+    const { turn, restart } = await read($, tracked)
+    if (restart) return { deny: 'A restart is already under way.' }
     const message = readMessage(e)
     if (!message) return { deny: 'Pass the start message as `message`.' }
     const usage = await $.session.usage().catch(() => undefined)
-    pending = { message, size: usage?.context.tokens ?? 0, started: false, manual: typed }
-    typed = false
-    const { turn } = await read($, tracked)
+    const size = usage?.context.tokens ?? 0
+    await update($, tracked, (t) => ({ ...t, restart: { message, size, started: false, manual: t.typed === true }, typed: false }))
     const ended = turn ? await $.turn.abort({ turnId: turn }).then(() => true, () => false) : false
     if (!ended) $.ui.log('restart: the turn could not be ended, so its closing reply is left out of the new conversation')
     return { result: 'Restarting. Write nothing more.' }
@@ -425,8 +417,9 @@ export const register: Register = (on) => {
       if (e.reason === 'answer') await removeNotes($, notes)
     }
     if (e.agentId === undefined) {
-      if (e.reason === 'answer') await update($, tracked, (t) => afterAnswer(t, e.answer, pending !== null))
-      if (pending && !pending.started) void runRestart($, pending)
+      if (e.reason === 'answer') await update($, tracked, (t) => afterAnswer(t, e.answer, t.restart !== undefined))
+      const { restart } = await read($, tracked)
+      if (restart && !restart.started) void runRestart($, restart)
       else if (sizeBefore !== undefined) void logSize($).catch(() => undefined)
     }
     return done
@@ -463,9 +456,16 @@ export const register: Register = (on) => {
   )
 
   // The meters row (hooks/meters-row.tsx): figures from the session, the model, effort and cache from the transcript's end.
+  // During a restart the figure is the old conversation's, so the context stays hidden.
   on('session.measure', async ($, e, next) => {
-    await metersMeasure($, e).catch(() => undefined)
+    const { restart } = await read($, tracked)
+    await metersMeasure($, restart ? { ...e, context: { ...e.context, tokens: undefined } } : e).catch(() => undefined)
     return next(e)
+  })
+  // Every request of the main loop refreshes the context, so a long turn shows its size as it grows.
+  on('turn.step', async function* ($, e, next) {
+    if (e.agentId === undefined) void metersRefresh($).catch(() => undefined)
+    return yield* next(e)
   })
   on('classic.SessionStart', async ($, e, next) => {
     await metersRead($, e.transcript_path).catch(() => undefined)
@@ -484,9 +484,9 @@ export const register: Register = (on) => {
   // The restart's compaction becomes the agent's note, the last reply, each user message it did not answer and the changed files.
   on('session.compact', async ($, e, next) => {
     if (e.agentId !== undefined) return next(e)
-    if (e.trigger !== 'manual' || !pending?.started) return { skip: REFUSAL }
-    const { reply, asked, changed } = await read($, tracked)
-    const last = { size: pending.size, reply, asked, changed }
-    return { messages: restartMessages(pending.message, last, pending.manual) }
+    const { asked, changed, restart } = await read($, tracked)
+    if (e.trigger !== 'manual' || !restart?.started) return { skip: REFUSAL }
+    const last = { size: restart.size, reply: lastReply(e.messages, RESTART_TOOL), asked, changed }
+    return { messages: restartMessages(restart.message, last, restart.manual) }
   }).catch(() => ({ skip: REFUSAL }))
 }

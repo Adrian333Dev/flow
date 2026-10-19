@@ -4,13 +4,17 @@
  * folder. Every other file asks this one, and anything outside Flow's scripts
  * runs `flow`. A ticket that breaks into parts has children.
  *
- *   .flow/tickets/exp-47/ticket.md    folder from birth, constant inner name
+ *   .flow/tickets/47/ticket.md    folder from birth, constant inner name
  *
- * A new ticket's folder is its id alone. Folders made before that keep the words
- * after the id (`exp-47-daemon-detection`), and the id part is all a lookup reads.
+ * A ticket's folder is its number alone, and the files hold no word: the word
+ * lives in `ticketPrefix` in the project's settings, so a project that changes
+ * its word keeps every ticket. A folder may keep words after the number
+ * (`47-daemon-detection`); the number is all a lookup reads.
  *
  * Frontmatter is owned by these commands; the body is written by hand. That is
  * why templates hold body only: the frontmatter is generated, never templated.
+ * `id`, `was`, `parent` and `deps` are stored bare (`47`) for the ticket's own
+ * place and as `word-n` for another (`home-3`); in memory every id is full.
  *
  * An id is a word and a number, `exp-47`. The word names the place the ticket
  * lives: one per project, set when the project is set up, and `home` for the
@@ -234,14 +238,31 @@ function requireId(ref, prefix) {
   return id;
 }
 
-/** The id at the front of a folder name, `exp-47` from `exp-47-parser-split`. */
-const idOfFolder = (name) => (String(name).match(/^([a-z]{2,8}-\d+)(?:-|$)/) || [])[1] || null;
+/** The number at the front of a folder name, `47` from `47` or `47-parser-split`. */
+const idOfFolder = (name) => (String(name).match(/^(\d+)(?:-|$)/) || [])[1] || null;
 
 /** The id at the front of what was typed, `exp-47` from `EXP-47-old-words`, or null. */
-const idOfRef = (ref) => idOfFolder(String(ref || '').trim().toLowerCase());
+const idOfRef = (ref) => (String(ref || '').trim().toLowerCase().match(/^([a-z]{2,8}-\d+)(?:-|$)/) || [])[1] || null;
 
-/** The folder for an id: the id alone for a new ticket, the id and its old words for an old one. */
-const folderName = (id, label = '') => (label ? `${id}-${label}` : id);
+/** The folder for an id: its number alone, then the words an old folder kept. */
+const folderName = (id, label = '') => (label ? `${idNumber(id)}-${label}` : String(idNumber(id)));
+
+/**
+ * An id as the frontmatter holds it: the number, as a number so it is written
+ * bare, where the id carries the place's own word; any other id as it is.
+ */
+const storedId = (id, prefix) =>
+  prefix && /^[a-z]{2,8}-\d+$/.test(id) && wordOf(id) === prefix ? idNumber(id) : id;
+
+/** A ticket's data as it is written, the ids in `storedId` form. Without a place to name the word, as it is. */
+function storedData(t) {
+  const prefix = t.root ? prefixOf(t.root) : null;
+  if (!prefix) return t.data;
+  const data = { ...t.data };
+  for (const key of ['id', 'was', 'parent']) if (data[key]) data[key] = storedId(data[key], prefix);
+  if (Array.isArray(data.deps)) data.deps = data.deps.map((d) => storedId(d, prefix));
+  return data;
+}
 
 /** A ticket as the badge and the board show it: `exp-47-parser-split`. */
 const nameOf = (t) => (t.data.title ? `${t.id}-${t.data.title}` : t.id);
@@ -274,8 +295,12 @@ function slugify(title) {
   return (lastDash > 12 ? cut.slice(0, lastDash) : cut).replace(/-+$/, '');
 }
 
-/** The words after the id in an old folder name, '' for a folder that is the id alone. */
-const labelOf = (t) => t.dirName.slice(t.id.length).replace(/^-/, '');
+/**
+ * The words after the number in a folder name, '' for a folder that is the number
+ * alone. A folder still holding its word (`exp-47-words`) gives its words too,
+ * which lab/scripts/convert-tickets.js reads from projects made before the number form.
+ */
+const labelOf = (t) => t.dirName.replace(/^(?:[a-z]{2,8}-)?\d+-?/, '');
 
 function toIdList(v, prefix) {
   if (v === undefined || v === null || v === '') return [];
@@ -312,8 +337,8 @@ function scanTicketDir(dir, root, prefix, out) {
     if (!fs.existsSync(file)) continue;
 
     const { data, body } = frontmatter.parse(fs.readFileSync(file, 'utf8'));
-    data.id = normalizeId(data.id, prefix) || idOfFolder(entry.name) || entry.name;
-    data.was = data.was ? String(data.was).trim() : '';
+    data.id = normalizeId(data.id, prefix) || normalizeId(idOfFolder(entry.name), prefix) || entry.name;
+    data.was = data.was ? (normalizeId(data.was, prefix) || String(data.was).trim()) : '';
     data.branch = data.branch ? String(data.branch).trim() : '';
     data.deps = toIdList(data.deps, prefix);
     // One parent at most: the ticket this one was split out of. Unparseable
@@ -350,7 +375,7 @@ function nextId(tickets, prefix = tickets.prefix, counter = tickets.counter || 0
  *  Returns { from, to } when it moved, otherwise null. */
 function writeTicket(t) {
   const moved = relocate(t);
-  fs.writeFileSync(t.file, frontmatter.stringify(t.data, TICKET_KEYS, t.body));
+  fs.writeFileSync(t.file, frontmatter.stringify(storedData(t), TICKET_KEYS, t.body));
   return moved;
 }
 
@@ -537,7 +562,7 @@ function createTicket(root, { title, description, labels, parent, deps, tickets,
 
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, 'ticket.md');
-  fs.writeFileSync(file, frontmatter.stringify(data, TICKET_KEYS, body));
+  fs.writeFileSync(file, frontmatter.stringify(storedData({ data, root }), TICKET_KEYS, body));
   countNumber(root, id);
 
   return { id, dirName: path.basename(dir), dir, file, data, body, root };
@@ -634,17 +659,18 @@ const taskCount = (t) => countSection(t, 'Tasks', STEP);
 
 /**
  * Ticks, or clears, the line in `parent`'s `## Tasks` that starts with the
- * child's id: `- [ ] fw-127: …`. A line that only mentions the id further along
- * belongs to another child. Changes `parent.body` and returns 'changed',
- * 'same' where the box already matched, or 'missing' where no line starts with
- * the id.
+ * child's number: `- [ ] fw-127: …`. The word is ignored, so a project that
+ * changed its prefix keeps its tick-offs. A line that only mentions the id
+ * further along belongs to another child. Changes `parent.body` and returns
+ * 'changed', 'same' where the box already matched, or 'missing' where no line
+ * starts with the number.
  */
 function tickTask(parent, childId, done) {
   const lines = parent.body.split('\n');
   const start = lines.findIndex((l) => l.trim() === '## Tasks');
   if (start === -1) return 'missing';
 
-  const line = new RegExp(`^(\\s*(?:[-*]|\\d+[.)])\\s+\\[)([ xX])(\\]\\s+[*\`]*${childId}(?![\\w-]))`);
+  const line = new RegExp(`^(\\s*(?:[-*]|\\d+[.)])\\s+\\[)([ xX])(\\]\\s+[*\`]*[a-z]{2,8}-${idNumber(childId)}(?![\\w-]))`);
   for (let i = start + 1; i < lines.length && !/^## /.test(lines[i]); i++) {
     const m = lines[i].match(line);
     if (!m) continue;

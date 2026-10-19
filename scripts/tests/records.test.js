@@ -124,7 +124,7 @@ test('2 people taking one number in the same moment: the second makes no ticket,
   store.remove(mine);
   records.commit(ben, 'exp-1: taken back, never sent');
   assert.ok(records.sync(ben).ok, 'the next sync is not stuck on the lost number');
-  assert.deepStrictEqual(idsIn(ben), ['exp-1']);
+  assert.deepStrictEqual(idsIn(ben), ['1']);
   assert.match(t.in(ben, 'new', 'Export csv', '--title', 'export-csv').stdout, /created exp-2-export-csv/);
 });
 
@@ -308,7 +308,7 @@ test('flow move takes tickets home, rewrites their links, keeps was, and carries
   flow(dir, ['new', 'Parser', '--title', 'parser']);
   flow(dir, ['new', 'Parser tests', '--title', 'parser-tests', '--deps', 'exp-1']);
   flow(dir, ['new', 'Unrelated', '--title', 'unrelated']);
-  const folder = 'exp-1';
+  const folder = '1';
   write(path.join(dir, '.flow', 'tickets', folder), 'protos/speed/node_modules/lib.js', 'x\n');
 
   const refused = flow(dir, ['move', 'exp-2', 'home']);
@@ -319,13 +319,13 @@ test('flow move takes tickets home, rewrites their links, keeps was, and carries
   assert.strictEqual(moved.code, 0, moved.stderr);
   assert.match(moved.stdout, /^exp-1 → home-1-parser$/m);
   assert.match(moved.stdout, /^exp-2 → home-2-parser-tests$/m);
-  assert.deepStrictEqual(idsIn(dir), ['exp-3']);
+  assert.deepStrictEqual(idsIn(dir), ['3']);
 
   const home = path.join(dir, 'flow-home', 'tickets');
-  const second = fs.readFileSync(path.join(home, 'home-2', 'ticket.md'), 'utf8');
-  assert.match(second, /^deps: \[home-1\]$/m);
+  const second = fs.readFileSync(path.join(home, '2', 'ticket.md'), 'utf8');
+  assert.match(second, /^deps: \[1\]$/m);
   assert.match(second, /^was: exp-2$/m);
-  assert.ok(fs.existsSync(path.join(home, 'home-1', 'protos', 'speed', 'node_modules', 'lib.js')));
+  assert.ok(fs.existsSync(path.join(home, '1', 'protos', 'speed', 'node_modules', 'lib.js')));
 
   // From inside the project, the old id and the home id both reach it.
   assert.match(flow(dir, ['exp-1']).stdout, /^home-1-parser$/m);
@@ -346,7 +346,7 @@ test('a ticket records its code branch when work starts, and a history line per 
   const as = (...args) => run('flow.js', args, { cwd: ana, env });
 
   assert.strictEqual(as('start', 'exp-1').code, 0);
-  const dir = path.join(ana, '.flow', 'tickets', 'exp-1');
+  const dir = path.join(ana, '.flow', 'tickets', '1');
   assert.match(fs.readFileSync(path.join(dir, 'ticket.md'), 'utf8'), /^branch: feature\/budgets$/m);
   const lines = fs.readFileSync(path.join(dir, 'history.md'), 'utf8').trim().split('\n');
   assert.strictEqual(lines.length, 1);

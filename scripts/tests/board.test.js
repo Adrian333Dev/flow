@@ -9,6 +9,9 @@ const frontmatter = require('../lib/frontmatter');
 
 const slug = (text) => text.toLowerCase().replace(/ /g, '-');
 
+// The id a ticket folder holds, `exp-1` for `1` and for the old `exp-1-pricing`.
+const idOf = (folder) => `exp-${folder.match(/\d+/)[0]}`;
+
 test('flow ls filters by a quoted query: label, parent and words', () => {
   const dir = project('board-ls-filters');
 
@@ -26,7 +29,7 @@ test('flow ls filters by a quoted query: label, parent and words', () => {
   assert.ok(!chores.stdout.includes('feature-one'));
 
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const parentId = folders[0].match(/^[a-z]+-\d+/)[0];
+  const parentId = idOf(folders[0]);
   flow(dir, ['new', 'Child', '--title', 'child', '--parent', parentId]);
 
   const children = flow(dir, ['ls', `parent:${parentId}`]);
@@ -94,7 +97,7 @@ test('flow ls "status:done filed:no" shows only done tickets without a filed dat
   flow(dir, ['new', 'Alpha', '--title', 'alpha']);
   flow(dir, ['new', 'Beta', '--title', 'beta']);
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const [id1, id2] = folders.map((f) => f.match(/^[a-z]+-\d+/)[0]);
+  const [id1, id2] = folders.map((f) => idOf(f));
 
   flow(dir, ['start', id1]);
   flow(dir, ['done', id1]);
@@ -192,7 +195,7 @@ test('flow next counts what waits for /flow:upkeep, and prints nothing where not
 });
 
 const ticketText = (dir, id) => {
-  const folder = fs.readdirSync(path.join(dir, '.flow', 'tickets')).find((f) => f === id || f.startsWith(`${id}-`));
+  const folder = fs.readdirSync(path.join(dir, '.flow', 'tickets')).find((f) => f !== 'archive' && idOf(f) === id);
   return fs.readFileSync(path.join(dir, '.flow', 'tickets', folder, 'ticket.md'), 'utf8');
 };
 
@@ -357,7 +360,7 @@ test('flow next counts nothing it does not print', () => {
   const dir = project('board-next-counts');
   flow(dir, ['new', 'One', '--title', 'one']);
   flow(dir, ['new', 'Two', '--title', 'two']);
-  const [id] = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive').map((f) => f.match(/^[a-z]+-\d+/)[0]);
+  const [id] = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive').map((f) => idOf(f));
   flow(dir, ['start', id]);
 
   const next = flow(dir, ['next']);
@@ -405,7 +408,7 @@ test('flow next shows blocked tickets when nothing is ready', () => {
   flow(dir, ['new', 'Blocker', '--title', 'blocker']);
   flow(dir, ['new', 'Blocked', '--title', 'blocked']);
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const [id1, id2] = folders.map((f) => f.match(/^[a-z]+-\d+/)[0]);
+  const [id1, id2] = folders.map((f) => idOf(f));
 
   flow(dir, ['edit', id2, '--deps', id1]);
   flow(dir, ['park', id1, '--reason', 'waiting on the vendor']);
@@ -421,7 +424,7 @@ test('flow tree nests children under their parent', () => {
 
   flow(dir, ['new', 'Parent feature', '--title', 'parent-feature']);
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets')).filter((f) => f !== 'archive');
-  const parentId = folders[0].match(/^[a-z]+-\d+/)[0];
+  const parentId = idOf(folders[0]);
 
   flow(dir, ['new', 'Child A', '--title', 'child-a', '--parent', parentId]);
   flow(dir, ['new', 'Child B', '--title', 'child-b', '--parent', parentId]);

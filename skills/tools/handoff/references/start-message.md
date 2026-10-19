@@ -13,7 +13,8 @@ A line stays only where the next session acts wrongly without it. Steps already 
 
 ```text
 Load: /flow:execute, then flow fw-179 (the band's badges; read its ## State).
-Left: the restart button, shown past the wrap-up limit. Draw it first with /flow:visualize: small, right side, before the issue count, a press restarts. User's yes, then build.
+Task: fw-179, the band's badges. Built: the badges. Not built: the restart button, shown past the wrap-up limit.
+User said: leave fw-73 (a parallel session's). ~/.flow/study-cases/ stays until the user says delete.
+Next: draw the button with /flow:visualize: small, right side, before the issue count, a press restarts. User's yes, then build.
 Ask: badge gap 0? Delete the dropped session-name note in ~/.flow/notes/?
-Leave fw-73 (a parallel session's). ~/.flow/study-cases/ stays until the user says delete.
 ```

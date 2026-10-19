@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { idsIn, readTicket, startedIn, target } from './ticket'
+import { idsIn, idsInPath, readTicket, startedIn, target } from './ticket'
 
 const ticket = (fields: string, body = '') => `---\nid: fw-9\ntitle: band-test\nstatus: in-progress\n${fields}---\n\n${body}`
 
@@ -52,6 +52,12 @@ describe('readTicket', () => {
     expect(readTicket('---\nid: fw-9\nstatus: todo\n---\n')?.name).toBe('fw-9')
   })
 
+  test('a bare id takes the project prefix, and a full one is kept', () => {
+    const bare = '---\nid: 9\ntitle: band-test\nstatus: todo\n---\n'
+    expect(readTicket(bare, undefined, 'fw')).toMatchObject({ id: 'fw-9', name: 'fw-9-band-test' })
+    expect(readTicket(bare.replace('id: 9', 'id: fw-9'), undefined, 'abc')).toMatchObject({ id: 'fw-9', name: 'fw-9-band-test' })
+  })
+
   test('a text with no id or status is not a ticket', () => {
     expect(readTicket('no frontmatter')).toBeUndefined()
     expect(readTicket('---\nid: fw-9\n---\n')).toBeUndefined()
@@ -63,12 +69,21 @@ describe('idsIn', () => {
     expect(idsIn('flow start fw-137 && flow fw-137 fw-16')).toEqual(['fw-137', 'fw-16'])
   })
 
-  test('finds the id in a path', () => {
-    expect(idsIn('/p/.flow/tickets/archive/fw-137/ticket.md')).toEqual(['fw-137'])
-  })
-
   test('finds none in plain text', () => {
     expect(idsIn('ls -la')).toEqual([])
+  })
+})
+
+describe('idsInPath', () => {
+  test('a folder named by its number takes the project prefix', () => {
+    expect(idsInPath('/p/.flow/tickets/137/ticket.md', 'fw')).toEqual(['fw-137'])
+    expect(idsInPath('/p/.flow/tickets/archive/137/ticket.md', 'fw')).toEqual(['fw-137'])
+    expect(idsInPath('/p/.flow/tickets/137-old-words/groundwork/map.md', 'fw')).toEqual(['fw-137'])
+  })
+
+  test('names none outside a ticket folder, or with no prefix to put on a number', () => {
+    expect(idsInPath('/p/.flow/tickets/ticket-counter', 'fw')).toEqual([])
+    expect(idsInPath('/p/.flow/tickets/137/ticket.md')).toEqual([])
   })
 })
 

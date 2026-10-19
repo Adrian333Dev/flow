@@ -256,7 +256,7 @@ test('a ticket made before claims existed: the counter keeps the higher, and syn
   assert.match(inHome(b, ['new', 'Dark mode', '--title', 'dark-mode']).stdout, /created home-1-dark-mode/);
   git(b.at.flow, ['remote', 'add', 'origin', remote]);
   // A ticket made before claims existed has words after its id, which is what lets both folders meet.
-  fs.renameSync(path.join(b.at.flow, 'tickets', 'home-1'), path.join(b.at.flow, 'tickets', 'home-1-dark-mode'));
+  fs.renameSync(path.join(b.at.flow, 'tickets', '1'), path.join(b.at.flow, 'tickets', '1-dark-mode'));
 
   // The renumbering finds the home tickets through FLOW_HOME, which ~/.flow/ is by default.
   const synced = run('flow.js', ['sync', '--root', b.root], { cwd: b.dir, env: { ...process.env, FLOW_HOME: b.at.flow, FLOW_PROJECT: b.dir } });

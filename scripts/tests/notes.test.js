@@ -166,7 +166,7 @@ test('flow notes promote makes a ticket from the note and removes the note', () 
   assert.match(r.stdout, /promoted cache-the-parse → exp-1/);
 
   assert.deepStrictEqual(listed(dir), []);
-  const ticket = fs.readFileSync(path.join(dir, '.flow', 'tickets', 'exp-1', 'ticket.md'), 'utf8');
+  const ticket = fs.readFileSync(path.join(dir, '.flow', 'tickets', '1', 'ticket.md'), 'utf8');
   assert.match(ticket, /labels: \[perf\]/);
   assert.match(ticket, /Cache the parse: it is slow on big files/);
 });

@@ -290,7 +290,7 @@ function claim(root, id) {
         // Another machine took this number, and both folders are named by it
         // alone, so the replay stops on both adding the same file. The commit
         // is undone here, or every later pull would replay it and stop again.
-        if ((pulled.clash || []).some((f) => f.split('/').includes(current))) {
+        if ((pulled.clash || []).some((f) => f.split('/').includes(store.folderName(current)))) {
           git(recordsOf(root), ['reset', '--soft', 'HEAD~1']);
           return { ok: false, id: current, why: `another machine took ${current} first. Run it again.` };
         }

@@ -21,7 +21,7 @@ test('a ticket is created, moved and archived', () => {
 
   const folders = fs.readdirSync(path.join(dir, '.flow', 'tickets'));
   assert.strictEqual(folders.length, 1);
-  const id = folders[0].match(/^[a-z]+-\d+/)[0];
+  const id = `exp-${folders[0].match(/\d+/)[0]}`;
   assert.match(id, /^exp-\d+$/);
 
   const listed = flow(dir, ['ls']);

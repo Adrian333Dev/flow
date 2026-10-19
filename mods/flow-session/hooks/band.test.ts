@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
 
-const TICKET = '---\nid: fw-9\ntitle: band-test\nstatus: in-progress\nactivity: build\n---\n\n## Tasks\n\n- [x] one\n- [ ] two\n'
+const TICKET = '---\nid: 9\ntitle: band-test\nstatus: in-progress\nactivity: build\n---\n\n## Tasks\n\n- [x] one\n- [ ] two\n'
 const ENTRY = { size: 0, mtimeMs: 0, isLink: false }
 
 const BAND = {
@@ -22,10 +22,11 @@ const BAND = {
 function claudeCode(on: Parameters<typeof mock.env>[0], log = '') {
   mock.env(on, { FLOW_HOME: '/h/.flow', HOME: '/h' })
   on('session.root', () => ({ value: '/work' }))
-  on('fs.list', () => ({ value: [{ name: 'fw-9-band-test', kind: 'dir', ...ENTRY }] }))
+  on('fs.list', () => ({ value: [{ name: '9-band-test', kind: 'dir', ...ENTRY }] }))
   on('fs.read', (_$, e) => {
     const path = (e as unknown as { path: string }).path
     if (path.endsWith('/ticket.md')) return { value: TICKET }
+    if (path.endsWith('/.flow/settings.json')) return { value: '{"ticketPrefix":"fw"}' }
     if (path.includes('/logs/failures/')) return { value: log }
     return { deny: 'missing' }
   })

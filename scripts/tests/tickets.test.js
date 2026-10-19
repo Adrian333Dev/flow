@@ -7,23 +7,31 @@ const path = require('path');
 const { project, write, flow } = require('./helpers/scratch');
 const frontmatter = require('../lib/frontmatter');
 
+const store = require('../lib/tickets/store');
+
+// The files hold bare numbers; a test reads the ids in full, as the commands print them.
+const full = (v) => (Array.isArray(v) ? v.map(full) : store.normalizeId(v, 'exp') || v);
+
+const parseFull = (text) => {
+  const read = frontmatter.parse(text);
+  for (const key of ['id', 'was', 'parent', 'deps']) if (read.data[key]) read.data[key] = full(read.data[key]);
+  return read;
+};
+
 const ticket = (dir) => {
   const base = path.join(dir, '.flow', 'tickets');
   const folders = fs.readdirSync(base).filter((f) => f !== 'archive');
   const files = folders.map((f) => path.join(base, f, 'ticket.md'));
-  return folders.map((f, i) => ({
-    id: f.match(/^[a-z]+-\d+/)[0],
-    folder: f,
-    ...frontmatter.parse(fs.readFileSync(files[i], 'utf8')),
-  }));
+  return folders.map((f, i) => ({ id: full(store.idOfFolder(f)), folder: f, ...parseFull(fs.readFileSync(files[i], 'utf8')) }));
 };
 
 const ticketFile = (dir, id) => {
   const base = path.join(dir, '.flow', 'tickets');
   const archive = path.join(base, 'archive');
+  const number = id.match(/\d+$/)[0];
   for (const root of [base, archive]) {
     if (!fs.existsSync(root)) continue;
-    const hit = fs.readdirSync(root).find((f) => f === id || f.startsWith(`${id}-`));
+    const hit = fs.readdirSync(root).find((f) => [id, number].some((x) => f === x || f.startsWith(`${x}-`)));
     if (hit) return path.join(root, hit, 'ticket.md');
   }
   return null;
@@ -48,7 +56,7 @@ test('flow new with labels and parent, and no type or priority', () => {
   const child = all.find((t) => t.id !== t1.id);
   assert.strictEqual(child.data.parent, t1.id);
   assert.deepStrictEqual(child.data.labels, ['lint', 'post-v1']);
-  assert.strictEqual(child.folder, child.id, 'a new ticket\'s folder is its id alone');
+  assert.strictEqual(child.folder, String(store.idNumber(child.id)), 'a new ticket\'s folder is its number alone');
   assert.strictEqual(child.data.title, 'lint-config');
   assert.strictEqual(child.data.description, 'Lint config');
 });
@@ -141,20 +149,20 @@ test('flow edit changes title, description and labels', () => {
   const [t] = ticket(dir);
 
   flow(dir, ['edit', t.id, '--title', 'new-title']);
-  const edited = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
+  const edited = parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
   assert.strictEqual(edited.data.title, 'new-title');
   assert.strictEqual(edited.data.description, 'Old description', 'a rename leaves the description');
   assert.deepStrictEqual(ticket(dir).map((x) => x.folder), [t.folder], 'a rename moves no folder');
 
   flow(dir, ['edit', t.id, '--description', 'A better sentence']);
-  const reworded = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
+  const reworded = parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
   assert.strictEqual(reworded.data.description, 'A better sentence');
   assert.strictEqual(reworded.data.title, 'new-title', 'editing the description leaves the title');
 
   assert.notStrictEqual(flow(dir, ['edit', t.id, '--type', 'chore']).code, 0, '--type is gone');
   assert.notStrictEqual(flow(dir, ['edit', t.id, '--priority', 'low']).code, 0, '--priority is gone');
 
-  const labelsOf = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data.labels || [];
+  const labelsOf = () => parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data.labels || [];
   const r = flow(dir, ['edit', t.id, '--label', 'ui,api']);
   assert.strictEqual(r.code, 0, r.stderr);
   assert.deepStrictEqual(labelsOf(), ['ui', 'api']);
@@ -168,7 +176,7 @@ test('flow edit changes title, description and labels', () => {
 test('flow edit --activity sets the kind of work on an in-progress ticket, and any status move clears it', () => {
   const dir = project('tickets-activity');
   flow(dir, ['new', 'Build the widget', '--title', 'build-the-widget']);
-  const activityOf = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data.activity || '';
+  const activityOf = () => parseFull(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data.activity || '';
 
   const early = flow(dir, ['edit', 'exp-1', '--activity', 'build']);
   assert.strictEqual(early.code, 1, 'a todo ticket has no activity');
@@ -204,7 +212,7 @@ test('flow edit --activity sets the kind of work on an in-progress ticket, and a
 test('flow start --activity names the work at pickup, also on a ticket already in progress', () => {
   const dir = project('tickets-start-activity');
   flow(dir, ['new', 'Build the widget', '--title', 'build-the-widget']);
-  const data = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data;
+  const data = () => parseFull(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data;
 
   const bad = flow(dir, ['start', 'exp-1', '--activity', 'two words']);
   assert.strictEqual(bad.code, 1);
@@ -250,7 +258,7 @@ test('flow edit --deps replaces the whole list, and an empty value clears it', (
   flow(dir, ['new', 'Second', '--title', 'second']);
   flow(dir, ['new', 'Third', '--title', 'third']);
   const [t1, t2, t3] = ticket(dir);
-  const deps = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t3.id), 'utf8')).data.deps || [];
+  const deps = () => parseFull(fs.readFileSync(ticketFile(dir, t3.id), 'utf8')).data.deps || [];
 
   const set = flow(dir, ['edit', t3.id, '--deps', `${t1.id},${t2.id}`]);
   assert.strictEqual(set.code, 0, set.stderr);
@@ -292,13 +300,13 @@ test('parking stores the resume status, and reviving restores it', () => {
   flow(dir, ['start', t.id]);
   flow(dir, ['park', t.id, '--reason', 'waiting on API']);
 
-  const parked = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
+  const parked = parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
   assert.strictEqual(parked.data.status, 'parked');
   assert.strictEqual(parked.data.resume, 'in-progress');
   assert.match(parked.data.reason, /waiting on API/);
 
   flow(dir, ['start', t.id]);
-  const revived = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
+  const revived = parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
   assert.strictEqual(revived.data.status, 'in-progress');
   assert.strictEqual(revived.data.reason || '', '');
   assert.strictEqual(revived.data.resume || '', '');
@@ -313,7 +321,7 @@ test('a field Flow does not know survives a move', () => {
   fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/^---\n/, '---\nassignee: sam\nlabels: [ui, api]\n'));
 
   flow(dir, ['start', t.id]);
-  const moved = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
+  const moved = parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
   assert.strictEqual(moved.data.status, 'in-progress');
   assert.strictEqual(moved.data.assignee, 'sam');
   assert.deepStrictEqual(moved.data.labels, ['ui', 'api']);
@@ -398,7 +406,7 @@ test('flow start reopens a done ticket, taking it out of the archive', () => {
   const r = flow(dir, ['start', t.id]);
   assert.strictEqual(r.code, 0, r.stderr);
   assert.doesNotMatch(ticketFile(dir, t.id), /archive/);
-  assert.strictEqual(frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data.status, 'in-progress');
+  assert.strictEqual(parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data.status, 'in-progress');
 });
 
 test('a parked ticket needs a reason, and comes back by flow todo or flow start', () => {
@@ -406,7 +414,7 @@ test('a parked ticket needs a reason, and comes back by flow todo or flow start'
 
   flow(dir, ['new', 'Waits on the vendor', '--title', 'waits-on-the-vendor']);
   const [t] = ticket(dir);
-  const status = () => frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data;
+  const status = () => parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8')).data;
 
   const bare = flow(dir, ['park', t.id]);
   assert.notStrictEqual(bare.code, 0);
@@ -434,7 +442,7 @@ test('the commands of the 8 statuses are gone', () => {
   for (const old of ['groundwork', 'plan', 'build', 'review']) {
     assert.notStrictEqual(flow(dir, [old, 'exp-1']).code, 0, `flow ${old} should refuse`);
   }
-  assert.strictEqual(frontmatter.parse(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data.status, 'todo');
+  assert.strictEqual(parseFull(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data.status, 'todo');
 });
 
 test('flow drop requires --reason, refuses on dependents, --by repairs', () => {
@@ -458,7 +466,7 @@ test('flow drop requires --reason, refuses on dependents, --by repairs', () => {
   const repaired = flow(dir, ['drop', t1.id, '--reason', 'obsolete', '--by', t3.id]);
   assert.strictEqual(repaired.code, 0, repaired.stderr);
 
-  const t2After = frontmatter.parse(fs.readFileSync(ticketFile(dir, t2.id), 'utf8'));
+  const t2After = parseFull(fs.readFileSync(ticketFile(dir, t2.id), 'utf8'));
   assert.ok(t2After.data.deps.includes(t3.id), `deps should now include ${t3.id}`);
   assert.ok(!t2After.data.deps.includes(t1.id), `deps should no longer include ${t1.id}`);
 });
@@ -508,7 +516,7 @@ test('flow file stamps a closed ticket, and --force re-stamps', () => {
 
   const filed = flow(dir, ['file', t.id]);
   assert.strictEqual(filed.code, 0, filed.stderr);
-  const fm1 = frontmatter.parse(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
+  const fm1 = parseFull(fs.readFileSync(ticketFile(dir, t.id), 'utf8'));
   assert.ok(fm1.data.filed, 'filed date should be set');
 
   const again = flow(dir, ['file', t.id]);
@@ -643,7 +651,7 @@ test('flow park --label parks every open ticket carrying it, and flow revive bri
   flow(dir, ['new', 'Later two', '--title', 'later-two', '--label', 'post-v1,v2', '--deps', 'exp-1']);
   flow(dir, ['new', 'Now', '--title', 'now', '--label', 'v1']);
   flow(dir, ['start', 'exp-1']);
-  const state = (id) => frontmatter.parse(fs.readFileSync(ticketFile(dir, id), 'utf8')).data;
+  const state = (id) => parseFull(fs.readFileSync(ticketFile(dir, id), 'utf8')).data;
 
   const none = flow(dir, ['park', '--label', 'nope', '--reason', 'x']);
   assert.strictEqual(none.code, 0, none.stderr);
@@ -688,11 +696,11 @@ test('flow new refuses a title that is not hyphenated words, and a rename never 
 
   const made = flow(dir, ['new', 'Export the login page', '--title', 'login-export']);
   assert.match(made.stdout, /^created exp-1-login-export$/m);
-  assert.match(made.stdout, /tickets\/exp-1\/ticket\.md/);
+  assert.match(made.stdout, /tickets\/1\/ticket\.md/);
 
   flow(dir, ['edit', 'exp-1', '--title', 'login-csv']);
   assert.strictEqual(flow(dir, ['edit', 'exp-1', '--title', 'Bad Title']).code, 1);
-  assert.deepStrictEqual(ticket(dir).map((t) => t.folder), ['exp-1']);
+  assert.deepStrictEqual(ticket(dir).map((t) => t.folder), ['1']);
   assert.match(flow(dir, ['ls']).stdout, /exp-1-login-csv/);
 });
 
@@ -715,4 +723,50 @@ test('parking a blocked todo ticket works, and starting it still refuses', () =>
   assert.strictEqual(flow(dir, ['park', 'exp-2', '--reason', 'later']).code, 0);
   assert.strictEqual(flow(dir, ['todo', 'exp-2']).code, 0);
   assert.strictEqual(flow(dir, ['start', 'exp-2']).code, 1, 'a pickup still meets the dep');
+});
+
+test('a ticket is stored without its prefix: folder, id, parent and deps hold the number', () => {
+  const dir = project('tickets-bare');
+  flow(dir, ['new', 'Parent', '--title', 'parent']);
+  flow(dir, ['new', 'Child', '--title', 'child', '--parent', 'exp-1', '--deps', 'exp-1']);
+
+  const file = path.join(dir, '.flow', 'tickets', '2', 'ticket.md');
+  const raw = frontmatter.parse(fs.readFileSync(file, 'utf8')).data;
+  assert.strictEqual(raw.id, '2');
+  assert.strictEqual(raw.parent, '1');
+  assert.deepStrictEqual(raw.deps, ['1']);
+  assert.match(fs.readFileSync(file, 'utf8'), /^id: 2$/m, 'a number is written bare, never quoted');
+  assert.match(flow(dir, ['exp-2']).stdout, /^exp-2-child$/m, 'the commands still print the full id');
+});
+
+test('a ticket whose files still hold the project word is read, and the next write stores it bare', () => {
+  const dir = project('tickets-old-form');
+  write(dir, '.flow/tickets/exp-1-parser/ticket.md', '---\nid: exp-1\ntitle: parser\nstatus: todo\n---\n\nbody\n');
+  write(dir, '.flow/tickets/exp-2/ticket.md', '---\nid: exp-2\ntitle: tests\nstatus: todo\nparent: exp-1\ndeps: [exp-1]\n---\n\nbody\n');
+
+  assert.match(flow(dir, ['exp-2']).stdout, /^exp-2-tests$/m);
+  assert.strictEqual(flow(dir, ['edit', 'exp-2', '--title', 'parser-tests']).code, 0);
+  const raw = frontmatter.parse(fs.readFileSync(path.join(dir, '.flow', 'tickets', 'exp-2', 'ticket.md'), 'utf8')).data;
+  assert.deepStrictEqual([raw.id, raw.parent, raw.deps], ['2', '1', ['1']]);
+});
+
+test('a project that changes its prefix keeps every ticket, tick-off and dependency', () => {
+  const dir = project('tickets-prefix-change');
+  flow(dir, ['new', 'Parent', '--title', 'parent']);
+  flow(dir, ['new', 'First', '--title', 'first', '--parent', 'exp-1']);
+  flow(dir, ['new', 'Second', '--title', 'second', '--parent', 'exp-1', '--deps', 'exp-2']);
+  const parentFile = path.join(dir, '.flow', 'tickets', '1', 'ticket.md');
+  fs.appendFileSync(parentFile, '\n## Tasks\n\n- [ ] exp-2: First\n- [ ] exp-3: Second\n');
+  write(dir, '.flow/settings.json', '{\n  "ticketPrefix": "abc"\n}\n');
+
+  const listed = flow(dir, ['ls']).stdout;
+  for (const id of ['abc-1', 'abc-2', 'abc-3']) assert.match(listed, new RegExp(id), `${id} is listed`);
+  assert.match(flow(dir, ['abc-3']).stdout, /deps:\s+abc-2/, 'the dependency follows the new word');
+  assert.strictEqual(flow(dir, ['start', 'abc-3']).code, 1, 'abc-3 still waits for abc-2');
+
+  assert.strictEqual(flow(dir, ['start', 'abc-2']).code, 0);
+  const done = flow(dir, ['done', 'abc-2']);
+  assert.match(done.stdout, /ticked in abc-1's ## Tasks/, 'the old word on the line is ignored');
+  assert.match(fs.readFileSync(parentFile, 'utf8'), /- \[x\] exp-2: First/);
+  assert.strictEqual(flow(dir, ['start', 'abc-3']).code, 0, 'the dependency is met');
 });

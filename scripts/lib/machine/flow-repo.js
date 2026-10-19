@@ -61,6 +61,7 @@ const path = require('path');
 const { FlowError } = require('../error');
 const { git, gh, DURABLE } = require('../git');
 const tickets = require('../tickets/records');
+const store = require('../tickets/store');
 
 /** The repository's name on the user's GitHub account. Never configurable. */
 const NAME = 'flow-home';
@@ -465,7 +466,7 @@ function claimTicket(at, root, id) {
     // Both folders are named by the number alone, so the merge stops on both
     // adding the same file. The caller takes the ticket back, and the next
     // merge nets out: this side added the folder and then removed it.
-    if ((e.clash || []).some((f) => f.split('/').includes(current))) {
+    if ((e.clash || []).some((f) => f.split('/').includes(store.folderName(current)))) {
       return { ok: false, id: current, why: `another machine took ${current} first. Run it again.` };
     }
     return { ok: false, id: current, why: e.message };

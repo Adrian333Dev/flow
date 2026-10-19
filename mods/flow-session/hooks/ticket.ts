@@ -59,13 +59,18 @@ function split(text: string): { fields: Record<string, string>; body: string } {
 const isOpen = (count?: Count) => count !== undefined && count.done < count.total
 const show = (count?: Count) => (count ? `${count.done}/${count.total}` : '')
 
+/** The full id of a stored one: `9` is `fw-9` in a project whose prefix is `fw`; `fw-9` and `home-3` are as they are. */
+const fullId = (stored: string, prefix?: string): string => (/^\d+$/.test(stored) && prefix ? `${prefix}-${Number(stored)}` : stored)
+
 /**
  * The ticket in `text` (a `ticket.md`), or undefined where it has no id or status.
  * `map` is the text of its `groundwork/map.md`, counted for a design ticket with no questions of its own.
+ * `prefix` is the project's `ticketPrefix`: the file holds the number alone.
  */
-export function readTicket(text: string, map?: string): Ticket | undefined {
+export function readTicket(text: string, map?: string, prefix?: string): Ticket | undefined {
   const { fields, body } = split(text)
-  const { id, status } = fields
+  const { status } = fields
+  const id = fields.id ? fullId(fields.id, prefix) : undefined
   if (!id || !status) return undefined
   const questions = countBoxes(section(body, 'Questions'), QUESTION)
   const tasks = countBoxes(section(body, 'Tasks'), STEP)
@@ -80,8 +85,14 @@ export function readTicket(text: string, map?: string): Ticket | undefined {
   return { id, name: fields.title ? `${id}-${fields.title}` : id, status, word: shown.join(' ') }
 }
 
-/** The ticket ids a command or a path names, such as `fw-137`. */
+/** The ticket ids a command names, such as `fw-137`. */
 export const idsIn = (text: string): string[] => [...new Set(text.match(/\b[a-z]+-\d+\b/g) ?? [])]
+
+/** The ticket id a path inside `tickets/` names: `tickets/137/ticket.md` is `fw-137` under the prefix `fw`. */
+export function idsInPath(file: string, prefix?: string): string[] {
+  const found = /\/tickets\/(?:archive\/)?(\d+)(?=[-/]|$)/.exec(file)
+  return found && prefix ? [`${prefix}-${Number(found[1])}`] : []
+}
 
 /** The ticket ids a command picks up with `flow start <id>`, in the order it names them. A bare `flow <id>` only reads. */
 export const startedIn = (command: string): string[] => [...command.matchAll(/\b(?:flow|fw)\s+start\s+([a-z]+-\d+)\b/g)].map((match) => match[1] as string)

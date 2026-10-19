@@ -54,7 +54,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ skills/<name>
 │  └─ skills/<id>/                a ticket skill
 ├─ .flow/
-│  ├─ tickets/<id>-<label>/
+│  ├─ tickets/<number>/
 │  ├─ tickets/archive/
 │  ├─ ticket-counter
 │  ├─ inbox.md
@@ -105,7 +105,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ### Tickets
 
-- **`tickets/`**: tickets that belong to no project, with ids starting `home-`, such as `home-4`. Same shape as a project's.
+- **`tickets/`**: tickets that belong to no project, with ids starting `home-`, such as `home-4` in the folder `4/`. Same shape as a project's.
 - **`ticket-counter`**: the highest `home-` number ever given out, so a deleted or moved ticket's number never goes to a new one.
 - **`projects/<project>/`**: the tickets of a project kept privately, which the project's `.flow/` links to. `flow init` makes it.
 
@@ -157,7 +157,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 The project's tickets and what sessions learn in it. It is a link into `~/.flow/projects/<project>/`, in your Flow home, so the tickets never touch your code's history and `flow sync` carries them.
 
-- **`tickets/<id>-<label>/`**: one folder per ticket, such as `shop-7-safari-cookie/`. [Tickets](../tickets.md) shows what it holds.
+- **`tickets/<number>/`**: one folder per ticket, named by its number alone, such as `7/` for `shop-7`. The files hold no prefix either: `id`, `parent` and `deps` are numbers, so changing `ticketPrefix` keeps every ticket. [Tickets](../tickets.md) shows what it holds.
 - **`tickets/archive/`**: finished and dropped tickets, moved here whole.
 - **`ticket-counter`**: the highest ticket number this project ever gave out, such as `75`, so a deleted or moved ticket's number never goes to a new one.
 - **`inbox.md`**: notes with no home yet. The first `/flow:upkeep` run sorts them, and `flow note` replaces the file.

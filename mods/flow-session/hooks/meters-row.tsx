@@ -59,6 +59,20 @@ export async function metersMeasure($: EngineInterface, e: SessionMeasureInput):
   await update($, reading, (r) => ({ ...r, tokens: e.context.tokens, rates: e.rateLimits }))
 }
 
+/**
+ * The context as the session has it now. `session.measure` comes only after a main turn, so a long
+ * turn would show the old figure. No figure yet (just after a compaction) leaves the meter as it is.
+ */
+export async function metersRefresh($: EngineInterface): Promise<void> {
+  const tokens = (await $.session.usage().catch(() => undefined))?.context.tokens
+  if (tokens !== undefined) await update($, reading, (r) => (r.tokens === tokens ? r : { ...r, tokens }))
+}
+
+/** Hides the context meter until a response gives a figure: the old one belongs to a conversation that is gone. */
+export async function metersClear($: EngineInterface): Promise<void> {
+  await update($, reading, ({ tokens: _, ...r }) => r)
+}
+
 /** The model was switched: the name changes at once, and the cache of the old model is gone. The effort stays until the next request shows it. */
 export async function metersSwitch($: EngineInterface, model: string): Promise<void> {
   await update($, reading, (r) => ({ ...r, model, coldAt: Date.now() }))

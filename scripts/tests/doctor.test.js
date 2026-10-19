@@ -169,25 +169,25 @@ test('a ticket still in the old format is named, and a current one is not', () =
   const ticket = (folder, title, labels) => {
     fs.mkdirSync(path.join(tickets, folder), { recursive: true });
     fs.writeFileSync(path.join(tickets, folder, 'ticket.md'),
-      `---\nid: ${folder.match(/^exp-\d+/)[0]}\ntitle: ${title}\ndescription: "x: y"\nstatus: todo\nlabels: [${labels}]\n---\n\nbody\n`);
+      `---\nid: ${folder.match(/\d+/)[0]}\ntitle: ${title}\ndescription: "x: y"\nstatus: todo\nlabels: [${labels}]\n---\n\nbody\n`);
   };
   const template = '# {{title}}: groundwork\n\n<!-- Empty until this ticket is picked up.\n\n     - [ ] 0: A Group Of Questions\n     -->\n';
 
-  ticket('exp-1', 'login-loop', 'bug');
-  fs.mkdirSync(path.join(tickets, 'exp-1', 'groundwork'));
-  fs.writeFileSync(path.join(tickets, 'exp-1', 'groundwork', 'map.md'), `${template}\n## 1. A real decision\n\nKept.\n`);
+  ticket('1', 'login-loop', 'bug');
+  fs.mkdirSync(path.join(tickets, '1', 'groundwork'));
+  fs.writeFileSync(path.join(tickets, '1', 'groundwork', 'map.md'), `${template}\n## 1. A real decision\n\nKept.\n`);
   const clean = doctor(m, { bin });
   assert.strictEqual(clean.code, 0, clean.stdout);
   assert.match(clean.stdout, /^ok {4}tickets: 1 ticket in the current format$/m);
 
-  ticket('exp-2-old-words', 'old-words', 'chore');
-  ticket('exp-3', 'feature', 'feature');
-  fs.mkdirSync(path.join(tickets, 'exp-3', 'groundwork'));
-  fs.writeFileSync(path.join(tickets, 'exp-3', 'groundwork', 'map.md'), template);
+  ticket('2-old-words', 'old-words', 'chore');
+  ticket('3', 'feature', 'feature');
+  fs.mkdirSync(path.join(tickets, '3', 'groundwork'));
+  fs.writeFileSync(path.join(tickets, '3', 'groundwork', 'map.md'), template);
 
   const old = doctor(m, { bin });
   assert.strictEqual(old.code, 1);
-  assert.match(old.stdout, /exp-2-old-words is in a folder not named by its id: rename the folder to exp-2/);
+  assert.match(old.stdout, /2-old-words is in a folder not named by its number: rename the folder to 2/);
   assert.match(old.stdout, /exp-3 holds a groundwork\/map\.md that is only the empty template: delete it/);
   assert.match(old.stdout, /exp-3 is titled "feature", a label and no name: flow edit exp-3 --title/);
   assert.doesNotMatch(old.stdout, /exp-1 /, 'a map holding a decision is not the template');

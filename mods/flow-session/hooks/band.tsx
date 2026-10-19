@@ -23,7 +23,7 @@ import { failureFiles, openIssues } from './issues'
 import { DEFAULT_LOOK, parseLook, type Look } from './look'
 import { restartOffered } from './meters-row'
 import { isExpired, isRecordKey, makeRecord, parseRecord, recordKey } from './record'
-import { idsIn, readTicket, startedIn, target } from './ticket'
+import { idsIn, idsInPath, readTicket, startedIn, target } from './ticket'
 
 const band = atom({ plugin: 'flow-session', key: 'band' } as const, [] as Entry[])
 const issues = atom({ plugin: 'flow-session', key: 'issues' } as const, 0)
@@ -53,7 +53,7 @@ let lastMock: string | undefined
 let mockActing = false
 
 /** What a tool call names: ticket ids, and which of them `flow start` picks up, which lights. The call's fields sit on the event itself. */
-function namedBy(tool: string, call: object): { ids: string[]; started: string[] } {
+async function namedBy($: EngineInterface, tool: string, call: object): Promise<{ ids: string[]; started: string[] }> {
   const fields = call as { command?: unknown; file_path?: unknown }
   if (tool === 'Bash' && typeof fields.command === 'string') {
     const command = fields.command
@@ -61,9 +61,27 @@ function namedBy(tool: string, call: object): { ids: string[]; started: string[]
     return { ids: idsIn(command), started: startedIn(command) }
   }
   if (FILE_TOOL.test(tool) && typeof fields.file_path === 'string' && fields.file_path.includes('/tickets/')) {
-    return { ids: idsIn(fields.file_path), started: [] }
+    return { ids: idsInPath(fields.file_path, await prefixOf($)), started: [] }
   }
   return { ids: [], started: [] }
+}
+
+/**
+ * The project's ticket prefix: `ticketPrefix` in `.flow/settings.json`, else the word its folder
+ * offers (`offerWord` in scripts/lib/tickets/store.js, which this repeats: the mod cannot require it).
+ */
+async function prefixOf($: EngineInterface): Promise<string | undefined> {
+  const root = await $.session.root()
+  const valid = (word: unknown): word is string => typeof word === 'string' && /^[a-z]{2,8}$/.test(word) && word !== 'home'
+  try {
+    const saved = (JSON.parse((await readText($, `${root}/.flow/settings.json`)) ?? '{}') as { ticketPrefix?: unknown }).ticketPrefix
+    if (valid(saved)) return saved
+  } catch {
+    // A settings file that does not parse falls back to the folder's word, as the scripts do.
+  }
+  const letters = (root.split('/').filter(Boolean).pop() ?? '').toLowerCase().replace(/[^a-z]/g, '')
+  const word = letters.length <= 8 ? letters : letters.slice(0, 3)
+  return valid(word) ? word : 'flow'
 }
 
 /** The Flow home: `FLOW_HOME`, else `~/.flow`. */
@@ -76,12 +94,14 @@ function readText($: EngineInterface, file: string): Promise<string | undefined>
   return $.fs.read(file).catch(() => undefined)
 }
 
-/** A ticket's folder: `tickets/<id>` or `tickets/<id>-<words>`, open or in `tickets/archive/`. */
+/** A ticket's folder: `tickets/<n>` or `tickets/<n>-<words>`, open or in `tickets/archive/`. An id of another place has none here. */
 async function folderOf($: EngineInterface, id: string): Promise<string | undefined> {
+  const [, word, number] = /^([a-z]+)-(\d+)$/.exec(id) ?? []
+  if (!number || word !== (await prefixOf($))) return undefined
   const tickets = `${await $.session.root()}/.flow/tickets`
   for (const dir of [tickets, `${tickets}/archive`]) {
     const entries = await $.fs.list(dir).catch(() => [])
-    const found = entries.find((entry) => entry.kind === 'dir' && (entry.name === id || entry.name.startsWith(`${id}-`)))
+    const found = entries.find((entry) => entry.kind === 'dir' && (entry.name === number || entry.name.startsWith(`${number}-`)))
     if (found) return `${dir}/${found.name}`
   }
   return undefined
@@ -99,7 +119,7 @@ async function openTicket($: EngineInterface, id: string, atWord: boolean): Prom
   if (atWord) {
     const text = await readText($, file)
     const map = await readText($, `${folder}/groundwork/map.md`)
-    const found = text === undefined ? undefined : target(text, map, readTicket(text, map)?.word ?? '')
+    const found = text === undefined ? undefined : target(text, map, readTicket(text, map, await prefixOf($))?.word ?? '')
     if (found) path = `${found.file === 'map' ? `${folder}/groundwork/map.md` : file}:${found.line}`
   }
   const result = await $.process.run(atWord ? ['code', '-g', path] : ['code', path], { timeoutMs: 10000 })
@@ -111,7 +131,7 @@ async function refresh($: EngineInterface, id: string, lights: boolean): Promise
   const folder = await folderOf($, id)
   const text = folder ? await readText($, `${folder}/ticket.md`) : undefined
   if (!folder || text === undefined) return
-  const ticket = readTicket(text, await readText($, `${folder}/groundwork/map.md`))
+  const ticket = readTicket(text, await readText($, `${folder}/groundwork/map.md`), await prefixOf($))
   if (ticket) await update($, band, (entries) => apply(entries ?? [], ticket, lights))
 }
 
@@ -264,7 +284,7 @@ export async function bandTurnStart($: EngineInterface, e: TurnStartInput): Prom
  * A `flow start <id>` makes that ticket the one the session works.
  */
 export async function bandToolCall<R>($: EngineInterface, e: ToolCallInput, run: () => Promise<R>): Promise<R> {
-  const { ids, started } = namedBy(e.tool, e)
+  const { ids, started } = await namedBy($, e.tool, e)
   try {
     return await run()
   } finally {

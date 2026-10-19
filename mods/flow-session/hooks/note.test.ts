@@ -9,7 +9,7 @@ describe('isNote', () => {
 
   test('is false for the folder, other folders and a path that climbs out', () => {
     expect(isNote('/p/work', '/p/work/.flow/handoffs/')).toBe(false)
-    expect(isNote('/p/work', '/p/work/.flow/tickets/fw-1/ticket.md')).toBe(false)
+    expect(isNote('/p/work', '/p/work/.flow/tickets/1/ticket.md')).toBe(false)
     expect(isNote('/p/work', '/p/work/.flow/handoffs/../../src/a.ts')).toBe(false)
     expect(isNote('/p/work', '/q/work/.flow/handoffs/a.md')).toBe(false)
   })

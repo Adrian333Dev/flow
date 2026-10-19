@@ -25,13 +25,24 @@ export type MeterState = {
   beat: number
 }
 
-/** What a restart keeps word for word (hooks/register.ts). The host holds it, so an edit that reloads the mod loses none of it. */
+/** A restart the agent asked for, from the tool call to the end of the compaction. */
+export type Restart = {
+  message: string
+  size: number
+  started: boolean
+  /** Typed by the user as /restart: the compaction ends it and no turn follows. */
+  manual: boolean
+}
+
+/** What a restart keeps word for word besides the last reply, which the conversation holds, and the restart itself (hooks/register.ts). The host holds it, so an edit that reloads the mod loses none of it. */
 export type Tracked = {
   /** The main turn that runs now, which the restart tool ends. */
   turn?: string
-  /** The last finished reply. */
-  reply?: string
-  /** The user's messages since that reply, oldest first. */
+  /** The restart under way. Set by the restart tool, cleared when the compaction ends. */
+  restart?: Restart
+  /** Set by /restart, taken by the restart tool, which makes that restart typed. */
+  typed?: boolean
+  /** The user's messages since the last finished reply, oldest first. */
   asked: string[]
   /** Files an edit tool touched since that reply. */
   changed: string[]
