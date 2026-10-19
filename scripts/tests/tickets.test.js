@@ -619,17 +619,17 @@ test('flow done ticks a child\'s line in the parent\'s ## Tasks, and a reopen cl
   assert.match(flow(dir, ['done', 'exp-4']).stdout, /exp-1 has no line for exp-4 in its ## Tasks/);
 });
 
-test('flow ls --label shows one set, and a label is free but plainly spelled', () => {
+test('flow ls "label:…" shows one set, and a label is free but plainly spelled', () => {
   const dir = project('tickets-labels');
   flow(dir, ['new', 'Alpha', '--title', 'alpha', '--label', 'v1']);
   flow(dir, ['new', 'Beta', '--title', 'beta', '--label', 'v1,post-v1']);
   flow(dir, ['new', 'Gamma', '--title', 'gamma']);
 
-  const listed = flow(dir, ['ls', '--label', 'v1']).stdout;
+  const listed = flow(dir, ['ls', 'label:v1']).stdout;
   assert.match(listed, /exp-1/);
   assert.match(listed, /exp-2/);
   assert.doesNotMatch(listed, /exp-3/);
-  assert.match(flow(dir, ['ls', '--label', 'never-used']).stdout, /no tickets\./);
+  assert.match(flow(dir, ['ls', 'label:never-used']).stdout, /no tickets\./);
   assert.match(flow(dir, ['exp-2']).stdout, /^labels: +v1, post-v1$/m);
 
   const bad = flow(dir, ['new', 'Delta', '--title', 'delta', '--label', 'Has Space']);

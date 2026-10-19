@@ -11,7 +11,8 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow sync`](#flow-sync): back up your workflow and share it between your computers
 - [The board](#the-board): see all your tickets and what to work on next
   - [`flow next`](#flow-next): what to work on next
-  - [`flow ls`](#flow-ls): every ticket in a table, or the ones matching a few words
+  - [`flow ls`](#flow-ls): the open tickets in a table, or the ones a quoted query names
+  - [`flow labels`](#flow-labels): the labels on the tickets a query names, to narrow by
   - [`flow tree`](#flow-tree): tickets nested under the ticket they were split from
   - [`flow check`](#flow-check): find broken links between tickets
 - [One ticket](#one-ticket): show, create, change or remove one ticket
@@ -156,7 +157,7 @@ waiting for /flow:upkeep: 1 closed ticket, 2 notes, 3 findings
 
 ### `flow ls`
 
-Every ticket in a table, finished and dropped ones included.
+The open tickets in a table. Done and dropped ones stay out until the query names a status.
 
 ```console
 $ flow ls
@@ -166,26 +167,44 @@ shop-6-dark-mode      todo         feature,post-v1  -
 shop-1-budget-page    todo         feature,v1       -
 shop-2-budget-store   todo         feature          shop-1
 shop-3-csv-export     todo         feature,v1       -
-shop-5-chart-library  done         topic,post-v1    -
 
-6 of 6.
+5 of 6, 1 done or dropped hidden: "status:all".
 ```
 
-**Words narrow the table to the tickets that hold every one.** A word matches anywhere in the title, description, id, labels or body. A word of 5 letters or more also matches a word in the text that is one typo away:
+**One quoted query narrows the table.** It is the same query `flow notes` reads. A word matches anywhere in the title, description, id, labels or body, and a word of 5 letters or more also matches a word one typo away. `field:value` terms narrow by a field:
 
 ```console
-$ flow ls safary
+$ flow ls "safary"
 TICKET                STATUS       LABELS      PARENT
 shop-4-safari-cookie  in-progress  bug,urgent  -
 
 1 of 6.
 ```
 
-- **`[words...]`**: the words to match, such as `flow ls budget feature`.
-- **`--status <status>`**: `todo`, `groundwork`, `planning`, `building`, `review`, `done`, `parked` or `dropped`.
-- **`--parent <id>`**: the tickets split from one ticket.
-- **`--label <label>`**: the tickets carrying one label.
-- **`--unfiled`**: finished tickets not yet checked for lessons. [`flow file`](#flow-file) marks them.
+**A comma inside a value means or, and a repeated field means and.** `"label:v1,post-v1"` finds a ticket with either label. `"label:feature label:v1"` finds a ticket with both.
+
+- **`"<query>"`**: words and the fields below, in double quotes as one argument, such as `flow ls "budget label:feature"`.
+- **`label:<label>`**: the tickets carrying a label.
+- **`status:<status>`**: `todo`, `in-progress`, `done`, `parked` or `dropped`. `status:all` shows every status.
+- **`parent:<id>`**: the tickets split from one ticket.
+- **`filed:no`**: finished tickets not yet checked for lessons. [`flow file`](#flow-file) marks them, and `filed:yes` finds the ones it marked.
+
+### `flow labels`
+
+`flow labels "<query>"`: the labels on the tickets a query names, each with how many of those tickets carry it. Add a label to the query to narrow the set, until it is small enough to read. The labels in the query itself are left out of the count.
+
+```console
+$ flow labels "label:flow-issue"
+3 tickets, 3 open
+more labels: rework-loop 2, hook 1
+exp-12  todo         Agent restated the plan instead of building
+exp-14  in-progress  Hook printed the wrong ticket
+exp-15  todo         Asked for a go after the user said go
+```
+
+**The tickets are listed when 10 or fewer match.** More than that and the command says to add a `label:` term.
+
+- **`"<query>"`**: the same query `flow ls` reads. Done and dropped tickets stay out, with a count of them, until the query names a `status:`.
 
 ### `flow tree`
 
@@ -333,7 +352,7 @@ Give one place. A `done` or `dropped` ticket has none.
 
 ### `flow file`
 
-`flow file <id>...`: mark finished tickets as checked for lessons. `/flow:upkeep` runs it once it has written what a ticket taught into the wiki, your rules and your skills. Mark a ticket that taught nothing too, so it leaves `flow ls --unfiled`.
+`flow file <id>...`: mark finished tickets as checked for lessons. `/flow:upkeep` runs it once it has written what a ticket taught into the wiki, your rules and your skills. Mark a ticket that taught nothing too, so it leaves `flow ls "status:done filed:no"`.
 
 ```console
 $ flow file shop-1 shop-2

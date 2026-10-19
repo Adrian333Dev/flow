@@ -21,6 +21,7 @@ const store = require('../lib/tickets/store');
 const graph = require('../lib/tickets/graph');
 const order = require('../lib/tickets/rank');
 const search = require('../lib/tickets/search');
+const query = require('../lib/query');
 const render = require('../lib/tickets/render');
 const { indent } = require('../lib/render');
 const statuses = require('../lib/tickets/statuses');
@@ -48,6 +49,17 @@ function labelsFrom(value) {
     if (bad) throw new FlowError(bad);
   }
   return labels;
+}
+
+/** A new label one typo from an existing one is most likely that label misspelt. Refused unless `--force`. */
+function checkNewLabels(labels, tickets, force) {
+  if (force) return;
+  const known = new Set(tickets.flatMap((t) => t.data.labels));
+  for (const label of labels) {
+    if (known.has(label) || label.length < 5) continue;
+    const near = [...known].find((k) => k.length >= 5 && search.withinOne(k, label));
+    if (near) throw new FlowError(`"${label}" is one typo from the label "${near}". Use that one, or add --force for a new label.`);
+  }
 }
 
 /**
@@ -304,34 +316,86 @@ function moveLabelled(label, { pick, targetOf, reason, verb, noun, none }) {
 
 const actions = {};
 
+const QUERY_FIELDS = ['label', 'status', 'parent', 'filed'];
+const OPEN_STATUSES = statuses.NAMES.filter((name) => !statuses.TERMINAL.has(name));
+// `flow labels` lists the tickets themselves up to this many, so one call reaches the leaf.
+const LIST_UP_TO = 10;
+
+/**
+ * The tickets one quoted query names (lib/query.js, the grammar `flow notes`
+ * reads). Done and dropped stay out unless the query names a `status:` term,
+ * and `status:all` names every status. `hidden` counts the ones left out.
+ */
+function select(tickets, positional) {
+  const terms = query.parse(positional.join(' '), QUERY_FIELDS);
+  for (const term of terms) {
+    if (term.field === 'status') {
+      const bad = term.values.find((v) => v !== 'all' && !statuses.NAMES.includes(v));
+      if (bad) throw new FlowError(`status:${bad} is no status. They are ${statuses.NAMES.join(', ')}, or all.`);
+    }
+    if (term.field === 'filed') {
+      const bad = term.values.find((v) => v !== 'yes' && v !== 'no');
+      if (bad) throw new FlowError(`filed:${bad} should be filed:yes or filed:no.`);
+    }
+    if (term.field === 'parent') term.values = term.values.map((v) => store.requireId(v, tickets.prefix));
+  }
+  const test = (list) => query.matcher(list, {
+    word: (t, w) => search.matcher([w])(t),
+    label: (t, v) => t.data.labels.includes(v),
+    status: (t, v) => v === 'all' || t.data.status === v,
+    parent: (t, v) => t.data.parent === v,
+    filed: (t, v) => (v === 'yes') === Boolean(t.data.filed),
+  });
+  if (query.has(terms, 'status')) return { terms, list: tickets.filter(test(terms)), hidden: 0 };
+  const everything = tickets.filter(test(terms));
+  const list = everything.filter((t) => OPEN_STATUSES.includes(t.data.status));
+  return { terms, list, hidden: everything.length - list.length };
+}
+
+const hiddenNote = (hidden) => (hidden ? `${hidden} done or dropped hidden: "status:all"` : '');
+
 actions.ls = {
   section: 'board',
-  summary: 'list many, filtered; words match the title, description, id, labels and body',
-  args: '[<words>...]',
-  flags: {
-    status: { values: statuses.NAMES, arg: '<status>' },
-    parent: { arg: '<id>' },
-    label: { arg: '<label>' },
-    unfiled: { bool: true },
-  },
-  run({ positional, flags }) {
+  summary: 'list open tickets; a quoted query like "label:ui,api status:all budget" narrows it',
+  args: '["<query>"]',
+  run({ positional }) {
     const { tickets } = load();
-    let list = tickets;
-
-    if (positional.length) list = list.filter(search.matcher(positional));
-    if (flags.status) list = list.filter((t) => t.data.status === flags.status);
-    if (flags.label) list = list.filter((t) => t.data.labels.includes(flags.label.toLowerCase()));
-    if (flags.parent) {
-      const parent = store.requireId(flags.parent, tickets.prefix);
-      list = list.filter((t) => t.data.parent === parent);
-    }
-    // The filing pass runs this first, to get the ids it will sweep. Done only:
-    // a dropped ticket's reason is its whole record, and an open one is still
-    // producing the material the pass would file.
-    if (flags.unfiled) list = list.filter((t) => t.data.status === 'done' && !t.data.filed);
+    const { list, hidden } = select(tickets, positional);
 
     out(render.ticketTable(graph.rankByStatus(list, tickets)));
-    if (list.length) out(`\n${list.length} of ${tickets.length}.`);
+    if (list.length) out(`\n${list.length} of ${tickets.length}${hidden ? `, ${hiddenNote(hidden)}` : ''}.`);
+    else if (hidden) out(hiddenNote(hidden));
+    return 0;
+  },
+};
+
+/**
+ * The labels on the tickets a query names, to narrow by: each other label with
+ * how many of them carry it. A set small enough to read is listed whole.
+ */
+actions.labels = {
+  section: 'board',
+  summary: 'the labels on the tickets a quoted query names, with counts; the tickets too when 10 or fewer',
+  args: '["<query>"]',
+  run({ positional }) {
+    const { tickets } = load();
+    const { terms, list, hidden } = select(tickets, positional);
+    const asked = new Set(terms.filter((t) => t.field === 'label').flatMap((t) => t.values));
+    const counts = new Map();
+    for (const t of list) for (const label of t.data.labels) if (!asked.has(label)) counts.set(label, (counts.get(label) || 0) + 1);
+    const open = list.filter((t) => !statuses.TERMINAL.has(t.data.status)).length;
+
+    out(`${list.length} ticket${list.length === 1 ? '' : 's'}, ${open} open${hidden ? `, ${hiddenNote(hidden)}` : ''}`);
+    if (counts.size) {
+      const ranked = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+      out(`more labels: ${ranked.map(([label, n]) => `${label} ${n}`).join(', ')}`);
+    }
+    if (list.length > LIST_UP_TO) {
+      out(`add a label: term to see the tickets (up to ${LIST_UP_TO} are listed).`);
+      return 0;
+    }
+    const width = Math.max(0, ...list.map((t) => t.id.length));
+    for (const t of graph.rankByStatus(list, tickets)) out(`${t.id.padEnd(width)}  ${t.data.status.padEnd(11)}  ${t.data.title}`);
     return 0;
   },
 };
@@ -422,6 +486,7 @@ actions.new = {
     before: { arg: '<id>' },
     after: { arg: '<id>' },
     first: { bool: true },
+    force: { bool: true },
   },
   run({ positional, flags, usage }) {
     const description = positional.join(' ').trim();
@@ -441,6 +506,7 @@ actions.new = {
     if (!pulled.ok) throw new FlowError(notMade(pulled));
     for (const r of pulled.renumbered || []) out(`${r.from} is now ${r.to}: another machine took ${r.from} first.`);
     const tickets = store.readTickets(root);
+    checkNewLabels(labels, tickets, flags.force);
 
     const deps = store.toIdList(flags.deps, tickets.prefix);
     for (const d of deps) {
@@ -503,6 +569,7 @@ actions.edit = {
     parent: { arg: '<id>' },
     deps: { arg: '<id,id>' },
     activity: { arg: '<word>' },
+    force: { bool: true },
   },
   run({ positional, flags, usage }) {
     if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--description ...] [--label ...] [--activity ...]`);
@@ -551,6 +618,7 @@ actions.edit = {
     if (flags.label !== undefined) {
       // The whole list, the way `--deps` takes it. Empty clears it.
       const labels = labelsFrom(flags.label);
+      checkNewLabels(labels, tickets, flags.force);
       changes.push(`labels: [${t.data.labels.join(', ')}] → [${labels.join(', ')}]`);
       t.data.labels = labels;
     }
@@ -648,7 +716,7 @@ actions.file = {
     records.commit(root, `filed ${targets.map((t) => t.id).join(', ')}`);
     const left = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
     out(left.length
-      ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled: flow ls --unfiled`
+      ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled: flow ls "status:done filed:no"`
       : '\nnothing left unfiled.');
     return 0;
   },

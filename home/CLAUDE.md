@@ -31,7 +31,7 @@ One user message, your work, one reply. In that order, every time.
 - **`wiki-first`** Work against an outside tool or field → its `~/.flow/wiki/<subject>/` first, `findings/` not yet folded included, then its docs. Never training memory alone.
 - **`know-where-knowledge-lives`** Look where a thing is filed before asking or guessing:
   - A fact of this project → `docs/context/`. Why it was built so → `docs/spec/`.
-  - A mistake of a type → `flow cases`.
+  - A mistake of a type → `flow labels "label:flow-issue"`.
   - Ideas and put-off work → `flow notes "label:<subject>"`.
   - Earlier research → `.flow/research/<topic>/`.
   - Steps that repeat → a how-to page in the wiki, or a skill.
@@ -93,7 +93,7 @@ One phase at a time:
 - A correction, or a fact about the user → `flow note "…" --label profile --project global`. True in this project alone → `flow note "…" --label rule`. A fact about the user is never a skill level, what they don't know, or what they work on.
 - A decision → the `docs/spec/` file that owns it (`~/.flow/references/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow note "…"`. One batch, never mid-discussion.
 - Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow note "…"`.
-- Your own mistake, a rule that did not fire or output the user rejected included → `flow cases new --type <type>`. `flow cases` lists the types. A type already listed is a repeat.
+- Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow labels "label:flow-issue"` lists the types. A type already listed is a repeat.
 - A wrong rule-check warning → `.flow/findings/scorecard.md`
 - Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
 - Anything else worth keeping, friction that repeated included → `flow note "…"`
@@ -109,9 +109,9 @@ One phase at a time:
 
 What you inferred stays a note or a new file. `/flow:upkeep` shows it in its plan.
 
-**`tickets-follow-the-ask`** The user asks for a ticket → `flow ls` for one on the subject, then `flow new "…"` with its reason and a `## Done when`. A list is one ticket with a checklist. A fault in work just built reopens the ticket that built it. "This session's ticket" is the one this session works, never any ticket in progress: parallel sessions share the checkout.
+**`tickets-follow-the-ask`** The user asks for a ticket → `flow ls "<words>"` for one on the subject, then `flow new "…"` with its reason and a `## Done when`. A list is one ticket with a checklist. A fault in work just built reopens the ticket that built it. "This session's ticket" is the one this session works, never any ticket in progress: parallel sessions share the checkout.
 
-**`capture-reads-nothing`** Read no file to file. Two exceptions: a finding that contradicts an older one (read that one file, replace its text), and `flow cases`, to spot a repeat.
+**`capture-reads-nothing`** Read no file to file. Two exceptions: a finding that contradicts an older one (read that one file, replace its text), and `flow labels "label:flow-issue"`, to spot a repeat.
 
 **`name-what-was-filed`** When capture wrote files at a checkpoint, end the reply with `Filed: <path>, <path>`. Nothing written, no line.
 

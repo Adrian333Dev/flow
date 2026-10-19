@@ -31,7 +31,7 @@ Batch every step. Never carry one item to its home before the next is sorted.
 
 ## Sources
 
-- **Closed tickets nobody filed.** `flow ls --unfiled`. Read each whole: `ticket.md`, `history.md`, its decision files, `reports/`, and `groundwork/map.md` on a ticket not yet converted. A prototype is read through its report. List `protos/` by file name and open a file the report names. Raw evidence is never harvested.
+- **Closed tickets nobody filed.** `flow ls "status:done filed:no"`. Read each whole: `ticket.md`, `history.md`, its decision files, `reports/`, and `groundwork/map.md` on a ticket not yet converted. A prototype is read through its report. List `protos/` by file name and open a file the report names. Raw evidence is never harvested.
 - **The failure log**, `~/.flow/logs/failures/<year>-<month>.jsonl`, from the line after the newest `swept` marker. A month's file with no marker also reads the month before, from its marker.
 - **Notes**, `flow notes`: this project's and the global ones. Promote with `flow notes promote <name>`, inside the project it belongs to. Drop with `flow notes drop <name>`. Fold into a home, or keep.
   - A `profile` or `rule` note is a correction capture inferred. Show it beside any line it contradicts.
@@ -41,7 +41,7 @@ Batch every step. Never carry one item to its home before the next is sorted.
 
 ## Old records (temporary)
 
-Delete this whole section once `flow ls --unfiled` lists no ticket with an `issues.md`.
+Delete this whole section once `flow ls "status:done filed:no"` lists no ticket with an `issues.md`.
 
 - **`issues.md` in a closed ticket**: the old design's list of defects found during the build. Read it beside the ticket's other files. An item still open → a ticket. A fixed or stale one → drop it.
 
@@ -51,7 +51,7 @@ Observations for the plan, never tickets: the user decides what becomes one. One
 
 - **Each batch ticket's `history.md`**: time spent in each status, moves back, handoffs.
 - **`flow audit summary --since <the newest `swept` marker's date>`**: errors and tool counts across those sessions.
-- **`rework-loop` cases** (`flow cases ls --issue rework-loop`): a live session recorded a user still unhappy after a fix.
+- **`rework-loop` issue tickets** (`flow ls "label:flow-issue label:rework-loop status:all"`): a live session recorded a user still unhappy after a fix.
 
 Flag a ticket that looped, ran long or ran heavy next to the batch's others. List it with its evidence and one answer:
 
@@ -73,7 +73,7 @@ Would the sentence be true in a different project? Yes → global. No → this p
 - **Project fact most sessions need** → its `CLAUDE.md`
 - **Project fact only some work needs** → `docs/context/<subject>.md`
 - **A decision** → the `docs/spec/` file that owns it, or the `map.md` of the groundwork that owns the subject
-- **A mistake** → `flow cases new --type <type>`. A rule born from a mistake names its case.
+- **A mistake** → a ticket: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`. A rule born from a mistake names its ticket.
 - **Work** → a ticket
 
 **`docs-context-holds-verified-facts`** One question per file, facts and never process, rewritten rather than appended.

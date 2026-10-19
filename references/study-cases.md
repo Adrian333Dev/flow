@@ -1,12 +1,16 @@
 # Study cases
 
+## A new fault is a ticket
+
+A new mistake, fault in Flow or rejected output is a ticket labelled `flow-issue` plus a type, never a new case: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow labels "label:flow-issue"` lists the types with counts, and a near-miss on an existing type refuses; `--force` means it really is a new type. The body below is the shape of the ticket's description. The cases already written stay readable with `flow cases`, until they move into tickets.
+
 ## Note or case
 
 A study case when **an artifact exists that will be gone tomorrow**: output the user reacted to, a file that came out wrong, a rule that was loaded and did not fire.
 
 Nothing to preserve (friction hit twice, a gap, a rule that fought the work) → `flow note "…"`.
 
-## Writing one
+## Writing one (the old way)
 
     flow cases
     flow cases new "<title>" --type <type> [--rule "<the rule that did not fire>"]

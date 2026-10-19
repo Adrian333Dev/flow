@@ -9,7 +9,7 @@ const frontmatter = require('../lib/frontmatter');
 
 const slug = (text) => text.toLowerCase().replace(/ /g, '-');
 
-test('flow ls filters by --status, --label, and --parent', () => {
+test('flow ls filters by a quoted query: label, parent and words', () => {
   const dir = project('board-ls-filters');
 
   flow(dir, ['new', 'Feature one', '--title', 'feature-one']);
@@ -21,7 +21,7 @@ test('flow ls filters by --status, --label, and --parent', () => {
   assert.match(all.stdout, /exp-1-feature-one/);
   assert.match(all.stdout, /exp-2-chore-two/);
 
-  const chores = flow(dir, ['ls', '--label', 'chore']);
+  const chores = flow(dir, ['ls', 'label:chore']);
   assert.match(chores.stdout, /chore-two/);
   assert.ok(!chores.stdout.includes('feature-one'));
 
@@ -29,12 +29,66 @@ test('flow ls filters by --status, --label, and --parent', () => {
   const parentId = folders[0].match(/^[a-z]+-\d+/)[0];
   flow(dir, ['new', 'Child', '--title', 'child', '--parent', parentId]);
 
-  const children = flow(dir, ['ls', '--parent', parentId]);
+  const children = flow(dir, ['ls', `parent:${parentId}`]);
   assert.match(children.stdout, /-child/);
   assert.ok(!children.stdout.includes('chore-two'));
+
+  const word = flow(dir, ['ls', 'issue']);
+  assert.match(word.stdout, /issue-three/);
+  assert.ok(!word.stdout.includes('chore-two'));
 });
 
-test('flow ls --unfiled shows only done tickets without a filed date', () => {
+test('flow ls on a query: a comma is or, a repeated field is and', () => {
+  const dir = project('board-ls-logic');
+  flow(dir, ['new', 'Alpha', '--title', 'alpha', '--label', 'ui,bug']);
+  flow(dir, ['new', 'Beta', '--title', 'beta', '--label', 'api']);
+  flow(dir, ['new', 'Gamma', '--title', 'gamma', '--label', 'ui']);
+
+  const either = flow(dir, ['ls', 'label:ui,api']).stdout;
+  assert.match(either, /alpha/);
+  assert.match(either, /beta/);
+  assert.match(either, /gamma/);
+
+  const both = flow(dir, ['ls', 'label:ui label:bug']).stdout;
+  assert.match(both, /alpha/);
+  assert.doesNotMatch(both, /gamma/);
+  assert.doesNotMatch(both, /beta/);
+
+  assert.match(flow(dir, ['ls', 'label:ui', 'label:bug']).stdout, /alpha/, 'loose words join into one query');
+  assert.match(flow(dir, ['ls', 'label:never-used']).stdout, /no tickets\./);
+});
+
+test('flow ls hides done and dropped until a status term, and status:all shows every status', () => {
+  const dir = project('board-ls-status');
+  flow(dir, ['new', 'Alpha', '--title', 'alpha']);
+  flow(dir, ['new', 'Beta', '--title', 'beta']);
+  flow(dir, ['new', 'Gamma', '--title', 'gamma']);
+  flow(dir, ['start', 'exp-1']);
+  flow(dir, ['done', 'exp-1']);
+  flow(dir, ['drop', 'exp-2', '--reason', 'no longer needed']);
+
+  const open = flow(dir, ['ls']);
+  assert.strictEqual(open.code, 0, open.stderr);
+  assert.match(open.stdout, /gamma/);
+  assert.doesNotMatch(open.stdout, /alpha|beta/);
+  assert.match(open.stdout, /2 done or dropped hidden: "status:all"/);
+
+  const all = flow(dir, ['ls', 'status:all']).stdout;
+  assert.match(all, /alpha/);
+  assert.match(all, /beta/);
+  assert.match(all, /gamma/);
+  assert.doesNotMatch(all, /hidden/);
+
+  const done = flow(dir, ['ls', 'status:done']).stdout;
+  assert.match(done, /alpha/);
+  assert.doesNotMatch(done, /gamma|beta/);
+
+  const bad = flow(dir, ['ls', 'status:bogus']);
+  assert.strictEqual(bad.code, 1);
+  assert.match(bad.stderr, /status:bogus is no status/);
+});
+
+test('flow ls "status:done filed:no" shows only done tickets without a filed date', () => {
   const dir = project('board-ls-unfiled');
 
   flow(dir, ['new', 'Alpha', '--title', 'alpha']);
@@ -49,10 +103,71 @@ test('flow ls --unfiled shows only done tickets without a filed date', () => {
 
   flow(dir, ['file', id1]);
 
-  const unfiled = flow(dir, ['ls', '--unfiled']);
+  const unfiled = flow(dir, ['ls', 'status:done filed:no']);
   assert.strictEqual(unfiled.code, 0, unfiled.stderr);
   assert.match(unfiled.stdout, /beta/);
   assert.ok(!unfiled.stdout.includes('alpha'));
+
+  const filed = flow(dir, ['ls', 'status:done filed:yes']);
+  assert.match(filed.stdout, /alpha/);
+  assert.ok(!filed.stdout.includes('beta'));
+});
+
+test('flow labels counts the other labels, lists the tickets at 10 or fewer, and hides closed ones', () => {
+  const dir = project('board-labels');
+  flow(dir, ['new', 'Alpha', '--title', 'alpha', '--label', 'flow-issue,rework-loop']);
+  flow(dir, ['new', 'Beta', '--title', 'beta', '--label', 'flow-issue,rework-loop,hook']);
+  flow(dir, ['new', 'Gamma', '--title', 'gamma', '--label', 'flow-issue,wrong-output']);
+  flow(dir, ['new', 'Delta', '--title', 'delta', '--label', 'feature']);
+  flow(dir, ['start', 'exp-3']);
+  flow(dir, ['done', 'exp-3']);
+
+  const issues = flow(dir, ['labels', 'label:flow-issue']);
+  assert.strictEqual(issues.code, 0, issues.stderr);
+  assert.match(issues.stdout, /^2 tickets, 2 open, 1 done or dropped hidden: "status:all"$/m);
+  assert.match(issues.stdout, /^more labels: rework-loop 2, hook 1$/m, 'the asked label is left out, the rest ranked by count');
+  assert.match(issues.stdout, /exp-1 +todo +alpha/);
+  assert.match(issues.stdout, /exp-2 +todo +beta/);
+  assert.doesNotMatch(issues.stdout, /gamma|delta/);
+
+  const every = flow(dir, ['labels', 'label:flow-issue status:all']).stdout;
+  assert.match(every, /^3 tickets, 2 open$/m);
+  assert.match(every, /wrong-output 1/);
+  assert.match(every, /gamma/);
+
+  const drilled = flow(dir, ['labels', 'label:flow-issue label:rework-loop']).stdout;
+  assert.match(drilled, /^more labels: hook 1$/m);
+});
+
+test('flow labels lists no tickets above 10 and says how to narrow', () => {
+  const dir = project('board-labels-many');
+  for (let i = 1; i <= 11; i++) flow(dir, ['new', `Item ${i}`, '--title', `item-${i}`, '--label', 'bulk']);
+
+  const wide = flow(dir, ['labels', 'label:bulk']).stdout;
+  assert.match(wide, /^11 tickets, 11 open$/m);
+  assert.match(wide, /add a label: term to see the tickets/);
+  assert.doesNotMatch(wide, /item-1\b/);
+});
+
+test('a new label one typo from an existing one is refused unless --force', () => {
+  const dir = project('board-label-near-miss');
+  flow(dir, ['new', 'Alpha', '--title', 'alpha', '--label', 'rework-loop']);
+
+  const near = flow(dir, ['new', 'Beta', '--title', 'beta', '--label', 'rework-lop']);
+  assert.strictEqual(near.code, 1);
+  assert.match(near.stderr, /"rework-lop" is one typo from the label "rework-loop"/);
+  assert.match(near.stderr, /--force/);
+
+  const forced = flow(dir, ['new', 'Beta', '--title', 'beta', '--label', 'rework-lop', '--force']);
+  assert.strictEqual(forced.code, 0, forced.stderr);
+
+  const same = flow(dir, ['new', 'Gamma', '--title', 'gamma', '--label', 'rework-loop']);
+  assert.strictEqual(same.code, 0, 'the existing label itself is no near miss');
+
+  const short = flow(dir, ['new', 'Delta', '--title', 'delta', '--label', 'ui']);
+  const shorter = flow(dir, ['new', 'Eps', '--title', 'eps', '--label', 'uj']);
+  assert.strictEqual(short.code, 0, short.stderr);
+  assert.strictEqual(shorter.code, 0, 'labels under 5 letters are never near misses');
 });
 
 test('flow next counts what waits for /flow:upkeep, and prints nothing where nothing waits', () => {
