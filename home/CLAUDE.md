@@ -87,7 +87,7 @@ One phase at a time:
 **`file-by-type`** Every route adds a new file or a new line:
 
 - A lesson or fact about a tool or this project, a failed attempt with its cause, a procedure done before → a finding: `~/.flow/wiki/<tool>/findings/<lesson>.md` for any project, `.flow/findings/<lesson>.md` for this project.
-- A correction → `flow note "…" --label rule`, with `--project global` where it holds in every project.
+- A correction → `flow note "…" --label rule`, with `--project home` where it holds in every project.
 - A decision → the `docs/spec/` file that owns it (`~/.flow/references/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow note "…"`. One batch, never mid-discussion.
 - Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow note "…"`.
 - Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow labels "label:flow-issue"` lists the types. A type already listed is a repeat. How to write one: `~/.flow/references/issue-tickets.md`.
@@ -117,7 +117,7 @@ What you inferred stays a note or a new file. `/flow:upkeep` shows it in its pla
 
 - `flow <id>`: one ticket in full, such as `flow exp-47`. It reads and picks nothing up. Ticket frontmatter changes through `flow` alone, never by hand.
 - `flow start <id> --activity <word>`: picks a ticket up, every time you take one on to work (in a skill, in a talk before one, after a restart). The word: `design`, `build` or `debug`. Already in progress → it only takes the new word. The user names a ticket to work → start it and run the phase skill that fits, same turn.
-- `flow new "<short name>: <details>"`: create a ticket, titled from the words before the colon. Outside a project, `FLOW_PROJECT=$HOME flow new "<short name>: <details>"` keeps it in `~/.flow/tickets/`, numbered `home-1`, and its id works from anywhere.
+- `flow new "<short name>: <details>"`: create a ticket, titled from the words before the colon. Outside a project, `flow new "<short name>: <details>" -p home` keeps it in `~/.flow/tickets/`, numbered `home-1`, and its id works from anywhere.
 - `util fs tree [path]`: a folder as a tree, with each file's line count.
 
 ## What the user sees

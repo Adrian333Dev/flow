@@ -21,7 +21,9 @@
  * Flow's lines added and nothing replaced.
  *
  * The project's ticket prefix is asked once, `exp` for an expense app, with
- * the first letters of the folder offered. `--prefix` answers it.
+ * the first letters of the folder offered. `--prefix` answers it. A word another
+ * project on this machine holds (lib/registry.js) is refused, with the next
+ * free word named. The project is registered once it is set up.
  *
  * The tickets live in the Flow home: `.flow/` is a link to
  * ~/.flow/projects/<name>/, and lib/tickets/records-place.js holds how. The
@@ -38,6 +40,7 @@ const confirm = require('../lib/machine/confirm');
 const { FlowError } = require('../lib/error');
 const flowRepo = require('../lib/machine/flow-repo');
 const records = require('../lib/tickets/records');
+const registry = require('../lib/registry');
 const place = require('../lib/tickets/records-place');
 const projects = require('../lib/project');
 const settings = require('../lib/settings');
@@ -67,8 +70,12 @@ const RECORDS_IGNORE = [
 /** Whether a records folder holds a prefix, which is what a set-up project has. */
 const isSetUp = (dir) => Boolean(settings.read(path.join(dir, 'settings.json')).ticketPrefix);
 
-/** The word this project's ids start with: `--prefix`, the one asked, or the one offered. */
-function choosePrefix(project, given) {
+/**
+ * The word this project's ids start with: `--prefix`, the one asked, or the one
+ * offered. A word another project on this machine holds is refused with the
+ * next free one, since two projects on one prefix cannot be told apart by id.
+ */
+function choosePrefix(project, given, home) {
   const offered = store.offerWord(project);
   let word = given;
   if (!word && process.stdout.isTTY && confirm.hasTerminal()) {
@@ -77,7 +84,28 @@ function choosePrefix(project, given) {
   word = String(word || offered).trim().toLowerCase();
   const bad = store.badWord(word);
   if (bad) throw new FlowError(bad);
+  const holder = registry.holder(word, project, home);
+  if (holder) {
+    const free = registry.freeWord(word, project, home);
+    throw new FlowError(`"${word}" is the prefix of ${show(holder)}, another project on this machine.` +
+      (free ? ` Run flow init --prefix ${free}.` : ' Run flow init --prefix <another word>.'));
+  }
   return word;
+}
+
+/**
+ * Puts the project in the machine's registry. A prefix another folder holds
+ * leaves it out, and the setup carries on: a line in `done` says so. A registry
+ * that cannot be written is a line too, never a failed setup.
+ */
+function registerProject(project, home, done) {
+  try {
+    if (registry.register(project, home) !== 'clash') return;
+    const prefix = store.prefixOf(project);
+    done.push(`not in the machine's project list: ${show(registry.holder(prefix, project, home))} holds the prefix "${prefix}". flow doctor names the fix.`);
+  } catch (e) {
+    done.push(`not in the machine's project list: ${e.message.split('\n')[0]}`);
+  }
 }
 
 /**
@@ -192,12 +220,14 @@ function init(at, clone, flags) {
   // Another machine set the project up: its tickets are linked, and nothing is written.
   if (isSetUp(home)) {
     makeSkillsFolder(project);
+    registerProject(project, at.flow, done);
     out(`${done.join('\n')}\n\nset up: ${show(project)}, with the tickets another machine started.`);
     return 0;
   }
 
-  seedRecords(project, choosePrefix(project, flags.prefix));
+  seedRecords(project, choosePrefix(project, flags.prefix, at.flow));
   place.remember(project, home);
+  registerProject(project, at.flow, done);
   for (const rel of writeTemplate(clone, project)) done.push(`wrote: ${rel}`);
   records.syncLater(project, at.flow);
   out(`${done.join('\n')}\n\nset up: ${show(project)}. Nothing in the code is committed: ` +

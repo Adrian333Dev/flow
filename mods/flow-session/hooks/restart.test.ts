@@ -152,7 +152,41 @@ describe('addAsked', () => {
     expect(addAsked(['A one', 'B two'], 'A one and more')).toEqual(['B two', 'A one and more'])
   })
 
+  test('a message sent again with a typo mended replaces the first one, at the same length', () => {
+    expect(addAsked(['Fix the buidl script now'], 'Fix the build script now')).toEqual(['Fix the build script now'])
+  })
+
+  test('a typo mended and words added still replaces the first one', () => {
+    expect(addAsked(['Fix the buidl script'], 'Fix the build script, then the tests')).toEqual(['Fix the build script, then the tests'])
+  })
+
+  test('a different word, a number or a short word makes a separate message', () => {
+    expect(addAsked(['fix the login page'], 'fix the logout page')).toEqual(['fix the login page', 'fix the logout page'])
+    expect(addAsked(['use port 3000'], 'use port 4000')).toEqual(['use port 3000', 'use port 4000'])
+    expect(addAsked(['do A'], 'do B')).toEqual(['do A', 'do B'])
+  })
+
+  test('a file, a path, a URL or a number in any script makes a separate message, however close', () => {
+    expect(addAsked(['edit tickets.js'], 'edit tickets.ts and more')).toEqual(['edit tickets.js', 'edit tickets.ts and more'])
+    expect(addAsked(['look at src/a.ts'], 'look at src/b.ts then fix it')).toEqual(['look at src/a.ts', 'look at src/b.ts then fix it'])
+    expect(addAsked(['open https://x.com/a'], 'open https://x.com/b now')).toEqual(['open https://x.com/a', 'open https://x.com/b now'])
+    expect(addAsked(['port ٣٠٠٠'], 'port ٤٠٠٠ please')).toEqual(['port ٣٠٠٠', 'port ٤٠٠٠ please'])
+  })
+
   test('a blank earlier message is kept as it was', () => {
     expect(addAsked(['  '], 'X')).toEqual(['  ', 'X'])
+  })
+
+  test('a message sent twice stays one, and an empty one removes nothing', () => {
+    expect(addAsked(['go on'], 'go on')).toEqual(['go on'])
+    expect(addAsked(['A one'], '')).toContain('A one')
+  })
+
+  test('a huge message is compared in moments', () => {
+    const earlier = Array.from({ length: 50 }, (_, i) => `message ${i} ${'word '.repeat(50)}`)
+    const huge = 'message 0 ' + 'word '.repeat(200000)
+    const started = performance.now()
+    addAsked(earlier, huge)
+    expect(performance.now() - started).toBeLessThan(1000)
   })
 })

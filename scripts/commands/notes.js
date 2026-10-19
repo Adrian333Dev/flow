@@ -17,7 +17,7 @@
 
 const { FlowError } = require('../lib/error');
 const { out } = require('../lib/cli');
-const { projectRoot } = require('../lib/project');
+const { projectRoot, projectRootOrNull } = require('../lib/project');
 const store = require('../lib/tickets/store');
 const records = require('../lib/tickets/records');
 const query = require('../lib/query');
@@ -25,9 +25,6 @@ const notes = require('../lib/notes');
 const tickets = require('./tickets');
 
 const FIELDS = ['label', 'project'];
-
-// Values a `project:` term reads as words, so no note may be filed under them.
-const RESERVED = ['all', 'here'];
 
 /** The labels a `--label a,b` value names, each checked as a ticket's are. */
 function labelsFrom(value) {
@@ -39,14 +36,20 @@ function labelsFrom(value) {
   return labels;
 }
 
-/** The project the command runs in, or null outside a Flow project, which only `here` needs. */
+/**
+ * A `project:` value must read as a prefix. It need not be registered on this
+ * machine: notes travel with the Flow home, the registry does not.
+ */
+function checkProjectWord(word) {
+  if (word === 'global') throw new FlowError('"global" is now named "home": use project:home.');
+  if (['here', 'all', store.HOME_WORD].includes(word) || store.WORD.test(word)) return;
+  throw new FlowError(`project:${word} is not a project prefix. A note names its project by prefix, such as fw or home, never its folder.`);
+}
+
+/** The prefix of the project the command runs in, or null outside a Flow project. */
 function hereName() {
-  try {
-    return notes.projectOf(projectRoot());
-  } catch (e) {
-    if (e instanceof FlowError) return null;
-    throw e;
-  }
+  const root = projectRootOrNull();
+  return root ? notes.projectOf(root) : null;
 }
 
 /** Notes live in the Flow home, so a save is the home's background sync. */
@@ -56,9 +59,9 @@ const saved = () => records.syncLater(store.homeRoot());
 function add(words, flags, usage) {
   const text = words.join(' ').trim();
   if (!text) throw new FlowError(`usage: ${usage}`);
-  const project = flags.project ? String(flags.project).trim() : hereName() || notes.GLOBAL;
-  if (RESERVED.includes(project.toLowerCase())) throw new FlowError(`"${project}" cannot be a project: it is a word a query reads.`);
-  const { note } = notes.create({ text, labels: labelsFrom(flags.label), project });
+  const root = flags.project === undefined ? projectRootOrNull() : tickets.projectNamed(flags.project, '--project');
+  if (!root) throw tickets.outside();
+  const { note } = notes.create({ text, labels: labelsFrom(flags.label), project: notes.projectOf(root) });
   saved();
   out(`created ${note.id}`);
   out(`        ${note.file}`);
@@ -80,7 +83,8 @@ actions.ls = {
   run({ positional, usage }) {
     if (positional.length > 1) throw new FlowError(`${usage} takes one quoted query: "label:profile cache".`);
     const terms = query.parse(positional[0], FIELDS);
-    if (!query.has(terms, 'project')) terms.push({ field: 'project', values: ['here', notes.GLOBAL] });
+    for (const term of terms.filter((t) => t.field === 'project')) term.values.forEach(checkProjectWord);
+    if (!query.has(terms, 'project')) terms.push({ field: 'project', values: ['here', store.HOME_WORD] });
     const wantsHere = terms.some((t) => t.field === 'project' && t.values.includes('here'));
     const here = wantsHere ? hereName() : null;
     const test = query.matcher(terms, {
@@ -97,8 +101,8 @@ actions.ls = {
 
 actions.new = {
   args: '"<text>"',
-  summary: 'add one; --project names where it belongs, global when outside a project',
-  flags: { label: { arg: '<label,label>' }, project: { arg: '<name>' } },
+  summary: 'add one; --project names where it belongs, and is needed outside a project',
+  flags: { label: { arg: '<label,label>' }, project: tickets.PROJECT_FLAG },
   run({ positional, flags, usage }) {
     return add(positional, flags, usage);
   },
@@ -141,7 +145,7 @@ actions.promote = {
     const note = notes.findNote(notes.readNotes(), needsRef(positional, usage));
     const here = notes.projectOf(root);
     if (note.data.project.toLowerCase() !== here.toLowerCase()) {
-      const where = note.data.project === notes.GLOBAL ? 'in ~/.flow' : `inside ${note.data.project}`;
+      const where = note.data.project === store.HOME_WORD ? 'in ~/.flow' : `inside the project with the prefix ${note.data.project}`;
       throw new FlowError(`${note.id} belongs to ${note.data.project}, not ${here}: run promote ${where}.`);
     }
     const known = new Set(store.readTickets(root).map((t) => t.id));
@@ -165,7 +169,7 @@ const note = {
   hidden: true,
   args: '<text>...',
   summary: 'add a note at once; the short form of flow notes new',
-  flags: { label: { arg: '<label,label>' }, project: { arg: '<name>' } },
+  flags: { label: { arg: '<label,label>' }, project: tickets.PROJECT_FLAG },
   run({ positional, flags, usage }) {
     return add(positional, flags, usage);
   },

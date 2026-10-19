@@ -118,7 +118,17 @@ test('a folder offers its whole name as the prefix where it fits, else its first
   assert.strictEqual(store.offerWord('/code/my-app'), 'myapp');
   assert.strictEqual(store.offerWord('/code/expense-tracker'), 'exp');
   assert.strictEqual(store.offerWord('/code/x1'), 'flow');
-  assert.strictEqual(store.offerWord('/code/home'), 'flow');
+  assert.strictEqual(store.offerWord('/code/home'), 'hom', 'a reserved word is stepped round');
+  assert.strictEqual(store.offerWord('/code/global'), 'glo');
+  assert.strictEqual(store.offerWord('/code/all'), 'flow');
+  assert.strictEqual(store.offerWord('/code/here'), 'her');
+});
+
+test('home, global, all and here cannot be a prefix, and global names home', () => {
+  const store = require('../lib/tickets/store');
+  for (const word of ['home', 'global', 'all', 'here']) assert.match(store.badWord(word), /so no project can take it/, word);
+  assert.match(store.badWord('global'), /now named "home"/);
+  assert.strictEqual(store.badWord('exp'), null);
 });
 
 test('a folder on another disk is copied across, then deleted', () => {

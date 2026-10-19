@@ -36,15 +36,47 @@ export function afterAnswer(tracked: Tracked, answer: string, restarting: boolea
   return { ...tracked, asked: [], changed: [] }
 }
 
+const MAX_TYPO_WORD = 40
+
+const words = (text: string) => text.trim().split(/\s+/)
+
+/** The edit distance between two words, a swap of neighbouring letters counting once. */
+function distance(a: string, b: string): number {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)))
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      d[i]![j] = Math.min(d[i - 1]![j]! + 1, d[i]![j - 1]! + 1, d[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1))
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i]![j] = Math.min(d[i]![j]!, d[i - 2]![j - 2]! + 1)
+    }
+  }
+  return d[a.length]![b.length]!
+}
+
+const LETTERS = /^\p{L}+$/u
+
+/** A word without the punctuation around it: `script,` and `script` are one word. */
+const bare = (word: string) => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '') || word
+
+/** The same word, or a typo mended. A short word and anything not all letters (a number, a path, a URL, `a.js`) must match exactly: one character makes another thing of them. */
+function sameWord(was: string, is: string): boolean {
+  const before = bare(was)
+  const now = bare(is)
+  if (before === now) return true
+  const shortest = Math.min(before.length, now.length)
+  if (shortest < 4 || Math.max(before.length, now.length) > MAX_TYPO_WORD || !LETTERS.test(before) || !LETTERS.test(now)) return false
+  return distance(before, now) <= (shortest >= 5 ? 2 : 1)
+}
+
 /**
- * The user's messages with `text` added. A message that the new one begins with (at a word end) is
- * dropped: the user submitted it, interrupted, and sent it again with more, and the new one holds every word.
+ * The user's messages with `text` added. A message that the new one begins with, word by word, is
+ * dropped: the user submitted it, interrupted, and sent it again with more or with a typo mended,
+ * and the new one holds every word.
  */
 export function addAsked(asked: readonly string[], text: string): string[] {
-  const now = text.trim()
+  const now = words(text)
   const repeats = (earlier: string) => {
-    const before = earlier.trim()
-    return before !== '' && now.startsWith(before) && (now.length === before.length || /\s/.test(now[before.length]!))
+    const before = words(earlier)
+    return earlier.trim() !== '' && before.length <= now.length && before.every((word, i) => sameWord(word, now[i]!))
   }
   return [...asked.filter((earlier) => !repeats(earlier)), text]
 }

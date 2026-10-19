@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const paths = require('./paths');
 const notes = require('./notes');
+const store = require('./tickets/store');
 
 // The labels capture gives a correction it inferred, which only a sweep accepts.
 const INFERRED = ['profile', 'rule'];
@@ -38,7 +39,7 @@ function findings(root) {
 
 /** `{ tickets, notes, findings }`: how many of each wait. `tickets` is what the project holds. */
 function count(root, tickets) {
-  const mine = [notes.projectOf(root).toLowerCase(), notes.GLOBAL];
+  const mine = [notes.projectOf(root).toLowerCase(), store.HOME_WORD];
   return {
     tickets: tickets.filter((t) => t.data.status === 'done' && !t.data.filed).length,
     notes: notes.readNotes().filter((n) => n.data.labels.some((l) => INFERRED.includes(l)) && mine.includes(n.data.project.toLowerCase())).length,

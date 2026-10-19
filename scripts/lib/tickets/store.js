@@ -133,6 +133,10 @@ const HOME_WORD = 'home';
 // ambiguous to read back.
 const WORD = /^[a-z]{2,8}$/;
 
+// Words no prefix may be: `--project` and a note's `project:` term read them.
+// `global` is the old name of `home`, refused so it names the new one.
+const RESERVED = [HOME_WORD, 'global', 'all', 'here'];
+
 /**
  * The folder holding a place's records. A project keeps them in `.flow/`. The
  * home place is ~/.flow/ itself, reached either as its own root or as the home
@@ -186,14 +190,16 @@ function countNumber(root, id) {
  */
 function offerWord(folder) {
   const letters = path.basename(path.resolve(folder)).toLowerCase().replace(/[^a-z]/g, '');
-  const word = letters.length <= 8 ? letters : letters.slice(0, 3);
-  return word.length >= 2 && word !== HOME_WORD ? word : 'flow';
+  const cuts = letters.length <= 8 ? [letters, letters.slice(0, 3)] : [letters.slice(0, 3)];
+  return cuts.find((word) => word.length >= 2 && !RESERVED.includes(word)) || 'flow';
 }
 
 /** The refusal for a word that cannot be one, or null. */
 function badWord(word) {
   if (!WORD.test(String(word))) return `"${word}" cannot be a ticket prefix: use 2 to 8 lowercase letters.`;
   if (word === HOME_WORD) return '"home" is the prefix of the tickets in ~/.flow/, so no project can take it.';
+  if (word === 'global') return '"global" is now named "home" (the tickets and notes of ~/.flow/), so no project can take it.';
+  if (RESERVED.includes(word)) return `"${word}" is a word flow reads (project:${word}, --project), so no project can take it.`;
   return null;
 }
 
@@ -725,7 +731,7 @@ function renderTemplate(name, vars) {
 }
 
 module.exports = {
-  TICKET_KEYS, HOME_WORD,
+  TICKET_KEYS, HOME_WORD, WORD,
   recordsDir, isHome, homeRoot, ticketsDir, archiveDir, offerWord, badWord, prefixOf, wordOf, idOfFolder,
   normalizeId, idNumber, requireId, slugify, labelOf, idOfRef, folderName, nameOf, titleFrom, badTitle, toIdList, toLabelList, badLabel, badActivity, today, now,
   COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,

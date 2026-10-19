@@ -17,6 +17,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const { REPO, project, run, utilStub, claudeStub, pathWith, bareRepo } = require('./helpers/scratch');
+const registry = require('../lib/registry');
 
 /** A scratch machine: installed under one root in tmp/, settings merged by hand. */
 function machine(name) {
@@ -40,6 +41,9 @@ function machine(name) {
     path.join(home, 'settings.json'),
     template.split('$HOME/.flow').join(flowHome)
   );
+
+  // The scratch project is on this machine's list, as a project that wrote a ticket is.
+  registry.register(dir, flowHome);
 
   return { dir, root, home, flowHome };
 }
@@ -70,6 +74,7 @@ test('a fresh install passes every check', () => {
   assert.strictEqual(report.code, 0, report.stdout + report.stderr);
   assert.match(report.stdout, /nothing to fix\./);
   assert.match(report.stdout, /util: fs tree runs/);
+  assert.match(report.stdout, /^ok {4}projects: exp .*doctor-clean$/m);
   assert.match(report.stdout, /18 hooks registered, every file they name on disk, sessions start in "default" mode/);
 });
 
@@ -303,4 +308,44 @@ test('a plugin folder reached through a broken link is named', () => {
 
   assert.strictEqual(report.code, 1);
   assert.match(report.stdout, /skills\/flow points at .*gone, which is gone/);
+});
+
+test('projects: a registered path that is gone is named, with the list', () => {
+  const m = machine('doctor-projects-gone');
+  const gone = path.join(m.dir, 'moved-away');
+  registry.write({ exp: m.dir, old: gone }, m.flowHome);
+
+  const report = doctor(m, { bin: utilStub(m.dir) });
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /old is registered at .*moved-away, which is gone/);
+  assert.match(report.stdout, /^note {2}projects: registered: exp .*doctor-projects-gone, old .*moved-away$/m);
+});
+
+test('projects: the current folder\'s prefix held by another folder is a clash, with ticketPrefix as the fix', () => {
+  const m = machine('doctor-projects-clash');
+  const other = project('doctor-projects-other');
+  registry.write({ exp: other }, m.flowHome);
+
+  const report = doctor(m, { bin: utilStub(m.dir) });
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /this folder's prefix "exp" is held by .*doctor-projects-other: set ticketPrefix in .*settings\.json to another word/);
+});
+
+test('projects: a line whose folder changed its ticketPrefix is named', () => {
+  const m = machine('doctor-projects-renamed');
+  fs.writeFileSync(path.join(m.dir, '.flow', 'settings.json'), '{\n  "ticketPrefix": "shop"\n}\n');
+
+  const report = doctor(m, { bin: utilStub(m.dir) });
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /.*doctor-projects-renamed is registered as "exp", but its ticketPrefix is now "shop"/);
+  assert.doesNotMatch(report.stdout, /is not in the list/, 'the folder has a line, under its old prefix');
+});
+
+test('projects: the current folder with a prefix and no line is named', () => {
+  const m = machine('doctor-projects-missing');
+  registry.write({}, m.flowHome);
+
+  const report = doctor(m, { bin: utilStub(m.dir) });
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /this folder \(prefix "exp"\) is not in the list: a ticket-writing command here adds it/);
 });

@@ -22,7 +22,9 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow rank`](#flow-rank): put a ticket before or after another
   - [`flow file`](#flow-file): mark finished tickets as checked for lessons
   - [`flow drop`](#flow-drop): remove a ticket that will never be done
-  - [`flow move`](#flow-move): move tickets to another project, or to your Flow home- [Ticket status](#ticket-status): move a ticket from one stage to the next
+  - [`flow move`](#flow-move): move tickets to another project by its prefix, or to your Flow home
+- [Notes](#notes): ideas and put-off work, each filed under a project's prefix
+- [Ticket status](#ticket-status): move a ticket from one stage to the next
 - [Settings](#settings): turn Flow's own settings on or off
 - [Rule checks](#rule-checks): see how well the agent follows your rules
 - [Audit](#audit): read back what Claude Code did in past sessions
@@ -69,7 +71,14 @@ wrote: CLAUDE.md
 set up: ~/code/shop. Nothing in the code is committed: CLAUDE.md, .gitignore and .claude/ wait for your next commit.
 ```
 
-- **`--prefix <word>`**: the start of every ticket id, 2 to 8 lowercase letters, as `shop` in `shop-4`. Asked when left out, offering the folder's name: `shop` for `~/code/shop`, or the first 3 letters of a name over 8, `exp` for `expense-tracker`.
+- **`--prefix <word>`**: the start of every ticket id, 2 to 8 lowercase letters, as `shop` in `shop-4`. Asked when left out, offering the folder's name: `shop` for `~/code/shop`, or the first 3 letters of a name over 8, `exp` for `expense-tracker`. A word another project on this computer already uses is refused, and the next free one is named:
+
+  ```console
+  $ flow init --prefix shop
+  "shop" is the prefix of ~/code/shop-old, another project on this machine. Run flow init --prefix shopa.
+  ```
+
+  **Four words name a place, so none is a prefix:** `home`, `global`, `all` and `here`. A folder named `global` is no problem: the offer steps round the word and proposes `glo`. `--prefix global` is refused.
 
 ### `flow doctor`
 
@@ -94,13 +103,15 @@ fail  settings.json:
         /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow update, whose setup session fixes settings.json from /home/me/code/flow/home/settings.json
 ok    ~/.flow: scripts, references and docs resolve into this clone
 ok    skills: 1 skill on everywhere, 1 more for shop
+ok    projects: exp ~/code/expense, shop ~/code/shop
 fail  tickets:
         shop-5-old-words is in a folder not named by its id: rename the folder to shop-5
         shop-9 is titled "feature", a label and no name: flow edit shop-9 --title <up to 4 words>
 
-4 of 12 checks failed.
+4 of 13 checks failed.
 ```
 
+- **`projects`**: the prefix and folder of each project on this computer. It names a registered folder that is gone, the current folder's prefix when another folder holds it (the fix is `ticketPrefix` in `.flow/settings.json`), a line whose folder has since changed its `ticketPrefix`, and the current project missing from the list. With any of these it adds a note listing every registered project. It reads the file and scans nothing.
 - **`tickets`**: inside a project, names each ticket made before the current format: a folder named with more than its id, a `groundwork/map.md` that is only the empty template, and a title that is one of the ticket's own labels. Outside a project it is skipped.
 
 - **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.287 or later. It works before Flow is installed.
@@ -123,6 +134,24 @@ It runs by itself when a session ends, and every 30 minutes while you work, so y
 A ticket is one piece of work, kept as a folder in the project's `.flow/tickets/`. [Tickets](../tickets.md) covers labels and statuses.
 
 **Tickets come in rank order.** Tickets with the same parent are siblings, and top-level tickets share the empty parent. Among siblings, a ticket with a `rank:` number comes first, by number. The tickets without one follow by id, so a new ticket lands last. [`flow rank`](#flow-rank) moves a ticket.
+
+**Outside a project, a read shows your Flow home.** In a folder that is no project, `flow ls`, `flow next` and the other reads run on the tickets in `~/.flow/tickets/` and begin with one line, `outside a project: showing ~/.flow/tickets`. They create nothing. A command that writes (`flow new`, `flow note`, a status move on a bare number) refuses and names the choices: `flow init` here, or `-p home`.
+
+**`-p <prefix>` runs a command in another project.** `flow new`, `flow ls`, `flow next` and `flow note` take `-p`, or `--project`, with the prefix of any project on this computer, from any folder. `home` is your Flow home. A command with an id reads the project from the id and takes no flag.
+
+```console
+$ flow new "Dark mode: a theme switch" -p shop
+created shop-7-dark-mode
+```
+
+**Only a prefix works.** `-p global` is refused, naming `home`. A folder name is refused too, naming the prefix the folder has when it is a project here, and so are `all` and a prefix no project has.
+
+```console
+$ flow ls -p ~/code/shop
+flow: /home/me/code/shop is not a project prefix. --project takes the prefix of a project, such as fw or home, never its folder.
+  The project in /home/me/code/shop has the prefix shop.
+  flow doctor lists the prefixes on this machine.
+```
 
 ### `flow next`
 
@@ -151,6 +180,7 @@ Each session opens on this screen, so it prints only what the next step needs. A
 
 - **`--limit <n>`**: at most `n` tickets in each of the continuing and ready lists. 3 and 5 by default.
 - **`--all`**: every ticket in both.
+- **`-p`, `--project <prefix>`**: another project's tickets, or `home`'s.
 
 ### `flow ls`
 
@@ -185,6 +215,7 @@ shop-4-safari-cookie  in-progress  bug,urgent  -
 - **`status:<status>`**: `todo`, `in-progress`, `done`, `parked` or `dropped`. `status:all` shows every status.
 - **`parent:<id>`**: the tickets split from one ticket.
 - **`filed:no`**: finished tickets not yet checked for lessons. [`flow file`](#flow-file) marks them, and `filed:yes` finds the ones it marked.
+- **`-p`, `--project <prefix>`**: another project's tickets, or `home`'s. This is a flag beside the query, never a term inside it.
 
 ### `flow labels`
 
@@ -234,6 +265,10 @@ no problems: no cycles, no dangling ids, no dropped blockers, no closed parents,
 ## One ticket
 
 A ticket's id is the project's prefix and a number, `shop-4`. Its title is up to 4 hyphenated words, `safari-cookie`, and the two together name it everywhere: `shop-4-safari-cookie`. Its description is one sentence saying what the work is, opening with the short name. Any of these finds a ticket: `4`, `shop-4`, `shop-4-safari-cookie`, or a title word that matches one ticket alone, such as `safari`. Only the id part counts, so a name from before a rename, `shop-4-old-words`, still finds it. An id starting `home-` names a ticket kept in your Flow home, for work that belongs to no project.
+
+**An id works from any folder.** Its prefix names the project, read through the list of projects on this machine (`registry.json` in your Flow home). From inside `app`, `flow shop-4` shows the ticket of the `shop` project, and `flow start shop-4` starts it. The folder you stand in wins when its own prefix matches, and a bare number is always the current project's.
+
+A project joins the list by its first ticket write (`flow init`, `flow new`, `flow start` and the like), and a read never adds one. An unknown prefix fails with a message that names `flow doctor`, which lists the projects.
 
 ### `flow get`
 
@@ -297,6 +332,7 @@ flow: no ticket was made: another machine took shop-7 first. Run it again.
 - **`--deps <id,id>`**: tickets that must reach `review` or `done` before this one can start.
 - **`--label <label,label>`**: tags in lowercase letters, digits and hyphens, 24 characters at most. Flow suggests 9: `feature`, `bug`, `chore`, `docs`, `refactor`, `research`, `topic`, `new-project` and `urgent`. Any other name works too, such as `v1` or `post-v1`.
 - **`--body <text>`**: the ticket's text, in place of the template. `--body -` reads it from standard input.
+- **`-p`, `--project <prefix>`**: the project that gets the ticket, from any folder. `home` files it in `~/.flow/tickets/`, numbered `home-1`.
 
 ### `flow edit`
 
@@ -382,7 +418,7 @@ re-pointed to shop-5-chart-library:
 
 ### `flow move`
 
-`flow move <id>... <place>`: move tickets to another project's folder, or to `home`, your Flow home. Each ticket takes the next free number there. Its old id still finds it from the project it left.
+`flow move <id>... <place>`: move tickets to another project, or to `home`, your Flow home. The place is the project's prefix, such as `shop`, never its folder. Each ticket takes the next free number there. Its old id still finds it from the project it left.
 
 ```console
 $ flow move shop-4 home
@@ -392,6 +428,26 @@ the old id still finds it from the project: flow shop-4
 ```
 
 **A link to a ticket staying behind refuses the whole move.** Move the linked tickets in the same command, or remove the link first with `flow edit --deps` or `--parent`.
+
+## Notes
+
+A note is an idea or put-off work, one small file in `~/.flow/notes/`. It belongs to a project, named by that project's prefix: `shop`, or `home` for a note that holds in every project. A note shows its project's prefix, never its folder's name.
+
+```console
+$ flow note "Export the budget as a CSV too" --label idea
+created export-the-budget-as-a-csv-too
+        ~/.flow/notes/export-the-budget-as-a-csv-too.md
+        project: shop
+        labels: idea
+```
+
+- **`flow note "<text>"`**: add a note to the project you are in. `flow notes new "<text>"` does the same.
+- **`--label <label,label>`**: tags, with the rules a ticket's labels follow.
+- **`-p`, `--project <prefix>`**: the project that gets the note, which must be a project on this computer, or `home`. Outside a project the note is refused without it.
+- **`flow notes "<query>"`**: the notes the query names, as JSON, newest change first. The query reads words, `label:` and `project:`. `project:<prefix>` takes a prefix, `project:home` the home notes, `project:here` this project's, and `project:all` every note. With no `project:` term, a query shows this project's notes and the home ones.
+- **`flow notes get <name>`**, **`drop <name>`**, **`promote <name>`**: show a note, delete it, or turn it into a ticket in the project it belongs to.
+
+**A `project:` term needs only a prefix's shape**, since notes travel between your computers and the list of projects does not. `project:global` is refused, naming `home`, and so is a folder name.
 
 
 ## Ticket status

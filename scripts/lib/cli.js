@@ -37,11 +37,15 @@ function resolve(word, candidates, label, prefix = '') {
  * A flag declared with `letter: true` is one letter typed after one dash,
  * where a wide convention already owns the letter: `-y` answers yes, as in
  * `npm init -y`. It has no two-dash form.
+ *
+ * A value flag declared with `short: 'p'` is also typed `-p <value>`, and
+ * lands in `flags` under its long name.
  */
 function parseArgs(argv, decl = {}) {
   const declared = decl.flags || {};
   const names = Object.keys(declared).filter((name) => !declared[name].letter);
   const letters = Object.keys(declared).filter((name) => declared[name].letter);
+  const shorts = Object.fromEntries(names.filter((name) => declared[name].short).map((name) => [declared[name].short, name]));
   const positional = [];
   const flags = {};
 
@@ -51,6 +55,13 @@ function parseArgs(argv, decl = {}) {
     if (!arg.startsWith('--')) {
       if (arg.startsWith('-') && letters.includes(arg.slice(1))) {
         flags[arg.slice(1)] = true;
+        continue;
+      }
+      if (arg.startsWith('-') && shorts[arg.slice(1)]) {
+        const name = shorts[arg.slice(1)];
+        const value = argv[++i];
+        if (value === undefined) throw new FlowError(`-${arg.slice(1)} needs a value.`);
+        flags[name] = value;
         continue;
       }
       if (arg.startsWith('-') && arg.length > 1) {
@@ -166,8 +177,11 @@ const GUTTER = 38;
 function flagText(action) {
   return Object.entries(action.flags || {})
     .filter(([, flag]) => !flag.hidden)
-    .map(([name, flag]) => (flag.letter ? `[-${name}]` : flag.required ? `--${name} ${flag.arg || '<value>'}` :
-      flag.bool ? `[--${name}]` : `[--${name} ${flag.arg || '<value>'}]`))
+    .map(([name, flag]) => {
+      const typed = flag.short ? `-${flag.short}, --${name}` : `--${name}`;
+      return flag.letter ? `[-${name}]` : flag.required ? `--${name} ${flag.arg || '<value>'}` :
+        flag.bool ? `[--${name}]` : `[${typed} ${flag.arg || '<value>'}]`;
+    })
     .join(' ');
 }
 

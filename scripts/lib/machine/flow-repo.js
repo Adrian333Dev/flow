@@ -26,6 +26,8 @@
  *                 change Flow made, every failure, every rule check
  *   records-sync.json  when this machine last sent each project's tickets
  *                 and this folder, which paces the Stop hook's sends
+ *   registry.json  the projects on this machine and their folders
+ *                 (lib/registry.js)
  *   status-line.json   left by the retired status line on older machines
  *   audit/, changes/   what this machine's sessions left: the transcript
  *                 index, and what each subagent changed
@@ -96,6 +98,7 @@ const IGNORED = [
   '/skills-update.json',
   '/skills-update.lock',
   '/records-sync.json',
+  '/registry.json',
   '/status-line.json',
   '/audit/',
   '/changes/',

@@ -5,8 +5,8 @@
  *
  *   ~/.flow/notes/board-notes-page.md      one folder for every project's notes
  *
- * The header holds `date`, `labels` and `project`: the folder name of the
- * project the note was made in, `global` for a note made outside one. The text
+ * The header holds `date`, `labels` and `project`: the ticket prefix of the
+ * project the note belongs to, `home` for a note of ~/.flow. The text
  * follows. A note has no number, no id, no title field and no rank:
  * `titleOf` reads its title from the text, so editing the first line changes
  * the title at once, and a list shows the newest change first. The file name
@@ -28,16 +28,13 @@ const { FlowError } = require('./error');
 
 const KEYS = ['date', 'labels', 'project'];
 
-// The project of a note made outside one. It is a project like any other, so no project folder may take the name.
-const GLOBAL = 'global';
-
 // A colon later than this in the first line belongs to the sentence, not to a title.
 const TITLE_COLON_MAX = 60;
 
 const notesDir = () => path.join(store.homeRoot(), 'notes');
 
-/** The project name a root files its notes under: its folder name, `global` for the Flow home. */
-const projectOf = (root) => (store.isHome(root) ? GLOBAL : path.basename(root));
+/** The project word a root files its notes under: its ticket prefix, `home` for the Flow home. */
+const projectOf = (root) => store.prefixOf(root);
 
 /** A note's file name, or null for a file that is not one. */
 const stemOf = (name) => (name.endsWith('.md') && !name.startsWith('.') ? name.slice(0, -3) : null);
@@ -54,7 +51,7 @@ function readNote(dir, name) {
     data: {
       date: data.date ? String(data.date).trim() : '',
       labels: store.toLabelList(data.labels).map((l) => l.toLowerCase()),
-      project: data.project ? String(data.project).trim() : GLOBAL,
+      project: data.project ? String(data.project).trim() : store.HOME_WORD,
     },
     body: body.trim(),
   };
@@ -130,7 +127,7 @@ function findNote(notes, ref) {
 }
 
 /** Adds a note. The name and the file are settled together under the lock, so 2 sessions adding at once get 2 names. */
-function create({ text, labels = [], project = GLOBAL }) {
+function create({ text, labels = [], project = store.HOME_WORD }) {
   const made = records.locked(store.homeRoot(), () => {
     const dir = notesDir();
     const note = {
@@ -152,5 +149,5 @@ function remove(note) {
 }
 
 module.exports = {
-  GLOBAL, notesDir, projectOf, readNotes, firstLine, titleOf, findNote, create, remove, writeNote,
+  notesDir, projectOf, readNotes, firstLine, titleOf, findNote, create, remove, writeNote,
 };

@@ -40,6 +40,8 @@ const setupSession = require('../lib/machine/setup-session');
 const skills = require('../lib/skills/skills');
 const paths = require('../lib/paths');
 const project = require('../lib/project');
+const registry = require('../lib/registry');
+const settings = require('../lib/settings');
 const store = require('../lib/tickets/store');
 const { git } = require('../lib/git');
 
@@ -462,6 +464,43 @@ function checkIssues(at) {
 }
 
 /**
+ * The projects this machine knows (lib/registry.js), read and never scanned
+ * for: a registered path that is gone, a prefix two folders both claim, a line
+ * whose folder changed its `ticketPrefix`, and the project around you missing
+ * from the list. `current` is that project, or null.
+ */
+function checkProjects(at, current) {
+  const map = registry.read(at.flow);
+  const listed = registry.projects(at.flow).filter((p) => p.prefix !== store.HOME_WORD);
+  const problems = [];
+
+  for (const p of listed) {
+    if (!p.exists) {
+      problems.push(`${p.prefix} is registered at ${paths.shorten(p.folder)}, which is gone: a ticket-writing command in the moved folder updates the line`);
+    } else if (fs.existsSync(path.join(p.folder, '.flow')) && store.prefixOf(p.folder) !== p.prefix) {
+      problems.push(`${paths.shorten(p.folder)} is registered as "${p.prefix}", but its ticketPrefix is now "${store.prefixOf(p.folder)}": a ticket-writing command in it updates the line`);
+    }
+  }
+
+  if (current && fs.existsSync(path.join(current, '.flow'))) {
+    const prefix = store.prefixOf(current);
+    const named = Boolean(settings.read(settings.projectFile(current)).ticketPrefix);
+    const holder = registry.holder(prefix, current, at.flow);
+    if (holder) {
+      problems.push(`this folder's prefix "${prefix}" is held by ${paths.shorten(holder)}: set ticketPrefix in ${paths.shorten(path.join(current, '.flow', 'settings.json'))} to another word`);
+    } else if (named && !registry.registeredAs(current, at.flow)) {
+      problems.push(`this folder (prefix "${prefix}") is not in the list: a ticket-writing command here adds it`);
+    }
+  }
+
+  const notes = problems.length
+    ? [`registered: ${listed.map((p) => `${p.prefix} ${paths.shorten(p.folder)}`).join(', ') || 'none'}`]
+    : [];
+  const pairs = Object.entries(map).map(([prefix, folder]) => `${prefix} ${paths.shorten(folder)}`);
+  return { name: 'projects', problems, notes, summary: pairs.length ? pairs.join(', ') : 'none registered yet' };
+}
+
+/**
  * The project's tickets, for any still in the format from before `ticket.md`
  * stood alone: a folder named with more than its id, a `groundwork/map.md` that
  * is the empty template, a title that is one of the ticket's own labels.
@@ -613,6 +652,7 @@ actions.doctor = {
       checkClaude(clone, at),
       checkSettings(clone, at.claude, catalog),
       checkFlowHome(clone, at.flow),
+      checkProjects(at, project.around(null, at)),
       checkTickets(project.around(null, at)),
       // Hidden from help, so the report never names it when it was left out.
       flags.tests && checkTests(clone, { bin }),

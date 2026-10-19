@@ -8,13 +8,10 @@
 
 const { FlowError } = require('../lib/error');
 const { out } = require('../lib/cli');
-const { projectRoot } = require('../lib/project');
-const store = require('../lib/tickets/store');
 const graph = require('../lib/tickets/graph');
 const render = require('../lib/tickets/render');
 const waiting = require('../lib/waiting');
-
-const load = () => store.readTickets(projectRoot());
+const { load, loadFor, PROJECT_FLAG } = require('./tickets');
 
 // Small, since every session opens on this answer and pays for each line in
 // context. The count of what was hidden always prints: a silent truncation is
@@ -41,10 +38,9 @@ const board = {};
 board.next = {
   section: 'board',
   summary: 'what to work on, ranked',
-  flags: { limit: { arg: '<n>' }, all: { bool: true } },
+  flags: { limit: { arg: '<n>' }, all: { bool: true }, project: PROJECT_FLAG },
   run({ flags }) {
-    const root = projectRoot();
-    const tickets = store.readTickets(root);
+    const { root, tickets } = loadFor(flags);
     out(render.status(tickets, nextLimit(flags), waiting.count(root, tickets)));
     return 0;
   },
@@ -54,7 +50,7 @@ board.check = {
   section: 'board',
   summary: 'cycles, dangling ids, dropped blockers, orphaned parents, unknown statuses',
   run() {
-    const problems = graph.check(load());
+    const problems = graph.check(load().tickets);
     out(render.checkReport(problems));
     return graph.hasProblems(problems) ? 1 : 0;
   },

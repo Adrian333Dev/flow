@@ -52,9 +52,7 @@ function around(from, at = paths.folders()) {
  * goes through here.
  */
 function projectRoot() {
-  if (override() && !fs.existsSync(override())) {
-    throw new FlowError(`FLOW_PROJECT points at a path that does not exist: ${override()}`);
-  }
+  checkOverride();
   const found = top();
   if (!found) {
     throw new FlowError(
@@ -66,4 +64,22 @@ function projectRoot() {
   throw new FlowError(`${found} is not a Flow project yet. Type flow init to bring it in.`);
 }
 
-module.exports = { top, around, projectRoot };
+/**
+ * The same, or null where there is no repository or no `.flow/`: a command
+ * that can read the home place instead asks this, and one that cannot
+ * calls `projectRoot`. A `FLOW_PROJECT` naming a missing path still throws,
+ * since that is a mistake and no folder without a project.
+ */
+function projectRootOrNull() {
+  checkOverride();
+  const found = top();
+  return found && fs.existsSync(path.join(found, '.flow')) ? found : null;
+}
+
+function checkOverride() {
+  if (override() && !fs.existsSync(override())) {
+    throw new FlowError(`FLOW_PROJECT points at a path that does not exist: ${override()}`);
+  }
+}
+
+module.exports = { top, around, projectRoot, projectRootOrNull };

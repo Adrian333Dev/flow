@@ -70,7 +70,7 @@ test('--help after a command prints that command alone, and runs nothing', () =>
   const dir = project('flow-command-help');
   const next = flow(dir, ['next', '--help']);
   assert.strictEqual(next.code, 0, next.stderr);
-  assert.match(next.stdout, /^flow next +what to work on, ranked\n +\[--limit <n>\] \[--all\]\n$/);
+  assert.match(next.stdout, /^flow next +what to work on, ranked\n +\[--limit <n>\] \[--all\] \[-p, --project <prefix>\]\n$/);
 
   const on = flow(dir, ['settings', 'on', '-h']);
   assert.match(on.stdout, /^flow settings on <name> /);

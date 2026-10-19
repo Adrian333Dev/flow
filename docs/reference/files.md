@@ -33,6 +33,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ settings.json
 │  ├─ settings.local.json
 │  ├─ machines/<name>.json
+│  ├─ registry.json               the projects on this computer
 │  ├─ tickets/
 │  ├─ ticket-counter
 │  ├─ projects/<project>/         a project's tickets, kept privately
@@ -95,6 +96,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 - **`CLAUDE.md`**: your rules. `~/.claude/CLAUDE.md` links to it. It starts from Flow's template and is yours after that.
 - **`settings.json`** and **`settings.local.json`**: Flow's settings. [Settings](settings.md) covers every key.
 - **`machines/<name>.json`**: one record per computer sharing this Flow home, saying when it joined: `{ "name": "macbook-pro", "joined": "2026-09-27" }`.
+- **`registry.json`**: the projects on this computer, one line each, prefix and folder: `{ "exp": "/home/me/code/expense", "shop": "/home/me/code/shop" }`. `flow init` adds a project, and so does the first command that writes a ticket in a project that arrived with `.flow/`, such as a clone. A prefix is held by one folder: `flow init` refuses a taken one. `flow doctor` reads the file. A folder path differs on each computer, so the file stays on this one.
 - **`README.md`** and **`.gitignore`**: a warning for anyone opening the repository on GitHub, and the list of what stays on this computer.
 
 ### Links into your clone
@@ -181,6 +183,7 @@ Sessions write here, and Flow owns none of it.
 - `settings.local.json`, `logs/`, `audit/` and `changes/`
 - `repos/`: each computer downloads its own
 - each tool's `wiki/<tool>/downloads/`
+- `registry.json`: where each project sits on this computer
 - the small files Flow keeps while it works: `records-sync.json`
 
 Claude Code's `~/.claude/projects/` stays too. A project's `.flow/` travels inside your Flow home.

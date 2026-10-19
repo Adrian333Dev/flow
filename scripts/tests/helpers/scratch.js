@@ -44,6 +44,12 @@ process.env.FLOW_HOME_REMOTE = process.env.FLOW_HOME_REMOTE || path.join(SCRATCH
 // one would write there. Set outright, since no test may reach the real one.
 process.env.CLAUDE_CONFIG_DIR = path.join(SCRATCH, 'claude-config');
 
+// The Flow home, where `registry.json` lists the projects of this machine. A
+// ticket-writing command registers its project, so a run with no FLOW_HOME of
+// its own would put a scratch folder in the real registry. `flow()` below gives
+// each project a home of its own; this one catches every other run.
+process.env.FLOW_HOME = process.env.FLOW_HOME || path.join(SCRATCH, 'flow-home');
+
 // git's global config, where `flow install` saves the machine's name. `--root`
 // moves it under the root, and this catches every run without one: a test
 // once left `flow.machine = test-machine` in the real ~/.gitconfig, and the

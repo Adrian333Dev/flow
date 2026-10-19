@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { FlowError } = require('../lib/error');
 const { out, readBody } = require('../lib/cli');
-const { projectRoot } = require('../lib/project');
+const { projectRootOrNull } = require('../lib/project');
 const store = require('../lib/tickets/store');
 const graph = require('../lib/tickets/graph');
 const order = require('../lib/tickets/rank');
@@ -26,17 +26,114 @@ const render = require('../lib/tickets/render');
 const { indent } = require('../lib/render');
 const statuses = require('../lib/tickets/statuses');
 const records = require('../lib/tickets/records');
+const registry = require('../lib/registry');
 const ticketSkills = require('../lib/tickets/ticket-skills');
 
-function load() {
-  const root = projectRoot();
-  return { root, tickets: store.readTickets(root) };
+// True while a write runs (set around it, below): a write outside a project
+// refuses, where a read shows the home place.
+let writing = false;
+
+// The projects a command read or wrote. After a write their ticket skills are
+// synced and they are registered.
+const touched = new Set();
+
+/** The refusal for a write that has no project to go to. */
+const outside = () => new FlowError(
+  'not inside a Flow project, so this has nowhere to write.\n' +
+  '  Run flow init here to make this folder a project, or use --project home to write to ~/.flow.'
+);
+
+/**
+ * The tickets of the project this runs in. Outside one, a read shows the home
+ * place and says so, and a write refuses. `here` is passed by a caller that
+ * has already looked; null means it looked and found none.
+ */
+function load(here = projectRootOrNull()) {
+  if (here) {
+    touched.add(here);
+    return { root: here, tickets: store.readTickets(here) };
+  }
+  if (writing) throw outside();
+  out('outside a project: showing ~/.flow/tickets');
+  return loadHome();
 }
 
 /** The home place: the tickets in ~/.flow/, which belong to no project. */
 function loadHome() {
   const root = store.homeRoot();
   return { root, tickets: store.readTickets(root) };
+}
+
+/** The flag `new`, `ls`, `next` and `note` take to name a project by its prefix. */
+const PROJECT_FLAG = { arg: '<prefix>', short: 'p' };
+
+/** The project a write goes to: the one `--project` names, else the one it runs in, or a refusal. */
+function needProject(flags = {}) {
+  const root = flags.project === undefined ? projectRootOrNull() : projectNamed(flags.project, '--project');
+  if (!root) throw outside();
+  touched.add(root);
+  return root;
+}
+
+/** The tickets a read lists: the project `--project` names, else `load`'s. */
+function loadFor(flags = {}) {
+  if (flags.project === undefined) return load();
+  const root = projectNamed(flags.project, '--project');
+  touched.add(root);
+  return { root, tickets: store.readTickets(root) };
+}
+
+/**
+ * The folder of the project registered under `word`, or a refusal saying what
+ * to do. The registry is this machine's list (lib/registry.js), filled by a
+ * project's first ticket write.
+ */
+function registered(word) {
+  const folder = registry.read()[word];
+  if (!folder) {
+    throw new FlowError(
+      `no project on this machine has the prefix "${word}".\n` +
+      '  A project is registered by its first ticket write: run a command that writes one (flow new, flow start) inside it, once.\n' +
+      '  flow doctor lists the projects this machine knows.'
+    );
+  }
+  if (!fs.existsSync(path.join(folder, '.flow'))) {
+    throw new FlowError(
+      `"${word}" is registered at ${folder}, which holds no .flow/ now.\n` +
+      '  If the project moved, a command that writes a ticket inside it updates the path. flow doctor names it.'
+    );
+  }
+  const now = store.prefixOf(folder);
+  if (now !== word) {
+    throw new FlowError(`"${word}" is registered at ${folder}, whose ticketPrefix is now "${now}". flow doctor names it.`);
+  }
+  return folder;
+}
+
+/**
+ * The root a project word names: `home`, the prefix of the project this runs
+ * in, or any registered prefix. `by` is what took the word, for the refusal.
+ * A folder is refused with the prefix to type instead, since the registry
+ * knows every project by its prefix alone; `global` is refused naming `home`.
+ */
+function projectNamed(value, by) {
+  const given = String(value).trim();
+  const word = given.toLowerCase();
+  if (word === 'global') throw new FlowError('"global" is now named "home": use home for ~/.flow.');
+  if (word === store.HOME_WORD) return store.homeRoot();
+  const here = projectRootOrNull();
+  if (here && store.prefixOf(here) === word) return here;
+  const known = registry.read();
+  if (store.badWord(word) || (!known[word] && fs.existsSync(path.resolve(given)))) {
+    const folder = path.resolve(given);
+    const prefix = Object.keys(known).find((p) => known[p] === folder || path.basename(known[p]).toLowerCase() === word);
+    throw new FlowError(
+      `${given} is not a project prefix. ${by} takes the prefix of a project, such as fw or home, never its folder.\n` +
+      (prefix ? `  The project in ${known[prefix]} has the prefix ${prefix}.\n` : '') +
+      '  flow doctor lists the prefixes on this machine.'
+    );
+  }
+  return registered(word);
 }
 
 const rel = (root, p) => path.relative(root, p) || p;
@@ -123,30 +220,49 @@ function find(tickets, ref, unnamed) {
   try {
     return store.findTicket(tickets, ref);
   } catch (e) {
-    if (unnamed && e instanceof FlowError) {
-      throw new FlowError(`${e.message}\n  "${ref}" is not a command either: flow --help lists them.`);
-    }
-    throw e;
+    throw hinted(e, ref, unnamed);
   }
 }
 
+function hinted(e, ref, unnamed) {
+  if (unnamed && e instanceof FlowError) {
+    return new FlowError(`${e.message}\n  "${ref}" is not a command either: flow --help lists them.`);
+  }
+  return e;
+}
+
 /**
- * The place a ticket lives, its tickets, and the ticket. The id's word picks
- * the place: `home-4` is read from ~/.flow/ wherever this runs, and anything
- * else from the project this runs in. A project's id missing there may belong
- * to a ticket `flow move` took home, which kept it as `was:`.
+ * The place an id points at: `home-4` is read from ~/.flow/ wherever this
+ * runs, and a word that is the prefix of the project this runs in, or no word
+ * at all, from that project. Any other word is a project's prefix, looked up
+ * in the registry: the folder you stand in wins, and the rest is reachable
+ * from anywhere.
+ */
+function placeOf(word) {
+  if (word === store.HOME_WORD) return loadHome();
+  const here = projectRootOrNull();
+  if (!word || (here && word === store.prefixOf(here))) return load(here);
+  const root = registered(word);
+  touched.add(root);
+  return { root, tickets: store.readTickets(root) };
+}
+
+/**
+ * The place a ticket lives, its tickets, and the ticket. An id missing from a
+ * project may belong to a ticket `flow move` took home, which kept it as `was:`.
  */
 function locate(ref, unnamed) {
-  const word = store.wordOf(String(ref || '').trim().toLowerCase());
-  if (word === store.HOME_WORD) {
-    const place = loadHome();
-    return { ...place, t: find(place.tickets, ref, unnamed) };
+  let place;
+  try {
+    place = placeOf(store.wordOf(String(ref || '').trim().toLowerCase()));
+  } catch (e) {
+    throw hinted(e, ref, unnamed);
   }
 
-  const place = load();
   try {
     return { ...place, t: find(place.tickets, ref, unnamed) };
   } catch (e) {
+    if (store.isHome(place.root)) throw e;
     const id = store.normalizeId(ref, place.tickets.prefix);
     const home = id && fs.existsSync(store.ticketsDir(store.homeRoot())) ? loadHome() : null;
     const moved = home && home.tickets.find((t) => t.data.was === id);
@@ -363,8 +479,9 @@ actions.ls = {
   section: 'board',
   summary: 'list open tickets; a quoted query like "label:ui,api status:all budget" narrows it',
   args: '["<query>"]',
-  run({ positional }) {
-    const { tickets } = load();
+  flags: { project: PROJECT_FLAG },
+  run({ positional, flags }) {
+    const { tickets } = loadFor(flags);
     const { list, hidden, parked } = select(tickets, positional);
 
     out(render.ticketTable(graph.rankByStatus(list, tickets)));
@@ -498,6 +615,7 @@ actions.new = {
     after: { arg: '<id>' },
     first: { bool: true },
     force: { bool: true },
+    project: PROJECT_FLAG,
   },
   run({ positional, flags, usage }) {
     const description = positional.join(' ').trim();
@@ -509,7 +627,7 @@ actions.new = {
 
     const body = readBody(flags);
     const labels = labelsFrom(flags.label);
-    const root = projectRoot();
+    const root = needProject(flags);
     // The newest numbers first, so this ticket takes one nobody has pushed.
     // A number is only ever given out where the remote agreed to it, so a
     // pull that fails makes no ticket.
@@ -841,8 +959,8 @@ actions.drop = {
 };
 
 /**
- * Move tickets to another place: `home`, the tickets in ~/.flow/, or the
- * folder of another project. Each takes the next free number there and keeps
+ * Move tickets to another place: `home`, the tickets in ~/.flow/, or another
+ * project by its prefix. Each takes the next free number there and keeps
  * its old id as `was:`, so the old id still finds it.
  *
  * A dependency or a parent across 2 places could never be resolved, so a
@@ -854,8 +972,8 @@ actions.drop = {
  */
 actions.move = {
   section: 'tickets',
-  args: '<id>... <home|project folder>',
-  summary: 'move tickets to ~/.flow/ or another project, each taking a new number there',
+  args: '<id>... <home|prefix>',
+  summary: 'move tickets to ~/.flow/ or another project by its prefix, each taking a new number there',
   run({ positional, usage }) {
     if (positional.length < 2) throw new FlowError(`usage: ${usage}`);
     const to = positional[positional.length - 1];
@@ -865,10 +983,8 @@ actions.move = {
     const moving = refs.map((ref) => store.findTicket(from.tickets, ref));
     const ids = new Set(moving.map((t) => t.id));
 
-    const target = to.toLowerCase() === store.HOME_WORD ? store.homeRoot() : path.resolve(to);
-    if (!store.isHome(target) && !fs.existsSync(path.join(target, '.flow'))) {
-      throw new FlowError(`${to} is neither home nor a Flow project: no .flow/ in ${target}.`);
-    }
+    const target = projectNamed(to, 'move');
+    touched.add(target);
     if (path.resolve(store.recordsDir(target)) === path.resolve(store.recordsDir(from.root))) {
       throw new FlowError(`${moving[0].id} already lives there.`);
     }
@@ -994,33 +1110,53 @@ actions.revive = {
 
 /**
  * The `/` list's ticket rows follow every write: `lib/tickets/ticket-skills.js`. Once
- * per command, after it ran, so a command that refused changes nothing. The
- * project is the one this runs in, and the tickets in ~/.flow/ are always
- * synced, so a move between the two updates both. A failure here never fails
- * the command, whose write already landed.
+ * per command, after it ran, so a command that refused changes nothing. Every
+ * project the command touched is synced, which may be another than the one it
+ * ran in, and the tickets in ~/.flow/ are always synced, so a move between
+ * two places updates both. A failure here never fails the command, whose
+ * write already landed.
  */
 function syncSkills() {
-  let project = null;
-  try {
-    project = projectRoot();
-  } catch {
-    // Outside a project: only the tickets in ~/.flow/.
-  }
-  try {
-    ticketSkills.sync({ project });
-  } catch (e) {
-    process.stderr.write(`flow: the ticket skills were not updated: ${e.message}\n`);
+  const projects = [...touched].filter((root) => !store.isHome(root));
+  for (const project of projects.length ? projects : [null]) {
+    try {
+      ticketSkills.sync({ project });
+    } catch (e) {
+      process.stderr.write(`flow: the ticket skills were not updated: ${e.message}\n`);
+    }
   }
 }
 
-const WRITES = ['new', 'edit', 'file', 'drop', 'move', 'revive', ...statuses.VERBS.map((s) => s.verb)];
+/**
+ * A command that wrote a ticket registers the projects it touched
+ * (lib/registry.js). A refusal here never fails the command, whose write
+ * already landed.
+ */
+function registerProjects() {
+  for (const root of touched) {
+    try {
+      registry.register(root);
+    } catch {
+      // The registry is unwritable: `flow doctor` says so.
+    }
+  }
+}
+
+const WRITES = ['new', 'edit', 'rank', 'file', 'drop', 'move', 'revive', ...statuses.VERBS.map((s) => s.verb)];
 for (const name of WRITES) {
   const run = actions[name].run;
   actions[name].run = (call) => {
-    const code = run(call);
+    writing = true;
+    let code;
+    try {
+      code = run(call);
+    } finally {
+      writing = false;
+    }
     syncSkills();
+    registerProjects();
     return code;
   };
 }
 
-module.exports = { actions, fallback: actions.show, transition };
+module.exports = { actions, fallback: actions.show, transition, load, loadFor, outside, projectNamed, PROJECT_FLAG };
