@@ -123,6 +123,24 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   assert.match(report.stdout, /references points at .*gone, which is gone/);
 });
 
+test('a synced skill with no skillOverrides entry is named, and any entry settles it', () => {
+  const m = machine('doctor-synced');
+  const bin = utilStub(m.dir);
+  fs.mkdirSync(path.join(m.home, 'skills', 'synced', 'acct', 'new-skill'), { recursive: true });
+  fs.writeFileSync(path.join(m.home, 'skills', 'synced', 'acct', '.last-complete-round'), '1');
+
+  const report = doctor(m, { bin });
+  assert.strictEqual(report.code, 1);
+  assert.match(report.stdout, /the synced skill "new-skill" has no skillOverrides entry.*add "new-skill": "off" to skillOverrides/);
+  assert.doesNotMatch(report.stdout, /last-complete-round/);
+
+  const settingsFile = path.join(m.home, 'settings.json');
+  const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+  settings.skillOverrides = { 'new-skill': 'on' };
+  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+  assert.doesNotMatch(doctor(m, { bin }).stdout, /the synced skill/);
+});
+
 test('a settings.json with no starting mode fails, and one starting in another mode gets a note', () => {
   const m = machine('doctor-mode');
   const settingsFile = path.join(m.home, 'settings.json');

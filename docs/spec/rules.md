@@ -5,7 +5,7 @@ How Flow tells the agent how to work, and how it finds out whether the agent lis
 ## Scope
 
 - **In**: the rule files and what each holds, how a rule is written, the rule checks and their hooks, the scorecard, and the open questions about rules.
-- **Out**: writing the rule file at install and carrying the user's lines through an update, in `docs/spec/setup.md`. Where capture sends a lesson, and how `/flow:file-findings` routes it, in `docs/spec/knowledge-base.md`. The reminder line beside every message, the audit and study cases, in `docs/spec/product.md`.
+- **Out**: writing the rule file at install and carrying the user's lines through an update, in `docs/spec/setup.md`. Where capture sends a lesson, and how `/flow:file-findings` routes it, in `docs/spec/knowledge-base.md`. The reminder line beside every message, the audit and issue tickets, in `docs/spec/product.md`.
 
 ## A rule meets an edit
 
@@ -164,7 +164,7 @@ A line in a session's scorecard file:
 
 - **`js-and-ts.js` fired correctly in a live session** on 2026-09-10.
 - **A warning carrying a rule's whole text reaches a live session.** Not yet: unit-tested only, and no `warn` check exists.
-- **A rule filed changes what the agent does**: the same rejected reply does not come back once its rule lands. Not yet shown. The 3 study cases of 2026-09-06 were marked fixed the day `## The turn` was written from them, so fixed records a rule written, never a rule that worked.
+- **A rule filed changes what the agent does**: the same rejected reply does not come back once its rule lands. Not yet shown. The 3 study cases of 2026-09-06 (since retired into issue tickets) were marked fixed the day `## The turn` was written from them, so fixed records a rule written, never a rule that worked.
 - **About 10 checks recording across real sessions**, and `flow scorecard` naming at least one ready to move up: `fw-12`.
 
 ## What is locked

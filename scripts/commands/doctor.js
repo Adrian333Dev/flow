@@ -317,6 +317,26 @@ function checkClaude(clone, at) {
 }
 
 /**
+ * The skills synced from the claude.ai account: one folder per skill under
+ * `~/.claude/skills/synced/<account>/`, beside files that start with a dot.
+ */
+function syncedSkills(claude) {
+  const root = path.join(claude, 'skills', 'synced');
+  const names = new Set();
+  try {
+    for (const account of fs.readdirSync(root, { withFileTypes: true })) {
+      if (!account.isDirectory() || account.name.startsWith('.')) continue;
+      for (const skill of fs.readdirSync(path.join(root, account.name), { withFileTypes: true })) {
+        if (skill.isDirectory() && !skill.name.startsWith('.')) names.add(skill.name);
+      }
+    }
+  } catch {
+    // No synced folder: this machine never signed in to claude.ai.
+  }
+  return [...names].sort();
+}
+
+/**
  * settings.json: the one file Flow shares rather than owns.
  *
  * It already holds your model, your plugins and your effort level, so no
@@ -362,6 +382,16 @@ function checkSettings(clone, claude, catalog) {
     if (!catalog.error && catalog.names.has(name)) {
       problems.push(`skillOverrides names "${name}", a Flow skill, and does nothing: ` +
         `Flow's skills load as the ${skills.PLUGIN} plugin, and skillOverrides does not reach a plugin`);
+    }
+  }
+
+  // A skill synced from the claude.ai account arrives in any session signed in
+  // to claude.ai, a day after setup on this machine once, and loads everywhere
+  // unless skillOverrides decides it. "on" counts as decided: it keeps the skill.
+  for (const name of syncedSkills(claude)) {
+    if (!(name in (live.skillOverrides || {}))) {
+      problems.push(`the synced skill "${name}" has no skillOverrides entry, so it loads in every session: ` +
+        `add "${name}": "off" to skillOverrides in ${paths.shorten(file)} to switch it off, or "on" to keep it`);
     }
   }
 

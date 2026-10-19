@@ -16,19 +16,19 @@ const waiting = require('../lib/waiting');
 
 const load = () => store.readTickets(projectRoot());
 
-// 10, not 15: `next` answers a question, and a longer answer is a second list
-// to triage. The count of what was hidden always prints: a silent truncation
-// is the only way a ceiling does harm.
-const NEXT_LIMIT = 10;
+// Small, since every session opens on this answer and pays for each line in
+// context. The count of what was hidden always prints: a silent truncation is
+// the only way a ceiling does harm.
+const NEXT_LIMITS = { continuing: 3, ready: 5 };
 
 function nextLimit(flags) {
-  if (flags.all) return Infinity;
-  if (flags.limit === undefined) return NEXT_LIMIT;
+  if (flags.all) return { continuing: Infinity, ready: Infinity };
+  if (flags.limit === undefined) return NEXT_LIMITS;
   const n = Number(flags.limit);
   if (!Number.isInteger(n) || n < 1) {
     throw new FlowError(`--limit takes a whole number of tickets (got "${flags.limit}")`);
   }
-  return n;
+  return { continuing: n, ready: n };
 }
 
 const board = {};

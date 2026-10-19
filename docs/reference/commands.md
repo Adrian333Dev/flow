@@ -25,12 +25,6 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow move`](#flow-move): move tickets to another project, or to your Flow home- [Ticket status](#ticket-status): move a ticket from one stage to the next
 - [Settings](#settings): turn Flow's own settings on or off
 - [Rule checks](#rule-checks): see how well the agent follows your rules
-- [Cases](#cases): record the agent's mistakes, grouped by kind
-  - [`flow cases new`](#flow-cases-new): record a mistake
-  - [`flow cases ls`](#flow-cases-ls): every recorded mistake
-  - [`flow cases get`](#flow-cases-get): one mistake in full
-  - [`flow cases edit`](#flow-cases-edit): mark a mistake fixed
-  - [`flow cases issues`](#flow-cases-issues): every kind of mistake, counted
 - [Audit](#audit): read back what Claude Code did in past sessions
   - [`flow audit index`](#flow-audit-index): read new sessions in
   - [`flow audit ls`](#flow-audit-ls): every session, with its totals
@@ -132,32 +126,35 @@ A ticket is one piece of work, kept as a folder in the project's `.flow/tickets/
 
 ### `flow next`
 
-What to work on next: tickets in progress first, then ready tickets in rank order. Blocked tickets show only when nothing is in progress or ready.
+What to work on next: tickets in progress first, then the ones that continue open work, then ready tickets in rank order. Blocked tickets show only when nothing is in progress or ready.
 
 ```console
 $ flow next
-tickets: 6   todo 4   in-progress 1   done 1
-
 last closed  shop-5-chart-library
 
-in flight (1), finish these before starting more:
-  TICKET                STATUS       LABELS      PARENT
-  shop-4-safari-cookie  in-progress  bug,urgent  -
+in flight (1)
+  shop-4-safari-cookie  bug,urgent
 
-ready (2):
-  TICKET               STATUS  LABELS           PARENT
-  shop-6-dark-mode     todo    feature,post-v1  -
-  shop-2-budget-store  todo    feature          shop-1
+continues shop-1 (1)
+  shop-2-budget-store  feature
 
-waiting for /flow:upkeep: 1 closed ticket, 2 notes, 3 findings
+ready (1)
+  shop-6-dark-mode  feature,post-v1
+
+take: shop-2-budget-store
+1 parked · waiting: 1 closed ticket, 2 notes, 3 findings
 ```
 
-- **`--limit <n>`**: at most `n` ready tickets. 10 by default.
-- **`--all`**: every ready ticket.
+Each session opens on this screen, so it prints only what the next step needs. A ticket is its name and labels. The heading says the status, and a shared parent heads its section. Parked tickets are a count, with no reasons: `flow <id>` shows one.
+
+**`take:` names the ticket to start.** It is the first ticket that continues open work, else the first ready one. It is never one in progress, since a running session owns those.
+
+- **`--limit <n>`**: at most `n` tickets in each of the continuing and ready lists. 3 and 5 by default.
+- **`--all`**: every ticket in both.
 
 ### `flow ls`
 
-The open tickets in a table. Done and dropped ones stay out until the query names a status.
+The open tickets in a table. Parked, done and dropped ones stay out, as a count, until the query names a status.
 
 ```console
 $ flow ls
@@ -208,7 +205,7 @@ exp-15  todo         Asked for a go after the user said go
 
 ### `flow tree`
 
-Tickets nested under the ticket they were split from, with what each one waits on. Finished and dropped tickets are hidden.
+Tickets nested under the ticket they were split from, with what each one waits on. Parked, finished and dropped tickets are hidden, as a count.
 
 ```console
 $ flow tree
@@ -223,7 +220,7 @@ shop-1-budget-page            todo         0/1 done
 ```
 
 - **`--parent <id>`**: one ticket and everything under it.
-- **`--all`**: include finished and dropped tickets.
+- **`--all`**: include parked tickets, with the reason for each, and finished and dropped ones.
 
 ### `flow check`
 
@@ -512,99 +509,6 @@ never applied: loaded every session, never once relevant
   js-and-ts
 
 1 rules measured, 147 not measurable. 0 results over 0 days.
-```
-
-## Cases
-
-A study case records one mistake the agent made: what went wrong, the rule it broke, and the fix once there is one. Cases are grouped by issue, the kind of mistake, so a repeat shows as a count. Any part of a case's name that matches it alone finds it. [Learning](../learning.md) covers how cases get used.
-
-### `flow cases new`
-
-`flow cases new "<title>" --issue <issue>`: record a mistake.
-
-```console
-$ flow cases new "Answered before reading the file" --issue answered-unread --rule read-before-answering --body "Claimed a config key existed without opening the file."
-created answered-unread/2026-10-02-answered-before-reading-the-file
-        /home/me/.flow/study-cases/answered-unread/2026-10-02-answered-before-reading-the-file.md
-        project: shop
-        rule: read-before-answering
-```
-
-**An issue spelled close to an existing one is refused**, since a second spelling would split the count:
-
-```console
-$ flow cases new "Guessed instead of reading" --issue answered-unreed
-flow: "answered-unreed" is close to an issue that already exists:
-  answered-unread
-
-One failure, one folder: a second spelling splits the count and nothing errors.
-  Reuse it:           flow cases new "Guessed instead of reading" --issue answered-unread
-  A new kind, really: flow cases new "Guessed instead of reading" --issue answered-unreed --force
-```
-
-- **`--issue <issue>`**: required. The kind of mistake.
-- **`--force`**: create the new issue anyway.
-- **`--rule "<rule>"`**: the id of the rule that was broken.
-- **`--body <text>`**: the case's text. `--body -` reads it from standard input.
-
-### `flow cases ls`
-
-Every case, grouped by issue.
-
-```console
-$ flow cases ls --status open
-skipped-walk (1)
-  DATE        STATUS  CASE              RULE              PROJECT
-  2026-10-02  open    skipped-the-walk  walk-a-real-case  shop
-
-1 of 2.
-```
-
-- **`--issue <issue>`**: one issue's cases.
-- **`--status <status>`**: `open` or `fixed`.
-
-### `flow cases get`
-
-`flow cases get <ref>`, or `flow cases <ref>`: one case in full.
-
-```console
-$ flow cases answered
-answered-unread/2026-10-02-answered-before-reading-the-file   fixed
-  /home/me/.flow/study-cases/answered-unread/2026-10-02-answered-before-reading-the-file.md
-  rule: read-before-answering
-  project: shop
-  effort: high
-  fix: home/CLAUDE.md
-
-Claimed a config key existed without opening the file.
-```
-
-### `flow cases edit`
-
-`flow cases edit <ref>`: change a field. A case is never deleted.
-
-```console
-$ flow cases edit answered --status fixed --by home/CLAUDE.md
-answered-unread/2026-10-02-answered-before-reading-the-file
-  status: open → fixed
-  fix: - → home/CLAUDE.md
-```
-
-- **`--status <status>`**: `open` or `fixed`. `fixed` needs `--by`, unless the case already names its fix.
-- **`--by <file>`**: the file changed to fix it.
-- **`--rule "<rule>"`**: the rule that was broken.
-
-### `flow cases issues`
-
-Every issue, counted. Read it before recording a case, so a repeat lands in its existing issue.
-
-```console
-$ flow cases issues
-ISSUE            CASES  OPEN  LATEST      RULES
-answered-unread  1      1     2026-10-02  read-before-answering
-skipped-walk     1      1     2026-10-02  walk-a-real-case
-
-2 issues, 2 cases  /home/me/.flow/study-cases
 ```
 
 ## Audit

@@ -173,7 +173,7 @@ test('a new label one typo from an existing one is refused unless --force', () =
 test('flow next counts what waits for /flow:upkeep, and prints nothing where nothing waits', () => {
   const dir = project('board-next-waiting');
   flow(dir, ['new', 'Alpha', '--title', 'alpha']);
-  assert.doesNotMatch(flow(dir, ['next']).stdout, /waiting for/);
+  assert.doesNotMatch(flow(dir, ['next']).stdout, /waiting/);
 
   flow(dir, ['start', 'exp-1']);
   flow(dir, ['done', 'exp-1']);
@@ -183,12 +183,12 @@ test('flow next counts what waits for /flow:upkeep, and prints nothing where not
   write(dir, '.flow/findings/scorecard.md', 'a wrong warning\n');
   write(dir, 'flow-home/wiki/tool/findings/another-lesson.md', 'another lesson\n');
 
-  const waiting = flow(dir, ['next']).stdout.split('\n').find((l) => l.startsWith('waiting for'));
-  assert.strictEqual(waiting, 'waiting for /flow:upkeep: 1 closed ticket, 1 note, 2 findings');
+  const waiting = flow(dir, ['next']).stdout.split('\n').find((l) => l.startsWith('waiting'));
+  assert.strictEqual(waiting, 'waiting: 1 closed ticket, 1 note, 2 findings');
 
   flow(dir, ['file', 'exp-1']);
-  const filed = flow(dir, ['next']).stdout.split('\n').find((l) => l.startsWith('waiting for'));
-  assert.strictEqual(filed, 'waiting for /flow:upkeep: 1 note, 2 findings', 'a part at 0 is left out');
+  const filed = flow(dir, ['next']).stdout.split('\n').find((l) => l.startsWith('waiting'));
+  assert.strictEqual(filed, 'waiting: 1 note, 2 findings', 'a part at 0 is left out');
 });
 
 const ticketText = (dir, id) => {
@@ -322,7 +322,38 @@ test('flow ls <words> finds a ticket by loose words, one typo allowed', () => {
   assert.match(found('nothing-like-it'), /no tickets/);
 });
 
-test('flow next counts only the statuses holding a ticket', () => {
+test('flow next prints parked tickets as a count, and ready tickets as name and labels', () => {
+  const dir = project('board-next-parked');
+  for (const title of ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven']) flow(dir, ['new', title, '--title', slug(title), '--label', 'feature']);
+  flow(dir, ['park', 'exp-7', '--reason', 'after release one, a long reason']);
+
+  const next = flow(dir, ['next']);
+  assert.strictEqual(next.code, 0, next.stderr);
+  assert.match(next.stdout, /^ready \(6\)\n(  exp-\d+-\S+ +feature\n){5}  and 1 more: flow next --all$/m);
+  assert.match(next.stdout, /^take: exp-1-one$/m);
+  assert.match(next.stdout, /^1 parked$/m);
+  assert.doesNotMatch(next.stdout, /long reason|STATUS|PARENT/);
+  assert.match(flow(dir, ['next', '--all']).stdout, /exp-6-six/);
+});
+
+test('flow ls and flow tree hide parked tickets, with a count, until asked', () => {
+  const dir = project('board-parked-hidden');
+  flow(dir, ['new', 'Alpha', '--title', 'alpha']);
+  flow(dir, ['new', 'Beta', '--title', 'beta']);
+  flow(dir, ['park', 'exp-2', '--reason', 'after release one']);
+
+  const ls = flow(dir, ['ls']).stdout;
+  assert.doesNotMatch(ls, /beta/);
+  assert.match(ls, /1 parked hidden: "status:all"/);
+  assert.match(flow(dir, ['ls', 'status:parked']).stdout, /beta/);
+
+  const tree = flow(dir, ['tree']).stdout;
+  assert.doesNotMatch(tree, /beta|after release one/);
+  assert.match(tree, /1 parked hidden: flow tree --all/);
+  assert.match(flow(dir, ['tree', '--all']).stdout, /beta/);
+});
+
+test('flow next counts nothing it does not print', () => {
   const dir = project('board-next-counts');
   flow(dir, ['new', 'One', '--title', 'one']);
   flow(dir, ['new', 'Two', '--title', 'two']);
@@ -331,7 +362,7 @@ test('flow next counts only the statuses holding a ticket', () => {
 
   const next = flow(dir, ['next']);
   assert.strictEqual(next.code, 0, next.stderr);
-  assert.strictEqual(next.stdout.split('\n')[0], 'tickets: 2   todo 1   in-progress 1');
+  assert.match(next.stdout, /^in flight \(1\)\n/);
 });
 
 test('flow next shows in-flight tickets above the ready list', () => {
@@ -361,10 +392,11 @@ test('a parent with open children leaves in flight, and its children continue it
 
   const r = flow(dir, ['next']);
   assert.strictEqual(r.code, 0, r.stderr);
-  const flight = r.stdout.slice(r.stdout.indexOf('in flight'), r.stdout.indexOf('continues open work'));
+  const flight = r.stdout.slice(r.stdout.indexOf('in flight'), r.stdout.indexOf('continues'));
   assert.match(flight, /Other work/);
   assert.ok(!flight.includes('Pricing'), 'the waiting parent should not be in flight');
-  assert.match(r.stdout, /continues open work \(1\):\n.*\n.*Tiers/);
+  assert.match(r.stdout, /continues exp-1 \(1\)\n.*Tiers/, 'the shared parent heads the section');
+  assert.match(r.stdout, /^take: .*Tiers/m, 'the ticket to take is never one in flight');
 });
 
 test('flow next shows blocked tickets when nothing is ready', () => {

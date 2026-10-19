@@ -217,52 +217,34 @@ const decisionsLine = (ticket) => {
 };
 
 /**
- * Where the work stands: the count of each status holding a ticket, then the
- * 4 questions `brief` answers, then parked.
- *
- * The counts come off the status table, so a new status appears here without
- * this line being touched. A status at 0 is left out: `/flow:start` reads this
- * line every session, and 5 zeros say nothing. Parked tickets are invisible in the daily loop by
- * design, and this is the one place they surface: a deliberate "not now"
- * cannot quietly become "forgotten".
- */
-function status(tickets, limit, waiting) {
-  if (!tickets.length) return 'no tickets yet.';
-  const by = (s) => tickets.filter((t) => t.data.status === s);
-
-  const counts = statuses.NAMES.filter((name) => by(name).length).map((name) => `${name} ${by(name).length}`).join('   ');
-  const out = [`tickets: ${tickets.length}   ${counts}`, '', brief(tickets, limit, waiting)];
-
-  const parked = by('parked');
-  if (parked.length) {
-    out.push('');
-    out.push(`parked (${parked.length}):`);
-    out.push(indent(table(['TICKET', 'REASON'], parked.map((t) => [store.nameOf(t), t.data.reason || '-']))));
-  }
-
-  return out.join('\n');
-}
-
-/**
- * `waiting for /flow:upkeep: 3 closed tickets, 2 notes, 4 findings`, a part
- * left out at 0, or null where nothing waits. The counts come from
- * `lib/waiting.js`, because this file reads no disk.
+ * `waiting: 3 closed tickets, 2 notes, 4 findings`, a part left out at 0, or
+ * null where nothing waits. The counts come from `lib/waiting.js`, because
+ * this file reads no disk.
  */
 function waitingLine(waiting) {
   if (!waiting) return null;
   const parts = [[waiting.tickets, 'closed ticket'], [waiting.notes, 'note'], [waiting.findings, 'finding']]
     .filter(([n]) => n)
     .map(([n, word]) => `${n} ${word}${n === 1 ? '' : 's'}`);
-  return parts.length ? `waiting for /flow:upkeep: ${parts.join(', ')}` : null;
+  return parts.length ? `waiting: ${parts.join(', ')}` : null;
 }
+
+/** One line per ticket: name and labels. The heading above says the status and the parent. */
+const ticketLines = (list) =>
+  indent(columns(list.map((t) => [store.nameOf(t), t.data.labels.join(',') || '-'])));
 
 /**
  * The session opener, printed by `flow next`. Four questions
  * what did I finish last, what is still open, what continues it, what could
  * start. Read-only on purpose: this is the view for not knowing what is next,
  * and picking is a separate act.
+ *
+ * Small on purpose: every `/flow:start` and `/flow:execute` pays for these
+ * lines in context. A ticket is its name and labels. Parked tickets are a
+ * count, since a deliberate "not now" must not read as "forgotten" and must
+ * not cost a row each.
  */
-function brief(tickets, limit, waiting) {
+function status(tickets, limits, waiting) {
   if (!tickets.length) return 'no tickets yet.';
   const out = [];
 
@@ -281,29 +263,39 @@ function brief(tickets, limit, waiting) {
   const inFlight = tickets.filter((t) =>
     graph.IN_FLIGHT.has(t.data.status) && !graph.hasOpenChildren(tickets, t.id));
   if (inFlight.length) {
-    out.push(`in flight (${inFlight.length}), finish these before starting more:`);
-    out.push(indent(ticketTable(graph.rank(inFlight, tickets))));
+    out.push(`in flight (${inFlight.length})`);
+    out.push(ticketLines(graph.rank(inFlight, tickets)));
     out.push('');
   }
 
+  // A section capped at its limit says how many it left out.
+  const section = (heading, list, limit) => {
+    const ranked = graph.rank(list, tickets);
+    const shown = ranked.slice(0, limit);
+    out.push(`${heading} (${ranked.length})`);
+    out.push(ticketLines(shown));
+    if (shown.length < ranked.length) out.push(`  and ${ranked.length - shown.length} more: flow next --all`);
+    out.push('');
+    return ranked;
+  };
+
   // Above the ready list even when a top-ranked ticket is sitting in it:
   // unfinished work beats new work, and a ticket nobody has started is new
-  // however it is ranked. Rank only orders inside a band.
+  // however it is ranked. Rank only orders inside a band. The parent in the
+  // heading, when all share one, replaces a parent column on every row.
   const continuing = graph.continuingTickets(tickets);
+  let take = null;
   if (continuing.length) {
-    out.push(`continues open work (${continuing.length}):`);
-    out.push(indent(ticketTable(graph.rank(continuing, tickets))));
-    out.push('');
+    const parents = new Set(continuing.map((t) => t.data.parent));
+    const heading = parents.size === 1 ? `continues ${[...parents][0]}` : 'continues open work';
+    take = section(heading, continuing, limits.continuing)[0];
   }
 
   const carried = new Set(continuing.map((t) => t.id));
   const ready = graph.readyTickets(tickets).filter((t) => !carried.has(t.id));
   if (ready.length) {
-    const shown = graph.rank(ready, tickets).slice(0, limit);
-    out.push(`ready (${shown.length < ready.length ? `${shown.length} of ${ready.length}` : ready.length}):`);
-    out.push(indent(ticketTable(shown)));
-    if (shown.length < ready.length) out.push('  flow next --all for the rest');
-    out.push('');
+    const ranked = section('ready', ready, limits.ready);
+    take = take || ranked[0];
   } else if (!inFlight.length && !continuing.length) {
     const blocked = graph.blockedTickets(tickets);
     out.push(blocked.length
@@ -312,10 +304,15 @@ function brief(tickets, limit, waiting) {
     out.push('');
   }
 
-  // Both print only when owed. A line that reads "none" every run is a line
+  // The ticket to take next. Never one in flight: those belong to sessions
+  // already running.
+  if (take) out.push(`take: ${store.nameOf(take)}`);
+
+  // Each prints only when owed. A line that reads "none" every run is a line
   // the reader learns to skip, and these exist to be noticed.
-  const owed = waitingLine(waiting);
-  if (owed) out.push(owed);
+  const parked = tickets.filter((t) => t.data.status === 'parked').length;
+  const owed = [parked ? `${parked} parked` : null, waitingLine(waiting)].filter(Boolean);
+  if (owed.length) out.push(owed.join(' · '));
   const problems = graph.check(tickets);
   if (graph.hasProblems(problems)) out.push('the ticket graph has problems: flow check');
 

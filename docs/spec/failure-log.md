@@ -5,7 +5,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 ## Scope
 
 - **In**: what counts as a failure, the 3 writers, the line, open issues and how they reach the user, `~/.flow/logs/` and its files, and how a log stops growing.
-- **Out**: friction with Flow's rules, which goes to workflow notes and study cases through `/flow:review`, in `docs/spec/product.md` → `### The audit and study cases`. The scorecard's files, in `docs/spec/rules.md`. The meters and the band as a whole, in `docs/spec/product.md`.
+- **Out**: friction with Flow's rules, which goes to workflow notes and issue tickets through `/flow:review`, in `docs/spec/product.md` → `### The audit and issue tickets`. The scorecard's files, in `docs/spec/rules.md`. The meters and the band as a whole, in `docs/spec/product.md`.
 
 ## From a failure to the user
 

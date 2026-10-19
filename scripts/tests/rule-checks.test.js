@@ -21,7 +21,7 @@ const VIOLATION_FUNCTION = `// \`tickets\` is passed in when the caller already 
 // thousand tickets a second scan is the most expensive thing a command does.
 function createTicket(root, { title, type, priority, parent, deps, tickets }) {`;
 
-/** cases.js before the same conversion: an arrow is a function too. */
+/** A file before the same conversion: an arrow is a function too. */
 const VIOLATION_ARROW = `// FLOW_HOME mirrors FLOW_PROJECT: the default is the installed location, and an
 // override exists so the tool can be exercised without writing to it.
 const flowHome = () => process.env.FLOW_HOME || path.join(os.homedir(), '.flow');`;
@@ -49,7 +49,7 @@ test('a run of line comments on a function is a violation', () => {
 });
 
 test('an arrow bound to a name counts as a function', () => {
-  assert.strictEqual(jsAndTs.check('scripts/lib/cases.js', VIOLATION_ARROW), false);
+  assert.strictEqual(jsAndTs.check('scripts/lib/notes.js', VIOLATION_ARROW), false);
 });
 
 test('the block form passes', () => {

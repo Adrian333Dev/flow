@@ -346,13 +346,18 @@ function select(tickets, positional) {
     parent: (t, v) => t.data.parent === v,
     filed: (t, v) => (v === 'yes') === Boolean(t.data.filed),
   });
-  if (query.has(terms, 'status')) return { terms, list: tickets.filter(test(terms)), hidden: 0 };
+  if (query.has(terms, 'status')) return { terms, list: tickets.filter(test(terms)), hidden: 0, parked: 0 };
   const everything = tickets.filter(test(terms));
-  const list = everything.filter((t) => OPEN_STATUSES.includes(t.data.status));
-  return { terms, list, hidden: everything.length - list.length };
+  const list = everything.filter((t) => OPEN_STATUSES.includes(t.data.status) && t.data.status !== 'parked');
+  const parked = everything.filter((t) => t.data.status === 'parked').length;
+  return { terms, list, hidden: everything.length - list.length - parked, parked };
 }
 
-const hiddenNote = (hidden) => (hidden ? `${hidden} done or dropped hidden: "status:all"` : '');
+/** What a default listing left out: parked tickets, then done and dropped ones. */
+function hiddenNote(hidden, parked) {
+  const parts = [parked ? `${parked} parked` : '', hidden ? `${hidden} done or dropped` : ''].filter(Boolean);
+  return parts.length ? `${parts.join(', ')} hidden: "status:all"` : '';
+}
 
 actions.ls = {
   section: 'board',
@@ -360,11 +365,12 @@ actions.ls = {
   args: '["<query>"]',
   run({ positional }) {
     const { tickets } = load();
-    const { list, hidden } = select(tickets, positional);
+    const { list, hidden, parked } = select(tickets, positional);
 
     out(render.ticketTable(graph.rankByStatus(list, tickets)));
-    if (list.length) out(`\n${list.length} of ${tickets.length}${hidden ? `, ${hiddenNote(hidden)}` : ''}.`);
-    else if (hidden) out(hiddenNote(hidden));
+    const note = hiddenNote(hidden, parked);
+    if (list.length) out(`\n${list.length} of ${tickets.length}${note ? `, ${note}` : ''}.`);
+    else if (note) out(note);
     return 0;
   },
 };
@@ -379,13 +385,14 @@ actions.labels = {
   args: '["<query>"]',
   run({ positional }) {
     const { tickets } = load();
-    const { terms, list, hidden } = select(tickets, positional);
+    const { terms, list, hidden, parked } = select(tickets, positional);
     const asked = new Set(terms.filter((t) => t.field === 'label').flatMap((t) => t.values));
     const counts = new Map();
     for (const t of list) for (const label of t.data.labels) if (!asked.has(label)) counts.set(label, (counts.get(label) || 0) + 1);
     const open = list.filter((t) => !statuses.TERMINAL.has(t.data.status)).length;
 
-    out(`${list.length} ticket${list.length === 1 ? '' : 's'}, ${open} open${hidden ? `, ${hiddenNote(hidden)}` : ''}`);
+    const note = hiddenNote(hidden, parked);
+    out(`${list.length} ticket${list.length === 1 ? '' : 's'}, ${open} open${note ? `, ${note}` : ''}`);
     if (counts.size) {
       const ranked = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
       out(`more labels: ${ranked.map(([label, n]) => `${label} ${n}`).join(', ')}`);
@@ -419,15 +426,19 @@ actions.tree = {
       pool = [top, ...graph.descendants(tickets, top.id)];
     }
 
-    // Done and dropped collapse into the parent's count by default. A tree
-    // carrying every finished ticket is the noise a tree exists to strip.
-    const visible = flags.all ? pool : pool.filter((t) => !statuses.TERMINAL.has(t.data.status));
-    if (!visible.length) { out('nothing live here: flow tree --all includes done and dropped.'); return 0; }
+    // Done, dropped and parked collapse into a count by default. A tree
+    // carrying every finished ticket, or a row of reasons per parked one, is
+    // the noise a tree exists to strip.
+    const quiet = (t) => statuses.TERMINAL.has(t.data.status) || t.data.status === 'parked';
+    const visible = flags.all ? pool : pool.filter((t) => !quiet(t));
+    if (!visible.length) { out('nothing live here: flow tree --all includes parked, done and dropped.'); return 0; }
 
     out(render.tree(graph.forest(visible), tickets));
-    const hidden = pool.length - visible.length;
+    const parked = pool.filter((t) => t.data.status === 'parked').length;
+    const hidden = pool.length - visible.length - (flags.all ? 0 : parked);
+    const left = flags.all ? [] : [parked ? `${parked} parked` : '', hidden ? `${hidden} done or dropped` : ''].filter(Boolean);
     out(`\n${visible.length} ticket${visible.length === 1 ? '' : 's'}` +
-      (hidden ? `, ${hidden} done or dropped hidden: flow tree --all` : ''));
+      (left.length ? `, ${left.join(', ')} hidden: flow tree --all` : ''));
     return 0;
   },
 };

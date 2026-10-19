@@ -40,7 +40,7 @@ what the answer has to show
 - `V1` **Every generator checks itself before it prints**: every write lands on the grid, no write overwrites a different character, every label fits its line, every row of a frame is one length.
 - `V1` **`canvas.js` is a grid, never a diagram engine.** `new Canvas(76, 13)` allocates the cells, and `put`, `text`, `hl`, `vl`, `box`, `run`, `container` and `clear` draw by coordinate. It routes nothing and places nothing. Its worth is the checks: a connector at column 58 raised `label "from TaskCompleted" needs 24 cols, run is 19`, a cut label that would have shipped.
 - `V1` **A mockup is built row by row, never on the canvas.** Built twice to prove it: identical output, and the canvas needed a counted column for every label.
-- `V1` **The user checks every drawing by eye.** The skill holds no step re-reading its own output: it costs tokens and catches nothing the user would miss. A broken frame becomes a study case, and a study case a rule.
+- `V1` **The user checks every drawing by eye.** The skill holds no step re-reading its own output: it costs tokens and catches nothing the user would miss. A broken frame becomes an issue ticket, and an issue ticket a rule.
 
 ### Characters
 

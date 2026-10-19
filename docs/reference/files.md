@@ -37,7 +37,6 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ tickets/
 │  ├─ ticket-counter
 │  ├─ projects/<project>/         a project's tickets, kept privately
-│  ├─ study-cases/<issue>/
 │  ├─ wiki/<tool>/
 │  ├─ research/<topic>/
 │  ├─ logs/
@@ -116,7 +115,6 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 [Learning](../learning.md) covers each of these.
 
-- **`study-cases/<issue>/`**: one file per recorded mistake, filed under the kind of mistake. `flow cases new` writes them.
 - **`wiki/<tool>/`**: what Flow knows about one outside tool, shared by every project. `/flow:research` writes it.
 - **`research/<topic>/`**: research reports asked outside any project, one folder per topic and one file per question. Empty until one is asked.
 ### Records of what happened

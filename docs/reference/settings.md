@@ -182,7 +182,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
   - Claude Code tools Flow replaces or never uses, such as plan mode and scheduled jobs. Each one left out also saves the tokens its description costs.
   - Reading `~/.ssh` and `~/.aws`, the folders holding your keys.
   - `sudo`, `su`, `mkfs` and `--dangerously-skip-permissions`.
-  - Worktrees and forked helper agents.
+  - Worktrees: a new one starts without the project's `.flow` folder, so a session in it would have no tickets.
 - **`additionalDirectories`**: your Flow home counts as part of every project, so an edit there never asks.
 - **`Edit(//**/.flow/**)`**: an edit through a project's `.flow` link never asks. A project's tickets live in your Flow home and are reached through that link, and Claude Code asks before any write that leads outside the project unless one rule matches both the link and where it points.
 
@@ -218,10 +218,11 @@ Claude Code deletes a session's record once it is this many days old. Its defaul
 
 Claude Code's switch for one skill, set to `off` for a skill synced from your Claude account that works against Flow. It cannot reach Flow's own skills, which are always on.
 
+A skill you keep takes `"on"`. [`flow doctor`](commands.md#flow-doctor) names every synced skill with no entry, since a skill synced after setup loads in every session until one decides it.
+
 ### Features switched off
 
 - **`disableBundledSkills`**: Claude Code's own skills, so only Flow's load.
-- **`disableWorkflows`**: Claude Code's built-in workflows, since Flow's skills are the workflow.
 - **`disableRemoteControl`**: driving a session from claude.ai or your phone.
 - **`disableClaudeAiConnectors`**: claude.ai's connectors.
 - **`disableArtifact`**: the artifact tool.

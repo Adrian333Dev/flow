@@ -93,7 +93,7 @@ One phase at a time:
 - A correction, or a fact about the user → `flow note "…" --label profile --project global`. True in this project alone → `flow note "…" --label rule`. A fact about the user is never a skill level, what they don't know, or what they work on.
 - A decision → the `docs/spec/` file that owns it (`~/.flow/references/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow note "…"`. One batch, never mid-discussion.
 - Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow note "…"`.
-- Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow labels "label:flow-issue"` lists the types. A type already listed is a repeat.
+- Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow labels "label:flow-issue"` lists the types. A type already listed is a repeat. How to write one: `~/.flow/references/issue-tickets.md`.
 - A wrong rule-check warning → `.flow/findings/scorecard.md`
 - Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
 - Anything else worth keeping, friction that repeated included → `flow note "…"`

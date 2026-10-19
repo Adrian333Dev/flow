@@ -37,3 +37,5 @@ Read before starting a subagent. A fresh subagent reads everything again, so it 
 ## When it reports back
 
 - **Judge its work by the change record**, never by its report. A "Stop hook blocking error" from `PostToolUse:Agent` is Flow's change record, never a failure: the diff of what the subagent's own tool calls changed. It arrives with the finished notice, and none means no file changed.
+- **Parallel subagents each get their own record.** A file two of them changed in the same window is marked shared, and each record shows only that agent's change.
+- **A long record points at a file.** Past about 9,000 characters the biggest diffs shrink to line counts, and the message names a `.patch` file with the whole diff. Read it before accepting the work.

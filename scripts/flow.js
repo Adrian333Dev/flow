@@ -12,7 +12,6 @@ const paths = require('./lib/paths');
 const cli = require('./lib/cli');
 const board = require('./commands/board');
 const tickets = require('./commands/tickets');
-const cases = require('./commands/cases');
 const notes = require('./commands/notes');
 const install = require('./commands/install');
 const update = require('./commands/update');
@@ -37,7 +36,7 @@ const TITLE = 'flow: the board, setup, settings and audit';
 /**
  * One flat namespace. Tickets are what this tool is about, so they have no
  * name of their own: `flow ls`, `flow start exp-47`. Everything else keeps a
- * group: `cases`, `notes`, `settings` and `audit`.
+ * group: `notes`, `settings` and `audit`.
  *
  * The order inside each section is the order help prints it. A command whose
  * section is missing here still runs and never prints. A command marked
@@ -60,7 +59,7 @@ const SECTIONS = [
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { cases, notes, settings: settingsCommand, audit },
+    groups: { notes, settings: settingsCommand, audit },
     check: (_, flags) => {
       paths.useRoot(flags.root);
     },

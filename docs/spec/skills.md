@@ -62,7 +62,7 @@ Closed at 4, set by the user.
 - `never` **`/flow:help`, a skill answering any question about Flow or Claude Code.** Dropped 2026-10-14 by the user (`fw-124`): Flow is for them alone, any session answers from `docs/reference/`, `flow doctor` and the logs, and the description loaded into every session for nothing. The skill is in `lab/archive/help/`.
 - `V1` **`/flow:tickets-from-spec` cuts the next release's behaviors out of `docs/spec/` into tickets**, earliest release first.
 - `V1` **`/flow:file-findings` files a session's findings into skills, rules and checks**, user only, through `references/write-skills.md` and `references/write-checks.md`.
-- `V1` **`/flow:review`, a dev skill, reviews how Flow performed**: where a rule failed, where friction repeated, where the design has a gap. It records study cases or workflow notes, and reads `flow audit`.
+- `V1` **`/flow:review`, a dev skill, reviews how Flow performed**: where a rule failed, where friction repeated, where the design has a gap. It records issue tickets or workflow notes, and reads `flow audit`.
 
 ### `/flow:handoff`
 
@@ -148,6 +148,7 @@ End every review with the next ticket to take, and why.
 - **A link someone replaced with a real folder** → `flow install` refuses to overwrite it.
 - **An overlay is missing, or the hook fails** → the skill loads with nothing added.
 - **A `skillOverrides` key names a Flow skill** → `flow doctor` reports it, since the key does nothing.
+- **A skill synced from the claude.ai account has no `skillOverrides` entry** → `flow doctor` names it with the line that switches it off. `"on"` counts as decided. Decided with `fw-133`.
 
 ## How you know it worked
 

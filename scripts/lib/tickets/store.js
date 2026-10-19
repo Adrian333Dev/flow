@@ -705,5 +705,4 @@ module.exports = {
   COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,
   historyFile, appendHistory, readHistory,
   hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, questionCount, taskCount, tickTask,
-  renderTemplate, // cases.js borrows this, slugify and today; nothing else is shared
 };

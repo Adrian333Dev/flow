@@ -105,12 +105,12 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 - `V1` **Claude Code's agent panel shows one row per agent in the same style**, through `subagentStatusLine` in the mod's `settings.json`: what the agent does, model and effort, time running, tokens (green, amber from 100k, red past 150k).
 - `next` **Every session named by itself**, so the right one is easy to find after `/clear`: `fw-38`.
 
-### The audit and study cases
+### The audit and issue tickets
 
 - `V1` **`flow audit` indexes Claude Code's transcripts into SQLite** and answers queries over it. `/flow:review` reads it.
 - `V1` **Every indexed session carries its machine's name, and every audit answer opens with one coverage line per machine**: its session count and newest day. A split between machines never misleads an agent. Set 2026-10-11.
-- `V1` **`flow cases` keeps the exact output the user reacted to, for good**, grouped by kind of failure across projects. The third case in a folder is the evidence a rule is needed.
-- `V1` **Study cases and workflow notes keep the output word for word, and the project's name**, though both sync to GitHub. Set 2026-09-30.
+- `V1` **An issue ticket keeps the exact output the user reacted to, for good**: a ticket labelled `flow-issue` plus a type, so `flow labels "label:flow-issue"` groups the failures by kind. The third ticket of a type is the evidence a rule is needed. Replaced `flow cases` 2026-10-19 (`fw-180`, `fw-181`): the 14 study cases became tickets `fw-182` to `fw-195`, and the code is in `lab/archive/cases/`.
+- `V1` **Issue tickets and workflow notes keep the output word for word, and the project's name**, though both sync to GitHub. Set 2026-09-30.
 - `later` **A session sync between machines**, its own ticket after release 1: rclone sends each machine's `~/.claude/projects/` to a folder named for the machine. Until then the PC's folder is copied by hand before it is wiped for Linux.
 - `later` **`flow audit prune`**, by run rather than by age, never touching what a case cites.
 - `later` **A subagent's transcript joined to its parent's**, and its tool calls counted in the parent's totals.
@@ -144,7 +144,7 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 - `V1` **The guard**, the safety net against destructive commands.
 - `V1` **`changes.js`**, which lets 2 Haiku workers edit at once without mixing their changes. Uncommitted work makes `git diff` mix them.
 - `V1` **`flow audit`**, read by `/flow:review` and by the update's proof step.
-- `V1` **`flow cases`**, proposed as a merge into workflow notes. A case keeps the output for good and closes naming the file that fixed it, so a rule shortened later still shows why it exists. A note is one line, deleted once filed.
+- `V1` **`flow cases`**, retired 2026-10-19 into issue tickets (`fw-181`). A case kept the output for good and closed naming the file that fixed it, so a rule shortened later still shows why it exists. A ticket does the same.
 - `V1` **The settings levels and the overlays**, which make Flow flexible.
 - `V1` **The ticket skills and the `@` file list**: each small and asked for. The skill updater and the restore and uninstall forms left 2026-10-14 (`fw-124`).
 
@@ -161,7 +161,7 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 - **`npm test` in `scripts/` passes**: 255 tests.
 - **Flow carries real work on this machine for 2 to 3 weeks of beta**, and each checklist ticket, `fw-2` to `fw-14`, is tried once in real use.
 - **A second project starts with what the first one learned**: a finding about a tool, filed in one project, is read by `/flow:research` or `/flow:execute` in the next.
-- **A correction is filed once.** The same rejected reply does not come back after its rule lands, which study cases and `flow audit` show.
+- **A correction is filed once.** The same rejected reply does not come back after its rule lands, which issue tickets and `flow audit` show.
 
 ## What it competes against
 
@@ -195,4 +195,4 @@ What Flow rests on that nobody has checked, and what happens if each one fails.
 - **The Flow home**: the private GitHub repository holding `~/.flow/`, one per user.
 - **The guard**: the hook that reads each shell command and asks before one that can do harm.
 - **Change record**: the list of files one subagent's own tool calls changed.
-- **Study case**: the exact output the user rejected, kept for good, with the file that fixed it.
+- **Issue ticket**: a ticket labelled `flow-issue` plus a type, holding the exact output the user rejected, kept for good, with the file that fixed it.
