@@ -117,7 +117,7 @@ export function takeVerdict(key: string): Verdict | undefined {
 /** A refusal stops the turn. A typed note denies without stopping, and the agent reads the note. */
 export function denyFor(verdict: Verdict): PermissionRequestDecision {
   if (verdict.interrupt) return { behavior: 'deny', message: 'The user refused this call.', interrupt: true }
-  return { behavior: 'deny', message: `The user did not allow this call and wrote: "${verdict.note}". Read it and answer it.` }
+  return { behavior: 'deny', message: `The user refused this call and wrote: "${verdict.note}".` }
 }
 
 /** What an ask answers where no one can: a deny the agent reads, with no interrupt. */

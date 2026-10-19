@@ -50,11 +50,23 @@ const opened = (readonly) => store.open({ readonly });
 /** The name `flow install` saved for this machine, or `unnamed` before Flow is set up. */
 const thisMachine = () => flowRepo.machineName(paths.folders()) || 'unnamed';
 
-/** An answer from the index, opened by the coverage line. */
+/** How long ago the index was last read, as `12 min ago`. */
+const ago = (date) => {
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  return `${Math.floor(minutes / 60)} h ago`;
+};
+
+/** An answer from the index, opened by the coverage line and the index's age. */
 const answer = (db, text) => {
   const covered = query.coverage(db);
-  return covered ? `${covered}\n\n${text}` : text;
+  if (!covered) return text;
+  const indexed = store.indexedAt(db);
+  return `${covered}${indexed ? `\nindex read ${ago(indexed)}` : ''}\n\n${text}`;
 };
+
+const STALE_MS = 30 * 60 * 1000;
 
 const one = (positional, usage, what) => {
   const [value, ...extra] = positional;
@@ -79,25 +91,10 @@ actions.index = {
     quiet: { bool: true },
   },
   run({ flags }) {
-    if (flags.rebuild) {
-      for (const suffix of ['', '-wal', '-shm']) {
-        fs.rmSync(store.dbPath() + suffix, { force: true });
-      }
-    }
-
-    const root = store.projectsDir();
-    if (!fs.existsSync(root)) {
-      throw new FlowError(
-        `no transcripts at ${root}.\n` +
-        '  That is where Claude Code keeps them; CLAUDE_CONFIG_DIR moves it.'
-      );
-    }
-
     const started = Date.now();
-    const db = opened(false);
-    const result = scan.indexAll(db, root, {
+    const result = build({
       project: flags.project || null,
-      machine: thisMachine(),
+      rebuild: flags.rebuild,
       onFile: flags.quiet ? null : (entry, added) => {
         if (added.skipped || !added.lines) return;
         out(`  ${query.short(entry.sessionId)}  ${entry.project}  +${added.lines} lines`);
@@ -112,6 +109,56 @@ actions.index = {
   },
 };
 
+/**
+ * Reads new transcript lines into the index. A run over one project leaves the
+ * other projects behind, so only a full run notes its time in `indexed_at`.
+ */
+function build({ project, rebuild = false, onFile = null }) {
+  if (rebuild) {
+    for (const suffix of ['', '-wal', '-shm']) {
+      fs.rmSync(store.dbPath() + suffix, { force: true });
+    }
+  }
+
+  const root = store.projectsDir();
+  if (!fs.existsSync(root)) {
+    throw new FlowError(
+      `no transcripts at ${root}.\n` +
+      '  That is where Claude Code keeps them; CLAUDE_CONFIG_DIR moves it.'
+    );
+  }
+
+  const db = opened(false);
+  try {
+    const result = scan.indexAll(db, root, { project, machine: thisMachine(), onFile });
+    if (!project) store.markIndexed(db);
+    return result;
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * Opens the index for a read, first refreshing it when the last full run is
+ * over 30 minutes old. A refresh that fails (another session is writing) leaves
+ * the index as it was. A missing index stays missing: its first build reads
+ * every transcript, so it is a command of its own.
+ */
+function reading() {
+  if (fs.existsSync(store.dbPath())) {
+    let indexed = null;
+    try {
+      const db = opened(true);
+      indexed = store.indexedAt(db);
+      db.close();
+    } catch { /* an older schema: the refresh below rebuilds it */ }
+    if (!indexed || Date.now() - indexed.getTime() > STALE_MS) {
+      try { build({ project: null }); } catch { /* read what is there */ }
+    }
+  }
+  return opened(true);
+}
+
 // ---------------------------------------------------------------- reading
 
 actions.ls = {
@@ -124,7 +171,7 @@ actions.ls = {
   run({ positional, flags, usage }) {
     // The group's default, so an id typed the old way lands here and would list everything.
     if (positional.length) throw new FlowError(`${usage} takes no session id: \`flow audit get ${positional[0]}\` shows one.`);
-    const db = opened(true);
+    const db = reading();
     out(answer(db, query.sessions(db, {
       project: flags.project || null,
       since: flags.since || null,
@@ -138,7 +185,7 @@ actions.get = {
   args: '<id>',
   summary: 'one session in full, segments, tools, files, heaviest turns',
   run({ positional, usage }) {
-    const db = opened(true);
+    const db = reading();
     out(answer(db, query.session(db, one(positional, usage, 'session id'))));
     return 0;
   },
@@ -153,7 +200,7 @@ actions.turns = {
   summary: 'the turns of one session, with the line range of each',
   flags: { from: { arg: '<turn>' }, limit: { arg: '<n>' } },
   run({ positional, flags, usage }) {
-    const db = opened(true);
+    const db = reading();
     out(answer(db, query.turns(db, one(positional, usage, 'session id'), {
       from: flags.from ? Number(flags.from) : null,
       limit: Number(flags.limit || 60),
@@ -171,7 +218,7 @@ actions.read = {
     thinking: { bool: true },
   },
   run({ positional, flags, usage }) {
-    const db = opened(true);
+    const db = reading();
     out(answer(db, reader.read(db, one(positional, usage, 'session id'), {
       range: flags.turns,
       full: flags.full,
@@ -190,7 +237,7 @@ actions.summary = {
   },
   run({ positional, flags }) {
     const [id] = positional;
-    const db = opened(true);
+    const db = reading();
     out(answer(db, query.summary(db, {
       session: id || null,
       project: flags.project || null,
@@ -205,7 +252,7 @@ actions.timeline = {
   summary: 'every tool call in one session, in order',
   flags: { limit: { arg: '<n>' } },
   run({ positional, usage, flags }) {
-    const db = opened(true);
+    const db = reading();
     out(answer(db, query.timeline(db, one(positional, usage, 'session id'), {
       limit: Number(flags.limit || 500),
     })));
@@ -218,7 +265,7 @@ actions.context = {
   summary: 'the context size at each request, marking the first edit',
   flags: { limit: { arg: '<n>' } },
   run({ positional, usage, flags }) {
-    const db = opened(true);
+    const db = reading();
     out(answer(db, query.context(db, one(positional, usage, 'session id'), {
       limit: Number(flags.limit || 200),
     })));
@@ -251,7 +298,7 @@ actions.sql = {
   args: '<query>',
   summary: 'any question the named ones do not cover',
   run({ positional, usage }) {
-    const db = opened(true);
+    const db = reading();
     out(answer(db, query.sql(db, one(positional, usage, 'query: quote it'))));
     return 0;
   },
@@ -260,7 +307,7 @@ actions.sql = {
 actions.schema = {
   summary: 'the tables and their columns, for writing a query',
   run() {
-    out(query.schema(opened(true)));
+    out(query.schema(reading()));
     return 0;
   },
 };
@@ -281,7 +328,7 @@ actions.keep = {
   args: '<id>',
   summary: 'archive one transcript before Claude Code sweeps it',
   run({ positional, usage }) {
-    const db = opened(true);
+    const db = reading();
     const session = query.findSession(db, one(positional, usage, 'session id'));
     const rows = db.prepare('SELECT path FROM transcript WHERE session_id = ?').all(session.id);
     if (!rows.length) throw new FlowError(`no transcript on disk for ${query.short(session.id)}.`);

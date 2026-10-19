@@ -186,7 +186,7 @@ describe('the verdict', () => {
   test('a refusal denies with an interrupt, a note without', () => {
     expect(denyFor({ interrupt: true })).toEqual({ behavior: 'deny', message: 'The user refused this call.', interrupt: true })
     const note = denyFor({ interrupt: false, note: 'use tmp/' })
-    expect(note).toEqual({ behavior: 'deny', message: 'The user did not allow this call and wrote: "use tmp/". Read it and answer it.' })
+    expect(note).toEqual({ behavior: 'deny', message: 'The user refused this call and wrote: "use tmp/".' })
     expect('interrupt' in note).toBe(false)
   })
 })

@@ -513,7 +513,7 @@ never applied: loaded every session, never once relevant
 
 ## Audit
 
-`flow audit` reads the transcripts Claude Code keeps of every session into an index, `~/.flow/audit/audit.db`, and answers questions from it. Run `flow audit index` first. A session id can be any start of it that matches one session alone, such as `a1b2`. [Learning](../learning.md) covers segments, turns and what the audit is for.
+`flow audit` reads the transcripts Claude Code keeps of every session into an index, `~/.flow/audit/audit.db`, and answers questions from it. A read refreshes the index first when the last full run is over 30 minutes old, and the line under the coverage line says how old it is. The first build is `flow audit index`. A session id can be any start of it that matches one session alone, such as `a1b2`. [Learning](../learning.md) covers segments, turns and what the audit is for.
 
 A transcript names no machine, so the index tags each session with the name `flow install` saved for this computer, or `unnamed` before one is saved. Every answer from the index opens with one line per machine, its session count and its newest day. That line counts the whole index, whatever `--project` or `--since` narrows. The examples below leave it out.
 

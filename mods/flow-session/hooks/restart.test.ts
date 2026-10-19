@@ -1,11 +1,40 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { firstMessage } from './first-message'
+import { restartMessages } from './first-message'
 
 const REFUSAL = { skip: 'Flow compacts only at its own restart. Run /restart.' }
 
-describe('firstMessage', () => {
-  test('holds the message the agent wrote', () => {
-    expect(firstMessage('MESSAGE')).toContain('MESSAGE')
+const exchange = { size: 150000, reply: 'REPLY', asked: ['ONE', 'TWO'], changed: ['/a.ts', '/b.ts'] }
+
+describe('restartMessages', () => {
+  test('an automatic restart keeps the note, the last reply and every unanswered message, in that order', () => {
+    const [head, reply, one, two, ...rest] = restartMessages('NOTE', exchange, false)
+    expect(rest).toHaveLength(0)
+    expect(head).toMatchObject({ role: 'user' })
+    expect(head!.text).toContain('Restarted at 150k.')
+    expect(head!.text).toContain('Changed since that reply: /a.ts, /b.ts.')
+    expect(head!.text).toContain('Note:\nNOTE')
+    expect(head!.text).toContain('answer every point')
+    expect(reply).toEqual({ role: 'assistant', text: 'REPLY', toolUses: [] })
+    expect([one!.text, two!.text]).toEqual(['ONE', 'TWO'])
+    expect([one!.role, two!.role]).toEqual(['user', 'user'])
+  })
+
+  test('a typed restart keeps the note and the reply, and says nothing runs', () => {
+    const messages = restartMessages('NOTE', { ...exchange, asked: [], changed: [] }, true)
+    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant'])
+    expect(messages[0]!.text).toContain('Nothing runs now.')
+    expect(messages[0]!.text).not.toContain('Changed since')
+  })
+
+  test('with no reply yet, the note stands alone', () => {
+    const messages = restartMessages('NOTE', { size: 150000, asked: [], changed: [] }, false)
+    expect(messages).toHaveLength(1)
+    expect(messages[0]!.text).toContain('Continue from the note.')
+  })
+
+  test('a long list of changed files is cut at 30', () => {
+    const changed = Array.from({ length: 33 }, (_, i) => `/f${i}`)
+    expect(restartMessages('N', { ...exchange, changed }, false)[0]!.text).toContain('/f29 +3 more.')
   })
 })
 

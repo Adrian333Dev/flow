@@ -81,10 +81,10 @@ Flow: not set up here. Run flow init to set it up on this computer, or flow sett
 Tells the agent to hand off once the conversation passes [`wrapUpAt`](#wrapupat), then restart the session. Flow's mod prints it:
 
 ```text
-The context is at 152k. At the next checkpoint, run /flow:handoff, then call the restart tool with its note.
+Context 152k/150k. At the next checkpoint: wait for subagents, run /flow:handoff, call the restart tool.
 ```
 
-Every 20,000 tokens past the limit it says it again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, with each ticket in flight and your last exchange. [Sessions](../sessions.md) covers the handoff.
+From 30,000 under the limit it gives the size alone every 10,000 (`Context 120k/150k`). Every 20,000 tokens past the limit it asks again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, followed by the last reply, your messages since it and the files changed. A typed `/restart` stops there. An automatic restart then submits `Continue.`. [Sessions](../sessions.md) covers the handoff.
 
 ## Other keys in Flow's files
 
@@ -157,7 +157,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 }
 ```
 
-- **`CLAUDE_CODE_PLUGIN_DIRS`**: loads Flow's mod, `flow-session`, from your clone. The mod prints [`wrapUp`](#wrapup), restarts a session in place, and turns a file dragged into the box into an `@` mention. It refuses every compaction it did not start, so a typed `/compact` prints `Flow compacts only at its own restart. Run /flow:handoff.`
+- **`CLAUDE_CODE_PLUGIN_DIRS`**: loads Flow's mod, `flow-session`, from your clone. The mod prints [`wrapUp`](#wrapup), restarts a session in place, and turns a file dragged into the box into an `@` mention. It refuses every compaction it did not start, so a typed `/compact` prints `Flow compacts only at its own restart. Run /restart.`
 - **`CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS`**: switches off Claude Code's Explore and Plan helper agents. Explore skips every `CLAUDE.md`, so no Flow rule would reach its searches.
 
 ### `permissions`
@@ -205,10 +205,10 @@ It never enters `.git`, `node_modules`, `dist`, `build`, `out`, `coverage`, `.ne
 ### `cleanupPeriodDays`
 
 ```json
-"cleanupPeriodDays": 365
+"cleanupPeriodDays": 60
 ```
 
-Claude Code deletes a session's record once it is this many days old. Its default is 30. Flow keeps a year, so a mistake can still be traced to the session that made it: [Learning](../learning.md) reads these records.
+Claude Code deletes a session's record once it is this many days old. Its default is 30. Flow keeps 60, so a mistake can still be traced to the session that made it: [Learning](../learning.md) reads these records. The audit index outlives the records, and `flow audit keep <id>` archives one session.
 
 ### `skillOverrides`
 

@@ -17,8 +17,8 @@ describe('startInstructions', () => {
   })
 
   test('falls back to one line when the file is missing or empty', () => {
-    expect(startInstructions(undefined)).toContain('what to load first')
-    expect(startInstructions('  \n')).toContain('what to load first')
+    expect(startInstructions(undefined)).toContain('what to load')
+    expect(startInstructions('  \n')).toContain('what to load')
   })
 })
 
@@ -31,12 +31,12 @@ describe('withInstructions', () => {
 describe('restartAsk', () => {
   test('asks for the handoff and the tool, then gives the instructions', () => {
     const text = restartAsk(false, '', 'Write 5 parts.')
-    expect(text).toContain('run /flow:handoff, then call the restart tool with a start message.')
+    expect(text).toContain('run /flow:handoff, call the restart tool')
     expect(text.endsWith('Write 5 parts.')).toBe(true)
   })
 
   test('adds the words typed after /restart', () => {
-    expect(restartAsk(true, ' keep it short ', 'x')).toContain('The user adds: keep it short')
-    expect(restartAsk(true, '  ', 'x')).not.toContain('The user adds')
+    expect(restartAsk(true, ' keep it short ', 'x')).toContain('User: keep it short')
+    expect(restartAsk(true, '  ', 'x')).not.toContain('User:')
   })
 })

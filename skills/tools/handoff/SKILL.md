@@ -41,7 +41,7 @@ Write only what no other part of the ticket holds:
 
 A later handoff rewrites `Now` whole. `Found` and `Open` keep every line still true. A line goes when its question closes or its fact is filed elsewhere.
 
-Most handoffs fill 2 labels. A build fills `Now` and `Found`. A design fills `Now` and `Open`. A bug fills all 3. A fat section on a build means `## Tasks` carries too little.
+A build fills `Now` and `Found`, a design `Now` and `Open`, a bug all 3. A fat section means `## Tasks` carries too little.
 
 ## 3. Update the rest of the ticket
 
@@ -64,8 +64,6 @@ Run it when this conversation ends here: a restart replaces it, or all remaining
 3. **File each line by `file-by-type` in `## Capture`.** A line with no written file is a skipped line.
 4. **File what you learned about your own work** from the same pass: tool lessons, failed attempts, mistakes, procedures done before.
 
-A quote can only come from a real message, so a skipped message shows as a missing line.
-
 ## 5. Write the handoff file when the work moves
 
 Only for work continuing in another session or model. Write none where the tickets hold everything.
@@ -81,7 +79,7 @@ The file is `.flow/handoffs/<name>.md`, named for the work and written once. The
 
 Open with the full path of each file written. Then end by where the work continues:
 
-- **Here, after a restart** → end with the paths alone. The start message is written when the restart begins, by `references/start-message.md`, which the mod hands over.
+- **Here, after a restart** → end with the paths alone. The start message follows `references/start-message.md`, which the mod hands over.
 - **Another session or model** → end with what the user types there: the ticket's skill (`/exp-47`) if applies, then each skill the work needs (`/flow:groundwork`, `/flow:execute`, etc.). Write it by `references/start-message.md`, at the length the work needs.
 
   - **Run `flow <id>` first.** Fix a status that no longer matches where the work stands.

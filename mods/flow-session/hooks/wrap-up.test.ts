@@ -2,19 +2,27 @@ import { describe, expect, test } from 'claude-code/testing'
 import { wrapUpLine, wrapUpSettings } from './wrap-up'
 
 describe('wrapUpLine', () => {
-  test('is silent under the limit', () => {
-    expect(wrapUpLine(140000, 149000, 150000)).toBeUndefined()
+  test('is silent more than 30k under the limit', () => {
+    expect(wrapUpLine(0, 119000, 150000)).toBeUndefined()
+  })
+
+  test('gives the size every 10k from 30k under the limit, once each', () => {
+    expect(wrapUpLine(110000, 122000, 150000)).toBe('Context 122k/150k')
+    expect(wrapUpLine(122000, 128000, 150000)).toBeUndefined()
+    expect(wrapUpLine(128000, 131000, 150000)).toBe('Context 131k/150k')
+    expect(wrapUpLine(0, 145000, 150000)).toBe('Context 145k/150k')
+    expect(wrapUpLine(141000, 149000, 150000)).toBeUndefined()
   })
 
   test('asks for the subagents, a handoff and the restart tool when the size crosses the limit', () => {
     expect(wrapUpLine(149000, 152300, 150000)).toBe(
-      'The context is at 152k. At the next checkpoint, wait for running subagents, run /flow:handoff, then call the restart tool with a start message.',
+      'Context 152k/150k. At the next checkpoint: wait for subagents, run /flow:handoff, call the restart tool.',
     )
   })
 
   test('skips the handoff while one stands', () => {
     expect(wrapUpLine(149000, 152300, 150000, true)).toBe(
-      'The context is at 152k. At the next checkpoint, wait for running subagents, then call the restart tool with a start message.',
+      'Context 152k/150k. At the next checkpoint: wait for subagents, call the restart tool.',
     )
   })
 
@@ -25,7 +33,7 @@ describe('wrapUpLine', () => {
 
   test('says it again, firmer, every 20k past the limit', () => {
     expect(wrapUpLine(168000, 171000, 150000)).toBe(
-      'The context is at 171k, past the 150k limit. Stop at the step you are on: finish it, wait for running subagents, run /flow:handoff, then call the restart tool with a start message.',
+      'Context 171k/150k. Finish this step, then wait for subagents, run /flow:handoff, call the restart tool.',
     )
     expect(wrapUpLine(171000, 189000, 150000)).toBeUndefined()
     expect(wrapUpLine(189000, 191000, 150000)).toBeDefined()

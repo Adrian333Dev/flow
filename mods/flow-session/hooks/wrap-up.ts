@@ -1,15 +1,19 @@
 /**
- * wrap-up.ts: when the mod tells the agent to wrap up, and what it says.
+ * wrap-up.ts: when the mod tells the agent its context size, and what it says.
  *
  * Answers get worse long before the window fills, so the limit follows the
- * work, never the window. The mod speaks when the size crosses the limit,
- * then every 20k past it. It replaces `scripts/hooks/context-check.js`, which
- * read the size from the session file.
+ * work, never the window. From 30k under the limit the mod gives the size every
+ * 10k (`Context 120k/150k`), so the agent hands off before a large step instead
+ * of in the middle of it. At the limit it asks for the restart, then again every
+ * 20k past it. It replaces `scripts/hooks/context-check.js`, which read the
+ * size from the session file.
  */
 import { restartSteps } from './ask'
 
 const LIMIT = 150000
 const STEP = 20000
+const LEAD = 30000
+const SIZE_STEP = 10000
 
 /** Whole thousands, such as `152k`. */
 export const kilo = (tokens: number) => `${Math.round(tokens / 1000)}k`
@@ -39,10 +43,16 @@ export function wrapUpSettings(globalText?: string, localText?: string): { wrapU
  * `handoffFresh` is true while a handoff stands and nothing changed after it.
  */
 export function wrapUpLine(before: number, now: number, limit: number, handoffFresh = false): string | undefined {
-  if (now < limit) return undefined
+  const size = `Context ${kilo(now)}/${kilo(limit)}`
+  if (now < limit) {
+    const from = Math.max(limit - LEAD, 0)
+    if (now < from) return undefined
+    const notice = from + Math.floor((now - from) / SIZE_STEP) * SIZE_STEP
+    return before >= notice ? undefined : size
+  }
   const mark = limit + Math.floor((now - limit) / STEP) * STEP
   if (before >= mark) return undefined
   const next = restartSteps(handoffFresh)
-  if (before < limit) return `The context is at ${kilo(now)}. At the next checkpoint, ${next}.`
-  return `The context is at ${kilo(now)}, past the ${kilo(limit)} limit. Stop at the step you are on: finish it, ${next}.`
+  if (before < limit) return `${size}. At the next checkpoint: ${next}.`
+  return `${size}. Finish this step, then ${next}.`
 }

@@ -17,6 +17,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
+const { DatabaseSync } = require('node:sqlite');
 const { project, run } = require('./helpers/scratch');
 
 const CWD = '/home/me/code/demo';
@@ -158,7 +159,7 @@ test('every answer from the index opens with one coverage line per machine', () 
   const named = { ...env, GIT_CONFIG_GLOBAL: config };
   assert.strictEqual(audit(named, ['index', '--quiet']).code, 0);
 
-  const line = /^pc-test: 1 session, newest 2026-09-02\n\n/;
+  const line = /^pc-test: 1 session, newest 2026-09-02\nindex read just now\n\n/;
   const id = SESSION.slice(0, 8);
   for (const args of [[], ['get', id], ['turns', id], ['read', id, '--turns', '1'], ['summary'],
     ['timeline', id], ['context', id], ['sql', 'SELECT 1 n']]) {
@@ -404,4 +405,29 @@ test('a query against a missing index says how to build one', () => {
   const result = audit(env, ['ls']);
   assert.notStrictEqual(result.code, 0);
   assert.match(result.stderr, /flow audit index/);
+});
+
+test('a read refreshes an index older than 30 minutes, and says how old it is', () => {
+  const { file, env } = roots('audit-throttle');
+  fs.writeFileSync(file, asLines(firstHalf()));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  // Fresh: the appended turns stay unread, and the age shows under the coverage line.
+  fs.appendFileSync(file, asLines(secondHalf()));
+  const fresh = audit(env, ['summary']);
+  assert.strictEqual(fresh.code, 0, fresh.stderr);
+  assert.match(fresh.stdout, /index read just now/);
+  assert.match(fresh.stdout, /\b1 turns/);
+
+  // Stale: the same read takes the appended turns in first.
+  const where = audit(env, ['where']).stdout.match(/index\s+(\S+)/)[1];
+  const db = new DatabaseSync(where);
+  db.prepare("UPDATE meta SET value = ? WHERE key = 'indexed_at'")
+    .run(new Date(Date.now() - 45 * 60000).toISOString());
+  db.close();
+
+  const stale = audit(env, ['summary']);
+  assert.strictEqual(stale.code, 0, stale.stderr);
+  assert.match(stale.stdout, /index read just now/);
+  assert.match(stale.stdout, /\b3 turns/);
 });

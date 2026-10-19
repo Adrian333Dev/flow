@@ -305,4 +305,15 @@ function open({ readonly = false } = {}) {
   return create(file);
 }
 
-module.exports = { open, dbPath, auditDir, projectsDir, SCHEMA };
+/** Notes the time of a full index run, which `indexedAt` reads back. */
+function markIndexed(db) {
+  db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)').run('indexed_at', new Date().toISOString());
+}
+
+/** The time of the last full index run as a date, or null when none is noted. */
+function indexedAt(db) {
+  const value = db.prepare('SELECT value FROM meta WHERE key = ?').get('indexed_at')?.value;
+  return value ? new Date(value) : null;
+}
+
+module.exports = { open, dbPath, auditDir, projectsDir, markIndexed, indexedAt, SCHEMA };
