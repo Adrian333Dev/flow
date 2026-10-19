@@ -1,8 +1,9 @@
 /**
  * meters-row.tsx: the meters row under the prompt, fed by the session's figures and the transcript's end.
  *
- * `session.measure` brings the context and the rate limits. The model, effort and cache lifetime
- * are in no mod call, so each turn's end reads the transcript's tail (cache.ts). A 30-second timer
+ * `session.measure` brings the context and the rate limits. The effort and cache lifetime are in no
+ * mod call, so each turn's end reads the transcript's tail (cache.ts), which also names the model
+ * exactly. Until a first reply the model comes from `$.session.model()`. A 30-second timer
  * redraws the cache countdown. The pure part (which meters, which tone, what fits) is meters.ts.
  *
  * register.ts calls these from its own hooks: a mod's hooks on one event are one hook.
@@ -59,7 +60,9 @@ export async function metersRead($: EngineInterface, transcript: string): Promis
     const tail = await $.process.run(['tail', '-c', bytes, transcript], { timeoutMs: 5000 })
     if (tail.isStdoutTruncated) continue
     const request = lastRequest(tail.stdout)
-    await update($, reading, (r) => ({ ...r, model: request?.model, effort: request?.effort, coldAt: coldAt(request) }))
+    // A session with no reply yet has no request, so the model comes from the session itself.
+    const model = request?.model ?? ((await $.session.model().catch(() => undefined)) || undefined)
+    await update($, reading, (r) => ({ ...r, model, effort: request?.effort, coldAt: coldAt(request) }))
     return
   }
 }

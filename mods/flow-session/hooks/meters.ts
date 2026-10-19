@@ -44,9 +44,10 @@ const MINUTE = 60 * 1000
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 
-/** `claude-opus-5-5[1m]` as `opus 5.5`. An id of another shape is shown as it is. */
+/** `claude-opus-5-5[1m]` as `opus 5.5`, and `Opus 5.5` the same. An id of another shape is shown as it is. */
 export function modelName(id: string): string {
   return id
+    .toLowerCase()
     .replace(/\[.*\]$/, '')
     .replace(/^claude-/, '')
     .replace(/-(\d+)-(\d+)(?:-\d{8})?$/, ' $1.$2')
@@ -55,10 +56,10 @@ export function modelName(id: string): string {
 
 // A model is a clay, Claude's own brown-orange, deeper and more vivid the more powerful the model (opus is the strongest). Fable stands apart in teal.
 const MODEL_COLOURS: [RegExp, string][] = [
-  [/opus/, '#f2440c'],
-  [/sonnet/, '#d97757'],
-  [/haiku/, '#eaa98a'],
-  [/fable/, '#14b8a6'],
+  [/opus/i, '#f2440c'],
+  [/sonnet/i, '#d97757'],
+  [/haiku/i, '#eaa98a'],
+  [/fable/i, '#14b8a6'],
 ]
 // The effort runs from cool to hot and shares no hue with the models. Only an `ultra` level is purple.
 const EFFORT_COLOURS: [RegExp, string][] = [

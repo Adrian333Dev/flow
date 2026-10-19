@@ -28,6 +28,11 @@ describe('modelName', () => {
     expect(modelName('claude-haiku-4-5-20251001')).toBe('haiku 4.5')
     expect(modelName('my-model')).toBe('my model')
   })
+
+  test('reads the name /model shows, such as Opus 5.5, the same and in the same colour', () => {
+    expect(modelName('Opus 5.5')).toBe('opus 5.5')
+    expect(modelColour('Opus 5.5')).toBe(modelColour('claude-opus-5-5'))
+  })
 })
 
 describe('colours', () => {

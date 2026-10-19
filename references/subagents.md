@@ -26,6 +26,7 @@ Read before starting a subagent. A fresh subagent reads everything again, so it 
 - **It writes its file as it goes.** Past about 150k tokens it writes what it has and finishes.
 - **It starts another subagent only with a serious reason, stated in the brief.** A chain can be right. A chain nobody needed once passed one question up through 3 agents.
 - **It cannot ask the user.** A question it has ends its report. Ask, then resume the same subagent with `SendMessage` and the answer.
+- **A job that needs no rule file, such as a lookup or an idea generator** → a custom agent definition setting `omitClaudeMd: true`. It starts without every `CLAUDE.md`: cheaper, and free of this session's framing. Its tools and skills stay. Its brief carries every rule it needs. An `Agent` call alone cannot drop them.
 
 ## While it runs
 

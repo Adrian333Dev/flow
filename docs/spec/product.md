@@ -165,7 +165,7 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 
 ## What it competes against
 
-- **Skill sets**: Superpowers, Agent Skills and mattpocock/skills, compared in the README's table. Flow leads on design before code, task tracking, long sessions, self-improvement, rule enforcement, sync across machines, skill management, installation and hooks. It trails on supported agents, Claude Code alone against up to 70. Plan, build, review and debug are a tie, so the table gives them no row.
+- **Skill sets**: Superpowers, Agent Skills and mattpocock/skills, compared in a README table that `fw-141` removed with the README's pitch to strangers. Flow leads on design before code, task tracking, long sessions, self-improvement, rule enforcement, sync across machines, skill management, installation and hooks. It trails on supported agents, Claude Code alone against up to 70. Plan, build, review and debug are a tie, so the table had given them no row.
 - **Compound Engineering and gstack**, whole workflows. Compound Engineering trails Flow on every row but supported agents. gstack has about 135,000 stars.
 - **Memory tools** remember what went wrong. Flow changes what the agent does next time.
 - **The cost**: Flow loads about 4,000 tokens at session start, against 1,000 to 2,200 for its contenders.

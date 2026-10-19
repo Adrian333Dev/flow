@@ -98,7 +98,7 @@ Each status, and what moves a ticket into it:
 
 ### Ticket skills
 
-- `V1` **Each open ticket is a skill only the user can start**, `<project>/.claude/skills/exp-47/`, and `~/.claude/skills/home-4/` for home tickets. Typing `/exp` lists each with its status and description, else its title: `/exp-1   Ticket, in-progress: Daemon detection (project)`. A ticket that is `parked`, `done` or `dropped` gets none.
+- `V1` **Each open ticket is a skill only the user can start**, `<project>/.claude/skills/exp-47/`, and `~/.claude/skills/home-4/` for home tickets. Typing `/exp` lists each with its status and description, else its title: `/exp-1   Ticket, in-progress: Daemon detection (project)`. A parked ticket gets one too, since typing its words is how it is found. A `done` or `dropped` ticket gets none.
 - `V1` **The skill holds a label and one rule.** It runs `flow exp-47` when typed, so a stale skill shows an old row and never old data. The rule: on what exists the files win, and on decisions and what is still open `## State` wins over the rest of the ticket.
 - `V1` **`flow <id>` takes an id and nothing else.** `exp-47`, `47` and `exp-47-old-words` all find the ticket. A word that is no command and holds no id is refused, so a mistyped command never reads as a title word. `flow ls <words>` finds a ticket by its words.
 - `V1` **A ticket reaches a phase through its own skill alone**: `/flow:execute /exp-47` loads both, the phase first. `/exp-47` alone prints the ticket. A typed id is plain text the agent looks up. Approved by the user 2026-09-30.

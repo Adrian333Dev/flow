@@ -41,11 +41,12 @@ Fix it while the cause is in front of you, and keep going as long as every fix s
 
 ## Check and report
 
-1. Run the full suite, in the turn you report it.
-2. Read the diff once against the decisions, then against `~/.flow/references/review-code.md`. A ticket that produced a document reads `~/.flow/references/style.md` instead. A ticket that produced a decision reads neither.
-3. Fix what is wrong, then `flow done <id>`.
-4. Delete `## State`. Anything in it still true goes where `## Capture` sends it first.
-5. Report. Open with the decisions you made alone, one line each. Then what changed and what the check showed, briefly.
+1. Update every record the change made stale: `docs/spec/`, `docs/context/`, other tickets that cite it.
+2. Run the full suite, in the turn you report it.
+3. Read the diff once against the decisions, then against `~/.flow/references/review-code.md`. A ticket that produced a document reads `~/.flow/references/style.md` instead. A ticket that produced a decision reads neither.
+4. Fix what is wrong, then `flow done <id>`.
+5. Delete `## State`. Anything in it still true goes where `## Capture` sends it first.
+6. Report. Open with the decisions you made alone, one line each. Then what changed and what the check showed, briefly. End with the next ticket from `flow next`, and why.
 
 ## After `done`
 
