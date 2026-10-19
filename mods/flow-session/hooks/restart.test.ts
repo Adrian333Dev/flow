@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { restartMessages } from './first-message'
+import { afterAnswer, restartMessages } from './first-message'
 
 const REFUSAL = { skip: 'Flow compacts only at its own restart. Run /restart.' }
 
@@ -35,6 +35,22 @@ describe('restartMessages', () => {
   test('a long list of changed files is cut at 30', () => {
     const changed = Array.from({ length: 33 }, (_, i) => `/f${i}`)
     expect(restartMessages('N', { ...exchange, changed }, false)[0]!.text).toContain('/f29 +3 more.')
+  })
+})
+
+describe('afterAnswer', () => {
+  const held = { reply: 'REAL', asked: ['ONE'], changed: ['/a.ts'] }
+
+  test('a finished answer becomes the last reply and clears what was asked and changed', () => {
+    expect(afterAnswer(held, 'NEW', false)).toEqual({ reply: 'NEW', asked: [], changed: [] })
+  })
+
+  test('the closing line of a restart turn changes nothing', () => {
+    expect(afterAnswer(held, 'Restarting now.', true)).toBe(held)
+  })
+
+  test('an empty answer changes nothing', () => {
+    expect(afterAnswer(held, '  ', false)).toBe(held)
   })
 })
 

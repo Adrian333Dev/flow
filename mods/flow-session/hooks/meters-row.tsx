@@ -13,9 +13,12 @@ import type { EngineInterface, RenderElement, RenderInput, SessionMeasureInput }
 
 import { coldAt, lastRequest } from './cache'
 import { SEPARATOR, fit, meters, type Tone } from './meters'
-import { wrapUpSettings } from './wrap-up'
+import { offersRestart, wrapUpSettings } from './wrap-up'
 
-const reading = atom({ plugin: 'flow-session', key: 'meters' } as const, { limit: 150000, rates: [], beat: 0 })
+const reading = atom({ plugin: 'flow-session', key: 'meters' } as const, { limit: 170000, rates: [], beat: 0 })
+
+// Whether `wrapUp` is on in `~/.flow/settings.json`, read with the limit. Off, the band offers no restart.
+let wrapUpOn = true
 
 const TONES: Record<Tone, string | undefined> = { plain: undefined, ok: '#22c55e', warn: '#ffb703', bad: '#ef4444' }
 const BEAT_MS = 30 * 1000
@@ -40,8 +43,15 @@ export async function metersStart($: EngineInterface): Promise<void> {
 
 async function readLimit($: EngineInterface): Promise<void> {
   const home = await flowHome($)
-  const { limit } = wrapUpSettings(await readText($, `${home}/settings.json`), await readText($, `${home}/settings.local.json`))
+  const { wrapUp, limit } = wrapUpSettings(await readText($, `${home}/settings.json`), await readText($, `${home}/settings.local.json`))
+  wrapUpOn = wrapUp
   await update($, reading, (r) => ({ ...r, limit }))
+}
+
+/** True when the band offers the Restart button (see `offersRestart`). Reading the figures here redraws the band as they move. */
+export async function restartOffered($: EngineInterface): Promise<boolean> {
+  const { tokens, limit } = await read($, reading)
+  return offersRestart(tokens, limit, wrapUpOn)
 }
 
 /** The context and the limits, pushed after each main turn and when a limit moves a point. */

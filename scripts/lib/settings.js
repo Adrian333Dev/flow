@@ -59,7 +59,7 @@ function write(file, data) {
 
 // The number settings and their defaults, for `flow settings` and the scripts that read them.
 // The mod keeps its own copy of `wrapUpAt` in `mods/flow-session/hooks/wrap-up.ts`: TypeScript there cannot require this file.
-const DEFAULTS = { wrapUpAt: 150000 };
+const DEFAULTS = { wrapUpAt: 170000 };
 
 /** Both machine files as one object, the local one winning key by key. */
 const readGlobal = (home) => ({ ...read(globalFile(home)), ...read(localFile(home)) });

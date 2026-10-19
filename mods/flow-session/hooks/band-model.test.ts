@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 import type { Entry } from '../types'
-import { DONE_WORD, SPIN_CELLS, apply, currentId, layout, mix, setActing, spinnerAt, waveShares } from './band-model'
+import { DONE_WORD, GAP, RESTART_CELLS, RESTART_GAP, SPIN_CELLS, apply, currentId, layout, mix, setActing, spinnerAt, waveShares } from './band-model'
 import type { Ticket } from './ticket'
 
 const entry = (id: string, over: Partial<Entry> = {}): Entry => ({
@@ -21,18 +21,31 @@ describe('apply', () => {
     expect(ids(apply([], ticket('a', 'in-progress'), true))).toEqual(['a'])
   })
 
-  test('tickets join first in, first out and keep their place', () => {
+  test('the ticket started last goes leftmost, and a read keeps every place', () => {
     const joined = apply(apply([], ticket('a', 'in-progress'), true), ticket('b', 'in-progress'), true)
-    expect(ids(joined)).toEqual(['a', 'b'])
+    expect(ids(joined)).toEqual(['b', 'a'])
     const again = apply(joined, ticket('a', 'in-progress', 'BUILD 2/2'), false)
-    expect(ids(again)).toEqual(['a', 'b'])
-    expect(again[0]?.word).toBe('BUILD 2/2')
+    expect(ids(again)).toEqual(['b', 'a'])
+    expect(again[1]?.word).toBe('BUILD 2/2')
   })
 
-  test('a ticket lit anew drops the closed ones, and a read of a lit ticket drops nothing', () => {
+  test('a ticket started again goes leftmost, once', () => {
+    const band = [entry('b'), entry('a')]
+    expect(ids(apply(band, ticket('a', 'in-progress', 'DEBUG'), true))).toEqual(['a', 'b'])
+    expect(apply(band, ticket('a', 'in-progress', 'DEBUG'), true)[0]?.word).toBe('DEBUG')
+  })
+
+  test('a ticket started drops the closed ones, and a read of a lit ticket drops nothing', () => {
     const closed = entry('a', { isDone: true, word: DONE_WORD })
-    expect(ids(apply([closed, entry('b')], ticket('c', 'in-progress'), true))).toEqual(['b', 'c'])
+    expect(ids(apply([closed, entry('b')], ticket('c', 'in-progress'), true))).toEqual(['c', 'b'])
     expect(ids(apply([closed, entry('b')], ticket('b', 'in-progress'), false))).toEqual(['a', 'b'])
+  })
+
+  test('a closed ticket started again opens in place of its DONE badge', () => {
+    const closed = entry('a', { isDone: true, word: DONE_WORD })
+    const [first, ...rest] = apply([entry('b'), closed], ticket('a', 'in-progress'), true)
+    expect(first).toMatchObject({ id: 'a', isDone: false, word: 'BUILD 1/2' })
+    expect(ids(rest)).toEqual(['b'])
   })
 
   test('a parked, dropped or todo ticket leaves at once', () => {
@@ -63,30 +76,35 @@ describe('setActing', () => {
 })
 
 describe('currentId', () => {
-  test('is the preferred badge while it is open, else the newest open one', () => {
-    const band = [entry('a'), entry('b'), entry('c', { isDone: true })]
-    expect(currentId(band, 'a')).toBe('a')
-    expect(currentId(band, 'c')).toBe('b')
-    expect(currentId(band, undefined)).toBe('b')
-    expect(currentId([entry('c', { isDone: true })], 'c')).toBeUndefined()
-    expect(currentId([], 'a')).toBeUndefined()
+  test('is the leftmost open badge, the one started last', () => {
+    expect(currentId([entry('a'), entry('b')])).toBe('a')
+    expect(currentId([entry('c', { isDone: true }), entry('a'), entry('b')])).toBe('a')
+    expect(currentId([entry('c', { isDone: true })])).toBeUndefined()
+    expect(currentId([])).toBeUndefined()
+  })
+
+  test('when the acting ticket closes, the one started before it acts', () => {
+    const band = [entry('c'), entry('b'), entry('a')]
+    expect(currentId(band)).toBe('c')
+    expect(currentId(apply(band, ticket('c', 'done'), false))).toBe('b')
   })
 })
 
 describe('layout', () => {
   const two = [entry('fw-16', { name: 'fw-16-flow-redesign', word: 'DESIGN 36/56' }), entry('fw-71', { name: 'fw-71-ticket-names-files', word: 'BUILD 2/5' })]
+  const many = Array.from({ length: 8 }, (_, n) => entry(`fw-${n}`, { name: `fw-${n}-some-ticket-name`, word: 'BUILD 12/34' }))
+  const cellsOf = (row: ReturnType<typeof layout>) => row.badges.reduce((n, b, i) => n + b.name.length + b.status.length + 2 + (i ? GAP : 0), 0)
 
   test('the corner is the only padding; the status takes one space after the name', () => {
     const row = layout([two[1]!], 93, 0)
     expect(row.badges[0]).toMatchObject({ name: 'fw-71-ticket-names-files', status: ' BUILD 2/5' })
   })
 
-  test('badges keep their order and the issue count sits at the right edge', () => {
+  test('with room for all, every badge shows whole, in order, and the issue count sits at the right edge', () => {
     const row = layout(two, 93, 2)
-    expect(row.badges.map((b) => b.id)).toEqual(['fw-16', 'fw-71'])
+    expect(row.badges.map((b) => b.name)).toEqual(['fw-16-flow-redesign', 'fw-71-ticket-names-files'])
     expect(row.issues).toBe('2 issues')
-    const left = row.badges.reduce((n, b) => n + b.name.length + b.status.length + 2, 0) + 2
-    expect(left + row.space + row.issues.length).toBe(93)
+    expect(cellsOf(row) + row.space + row.issues.length).toBe(93)
   })
 
   test('one issue is singular, none draws nothing', () => {
@@ -94,21 +112,66 @@ describe('layout', () => {
     expect(layout(two, 93, 0).issues).toBe('')
   })
 
-  test('badges that do not fit fold into +N', () => {
-    const row = layout(two, 80, 2)
-    expect(row.badges).toHaveLength(1)
-    expect(row.folded).toBe(1)
-    const three = layout([...two, entry('fw-90', { name: 'fw-90-machine-name-wsl', word: 'DEBUG' })], 93, 2)
-    expect(three.badges).toHaveLength(2)
-    expect(three.folded).toBe(1)
+  test('with less room the main badge stays whole and the others show their id and word', () => {
+    const row = layout(two, 70, 2)
+    expect(row.badges.map((b) => b.name)).toEqual(['fw-16-flow-redesign', 'fw-71'])
+    expect(row.badges[1]?.status).toBe(' BUILD 2/5')
+    expect(row.folded).toBe(0)
   })
 
-  test('the row never exceeds its width', () => {
-    for (let columns = 60; columns < 120; columns++) {
-      const row = layout(two, columns, 12)
-      const left = row.badges.reduce((n, b, i) => n + b.name.length + b.status.length + 2 + (i ? 2 : 0), 0) + (row.folded ? ` +${row.folded}`.length : 0)
-      expect(left + row.space + row.issues.length).toBe(columns)
+  test('with least room the others show their id alone, and what still does not fit folds into +N', () => {
+    const row = layout(many, 70, 0)
+    expect(row.badges.map((b) => b.name)).toEqual(['fw-0-some-ticket-name', 'fw-1', 'fw-2', 'fw-3', 'fw-4'])
+    expect(row.badges[1]?.status).toBe('')
+    expect(row.folded).toBe(3)
+  })
+
+  test('a closed badge keeps its ✓ as an id alone', () => {
+    const closed = entry('fw-35', { isDone: true, word: DONE_WORD })
+    const row = layout([entry('fw-1'), closed], 35, 0)
+    expect(row.badges[1]).toMatchObject({ name: 'fw-35', status: ' ✓', isDone: true })
+  })
+
+  test('the main badge is the leftmost open one, even behind a closed badge', () => {
+    const closed = entry('fw-35', { isDone: true, word: DONE_WORD })
+    const row = layout([closed, entry('fw-1')], 35, 0)
+    expect(row.badges.map((b) => b.name)).toEqual(['fw-35', 'fw-1-name'])
+  })
+
+  test('a main badge too wide for the row folds, and the count keeps its cells', () => {
+    const wide = [entry('fw-1', { name: `fw-1-${'a'.repeat(60)}` })]
+    expect(layout(wide, 80, 0).badges).toHaveLength(1)
+    expect(layout(wide, 80, 3)).toMatchObject({ badges: [], folded: 1 })
+  })
+
+  test('no band exceeds its width, with or without the button', () => {
+    for (let columns = 60; columns < 140; columns++) {
+      for (const restart of [false, true]) {
+        const row = layout(many, columns, 12, true, restart)
+        const right = (restart ? RESTART_CELLS + RESTART_GAP : 0) + row.issues.length
+        const fold = row.folded ? ` +${row.folded}`.length : 0
+        expect(cellsOf(row) + fold + row.space + right).toBe(columns)
+        expect(row.badges.length + row.folded).toBe(8)
+      }
     }
+  })
+
+  test('the Restart button takes its cells before the issue count, and the badges give way', () => {
+    const plain = layout(two, 100, 2)
+    const button = layout(two, 100, 2, true, true)
+    expect(button.restart).toBe(true)
+    expect(plain.space - button.space).toBe(RESTART_CELLS + RESTART_GAP)
+    expect(layout(two, 100, 0, true, true).space).toBe(plain.space + '2 issues'.length - RESTART_CELLS)
+    expect(layout(many, 100, 2).folded).toBe(0)
+    expect(layout(many, 100, 2, true, true).folded).toBeGreaterThan(0)
+  })
+
+  test('the Restart label and its corners are as wide as a bracketed button', () => {
+    expect(RESTART_CELLS).toBe('[ Restart ]'.length)
+  })
+
+  test('the Restart button shows with no badge at all', () => {
+    expect(layout([], 93, 0, true, true)).toMatchObject({ badges: [], restart: true })
   })
 
   test('a badge that acts takes 2 more cells for its spinner, and the row still fits', () => {
@@ -120,7 +183,7 @@ describe('layout', () => {
   })
 
   test('an empty band has no badges', () => {
-    expect(layout([], 93, 0)).toMatchObject({ badges: [], folded: 0, issues: '' })
+    expect(layout([], 93, 0)).toMatchObject({ badges: [], folded: 0, issues: '', restart: false })
   })
 })
 

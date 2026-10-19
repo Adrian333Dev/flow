@@ -9,7 +9,7 @@
 /** The instructions for the start message, under the Flow home. The handoff skill owns the file. */
 export const INSTRUCTIONS_PATH = 'repos/flow/skills/tools/handoff/references/start-message.md'
 
-const FALLBACK = 'Start message: what to load, what is done and left, what comes next, any question for the user.'
+const FALLBACK = 'Start message: what to load, the task, what comes next, any question for the user.'
 
 /** The file's text, or a one-line fallback while the file cannot be read, so a restart never stops on it. */
 export function startInstructions(text: string | undefined): string {

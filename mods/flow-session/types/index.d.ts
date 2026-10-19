@@ -25,8 +25,20 @@ export type MeterState = {
   beat: number
 }
 
+/** What a restart keeps word for word (hooks/register.ts). The host holds it, so an edit that reloads the mod loses none of it. */
+export type Tracked = {
+  /** The main turn that runs now, which the restart tool ends. */
+  turn?: string
+  /** The last finished reply. */
+  reply?: string
+  /** The user's messages since that reply, oldest first. */
+  asked: string[]
+  /** Files an edit tool touched since that reply. */
+  changed: string[]
+}
+
 declare module 'claude-code' {
   interface PluginState {
-    'flow-session': { band: Entry[]; issues: number; frame: number; meters: MeterState }
+    'flow-session': { band: Entry[]; issues: number; frame: number; meters: MeterState; tracked: Tracked }
   }
 }

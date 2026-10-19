@@ -14,12 +14,14 @@
  * notes of `flow notes`, and every permission ask opens Claude Code's question
  * dialog (hooks/pane.ts) and is logged (hooks/log.ts).
  *
- * The band above the prompt, one badge for each ticket the session works, is
- * hooks/band.tsx, registered from here.
+ * The band above the prompt, one badge for each ticket the session works and a
+ * Restart button past the wrap-up limit, is hooks/band.tsx, registered from here.
  */
+import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
+import type { Tracked } from '../types'
 import { INSTRUCTIONS_PATH, restartAsk, startInstructions, withInstructions } from './ask'
-import { restartMessages } from './first-message'
+import { afterAnswer, restartMessages } from './first-message'
 import { mention, pastedPaths, relativeTo } from './drag'
 import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './band'
 import { drawMeters, metersMeasure, metersRead, metersStart, metersSwitch } from './meters-row'
@@ -63,13 +65,10 @@ type Restart = {
 }
 
 let pending: Restart | null = null
-let mainTurn: string | undefined
 let sizeBefore: number | undefined
 let lastChecked = 0
-// What the restart keeps word for word: the last finished reply, the user's messages since it, the files edited since.
-let lastReply: string | undefined
-let asked: string[] = []
-const changed = new Set<string>()
+// What the restart keeps word for word, and the turn it ends. The host holds it: a hot reload empties module variables.
+const tracked = atom({ plugin: 'flow-session', key: 'tracked' } as const, { asked: [], changed: [] } as Tracked)
 // Set by /restart, taken by the restart tool. A hot reload empties it, which makes that restart automatic.
 let typed = false
 // A handoff stands from the moment its skill loads until work changes a file in a later turn.
@@ -184,6 +183,20 @@ function editedFile(e: object): string | undefined {
   const input = e as { file_path?: unknown; notebook_path?: unknown }
   const file = input.file_path ?? input.notebook_path
   return typeof file === 'string' ? file : undefined
+}
+
+/**
+ * Asks the agent for the handoff, if none stands, and the start message: what `/restart` does
+ * and what a press of the band's Restart button does. A command's hidden `context` starts no turn
+ * (probed 2.1.301), so the ask is submitted as a prompt once the caller has returned.
+ */
+async function askForRestart($: EngineInterface, args: string): Promise<void> {
+  const ask = restartAsk(handoffFresh, args, await startText($))
+  typed = true
+  void $.clock
+    .sleep(100)
+    .then(() => $.prompt.submit({ text: ask, asUser: true }))
+    .catch((error) => $.ui.log(`/restart could not start the agent: ${error instanceof Error ? error.message : String(error)}`))
 }
 
 /**
@@ -305,7 +318,7 @@ export const register: Register = (on) => {
       .register({ name: 'restart', description: 'Restart this session in place, from a start message the agent writes.' })
       .catch(() => undefined)
     await $.command
-      .register({ name: 'band', description: 'Switch the test band on or off: /band, /band <number>, next, list, act, off.' })
+      .register({ name: 'band', description: 'Switch the test band on or off: /band, /band <number>, next, list, act, off. /band clear empties the real band.' })
       .catch(() => undefined)
     return next(e)
   })
@@ -315,30 +328,23 @@ export const register: Register = (on) => {
     text: 'The band command failed, so nothing changed.',
   }))
 
-  // `/restart` asks the agent for the handoff, if none stands, and the start message.
-  // A command's hidden `context` starts no turn (probed 2.1.301), so the ask is
-  // submitted as a prompt once the command has returned.
+  // `/restart` asks the agent for the handoff and the start message.
   on('command.run', { command: 'restart' }, async ($, e) => {
-    const ask = restartAsk(handoffFresh, e.args ?? '', await startText($))
-    typed = true
-    void $.clock
-      .sleep(100)
-      .then(() => $.prompt.submit({ text: ask, asUser: true }))
-      .catch((error) => $.ui.log(`/restart could not start the agent: ${error instanceof Error ? error.message : String(error)}`))
+    await askForRestart($, e.args ?? '')
     return { text: 'Restarting: the agent writes the start message.' }
   }).catch(() => ({ text: 'The restart command failed, so nothing restarted.' }))
 
   // A handoff stands once its skill loads. A file changed in a later turn ends it.
-  on('skill.prompt', { skill: /(^|:)handoff$/ }, async (_$, e, next) => {
+  on('skill.prompt', { skill: /(^|:)handoff$/ }, async ($, e, next) => {
     handoffFresh = true
-    handoffTurn = mainTurn
+    handoffTurn = (await read($, tracked)).turn
     return next(e)
   })
 
-  on('tool.call', { tool: EDIT }, async (_$, e, next) => {
-    if (mainTurn !== handoffTurn) handoffFresh = false
+  on('tool.call', { tool: EDIT }, async ($, e, next) => {
+    if ((await read($, tracked)).turn !== handoffTurn) handoffFresh = false
     const file = editedFile(e)
-    if (file && e.agentId === undefined) changed.add(file)
+    if (file && e.agentId === undefined) await update($, tracked, (t) => (t.changed.includes(file) ? t : { ...t, changed: [...t.changed, file] }))
     return next(e)
   })
 
@@ -352,7 +358,7 @@ export const register: Register = (on) => {
   on('turn.start', async ($, e, next) => {
     await bandTurnStart($, e)
     if (e.agentId === undefined) {
-      mainTurn = e.turnId
+      await update($, tracked, (t) => ({ ...t, turn: e.turnId }))
       if (mentionedNotes.length) noteTurns.set(e.turnId, mentionedNotes)
       mentionedNotes = []
     }
@@ -378,7 +384,7 @@ export const register: Register = (on) => {
   // The warning rides on the next message the user types, or on a tool result
   // when a long turn has no message in it. A subagent's size is its own.
   on('prompt.submit', async ($, e, next) => {
-    if (usersOwn(e)) asked.push(e.text)
+    if (usersOwn(e)) await update($, tracked, (t) => ({ ...t, asked: [...t.asked, e.text] }))
     const line = await wrapUp($).catch(() => undefined)
     return next(line ? { ...e, context: [...(e.context ?? []), line] } : e)
   })
@@ -404,7 +410,9 @@ export const register: Register = (on) => {
     const usage = await $.session.usage().catch(() => undefined)
     pending = { message, size: usage?.context.tokens ?? 0, started: false, manual: typed }
     typed = false
-    if (mainTurn) await $.turn.abort({ turnId: mainTurn }).catch(() => undefined)
+    const { turn } = await read($, tracked)
+    const ended = turn ? await $.turn.abort({ turnId: turn }).then(() => true, () => false) : false
+    if (!ended) $.ui.log('restart: the turn could not be ended, so its closing reply is left out of the new conversation')
     return { result: 'Restarting. Write nothing more.' }
   }).catch(() => ({ deny: 'The restart hook failed, so nothing restarted.' }))
 
@@ -417,11 +425,7 @@ export const register: Register = (on) => {
       if (e.reason === 'answer') await removeNotes($, notes)
     }
     if (e.agentId === undefined) {
-      if (e.reason === 'answer' && e.answer.trim()) {
-        lastReply = e.answer
-        asked = []
-        changed.clear()
-      }
+      if (e.reason === 'answer') await update($, tracked, (t) => afterAnswer(t, e.answer, pending !== null))
       if (pending && !pending.started) void runRestart($, pending)
       else if (sizeBefore !== undefined) void logSize($).catch(() => undefined)
     }
@@ -454,7 +458,9 @@ export const register: Register = (on) => {
   })
 
   // The band of tickets the session works (hooks/band.tsx).
-  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => drawBand($, e, next))
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) =>
+    drawBand($, e, next, () => void askForRestart($, '').catch((error) => $.ui.log(`the Restart button failed: ${reasonOf(error)}`))),
+  )
 
   // The meters row (hooks/meters-row.tsx): figures from the session, the model, effort and cache from the transcript's end.
   on('session.measure', async ($, e, next) => {
@@ -476,10 +482,11 @@ export const register: Register = (on) => {
   on('ui.render', { component: 'PromptHint' }, async ($, e, next) => drawMeters($, e, next))
 
   // The restart's compaction becomes the agent's note, the last reply, each user message it did not answer and the changed files.
-  on('session.compact', async (_$, e, next) => {
+  on('session.compact', async ($, e, next) => {
     if (e.agentId !== undefined) return next(e)
     if (e.trigger !== 'manual' || !pending?.started) return { skip: REFUSAL }
-    const last = { size: pending.size, reply: lastReply, asked, changed: [...changed] }
+    const { reply, asked, changed } = await read($, tracked)
+    const last = { size: pending.size, reply, asked, changed }
     return { messages: restartMessages(pending.message, last, pending.manual) }
   }).catch(() => ({ skip: REFUSAL }))
 }

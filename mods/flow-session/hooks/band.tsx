@@ -2,10 +2,11 @@
  * band.tsx: the band above the prompt, one badge for each ticket the session works.
  *
  * A badge is the ticket's id and short name in black on `#ffb703`, joined to its word and
- * count on the terminal's background plus 7% of that colour. A ticket lights when
- * `flow <id>` reads one in progress or `flow start <id>` moves one, and its file is read
- * again whenever a command or an edit touches it, and at each turn's end. For as long as a turn
- * runs, the badge the session works (the last one lit) shows a pale bar 3 cells wide moving along
+ * count on the terminal's background plus 7% of that colour. The band is one row: it ends with a
+ * green Restart button, shown from `LEAD` under the wrap-up limit, and the issue count in red.
+ * A ticket lights only when `flow start <id>` picks it up, and then sits leftmost; its file is read again whenever a
+ * command or an edit touches it, and at each turn's end. For as long as a turn runs, the badge
+ * the session works (the leftmost open one) shows a pale bar 3 cells wide moving along
  * it and a spinner turning after its word; `band-settings.json` switches either off. The rules
  * for joining and leaving are in band-model.ts; this file only feeds them and draws the result.
  *
@@ -17,11 +18,12 @@ import type { EngineInterface, RenderElement, RenderInput, SessionAppendInput, T
 
 import type { Entry } from '../types'
 import { describeScenario, parseMock, parseScenarios, usage, withActing, type Scenario } from './band-mock'
-import { SPIN_CELLS, apply, currentId, layout, mix, setActing, spinnerAt, waveShares } from './band-model'
+import { GAP, RESTART, RESTART_GAP, SPIN_CELLS, apply, currentId, layout, mix, setActing, spinnerAt, waveShares, type Badge } from './band-model'
 import { failureFiles, openIssues } from './issues'
 import { DEFAULT_LOOK, parseLook, type Look } from './look'
+import { restartOffered } from './meters-row'
 import { isExpired, isRecordKey, makeRecord, parseRecord, recordKey } from './record'
-import { idsIn, readTicket, target } from './ticket'
+import { idsIn, readTicket, startedIn, target } from './ticket'
 
 const band = atom({ plugin: 'flow-session', key: 'band' } as const, [] as Entry[])
 const issues = atom({ plugin: 'flow-session', key: 'issues' } as const, 0)
@@ -29,6 +31,7 @@ const frame = atom({ plugin: 'flow-session', key: 'frame' } as const, 0)
 
 const ORANGE = '#ffb703'
 const GREEN = '#22c55e'
+const RED = '#ef4444'
 const BLACK = '#000000'
 const WHITE = '#ffffff'
 // How far toward white the wave's centre cell goes: pale enough to stay behind black text.
@@ -40,8 +43,6 @@ const FILE_TOOL = /^(Read|Edit|Write|MultiEdit|NotebookEdit)$/
 
 // True from the main session's turn start to its end. A hot reload starts it over as false.
 let turnRunning = false
-// The ticket the last `flow <id>` or `flow start <id>` named: the badge the session works.
-let current: string | undefined
 let wave: { cancel: () => void } | undefined
 // Which working signs show, read from `band-settings.json` at session start and at each turn's start.
 let look: Look = DEFAULT_LOOK
@@ -51,18 +52,18 @@ let mock: { name: string; scenario: Scenario } | undefined
 let lastMock: string | undefined
 let mockActing = false
 
-/** What a tool call names: ticket ids, and whether the call is `flow <id>` or `flow start <id>`, which lights. The call's fields sit on the event itself. */
-function namedBy(tool: string, call: object): { ids: string[]; lights: boolean } {
+/** What a tool call names: ticket ids, and which of them `flow start` picks up, which lights. The call's fields sit on the event itself. */
+function namedBy(tool: string, call: object): { ids: string[]; started: string[] } {
   const fields = call as { command?: unknown; file_path?: unknown }
   if (tool === 'Bash' && typeof fields.command === 'string') {
     const command = fields.command
-    if (!/\bflow\b|\bfw\s/.test(command)) return { ids: [], lights: false }
-    return { ids: idsIn(command), lights: /\b(?:flow|fw)\s+(start\s+)?[a-z]+-\d+\b/.test(command) }
+    if (!/\bflow\b|\bfw\s/.test(command)) return { ids: [], started: [] }
+    return { ids: idsIn(command), started: startedIn(command) }
   }
   if (FILE_TOOL.test(tool) && typeof fields.file_path === 'string' && fields.file_path.includes('/tickets/')) {
-    return { ids: idsIn(fields.file_path), lights: false }
+    return { ids: idsIn(fields.file_path), started: [] }
   }
-  return { ids: [], lights: false }
+  return { ids: [], started: [] }
 }
 
 /** The Flow home: `FLOW_HOME`, else `~/.flow`. */
@@ -160,7 +161,7 @@ async function runWave($: EngineInterface): Promise<void> {
 
 /** Puts the signs on the badge the session works while a turn runs, and takes them off every badge otherwise. */
 async function pointWave($: EngineInterface): Promise<void> {
-  await update($, band, (entries) => setActing(entries ?? [], turnRunning ? currentId(entries ?? [], current) : undefined))
+  await update($, band, (entries) => setActing(entries ?? [], turnRunning ? currentId(entries ?? []) : undefined))
   await runWave($)
 }
 
@@ -193,11 +194,19 @@ async function readScenarios($: EngineInterface): Promise<{ scenarios: Record<st
   return text === undefined ? { scenarios: {}, error: `No scenarios file at ${file}.` } : parseScenarios(text)
 }
 
-/** `/band`: shows a test scenario in place of the real band, or puts the real one back. Returns the reply. */
+/** `/band`: shows a test scenario in place of the real band, or puts the real one back. `clear` empties the real band. Returns the reply. */
 export async function bandMock($: EngineInterface, args: string): Promise<string> {
-  if (args.trim().toLowerCase() === 'off') {
+  const word = args.trim().toLowerCase()
+  if (word === 'off') {
     await clearMock($)
     return 'Band shows the real tickets.'
+  }
+  if (word === 'clear') {
+    // The saved record is emptied too, or a reopen would bring the badges back.
+    await update($, band, () => [])
+    await clearMock($)
+    await save($).catch((error) => lost($, 'save', error))
+    return 'Band emptied. `flow start <id>` lights a ticket again.'
   }
   const { scenarios, error } = await readScenarios($)
   if (error) return error
@@ -252,26 +261,22 @@ export async function bandTurnStart($: EngineInterface, e: TurnStartInput): Prom
 
 /**
  * Runs a tool call. `run` is the call itself; the tickets it names are read again after it.
- * A `flow <id>` or `flow start <id>` makes that ticket the one the session works.
+ * A `flow start <id>` makes that ticket the one the session works.
  */
 export async function bandToolCall<R>($: EngineInterface, e: ToolCallInput, run: () => Promise<R>): Promise<R> {
-  const { ids, lights } = namedBy(e.tool, e)
+  const { ids, started } = namedBy(e.tool, e)
   try {
     return await run()
   } finally {
     // The call has run: the file says what it did.
-    await touched($, ids, lights)
+    await touched($, ids, started)
   }
 }
 
-/** Tickets a command named were changed or looked at: reads them again, and the lit one becomes the one the session works. */
-async function touched($: EngineInterface, ids: string[], lights: boolean): Promise<void> {
-  for (const id of ids) await refresh($, id, lights).catch(() => undefined)
+/** Tickets a command named were changed or looked at: reads them again, and one picked up by `flow start` goes leftmost and is the one the session works. */
+async function touched($: EngineInterface, ids: string[], started: string[]): Promise<void> {
+  for (const id of ids) await refresh($, id, started.includes(id)).catch(() => undefined)
   if (!ids.length) return
-  if (lights) {
-    const lit = (await read($, band).catch(() => [])).find((entry) => ids.includes(entry.id) && !entry.isDone)
-    if (lit) current = lit.id
-  }
   await pointWave($).catch(() => undefined)
   await save($).catch((error) => lost($, 'save', error))
 }
@@ -301,7 +306,8 @@ export async function bandShell($: EngineInterface, e: SessionAppendInput): Prom
   if (!named) return
   const [, verb, number] = named
   const ids = idsIn(text).filter((id) => id.endsWith(`-${number}`))
-  await touched($, ids.length ? ids : idsIn(command), verb === undefined || verb === 'start')
+  const tickets = ids.length ? ids : idsIn(command)
+  await touched($, tickets, verb === 'start' ? tickets : [])
 }
 
 /** A turn ended: every badge is read again from its file, the signs stop, and the issue count is read again. */
@@ -314,25 +320,29 @@ export async function bandTurnComplete($: EngineInterface, e: TurnCompleteInput)
   await countIssues($).catch(() => undefined)
 }
 
-/** The band's row, or what the engine drew where there is nothing to show. */
+/**
+ * The band's rows, or what the engine drew where there is nothing to show. `restartSession`
+ * is what a press of the Restart button does; the button shows from `LEAD` under the wrap-up limit.
+ */
 export async function drawBand(
   $: EngineInterface,
   e: RenderInput<'AbovePrompt'>,
   next: (e: RenderInput<'AbovePrompt'>) => Promise<RenderElement>,
+  restartSession: () => void,
 ): Promise<RenderElement> {
   const scenario = mock?.scenario
   const entries = scenario ? withActing(scenario.entries, mockActing) : await read($, band)
   const open = scenario ? scenario.issues : await read($, issues)
+  const restart = scenario ? scenario.restart : await restartOffered($)
   const tick = await read($, frame)
-  if (e.props.hasSurvey || (!entries.length && !open)) return next(e)
+  if (e.props.hasSurvey || (!entries.length && !open && !restart)) return next(e)
 
   const elements = $.ui.resolve(e)
   const { Box, Button, Text } = elements
-  const row = layout(entries, scenario?.columns ?? e.props.bodyColumns, open, look.spinner)
+  const row = layout(entries, scenario?.columns ?? e.props.bodyColumns, open, look.spinner, restart)
 
-  // Each badge is one plain Button, so the engine's own hover and pointer zone apply. A press
-  // does nothing until the board exists.
-  const badges = row.badges.flatMap((badge, at) => {
+  // Each badge is one plain Button, so the engine's own hover and pointer zone apply.
+  const drawBadge = (badge: Badge, at: number) => {
     const colour = badge.isDone ? GREEN : ORANGE
     const dark = mix(TERMINAL, colour, 0.07)
     const waves = badge.acting && look.sweep
@@ -367,8 +377,9 @@ export async function drawBand(
           </Text>,
         ]
     const press = (atWord: boolean) => () => void openTicket($, badge.id, atWord).catch((error) => lost($, 'open', error))
+    // A badge shown as its id alone has no status, so its right corner takes the badge's own colour.
     return [
-      at ? <Text key={`gap-${badge.id}`}>{'  '}</Text> : '',
+      at ? <Text key={`gap-${badge.id}`}>{' '.repeat(GAP)}</Text> : '',
       <Button key={`badge-${badge.id}`} plain onPress={press(false)}>
         <Text color={colour}>▐</Text>
         {name}
@@ -385,17 +396,29 @@ export async function drawBand(
               )
             })
           : ''}
-        <Text color={dark}>▌</Text>
+        <Text color={badge.status ? dark : colour}>▌</Text>
       </Button>,
     ]
-  })
+  }
 
   return (
-    <Box marginTop={1}>
-      {badges}
+    <Box marginTop={look.topRow ? 1 : 0}>
+      {row.badges.flatMap((badge, at) => drawBadge(badge, at))}
       {row.folded ? <Text dimColor> +{row.folded}</Text> : ''}
-      {row.issues ? <Text>{' '.repeat(row.space)}</Text> : ''}
-      {row.issues ? <Text color="warning">{row.issues}</Text> : ''}
+      {row.restart || row.issues ? <Text>{' '.repeat(row.space)}</Text> : ''}
+      {row.restart ? (
+        <Button key="restart" plain onPress={restartSession}>
+          <Text color={GREEN}>▐</Text>
+          <Text color={BLACK} backgroundColor={GREEN}>
+            {RESTART}
+          </Text>
+          <Text color={GREEN}>▌</Text>
+        </Button>
+      ) : (
+        ''
+      )}
+      {row.restart && row.issues ? <Text>{' '.repeat(RESTART_GAP)}</Text> : ''}
+      {row.issues ? <Text color={RED}>{row.issues}</Text> : ''}
     </Box>
   )
 }

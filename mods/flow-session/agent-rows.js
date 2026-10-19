@@ -22,9 +22,9 @@ const EFFORT_COLOURS = [
   [/^max$/, '#ff1744'],
   [/^ultra/, '#a855f7'],
 ]
-// The context turns amber from 100k and red past 150k, the wrap-up mark of the meters.
+// The context turns amber from 100k and red past 170k, the wrap-up mark of the meters.
 const WARN_TOKENS = 100000
-const BAD_TOKENS = 150000
+const BAD_TOKENS = 170000
 
 const GREEN = '32'
 const AMBER = '33'

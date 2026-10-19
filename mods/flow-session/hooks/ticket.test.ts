@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { idsIn, readTicket, target } from './ticket'
+import { idsIn, readTicket, startedIn, target } from './ticket'
 
 const ticket = (fields: string, body = '') => `---\nid: fw-9\ntitle: band-test\nstatus: in-progress\n${fields}---\n\n${body}`
 
@@ -69,6 +69,17 @@ describe('idsIn', () => {
 
   test('finds none in plain text', () => {
     expect(idsIn('ls -la')).toEqual([])
+  })
+})
+
+describe('startedIn', () => {
+  test('finds the ids that flow start picks up, in order, and not the ones a command only names', () => {
+    expect(startedIn('flow start fw-9 --activity build && flow fw-16 && fw start fw-7')).toEqual(['fw-9', 'fw-7'])
+  })
+
+  test('a read, a done or a park picks nothing up', () => {
+    expect(startedIn('flow fw-73')).toEqual([])
+    expect(startedIn('flow done fw-133; flow park fw-16')).toEqual([])
   })
 })
 

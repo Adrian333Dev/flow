@@ -1,5 +1,23 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { wrapUpLine, wrapUpSettings } from './wrap-up'
+import { LEAD, offersRestart, wrapUpLine, wrapUpSettings } from './wrap-up'
+
+describe('offersRestart', () => {
+  test('is true from 30k under the limit and past it, while the wrap-up is on', () => {
+    expect(LEAD).toBe(30000)
+    expect(offersRestart(139999, 170000, true)).toBe(false)
+    expect(offersRestart(140000, 170000, true)).toBe(true)
+    expect(offersRestart(190000, 170000, true)).toBe(true)
+  })
+
+  test('is false with no figure yet, and with the wrap-up off', () => {
+    expect(offersRestart(undefined, 170000, true)).toBe(false)
+    expect(offersRestart(190000, 170000, false)).toBe(false)
+  })
+
+  test('a limit under 30k offers it from the start', () => {
+    expect(offersRestart(0, 20000, true)).toBe(true)
+  })
+})
 
 describe('wrapUpLine', () => {
   test('is silent more than 30k under the limit', () => {
@@ -42,15 +60,15 @@ describe('wrapUpLine', () => {
 })
 
 describe('wrapUpSettings', () => {
-  test('defaults to 150k, on', () => {
-    expect(wrapUpSettings()).toEqual({ wrapUp: true, limit: 150000 })
-    expect(wrapUpSettings('not json', '[]')).toEqual({ wrapUp: true, limit: 150000 })
+  test('defaults to 170k, on', () => {
+    expect(wrapUpSettings()).toEqual({ wrapUp: true, limit: 170000 })
+    expect(wrapUpSettings('not json', '[]')).toEqual({ wrapUp: true, limit: 170000 })
   })
 
   test('wrapUpAt moves the limit and the local file wins', () => {
     expect(wrapUpSettings('{"wrapUpAt": 100000}').limit).toBe(100000)
     expect(wrapUpSettings('{"wrapUpAt": 100000}', '{"wrapUpAt": 80000}').limit).toBe(80000)
-    expect(wrapUpSettings('{"wrapUpAt": -5}').limit).toBe(150000)
+    expect(wrapUpSettings('{"wrapUpAt": -5}').limit).toBe(170000)
   })
 
   test('"wrapUp": false in settings.json silences it, and the local file cannot switch it', () => {

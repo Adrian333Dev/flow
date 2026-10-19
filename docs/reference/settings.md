@@ -81,16 +81,16 @@ Flow: not set up here. Run flow init to set it up on this computer, or flow sett
 Tells the agent to hand off once the conversation passes [`wrapUpAt`](#wrapupat), then restart the session. Flow's mod prints it:
 
 ```text
-Context 152k/150k. At the next checkpoint: wait for subagents, run /flow:handoff, call the restart tool.
+Context 172k/170k. At the next checkpoint: wait for subagents, run /flow:handoff, call the restart tool.
 ```
 
-From 30,000 under the limit it gives the size alone every 10,000 (`Context 120k/150k`). Every 20,000 tokens past the limit it asks again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, followed by the last reply, your messages since it and the files changed. A typed `/restart` stops there. An automatic restart then submits `Continue.`. [Sessions](../sessions.md) covers the handoff.
+From 30,000 under the limit it gives the size alone every 10,000 (`Context 140k/170k`), and the band above the prompt shows a green Restart button for restarting by hand. Every 20,000 tokens past the limit it asks again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, followed by the last reply, your messages since it and the files changed. A typed `/restart` stops there. An automatic restart then submits `Continue.`. [Sessions](../sessions.md) covers the handoff.
 
 ## Other keys in Flow's files
 
 ### `wrapUpAt`
 
-The conversation size, in tokens, at which [`wrapUp`](#wrapup) speaks. Unset, it is 150,000. `flow settings` shows the default beside your value. Either computer-wide file holds it:
+The conversation size, in tokens, at which [`wrapUp`](#wrapup) speaks. Unset, it is 170,000: a session starts near 25,000 with `CLAUDE.md` and the tools. `flow settings` shows the default beside your value. Either computer-wide file holds it:
 
 ```json
 "wrapUpAt": 140000

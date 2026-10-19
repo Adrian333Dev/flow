@@ -5,6 +5,7 @@
  * exchange word for word: the agent's last reply, the user's messages since it, and the files
  * changed since. The mod holds those itself, never the old agent's memory of them.
  */
+import type { Tracked } from '../types'
 import { kilo } from './wrap-up'
 
 export type Exchange = {
@@ -26,6 +27,12 @@ const user = (text: string): Built => ({ role: 'user', text, toolUses: [] })
 
 const files = (paths: readonly string[]) =>
   paths.slice(0, MAX_FILES).join(', ') + (paths.length > MAX_FILES ? ` +${paths.length - MAX_FILES} more` : '')
+
+/** What is tracked once a main turn ends with `answer`. A restart's closing line is no reply: it would replace the real one and clear what the user asked. */
+export function afterAnswer(tracked: Tracked, answer: string, restarting: boolean): Tracked {
+  if (restarting || !answer.trim()) return tracked
+  return { ...tracked, reply: answer, asked: [], changed: [] }
+}
 
 /** What the new agent does first. A typed restart runs nothing: the user writes next. */
 function ending(last: Exchange, manual: boolean): string {

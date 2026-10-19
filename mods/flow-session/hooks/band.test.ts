@@ -51,9 +51,9 @@ function memoryStore(on: Parameters<typeof mock.env>[0], entries: Record<string,
 }
 
 describe('the band', () => {
-  test('draws a badge for a ticket that flow lit, with the corners and the count', async ($, on) => {
+  test('draws a badge for a ticket that flow start picked up, with the corners and the count', async ($, on) => {
     claudeCode(on)
-    await $.tool.call({ tool: 'Bash', command: 'flow fw-9' })
+    await $.tool.call({ tool: 'Bash', command: 'flow start fw-9 --activity build' })
     const ui = await $.ui.mount(BAND)
     const badge = await ui.find({ type: 'Button' })
     expect(badge?.key).toBe('badge-fw-9')
@@ -78,7 +78,7 @@ describe('the band', () => {
     const other = { v: 1, updated: new Date().toISOString(), band: [] }
     const kept = memoryStore(on, { 'session:other': other })
     on('session.id', () => ({ value: 's1' }))
-    await $.tool.call({ tool: 'Bash', command: 'flow fw-9' })
+    await $.tool.call({ tool: 'Bash', command: 'flow start fw-9' })
     const saved = kept.get('session:s1') as { v: number; band: { id: string }[] }
     expect(saved.v).toBe(1)
     expect(saved.band.map((entry) => entry.id)).toEqual(['fw-9'])
@@ -121,6 +121,30 @@ describe('the band', () => {
     await $.session.append(row('<bash-stdout>fw-9-band-test  todo → in-progress</bash-stdout>'))
     const ui = await $.ui.mount(BAND)
     expect((await ui.find({ type: 'Button' }))?.key).toBe('badge-fw-9')
+    await ui.unmount()
+  })
+
+  test('a read of a ticket, with flow <id>, lights no badge', async ($, on) => {
+    claudeCode(on)
+    await $.tool.call({ tool: 'Bash', command: 'flow fw-9' })
+    const ui = await $.ui.mount(BAND)
+    expect(await ui.find({ type: 'Button' })).toBeUndefined()
+    expect(await ui.find({ type: 'Text', text: 'drawn by Claude Code' })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test('a flow command the person ran with ! and no start lights nothing', async ($, on) => {
+    claudeCode(on)
+    const row = (text: string) => ({
+      message: { type: 'user' as const, content: [{ type: 'text', text }] },
+      door: 'prompt' as const,
+      origin: { kind: 'composer' as const },
+      uuid: text,
+    })
+    await $.session.append(row('<bash-input>fw 9</bash-input>'))
+    await $.session.append(row('<bash-stdout>fw-9-band-test  in-progress</bash-stdout>'))
+    const ui = await $.ui.mount(BAND)
+    expect(await ui.find({ type: 'Button' })).toBeUndefined()
     await ui.unmount()
   })
 

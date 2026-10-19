@@ -3,16 +3,16 @@
  *
  * Answers get worse long before the window fills, so the limit follows the
  * work, never the window. From 30k under the limit the mod gives the size every
- * 10k (`Context 120k/150k`), so the agent hands off before a large step instead
+ * 10k (`Context 140k/170k`), so the agent hands off before a large step instead
  * of in the middle of it. At the limit it asks for the restart, then again every
  * 20k past it. It replaces `scripts/hooks/context-check.js`, which read the
  * size from the session file.
  */
 import { restartSteps } from './ask'
 
-const LIMIT = 150000
+const LIMIT = 170000
 const STEP = 20000
-const LEAD = 30000
+export const LEAD = 30000
 const SIZE_STEP = 10000
 
 /** Whole thousands, such as `152k`. */
@@ -37,6 +37,13 @@ export function wrapUpSettings(globalText?: string, localText?: string): { wrapU
   const set = Number({ ...global, ...parse(localText) }.wrapUpAt)
   return { wrapUp: global.wrapUp !== false, limit: set > 0 ? set : LIMIT }
 }
+
+/**
+ * True from `LEAD` under the limit while the wrap-up is on: the band then offers the restart. The
+ * button is for restarting by hand ahead of the automatic restart at the limit.
+ */
+export const offersRestart = (tokens: number | undefined, limit: number, on: boolean): boolean =>
+  on && tokens !== undefined && tokens >= Math.max(limit - LEAD, 0)
 
 /**
  * The line to send, or undefined. `before` is the size at the last check, 0 at the first.

@@ -1,10 +1,10 @@
 /**
  * band-model.ts: what the band holds and how it lays out, with nothing drawn here.
  *
- * Tickets join first in, first out and keep their place. A ticket never leaves from being
- * idle: it leaves at once when parked or dropped, and a closed one (`DONE ✓`) leaves when
- * the next ticket lights. The layout gives as many badges as fit the row, the rest folded
- * into `+N`.
+ * The ticket started last sits leftmost, so the order is the start order. A ticket never
+ * leaves from being idle: it leaves at once when parked or dropped, and a closed one
+ * (`DONE ✓`) leaves when the next ticket starts. The band is one row. The layout takes the first
+ * of three looks that fits it, and folds what still does not fit into `+N`.
  */
 import type { Entry } from '../types'
 import type { Ticket } from './ticket'
@@ -12,8 +12,8 @@ import type { Ticket } from './ticket'
 export const DONE_WORD = 'DONE ✓'
 
 /**
- * A ticket's file was read. `lights` is true when the command lights an unlit ticket:
- * `flow <id>` on one in progress, or a move to in progress.
+ * A ticket's file was read. `lights` is true when the command is `flow start` on the ticket:
+ * it goes leftmost, and the closed badges leave. A ticket only read keeps its place.
  */
 export function apply(entries: readonly Entry[], ticket: Ticket, lights: boolean): Entry[] {
   const at = entries.findIndex((entry) => entry.id === ticket.id)
@@ -25,19 +25,15 @@ export function apply(entries: readonly Entry[], ticket: Ticket, lights: boolean
   if (ticket.status !== 'in-progress') return entries.filter((entry) => entry !== kept)
   if (!kept && !lights) return [...entries]
   const next: Entry = { ...(kept ?? { id: ticket.id, acting: false }), name: ticket.name, word: ticket.word, isDone: false }
-  if (kept) return entries.map((entry) => (entry === kept ? next : entry))
-  // A new ticket lit: the closed ones leave.
-  return [...entries.filter((entry) => !entry.isDone), next]
+  if (!lights) return entries.map((entry) => (entry === kept ? next : entry))
+  return [next, ...entries.filter((entry) => entry !== kept && !entry.isDone)]
 }
 
 /**
- * The badge the session is working on: `preferred` (the last one lit) while it is open on the
- * band, else the newest open one. A closed badge is never current.
+ * The badge the session is working on: the leftmost open one, which is the one started last.
+ * When it closes, the next one started before it takes over. A closed badge is never current.
  */
-export function currentId(entries: readonly Entry[], preferred?: string): string | undefined {
-  const open = entries.filter((entry) => !entry.isDone)
-  return open.find((entry) => entry.id === preferred)?.id ?? open[open.length - 1]?.id
-}
+export const currentId = (entries: readonly Entry[]): string | undefined => entries.find((entry) => !entry.isDone)?.id
 
 /** Marks `id` as acting, and every other badge as not. */
 export const setActing = (entries: readonly Entry[], id: string | undefined): Entry[] =>
@@ -50,28 +46,45 @@ export const setActing = (entries: readonly Entry[], id: string | undefined): En
 export type Badge = { id: string; name: string; status: string; isDone: boolean; acting: boolean }
 
 export type Layout = {
+  /** The badges that fit, the first on the left. */
   badges: Badge[]
   folded: number
   issues: string
-  /** Blank cells between the last badge (or `+N`) and the issue count. */
+  /** True when the Restart button shows before the issue count. */
+  restart: boolean
+  /** Blank cells between the last badge (or `+N`) and the button or issue count. */
   space: number
 }
 
-const GAP = 2
+/** Blank cells between two badges. */
+export const GAP = 1
+
+/** The Restart button's label, which sits between 2 corners like a badge, and the blank cells between it and the issue count. */
+export const RESTART = ' Restart '
+export const RESTART_CELLS = RESTART.length + 2
+export const RESTART_GAP = 2
+
+/** How much of a badge other than the main one shows: the whole, its id and word, or its id alone. */
+type Shape = 'full' | 'words' | 'ids'
+const SHAPES: readonly Shape[] = ['full', 'words', 'ids']
 
 /**
  * The corner is the only padding at each end, so the text starts at the colour's edge.
  * The status takes one space after the name's colour ends (without it the badge looked bad,
  * the user, 2026-10-18). Corners are kept at any width: without them each end would take a
- * space, the same 2 cells, so dropping them frees nothing.
+ * space, the same 2 cells, so dropping them frees nothing. An id alone has no status, and a
+ * closed one keeps its `✓`.
  */
-const badgeOf = (entry: Entry): Badge => ({
-  id: entry.id,
-  name: entry.name,
-  status: ` ${entry.word}`,
-  isDone: entry.isDone,
-  acting: entry.acting,
-})
+function badgeOf(entry: Entry, shape: Shape): Badge {
+  const word = shape === 'ids' ? (entry.isDone ? '✓' : '') : entry.word
+  return {
+    id: entry.id,
+    name: shape === 'full' ? entry.name : entry.id,
+    status: word ? ` ${word}` : '',
+    isDone: entry.isDone,
+    acting: entry.acting,
+  }
+}
 
 /** The spinner and the space before it, drawn after the status while a badge acts. */
 export const SPIN_CELLS = 2
@@ -80,27 +93,39 @@ export const SPIN_CELLS = 2
 const cells = (badge: Badge, spinner: boolean) => badge.name.length + badge.status.length + 2 + (badge.acting && spinner ? SPIN_CELLS : 0)
 const foldWidth = (n: number) => (n ? ` +${n}`.length : 0)
 
-function fit(entries: readonly Entry[], room: number, spinner: boolean): { badges: Badge[]; used: number } {
-  const badges: Badge[] = []
+/** The badges from the left that fit `room`, which keeps its cells for the `+N` of those left out. */
+function fit(badges: readonly Badge[], room: number, spinner: boolean): Badge[] {
+  const shown: Badge[] = []
   let used = 0
-  for (const entry of entries) {
-    const badge = badgeOf(entry)
-    const width = cells(badge, spinner) + (badges.length ? GAP : 0)
-    if (used + width + foldWidth(entries.length - badges.length - 1) > room) break
-    badges.push(badge)
+  for (const [at, badge] of badges.entries()) {
+    const width = cells(badge, spinner) + (shown.length ? GAP : 0)
+    if (used + width + foldWidth(badges.length - at - 1) > room) break
+    shown.push(badge)
     used += width
   }
-  return { badges, used }
+  return shown
 }
 
-/** The band's row in `columns` cells, with `issues` open Flow issues at the right. `spinner` says whether an acting badge shows its spinner. */
-export function layout(entries: readonly Entry[], columns: number, issues: number, spinner = true): Layout {
-  const right = issues ? `${issues} issue${issues > 1 ? 's' : ''}` : ''
-  const room = columns - (right ? right.length + 2 : 0)
-  const { badges, used } = fit(entries, room, spinner)
+/**
+ * The band in `columns` cells, one row. The right end holds the Restart button, when `restart` is
+ * true, then the open Flow `issues`; they keep their cells and the badges give way. The main badge,
+ * the leftmost open one, always shows whole. The others show whole while all fit, then as id and
+ * word, then as id alone; what still does not fit folds. `spinner` says whether an acting badge
+ * shows its spinner.
+ */
+export function layout(entries: readonly Entry[], columns: number, issues: number, spinner = true, restart = false): Layout {
+  const count = issues ? `${issues} issue${issues > 1 ? 's' : ''}` : ''
+  const right = (restart ? RESTART_CELLS + (count ? RESTART_GAP : 0) : 0) + count.length
+  const room = columns - (right ? right + 2 : 0)
+  const main = entries.find((entry) => !entry.isDone) ?? entries[0]
+  let badges: Badge[] = []
+  for (const shape of SHAPES) {
+    badges = fit(entries.map((entry) => badgeOf(entry, entry === main ? 'full' : shape)), room, spinner)
+    if (badges.length === entries.length) break
+  }
   const folded = entries.length - badges.length
-  const left = used + foldWidth(folded)
-  return { badges, folded, issues: right, space: Math.max(1, columns - left - right.length) }
+  const left = badges.reduce((n, badge, at) => n + cells(badge, spinner) + (at ? GAP : 0), 0) + foldWidth(folded)
+  return { badges, folded, issues: count, restart, space: Math.max(1, columns - left - right) }
 }
 
 /** Mixes two `#rrggbb` colours: `share` of the way from `from` to `to`. */

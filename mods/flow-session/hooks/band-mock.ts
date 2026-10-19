@@ -12,10 +12,12 @@ export type Scenario = {
   issues: number
   /** A row width that replaces the real one. */
   columns?: number
+  /** Draws the Restart button, as if the context were past the wrap-up limit. */
+  restart: boolean
 }
 
 type RawBadge = { id?: unknown; slug?: unknown; word?: unknown; done?: unknown; acting?: unknown }
-type Raw = { badges?: unknown; issues?: unknown; columns?: unknown }
+type Raw = { badges?: unknown; issues?: unknown; columns?: unknown; restart?: unknown }
 
 const toEntry = (badge: RawBadge): Entry | undefined => {
   if (typeof badge.id !== 'string' || typeof badge.slug !== 'string' || typeof badge.word !== 'string') return undefined
@@ -45,6 +47,7 @@ export function parseScenarios(text: string): { scenarios: Record<string, Scenar
     scenarios[name] = {
       entries,
       issues: typeof item.issues === 'number' ? item.issues : 0,
+      restart: item.restart === true,
       ...(typeof item.columns === 'number' && { columns: item.columns }),
     }
   }
@@ -87,12 +90,12 @@ export function parseMock(args: string, names: readonly string[], current: strin
 /** One line a scenario: its badges' words and what else it draws. */
 export function describeScenario(name: string, scenario: Scenario): string {
   const words = scenario.entries.map((entry) => `${entry.id} ${entry.word}`).join(', ')
-  const more = [scenario.issues ? `${scenario.issues} issues` : '', scenario.columns ? `${scenario.columns} columns` : ''].filter(Boolean)
+  const more = [scenario.issues ? `${scenario.issues} issues` : '', scenario.columns ? `${scenario.columns} columns` : '', scenario.restart ? 'restart button' : ''].filter(Boolean)
   return `${name}: ${words}${more.length ? `; ${more.join(', ')}` : ''}`
 }
 
 export const usage = (names: readonly string[]) =>
-  `/band switches the test band on or off. /band <number>, next, list, act (cycles: wave and spinner, wave alone, spinner alone, off), off. Scenarios: ${names.map((name, i) => `${i + 1} ${name}`).join(', ') || 'none'}.`
+  `/band switches the test band on or off. /band <number>, next, list, act (cycles: wave and spinner, wave alone, spinner alone, off), off, clear (empties the real band). Scenarios: ${names.map((name, i) => `${i + 1} ${name}`).join(', ') || 'none'}.`
 
 /** The entries as shown: with the wave forced on every open badge while `acting` is switched on. */
 export const withActing = (entries: readonly Entry[], acting: boolean): Entry[] =>

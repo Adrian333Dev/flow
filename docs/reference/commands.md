@@ -477,7 +477,7 @@ setupReminder     off    this folder  suggests flow init where a repository has 
 wrapUp            on                  tells Claude to hand off once the conversation passes wrapUpAt tokens
 
 value             default  yours
-wrapUpAt          150000   200000  the conversation size in tokens at which wrapUp speaks
+wrapUpAt          170000   200000  the conversation size in tokens at which wrapUp speaks
 ```
 
 - **`flow settings ls`**: every setting, and the level that decides it, then each number setting with its default and your value. `yours` is blank while the default decides. A bare `flow settings` prints the same.
