@@ -49,7 +49,6 @@ Each of these goes to the user for a yes. Never delete without one.
 
 - **Superseded copies** → propose deleting. 2 versions of one document with nothing marking which is dead are a download habit, not a decision.
 - **A research report** → move it where `/flow:research` files it, `.flow/research/<topic>/` when unsure.
-- **Facts about the user**: budget, tools they pay for, how they like to work → a line in `~/.flow/profile.md`.
 - **A recorded failure of an agent** → a ticket labelled `flow-issue` plus a type: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`.
 - **Two scopes tangled in one folder** → split them, and say which scope is superseded.
 

@@ -57,7 +57,7 @@ Run it when this conversation ends here: a restart replaces it, or all remaining
 2. **Walk the user's messages to the last, in your visible turn.** Never in thinking. For each message that corrects, decides, sets something aside, leaves it undone, or shows irritation or doubt, write one line: their words in quotes, the route, the file. A user still unhappy after a fix is one issue ticket, never waiting for a repeat: `flow new "<the area>: <what the user rejected>" --label flow-issue,rework-loop`.
 
    ```text
-   "never write kind in a profile line" → a correction → ~/.flow/notes/never-write-kind-in-a-profile-line.md
+   "never write kind in a field name" → a correction → ~/.flow/notes/never-write-kind-in-a-field-name.md
    "we'll do the board page after release 1" → work left undone → `## Tasks` of fw-16
    ```
 

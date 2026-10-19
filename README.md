@@ -6,7 +6,7 @@ It runs a solo developer's work in 3 phases: design the decisions, build one tic
 
 ## What the repository holds
 
-- `home/`: the templates for the global rule file, the profile and Claude Code's settings
+- `home/`: the templates for the global rule file and Claude Code's settings
 - `skills/`: the `/flow:*` skills, one per phase and tool
 - `scripts/`: the `flow` command and its hooks, in Node and bash with no dependencies
 - `mods/flow-session/`: Flow's Claude Code mod, in TypeScript: the ticket badges, the meters under the prompt and the restart tool

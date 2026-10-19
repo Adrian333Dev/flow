@@ -28,7 +28,6 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  └─ projects/                   Claude Code's record of every session
 ├─ .flow/
 │  ├─ CLAUDE.md                   your rules
-│  ├─ profile.md                  your preferences and facts about you
 │  ├─ scripts, references, docs   → folders in <clone>
 │  ├─ repos/                      every repository Flow downloads
 │  ├─ settings.json
@@ -94,7 +93,6 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 ### Your rules and settings
 
 - **`CLAUDE.md`**: your rules. `~/.claude/CLAUDE.md` links to it. It starts from Flow's template and is yours after that.
-- **`profile.md`**: your preferences and facts about you. `CLAUDE.md` imports it with `@~/.flow/profile.md`, so every session loads it. It starts from Flow's template, and `flow install` and `flow update` never write over it. Sessions add what they learn about you here.
 - **`settings.json`** and **`settings.local.json`**: Flow's settings. [Settings](settings.md) covers every key.
 - **`machines/<name>.json`**: one record per computer sharing this Flow home, saying when it joined: `{ "name": "macbook-pro", "joined": "2026-09-27" }`.
 - **`README.md`** and **`.gitignore`**: a warning for anyone opening the repository on GitHub, and the list of what stays on this computer.

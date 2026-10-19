@@ -34,7 +34,7 @@ Batch every step. Never carry one item to its home before the next is sorted.
 - **Closed tickets nobody filed.** `flow ls "status:done filed:no"`. Read each whole: `ticket.md`, `history.md`, its decision files, `reports/`, and `groundwork/map.md` on a ticket not yet converted. A prototype is read through its report. List `protos/` by file name and open a file the report names. Raw evidence is never harvested.
 - **The failure log**, `~/.flow/logs/failures/<year>-<month>.jsonl`, from the line after the newest `swept` marker. A month's file with no marker also reads the month before, from its marker.
 - **Notes**, `flow notes`: this project's and the global ones. Promote with `flow notes promote <name>`, inside the project it belongs to. Drop with `flow notes drop <name>`. Fold into a home, or keep.
-  - A `profile` or `rule` note is a correction capture inferred. Show it beside any line it contradicts.
+  - A `rule` note, or an old `profile` one, is a correction capture inferred. Show it beside any line it contradicts.
 - **Findings**: `~/.flow/wiki/<subject>/findings/` and `.flow/findings/`, `scorecard.md` excepted. Fold each into its home and delete the file in the same plan. `checked:` and `version:` carry onto the page line.
 - **`flow scorecard` and `.flow/findings/scorecard.md`**: the rules broken most, and the wrong warnings. A wrong warning → fix the check, or rewrite the rule when it is too vague for any check. Clear the filed lines, and delete the file once empty.
 - **A report research left unstamped** because it contradicts a page line: settle it in the plan. Sweep no other report.
@@ -66,7 +66,6 @@ An earlier case of the same issue is a note beside the line. Reading whole sessi
 Would the sentence be true in a different project? Yes → global. No → this project. Never write a project's or a client's detail into `~/.flow`.
 
 - **A tool or field** → the page owning it in `~/.flow/wiki/<subject>/`, by `~/.flow/references/wiki.md`
-- **How the user works** → `~/.flow/profile.md`
 - **Rule true everywhere, always relevant** → the section of `~/.flow/CLAUDE.md` that owns it. Never a rule file with no `paths:`
 - **Rule true everywhere, for one stack or file type** → `claude/rules/<topic>.md` in Flow's clone, with `paths:`
 - **Rule for this project** → its `CLAUDE.md` `## Rules`, or `.claude/rules/<topic>.md` with `paths:`

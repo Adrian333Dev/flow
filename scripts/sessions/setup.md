@@ -10,12 +10,9 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
 
 1. **Harvest the old rules.** `~/.flow/logs/before/CLAUDE.md` missing → skip to step 2.
    - Read it whole, and every file it imports with `@`.
-   - Sort every line into 1 of 3 places:
+   - Sort every line into 1 of 2 places:
      - A rule in `~/.flow/CLAUDE.md` does the same job → drop it. Name that rule before dropping.
-     - How the user wants Claude to work, and they would still want it had Flow been there from the start → a line in `~/.flow/profile.md`. `Never use em dashes` passes. `Always show me a diff before you edit` fails: it works around a missing workflow.
-     - True of the user, and it changes what Claude does → a line in `~/.flow/profile.md`. Never a skill level, what they don't know, or what they are working on.
-   - Add only what `~/.flow/CLAUDE.md` and `~/.flow/profile.md` do not say already. One sentence per line, in plain words, replacing a line it sharpens.
-   - `~/.flow/CLAUDE.md` holds no line `@~/.flow/profile.md` → say so in the last message: no session loads the profile until it does.
+     - Anything else → a line in `~/.flow/archive/old-claude-md.md`, which no session loads. One sentence per line, in plain words.
 2. **Settings.** Read `~/.claude/settings.json` and `home/settings.json`.
    - The live file ends up holding everything the template names, with the template's value.
    - A hook whose command runs a file under `.flow/scripts/` is Flow's: replace it by the template's. A hook of the user's own stays, unless it works against Flow.

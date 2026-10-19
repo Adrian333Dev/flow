@@ -35,7 +35,6 @@ One user message, your work, one reply. In that order, every time.
   - Ideas and put-off work → `flow notes "label:<subject>"`.
   - Earlier research → `.flow/research/<topic>/`.
   - Steps that repeat → a how-to page in the wiki, or a skill.
-  - How the user wants to work → `~/.flow/profile.md`, already loaded.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
 - **`past-sessions-through-audit`** A past session → `flow audit`: `ls` finds it, `context` and `timeline` narrow it, `read --turns` opens it. Never the raw transcript.
 
@@ -81,8 +80,6 @@ One phase at a time:
 - **`read-workflow-md`** `~/.flow/references/workflow.md`: how the pieces fit. Read it when unclear.
 - **`read-knowledge-md`** Read `~/.flow/references/knowledge.md` before adding a skill, a plugin or an MCP server.
 
-@~/.flow/profile.md
-
 ## Capture
 
 **`capture-at-checkpoints`** At a checkpoint, file what the conversation since the last checkpoint holds. A checkpoint: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. On request, file at once. Unsure: file it.
@@ -90,7 +87,7 @@ One phase at a time:
 **`file-by-type`** Every route adds a new file or a new line:
 
 - A lesson or fact about a tool or this project, a failed attempt with its cause, a procedure done before → a finding: `~/.flow/wiki/<tool>/findings/<lesson>.md` for any project, `.flow/findings/<lesson>.md` for this project.
-- A correction, or a fact about the user → `flow note "…" --label profile --project global`. True in this project alone → `flow note "…" --label rule`. A fact about the user is never a skill level, what they don't know, or what they work on.
+- A correction → `flow note "…" --label rule`, with `--project global` where it holds in every project.
 - A decision → the `docs/spec/` file that owns it (`~/.flow/references/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow note "…"`. One batch, never mid-discussion.
 - Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow note "…"`.
 - Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow labels "label:flow-issue"` lists the types. A type already listed is a repeat. How to write one: `~/.flow/references/issue-tickets.md`.
@@ -103,8 +100,7 @@ One phase at a time:
 **`write-straight-the-users-words`** Write into an existing file only what the user said outright:
 
 - A decision confirmed with no open threads → its spec file.
-- A rule reversed → replace that one line.
-- A correction, or a fact about them, that would still hold next week in another task → a new line in `~/.flow/profile.md`. True in this project alone → under the project's `## Rules`.
+- A rule reversed, or a correction → rewrite the rule it breaks in place: `~/.flow/CLAUDE.md` where it holds everywhere, the project's `## Rules` where it holds there alone.
 - "Make a ticket" → `flow new`.
 
 What you inferred stays a note or a new file. `/flow:upkeep` shows it in its plan.
@@ -160,7 +156,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 
 1. **`plan-before-writing`** Name every section and its order before the first sentence. One section per topic the user raised, in their order. Where the topics are parts of one thing, the first section says the thing whole.
    - **`topic-by-topic`** Never drop one, never rank them. Two with one answer share a section, headed by both. Each section reads on its own. Where the user's words fit more than one thing in the repo, name the file and the place in it.
-   - **`judge-against-the-user`** Judge what needs explaining against `~/.flow/profile.md`. It names a direction, not an inventory. Detail inside their expertise still gets explained. Outside it: one line, by what the thing does here. Say what and why, never how to type it.
+   - **`judge-against-the-user`** Detail inside their expertise still gets explained. Outside it: one line, by what the thing does here. Say what and why, never how to type it.
 2. **`size-by-worth`** Length comes from how complicated the thing is, and from what the topic is worth to the user. Never from the work behind it, never from wanting to justify a choice.
    - **`short-is-the-default`** The user is always in a rush. Cut the output, never the thinking, the walk or the design.
    - **`findings-stay-out`** A walk's findings stay out of the reply unless one changes what the user decides.

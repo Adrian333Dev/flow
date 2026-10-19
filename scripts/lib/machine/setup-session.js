@@ -2,7 +2,7 @@
 /**
  * The setup session: the one Claude Code session that finishes a machine's
  * setup, because two jobs need judgment a script cannot make. The old
- * `~/.claude/CLAUDE.md` holds rules that belong in `~/.flow/profile.md`, and
+ * `~/.claude/CLAUDE.md` holds rules Flow's own may already cover, and
  * `~/.claude/settings.json` holds keys that may conflict with Flow's. Code
  * never edits either file. `sessions/setup.md` is what the session follows.
  *
@@ -120,7 +120,7 @@ function open(at, clone, { printOnly }) {
     out(`One step left: finishing the setup of this machine. Start it from a terminal:\n\n  ${line}`);
     return 'printed';
   }
-  out('\nOne step left: Claude Code opens now to move your old rules into your Flow profile and fix settings.json.\n');
+  out('\nOne step left: Claude Code opens now to sort your old rules against the ones Flow ships and fix settings.json.\n');
   // stdin from the terminal rather than inherited: under `curl | bash` it is
   // the pipe the script came down.
   const tty = fs.openSync('/dev/tty', 'r');

@@ -279,7 +279,7 @@ test('a CLAUDE.md that is not the link to the rules is named', () => {
   assert.doesNotMatch(report.stdout, /codex/i, 'Codex is not checked');
 });
 
-test('a setup session that never finished, and a missing profile, are each named', () => {
+test('a setup session that never finished is named', () => {
   const m = machine('doctor-session');
   const bin = utilStub(m.dir);
 
@@ -289,11 +289,7 @@ test('a setup session that never finished, and a missing profile, are each named
   assert.match(pending.stdout, /the setup session did not finish .*setup-pending stands.*: run flow install/);
 
   fs.rmSync(path.join(m.flowHome, 'logs', 'setup-pending'));
-  fs.rmSync(path.join(m.flowHome, 'profile.md'));
-  const missing = doctor(m, { bin });
-  assert.strictEqual(missing.code, 1);
-  assert.match(missing.stdout, /profile\.md does not exist, so your preferences load from nowhere: run flow install/);
-  assert.doesNotMatch(missing.stdout, /did not finish/);
+  assert.doesNotMatch(doctor(m, { bin }).stdout, /did not finish/);
 });
 
 test('a plugin folder reached through a broken link is named', () => {

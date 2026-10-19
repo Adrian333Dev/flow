@@ -75,9 +75,6 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.ok(!fs.existsSync(path.join(at.claude, 'settings.json')), 'settings.json is the session\'s to write');
   assert.ok(fs.existsSync(path.join(at.flowHome, 'logs', 'setup-pending')), 'a session is owed');
   assert.match(first.stdout, /^started: .*\.flow\/CLAUDE\.md from Flow's own rules$/m);
-  assert.strictEqual(fs.readFileSync(path.join(at.flowHome, 'profile.md'), 'utf8'),
-    fs.readFileSync(path.join(REPO, 'home', 'profile.md'), 'utf8'));
-  assert.match(first.stdout, /^started: .*\.flow\/profile\.md, for your preferences/m);
   assert.match(first.stdout, /claude --safe-mode --permission-mode acceptEdits/, 'under --root the line is printed, never run');
   assert.ok(!fs.existsSync(path.join(root, '.codex')), 'nothing under ~/.codex at all');
   assert.match(first.stdout, /^Flow is installed: \d+ skills/m, 'a summary comes first');
@@ -99,15 +96,13 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   // A skill renamed in the clone leaves a link pointing at nothing.
   fs.symlinkSync(path.join(REPO, 'skills', 'phases', 'write-tickets'), at.skill('write-tickets'));
 
-  // Both files are the user's after the first run, and a second run writes over neither.
-  fs.appendFileSync(path.join(at.flowHome, 'profile.md'), '- Replies stay short.\n');
+  // The rule file is the user's after the first run, and a second run writes over it.
   fs.appendFileSync(path.join(at.flowHome, 'CLAUDE.md'), 'A line of my own.\n');
 
   const second = flow(dir, ['install', '--root', root, '--no-bin'], { FLOW_HOME_REMOTE: bareRepo(path.basename(dir)) });
   assert.strictEqual(second.code, 0, second.stderr);
   assert.match(second.stdout, /unlinked \(gone\): .*\.agents\/skills\/flow\/skills\/write-tickets/);
   assert.ok(fs.existsSync(at.skill('groundwork')), 'still linked after a re-run');
-  assert.match(fs.readFileSync(path.join(at.flowHome, 'profile.md'), 'utf8'), /- Replies stay short\.\n$/);
   assert.match(fs.readFileSync(path.join(at.flowHome, 'CLAUDE.md'), 'utf8'), /A line of my own\.\n$/);
   assert.doesNotMatch(second.stdout, /^started: /m, 'a second run starts nothing');
 });

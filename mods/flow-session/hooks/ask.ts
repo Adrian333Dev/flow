@@ -27,9 +27,9 @@ export function withInstructions(line: string, instructions: string): string {
   return `${line}\n\n${instructions}`
 }
 
-/** What `/restart` tells the agent. */
+/** What `/restart` tells the agent. It never opens with `/`: the host runs a prompt that does as a command. */
 export function restartAsk(handoffFresh: boolean, extra: string, instructions: string): string {
-  const lines = [withInstructions(`/restart: ${restartSteps(handoffFresh)} now.`, instructions)]
+  const lines = [withInstructions(`Restart now: ${restartSteps(handoffFresh)}.`, instructions)]
   if (extra.trim()) lines.push(`User: ${extra.trim()}`)
   return lines.join('\n\n')
 }

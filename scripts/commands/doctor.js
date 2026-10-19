@@ -297,12 +297,9 @@ function checkClaude(clone, at) {
     ...commands.map((f) => ({ at: path.join(at.claude, 'commands', f), target: path.join(clone, 'claude', 'commands', f), what: `commands/${f}` })),
   ]);
 
-  // `flow install` starts the profile and owes the setup session, which finishes
-  // settings.json and moves old rules into the profile. A marker still standing
-  // means that session never reached its last step.
-  if (!fs.existsSync(path.join(at.flow, 'profile.md'))) {
-    problems.push(`${paths.shorten(path.join(at.flow, 'profile.md'))} does not exist, so your preferences load from nowhere: run flow install`);
-  }
+  // `flow install` owes the setup session, which finishes settings.json and
+  // sorts the old rules. A marker still standing means that session never
+  // reached its last step.
   if (setupSession.isPending(at)) {
     problems.push(`the setup session did not finish (${paths.shorten(setupSession.pendingFile(at))} stands): run flow install`);
   }

@@ -12,9 +12,9 @@
  *
  * It makes links into the clone, which `lib/machine/installed.js` lists, the
  * clones Flow reads, which `lib/skills/repos.js` lists, and the Flow home.
- * Where the Flow home brought no `~/.flow/CLAUDE.md` or `~/.flow/profile.md`,
- * as on the first machine, it starts each from its template in `home/`, then
- * links `~/.claude/CLAUDE.md` to the rules. It writes over neither file.
+ * Where the Flow home brought no `~/.flow/CLAUDE.md`, as on the first
+ * machine, it starts one from its template in `home/`, then links
+ * `~/.claude/CLAUDE.md` to the rules. It writes over no existing file.
  * It never edits `~/.claude/settings.json`. Where that link was not Flow's
  * yet, it owes the setup session, which `lib/machine/setup-session.js`
  * describes, and opens the session as its last step.
@@ -191,9 +191,9 @@ actions.install = {
     const asked = connectHome(at, checked);
     done.push(...asked.lines);
     if (asked.joined && !flags['no-clone']) done.push(...cloneMissing(at));
-    // After the join: a rule file or profile written before it would block a
-    // second machine from joining, and theirs arrive with the download.
-    if (asked.ok) done.push(...startRules(at, clone), ...startProfile(at, clone), ...setupSession.linkRules(at));
+    // After the join: a rule file written before it would block a second
+    // machine from joining, and theirs arrives with the download.
+    if (asked.ok) done.push(...startRules(at, clone), ...setupSession.linkRules(at));
     logs.recordHistory(at.flow, { type: 'install', clone });
 
     // Every line goes to the log. The screen gets the ones that say something
@@ -247,14 +247,6 @@ function startRules(at, clone) {
   if (fs.existsSync(rules)) return [];
   fs.copyFileSync(path.join(clone, 'home', 'CLAUDE.md'), rules);
   return [`started: ${show(rules)} from Flow's own rules`];
-}
-
-/** Start `~/.flow/profile.md`, the user's preferences and facts about them, where the Flow home brought none. */
-function startProfile(at, clone) {
-  const profile = path.join(at.flow, 'profile.md');
-  if (fs.existsSync(profile)) return [];
-  fs.copyFileSync(path.join(clone, 'home', 'profile.md'), profile);
-  return [`started: ${show(profile)}, for your preferences and facts about you`];
 }
 
 /** What `lstat` says about a path, or null where there is none. */

@@ -35,6 +35,11 @@ describe('restartAsk', () => {
     expect(text.endsWith('Write 5 parts.')).toBe(true)
   })
 
+  test('never opens with a slash, which the host would run as a command', () => {
+    expect(restartAsk(false, '', 'x').startsWith('/')).toBe(false)
+    expect(restartAsk(true, 'keep it short', 'x').startsWith('/')).toBe(false)
+  })
+
   test('adds the words typed after /restart', () => {
     expect(restartAsk(true, ' keep it short ', 'x')).toContain('User: keep it short')
     expect(restartAsk(true, '  ', 'x')).not.toContain('User:')

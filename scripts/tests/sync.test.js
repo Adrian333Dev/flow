@@ -290,7 +290,7 @@ test('a second machine joins through flow install, and a repository that is not 
   repo.writeIgnore(a.at);
   repo.writeRecord(a.at);
   fs.writeFileSync(path.join(a.at.flow, 'CLAUDE.md'), 'rules from the first machine\n');
-  fs.writeFileSync(path.join(a.at.flow, 'profile.md'), 'profile from the first machine\n');
+  fs.writeFileSync(path.join(a.at.flow, 'extra.md'), 'extra from the first machine\n');
   fs.mkdirSync(path.join(a.at.flow, 'study-cases', 'guessing'), { recursive: true });
   fs.writeFileSync(path.join(a.at.flow, 'study-cases', 'guessing', 'one.md'), 'a case\n');
   assert.strictEqual(sync(a).code, 0);
@@ -303,7 +303,7 @@ test('a second machine joins through flow install, and a repository that is not 
   assert.match(joined.stdout, /joined: 5 files from sync-first, your Flow home as your other machine last sent it/);
   const home = path.join(root, '.flow');
   assert.strictEqual(read(path.join(home, 'CLAUDE.md')), 'rules from the first machine\n');
-  assert.strictEqual(read(path.join(home, 'profile.md')), 'profile from the first machine\n');
+  assert.strictEqual(read(path.join(home, 'extra.md')), 'extra from the first machine\n');
   assert.doesNotMatch(joined.stdout, /started:/, 'the files that came down are the machine\'s own');
   assert.strictEqual(read(path.join(home, 'study-cases', 'guessing', 'one.md')), 'a case\n');
   assert.strictEqual(git(home, ['status', '--porcelain']).out, '', 'the ignore file matches the one that came down');
@@ -357,9 +357,8 @@ test('the first install starts the Flow home, so a second machine joins it befor
   assert.strictEqual(second.ran.code, 0, second.ran.stdout + second.ran.stderr);
   assert.match(second.ran.stdout, /named: this machine is test-machine-2\n/);
   assert.match(second.ran.stdout, /joined: 3 files from test-machine, your Flow home as your other machine last sent it/);
-  // The first machine has not synced its rule file or profile, so the second starts its own from Flow's templates.
+  // The first machine has not synced its rule file, so the second starts its own from Flow's template.
   assert.match(second.ran.stdout, /^started: .*\.flow\/CLAUDE\.md from Flow's own rules$/m);
-  assert.match(second.ran.stdout, /^started: .*\.flow\/profile\.md, for your preferences/m);
   assert.match(git(second.root + '/.flow', ['ls-tree', '-r', '--name-only', 'origin/main']).out,
     /machines\/test-machine-2\.json/, 'the second machine\'s record went up at install');
 

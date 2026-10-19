@@ -11,7 +11,7 @@
  * pick another repository.
  *
  * Everything of the user's that should travel lives in `~/.flow/` already: the
- * rules and profile, the workflow notes, the study cases, the private skills,
+ * rules, the workflow notes, the study cases, the private skills,
  * the wiki, and the tickets made outside any project. A project travels
  * through its own repository, and Flow leaves it alone.
  *
