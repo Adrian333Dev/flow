@@ -4,7 +4,7 @@ How Flow learns about the world outside the project, and where it keeps what it 
 
 ## Scope
 
-- **In**: `/flow:research`, Context7, downloaded docs, the wiki of outside tools, research reports, capture's destinations for knowledge, findings, and `/flow:file-findings`' routing.
+- **In**: `/flow:research`, Context7, downloaded docs, the wiki of outside tools, research reports, capture's destinations for knowledge, findings, and `/flow:upkeep`'s routing.
 - **Out**: what makes a rule or writes a check, in `docs/spec/rules.md`. Reviewing, adopting and harvesting an outside skill, in `docs/spec/skills.md`. The failure log, in `docs/spec/failure-log.md`. Tickets, in `docs/spec/tickets.md`.
 
 ## Where everything lands
@@ -15,14 +15,15 @@ Each path, and what writes it:
 ~/.flow/                                  the machine: shared by every project, carried by flow sync
 ├─ wiki/<subject>/                        one folder per outside tool or field
 │  ├─ index.md                            /flow:research: what it is, the version in use, the docs, the skill covering it
-│  ├─ <topic>.md                          capture, /flow:research: clean knowledge, edited in place
+│  ├─ <topic>.md                          /flow:research, /flow:upkeep: clean knowledge, edited in place
+│  ├─ findings/<lesson>.md                capture: a lesson not yet folded into a page
 │  └─ downloads/                          fetch-docs.sh: this machine's alone, never synced
+├─ notes/<name>.md                        capture, flow note: anything with no home yet, from every project
 └─ research/<topic>/<question>.md         /flow:research: raw reports asked outside any project, none at first
 
-<project>/                                the project: .flow/ rides the branch flow
+<project>/                                the project: .flow/ links into ~/.flow/projects/<name>/
 ├─ .flow/research/<topic>/<question>.md   /flow:research: raw reports this project asked for
-├─ .flow/findings/<what-was-learned>.md   capture → /flow:file-findings, into a skill or rule
-├─ .flow/inbox.md                         capture: anything with no home yet
+├─ .flow/findings/<what-was-learned>.md   capture → /flow:upkeep, into a skill or rule
 ├─ docs/context/<subject>.md              capture: a fact only some work here needs
 └─ CLAUDE.md                              capture: a fact most sessions here need
 ```
@@ -46,7 +47,7 @@ Each path, and what writes it:
 - `V1` **No rule deletes a report.** A delete needs the user's yes, and never while an open ticket or the spec cites it. Decided 2026-10-11 (`fw-94`): a report is raw input to the wiki, a newer report on one question almost never comes, and an unused tool may return in another project.
   - Refused: an archive for reports a newer one replaced, or whose purpose ended.
 - `V1` **A survey run for a project decision splits**: the survey to the project's `research/`, the pick to the spec file that owns it, its reason naming the survey.
-- `V1` **A question reading can answer never becomes a ticket of its own.** A question needing something built and run is a `prototype` ticket.
+- `V1` **A question reading can answer never becomes a ticket of its own.** A question needing something built and run is a child ticket holding a prototype.
 - `later` **An MCP search server in place of `WebSearch` and `WebFetch`**, once Flow runs off Anthropic's servers, where both stop. Parallel first, since its free endpoint needs no key.
 
 ### Context7
@@ -96,16 +97,15 @@ The wiki is `~/.flow/wiki/`: clean knowledge an agent can browse, one folder per
 Capture is the sweep the rule file runs at each checkpoint, filing what the conversation taught. `## Capture` in the rule file is the routing table. The knowledge it files:
 
 - `V1` **Capture runs at checkpoints, never on sight**: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. It reads the conversation in context, never the transcript on disk. A rule file written mid-session never reaches that session anyway.
-- `V1` **How an outside tool or a field behaves → the page in `~/.flow/wiki/<subject>/` that owns it, edited in place**, even while a skill covering it is loaded.
-- `V1` **Other reusable knowledge → `.flow/findings/<what-was-learned>.md`.** A finding about a skill carries a `skill: <name>` header.
-- `V1` **A project fact most sessions need → the project's `CLAUDE.md`. One only some work needs → `docs/context/<subject>.md`**, one question per file, rewritten rather than appended.
-- `V1` **How the user works → the rule file's `## Preferences`. A fact about the user → `## The user`.** Both inferred from evidence, never announced.
-- `V1` **Anything else → `.flow/inbox.md`, raw.** Past 200 lines, the agent offers `/flow:file-findings`.
+- `V1` **A lesson or fact about an outside tool or a field → a finding, `~/.flow/wiki/<subject>/findings/<lesson>.md`**, even while a skill covering it is loaded. `/flow:upkeep` folds it into the page that owns it.
+- `V1` **A lesson or fact about this project → `.flow/findings/<lesson>.md`.** A finding about a skill carries a `skill: <name>` header. `/flow:upkeep` moves a project fact to `CLAUDE.md` when most sessions need it, else to `docs/context/<subject>.md`, one question per file, rewritten rather than appended.
+- `V1` **A correction → `flow note "…" --label rule`**, with `--project home` where it holds in every project. `/flow:upkeep` shows it beside any rule line it contradicts, then writes it into the rule file. No profile file exists (`docs/spec/rules.md`).
+- `V1` **Anything else → `flow note "…"`**: one small file in `~/.flow/notes/`, under its project's prefix. `/flow:upkeep` promotes, drops or folds each note.
 
 ### Filing findings
 
-- `V1` **`/flow:file-findings`, user only, sorts the inbox, the findings, closed tickets' `reports/` and the `issues.md` that older tickets still hold, in one batch**, shows the plan and stops, then writes. A finding about an outside tool goes to the wiki. A rule goes to the rule file or a file with `paths:`. A project fact goes to `CLAUDE.md` or `docs/context/`.
-- `V1` **Reusable knowledge with no skill to hold it becomes a `needs skill:` line in the inbox.** Several on one subject earn a skill.
+- `V1` **`/flow:upkeep`, user only, sorts closed tickets nobody filed (`flow ls "status:done filed:no"`), the failure log, the notes, the findings and the `issues.md` that older tickets still hold, in one batch**, shows the plan and stops, then writes. A finding about an outside tool goes to the wiki page that owns it. A rule goes to `~/.flow/CLAUDE.md`, a project's `## Rules`, or a rule file with `paths:`. A project fact goes to `CLAUDE.md` or `docs/context/`. It ends with `flow file <id>...` on the tickets it read.
+- `V1` **A procedure that repeats across tickets becomes a how-to page in the tool's folder.** It becomes a skill only where a script has to run, or after the agent skipped the page twice.
 - `V1` **Altitude decides the home**: a tool quirk or a framework pattern → that tool's wiki folder. A seam between 2 tools → the causing tool's folder, plus a line in the other's `index.md`. A broad principle → a concept skill.
 
 ### The harvest
@@ -113,8 +113,8 @@ Capture is the sweep the rule file runs at each checkpoint, filing what the conv
 The harvest reads raw reports or an outside skill, and writes what holds into wiki pages, in Flow's own words.
 
 - `V1` **Knowledge about a tool or a field is wiki pages, never a new domain skill.** Most of a domain skill is facts, and a page can be rewritten and browsed. A procedure that must fire by itself stays a skill. Decided with the user 2026-10-12 (`fw-94`).
-- `V1` **A harvest runs through `/flow:research` when the user asks**, until the upkeep skill exists. A harvested report gets `harvested: <date>` in its header.
-- `later` **One upkeep skill sweeping the wiki, the reports, the rules, the preferences and the skills** for harvests, stale lines and improvements, in place of `/flow:file-findings`: `fw-103`.
+- `V1` **A harvest runs through `/flow:research` when the user asks.** A harvested report gets `harvested: <date>` in its header.
+- `V1` **`/flow:upkeep` is the one sweep over the wiki, the rules and the skills**, for stale lines and improvements, built in `fw-103`. It harvests no report, and settles a report that contradicts a page line in its plan.
 - `never` **`/flow:write-skill`, a harvest into one skill per tool**, dropped 2026-10-12 (`fw-94`): the facts live in the wiki.
 - `never` **One sharing command for everything anyone learns**, dropped with all work for strangers (`fw-16`), `flow contribute` archived with it.
 
@@ -125,7 +125,7 @@ The harvest reads raw reports or an outside skill, and writes what holds into wi
 - **`skills/tools/research/scripts/context7.sh`**: Bash over Context7's web API with `curl`. `search <name> <question>`, and `ask <id|folder[@version]> <question>`, `--tool <folder>` writing the id into `index.md`.
 - **`skills/tools/research/scripts/fetch-docs.sh`**: downloads into a tool's `downloads/` from any folder. `--package` or `--repo` names where the latest release is read, and `--clone` clones or pulls the source into `downloads/repo/`.
 - **`home/CLAUDE.md` → `## Capture`**: where each kind of knowledge goes. **`## Reading`**: work against an outside tool starts from its wiki folder.
-- **`skills/tools/file-findings/SKILL.md`**: the routing from the inbox and findings to their homes.
+- **`skills/tools/upkeep/SKILL.md`**: the routing from closed tickets, notes and findings to their homes.
 - **`~/.flow/references/knowledge.md`**: the map of what an agent draws on past the rules, read before adding a skill, a plugin or an MCP server.
 
 ## What passes between them
@@ -189,7 +189,7 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
 4. `index.md` has no page for the topic, but holds the Context7 id.
 5. The lockfile says 16.3.5, the latest release, and Context7 read the tool after it. `context7.sh ask next.js "redirect signed-out users"` answers with no version, citing the authentication guide.
 6. The agent writes `- auth, redirecting signed-out users: <the guide's address>` under `## Pages by topic`. A level 1 question writes no report.
-7. Building the feature, a redirect loops in middleware. The fix lands, and capture at the next checkpoint creates `~/.flow/wiki/next.js/middleware.md`, opening `Checked against next.js 16.3.5`, with the loop's cause and fix as one line.
+7. Building the feature, a redirect loops in middleware. The fix lands, and capture at the next checkpoint files `~/.flow/wiki/next.js/findings/middleware-redirect-loop.md`, with the loop's cause and fix as one line. `/flow:upkeep` later folds it into `middleware.md`, opening `Checked against next.js 16.3.5`.
 8. `flow sync` carries both to the other machine. A second project asking about auth finds the page through `index.md`, with no Context7 call.
 
 ## How it fails
@@ -222,7 +222,7 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
   - Refused: `tools/`, which reads like part of Flow. `knowledge/`, too long. `refs`, beside `~/.flow/references/`. `context`, every project's `docs/context/`. `library`, the user's planned tool catalog. `intel` and `lore`, slang and a rare word.
 - **Downloads are never committed.** Each machine refreshes its own anyway. Git would store a new copy of a 480 KB `llms-full.txt` on every change, and cannot commit a clone as files.
   - Refused: `index.md` recording download dates. It syncs and the downloads do not, so its dates would describe the other machine's files.
-- **Project research lives in `.flow/research/<topic>/`.** `.flow/` is the branch `flow`, checked out once for every code branch, so a report never conflicts across feature branches. Approved 2026-10-06, replacing `docs/research/`. Topic folders replaced the flat layout 2026-10-12 (`fw-94`): 50 flat names hid which report held what.
+- **Project research lives in `.flow/research/<topic>/`.** `.flow/` links into the Flow home, one folder for every code branch, so a report never conflicts across feature branches. Approved 2026-10-06, replacing `docs/research/`. Topic folders replaced the flat layout 2026-10-12 (`fw-94`): 50 flat names hid which report held what.
 - **One root for reports: the project's `research/`.** Decided with the user 2026-10-12 (`fw-106`): a report is temporary, since its facts are harvested into the wiki and the report is then deleted, so another project need not find it. What would overturn it: the harvest (`fw-103`) staying unbuilt for months, with other projects blind to every report meanwhile. Harvest the tool reports first (Context7, backlog boards), since other projects look for those.
   - Refused: 2 roots, `~/.flow/research/` for a report true in any project and the project's for the rest, the first build of `fw-106`. It asks a true-in-any-project test of every report, for a file that is harvested and deleted anyway.
 - **2 layers: raw reports in `research/`, clean knowledge in `wiki/`.** Decided with the user 2026-10-11 (`fw-94`): a report is raw, often mixed and noisy; the wiki is what an agent browses.

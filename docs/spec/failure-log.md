@@ -5,7 +5,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 ## Scope
 
 - **In**: what counts as a failure, the 3 writers, the line, open issues and how they reach the user, `~/.flow/logs/` and its files, and how a log stops growing.
-- **Out**: friction with Flow's rules, which goes to workflow notes and issue tickets through `/flow:review`, in `docs/spec/product.md` → `### The audit and issue tickets`. The scorecard's files, in `docs/spec/rules.md`. The meters and the band as a whole, in `docs/spec/product.md`.
+- **Out**: friction with Flow's rules, which goes to issue tickets, in `docs/spec/product.md` → `### The audit and issue tickets`. The scorecard's files, in `docs/spec/rules.md`. The meters and the band as a whole, in `docs/spec/product.md`.
 
 ## From a failure to the user
 
@@ -38,7 +38,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 
 - `V1` **Only what Flow built or chose**, the user's rule: an MCP tool that returned an error, a Flow command or bundled script that exited with one (`flow`, `fw`, `util`, `u`, anything under `~/.flow/scripts/` or a Flow skill's folder), an API error that ended a turn, and what the agent reports.
 - `V1` **Left out: every other shell command, every built-in tool, and a call the user interrupted.** A `grep` finding nothing exits 1, and nobody would act on it later. Claude Code fires the failure hook on any shell command exiting non-zero, so the filter is needed.
-- `V1` **A refusal working as designed is never logged**, such as `flow sync` refusing because another machine is ahead.
+- `V1` **A refusal working as designed is never logged**, such as `flow sync` refusing a merge where the same lines changed on 2 machines.
 
 ### The 3 writers
 
@@ -49,7 +49,8 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 ### The line
 
 - `V1` **One JSON line, pointing into the transcript, never copying it.** `session` and `call` find the whole failure in Claude Code's saved transcript. The line keeps the first 500 characters of the error, enough to group repeats.
-- `V1` **A background job's line carries `job`**, naming it: `sync /home/me/code/shop`, `sync ~/.flow`, `skills obra/superpowers`. The next run that works adds `{"job":…,"cleared":true}`.
+- `V1` **A background job's line carries `job`**, naming it: `sync /home/me/code/shop`, `sync ~/.flow`. The next run that works adds `{"job":…,"cleared":true}`.
+- `V1` **A sweep marker, `{"at":"<time>","swept":true}`, ends each `/flow:upkeep` read of the log.** The next sweep starts after the newest one. `flow doctor` and the band skip it.
 
 ### Open issues
 
@@ -62,7 +63,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 
 ### `~/.flow/logs/`
 
-- `V1` **One folder for every record of what happened**, the user's ask: `install.log`, `history/<month>.jsonl`, `failures/<month>.jsonl` and `scorecards/`. One ignore line keeps it off the Flow home. `logs/` won over `records/`, which clashes with `machines/`, and over `reports/`, which fits only some files.
+- `V1` **One folder for every record of what happened**, the user's ask: `install.log`, `history/<month>.jsonl`, `failures/<month>.jsonl`, `permissions/<month>.jsonl` and `scorecards/`. One ignore line keeps it off the Flow home. `logs/` won over `records/`, which clashes with `machines/`, and over `reports/`, which fits only some files.
 - `V1` **The history log adds a line for every clone, pull, switch and install.**
 - `V1` **Left out of `logs/`**: `audit/`, an index that rebuilds; `changes/`, working data a review reads mid-session.
 - `V1` **A log that grows is a file per month**, `<year>-<month>.jsonl`, started by the writer on its first line of the month. Nothing moves, trims or deletes one. A month is a few kilobytes. `install.log` holds the last run alone, and `scorecards/` is a file per session.

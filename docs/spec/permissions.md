@@ -43,7 +43,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 - `V1` **Every shell command, edit, read and web call runs unasked.** `permissions.allow` holds a bare `Bash`, `Edit`, `Read`, `WebFetch` and `WebSearch`. Ruled 2026-09-28: a list of allowed programs asked on half of real commands.
 - `V1` **Anything not serious always runs.** Reading a `.env` file, a write to a shell startup file or the global git settings, a global install and a scheduled job leave the guard's list. Ruled 2026-10-12: the user wants as few prompts as possible.
 - `V1` **A write under `~/.claude`, `~/.flow` and `~/.agents` runs unchecked**, except the files that can switch the guard off. Tickets, the wiki, logs, `workflow-notes.md`, skills, rules and `CLAUDE.md` steer the agent and cannot disable the guard. Ruled 2026-10-12. Overturned by: evidence that the guard's files are reachable another way.
-- `V1` **A project's `.flow` is a symlink into `~/.flow/projects/<name>`, so `~/.flow/projects/` stays off the guard's list.** The old rule judged the real path, and 50 asks in 35 minutes came from appends to `.flow/inbox.md` and scratch files under a ticket.
+- `V1` **A project's `.flow` is a symlink into `~/.flow/projects/<name>`, so `~/.flow/projects/` stays off the guard's list.** The old rule judged the real path, and 50 asks in 35 minutes came from appends to a note file and scratch files under a ticket.
 - `V1` **A write to a protected path with no guard reason is allowed by the mod and logged `auto-allow`.** Claude Code asks for every write under `.claude`, and no settings rule removes the ask. The mod's allow does (probed in `fw-110`). The same holds for Edit and Write from the main agent under `mods/flow-session/`, a loaded mod folder: 53 of the 67 logged asks, and only while the mod itself is edited. `.claude-plugin/plugin.json` and `hooks/hooks.json` still ask, since a manifest decides which hooks load. Decided 2026-10-18.
 - `V1` **The target is zero asks in a normal ticket build**, push and publish aside. `flow audit`'s permissions view reads it. An ask outside that list is a fault, fixed by narrowing a rule. Approved 2026-10-12, commit dropped from the list 2026-10-18.
 
@@ -147,7 +147,7 @@ One log line:
 
 ## One real case: a ticket built end to end
 
-1. A session builds a ticket on a set-up project. The agent appends to `.flow/inbox.md`. The guard follows the symlink to `~/.flow/projects/flow-dev/`, finds no file that can switch it off, and stays silent. The rules allow the edit. It runs, and nothing is logged.
+1. A session builds a ticket on a set-up project. The agent writes a finding to `.flow/findings/<lesson>.md`. The guard follows the symlink to `~/.flow/projects/flow-dev/`, finds no file that can switch it off, and stays silent. The rules allow the edit. It runs, and nothing is logged.
 2. The agent writes `.claude/skills/x/SKILL.md`. Claude Code would ask, since `.claude` is protected. The mod's hook sees the ask with no guard reason, allows it, and logs `auto-allow`.
 3. The agent runs `npm test`, then `rm -rf tmp/scratch`. Both run unasked.
 4. The agent runs `git commit`. It runs, and nothing is logged. Then `git push`: the rule asks. The mod opens the dialog with `Pushes 3 commits to origin/main`. The user presses Enter. The log gets `answer: "allow"`.
@@ -170,7 +170,7 @@ One log line:
 ## How you know it worked
 
 - **One ticket built in a real session on a set-up project raises 0 asks apart from push and publish.** `flow audit`'s permissions view shows it. The user waived the dedicated test (`fw-118`) on 2026-10-17: the log since the mod went live held only commit asks, and the live sessions covered the dialog and the refusal. Read the view again after the first release-day ticket.
-- **A write through the project's `.flow` symlink, to `.flow/inbox.md` and to a ticket file, asks nothing.** A test in `scripts/` covers it.
+- **A write through the project's `.flow` symlink, to a finding and to a ticket file, asks nothing.** A test in `scripts/` covers it.
 - **An `Edit` of `settings.json` asks.** So does each kind above, and so does a crash in the guard.
 - **A refused ask ends on `Interrupted · What should Claude do instead?`** Seen in a real session.
 

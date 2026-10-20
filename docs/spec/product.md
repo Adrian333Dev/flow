@@ -23,7 +23,7 @@ It runs in Claude Code alone, on Linux, macOS and Windows through WSL, and needs
 Flow lives in 3 places:
 
 - **A Claude Code session**: the rule file, Flow's skills and Flow's hooks are loaded, and the work runs there.
-- **The project**: its tickets live on an orphan branch `flow`, checked out at `.flow/`. Code branches never carry it. Git carries it to GitHub and to every other clone.
+- **The project**: `.flow/` is a link to the project's folder in the Flow home, `~/.flow/projects/<name>/`, which holds its tickets and findings. Git hides the link, so no code branch carries it. `flow sync` carries the folder to GitHub.
 - **The machine**: `~/.flow/` holds the rule file, Flow's clone, the skills, the wiki of outside tools and the logs. `flow sync` carries it to the Flow home, a private GitHub repository each user has one of, so every machine shares it.
 
 The work runs as one loop across them:
@@ -49,25 +49,26 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 ┌────────────────────────────┐      ┌────────────────────────────┐
 │        THE PROJECT         │      │        THE MACHINE         │
 │                            │      │                            │
-│  .flow/: the branch `flow` │      │  ~/.flow/: rules, skills,  │
-│  checked out, its tickets  │      │  the wiki, the logs        │
-└────────────────────────────┘      └────────────────────────────┘
-              ▲                                   ▲
-              │ git, both ways                    │ flow sync
-              ▼                                   ▼
-┌────────────────────────────┐      ┌────────────────────────────┐
-│           GITHUB           │      │           GITHUB           │
-│                            │      │                            │
-│  the project's repository, │      │  the Flow home, one        │
-│  its branch `flow`         │      │  private repository        │
-└────────────────────────────┘      └────────────────────────────┘
+│  .flow/: a link into the   │─────►│  ~/.flow/: rules, skills,  │
+│  Flow home, its tickets    │      │  the wiki, the logs,       │
+└────────────────────────────┘      │  projects/<name>/          │
+                                    └────────────────────────────┘
+                                                  ▲
+                                                  │ flow sync
+                                                  ▼
+                                    ┌────────────────────────────┐
+                                    │           GITHUB           │
+                                    │                            │
+                                    │  the Flow home, one        │
+                                    │  private repository        │
+                                    └────────────────────────────┘
 ```
 
 ## The parts, one file each
 
 - `docs/spec/setup.md`: installing Flow on a machine, setting up a project, updating by a pull and `flow install`, and syncing machines.
 - `docs/spec/tickets.md`: the ticket store, the `flow` ticket commands, the ticket skills, and the status moves each phase makes.
-- `docs/spec/skills.md`: Flow's skills and its 4 phases, how skills install and switch on, outside skills and their sources, and overlays.
+- `docs/spec/skills.md`: Flow's skills and its 3 phases, how skills install, outside skills and their sources, and overlays.
 - `docs/spec/permissions.md`: what runs without asking, what asks, the guard, the dialog that asks, and the log of asks.
 - `docs/spec/rules.md`: the rule file, how a rule is written, the rule checks and the scorecard.
 - `docs/spec/knowledge-base.md`: research, the wiki of outside tools and fields, Context7, capture and findings.
@@ -91,7 +92,6 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 ### Subagents
 
 - `V1` **A subagent's changes reach the main session as a change record**: the files its own tool calls changed, recorded by `changes.js` under its id. The main session judges the work by the record, never by the subagent's report.
-- `V1` **`haiku-worker` carries out one decided step** that repeats across many files.
 - `V1` **Review runs in the session that built the work**, never in a subagent.
 - `V1` **Every brief ends with a stopping point**, such as "stop after these 3 sources and write the file", never a time: agents see no clock. Decided 2026-10-12 (`fw-100`): briefs saying "about 10 minutes" changed nothing.
 - `V1` **Claude Code's Explore and Plan agents switched off**, by `CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS=1`. Explore skips every `CLAUDE.md`, so no Flow rule reaches the searches Claude Code sends it unasked; Plan has no use while plan mode is denied. Decided 2026-10-12 (`fw-100`).
@@ -107,7 +107,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 
 ### The audit and issue tickets
 
-- `V1` **`flow audit` indexes Claude Code's transcripts into SQLite** and answers queries over it. `/flow:review` reads it.
+- `V1` **`flow audit` indexes Claude Code's transcripts into SQLite** and answers queries over it. `/flow:upkeep` reads it.
 - `V1` **Every indexed session carries its machine's name, and every audit answer opens with one coverage line per machine**: its session count and newest day. A split between machines never misleads an agent. A second line says how long ago the index was read: every read refreshes an index over 30 minutes old first. Set 2026-10-11; refresh 2026-10-19 (`fw-177`).
 - `V1` **An issue ticket keeps the exact output the user reacted to, for good**: a ticket labelled `flow-issue` plus a type, so `flow labels "label:flow-issue"` groups the failures by kind. The third ticket of a type is the evidence a rule is needed. Replaced `flow cases` 2026-10-19 (`fw-180`, `fw-181`): the 14 study cases became tickets `fw-182` to `fw-195`, and the code is in `lab/archive/cases/`.
 - `V1` **Issue tickets and workflow notes keep the output word for word, and the project's name**, though both sync to GitHub. Set 2026-09-30.
@@ -142,8 +142,8 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 Each piece below was proposed for removal on 2026-10-01 and kept. Raise one again only with new evidence.
 
 - `V1` **The guard**, the safety net against destructive commands.
-- `V1` **`changes.js`**, which lets 2 Haiku workers edit at once without mixing their changes. Uncommitted work makes `git diff` mix them.
-- `V1` **`flow audit`**, read by `/flow:review` and by the update's proof step.
+- `V1` **`changes.js`**, which lets subagents edit at once without mixing their changes. Uncommitted work makes `git diff` mix them.
+- `V1` **`flow audit`**, read by `/flow:upkeep`.
 - `V1` **`flow cases`**, retired 2026-10-19 into issue tickets (`fw-181`). A case kept the output for good and closed naming the file that fixed it, so a rule shortened later still shows why it exists. A ticket does the same.
 - `V1` **The settings levels and the overlays**, which make Flow flexible.
 - `V1` **The ticket skills and the `@` file list**: each small and asked for. The skill updater and the restore and uninstall forms left 2026-10-14 (`fw-124`).
@@ -152,13 +152,13 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 
 - `later` **Codex, then open models**, ruled by the user 2026-09-18: nothing ports until Flow ships on Claude Code. Each harness may get its own mechanisms rather than one bent to fit both. `.flow/research/models/which-model-and-other-harnesses.md` holds the port's costs.
 - `later` **Native Windows**, where hooks run in PowerShell. Every hook today is a shell line.
-- `later` **Flow without a GitHub account**, parked by the user 2026-10-01. Without GitHub there is no `flow sync`, no second machine and no branch `flow` to push.
+- `later` **Flow without a GitHub account**, parked by the user 2026-10-01. Without GitHub there is no `flow sync` and no Flow home.
 - `later` **One folder holding what must survive a machine change across harnesses**, `~/.flow/` the candidate, never the whole of `~/.claude/` moved under it.
 
 ## How you know it worked
 
 - **The README's install line sets up a real machine**, the acceptance test: done, `fw-1`.
-- **`npm test` in `scripts/` passes**: 255 tests.
+- **`npm test` in `scripts/` passes**: 292 tests.
 - **Flow carries real work on this machine for 2 to 3 weeks of beta**, and each checklist ticket, `fw-2` to `fw-14`, is tried once in real use.
 - **A second project starts with what the first one learned**: a finding about a tool, filed in one project, is read by `/flow:research` or `/flow:execute` in the next.
 - **A correction is filed once.** The same rejected reply does not come back after its rule lands, which issue tickets and `flow audit` show.
@@ -186,11 +186,11 @@ What Flow rests on that nobody has checked, and what happens if each one fails.
 ## Glossary
 
 - **Ticket**: one piece of work, its status, its plan and its history, in `.flow/tickets/<id>/`. An id is the project's prefix and a number, `fw-28`.
-- **Phase**: one of 4 kinds of work, each a skill: `/flow:groundwork`, `/flow:execute`, `/flow:prototype` and `/flow:debug`.
-- **Groundwork**: the phase that maps every decision an idea needs and settles each one before any code.
+- **Phase**: one of 3 kinds of work, each a skill: `/flow:groundwork`, `/flow:execute` and `/flow:debug`.
+- **Groundwork**: the phase that maps every decision an idea needs and settles each one before any code. A prototype that answers one question is a step inside it.
 - **Handoff**: the state a ticket's next session needs, written into the ticket by `/flow:handoff`.
 - **Capture**: the sweep at each checkpoint that files what the conversation taught into tickets, rules, the wiki or findings.
-- **Finding**: one lesson, in one file, waiting for `/flow:file-findings` to fold it into a skill or a rule.
+- **Finding**: one lesson, in one file, waiting for `/flow:upkeep` to fold it into a skill or a rule.
 - **The wiki**: `~/.flow/wiki/<tool>/`, one folder per outside tool, shared by every project.
 - **The Flow home**: the private GitHub repository holding `~/.flow/`, one per user.
 - **The guard**: the hook that reads each shell command and asks before one that can do harm.

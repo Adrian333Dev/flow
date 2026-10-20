@@ -54,7 +54,7 @@ Prints one line beside every message you send, so the agent keeps following the 
 Follow `## The reply`, and pass every `### Before sending` test. If it applies, follow `## Capture`.
 ```
 
-The text comes from `~/.flow/references/reminder.md`. [Sessions](../sessions.md) says why the line exists.
+The text comes from `~/.flow/references/reminder.md`.
 
 ### `sessionCheck`
 
@@ -84,7 +84,7 @@ Tells the agent to hand off once the conversation passes [`wrapUpAt`](#wrapupat)
 Context 172k/170k. At the next checkpoint: wait for subagents, run /flow:handoff, call the restart tool.
 ```
 
-From 30,000 under the limit it gives the size alone every 10,000 (`Context 140k/170k`), and the band above the prompt shows a green Restart button for restarting by hand. Every 20,000 tokens past the limit it asks again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, followed by the last reply, your messages since it and the files changed. A typed `/restart` stops there. An automatic restart then submits `Continue.`. [Sessions](../sessions.md) covers the handoff.
+From 30,000 under the limit it gives the size alone every 10,000 (`Context 140k/170k`), and the band above the prompt shows a green Restart button for restarting by hand. Every 20,000 tokens past the limit it asks again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, followed by the last reply, your messages since it and the files changed. A typed `/restart` stops there. An automatic restart then submits `Continue.`.
 
 ## Other keys in Flow's files
 
@@ -135,17 +135,17 @@ These are the keys Flow keeps in `~/.claude/settings.json`. Every other key in t
 
 ### `hooks`
 
-Hooks are scripts Claude Code runs at a fixed moment, such as before every shell command. Flow's live in `~/.flow/scripts/hooks/`:
+Hooks are scripts Claude Code runs at a fixed moment, such as before every shell command. Flow's live in `~/.flow/scripts/hooks/`, and the sync job in `~/.flow/scripts/jobs/`:
 
-- **`guard.js`**, before every shell command, edit, write and file read: asks you before a call that could lose work, send data off the computer, change a shared system or switch the guard off, and before Claude reads a private key or a login. [Safety](../safety.md) lists what it asks about.
-- **`changes.js`**, around every edit and command: records which helper agent changed which file. [Subagents](../subagents.md) shows a record.
-- **`rule-check.js`**, before every edit: tests the edit against your rules. [Rule checks](../rule-checks.md) covers them.
+- **`guard.js`**, before every shell command, edit, write and file read: asks you before a call that could lose work, send data off the computer, change a shared system or switch the guard off, and before Claude reads a private key or a login.
+- **`changes.js`**, around every edit and command: records which helper agent changed which file, in `~/.flow/changes/<session>/`.
+- **`rule-check.js`**, before every edit: tests the edit against your rules, and records the result for `flow scorecard`.
 - **`instructions-loaded.js`**, when a rule file loads: records which rules the agent has read.
 - **`check-ticket.js`**, when you type a phase skill or `/flow:start`: refuses where Flow is not set up.
-- **`overlays.js`**, when a skill loads: adds the project's own lines for that skill. [Configure](../configure.md) covers overlays.
+- **`overlays.js`**, when a skill loads: adds the lines in `~/.flow/skill-overlays/<skill>.md`.
 - **`reminder.js`**, on every message you send: prints [`reminder`](#reminder).
-- **`session-check.js`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), matches skill links to your settings, and starts the background sync.
-- **`failures.js`**, when a tool call or the API fails: adds a line to the failure log. [Learning](../learning.md) covers the log.
+- **`session-check.js`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), rewrites the ticket skills, and starts the background sync.
+- **`failures.js`**, when a tool call or the API fails: adds a line to the failure log in `~/.flow/logs/failures/`.
 - **`records-sync.js`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
 
 ### `env`
@@ -186,8 +186,6 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 - **`additionalDirectories`**: your Flow home counts as part of every project, so an edit there never asks.
 - **`Edit(//**/.flow/**)`**: an edit through a project's `.flow` link never asks. A project's tickets live in your Flow home and are reached through that link, and Claude Code asks before any write that leads outside the project unless one rule matches both the link and where it points.
 
-[Safety](../safety.md) gives the reasons for each.
-
 ### `fileSuggestion`
 
 ```json
@@ -208,7 +206,7 @@ It never enters `.git`, `node_modules`, `dist`, `build`, `out`, `coverage`, `.ne
 "cleanupPeriodDays": 60
 ```
 
-Claude Code deletes a session's record once it is this many days old. Its default is 30. Flow keeps 60, so a mistake can still be traced to the session that made it: [Learning](../learning.md) reads these records. The audit index outlives the records, and `flow audit keep <id>` archives one session.
+Claude Code deletes a session's record once it is this many days old. Its default is 30. Flow keeps 60, so a mistake can still be traced to the session that made it: `flow audit` reads these records. The audit index outlives the records, and `flow audit keep <id>` archives one session.
 
 ### `skillOverrides`
 
@@ -225,6 +223,7 @@ A skill you keep takes `"on"`. [`flow doctor`](commands.md#flow-doctor) names ev
 - **`disableBundledSkills`**: Claude Code's own skills, so only Flow's load.
 - **`disableRemoteControl`**: driving a session from claude.ai or your phone.
 - **`disableClaudeAiConnectors`**: claude.ai's connectors.
+- **`feedbackSurveyRate: 0`**: Claude Code's feedback survey prompt.
 - **`disableArtifact`**: the artifact tool.
 - **`autoCompactEnabled: false`**: Claude Code swapping a long conversation for its own summary.
 - **`autoMemoryEnabled: false`**: Claude Code's memory, which stays on one computer. Flow keeps what is worth remembering in your rules and project files.

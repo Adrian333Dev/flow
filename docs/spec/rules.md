@@ -5,7 +5,7 @@ How Flow tells the agent how to work, and how it finds out whether the agent lis
 ## Scope
 
 - **In**: the rule files and what each holds, how a rule is written, the rule checks and their hooks, the scorecard, and the open questions about rules.
-- **Out**: writing the rule file at install and carrying the user's lines through an update, in `docs/spec/setup.md`. Where capture sends a lesson, and how `/flow:file-findings` routes it, in `docs/spec/knowledge-base.md`. The reminder line beside every message, the audit and issue tickets, in `docs/spec/product.md`.
+- **Out**: writing the rule file at install and carrying the user's lines through an update, in `docs/spec/setup.md`. Where capture sends a lesson, and how `/flow:upkeep` routes it, in `docs/spec/knowledge-base.md`. The reminder line beside every message, the audit and issue tickets, in `docs/spec/product.md`.
 
 ## A rule meets an edit
 
@@ -80,13 +80,13 @@ What happens each time the agent edits or writes a file:
 - `V1` **One `PreToolUse` hook on `Edit|Write` runs every check**, `rule-check.js`. Counting, warning and blocking are the same check at the same moment, and the check's own `tier` decides which happens. About 31 ms an edit, nearly all of it Node starting, measured 2026-09-10.
 - `V1` **3 tiers.** `measure` counts and interrupts nothing. `warn` hands the agent a message and lets the edit through. `block` refuses the edit, kept for a check with no false positives.
 - `V1` **One file per check, `scripts/rule-checks/<id>.js`, named for the rule's id.** The folder is the list: adding a check adds a file, and promoting one changes one word. A check is any JavaScript function, never only a pattern.
-- `V1` **A rule and its check are written in the same pass**, by whichever pass wrote the rule, usually `/flow:file-findings`. Every check starts at `measure`, so one built from a single example costs nothing when it proves wrong. Set by the user 2026-09-05.
+- `V1` **A rule and its check are written in the same pass**, by whichever pass wrote the rule, usually `/flow:upkeep`. Every check starts at `measure`, so one built from a single example costs nothing when it proves wrong. Set by the user 2026-09-05.
 - `V1` **A path-scoped rule that matters starts at `warn`.** `paths:` loads a rule when a matching file is read, never when one is written, so a brand-new file is written without it. Filed as `anthropics/claude-code` #93248.
 - `V1` **A warning carries the rule's id where its file is loaded, and its whole text where not.** `instructions-loaded.js` records each rule file as it enters context, on the `InstructionsLoaded` event.
 - `V1` **A warning reaches the agent through `additionalContext`.** `permissionDecisionReason` on an allow reaches the terminal alone.
 - `V1` **The hook never allows, and a failure inside it lets the edit through silently.** It cannot widen what the permissions allow. Breaking every edit over one bad check costs more than the counts are worth.
 - `V1` **A rule the user called minor stays at `measure`**, whatever the counts say.
-- `V1` **A wrong warning goes to `.flow/findings/scorecard.md`**, which `/flow:file-findings` reads. A wrong check gets fixed. A rule too vague for any check gets rewritten.
+- `V1` **A wrong warning goes to `.flow/findings/scorecard.md`**, which `/flow:upkeep` reads. A wrong check gets fixed. A rule too vague for any check gets rewritten.
 - `V1` **About 10 checks before V1**, chosen from rules real sessions break, where a script can decide from the edit alone: `fw-12`. Today there are none: the first, `js-and-ts.js`, went with the comment rules on 2026-10-20. The checks stay, ruled by the user 2026-10-01 and again 2026-10-20: they are a major feature, and the next check comes with a real rule.
 - `later` **A project's own checks, in `.flow/checks/<id>.js`**, loaded beside the global ones. Skipped 2026-09-07: no project needs one, and a mechanism built before its first case gets built wrong.
 - `later` **A linter as a check**: ESLint, ruff or shellcheck run by a check and filed under a Flow rule id, or Flow writing linter settings from its rules. Flow reads a linter a project already has, and adding one stays the user's call.
@@ -116,7 +116,7 @@ What happens each time the agent edits or writes a file:
 - **`scripts/lib/checks/scorecard.js`**: the per-session files.
 - **`scripts/rule-checks/`**: one file per check.
 - **`scripts/commands/scorecard.js`**: `flow scorecard`.
-- **`skills/tools/file-findings/references/write-checks.md`**: how a check is written, tested and promoted.
+- **`skills/tools/upkeep/references/write-checks.md`**: how a check is written, tested and promoted.
 
 ## What passes between them
 
@@ -145,7 +145,7 @@ A line in a session's scorecard file:
 
 ## One real case: a check moves up
 
-1. `/flow:file-findings` turns a finding into a rule in `home/CLAUDE.md` and writes its check, `scripts/rule-checks/<id>.js`, at `measure`, with a test holding one real violation and one clean example.
+1. `/flow:upkeep` turns a finding into a rule in `home/CLAUDE.md` and writes its check, `scripts/rule-checks/<id>.js`, at `measure`, with a test holding one real violation and one clean example.
 2. Over a week of sessions, every `Edit` and `Write` runs the check. Each result adds a line to its session's file, and the agent sees nothing.
 3. `flow scorecard` lists the rule under ready to move up: 7 violations in 10 chances, and no wrong warning in `.flow/findings/scorecard.md`.
 4. The user agrees, and the check's `tier` becomes `warn`.

@@ -1,28 +1,26 @@
 # Skills
 
-How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 11, typed `/flow:<name>`. 4 of them are the phases, the 4 kinds of work. The rest are the tools around the work.
+How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 11, typed `/flow:<name>`. 3 of them are the phases, the 3 kinds of work. The other 8 are the tools around the work.
 
 ## Scope
 
-- **In**: Flow's 11 skills and what each does, the 4 phases, `/flow:handoff`, how skills install, outside skills and their sources, overlays and arguments.
-- **Out**: ticket skills, in `docs/spec/tickets.md`. `/flow:research`, the wiki and how `/flow:file-findings` routes a finding, in `docs/spec/knowledge-base.md`. `/flow:visualize`, in `docs/spec/drawing.md`. The checks `/flow:file-findings` writes, in `docs/spec/rules.md`.
+- **In**: Flow's 11 skills and what each does, the 3 phases, `/flow:handoff`, how skills install, outside skills and how they are used, overlays and arguments.
+- **Out**: ticket skills, in `docs/spec/tickets.md`. `/flow:research`, the wiki and how `/flow:upkeep` routes a finding, in `docs/spec/knowledge-base.md`. `/flow:visualize`, in `docs/spec/drawing.md`. The checks `/flow:upkeep` writes, in `docs/spec/rules.md`.
 
 ## Where a skill lives
 
 ```text
 ~/.flow/repos/flow/skills/                 Flow's skills, the one real copy
-├─ phases/    groundwork, execute, prototype, debug
-├─ tools/     start, handoff, file-findings, research,
-│             tickets-from-spec, visualize
-└─ dev/       review
+├─ phases/    groundwork, execute, debug
+└─ tools/     handoff, research, review-code, start,
+              tickets-from-spec, upkeep, visualize, write-spec
 ~/.agents/skills/flow/                     the plugin folder
 ├─ .claude-plugin/plugin.json              copied, names the set "flow"
 └─ skills/<name> → the clone               one link per skill
 ~/.claude/skills/flow → ~/.agents/skills/flow    loaded as flow@skills-dir
 
-~/.flow/private-skills/<name>/             the user's own skills, and any skill repository cloned by hand
-<project>/.claude/skills/<name> → either   on in this project
-~/.claude/skills/<name> → either           on everywhere, --global
+~/.claude/skills/<name>                    a skill of the user's own, or a link to one cloned by hand: on everywhere
+<project>/.claude/skills/<name>            the same, on in this project alone
 ~/.flow/skill-overlays/<name>.md         the user's additions to a skill, every project
 ```
 
@@ -30,10 +28,10 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 
 ### Flow's skills
 
-- `V1` **11 skills in 3 groups**: `phases/` (`groundwork`, `execute`, `prototype`, `debug`), `tools/` (`start`, `handoff`, `file-findings`, `research`, `tickets-from-spec`, `visualize`) and `dev/` (`review`).
+- `V1` **11 skills in 2 groups**: `phases/` (`groundwork`, `execute`, `debug`) and `tools/` (`handoff`, `research`, `review-code`, `start`, `tickets-from-spec`, `upkeep`, `visualize`, `write-spec`).
 - `V1` **Every skill is typed `/flow:<name>`, and no folder or `name` carries the prefix.** `skills/.claude-plugin/plugin.json` names the set `flow`, and Claude Code adds the prefix as the skill loads. Decided 2026-09-18: bare, `setup`, `help` and `migrate` claimed ground on a machine with other skills.
 - `V1` **Every skill is always on**: `flow install` links each one, and nothing switches one off.
-- `V1` **3 skills only the user can start**: `/flow:start`, `/flow:tickets-from-spec` and `/flow:file-findings`, each `disable-model-invocation: true`. `home/CLAUDE.md` → `user-only-skills` names them, so the agent suggests them.
+- `V1` **5 skills only the user can start**: `/flow:review-code`, `/flow:start`, `/flow:tickets-from-spec`, `/flow:upkeep` and `/flow:write-spec`, each `disable-model-invocation: true`. `home/CLAUDE.md` → `user-only-skills` names `/flow:start`, `/flow:tickets-from-spec` and `/flow:upkeep`, so the agent suggests them.
 - `V1` **A description says what the skill is and what it covers**, never its steps and never when to fire it. Claude Code loads every description at session start and fires a skill from it alone. A description summing up the steps gets followed in place of the file.
 - `V1` **A shell line in a skill runs one named command**, never logic written inline: `` !`flow exp-47 2>&1 || true` ``.
 - `V1` **A skill splits into files only where a part is read on some runs and not others.** `references/` holds those parts, `scripts/` what the skill runs.
@@ -42,14 +40,14 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 - `later` **Each skill audited against what the work touched**, scoped to the files changed, or the reads have no end.
 - `later` **When a repeating pattern becomes a new skill, and who writes it.**
 
-### The 4 phases
+### The 3 phases
 
-Closed at 4, set by the user.
+Closed at 3, set by the user. Prototype was the fourth, until it became a step inside `/flow:groundwork`. The skill is in `lab/archive/prototype/`.
 
-- `V1` **`/flow:groundwork` finds every decision the work needs**, the ones nobody raised included, and writes each answer down. 4 steps: map the open decisions in the ticket's `groundwork/map.md`, walk them one at a time with the user, attack the result with real cases, then send each decision to the file that owns it, the spec through `references/write-spec.md`. No plan and no code.
-- `V1` **`/flow:execute` builds one ticket**: a plan the user approves, the build, a review in the same session by `references/review-code.md`, and the user's word for `done`. The plan and the finished work are the only 2 stops. A step that repeats across many files goes to `haiku-worker`.
+- `V1` **`/flow:groundwork` finds every decision the work needs**, the ones nobody raised included, and writes each answer down. 4 steps: list the open decisions as the ticket's `## Questions`, walk them one at a time with the user, attack the result with real cases, then route each decision to the file that owns it, the spec through `references/write-spec.md`. No plan and no code.
+- `V1` **`/flow:execute` builds one ticket**: it reads the ticket and runs `flow start`, plans (a checklist under `## Tasks` for more than about 3 steps, which the user may read and never approves), builds to the end, reviews the diff in the same session by `references/review-code.md`, and runs `flow done` once its own check passes. It stops for a decision that is the user's, and before building where the approach departs from what the user said.
 - `V1` **`/flow:debug` finds a cause by evidence**: a check that fails on this exact bug every run, 3 hypotheses of 3 different kinds shown before any is tested, a written prediction before each run, and a fix proved by the same check. It writes `reports/<failure>.md`, opening `FIXED`, `FOUND_NOT_FIXED` or `UNPROVEN`.
-- `V1` **`/flow:prototype` writes naive code answering one question**, kept in `protos/<name>/` in its ticket beside a report of what it found, never promoted into the real build.
+- `V1` **A prototype is a step inside `/flow:groundwork`**: naive code answering one question, run only once talking and reading have both failed, kept in `protos/<name>/` in its ticket beside a report of what it found, never promoted into the real build.
 - `V1` **A prototype runs in its own session, on a child ticket**, agreed by the user 2026-10-02. Its installs, errors and reruns would fill a long groundwork session, and Flow refuses `/compact`. Revisit if most beta prototypes turn out to be 10-line probes.
 - `later` **Checking the running app before review**: `/flow:execute` proves a UI change by driving the page. Parked by the user 2026-10-01, until the first real project with a UI.
 - `later` **Whether a child map may write an open decision into its parent's `map.md`.** Built as `/flow:groundwork`'s rule for a decision binding more than one child, and unproven: no product has been split into child maps.
@@ -61,8 +59,8 @@ Closed at 4, set by the user.
 - `V1` **`/flow:start` opens a session**: the board from `flow next`, or one ticket, picking its phase from its type and status.
 - `never` **`/flow:help`, a skill answering any question about Flow or Claude Code.** Dropped 2026-10-14 by the user (`fw-124`): Flow is for them alone, any session answers from `docs/reference/`, `flow doctor` and the logs, and the description loaded into every session for nothing. The skill is in `lab/archive/help/`.
 - `V1` **`/flow:tickets-from-spec` cuts the next release's behaviors out of `docs/spec/` into tickets**, earliest release first.
-- `V1` **`/flow:file-findings` files a session's findings into skills, rules and checks**, user only, through `references/write-skills.md` and `references/write-checks.md`.
-- `V1` **`/flow:review`, a dev skill, reviews how Flow performed**: where a rule failed, where friction repeated, where the design has a gap. It records issue tickets or workflow notes, and reads `flow audit`.
+- `V1` **`/flow:upkeep` folds closed tickets, notes, findings and the failure log into the wiki, rules and skills**, user only. It shows one plan and stops, then writes, through `references/write-skills.md` and `references/write-checks.md`. It also reads `flow audit summary` for tickets that looped or ran long.
+- `V1` **`/flow:review-code` and `/flow:write-spec` load a criteria file**, user only: `references/review-code.md` for the code a session changed, `references/write-spec.md` for the decisions written into `docs/spec/`. Review runs in the same session, never a subagent.
 
 ### `/flow:handoff`
 
@@ -123,7 +121,7 @@ Closed at 4, set by the user.
 - **`scripts/lib/skills/skills.js`**: the skill catalog and what installs.
 - **`scripts/hooks/overlays.js`**: the overlays.
 - **`references/knowledge.md`**: used whole or harvested, and the order for reaching a service.
-- **`skills/tools/file-findings/references/write-skills.md`**: how a skill is written.
+- **`skills/tools/upkeep/references/write-skills.md`**: how a skill is written.
 
 ## What passes between them
 
@@ -138,7 +136,7 @@ End every review with the next ticket to take, and why.
 ## One real case: a project takes on a skill
 
 1. `/flow:research` finds 3 NestJS skills and reads them. One is the makers' own.
-2. The user agrees to use the makers' skill whole. They clone `nestjs/skills` into `~/.flow/private-skills/`, and links it into the project's `.claude/skills/` by hand.
+2. The user agrees to use the makers' skill whole. They clone `nestjs/skills`, and link it into the project's `.claude/skills/` by hand.
 3. The next session lists it. Its description loads, and the agent starts it on a NestJS file.
 4. The user writes `~/.flow/skill-overlays/nestjs.md`. Every load, in every project, hands it over.
 5. The makers push a change. The user runs `git pull` in the clone, and every project with the link reads the new version.

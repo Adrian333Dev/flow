@@ -24,7 +24,6 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ skills/flow                 → ~/.agents/skills/flow
 │  ├─ skills/<name>               a skill of your own, for every project
 │  ├─ skills/home-<n>/            a ticket skill
-│  ├─ agents/, rules/             → files in <clone>/claude/
 │  └─ projects/                   Claude Code's record of every session
 ├─ .flow/
 │  ├─ CLAUDE.md                   your rules
@@ -37,6 +36,8 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ tickets/
 │  ├─ ticket-counter
 │  ├─ projects/<project>/         a project's tickets, kept privately
+│  ├─ notes/                      ideas and put-off work, every project
+│  ├─ skill-overlays/<skill>.md   lines you add to a skill
 │  ├─ wiki/<tool>/
 │  ├─ research/<topic>/
 │  ├─ logs/
@@ -58,10 +59,9 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ tickets/<number>/
 │  ├─ tickets/archive/
 │  ├─ ticket-counter
-│  ├─ inbox.md
 │  ├─ findings/
+│  ├─ handoffs/
 │  ├─ research/<topic>/
-│  ├─ overlays/<skill>.md
 │  └─ settings.json
 └─ docs/
    ├─ spec/
@@ -83,16 +83,16 @@ Each folder here can also hold entries from other tools. `flow install` never re
 - **`skills/flow`**: a link to `~/.agents/skills/flow/`, which is how Claude Code finds Flow's skills.
 - **`skills/<name>`**: a skill of your own, loaded in every project. Claude Code reads it, and Flow never writes it.
 - **`skills/home-<n>/`**: a [ticket skill](skills.md#ticket-skills) for each open ticket in your Flow home.
-- **`agents/haiku-worker.md`**: the helper agent Flow hands simple jobs to. [Subagents](../subagents.md) covers it.
 - **`projects/`**: Claude Code's record of every session. `flow audit` reads it.
 
 ## `~/.flow/`
 
-Your Flow home: the folder where Flow keeps your rules, notes, settings and tickets. It is a git repository, backed up to a private GitHub repository named `flow-home`, and `flow sync` shares it between your computers. [Sync between computers](../sync.md) covers how.
+Your Flow home: the folder where Flow keeps your rules, notes, settings and tickets. It is a git repository, backed up to a private GitHub repository named `flow-home`, and `flow sync` shares it between your computers.
 
 ### Your rules and settings
 
 - **`CLAUDE.md`**: your rules. `~/.claude/CLAUDE.md` links to it. It starts from Flow's template and is yours after that.
+- **`skill-overlays/<skill>.md`**: lines you add to a skill, such as `execute.md` for `/flow:execute`. A hook adds the file to the agent's context each time the skill loads, in every project. A fact true for one project belongs in that project's `CLAUDE.md`.
 - **`settings.json`** and **`settings.local.json`**: Flow's settings. [Settings](settings.md) covers every key.
 - **`machines/<name>.json`**: one record per computer sharing this Flow home, saying when it joined: `{ "name": "macbook-pro", "joined": "2026-09-27" }`.
 - **`registry.json`**: the projects on this computer, one line each, prefix and folder: `{ "exp": "/home/me/code/expense", "shop": "/home/me/code/shop" }`. `flow init` adds a project, and so does the first command that writes a ticket in a project that arrived with `.flow/`, such as a clone. A prefix is held by one folder: `flow init` refuses a taken one. `flow doctor` reads the file. A folder path differs on each computer, so the file stays on this one.
@@ -112,10 +112,10 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ### What sessions learn
 
-[Learning](../learning.md) covers each of these.
-
+- **`notes/`**: one small file per idea or put-off piece of work, for every project. `flow note` writes it, and each note names the project it belongs to.
 - **`wiki/<tool>/`**: what Flow knows about one outside tool, shared by every project. `/flow:research` writes it.
 - **`research/<topic>/`**: research reports asked outside any project, one folder per topic and one file per question. Empty until one is asked.
+
 ### Records of what happened
 
 - **`logs/install.log`**: every line of this computer's last `flow install`.
@@ -129,9 +129,8 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 `repos/` holds every repository Flow downloads. `flow install` downloads each one that is missing.
 
-- **`repos/flow`**: Flow itself, as the install line downloaded it. Installed from a clone of your own, it is a link to that clone. Its `mods/flow-session/` folder holds the mod Claude Code loads, named by `CLAUDE_CODE_PLUGIN_DIRS` in [`env`](settings.md#env).
+- **`repos/flow`**: Flow itself, as the install line downloaded it. Installed from a clone of your own, it is a link to that clone, and `flow update` leaves it alone: [Developing Flow](developing-flow.md) covers it. Its `mods/flow-session/` folder holds the mod Claude Code loads, named by `CLAUDE_CODE_PLUGIN_DIRS` in [`env`](settings.md#env).
 - **`repos/util/`**: `util`, the second command-line tool Flow uses, for file trees and git shortcuts.
-- **`repos/toolbox/`**: a catalog of outside tools that `/flow:research` reads.
 
 ## `~/.local/bin/`
 
@@ -143,7 +142,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 ### The files at the top
 
 - **`CLAUDE.md`**: what every session in this project needs. It starts with 2 sections, `## Project` and `## Rules`, and sessions fill it in.
-- **`.gitignore`**: ignores `tmp/`, `node_modules`, the links to skills, and `.flow/`.
+- **`.gitignore`**: ignores `node_modules/` and what a prototype generates. `.flow/` is hidden by `.git/info/exclude` instead, git's ignore list for this clone alone.
 - **`.uncommitted-include`**: files git ignores that should still travel with your uncommitted work. Empty to start.
 
 `flow init` writes all 4. Your next commit takes them, and none is Flow's alone after that.
@@ -158,13 +157,12 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 The project's tickets and what sessions learn in it. It is a link into `~/.flow/projects/<project>/`, in your Flow home, so the tickets never touch your code's history and `flow sync` carries them.
 
-- **`tickets/<number>/`**: one folder per ticket, named by its number alone, such as `7/` for `shop-7`. The files hold no prefix either: `id`, `parent` and `deps` are numbers, so changing `ticketPrefix` keeps every ticket. [Tickets](../tickets.md) shows what it holds.
+- **`tickets/<number>/`**: one folder per ticket, named by its number alone, such as `7/` for `shop-7`. The files hold no prefix either: `id`, `parent` and `deps` are numbers, so changing `ticketPrefix` keeps every ticket. Each holds a `ticket.md`, and `reports/`, `protos/` and `history.md` once the work writes them.
 - **`tickets/archive/`**: finished and dropped tickets, moved here whole.
 - **`ticket-counter`**: the highest ticket number this project ever gave out, such as `75`, so a deleted or moved ticket's number never goes to a new one.
-- **`inbox.md`**: notes with no home yet. The first `/flow:upkeep` run sorts them, and `flow note` replaces the file.
 - **`findings/`**: one file per lesson a session learned, waiting for `/flow:upkeep`.
+- **`handoffs/`**: what `/flow:handoff` writes for work continuing in another session. The mod deletes each file after one clean turn.
 - **`research/<topic>/`**: the research reports this project asked for, one folder per topic. `/flow:research` writes them.
-- **`overlays/<skill>.md`**: lines this project adds to a skill. [Configure](../configure.md) covers overlays.
 - **`settings.json`**: this project's [`ticketPrefix`](settings.md#ticketprefix).
 
 ### `docs/`
@@ -183,6 +181,6 @@ Sessions write here, and Flow owns none of it.
 - `repos/`: each computer downloads its own
 - each tool's `wiki/<tool>/downloads/`
 - `registry.json`: where each project sits on this computer
-- the small files Flow keeps while it works: `records-sync.json`
+- the small files Flow keeps while it works, such as `records-sync.json`
 
 Claude Code's `~/.claude/projects/` stays too. A project's `.flow/` travels inside your Flow home.

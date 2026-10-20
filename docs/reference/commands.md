@@ -6,6 +6,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
 
 - [Setting up](#setting-up): put Flow on your computer and your projects, and keep it current
   - [`flow install`](#flow-install): put Flow on this computer
+  - [`flow update`](#flow-update): take a newer Flow
   - [`flow init`](#flow-init): set up the project you are in
   - [`flow doctor`](#flow-doctor): check that Flow is installed correctly
   - [`flow sync`](#flow-sync): back up your workflow and share it between your computers
@@ -16,7 +17,7 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow tree`](#flow-tree): tickets nested under the ticket they were split from
   - [`flow check`](#flow-check): find broken links between tickets
 - [One ticket](#one-ticket): show, create, change or remove one ticket
-  - [`flow get`](#flow-get): show one ticket
+  - [`flow <id>`](#flow-id): show one ticket
   - [`flow new`](#flow-new): create a ticket
   - [`flow edit`](#flow-edit): change a ticket's title, description, labels or links
   - [`flow rank`](#flow-rank): put a ticket before or after another
@@ -46,14 +47,23 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
 
 ### `flow install`
 
-Put Flow on this computer. It links Flow's skills, rules and scripts, downloads the tools Flow uses, and connects your Flow home. Your Flow home is `~/.flow/`, the folder where Flow keeps your notes, settings and tickets. It is backed up to a private GitHub repository, `flow-home`, which your other computers join. Run again, `flow install` puts back anything missing, which is also how a computer takes a newer Flow: pull the clone, then run it.
+Put Flow on this computer. It links Flow's skills and scripts, downloads the tools Flow uses, and connects your Flow home. Your Flow home is `~/.flow/`, the folder where Flow keeps your notes, settings and tickets. It is backed up to a private GitHub repository, `flow-home`, which your other computers join. Run again, `flow install` puts back anything missing.
 
 ```console
 $ flow install
-Flow is installed: 10 skills, each typed under the plugin name, as /flow:groundwork.
+Flow is installed: 11 skills, each typed under the plugin name, as /flow:groundwork.
 named: this machine is pc-wsl
 started: your Flow home, sent up so your other machines join it
 Every line of the install is in ~/.flow/logs/install.log.
+```
+
+### `flow update`
+
+Take a newer Flow: it pulls Flow's clone, then runs `flow install` again. A clone you linked yourself is a checkout of your own, so `flow update` refuses it and changes nothing. [Developing Flow](developing-flow.md) covers that setup.
+
+```console
+$ flow update
+flow: ~/.flow/repos/flow is a link to /home/me/code/flow-dev, a checkout of your own that update leaves alone. Pull it yourself, then run flow install.
 ```
 
 ### `flow init`
@@ -87,29 +97,22 @@ Check that Flow is installed correctly. It changes nothing, names the fix on eac
 ```console
 $ flow doctor
 ok    issues: every job running in the background worked last time
-ok    clone: 3 submodules on the commit this clone points at
+ok    clone: 1 submodule on the commit this clone points at
 ok    programs: node, git, claude, gh all resolve
-ok    claude code: 2.1.289, and Flow needs 2.1.287 or later
-fail  names:
-        util is not linked: run flow install
-        u is not linked: run flow install
-fail  util:
-        util fs tree does not run, and it is called by home/CLAUDE.md, in tree-for-structure
-        util fs open does not run, and it is called by flow get --files, through tickets.js
-        /home/me/.util/sources does not exist, so no source is registered: run flow install
-ok    ~/.agents: 12 skills linked under skills/flow/
-ok    ~/.claude: skills/flow, 1 agent, 1 rule and CLAUDE.md linked
-fail  settings.json:
-        /home/me/.claude/settings.json does not exist, so none of Flow's hooks run: run flow update, whose setup session fixes settings.json from /home/me/code/flow/home/settings.json
+ok    claude code: 2.1.304, and Flow needs 2.1.287 or later
+ok    names: flow, fw, util, u all resolve
+ok    util: fs tree runs
+ok    ~/.agents: 11 skills linked under skills/flow/
+ok    ~/.claude: skills/flow, 0 agents, 0 rules, 0 commands and CLAUDE.md linked
+ok    settings.json: 18 hooks registered, every file they name on disk, sessions start in "default" mode
 ok    ~/.flow: scripts, references and docs resolve into this clone
-ok    skills: 1 skill on everywhere, 1 more for shop
-ok    projects: exp ~/code/expense, shop ~/code/shop
-fail  tickets:
-        shop-5-old-words is in a folder not named by its id: rename the folder to shop-5
-        shop-9 is titled "feature", a label and no name: flow edit shop-9 --title <up to 4 words>
+ok    projects: fw ~/code/flow-dev
+ok    tickets: 220 tickets in the current format
 
-4 of 13 checks failed.
+nothing to fix.
 ```
+
+A failing line names the fix beneath it, such as `util is not linked: run flow install`.
 
 - **`projects`**: the prefix and folder of each project on this computer. It names a registered folder that is gone, the current folder's prefix when another folder holds it (the fix is `ticketPrefix` in `.flow/settings.json`), a line whose folder has since changed its `ticketPrefix`, and the current project missing from the list. With any of these it adds a note listing every registered project. It reads the file and scans nothing.
 - **`tickets`**: inside a project, names each ticket made before the current format: a folder named with more than its id, a `groundwork/map.md` that is only the empty template, and a title that is one of the ticket's own labels. Outside a project it is skipped.
@@ -131,7 +134,7 @@ It runs by itself when a session ends, and every 30 minutes while you work, so y
 
 ## The board
 
-A ticket is one piece of work, kept as a folder in the project's `.flow/tickets/`. [Tickets](../tickets.md) covers labels and statuses.
+A ticket is one piece of work, kept as a folder in the project's `.flow/tickets/`. Its status is `todo`, `in-progress`, `done`, `parked` or `dropped`, and its labels name the kind of work.
 
 **Tickets come in rank order.** Tickets with the same parent are siblings, and top-level tickets share the empty parent. Among siblings, a ticket with a `rank:` number comes first, by number. The tickets without one follow by id, so a new ticket lands last. [`flow rank`](#flow-rank) moves a ticket.
 
@@ -302,14 +305,14 @@ A ticket's id is the project's prefix and a number, `shop-4`. Its title is up to
 
 A project joins the list by its first ticket write (`flow init`, `flow new`, `flow start` and the like), and a read never adds one. An unknown prefix fails with a message that names `flow doctor`, which lists the projects.
 
-### `flow get`
+### `flow <id>`
 
-`flow get <id>`, or just `flow <id>`: one ticket's fields, then its text, then the command that starts work on it.
+`flow <id>`: one ticket's fields, then its text, then the command that starts work on it. It takes no flags.
 
-A `rank:` line shows only on a ticket that has a number.
+A `rank:` line shows only on a ticket that has a number. An `activity:` line shows on a ticket a phase has started.
 
 ```console
-$ flow get 4
+$ flow 4
 shop-4-safari-cookie
 Safari loses the session cookie after login
 status: todo   parent: -
@@ -329,8 +332,6 @@ pick up with: flow start shop-4
 
 <!-- One observable check. Write it now. -->
 ```
-
-- **`--files`**: also print the files the last session listed for the next one to open.
 
 ### `flow new`
 
@@ -361,7 +362,7 @@ flow: no ticket was made: another machine took shop-7 first. Run it again.
 - **`--title <words>`**: the title in place of the cut one. Lowercase letters, digits and single hyphens, 40 characters at most, such as `login-redirect-loop`.
 - **`--before <id>`**, **`--after <id>`** or **`--first`**: where the ticket goes among its siblings. [`flow rank`](#flow-rank) explains the order.
 - **`--parent <id>`**: the ticket this one was split from.
-- **`--deps <id,id>`**: tickets that must reach `review` or `done` before this one can start.
+- **`--deps <id,id>`**: tickets that must reach `done` before this one can start.
 - **`--label <label,label>`**: tags in lowercase letters, digits and hyphens, 24 characters at most. Flow suggests 9: `feature`, `bug`, `chore`, `docs`, `refactor`, `research`, `topic`, `new-project` and `urgent`. Any other name works too, such as `v1` or `post-v1`.
 - **`--body <text>`**: the ticket's text, in place of the template. `--body -` reads it from standard input.
 - **`-p`, `--project <prefix>`**: the project that gets the ticket, from any folder. `home` files it in `~/.flow/tickets/`, numbered `home-1`.
@@ -387,6 +388,7 @@ shop-3
 - **`--label <label,label>`**: the ticket's labels, replacing the whole list. An empty value clears it.
 - **`--parent <id>`**: the ticket this one was split from. An empty value removes it.
 - **`--deps <id,id>`**: the tickets this one waits on, replacing the whole list. An empty value clears it. A wait that would make a loop is refused.
+- **`--activity <word>`**: the kind of work in flight, `design`, `build` or `debug`.
 
 The order changes through [`flow rank`](#flow-rank), never through `flow edit`.
 
@@ -488,31 +490,28 @@ Each status has a command named for where the ticket lands:
 
 ```text
 flow todo <id>                    back in the queue
-flow groundwork <id>              settle the open questions
-flow plan <id>                    write the plan
-flow build <id>                   build it
-flow review <id>                  hand the work over
+flow start <id> --activity <word> start working on it
 flow done <id>                    close it, and move its folder to the archive
 flow park <id> --reason "<why>"   set it aside
 flow revive --label <label>       bring back every parked ticket with a label
 ```
 
-The skills move tickets for you. [Phases](../phases.md) covers which skill moves a ticket, and when. A move lists the tickets it unblocked:
+The skills move tickets for you. `--activity` is `design`, `build` or `debug`, and names the kind of work in flight. A move lists the tickets it unblocked:
 
 ```console
-$ flow review shop-2
-shop-2-budget-store  building → review
+$ flow done shop-2
+shop-2-budget-store  in-progress → done
+      activity: build
+      moved → .flow/tickets/archive/2
 
 now ready:
   TICKET             STATUS  LABELS      PARENT
   shop-3-csv-export  todo    feature,v1  -
 ```
 
-**A ticket in `review` already counts as finished** for the tickets waiting on it.
-
 **A move refuses**:
 
-- starting a ticket whose waits have not reached `review` or `done`;
+- starting a ticket whose waits have not reached `done`;
 - starting a parent while one of its children is open;
 - closing a parent while one of its children is open;
 - `flow park` without `--reason`.
@@ -521,19 +520,19 @@ now ready:
 
 ```console
 $ flow done shop-1
-flow: shop-1 has 1 open child ticket, finish those first:
-  shop-2-budget-store  review
-  Or override with: flow done shop-1 --force
+flow: shop-1 has 1 open child ticket, its work is theirs:
+  shop-2-budget-store  in-progress
+  Finish those, or close it anyway with: flow done shop-1 --force
 ```
 
-**A parked ticket comes back through the command for the status it left.** A ticket parked while `building` returns with `flow build`:
+**A parked ticket comes back through the command for the status it left.** A ticket parked while `in-progress` returns with `flow start`, and one parked from `todo` with `flow todo`:
 
 ```console
 $ flow park shop-4 --reason "waiting on a Safari machine"
-shop-4-safari-cookie  building → parked
+shop-4-safari-cookie  in-progress → parked
       reason: waiting on a Safari machine
 
-revive with: flow build shop-4
+revive with: flow start shop-4
 ```
 
 **A label parks a set.** `flow park --label` parks every open ticket carrying it, in one commit, and `flow revive --label` returns each parked one to the status it left. A label no ticket carries changes nothing and lists the labels in use.
@@ -541,13 +540,13 @@ revive with: flow build shop-4
 ```console
 $ flow park --label post-v1 --reason "after V1 ships"
 shop-8-dark-mode  todo → parked
-shop-9-pdf-export  building → parked
+shop-9-pdf-export  in-progress → parked
 
 parked 2 tickets labelled post-v1: after V1 ships
 
 $ flow revive --label post-v1
 shop-8-dark-mode  parked → todo
-shop-9-pdf-export  parked → building
+shop-9-pdf-export  parked → in-progress
 
 revived 2 tickets labelled post-v1
 ```
@@ -558,14 +557,14 @@ revived 2 tickets labelled post-v1
 
 ```console
 $ flow settings ls
-setting           state  level
-reminder          on     everywhere   a line beside every message, pointing Claude at the reply rules
-sessionCheck      on                  the flow init suggestion, when a session opens
-setupReminder     off    this folder  suggests flow init where a repository has no .flow/
-wrapUp            on                  tells Claude to hand off once the conversation passes wrapUpAt tokens
+setting        state  level
+reminder       on            a line beside every message, pointing Claude at the reply rules
+sessionCheck   on            the flow init suggestion, when a session opens
+setupReminder  on            suggests flow init where a repository has no .flow/
+wrapUp         on            tells Claude to hand off once the conversation passes wrapUpAt tokens
 
-value             default  yours
-wrapUpAt          170000   200000  the conversation size in tokens at which wrapUp speaks
+value     default  yours
+wrapUpAt  170000   170000  the conversation size in tokens at which wrapUp speaks
 ```
 
 - **`flow settings ls`**: every setting, and the level that decides it, then each number setting with its default and your value. `yours` is blank while the default decides. A bare `flow settings` prints the same.
@@ -587,7 +586,7 @@ setupReminder is still off here, since this folder says so.
 
 ### `flow scorecard`
 
-How well the agent follows your rules, across every session. A rule check is a small script that tests each change the agent makes against one rule, and records the result. [Rule checks](../rule-checks.md) covers writing one.
+How well the agent follows your rules, across every session. A rule check is a small script that tests each change the agent makes against one rule, and records the result. A check is one file in `scripts/rule-checks/`.
 
 The scorecard lists checks that fail to load, checks naming a rule that no longer exists, the rules broken most, checks broken often enough to start warning, and rules that never once applied. It ends with how many rules have a check at all, so a clean report never reads as a clean session.
 
@@ -595,13 +594,13 @@ The scorecard lists checks that fail to load, checks naming a rule that no longe
 $ flow scorecard
 nothing to report yet.
 
-0 rules measured, 121 not measurable. 0 results over 0 days.
-No checks yet. One file each in ~/.flow/repos/flow/scripts/rule-checks.
+0 rules measured, 121 not measurable. 353 results over 14 days.
+No checks yet. One file each in /home/me/code/flow-dev/scripts/rule-checks.
 ```
 
 ## Audit
 
-`flow audit` reads the transcripts Claude Code keeps of every session into an index, `~/.flow/audit/audit.db`, and answers questions from it. A read refreshes the index first when the last full run is over 30 minutes old, and the line under the coverage line says how old it is. The first build is `flow audit index`. A session id can be any start of it that matches one session alone, such as `a1b2`. [Learning](../learning.md) covers segments, turns and what the audit is for.
+`flow audit` reads the transcripts Claude Code keeps of every session into an index, `~/.flow/audit/audit.db`, and answers questions from it. A read refreshes the index first when the last full run is over 30 minutes old, and the line under the coverage line says how old it is. The first build is `flow audit index`. A session id can be any start of it that matches one session alone, such as `a1b2`. A segment is one unbroken context window, and a turn is one prompt with everything it set off.
 
 A transcript names no machine, so the index tags each session with the name `flow install` saved for this computer, or `unnamed` before one is saved. Every answer from the index opens with one line per machine, its session count and its newest day. That line counts the whole index, whatever `--project` or `--since` narrows. The examples below leave it out.
 
@@ -646,10 +645,10 @@ a1b2c3d4  shop     2026-10-02  2026-10-02  1    2      6      1    840  330.0k  
 
 ### `flow audit get`
 
-`flow audit get <id>`, or `flow audit <id>`: one session in full, ending with the command to read its heaviest turn.
+`flow audit get <id>`: one session in full, ending with the command to read its heaviest turn. A bare `flow audit <id>` is refused, and points here.
 
 ```console
-$ flow audit a1b2
+$ flow audit get a1b2
 a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d
   project     shop   /home/me/code/shop
   branch      main   Claude Code 2.1.290
@@ -706,7 +705,7 @@ a1b2c3d4 turns 1-1 · transcript lines 1-10
 
 ── user 09:00:07
   /flow:execute /shop-4
-   → Bash {"command":"flow get shop-4 --files"}
+   → Bash {"command":"flow shop-4"}
    ← Bash ok 2 B
    → Read {"file_path":"/home/me/code/shop/src/auth/login.ts"}
    ← Read ok 2 B
@@ -746,7 +745,7 @@ Bash 3 (1 err)  Read 2  Edit 1
 ```console
 $ flow audit timeline a1b2
 TURN  TOOL  OK   CALL
-1     Bash  ok   flow get shop-4 --files
+1     Bash  ok   flow shop-4
 1     Read  ok   /home/me/code/shop/src/auth/login.ts
 1     Read  ok   /home/me/code/shop/src/auth/session.ts
 1     Bash  ERR  npm test -- auth

@@ -5,7 +5,7 @@ How Flow draws: `/flow:visualize`, the skill every diagram, screen mockup and co
 ## Scope
 
 - **In**: picking the medium, the 3 ways to draw, the characters an agent may use, the conventions every diagram follows, `canvas.js`, what drawing costs, and the engine that may come later.
-- **Out**: when a spec or a reply must carry a drawing, which `skills/phases/groundwork/references/write-spec.md` and `home/CLAUDE.md` → `ui-is-drawn` say.
+- **Out**: when a spec or a reply must carry a drawing, which `references/write-spec.md` and `home/CLAUDE.md` → `ui-is-drawn` say.
 
 ## What an answer is drawn in
 

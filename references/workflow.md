@@ -5,9 +5,9 @@ Every place in the workflow and the routes between them. For how to do a step, r
 ## The pieces
 
 - **Ticket**: one unit of committed work, and the only thing that ever gets built. On disk, a folder under `.flow/tickets/` holding `ticket.md` (what to do, why, where it stands) beside whatever the work produces. Its status, parent and dependencies live in that file's frontmatter, written only by `flow`.
-- **Groundwork**: a list of open branches walked until each is resolved. It produces tickets, a spec, a design, or nothing.
-- **Design**: the shape of one solution, its parts and how they talk. Written in one pass when groundwork closes, beside its map, or in `docs/spec/` when it outlives the build. Only earned when the answer was a structure.
-- **Plan**: the numbered steps that build one ticket, in `plan.md` inside that ticket's folder. Written at pickup. Each step's detail fills in as the build reaches it.
+- **Groundwork**: a list of open questions walked until each is answered, in the ticket's `## Questions`. It produces tickets, a spec, a design, or nothing.
+- **Design**: the shape of one solution, its parts and how they talk. Written in one pass when groundwork closes, in the ticket, or in `docs/spec/` when it outlives the build. Only earned when the answer was a structure.
+- **Plan**: the checklist that builds one ticket, under `## Tasks` in `ticket.md`. Written at pickup when the build takes more than about 3 steps, each step naming its check. Smaller work keeps its plan unwritten.
 - **Spec**: what the product is and why, in `docs/spec/`. Any groundwork run can create or edit it, and it outlives every ticket that came out of it.
 - **Prototype**: runnable code answering one question, in the ticket's own `protos/` folder. Never promoted: the real build reads it as a reference and starts again.
 
@@ -17,7 +17,7 @@ Every place in the workflow and the routes between them. For how to do a step, r
 
 Not every job walks the whole chain. A small fix is a ticket with a plan and no groundwork. A question is neither.
 
-**Every phase works on a ticket.** A phase skill started with none creates one first, typed for the work. Outside a project it lives in `~/.flow/tickets/`. Only a small task asked in chat, a `/flow:research` question and a subagent's job run without one: the subagent works under the ticket that sent it.
+**Every phase works on a ticket.** A phase skill started with none creates one first, labelled for the work. Outside a project it lives in `~/.flow/tickets/`. Only a small task asked in chat, a `/flow:research` question and a subagent's job run without one: the subagent works under the ticket that sent it.
 
 ## Where groundwork's answers go
 
@@ -25,44 +25,42 @@ Any run routes what it decided, to several places or to none:
 
 - committed work → tickets, each carrying a `## References` section pointing at what the build has to read
 - anything settled that outlives the build → `docs/spec/`, created if absent
-- the shape of one thing, dying when that thing is built → a design document beside the map
+- the shape of one thing, dying when that thing is built → a design section in the ticket
 - a durable fact about the project → its `CLAUDE.md` where most sessions need it, otherwise `docs/context/<subject>.md`
-- decided but not now, and anything else that dies with the build → the map itself
+- decided but not now, and anything else that dies with the build → the ticket's own decisions
 
-**Groundwork lives in its ticket's `groundwork/`.** A run outside a project routes nothing to `docs/`.
+**Groundwork lives in its ticket's `ticket.md`.** An older ticket holds `groundwork/map.md` instead, read as its `## Questions`. A run outside a project routes nothing to `docs/`.
 
 ## Tickets
 
-`todo → groundwork → planning → building → review → done`. Two off the line: `parked` (revivable) and `dropped` (terminal), each needing a written reason.
+`todo → in-progress → done`. Two off the line: `parked` (revivable) and `dropped` (terminal), each needing a written reason. The phase a ticket is in sits beside the status, as its `activity`: `design`, `build` or `debug`, set by `flow start <id> --activity <word>`.
 
-**Every type walks a subsequence of that order:**
+**A type is a label, and sets no route.** `feature`, `chore`, `bug` and `topic` change nothing about the statuses. The work decides which phases a ticket meets:
 
-- **`feature`**: all of them.
-- **`chore`**: the same, usually skipping `/flow:groundwork`.
-- **`issue`**: `todo → building → review → done`. `/flow:debug` hunts the cause and writes the fix as one act.
-- **`topic`**: `todo → groundwork → done`. The map is the deliverable.
-- **`prototype`**: `todo → building → review → done`.
+- **A small fix** skips `/flow:groundwork`.
+- **A bug**: `/flow:debug` hunts the cause and writes the fix as one act.
+- **A topic** ends when its `## Questions` are answered. The ticket is the deliverable.
 
 `.flow/tickets/` stays flat on disk: the hierarchy is `parent:` in frontmatter, and `flow` renders it on demand.
 
 **A ticket is named by its id, never a path.** `exp-47`, `47` and `exp-47-parser-split` all resolve in `flow`. A ticket reaches a skill through its own skill, typed after it: `/flow:execute /exp-47`.
 
-**Pickup decides a ticket's shape.** `/flow:start` routes it, and nothing else happens there. **The ticket does not move at pickup.** The skill that takes it writes the status, after opening the phase's own artifact. `/flow:groundwork` settles what the ticket is. `/flow:execute` plans, builds and reviews it.
+**Pickup decides a ticket's shape.** `/flow:start` routes it, and nothing else happens there. **The ticket does not move at pickup.** The skill that takes it runs `flow start <id> --activity <word>`, after reading the ticket. `/flow:groundwork` settles what the ticket is. `/flow:execute` plans, builds and reviews it.
 
-**The artifact decides the phase: `map.md`, `plan.md`, the hunt in `## State`.** Where the status disagrees, every phase skill opens its own artifact first, says the disagreement out loud, and corrects the status. Evidence reading both ways → ask the user.
+**The ticket's sections decide the phase: `## Questions`, `## Tasks`, the hunt in `## State`.** Where the status disagrees, every phase skill reads those first, says the disagreement out loud, and corrects the status. Evidence reading both ways → ask the user.
 
-**A ticket's own skill prints the ticket with `flow <id>`.** `/flow:handoff` writes `## State`, which holds work in flight and is deleted at review. Whoever cut the ticket wrote `## References`: what the build has to respect, kept to `done`. A session reads the files it lists that the work needs, in one parallel batch.
+**A ticket's own skill prints the ticket with `flow <id>`.** `/flow:handoff` writes `## State`, which holds work in flight and is deleted at `done`. Whoever cut the ticket wrote `## References`: what the build has to respect, kept to `done`. A session reads the files it lists that the work needs, in one parallel batch.
 
 **Two sources can disagree.** On what exists, the files win. On decisions and what is still open, `## State` wins over the rest of the ticket.
 
 ## Inside each place
 
-**Two roots.** `docs/` holds the project's own documents, including whatever was there before Flow. `.flow/` holds Flow's working store.
+**Two roots.** `docs/` holds the project's own documents, including whatever was there before Flow. `.flow/` holds Flow's working store: a link into the project's folder in the Flow home (`~/.flow/projects/<name>/`), made by `flow init`.
 
-- **`.flow/tickets/exp-47-slug/`**: `ticket.md` (frontmatter, body, and whichever of `## References`, `## Done when` and `## State` the work has written) and `groundwork/`, both from birth; `intake/` when material for this job gets dropped in; `plan.md` and `reports/` appear when the work writes them, one report per thing answered, named after what it answers. `protos/` holds a prototype's code, one folder per prototype. `history.md` gets a line from `flow` at each status move: the session and the code branch. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `.flow/tickets/archive/`.
-- **`.flow/tickets/exp-47-slug/groundwork/`**: `map.md`, every branch and decision in one file, plus a detail file per branch that actually grew, plus `design.md` when one was earned. Nothing else.
+- **`.flow/tickets/47/`**: `ticket.md` (frontmatter, body, and whichever of `## Questions`, `## Tasks`, `## References`, `## Done when` and `## State` the work has written); `intake/` when material for this job gets dropped in; `reports/` appears when the work writes them, one report per thing answered, named after what it answers. `protos/` holds a prototype's code, one folder per prototype. `history.md` gets a line from `flow` at each status move: the session and the code branch. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `.flow/tickets/archive/`.
+- **`.flow/tickets/47/groundwork/map.md`**: on an older ticket only, its questions and decisions in one file. A new ticket writes no `groundwork/` folder.
 - **`docs/spec/`.** `product.md`, always: what the product is, who it is for, what it bets on, and an index line per other spec file. `<part>.md`, once a part of the product outgrows its section there: what that part does and how it is built. `tech.md`, only once a build decision covers every part: the stack, the repo layout. Every behavior carries its release (V1, V2…) / next / later / never, and every decision its reason and what it refused, in the file that holds it. Markdown only.
-- **`.flow/research/<topic>/`**: the reports `/flow:research` wrote for this project, before their facts are harvested into the wiki. One folder per topic, one file per question, one set for the whole project, on the `flow` branch beside the tickets. Research asked outside any project goes to `~/.flow/research/<topic>/`.
+- **`.flow/research/<topic>/`**: the reports `/flow:research` wrote for this project, before their facts are harvested into the wiki. One folder per topic, one file per question, one set for the whole project, in `.flow/` beside the tickets. Research asked outside any project goes to `~/.flow/research/<topic>/`.
 - **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.
 - **`CLAUDE.md`**: what every session in this project needs: what the project is, its own rules, and whatever else most sessions would get wrong without.
 - **`docs/context/<subject>.md`**: durable project facts only some work needs, one file per subject: a deploy path, a service's limit, any command past install, run, test and check.
