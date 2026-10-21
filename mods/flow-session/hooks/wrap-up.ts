@@ -9,6 +9,7 @@
  * size from the session file.
  */
 import { restartSteps } from './ask'
+import type { Busy } from './button'
 
 const LIMIT = 170000
 const STEP = 20000
@@ -39,11 +40,12 @@ export function wrapUpSettings(globalText?: string, localText?: string): { wrapU
 }
 
 /**
- * True from `LEAD` under the limit while the wrap-up is on: the band then offers the restart. The
- * button is for restarting by hand ahead of the automatic restart at the limit.
+ * True from `LEAD` under the limit while the wrap-up is on and nothing is `busy`: the band then
+ * offers the restart. The button is for restarting by hand ahead of the automatic restart at the
+ * limit, between turns. No figure (just after a compaction) hides it.
  */
-export const offersRestart = (tokens: number | undefined, limit: number, on: boolean): boolean =>
-  on && tokens !== undefined && tokens >= Math.max(limit - LEAD, 0)
+export const offersRestart = (tokens: number | undefined, limit: number, on: boolean, busy: Busy): boolean =>
+  on && !busy.running && !busy.requested && !busy.restarting && tokens !== undefined && tokens >= Math.max(limit - LEAD, 0)
 
 /**
  * The line to send, or undefined. `before` is the size at the last check, 0 at the first.

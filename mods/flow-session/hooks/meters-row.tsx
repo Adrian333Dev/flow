@@ -11,11 +11,16 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, RenderElement, RenderInput, SessionMeasureInput } from 'claude-code'
 
+import type { Tracked } from '../types'
+
+import { busyWith } from './button'
 import { coldAt, lastRequest } from './cache'
 import { SEPARATOR, fit, meters, type Tone } from './meters'
 import { offersRestart, wrapUpSettings } from './wrap-up'
 
 const reading = atom({ plugin: 'flow-session', key: 'meters' } as const, { limit: 170000, rates: [], beat: 0 })
+// The restart's state (see register.ts, where it is set): the Restart button hides while it says a turn or a restart runs.
+const tracked = atom({ plugin: 'flow-session', key: 'tracked' } as const, { asked: [], changed: [] } as Tracked)
 
 // Whether `wrapUp` is on in `~/.flow/settings.json`, read with the limit. Off, the band offers no restart.
 let wrapUpOn = true
@@ -48,10 +53,13 @@ async function readLimit($: EngineInterface): Promise<void> {
   await update($, reading, (r) => ({ ...r, limit }))
 }
 
-/** True when the band offers the Restart button (see `offersRestart`). Reading the figures here redraws the band as they move. */
-export async function restartOffered($: EngineInterface): Promise<boolean> {
+/**
+ * True when the band offers the Restart button (see `offersRestart`). `turnRunning` is the band's own
+ * flag. Reading the figures and the restart state here redraws the band as they move.
+ */
+export async function restartOffered($: EngineInterface, turnRunning: boolean): Promise<boolean> {
   const { tokens, limit } = await read($, reading)
-  return offersRestart(tokens, limit, wrapUpOn)
+  return offersRestart(tokens, limit, wrapUpOn, busyWith(await read($, tracked), turnRunning))
 }
 
 /** The context and the limits, pushed after each main turn and when a limit moves a point. */

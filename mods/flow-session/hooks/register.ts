@@ -15,12 +15,14 @@
  * dialog (hooks/pane.ts) and is logged (hooks/log.ts).
  *
  * The band above the prompt, one badge for each ticket the session works and a
- * Restart button past the wrap-up limit, is hooks/band.tsx, registered from here.
+ * Restart button between turns past the wrap-up mark (hooks/button.ts), is hooks/band.tsx,
+ * registered from here.
  */
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 import type { Restart, Tracked } from '../types'
 import { INSTRUCTIONS_PATH, restartAsk, startInstructions, withInstructions } from './ask'
+import { pressed, pressLost, restartEnded, turnEnded, turnStarted } from './button'
 import { addAsked, afterAnswer, lastReply, restartMessages } from './first-message'
 import { mention, pastedPaths, relativeTo } from './drag'
 import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './band'
@@ -60,6 +62,7 @@ const REFUSAL = 'Flow compacts only at its own restart. Run /restart.'
 let sizeBefore: number | undefined
 let lastChecked = 0
 // What the restart keeps word for word, the turn it ends and the restart itself. The host holds it: a hot reload empties module variables.
+// The validator reads an atom only where it is written, so meters-row.tsx spells this one again for the band's Restart button.
 const tracked = atom({ plugin: 'flow-session', key: 'tracked' } as const, { asked: [], changed: [] } as Tracked)
 // A handoff stands from the moment its skill loads until work changes a file in a later turn.
 let handoffFresh = false
@@ -189,15 +192,20 @@ function editedFile(e: object): string | undefined {
 /**
  * Asks the agent for the handoff, if none stands, and the start message: what `/restart` does
  * and what a press of the band's Restart button does. A command's hidden `context` starts no turn
- * (probed 2.1.301), so the ask is submitted as a prompt once the caller has returned.
+ * (probed 2.1.301), so the ask is submitted as a prompt once the caller has returned. A press that
+ * is already waiting on the agent asks nothing more. The ask lost, the button comes back.
  */
 async function askForRestart($: EngineInterface, args: string): Promise<void> {
+  if ((await read($, tracked)).requested) return
   const ask = restartAsk(handoffFresh, args, await startText($))
-  await update($, tracked, (t) => ({ ...t, typed: true }))
+  await update($, tracked, pressed)
   void $.clock
     .sleep(100)
     .then(() => $.prompt.submit({ text: ask, asUser: true }))
-    .catch((error) => $.ui.log(`/restart could not start the agent: ${error instanceof Error ? error.message : String(error)}`))
+    .catch(async (error) => {
+      await update($, tracked, pressLost).catch(() => undefined)
+      $.ui.log(`/restart could not start the agent: ${error instanceof Error ? error.message : String(error)}`)
+    })
 }
 
 /**
@@ -218,7 +226,7 @@ async function runRestart($: EngineInterface, restart: Restart): Promise<void> {
   } catch (error) {
     $.ui.log(`restart failed, the session is as it was: ${error instanceof Error ? error.message : String(error)}`)
   } finally {
-    await update($, tracked, ({ restart: _, ...t }) => t).catch(() => undefined)
+    await update($, tracked, restartEnded).catch(() => undefined)
   }
 }
 
@@ -360,7 +368,7 @@ export const register: Register = (on) => {
   on('turn.start', async ($, e, next) => {
     await bandTurnStart($, e)
     if (e.agentId === undefined) {
-      await update($, tracked, (t) => ({ ...t, turn: e.turnId }))
+      await update($, tracked, (t) => turnStarted(t, e.turnId))
       if (mentionedNotes.length) noteTurns.set(e.turnId, mentionedNotes)
       mentionedNotes = []
     }
@@ -429,6 +437,7 @@ export const register: Register = (on) => {
     }
     if (e.agentId === undefined) {
       if (e.reason === 'answer') await update($, tracked, (t) => afterAnswer(t, e.answer, t.restart !== undefined))
+      await update($, tracked, (t) => turnEnded(t, e.turnId))
       const { restart } = await read($, tracked)
       if (restart && !restart.started) void runRestart($, restart)
       else if (sizeBefore !== undefined) void logSize($).catch(() => undefined)

@@ -2,20 +2,28 @@ import { describe, expect, test } from 'claude-code/testing'
 import { LEAD, offersRestart, wrapUpLine, wrapUpSettings } from './wrap-up'
 
 describe('offersRestart', () => {
+  const idle = { running: false, requested: false, restarting: false }
+
   test('is true from 30k under the limit and past it, while the wrap-up is on', () => {
     expect(LEAD).toBe(30000)
-    expect(offersRestart(139999, 170000, true)).toBe(false)
-    expect(offersRestart(140000, 170000, true)).toBe(true)
-    expect(offersRestart(190000, 170000, true)).toBe(true)
+    expect(offersRestart(139999, 170000, true, idle)).toBe(false)
+    expect(offersRestart(140000, 170000, true, idle)).toBe(true)
+    expect(offersRestart(190000, 170000, true, idle)).toBe(true)
   })
 
   test('is false with no figure yet, and with the wrap-up off', () => {
-    expect(offersRestart(undefined, 170000, true)).toBe(false)
-    expect(offersRestart(190000, 170000, false)).toBe(false)
+    expect(offersRestart(undefined, 170000, true, idle)).toBe(false)
+    expect(offersRestart(190000, 170000, false, idle)).toBe(false)
   })
 
   test('a limit under 30k offers it from the start', () => {
-    expect(offersRestart(0, 20000, true)).toBe(true)
+    expect(offersRestart(0, 20000, true, idle)).toBe(true)
+  })
+
+  test('is false while a turn runs, a press waits on the agent, or a restart is under way', () => {
+    expect(offersRestart(150000, 170000, true, { ...idle, running: true })).toBe(false)
+    expect(offersRestart(150000, 170000, true, { ...idle, requested: true })).toBe(false)
+    expect(offersRestart(150000, 170000, true, { ...idle, restarting: true })).toBe(false)
   })
 })
 

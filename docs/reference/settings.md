@@ -84,7 +84,7 @@ Tells the agent to hand off once the conversation passes [`wrapUpAt`](#wrapupat)
 Context 172k/170k. At the next checkpoint: wait for subagents, run /flow:handoff, call the restart tool.
 ```
 
-From 30,000 under the limit it gives the size alone every 10,000 (`Context 140k/170k`), and the band above the prompt shows a green Restart button for restarting by hand. Every 20,000 tokens past the limit it asks again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, followed by the last reply, your messages since it and the files changed. A typed `/restart` stops there. An automatic restart then submits `Continue.`.
+From 30,000 under the limit it gives the size alone every 10,000 (`Context 140k/170k`), and the band above the prompt shows a green Restart button for restarting by hand. The button shows only between turns, and a press hides it until the restart ends. Every 20,000 tokens past the limit it asks again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, followed by the last reply, your messages since it and the files changed. A typed `/restart` stops there. An automatic restart then submits `Continue.`.
 
 ## Other keys in Flow's files
 

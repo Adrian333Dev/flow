@@ -36,12 +36,18 @@ export type Restart = {
 
 /** What a restart keeps word for word besides the last reply, which the conversation holds, and the restart itself (hooks/register.ts). The host holds it, so an edit that reloads the mod loses none of it. */
 export type Tracked = {
-  /** The main turn that runs now, which the restart tool ends. */
+  /** The main turn that runs now, which the restart tool ends. Cleared when that turn ends. */
   turn?: string
   /** The restart under way. Set by the restart tool, cleared when the compaction ends. */
   restart?: Restart
   /** Set by /restart, taken by the restart tool, which makes that restart typed. */
   typed?: boolean
+  /**
+   * A press of the Restart button (or a typed /restart) waiting on the agent, which hides the button.
+   * `turn` is the main turn that answers it, known once that turn starts. Cleared when the restart
+   * ends, or when that turn ends with no restart.
+   */
+  requested?: { turn?: string }
   /** The user's messages since the last finished reply, oldest first. */
   asked: string[]
   /** Files an edit tool touched since that reply. */

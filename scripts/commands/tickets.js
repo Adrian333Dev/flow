@@ -340,7 +340,8 @@ function transition(t, tickets, root, status, { force, reason, verb, batch, acti
   if (statuses.NEEDS_REASON.has(status) && !reason) {
     throw new FlowError(
       `moving ${t.id} to ${status} needs a reason:\n` +
-      `  ${verb} --reason "vendor API changes land in Q3, pointless before that"`
+      `  ${verb} --reason "vendor API changes land in Q3, pointless before that"\n` +
+      'Open the reason with the words that matter most: a narrow list shows only the first ones.'
     );
   }
 

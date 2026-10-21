@@ -116,7 +116,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 - **`home/settings.json`**: the allow, ask and deny lists, and the guard's matcher.
 - **`scripts/hooks/guard.js`**: the `PreToolUse` hook. Judges `Bash` and `Read` by command and path, `Edit` and `Write` by the folder rule, and fails closed.
 - **`scripts/lib/guard/`**: one file per kind of harm, the parser, and `world.js`, the one file that reads the disk. The narrowed folder list lives in one place here.
-- **The pane**: one module in Flow's mod. It holds the dialog, route A2, the tokenizer, the headline for every tool other than `Bash`, and the log write. Its path follows the layout of the mod `fw-16` builds.
+- **The pane**: one module in its own mod, `flow-permissions`, apart from `flow-session` (decided 2026-10-20, `fw-172`, built by `fw-233`). It holds the dialog, route A2, the tokenizer, the headline for every tool other than `Bash`, and the log write. The path rule that lets a mod folder be edited without an ask covers every Flow mod.
 - **`~/.flow/logs/permissions/`**: the log.
 - **`scripts/commands/audit.js`**: gains the permissions view.
 

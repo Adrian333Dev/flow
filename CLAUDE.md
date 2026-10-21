@@ -2,7 +2,7 @@
 
 ## Project
 
-Flow is a Claude Code workflow for a solo developer: global rules (`home/`), skills (`skills/`), the `flow` command and its hooks (`scripts/`), the `flow-session` mod (`mods/`), a project scaffold (`project-template/`) and the docs (`docs/`). Node and bash with no dependencies, the mod in TypeScript. `~/.flow/repos/flow` links to this checkout, so every edit here runs on this machine at once.
+Flow is a Claude Code workflow for a solo developer: global rules (`home/`), skills (`skills/`), the `flow` command and its hooks (`scripts/`), the `flow-session` mod (`mods/`), a project scaffold (`project-template/`) and the docs (`docs/`). Node and bash, the mod in TypeScript. Dependencies are allowed where they save real work (the user, 2026-10-21). `~/.flow/repos/flow` links to this checkout, so every edit here runs on this machine at once.
 
 ## Layout
 

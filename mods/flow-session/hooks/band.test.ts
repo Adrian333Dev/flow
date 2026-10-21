@@ -156,3 +156,109 @@ describe('the band', () => {
     await ui.unmount()
   })
 })
+
+describe('the Restart button', () => {
+  /** What Claude Code answers beneath the mod's turn and measure hooks. */
+  function turns(on: Parameters<typeof mock.env>[0]) {
+    claudeCode(on)
+    on('session.measure', (_$, e) => ({ changed: (e as unknown as { changed: never[] }).changed }))
+    on('turn.start', (_$, e) => ({ turnId: (e as unknown as { turnId: string }).turnId }))
+    on('turn.complete', () => ({ text: '' }) as never)
+    const logged: unknown[] = []
+    on('ui.log', (_$, e) => (logged.push(e), { value: undefined }) as never)
+    return logged
+  }
+  /** A press runs on its own after the click returns. */
+  const settle = () => new Promise((done) => setTimeout(done, 30))
+  const sized = (tokens: number) => ({ context: { tokens, window: 200000 }, rateLimits: [], changed: ['context' as const] })
+  const begin = (turnId: string, agentId?: string) => ({ text: '', turnId, ...(agentId ? { agentId } : {}) })
+  const finish = (turnId: string, reason: 'answer' | 'aborted' = 'answer', agentId?: string) => ({
+    turnId,
+    reason,
+    answer: 'Done.',
+    durationMs: 1,
+    isAborted: reason === 'aborted',
+    ...(agentId ? { agentId } : {}),
+  })
+
+  test('shows between turns past the mark, hides while a turn runs, and comes back when it ends', async ($, on) => {
+    turns(on)
+    await $.session.measure(sized(150000))
+    const ui = await $.ui.mount(BAND)
+    expect(await ui.find({ key: 'restart' })).toBeDefined()
+    await $.turn.start(begin('t1'))
+    expect(await ui.find({ key: 'restart' })).toBeUndefined()
+    await $.turn.complete(finish('t1'))
+    expect(await ui.find({ key: 'restart' })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test('stays hidden under the mark', async ($, on) => {
+    turns(on)
+    await $.session.measure(sized(100000))
+    const ui = await $.ui.mount(BAND)
+    expect(await ui.find({ key: 'restart' })).toBeUndefined()
+    await ui.unmount()
+  })
+
+  test('a subagent’s turn neither hides the button nor brings it back', async ($, on) => {
+    turns(on)
+    await $.session.measure(sized(150000))
+    const ui = await $.ui.mount(BAND)
+    await $.turn.start(begin('a1', 'agent-1'))
+    expect(await ui.find({ key: 'restart' })).toBeDefined()
+    await $.turn.start(begin('t1'))
+    await $.turn.complete(finish('a1', 'answer', 'agent-1'))
+    expect(await ui.find({ key: 'restart' })).toBeUndefined()
+    await $.turn.complete(finish('t1'))
+    expect(await ui.find({ key: 'restart' })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test('a press hides it at once and keeps it hidden through the restart', async ($, on) => {
+    turns(on)
+    on('clock.sleep', () => ({ value: undefined }) as never)
+    on('prompt.submit', (_$, e) => ({ text: (e as unknown as { text: string }).text }))
+    await $.session.measure(sized(150000))
+    const ui = await $.ui.mount(BAND)
+    await ui.press({ key: 'restart' })
+    await settle()
+    expect(await ui.find({ key: 'restart' })).toBeUndefined()
+    await $.turn.start(begin('t1'))
+    await $.turn.complete(finish('t1'))
+    // The turn ended with no restart tool call: the press failed and the button is back.
+    expect(await ui.find({ key: 'restart' })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test('a press whose turn calls the restart tool stays hidden until the restart ends', async ($, on) => {
+    turns(on)
+    on('clock.sleep', () => ({ value: undefined }) as never)
+    on('prompt.submit', (_$, e) => ({ text: (e as unknown as { text: string }).text }))
+    on('turn.abort', () => ({ value: undefined }) as never)
+    on('session.compact', () => ({ messages: [] }) as never)
+    await $.session.measure(sized(150000))
+    const ui = await $.ui.mount(BAND)
+    await ui.press({ key: 'restart' })
+    await settle()
+    await $.turn.start(begin('t1'))
+    await $.tool.call({ tool: 'mcp__flow-session__restart', message: 'NOTE' } as never)
+    expect(await ui.find({ key: 'restart' })).toBeUndefined()
+    await ui.unmount()
+  })
+
+  test('a press the agent never receives brings the button back', async ($, on) => {
+    const logged = turns(on)
+    on('clock.sleep', () => ({ value: undefined }) as never)
+    on('prompt.submit', () => {
+      throw new Error('no agent')
+    })
+    await $.session.measure(sized(150000))
+    const ui = await $.ui.mount(BAND)
+    await ui.press({ key: 'restart' })
+    await settle()
+    expect(JSON.stringify(logged)).toContain('could not start the agent')
+    expect(await ui.find({ key: 'restart' })).toBeDefined()
+    await ui.unmount()
+  })
+})

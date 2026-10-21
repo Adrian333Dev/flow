@@ -8,7 +8,7 @@ It runs a solo developer's work in 3 phases: design the decisions, build one tic
 
 - `home/`: the templates for the global rule file and Claude Code's settings
 - `skills/`: the `/flow:*` skills, one per phase and tool
-- `scripts/`: the `flow` command and its hooks, in Node and bash with no dependencies
+- `scripts/`: the `flow` command and its hooks, in Node and bash
 - `mods/flow-session/`: Flow's Claude Code mod, in TypeScript: the ticket badges, the meters under the prompt and the restart tool
 - `project-template/`: the files `flow init` writes into a project
 - `docs/spec/`: what each part of Flow does, and why

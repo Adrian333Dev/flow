@@ -3,7 +3,7 @@
  *
  * A badge is the ticket's id and short name in black on `#ffb703`, joined to its word and
  * count on the terminal's background plus 7% of that colour. The band is one row: it ends with a
- * green Restart button, shown from `LEAD` under the wrap-up limit, and the issue count in red.
+ * green Restart button, shown between turns from `LEAD` under the wrap-up limit (button.ts), and the issue count in red.
  * A ticket lights only when `flow start <id>` picks it up, and then sits leftmost; its file is read again whenever a
  * command or an edit touches it, and at each turn's end. For as long as a turn runs, the badge
  * the session works (the leftmost open one) shows a pale bar 3 cells wide moving along
@@ -342,7 +342,7 @@ export async function bandTurnComplete($: EngineInterface, e: TurnCompleteInput)
 
 /**
  * The band's rows, or what the engine drew where there is nothing to show. `restartSession`
- * is what a press of the Restart button does; the button shows from `LEAD` under the wrap-up limit.
+ * is what a press of the Restart button does; the button shows between turns from `LEAD` under the wrap-up limit.
  */
 export async function drawBand(
   $: EngineInterface,
@@ -353,7 +353,7 @@ export async function drawBand(
   const scenario = mock?.scenario
   const entries = scenario ? withActing(scenario.entries, mockActing) : await read($, band)
   const open = scenario ? scenario.issues : await read($, issues)
-  const restart = scenario ? scenario.restart : await restartOffered($)
+  const restart = scenario ? scenario.restart : await restartOffered($, turnRunning)
   const tick = await read($, frame)
   if (e.props.hasSurvey || (!entries.length && !open && !restart)) return next(e)
 

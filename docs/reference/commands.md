@@ -525,6 +525,8 @@ flow: shop-1 has 1 open child ticket, its work is theirs:
   Finish those, or close it anyway with: flow done shop-1 --force
 ```
 
+**A reason opens with the words that matter most**, since a narrow list (the board's) shows only the first ones.
+
 **A parked ticket comes back through the command for the status it left.** A ticket parked while `in-progress` returns with `flow start`, and one parked from `todo` with `flow todo`:
 
 ```console
