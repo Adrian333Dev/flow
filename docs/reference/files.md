@@ -61,6 +61,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ ticket-counter
 │  ├─ findings/
 │  ├─ handoffs/
+│  ├─ restarts/
 │  ├─ research/<topic>/
 │  └─ settings.json
 └─ docs/
@@ -162,6 +163,7 @@ The project's tickets and what sessions learn in it. It is a link into `~/.flow/
 - **`ticket-counter`**: the highest ticket number this project ever gave out, such as `75`, so a deleted or moved ticket's number never goes to a new one.
 - **`findings/`**: one file per lesson a session learned, waiting for `/flow:upkeep`.
 - **`handoffs/`**: what `/flow:handoff` writes for work continuing in another session. The mod deletes each file after one clean turn.
+- **`restarts/`**: the dialogue of each window a restart ended, `<session>-<window>.md`. The mod writes them and the new window reads one. They stay on this computer.
 - **`research/<topic>/`**: the research reports this project asked for, one folder per topic. `/flow:research` writes them.
 - **`settings.json`**: this project's [`ticketPrefix`](settings.md#ticketprefix).
 
@@ -178,6 +180,7 @@ Sessions write here, and Flow owns none of it.
 `flow sync` carries everything else in `~/.flow/` to your other computers. These stay:
 
 - `settings.local.json`, `logs/`, `audit/` and `changes/`
+- each project's `restarts/`
 - `repos/`: each computer downloads its own
 - each tool's `wiki/<tool>/downloads/`
 - `registry.json`: where each project sits on this computer

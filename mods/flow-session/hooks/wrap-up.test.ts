@@ -28,42 +28,34 @@ describe('offersRestart', () => {
 })
 
 describe('wrapUpLine', () => {
-  test('is silent more than 30k under the limit', () => {
-    expect(wrapUpLine(0, 119000, 150000)).toBeUndefined()
+  const FINISH = 'Finish this step, then call the restart tool with your note.'
+  const STOP = 'Stop now and call the restart tool with your note.'
+
+  test('is silent under the limit: no size notice at any mark', () => {
+    for (const [before, now] of [[0, 119000], [110000, 122000], [128000, 131000], [141000, 149999]]) expect(wrapUpLine(before!, now!, 150000)).toBeUndefined()
   })
 
-  test('gives the size every 10k from 30k under the limit, once each', () => {
-    expect(wrapUpLine(110000, 122000, 150000)).toBe('Context 122k/150k')
-    expect(wrapUpLine(122000, 128000, 150000)).toBeUndefined()
-    expect(wrapUpLine(128000, 131000, 150000)).toBe('Context 131k/150k')
-    expect(wrapUpLine(0, 145000, 150000)).toBe('Context 145k/150k')
-    expect(wrapUpLine(141000, 149000, 150000)).toBeUndefined()
+  test('says finish this step when the size crosses the limit', () => {
+    expect(wrapUpLine(149000, 152300, 150000)).toBe(FINISH)
+    expect(wrapUpLine(0, 150000, 150000)).toBe(FINISH)
   })
 
-  test('asks for the subagents, a handoff and the restart tool when the size crosses the limit', () => {
-    expect(wrapUpLine(149000, 152300, 150000)).toBe(
-      'Context 152k/150k. At the next checkpoint: wait for subagents, run /flow:handoff, call the restart tool.',
-    )
+  test('says stop now when the size crosses 30k past the limit', () => {
+    expect(wrapUpLine(152300, 180000, 150000)).toBe(STOP)
+    expect(wrapUpLine(179999, 180001, 150000)).toBe(STOP)
   })
 
-  test('skips the handoff while one stands', () => {
-    expect(wrapUpLine(149000, 152300, 150000, true)).toBe(
-      'Context 152k/150k. At the next checkpoint: wait for subagents, call the restart tool.',
-    )
-  })
-
-  test('says it once, never on every check past the limit', () => {
+  test('says each once, never on a check between or after the marks', () => {
     expect(wrapUpLine(152300, 160000, 150000)).toBeUndefined()
-    expect(wrapUpLine(0, 155000, 150000)).toBeDefined()
+    expect(wrapUpLine(180000, 230000, 150000)).toBeUndefined()
   })
 
-  test('says it again, firmer, every 20k past the limit', () => {
-    expect(wrapUpLine(168000, 171000, 150000)).toBe(
-      'Context 171k/150k. Finish this step, then wait for subagents, run /flow:handoff, call the restart tool.',
-    )
-    expect(wrapUpLine(171000, 189000, 150000)).toBeUndefined()
-    expect(wrapUpLine(189000, 191000, 150000)).toBeDefined()
-    expect(wrapUpLine(140000, 215000, 150000)).toBeDefined()
+  test('a size that jumps past both marks gets the second line alone', () => {
+    expect(wrapUpLine(140000, 215000, 150000)).toBe(STOP)
+  })
+
+  test('names no size and no handoff', () => {
+    for (const line of [FINISH, STOP]) expect(line).not.toMatch(/\d|handoff/)
   })
 })
 

@@ -1,10 +1,10 @@
 # Writing the start message
 
-The next session knows the repo and nothing else. It holds this message, and the mod adds the last reply, the user's unanswered messages and the changed files. Copy none of them.
+The next session knows the repo and nothing else. It holds this message and nothing of this conversation.
 
 Write a briefing in short plain sentences, in this order. Skip a part with nothing in it.
 
-1. **Load**: first line. Skills and files by name or path. For another session or model, the commands the user types.
+1. **Load**: first line. Skills and files by name or path, and the commands the user types.
 2. **The task**: what is being done, why, what stands built. Each ticket by id with a clause saying what it is. Never copy its `## State`.
 3. **What the user said that no file holds**: decisions, leanings, rejections, what to leave alone. Check the loaded files first. Never restate a rule already loaded.
 4. **Next**: steps in order, then the questions waiting on the user.

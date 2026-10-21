@@ -68,6 +68,7 @@ test('what belongs to one machine is what the ignore file names, at the top of ~
     '/status-line.json',
     '/audit/',
     '/changes/',
+    '/projects/*/restarts/',
     '/wiki/*/downloads/',
     'node_modules/',
   ]);

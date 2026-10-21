@@ -27,14 +27,18 @@ export type MeterState = {
 
 /** A restart the agent asked for, from the tool call to the end of the compaction. */
 export type Restart = {
+  /** The agent's note. */
   message: string
+  /** What it asked to load: `files` entries (a path, `path#heading`, `path:from-to`) and skill names. */
+  files: string[]
+  skills: string[]
   size: number
   started: boolean
   /** Typed by the user as /restart: the compaction ends it and no turn follows. */
   manual: boolean
 }
 
-/** What a restart keeps word for word besides the last reply, which the conversation holds, and the restart itself (hooks/register.ts). The host holds it, so an edit that reloads the mod loses none of it. */
+/** What a restart keeps word for word besides the dialogue, which the conversation holds, and the restart itself (hooks/register.ts). The host holds it, so an edit that reloads the mod loses none of it. */
 export type Tracked = {
   /** The main turn that runs now, which the restart tool ends. Cleared when that turn ends. */
   turn?: string
@@ -50,8 +54,6 @@ export type Tracked = {
   requested?: { turn?: string }
   /** The user's messages since the last finished reply, oldest first. */
   asked: string[]
-  /** Files an edit tool touched since that reply. */
-  changed: string[]
 }
 
 declare module 'claude-code' {

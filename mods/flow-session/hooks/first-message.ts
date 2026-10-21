@@ -1,39 +1,61 @@
 /**
  * first-message.ts: the messages a restarted session starts from.
  *
- * The agent's note alone loses what the user never saw, so the new conversation keeps the last
- * exchange word for word: the agent's last reply, the user's messages since it, and the files
- * changed since. The mod supplies those itself, never the old agent's memory of them: the reply
- * is read from the conversation, the rest is held in host state.
+ * The mod builds the new window from the old one, never the old agent's memory of it: an opening
+ * line, the old window's dialogue word for word (as one `Read` of a file the mod wrote), what the
+ * agent chose to load, the agent's note, and the user's messages it never answered. The loads are
+ * `Read` and `Skill` calls with their results (hooks/loads.ts), so the terminal draws them
+ * collapsed and the agent edits without reading the files again.
  */
-import type { SessionMessage } from 'claude-code'
 import type { Tracked } from '../types'
-import { kilo } from './wrap-up'
+import { NOTE_PREFIX, OPENING } from './dialogue'
+import { callsFor, type Built, type Loaded } from './loads'
 
-export type Exchange = {
-  /** The context size at the restart, in tokens. */
-  size: number
-  /** The agent's last finished reply, which the user has seen. */
-  reply?: string
-  /** The user's own messages since that reply, oldest first. They are unanswered. */
+export type { Built }
+
+/** What a restart carries. `tickets` and `loads` are in the order they are shown. */
+export type Window = {
+  /** The file the dialogue was written to, and the file of the window before it, if any. */
+  dialogue: { path: string; text: string; previous?: string }
+  tickets: readonly Loaded[]
+  loads: readonly Loaded[]
+  note: string
+  /** The user's messages the agent never answered, oldest first. */
   asked: readonly string[]
-  /** Files an edit tool touched since that reply. */
-  changed: readonly string[]
+  /** Typed by the user as /restart: nothing runs after the compaction. */
+  manual: boolean
 }
-
-export type Built = { role: 'user' | 'assistant'; text: string; toolUses: [] }
-
-const MAX_FILES = 30
 
 const user = (text: string): Built => ({ role: 'user', text, toolUses: [] })
 
-const files = (paths: readonly string[]) =>
-  paths.slice(0, MAX_FILES).join(', ') + (paths.length > MAX_FILES ? ` +${paths.length - MAX_FILES} more` : '')
+/** What the new agent is told first. */
+function opening(window: Window): string {
+  const { previous } = window.dialogue
+  const lines = [
+    `${OPENING} The old window is carried, not summarized. Below: its dialogue word for word, what the old agent loaded, its note, and the user's messages it did not answer.${previous ? ` The window before it is ${previous}.` : ''}`,
+    "Where the dialogue and a ticket's `## State` differ, the dialogue wins.",
+    'After you answer the user, run the capture pass (`## Capture` in CLAUDE.md) over the dialogue and the note.',
+  ]
+  if (window.manual) lines.push('Nothing runs now. The user writes next.')
+  return lines.join('\n\n')
+}
 
-/** What is tracked once a main turn ends with `answer`: the user's messages and the changed files are answered. A restart's closing line answers nothing, so it clears nothing. */
+/** The conversation after a restart, oldest first: the six parts below the fixed part Claude Code adds. */
+export function restartWindow(window: Window): Built[] {
+  const { path, text } = window.dialogue
+  const file: Loaded = { type: 'file', path, text, from: 1, to: text.split('\n').length, whole: true }
+  return [
+    user(opening(window)),
+    ...callsFor([file, ...window.tickets, ...window.loads]),
+    user(`${NOTE_PREFIX}\n\n${window.note}`),
+    ...window.asked.map(user),
+  ]
+}
+
+/** What is tracked once a main turn ends with `answer`: the user's messages are answered. A restart's closing line answers nothing, so it clears nothing. */
 export function afterAnswer(tracked: Tracked, answer: string, restarting: boolean): Tracked {
   if (restarting || !answer.trim()) return tracked
-  return { ...tracked, asked: [], changed: [] }
+  return { ...tracked, asked: [] }
 }
 
 const MAX_TYPO_WORD = 40
@@ -79,41 +101,4 @@ export function addAsked(asked: readonly string[], text: string): string[] {
     return earlier.trim() !== '' && before.length <= now.length && before.every((word, i) => sameWord(word, now[i]!))
   }
   return [...asked.filter((earlier) => !repeats(earlier)), text]
-}
-
-/** A message the user wrote, not the result of a tool call. */
-const isUserWords = (m: SessionMessage | undefined): boolean =>
-  m?.role === 'user' && !m.toolResults?.length && m.text.trim() !== ''
-
-/**
- * The agent's last finished reply, read from the conversation: the last assistant text that a
- * message of the user follows, before the call to `restartTool`. The host lists each content
- * block as its own message, so the text before a tool call has no tool call of its own. Only the
- * user's next message tells a reply from that lead-in, and the restart turn has none yet. A
- * reopened session reads the same conversation, so nothing empties it.
- */
-export function lastReply(messages: readonly SessionMessage[], restartTool: string): string | undefined {
-  const call = messages.findLastIndex((m) => m.toolUses.some((use) => use.tool === restartTool))
-  const before = call < 0 ? messages : messages.slice(0, call)
-  return before.findLast((m, i) => m.role === 'assistant' && !m.toolUses.length && m.text.trim() !== '' && isUserWords(before[i + 1]))?.text
-}
-
-/** What the new agent does first. A typed restart runs nothing: the user writes next. */
-function ending(last: Exchange, manual: boolean): string {
-  if (manual) return 'Nothing runs now. The user writes next.'
-  if (!last.asked.length) return 'Continue from the note.'
-  return 'The user has seen nothing since that reply. Do what Next lists, then answer every point of their messages in one reply.'
-}
-
-/** The conversation after a restart, oldest first: the note, the last reply, then the user's unanswered messages. */
-export function restartMessages(note: string, last: Exchange, manual: boolean): Built[] {
-  const parts = [
-    `Restarted at ${kilo(last.size)}. Older turns are gone. Below: the agent's note${last.reply ? ', its last reply (the user saw it)' : ''}${last.asked.length ? ', the user\'s messages since, unanswered' : ''}.`,
-    last.changed.length ? `Changed since that reply: ${files(last.changed)}.` : '',
-    `Note:\n${note}`,
-    ending(last, manual),
-  ]
-  const head = user(parts.filter(Boolean).join('\n\n'))
-  const reply = last.reply ? [{ role: 'assistant', text: last.reply, toolUses: [] } satisfies Built] : []
-  return [head, ...reply, ...last.asked.map(user)]
 }

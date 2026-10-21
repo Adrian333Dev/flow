@@ -31,6 +31,7 @@
  *   status-line.json   left by the retired status line on older machines
  *   audit/, changes/   what this machine's sessions left: the transcript
  *                 index, and what each subagent changed
+ *   projects/*\/restarts/   the dialogue files of this machine's restarted windows
  *   a wiki tool's downloads   pages fetched once per machine
  *   node_modules/   what a prototype in a ticket installed, fetched again
  *                 wherever it runs
@@ -102,6 +103,7 @@ const IGNORED = [
   '/status-line.json',
   '/audit/',
   '/changes/',
+  '/projects/*/restarts/',
   '/wiki/*/downloads/',
   'node_modules/',
   '',

@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: 'Hands work to a session that was not here: a restart, another session or model, or a subagent. Writes the state of each ticket and files what the conversation taught.'
+description: 'Hands work to a session that was not here: another session or model, or a subagent. Writes the state of each ticket and files what the conversation taught.'
 ---
 
 # Handoff
@@ -11,8 +11,8 @@ One test decides every line: would that session get it wrong without it? Whether
 
 Where the work continues sets the steps:
 
-- **Here, after a restart** → steps 1 to 4, then 6.
 - **Another session or model** → steps 1 to 6.
+- **The capture alone** → step 4, when the user asks for it alone.
 - **A session that reports back, or a subagent starting now** → `references/dispatch.md` alone.
 
 ## 1. Pick where the state goes
@@ -51,7 +51,7 @@ Change `## Done when` only when a skill re-decides what the ticket is.
 
 ## 4. Capture the conversation
 
-Run it when this conversation ends here: a restart replaces it, or all remaining work moves to another session or model. Skip it when part of the work stays here, and for a subagent's brief. Unclear → run it.
+Run it when this conversation ends here: all remaining work moves to another session or model. Run it alone when asked. Skip it when part of the work stays here, and for a subagent's brief. Unclear → run it.
 
 1. **Start after the last quote list in this conversation.** None → the first message.
 2. **Walk the user's messages to the last, in your visible turn.** Never in thinking. For each message that corrects, decides, sets something aside, leaves it undone, or shows irritation or doubt, write one line: their words in quotes, the route, the file. A user still unhappy after a fix is one issue ticket, never waiting for a repeat: `flow new "<the area>: <what the user rejected>" --label flow-issue,rework-loop`.
@@ -77,10 +77,7 @@ The file is `.flow/handoffs/<name>.md`, named for the work and written once. The
 
 ## 6. End the reply
 
-Open with the full path of each file written. Then end by where the work continues:
-
-- **Here, after a restart** → end with the paths alone. The start message follows `references/start-message.md`, which the mod hands over.
-- **Another session or model** → end with what the user types there: the ticket's skill (`/exp-47`) if applies, then each skill the work needs (`/flow:groundwork`, `/flow:execute`, etc.). Write it by `references/start-message.md`, at the length the work needs.
+Open with the full path of each file written. Then end with what the user types in the other session or model: the ticket's skill (`/exp-47`) if applies, then each skill the work needs (`/flow:groundwork`, `/flow:execute`, etc.). Write it by `references/start-message.md`, at the length the work needs.
 
   - **Run `flow <id>` first.** Fix a status that no longer matches where the work stands.
   - **Several tickets** → the one to continue first.

@@ -20,7 +20,7 @@ import { offersRestart, wrapUpSettings } from './wrap-up'
 
 const reading = atom({ plugin: 'flow-session', key: 'meters' } as const, { limit: 170000, rates: [], beat: 0 })
 // The restart's state (see register.ts, where it is set): the Restart button hides while it says a turn or a restart runs.
-const tracked = atom({ plugin: 'flow-session', key: 'tracked' } as const, { asked: [], changed: [] } as Tracked)
+const tracked = atom({ plugin: 'flow-session', key: 'tracked' } as const, { asked: [] } as Tracked)
 
 // Whether `wrapUp` is on in `~/.flow/settings.json`, read with the limit. Off, the band offers no restart.
 let wrapUpOn = true

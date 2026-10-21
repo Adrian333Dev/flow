@@ -2,8 +2,8 @@ import { describe, expect, test } from 'claude-code/testing'
 import type { Tracked } from '../types'
 import { busyWith, pressed, pressLost, restartEnded, turnEnded, turnStarted } from './button'
 
-const fresh: Tracked = { asked: [], changed: [] }
-const restart = { message: 'NOTE', size: 150000, started: false, manual: true }
+const fresh: Tracked = { asked: [] }
+const restart = { message: 'NOTE', files: [], skills: [], size: 150000, started: false, manual: true }
 
 describe('busyWith', () => {
   test('a turn counts from the band flag or from the tracked turn, since a hot reload empties the flag', () => {

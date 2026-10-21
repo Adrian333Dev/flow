@@ -2,19 +2,19 @@
  * wrap-up.ts: when the mod tells the agent its context size, and what it says.
  *
  * Answers get worse long before the window fills, so the limit follows the
- * work, never the window. From 30k under the limit the mod gives the size every
- * 10k (`Context 140k/170k`), so the agent hands off before a large step instead
- * of in the middle of it. At the limit it asks for the restart, then again every
- * 20k past it. It replaces `scripts/hooks/context-check.js`, which read the
- * size from the session file.
+ * work, never the window. At the limit the mod tells the agent to finish its
+ * step and call `restart`; `HARD` past it, to stop and call it. Each line is
+ * sent once and names no size: a notice pulls the agent off its task, and the
+ * user is not reminded of the size. It replaces `scripts/hooks/context-check.js`,
+ * which read the size from the session file.
  */
-import { restartSteps } from './ask'
 import type { Busy } from './button'
 
 const LIMIT = 170000
-const STEP = 20000
+/** How far past the limit the second line comes. A turn that passes it a little is no problem. */
+export const HARD = 30000
+/** How far under the limit the band offers the Restart button. */
 export const LEAD = 30000
-const SIZE_STEP = 10000
 
 /** Whole thousands, such as `152k`. */
 export const kilo = (tokens: number) => `${Math.round(tokens / 1000)}k`
@@ -48,20 +48,11 @@ export const offersRestart = (tokens: number | undefined, limit: number, on: boo
   on && !busy.running && !busy.requested && !busy.restarting && tokens !== undefined && tokens >= Math.max(limit - LEAD, 0)
 
 /**
- * The line to send, or undefined. `before` is the size at the last check, 0 at the first.
- * `handoffFresh` is true while a handoff stands and nothing changed after it.
+ * The line to send, or undefined. `before` is the size at the last check, 0 at the first. A size
+ * that jumps past both marks gets the second line alone.
  */
-export function wrapUpLine(before: number, now: number, limit: number, handoffFresh = false): string | undefined {
-  const size = `Context ${kilo(now)}/${kilo(limit)}`
-  if (now < limit) {
-    const from = Math.max(limit - LEAD, 0)
-    if (now < from) return undefined
-    const notice = from + Math.floor((now - from) / SIZE_STEP) * SIZE_STEP
-    return before >= notice ? undefined : size
-  }
-  const mark = limit + Math.floor((now - limit) / STEP) * STEP
-  if (before >= mark) return undefined
-  const next = restartSteps(handoffFresh)
-  if (before < limit) return `${size}. At the next checkpoint: ${next}.`
-  return `${size}. Finish this step, then ${next}.`
+export function wrapUpLine(before: number, now: number, limit: number): string | undefined {
+  if (before < limit + HARD && now >= limit + HARD) return 'Stop now and call the restart tool with your note.'
+  if (before < limit && now >= limit) return 'Finish this step, then call the restart tool with your note.'
+  return undefined
 }

@@ -1,99 +1,56 @@
 import { describe, expect, test } from 'claude-code/testing'
-import type { SessionMessage } from 'claude-code'
-import { addAsked, afterAnswer, lastReply, restartMessages } from './first-message'
+import { addAsked, afterAnswer, restartWindow } from './first-message'
 
 const REFUSAL = { skip: 'Flow compacts only at its own restart. Run /restart.' }
 
-const exchange = { size: 150000, reply: 'REPLY', asked: ['ONE', 'TWO'], changed: ['/a.ts', '/b.ts'] }
+describe('restartWindow', () => {
+  const file = { type: 'file' as const, path: '/p/a.ts', text: 'one\ntwo', from: 1, to: 2, whole: true }
+  const skill = { type: 'skill' as const, name: 'flow:execute', dir: '/s/execute', text: 'BODY' }
+  const window = { dialogue: { path: '/p/.flow/restarts/abc-2.md', text: 'DIALOGUE' }, tickets: [file], loads: [skill], note: 'NOTE', asked: ['ONE', 'TWO'], manual: false }
 
-describe('restartMessages', () => {
-  test('an automatic restart keeps the note, the last reply and every unanswered message, in that order', () => {
-    const [head, reply, one, two, ...rest] = restartMessages('NOTE', exchange, false)
-    expect(rest).toHaveLength(0)
-    expect(head).toMatchObject({ role: 'user' })
-    expect(head!.text).toContain('Restarted at 150k.')
-    expect(head!.text).toContain('Changed since that reply: /a.ts, /b.ts.')
-    expect(head!.text).toContain('Note:\nNOTE')
-    expect(head!.text).toContain('answer every point')
-    expect(reply).toEqual({ role: 'assistant', text: 'REPLY', toolUses: [] })
-    expect([one!.text, two!.text]).toEqual(['ONE', 'TWO'])
-    expect([one!.role, two!.role]).toEqual(['user', 'user'])
+  test('has the six parts in order: opening, dialogue, tickets and loads, note, unanswered messages', () => {
+    const messages = restartWindow(window)
+    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant', 'user', 'assistant', 'user', 'assistant', 'user', 'user', 'user', 'user'])
+    expect(messages[0]!.text).toContain('The session restarted.')
+    expect(messages[0]!.text).not.toContain('abc-2.md')
+    expect(messages[0]!.text).toContain('the dialogue wins')
+    expect(messages[0]!.text).toContain('capture pass')
+    expect(messages[1]!.toolUses[0]).toMatchObject({ tool: 'Read', input: { file_path: '/p/.flow/restarts/abc-2.md' } })
+    expect(messages[2]!.toolResults![0]!.text).toBe('     1\tDIALOGUE')
+    expect(messages[3]!.toolUses[0]).toMatchObject({ tool: 'Read', input: { file_path: '/p/a.ts' } })
+    expect(messages[4]!.toolResults![0]!.text).toBe('     1\tone\n     2\ttwo')
+    expect(messages[5]!.toolUses[0]).toMatchObject({ tool: 'Skill', input: { skill: 'flow:execute' } })
+    expect(messages[6]!.toolResults![0]!.text).toContain('Base directory for this skill: /s/execute\n\nBODY')
+    expect(messages[7]!.text).toBe('Note from the old agent:\n\nNOTE')
+    expect([messages[8]!.text, messages[9]!.text]).toEqual(['ONE', 'TWO'])
   })
 
-  test('a typed restart keeps the note and the reply, and says nothing runs', () => {
-    const messages = restartMessages('NOTE', { ...exchange, asked: [], changed: [] }, true)
-    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant'])
-    expect(messages[0]!.text).toContain('Nothing runs now.')
-    expect(messages[0]!.text).not.toContain('Changed since')
+  test('every call has its own result in a separate message, with matching ids', () => {
+    const messages = restartWindow(window)
+    const calls = messages.flatMap((m) => m.toolUses.map((u) => u.tool_use_id))
+    const results = messages.flatMap((m) => (m.toolResults ?? []).map((r) => r.tool_use_id))
+    expect(new Set(calls).size).toBe(3)
+    expect(results).toEqual(calls)
+    expect(messages.filter((m) => m.toolUses.length).every((m) => !m.toolResults)).toBe(true)
   })
 
-  test('with no reply yet, the note stands alone', () => {
-    const messages = restartMessages('NOTE', { size: 150000, asked: [], changed: [] }, false)
-    expect(messages).toHaveLength(1)
-    expect(messages[0]!.text).toContain('Continue from the note.')
+  test('a typed restart says nothing runs, and names the window before', () => {
+    const [opening] = restartWindow({ ...window, manual: true, asked: [], dialogue: { ...window.dialogue, previous: '/p/.flow/restarts/abc-1.md' } })
+    expect(opening!.text).toContain('Nothing runs now.')
+    expect(opening!.text).toContain('The window before it is /p/.flow/restarts/abc-1.md')
   })
 
-  test('a long list of changed files is cut at 30', () => {
-    const changed = Array.from({ length: 33 }, (_, i) => `/f${i}`)
-    expect(restartMessages('N', { ...exchange, changed }, false)[0]!.text).toContain('/f29 +3 more.')
-  })
-})
-
-describe('lastReply', () => {
-  const TOOL = 'mcp__flow-session__restart'
-  const said = (text: string): SessionMessage => ({ role: 'assistant', text, toolUses: [] })
-  const asked = (text: string): SessionMessage => ({ role: 'user', text, toolUses: [] })
-  const called = (tool: string, text = ''): SessionMessage => ({
-    role: 'assistant',
-    text,
-    toolUses: [{ tool_use_id: tool, tool, input: {} }],
-  })
-  const result: SessionMessage = { role: 'user', text: '', toolUses: [], toolResults: [{ tool_use_id: 'x', text: 'ok', isError: false, result: 'ok' }] }
-
-  test('is the last assistant text that calls no tool, whatever the memory holds', () => {
-    const messages = [asked('A'), said('FIRST'), asked('B'), called('Read', 'looking'), result, said('SECOND'), asked('C'), called('Bash'), result]
-    expect(lastReply(messages, TOOL)).toBe('SECOND')
-  })
-
-  test('the restart call and the closing line after it are no reply', () => {
-    const messages = [asked('A'), said('REAL'), asked('B'), called('Read'), result, called(TOOL, 'Restarting.'), result, said('Restarting now.')]
-    expect(lastReply(messages, TOOL)).toBe('REAL')
-  })
-
-  test('the lead-in text before the restart call is no reply, when the host lists it as its own message', () => {
-    const messages = [asked('A'), said('REAL'), asked('B'), said('Now calling the restart.'), called(TOOL), result]
-    expect(lastReply(messages, TOOL)).toBe('REAL')
-  })
-
-  test('the lead-in text is no reply when the call itself is gone from the list', () => {
-    expect(lastReply([asked('A'), said('REAL'), asked('B'), said('Now calling the restart.')], TOOL)).toBe('REAL')
-  })
-
-  test('narration between tool calls is no reply', () => {
-    const messages = [asked('A'), said('REAL'), asked('B'), said('Reading.'), called('Read'), result, said('Editing.'), called('Edit'), result, said('Restarting.'), called(TOOL)]
-    expect(lastReply(messages, TOOL)).toBe('REAL')
-  })
-
-  test('a restart right after another one finds the reply the first one carried', () => {
-    const messages = [asked('Restarted at 50k.'), said('CARRIED'), asked('B'), called(TOOL), result]
-    expect(lastReply(messages, TOOL)).toBe('CARRIED')
-  })
-
-  test('a blank reply is skipped', () => {
-    expect(lastReply([said('REAL'), asked('B'), said('  '), asked('C')], TOOL)).toBe('REAL')
-  })
-
-  test('a conversation with no reply yet has none', () => {
-    expect(lastReply([asked('A'), called(TOOL)], TOOL)).toBeUndefined()
-    expect(lastReply([], TOOL)).toBeUndefined()
+  test('with no loads and no unanswered messages, the dialogue and the note remain', () => {
+    const messages = restartWindow({ ...window, tickets: [], loads: [], asked: [] })
+    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant', 'user', 'user'])
   })
 })
 
 describe('afterAnswer', () => {
-  const held = { asked: ['ONE'], changed: ['/a.ts'] }
+  const held = { asked: ['ONE'] }
 
-  test('a finished answer clears what was asked and changed', () => {
-    expect(afterAnswer(held, 'NEW', false)).toEqual({ asked: [], changed: [] })
+  test('a finished answer clears what was asked', () => {
+    expect(afterAnswer(held, 'NEW', false)).toEqual({ asked: [] })
   })
 
   test('the closing line of a restart turn changes nothing', () => {
@@ -118,7 +75,18 @@ describe('compaction', () => {
 describe('restart tool', () => {
   test('refuses a call with no message', async ($) => {
     const result = await $.tool.call({ tool: 'mcp__flow-session__restart', message: '' } as never)
-    expect(result).toEqual({ deny: 'Pass the start message as `message`.' })
+    expect(result).toEqual({ deny: 'Pass your note as `message`.' })
+  })
+
+  test('is denied while a helper agent runs, and goes through once it finished', async ($, on) => {
+    on('turn.start', (_$, e) => ({ turnId: e.turnId }) as never)
+    on('turn.complete', () => ({ text: '' }) as never)
+    const call = { tool: 'mcp__flow-session__restart', message: 'NOTE' } as never
+    await $.turn.start({ turnId: 'sub', agentId: 'helper-1' } as never)
+    const denied = await $.tool.call(call)
+    expect(denied).toMatchObject({ deny: expect.stringContaining('A helper agent is still running') })
+    await $.turn.complete({ turnId: 'sub', agentId: 'helper-1', reason: 'answer', answer: 'done' } as never)
+    expect(await $.tool.call(call)).toMatchObject({ result: expect.any(String) })
   })
 
   test('holds the restart in host state, so a second call is refused', async ($) => {
@@ -129,9 +97,9 @@ describe('restart tool', () => {
 })
 
 describe('/restart', () => {
-  test('answers with a line saying the agent writes the start message', async ($) => {
+  test('answers with a line saying the agent writes its note', async ($) => {
     const result = await $.command.run({ command: 'restart', args: '' } as never)
-    expect(result.text).toContain('the agent writes the start message')
+    expect(result.text).toContain('the agent writes its note')
   })
 })
 

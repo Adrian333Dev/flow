@@ -78,13 +78,13 @@ Flow: not set up here. Run flow init to set it up on this computer, or flow sett
 
 ### `wrapUp`
 
-Tells the agent to hand off once the conversation passes [`wrapUpAt`](#wrapupat), then restart the session. Flow's mod prints it:
+Tells the agent to restart the session once the conversation passes [`wrapUpAt`](#wrapupat). Flow's mod sends one line at the limit:
 
 ```text
-Context 172k/170k. At the next checkpoint: wait for subagents, run /flow:handoff, call the restart tool.
+Finish this step, then call the restart tool with your note.
 ```
 
-From 30,000 under the limit it gives the size alone every 10,000 (`Context 140k/170k`), and the band above the prompt shows a green Restart button for restarting by hand. The button shows only between turns, and a press hides it until the restart ends. Every 20,000 tokens past the limit it asks again, more firmly. The restart keeps the session and its transcript. The handoff note replaces the conversation, followed by the last reply, your messages since it and the files changed. A typed `/restart` stops there. An automatic restart then submits `Continue.`.
+At 30,000 past the limit it sends one more, `Stop now and call the restart tool with your note.` Neither names the size or a handoff. A helper agent that still runs delays the restart until it finishes. From 30,000 under the limit the band above the prompt shows a green Restart button for restarting by hand. A press sends the agent one prompt asking for its note. The button shows only between turns, and a press hides it until the restart ends. The restart keeps the session and its transcript. The new window holds the old dialogue word for word (a file in `.flow/restarts/`), the tickets in flight and the files and skills the agent named, the agent's note, and your messages it never answered. A typed `/restart` stops there. An automatic restart then submits `Continue from the note.`.
 
 ## Other keys in Flow's files
 
@@ -223,6 +223,7 @@ A skill you keep takes `"on"`. [`flow doctor`](commands.md#flow-doctor) names ev
 - **`disableBundledSkills`**: Claude Code's own skills, so only Flow's load.
 - **`disableRemoteControl`**: driving a session from claude.ai or your phone.
 - **`disableClaudeAiConnectors`**: claude.ai's connectors.
+- **`idleCompaction`**: set to `false`. Claude Code's own summary of a long conversation left idle for about an hour. A summary loses what you said, and Flow's [restart](#wrapup) carries it word for word.
 - **`feedbackSurveyRate: 0`**: Claude Code's feedback survey prompt.
 - **`disableArtifact`**: the artifact tool.
 - **`autoCompactEnabled: false`**: Claude Code swapping a long conversation for its own summary.

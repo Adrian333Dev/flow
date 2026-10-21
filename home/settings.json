@@ -1,5 +1,6 @@
 {
   "cleanupPeriodDays": 60,
+  "idleCompaction": false,
   "env": {
     "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS": "1",
     "CLAUDE_CODE_PLUGIN_DIRS": "~/.flow/repos/flow/mods/flow-session"
