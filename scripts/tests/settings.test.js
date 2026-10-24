@@ -86,6 +86,9 @@ test('ls shows each number setting beside its default, and yours once a file set
 
   fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ wrapUpAt: 120000 }));
   assert.match(at.flow().stdout, /^wrapUpAt\s+170000\s+120000\s/m, 'the local file wins');
+
+  assert.match(at.flow().stdout, /^keepWarmLead\s+3\s{2,}minutes before/m);
+  assert.match(at.flow().stdout, /^keepWarmMaxIdle\s+4\s{2,}hours after/m);
 });
 
 test('a setting with no folder list, and a word naming no setting, each refuse and say what works', () => {

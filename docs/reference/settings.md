@@ -12,6 +12,7 @@ Every key Flow reads from its own settings files, and every key it writes into C
   - [`wrapUp`](#wrapup): the warning that the conversation is getting long
 - [Other keys in Flow's files](#other-keys-in-flows-files): numbers, lists and names
   - [`wrapUpAt`](#wrapupat): how long a conversation gets before the warning
+  - [`keepWarmLead`](#keepwarmlead) and [`keepWarmMaxIdle`](#keepwarmmaxidle): when `/keepwarm` pings, and when it gives up
   - [`setupReminderSkip`](#setupreminderskip): folders that never suggest `flow init`
   - [`fileSuggestionIgnore`](#filesuggestionignore): paths the `@` list never offers
   - [`ticketPrefix`](#ticketprefix): the word every ticket id starts with
@@ -84,7 +85,7 @@ Tells the agent to restart the session once the conversation passes [`wrapUpAt`]
 Finish this step, then call the restart tool with your note.
 ```
 
-At 30,000 past the limit it sends one more, `Stop now and call the restart tool with your note.` Neither names the size or a handoff. A helper agent that still runs delays the restart until it finishes. From 30,000 under the limit the band above the prompt shows a green Restart button for restarting by hand. A press sends the agent one prompt asking for its note. The button shows only between turns, and a press hides it until the restart ends. The restart keeps the session and its transcript. The new window holds the old dialogue word for word (a file in `.flow/restarts/`), the tickets in flight and the files and skills the agent named, the agent's note, and your messages it never answered. A typed `/restart` stops there. An automatic restart then submits `Continue from the note.`.
+At 30,000 past the limit it sends one more, `Stop now and call the restart tool with your note.` Neither names the size or a handoff. A helper agent that still runs delays the restart until it finishes. A helper agent follows the same limit on its own conversation: it cannot restart, so the mod sends it a message to save its state to its report files and begin its reply with `UNFINISHED:` and their paths, unless it is within a few steps of its final report. The session that sent it starts the next subagent from those files. At 30,000 past the limit the message is `Stop now`. From 30,000 under the limit the band above the prompt shows a green Restart button for restarting by hand. A press sends the agent one prompt asking for its note. The button shows only between turns, and a press hides it until the restart ends. The restart keeps the session and its transcript. The new window holds the old dialogue word for word (a file in `.flow/restarts/`), the tickets in flight and the files and skills the agent named, the agent's note, and your messages it never answered. A typed `/restart` stops there. An automatic restart then submits `Continue from the note.`.
 
 ## Other keys in Flow's files
 
@@ -95,6 +96,22 @@ The conversation size, in tokens, at which [`wrapUp`](#wrapup) speaks. Unset, it
 ```json
 "wrapUpAt": 140000
 ```
+
+### `keepWarmLead` and `keepWarmMaxIdle`
+
+Both belong to `/keepwarm`, the mod's switch that renews a session's prompt cache while you are away. A cache expires 1 hour (or 5 minutes) after the last request that read it, and a message sent after that pays for the whole conversation again, about $1 at 150,000 tokens. A ping costs about $0.03.
+
+- **`keepWarmLead`**: minutes before the cache expires that the ping goes out. Unset, 3. A cache that lives 5 minutes pings at half its life at the latest.
+- **`keepWarmMaxIdle`**: hours after your last request that the pings stop. Unset, 4. Your next message starts them again. With a 1-hour cache, 4 hours is 4 pings, about $0.12, against about $1 for the message that would otherwise find a cold cache.
+
+Either computer-wide file holds them, and `settings.local.json` wins:
+
+```json
+"keepWarmLead": 5,
+"keepWarmMaxIdle": 2
+```
+
+The switch itself is per session, off until you type `/keepwarm on`. Closing the session turns it off and ends the pings, and a session opened again (a resume included) starts with it off, until you type `/keepwarm on` again. A restart or a reload of the mod keeps it on. `/keepwarm status` says when the next ping goes out, and `/keepwarm ping` sends one now and reports what the cache served.
 
 ### `setupReminderSkip`
 

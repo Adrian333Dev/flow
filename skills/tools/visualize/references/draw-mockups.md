@@ -41,6 +41,7 @@ One file, ~200 lines, one round with the user:
 - **Full-page realistic scale.** Not swatches, not isolated components.
 - **Real content.** No lorem, no placeholder labels.
 - **Design tokens as named CSS custom properties at the top**, each commented, plus a header comment listing the loud values being replaced.
+- **Never open a popup over another figure.** Each state of a component is its own frame, so none of the variants is hidden (the user, 2026-10-22).
 - **One 9-line theme toggle**, not two files.
 - **Static markup with trivial inline `onclick` class flips**: controls feel real without a framework.
 

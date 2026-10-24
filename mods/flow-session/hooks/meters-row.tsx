@@ -86,6 +86,11 @@ export async function metersSwitch($: EngineInterface, model: string): Promise<v
   await update($, reading, (r) => ({ ...r, model, coldAt: Date.now() }))
 }
 
+/** A keep-warm ping hit: the cache goes cold at `coldAt`. A fork is not in the transcript, so the countdown is set here. */
+export async function metersWarmed($: EngineInterface, coldAt: number): Promise<void> {
+  await update($, reading, (r) => ({ ...r, coldAt }))
+}
+
 /** The session started or a turn ended: the model, effort and cache countdown come from the transcript's end. */
 export async function metersRead($: EngineInterface, transcript: string): Promise<void> {
   for (const bytes of TAIL_BYTES) {

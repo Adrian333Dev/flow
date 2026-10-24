@@ -10,6 +10,11 @@
  * `Skill` calls, the note, and the user's messages it did not answer. A typed
  * `/restart` stops after the compaction. An automatic one submits `CONTINUE`.
  *
+ * `/copy-v2` (Alt+C in `~/.claude/keybindings.json`) copies the agent's last message, `/copy-all` (Alt+A)
+ * everything since the user's last message, and each turn's end saves that to `.flow/replies/` (hooks/copy.ts).
+ *
+ * `/keepwarm` (hooks/keepwarm.ts) pings the prompt cache before it expires, for one session at a time, and stops at the first ping that misses.
+ *
  * Also: dragged files load as mentions, a handoff note is removed once read,
  * the agent is warned at the wrap-up mark, `#` in the prompt box lists the
  * notes of `flow notes`, and every permission ask opens Claude Code's question
@@ -24,12 +29,14 @@ import type { EngineInterface, Register } from 'claude-code'
 import type { Entry, Restart, Tracked } from '../types'
 import { restartAsk } from './ask'
 import { pressed, pressLost, restartEnded, turnEnded, turnStarted } from './button'
+import { copyAll, copyLast, saveReply } from './copy'
 import { CONTINUE } from './dialogue'
 import { addAsked, afterAnswer } from './first-message'
 import { buildWindow, resolveLoads } from './window'
 import { mention, pastedPaths, relativeTo } from './drag'
 import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './band'
-import { drawMeters, metersClear, metersMeasure, metersRead, metersRefresh, metersStart, metersSwitch } from './meters-row'
+import { closeWarm, keepWarmCommand, cancel as warmCancel, noteActive, noteBroken, noteTranscript, tick as warmTick, type Deps as WarmDeps } from './keepwarm'
+import { drawMeters, metersClear, metersMeasure, metersRead, metersRefresh, metersStart, metersSwitch, metersWarmed } from './meters-row'
 import { drawRows, type MakeText } from './draw'
 import { guardedSentence, headline, questionFor } from './headline'
 import { appendCommand, logLine, logPath, sourceOf, type LogAnswer, type LogFields } from './log'
@@ -55,7 +62,7 @@ import {
   verdictKey,
   type Shown,
 } from './pane'
-import { kilo, wrapUpLine, wrapUpSettings } from './wrap-up'
+import { AGENT_LINES, kilo, sizeOf, wrapUpLine, wrapUpSettings } from './wrap-up'
 
 const RESTART_TOOL = 'mcp__flow-session__restart'
 const TOOL = new RegExp(`^${RESTART_TOOL}$`)
@@ -72,6 +79,9 @@ const tracked = atom({ plugin: 'flow-session', key: 'tracked' } as const, { aske
 const band = atom({ plugin: 'flow-session', key: 'band' } as const, [] as Entry[])
 // The helper agents that run now (their `turn.start` seen, their `turn.complete` not). A restart waits for them.
 const helpers = new Set<string>()
+// Each helper agent's context size at its last request, and at the last check that could send a line. A subagent's size is its own.
+const agentSizes = new Map<string, number>()
+const agentChecked = new Map<string, number>()
 let mentionedNotes: string[] = []
 const noteTurns = new Map<string, string[]>()
 // The `#` list runs on every keystroke, so a note file is parsed again only when its change time moves.
@@ -107,6 +117,15 @@ const readText = ($: EngineInterface, file: string) => $.fs.read(file).catch(() 
 /** The Flow home: `FLOW_HOME`, else `~/.flow`. */
 const flowHome = async ($: EngineInterface) => (await $.env.get('FLOW_HOME')) ?? `${await $.env.get('HOME')}/.flow`
 
+/** True while a keep-warm ping must wait: a main turn, a restart or a helper agent runs, or nobody is at the prompt. */
+async function warmBusy($: EngineInterface): Promise<boolean> {
+  if (interactive === false || helpers.size > 0) return true
+  const t = await read($, tracked)
+  return t.turn !== undefined || t.restart !== undefined || t.requested !== undefined
+}
+
+const warmDeps = ($: EngineInterface): WarmDeps => ({ busy: () => warmBusy($), warmed: (coldAt) => metersWarmed($, coldAt) })
+
 /** The wrap-up line for the size now, or undefined. Remembers the size, so each mark speaks once. */
 async function wrapUp($: EngineInterface): Promise<string | undefined> {
   const home = await flowHome($)
@@ -120,6 +139,26 @@ async function wrapUp($: EngineInterface): Promise<string | undefined> {
   lastChecked = now
   const line = wrapUpLine(before, now, limit)
   if (line) $.ui.log(`wrap-up line sent at ${kilo(now)}`)
+  return line
+}
+
+/**
+ * The wrap-up line for one subagent at its own size, or undefined. A subagent cannot restart
+ * (`$.turn.abort` and `$.session.compact` act on the main conversation alone), so its line tells it
+ * to save its state to files and finish. Each mark speaks once per agent.
+ */
+async function agentWrapUp($: EngineInterface, id: string): Promise<string | undefined> {
+  const home = await flowHome($)
+  const { wrapUp: on, limit } = wrapUpSettings(
+    await readText($, `${home}/settings.json`),
+    await readText($, `${home}/settings.local.json`),
+  )
+  const now = agentSizes.get(id)
+  if (!on || now === undefined) return undefined
+  const before = agentChecked.get(id) ?? 0
+  agentChecked.set(id, now)
+  const line = wrapUpLine(before, now, limit, AGENT_LINES)
+  if (line) $.ui.log(`wrap-up line sent to a subagent at ${kilo(now)}`)
   return line
 }
 
@@ -212,6 +251,8 @@ async function askForRestart($: EngineInterface, args: string): Promise<void> {
 async function runRestart($: EngineInterface, restart: Restart): Promise<void> {
   await update($, tracked, (t) => ({ ...t, restart: { ...restart, started: true } }))
   await metersClear($).catch(() => undefined)
+  // The compacted conversation has no cached prefix: a ping now would pay for all of it.
+  await noteBroken($).catch(() => undefined)
   try {
     stopped = undefined
     await $.command.run({ command: 'compact' })
@@ -311,9 +352,11 @@ export const register: Register = (on) => {
     interactive = e.isInteractive
     await bandStart($)
     await metersStart($).catch(() => undefined)
+    // A hot reload loses the timer, so a switch that is on plans again.
+    void warmTick($, warmDeps($))
     await $.tool.register({
       name: 'restart',
-      description: `Restart this session. The new window opens with the dialogue so far, the tickets in flight, the \`files\` and \`skills\` you name, and your \`message\`. Call it last.`,
+      description: `Restart this session. The new window opens with the dialogue so far, the tickets in flight, the \`files\` and \`skills\` you name, and your \`message\`. Call it last. Only the main session restarts: a subagent saves its state to files and begins its reply with \`UNFINISHED:\`.`,
       isDeferred: false,
       inputSchema: {
         type: 'object',
@@ -341,6 +384,15 @@ export const register: Register = (on) => {
       .register({ name: 'restart', description: 'Restart this session in place, from a start message the agent writes.' })
       .catch(() => undefined)
     await $.command
+      .register({ name: 'copy-v2', description: 'Copy the agent’s last message, as markdown. Alt+C runs it.' })
+      .catch(() => undefined)
+    await $.command
+      .register({ name: 'copy-all', description: 'Copy every message the agent wrote since your last message, with a --- between them and no tool calls. Alt+A runs it.' })
+      .catch(() => undefined)
+    await $.command
+      .register({ name: 'keepwarm', description: 'Keep this session’s prompt cache warm while you are away: /keepwarm on, off, status or ping (one test ping now).' })
+      .catch(() => undefined)
+    await $.command
       .register({ name: 'band', description: 'Switch the test band on or off: /band, /band <number>, next, list, act, off. /band clear empties the real band.' })
       .catch(() => undefined)
     return next(e)
@@ -349,6 +401,19 @@ export const register: Register = (on) => {
   // `/band` shows a test scenario in place of the real band (hooks/band-mock.ts).
   on('command.run', { command: 'band' }, async ($, e) => ({ text: await bandMock($, e.args ?? '') })).catch(() => ({
     text: 'The band command failed, so nothing changed.',
+  }))
+
+  // `/copy-v2` puts the agent's last message on the clipboard, `/copy-all` everything since the user's last message (hooks/copy.ts).
+  on('command.run', { command: 'copy-v2' }, async ($) => ({ text: await copyLast($) })).catch(() => ({
+    text: 'The copy command failed, so nothing was copied.',
+  }))
+  on('command.run', { command: 'copy-all' }, async ($) => ({ text: await copyAll($) })).catch(() => ({
+    text: 'The copy command failed, so nothing was copied.',
+  }))
+
+  // `/keepwarm` switches the cache ping on or off for this session (hooks/keepwarm.ts).
+  on('command.run', { command: 'keepwarm' }, async ($, e) => ({ text: await keepWarmCommand($, warmDeps($), e.args ?? '') })).catch(() => ({
+    text: 'The keepwarm command failed, so nothing changed.',
   }))
 
   // `/restart` asks the agent for its note.
@@ -368,6 +433,9 @@ export const register: Register = (on) => {
     await bandTurnStart($, e)
     if (e.agentId !== undefined) helpers.add(e.agentId)
     if (e.agentId === undefined) {
+      // The user is back: no ping until this turn ends.
+      warmCancel()
+      await noteActive($).catch(() => undefined)
       await update($, tracked, (t) => turnStarted(t, e.turnId))
       if (mentionedNotes.length) noteTurns.set(e.turnId, mentionedNotes)
       mentionedNotes = []
@@ -392,7 +460,8 @@ export const register: Register = (on) => {
   })
 
   // The warning rides on the next message the user types, or on a tool result
-  // when a long turn has no message in it. A subagent's size is its own.
+  // when a long turn has no message in it. A subagent's size is its own: it is
+  // measured at each request (`turn.step`) and its line is sent to it as a message.
   on('prompt.submit', async ($, e, next) => {
     if (usersOwn(e)) await update($, tracked, (t) => ({ ...t, asked: addAsked(t.asked, e.text) }))
     const line = await wrapUp($).catch(() => undefined)
@@ -402,9 +471,21 @@ export const register: Register = (on) => {
   on('tool.call', async ($, e, next) => {
     if (e.agentId === undefined) void metersRefresh($).catch(() => undefined)
     const done = await bandToolCall($, e, () => next(e))
-    if (e.agentId !== undefined || TOOL.test(e.tool) || done.result === undefined) return done
+    if (TOOL.test(e.tool) || done.result === undefined) return done
+    if (e.agentId !== undefined) {
+      // A subagent ignores a line inside a tool result as injected text (probed, Haiku): it goes as a message to the agent.
+      const line = await agentWrapUp($, e.agentId).catch(() => undefined)
+      if (line) await $.session.send({ to: { agentId: e.agentId }, text: line }).catch((error) => $.ui.log(`the wrap-up line to a subagent was not sent: ${reasonOf(error)}`))
+      return done
+    }
     const line = await wrapUp($).catch(() => undefined)
     return line ? { ...done, context: [...(done.context ?? []), line] } : done
+  })
+
+  // A closed session stops warming, and a session opened again starts with the switch off.
+  on('session.end', async ($, e, next) => {
+    await closeWarm($).catch(() => warmCancel())
+    return next(e)
   })
 
   on('session.append', async ($, e, next) => {
@@ -414,7 +495,7 @@ export const register: Register = (on) => {
   })
 
   on('tool.call', { tool: TOOL }, async ($, e) => {
-    if (e.agentId !== undefined) return { deny: 'Only the main session restarts.' }
+    if (e.agentId !== undefined) return { deny: 'A subagent does not restart. Write what you learned to your report files and begin your reply with `UNFINISHED:` and their paths.' }
     const { turn, restart } = await read($, tracked)
     if (restart) return { deny: 'A restart is already under way.' }
     if (helpers.size) return { deny: `${helpers.size === 1 ? 'A helper agent is' : `${helpers.size} helper agents are`} still running. Wait for ${helpers.size === 1 ? 'its' : 'their'} finished notice, then call restart again.` }
@@ -437,15 +518,22 @@ export const register: Register = (on) => {
   on('turn.complete', async ($, e, next) => {
     const done = await next(e)
     await bandTurnComplete($, e)
-    if (e.agentId !== undefined) helpers.delete(e.agentId)
+    if (e.agentId !== undefined) {
+      helpers.delete(e.agentId)
+      agentSizes.delete(e.agentId)
+      agentChecked.delete(e.agentId)
+    }
     const notes = noteTurns.get(e.turnId)
     if (notes) {
       noteTurns.delete(e.turnId)
       if (e.reason === 'answer') await removeNotes($, notes)
     }
     if (e.agentId === undefined) {
+      void saveReply($).catch((error) => $.ui.log(`the reply was not saved: ${reasonOf(error)}`))
       if (e.reason === 'answer') await update($, tracked, (t) => afterAnswer(t, e.answer, t.restart !== undefined))
       await update($, tracked, (t) => turnEnded(t, e.turnId))
+      await noteActive($).catch(() => undefined)
+      void warmTick($, warmDeps($))
       const { restart } = await read($, tracked)
       if (restart && !restart.started) void runRestart($, restart)
       else if (sizeBefore !== undefined) void logSize($).catch(() => undefined)
@@ -493,18 +581,23 @@ export const register: Register = (on) => {
   // Every request of the main loop refreshes the context, so a long turn shows its size as it grows.
   on('turn.step', async function* ($, e, next) {
     if (e.agentId === undefined) void metersRefresh($).catch(() => undefined)
-    return yield* next(e)
+    const response = yield* next(e)
+    if (e.agentId !== undefined && response.usage) agentSizes.set(e.agentId, sizeOf(response.usage))
+    return response
   })
   on('classic.SessionStart', async ($, e, next) => {
     await metersRead($, e.transcript_path).catch(() => undefined)
+    await noteTranscript($, e.transcript_path).catch(() => undefined)
     return next(e)
   })
   on('classic.Stop', async ($, e, next) => {
     await metersRead($, e.transcript_path).catch(() => undefined)
+    await noteTranscript($, e.transcript_path).catch(() => undefined)
     return next(e)
   })
   on('classic.PostModelSwitch', async ($, e, next) => {
     await metersSwitch($, e.to_model).catch(() => undefined)
+    await noteBroken($).catch(() => undefined)
     return next(e)
   })
   on('ui.render', { component: 'PromptHint' }, async ($, e, next) => drawMeters($, e, next))

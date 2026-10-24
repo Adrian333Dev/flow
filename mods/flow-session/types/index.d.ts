@@ -56,8 +56,29 @@ export type Tracked = {
   asked: string[]
 }
 
+/** The keep-warm switch and what its pings must know (hooks/keepwarm.ts). The host holds it, so a hot reload and an in-place restart keep it. Times are epoch milliseconds. */
+export type Warm = {
+  /** Whether this session warms its cache. Off until `/keepwarm on`; a miss or a failed ping turns it off. */
+  on: boolean
+  /** The session's transcript file, from its last start. */
+  transcript?: string
+  /** The last ping that hit: it renewed the cache, and the transcript does not show it. */
+  warmedAt?: number
+  /** The pings sent for the request at `period`. */
+  pings: number
+  period?: number
+  /** The last ping sent, written before the call, so a second tick cannot send another. */
+  attemptAt?: number
+  /** The start or end of the newest main turn: the cache was renewed no earlier than this, even where the transcript is not yet written. */
+  activeAt?: number
+  /** A model switch or a restart: the cached prefix is gone from here until a new request writes it. */
+  brokenAt?: number
+  /** Why the switch went off by itself. */
+  stopped?: string
+}
+
 declare module 'claude-code' {
   interface PluginState {
-    'flow-session': { band: Entry[]; issues: number; frame: number; meters: MeterState; tracked: Tracked }
+    'flow-session': { band: Entry[]; issues: number; frame: number; meters: MeterState; tracked: Tracked; warm: Warm }
   }
 }

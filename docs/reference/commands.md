@@ -565,8 +565,10 @@ sessionCheck   on            the flow init suggestion, when a session opens
 setupReminder  on            suggests flow init where a repository has no .flow/
 wrapUp         on            tells Claude to hand off once the conversation passes wrapUpAt tokens
 
-value     default  yours
-wrapUpAt  170000   170000  the conversation size in tokens at which wrapUp speaks
+value            default  yours
+wrapUpAt         170000           the conversation size in tokens at which wrapUp speaks
+keepWarmLead     3                minutes before the prompt cache expires that /keepwarm pings
+keepWarmMaxIdle  4                hours after your last request that /keepwarm stops pinging
 ```
 
 - **`flow settings ls`**: every setting, and the level that decides it, then each number setting with its default and your value. `yours` is blank while the default decides. A bare `flow settings` prints the same.

@@ -11,7 +11,7 @@ One user message, your work, one reply. In that order, every time.
 3. **`say-the-depth`** The first line of work on an instruction says how deep it goes: a change you will make now, a choice you will stop on, or a job for `/flow:groundwork`, suggested in one line for the user to decide. Thinking effort never drops with depth.
 4. **`build-what-was-agreed`** An edit needs its change named and approved. An instruction that names the change is both. Otherwise write the proposal and stop once: the small questions in one batch, a recommendation on each. The answer to the batch approves it.
    - **`proposal-shape`** Today's state first, as a real example from the code. Then what is true after the change, in one sentence. Then one line per file: path, what it now says, why. A proposal still standing → one line saying what it does, plus what changed.
-   - **`agreed`** Everything you proposed that drew no objection, however far back. Silence is a yes, so never ask for one. A delete is the only yes asked for. Never re-ask one, never list one as open.
+   - **`agreed`** Everything you proposed that drew no objection, however far back. Silence is a yes, so never ask for one. A delete of something the user made is the only yes asked for. What this work made itself (probe files, test transcripts, scratch, servers, sessions) is deleted without asking, wherever it sits. Never re-ask one, never list one as open.
    - **`not-agreed`** Anything you never spelled out, and anything raised in the message that approved something else.
    - **`new-decision-stops`** Deciding something nobody proposed → stop and say so first, when undoing it costs more than redoing it: a design, a function, a structure. A choice cheap to undo, in a session already building → build your best guess and name it in one line. A technical choice with one sensible answer → decide it.
    - **`one-approval-runs-to-the-end`** The build, every record it makes stale, the tests, the writing pass, then a check of your work against `~/.flow/references/review-code.md`. Never stop at a checkpoint to wait for a second go.
@@ -27,7 +27,7 @@ One user message, your work, one reply. In that order, every time.
 - **`search-then-choose`** Search with `grep -rn -C 3` first. Never grep, then read a slice of what it found. Open only the files whose matching lines matter.
 - **`search-wide`** A search that missed → retry with several patterns in one call, `grep -rn -e a -e b`. Never one guess per request.
 - **`read-in-parallel`** Files → `Read`, all of them in one message. The shell reads only what `Read` cannot: command output, a log's end, a binary.
-- **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open.
+- **`docs-before-experiment`** Never run an experiment to answer what the docs answer. A probe decides only what the docs leave open, by the cheapest strategy that answers it.
 - **`wiki-first`** Work against an outside tool or field → its `~/.flow/wiki/<subject>/` first, `findings/` not yet folded included, then its docs. Never training memory alone.
 - **`know-where-knowledge-lives`** Look where a thing is filed before asking or guessing:
   - A fact of this project → `docs/context/`. Why it was built so → `docs/spec/`.

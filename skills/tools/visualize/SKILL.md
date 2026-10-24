@@ -23,6 +23,8 @@ Decide this **before** drawing anything.
 
 **Name what the artifact leaves out**: "This frame is structure only: the palette is a separate step."
 
+**Save every drawing shown for a decision**, in the same turn: a file named for what it draws in the ticket's folder (`.flow/tickets/<id>/board-layout.md`), or in `.flow/research/<topic>/` with no ticket. A rejected drawing stays, with the user's reason beside it. A drawing never shown stays in `tmp/` and goes once used.
+
 ## How to draw it
 
 3 methods, in order of preference.

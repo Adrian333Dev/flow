@@ -69,6 +69,7 @@ test('what belongs to one machine is what the ignore file names, at the top of ~
     '/audit/',
     '/changes/',
     '/projects/*/restarts/',
+    '/projects/*/replies/',
     '/wiki/*/downloads/',
     'node_modules/',
   ]);

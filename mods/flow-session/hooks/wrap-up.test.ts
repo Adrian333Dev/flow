@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { LEAD, offersRestart, wrapUpLine, wrapUpSettings } from './wrap-up'
+import { AGENT_LINES, LEAD, offersRestart, sizeOf, wrapUpLine, wrapUpSettings } from './wrap-up'
 
 describe('offersRestart', () => {
   const idle = { running: false, requested: false, restarting: false }
@@ -56,6 +56,28 @@ describe('wrapUpLine', () => {
 
   test('names no size and no handoff', () => {
     for (const line of [FINISH, STOP]) expect(line).not.toMatch(/\d|handoff/)
+  })
+})
+
+describe('a subagent’s lines', () => {
+  test('say the same marks with their own words: save to files, begin with UNFINISHED', () => {
+    expect(wrapUpLine(169000, 172300, 170000, AGENT_LINES)).toBe(AGENT_LINES.finish)
+    expect(wrapUpLine(172300, 200000, 170000, AGENT_LINES)).toBe(AGENT_LINES.stop)
+    expect(wrapUpLine(172300, 180000, 170000, AGENT_LINES)).toBeUndefined()
+    for (const line of [AGENT_LINES.finish, AGENT_LINES.stop]) {
+      expect(line).toContain('UNFINISHED:')
+      expect(line).not.toMatch(/\d|restart|handoff/)
+    }
+  })
+
+  test('the first line lets a job near its end finish instead', () => {
+    expect(AGENT_LINES.finish).toContain('Unless you are within a few steps of your final report')
+  })
+})
+
+describe('sizeOf', () => {
+  test('adds what a request sent fresh, read from the cache and wrote to it', () => {
+    expect(sizeOf({ input_tokens: 3, cache_read_input_tokens: 150000, cache_creation_input_tokens: 2000 })).toBe(152003)
   })
 })
 

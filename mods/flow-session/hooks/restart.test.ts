@@ -89,6 +89,11 @@ describe('restart tool', () => {
     expect(await $.tool.call(call)).toMatchObject({ result: expect.any(String) })
   })
 
+  test('a subagent is told to save its state to files and begin with UNFINISHED', async ($) => {
+    const result = await $.tool.call({ tool: 'mcp__flow-session__restart', message: 'NOTE', agentId: 'sub-1' } as never)
+    expect(result).toMatchObject({ deny: expect.stringContaining('UNFINISHED:') })
+  })
+
   test('holds the restart in host state, so a second call is refused', async ($) => {
     const call = { tool: 'mcp__flow-session__restart', message: 'NOTE' } as never
     expect(await $.tool.call(call)).toMatchObject({ result: expect.any(String) })

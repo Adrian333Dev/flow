@@ -38,6 +38,8 @@ const SETTINGS = [
 /** The number settings, shown beside their default so an override shows. Changed by editing `settings.json`. */
 const VALUES = [
   { key: 'wrapUpAt', says: 'the conversation size in tokens at which wrapUp speaks' },
+  { key: 'keepWarmLead', says: 'minutes before the prompt cache expires that /keepwarm pings' },
+  { key: 'keepWarmMaxIdle', says: 'hours after your last request that /keepwarm stops pinging' },
 ];
 
 const LEVEL_FLAGS = { global: { bool: true } };

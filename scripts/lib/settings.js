@@ -58,8 +58,8 @@ function write(file, data) {
 }
 
 // The number settings and their defaults, for `flow settings` and the scripts that read them.
-// The mod keeps its own copy of `wrapUpAt` in `mods/flow-session/hooks/wrap-up.ts`: TypeScript there cannot require this file.
-const DEFAULTS = { wrapUpAt: 170000 };
+// The mod keeps its own copy of each in `mods/flow-session/hooks/` (`wrapUpAt` in wrap-up.ts, the keep-warm two in keepwarm.ts): TypeScript there cannot require this file.
+const DEFAULTS = { wrapUpAt: 170000, keepWarmLead: 3, keepWarmMaxIdle: 4 };
 
 /** Both machine files as one object, the local one winning key by key. */
 const readGlobal = (home) => ({ ...read(globalFile(home)), ...read(localFile(home)) });
