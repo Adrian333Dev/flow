@@ -1,7 +1,9 @@
 'use strict';
 /**
- * Harm 4, running outside code: a download run straight away, and an npx of
- * a package the project lacks.
+ * Harm 4, running outside code: a download run straight away. A package
+ * runner (`npx`, `pnpm dlx`) never asks for itself: it hands the command it
+ * runs on to the other checks. Its asks were all allowed, and half misread a
+ * flag as the package (2026-10-24).
  */
 
 const path = require('path');
@@ -26,41 +28,19 @@ function readsInput(args) {
 
 function outsideCode({ program, args }, cmd) {
   if (!INTERPRETERS.has(program) && !['eval', 'source', '.'].includes(program)) return null;
-  if (args.some(downloads)) return 'Runs a downloaded script';
+  if (args.some(downloads)) return 'Run a downloaded script';
   if (INTERPRETERS.has(program) && readsInput(args)) {
-    for (let c = cmd.pipeFrom; c; c = c.pipeFrom) if (isDownload(c)) return 'Runs a downloaded script';
+    for (let c = cmd.pipeFrom; c; c = c.pipeFrom) if (isDownload(c)) return 'Run a downloaded script';
   }
   return null;
 }
 
-/** Whether the project has `name` among its packages, installed or listed. */
-function projectHas(name, ctx) {
-  const { world } = ctx;
-  for (let dir = ctx.dir ?? ctx.root; ; dir = path.dirname(dir)) {
-    if (world.exists(path.join(dir, 'node_modules', name, 'package.json'))) return true;
-    if (world.exists(path.join(dir, 'node_modules', '.bin', name))) return true;
-    try {
-      const pkg = JSON.parse(world.readFile(path.join(dir, 'package.json')));
-      if ({ ...pkg.dependencies, ...pkg.devDependencies, ...pkg.optionalDependencies }[name]) return true;
-    } catch {
-      // no package.json here
-    }
-    if (path.dirname(dir) === dir) return false;
-  }
-}
-
-/** `npx pkg …` and its kin: asks for a package the project lacks, and reads the rest as a command. */
-function packageRunner(args, ctx, label) {
-  const r = args.map(literal);
-  let name = null;
-  const p = r.findIndex((t) => t === '-p' || t === '--package');
-  if (p >= 0) name = r[p + 1];
+/** `npx pkg …` and its kin: the command it runs, past the runner's own flags. Empty when it names none. */
+function packageRunner(args) {
+  const p = args.map(literal).findIndex((t) => t === '-p' || t === '--package');
   const pos = positionals(args, new Set(['-p', '--package', '-c', '--call']));
-  if (!name) name = literal(pos[0]);
-  if (!name) return { reason: null };
-  const bare = /^(@[^/]+\/[^@]+|[^@]+)/.exec(name)?.[1] ?? name;
-  if (!projectHas(bare, ctx)) return { reason: `Downloads and runs ${bare} through ${label}, a package this project does not have` };
-  return { reason: null, inner: p >= 0 ? pos : args.slice(args.indexOf(pos[0])) };
+  if (!pos.length) return [];
+  return p >= 0 ? pos : args.slice(args.indexOf(pos[0]));
 }
 
 module.exports = { SHELLS, downloads, readsInput, outsideCode, packageRunner };

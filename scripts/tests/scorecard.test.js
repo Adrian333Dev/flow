@@ -199,7 +199,7 @@ test('an id defined twice in one file is reported, and twice across files is not
 
 test('every id in the two always-loaded rule files is defined once in its file', () => {
   const clone = path.join(SCRIPTS, '..');
-  const floors = [[path.join(clone, 'home', 'CLAUDE.md'), 30], [path.join(clone, 'CLAUDE.md'), 15]];
+  const floors = [[path.join(clone, 'home', 'CLAUDE.md'), 30], [path.join(clone, 'CLAUDE.md'), 10]];
   for (const [file, floor] of floors) {
     const ids = checks.ids(file);
     assert.ok(ids.length > floor, `${file}: only ${ids.length} ids`);

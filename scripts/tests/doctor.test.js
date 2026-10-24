@@ -75,7 +75,7 @@ test('a fresh install passes every check', () => {
   assert.match(report.stdout, /nothing to fix\./);
   assert.match(report.stdout, /util: fs tree runs/);
   assert.match(report.stdout, /^ok {4}projects: exp .*doctor-clean$/m);
-  assert.match(report.stdout, /18 hooks registered, every file they name on disk, sessions start in "default" mode/);
+  assert.match(report.stdout, /18 hooks registered, every file they name on disk, sessions start in "acceptEdits" mode/);
 });
 
 test('a machine with nothing installed says so once, rather than failing every check', () => {
@@ -164,7 +164,7 @@ test('a settings.json with no starting mode fails, and one starting in another m
   const chosen = doctor(m, { bin });
 
   assert.strictEqual(chosen.code, 0, chosen.stdout + chosen.stderr);
-  assert.match(chosen.stdout, /note  settings\.json: permissions\.defaultMode is "auto", and Flow's template starts every session in "default"/);
+  assert.match(chosen.stdout, /note  settings\.json: permissions\.defaultMode is "auto", and Flow's template starts every session in "acceptEdits"/);
 });
 
 test('a ticket still in the old format is named, and a current one is not', () => {

@@ -563,7 +563,7 @@ export const register: Register = (on) => {
     if (!draw) return next(e)
     const { Box, Text } = $.ui.resolve(e)
     const dialog = await next({ ...e, props: { ...e.props, questions: questions.map((q) => ({ ...q, question: draw.asks })) } })
-    return Box({ flexDirection: 'column', children: [...drawRows(draw, Text as unknown as MakeText), dialog] })
+    return Box({ flexDirection: 'column', children: [...drawRows(draw, Text as unknown as MakeText, e.viewport?.columns), dialog] })
   })
 
   // The band of tickets the session works (hooks/band.tsx).

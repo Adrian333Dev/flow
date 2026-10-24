@@ -15,24 +15,28 @@ const DELETERS = new Set(['rm', 'unlink', 'shred', 'srm', 'trash', 'trash-put', 
 const REBUILT = new Set(['node_modules', 'dist', 'build', 'out', 'target', '.next', '.nuxt', '.svelte-kit', '.cache',
   'coverage', '__pycache__', '.pytest_cache', '.turbo', '.parcel-cache', '.venv', 'venv']);
 
-// The project's own `tmp/` is scratch: the agent makes it, and clears it without asking.
-const scratch = (p, ctx) => isInside(path.join(ctx.root, 'tmp'), p);
+// The system's temp folder, `/tmp` or `$TMPDIR`, below its top: `top` lets the top itself pass, for a glob naming files in it.
+// A path in the project or the home folder is judged as theirs.
+const systemTmp = (p, ctx, top) => !isInside(ctx.root, p) && !isInside(ctx.world.home, p)
+  && ['/tmp', ctx.world.env('TMPDIR')].filter(Boolean).map((d) => ctx.world.real(d)).some((d) => (top || p !== d) && isInside(d, p));
+// The project's own `tmp/` and the system's are scratch: the agent makes them, and clears them without asking.
+const scratch = (p, ctx, top = false) => isInside(path.join(ctx.root, 'tmp'), p) || systemTmp(p, ctx, top);
 const rebuilt = (p, ctx) => scratch(p, ctx) || path.relative(ctx.root, p).split(path.sep).some((part) => REBUILT.has(part));
 const shown = (files, ctx) => listed(files.map((f) => (isInside(ctx.root, f) ? path.relative(ctx.root, f) || '.' : tilde(f, ctx))));
 
 const WHY_LOST = {
-  new: ['a new file git has no copy of', 'new files git has no copy of'],
-  changed: ['with edits git has no copy of', 'with edits git has no copy of'],
-  ignored: ['which git ignores, so it has no copy', 'which git ignores, so they have no copy'],
-  outside: ['outside git, so nothing can bring it back', 'outside git, so nothing can bring them back'],
+  new: ['not in git', 'not in git'],
+  changed: ['uncommitted edits', 'uncommitted edits'],
+  ignored: ['git-ignored, no copy', 'git-ignored, no copy'],
+  outside: ['outside git, no copy', 'outside git, no copy'],
 };
 
-/** "Deletes notes.md, a new file git has no copy of", from `{ file, state }` entries. */
+/** "Delete notes.md · not in git", from `{ file, state }` entries. */
 function lossReason(lost, ctx) {
   const states = new Set(lost.map((l) => l.state));
   const one = lost.length === 1 ? 0 : 1;
-  const why = states.size === 1 ? WHY_LOST[[...states][0]][one] : 'which git has no copy of';
-  return `Deletes ${shown(lost.map((l) => l.file), ctx)}, ${why}`;
+  const why = states.size === 1 ? WHY_LOST[[...states][0]][one] : 'no copy in git';
+  return `Delete ${shown(lost.map((l) => l.file), ctx)} · ${why}`;
 }
 
 /** What a delete of `spec` would lose: work git has no copy of, minus ignored folders a build makes again. */
@@ -47,7 +51,7 @@ const tilde = (p, ctx) => (isInside(ctx.world.home, p) ? path.join('~', path.rel
  */
 function locate(one, glob, ctx) {
   const { world } = ctx;
-  if (!path.isAbsolute(one) && ctx.dir === null) return { reason: `Deletes ${one}, in a folder the guard lost track of` };
+  if (!path.isAbsolute(one) && ctx.dir === null) return { reason: `Delete ${one} · folder unknown` };
   const full = path.resolve(ctx.dir ?? '/', one);
   const base = glob ? full.slice(0, full.search(/[*?[]/)).replace(/[^/]*$/, '') || '/' : full;
   // A link is deleted, not what it points at, so only the folder above it
@@ -55,25 +59,27 @@ function locate(one, glob, ctx) {
   const follows = glob || base.endsWith('/') || /\/\.?$/.test(one);
   const real = follows ? world.real(base) : path.join(world.real(path.dirname(base)), path.basename(base));
 
-  if (real === ctx.root) return { reason: 'Deletes this whole project', whole: true };
+  if (real === ctx.root) return { reason: 'Delete this whole project', whole: true };
   if (real === path.parse(real).root || isInside(real, world.home) || isInside(real, ctx.root)) {
-    return { reason: `Deletes ${tilde(one, ctx)}, which holds your home folder or this project` };
+    return { reason: `Delete ${tilde(one, ctx)} · holds home or project` };
   }
   // ~/.flow is a git repository the sync saves, so git judges a delete there as it does in a project.
   const flow = path.join(world.home, '.flow');
   const inFlow = real !== flow && isInside(flow, real);
-  if (inFlow && isInside(path.join(flow, '.git'), real)) return { reason: `Deletes ${tilde(one, ctx)}, the history of ~/.flow` };
-  if (!inFlow && !isInside(ctx.root, real)) return { reason: `Deletes ${tilde(one, ctx)}, outside this project` };
+  if (inFlow && isInside(path.join(flow, '.git'), real)) return { reason: `Delete ${tilde(one, ctx)} · ~/.flow history` };
+  // `/tmp/probe-*` names some files in its folder, `/tmp/*` all of them.
+  const named = glob && !/^[*?[]/.test(path.relative(base, full));
+  if (!inFlow && scratch(real, ctx, named)) return {};
+  if (!inFlow && !isInside(ctx.root, real)) return { reason: `Delete ${tilde(one, ctx)} · outside project` };
   if (!glob && !world.exists(real)) return {};
-  if (!inFlow && scratch(real, ctx)) return {};
-  if (!glob && world.exists(path.join(real, '.git'))) return { reason: `Deletes ${one}, a whole git repository`, whole: true };
+  if (!glob && world.exists(path.join(real, '.git'))) return { reason: `Delete ${one} · whole git repo`, whole: true };
   return { real, spec: glob ? path.join(real, path.relative(base, full)) : real };
 }
 
 /** Why deleting what `word` names would lose something, or null. */
 function deleteTarget(word, ctx) {
   const texts = expandAll(word, ctx);
-  if (texts === null) return `Deletes ${word.raw}, a path only known when it runs`;
+  if (texts === null) return `Delete ${word.raw} · path set at run time`;
   // A glob can also arrive through a loop's variable.
   const globbing = word.glob || word.parts.some((p) => p.variable);
   for (const one of texts.flatMap(braces)) {
@@ -103,18 +109,18 @@ function findDeletes(starts, expression, ctx) {
   const startTexts = [];
   for (const w of starts) {
     const t = expand(w, ctx);
-    if (t === null) return `Deletes files under ${w.raw}, a path only known when it runs`;
+    if (t === null) return `Delete files under ${w.raw} · path set at run time`;
     const place = locate(t, false, ctx);
     // A find filters what it deletes, so the start folder may be the project or a repository.
-    if (place.reason && !place.whole) return place.reason.replace(/^Deletes /, 'Deletes files under ');
+    if (place.reason && !place.whole) return place.reason.replace(/^Delete /, 'Delete files under ');
     startTexts.push(t);
   }
-  if (ctx.dir === null) return 'Deletes files in a folder the guard lost track of';
+  if (ctx.dir === null) return 'Delete files · folder unknown';
 
   const probe = [];
   for (let i = 0; i < expression.length; i++) {
     const t = literal(expression[i]);
-    if (t === null) return `Deletes files matched by ${expression[i].raw}, only known when it runs`;
+    if (t === null) return `Delete files matching ${expression[i].raw} · set at run time`;
     if (t === '-delete') probe.push('-print0');
     else if (['-exec', '-execdir', '-ok', '-okdir'].includes(t)) {
       let end = i + 1;
@@ -129,10 +135,10 @@ function findDeletes(starts, expression, ctx) {
 
   const { world } = ctx;
   const result = world.find([...startTexts, ...probe], ctx.dir);
-  if (!result.ok) return 'Deletes files the guard could not list first';
+  if (!result.ok) return 'Delete files · could not list them first';
   const matched = result.stdout.split('\0').filter(Boolean).map((p) => world.real(path.resolve(ctx.dir, p)));
   if (!matched.length) return null;
-  if (matched.some((m) => m === ctx.root || m.split(path.sep).includes('.git'))) return 'Deletes this project or a .git folder';
+  if (matched.some((m) => m === ctx.root || m.split(path.sep).includes('.git'))) return 'Delete this project or a .git folder';
 
   const lost = [];
   for (const start of startTexts) {
@@ -190,7 +196,7 @@ function deletes({ program, args }, ctx) {
 
   if (program === 'dd') {
     const target = args.map(literal).find((t) => t && t.startsWith('of='));
-    if (target && /^of=\/dev\//.test(target) && target !== 'of=/dev/null') return `Writes straight onto the device ${target.slice(3)}`;
+    if (target && /^of=\/dev\//.test(target) && target !== 'of=/dev/null') return `Overwrite device ${target.slice(3)}`;
   }
   return null;
 }
@@ -214,7 +220,7 @@ function gitCheck({ args }, ctx) {
   }
   if (i >= args.length) return null;
   const sub = literal(args[i]);
-  if (sub === null) return `Runs a git command named by a variable: ${args[i].raw}`;
+  if (sub === null) return `Run git command ${args[i].raw} · set at run time`;
   const rest = args.slice(i + 1);
   const r = rest.map(literal);
   const has = (...names) => r.some((t) => names.includes(t));
@@ -222,14 +228,14 @@ function gitCheck({ args }, ctx) {
 
   // What `paths` would overwrite: changes no commit holds. Null when nothing is lost.
   const losing = (paths, action) => {
-    if (dir === null) return `${action} in a folder the guard lost track of`;
+    if (dir === null) return `${action} · folder unknown`;
     const lost = [];
     for (const w of paths) {
       const p = pathOf(w, { ...ctx, dir });
-      if (p === null) return `${action} at ${w.raw}, a path only known when it runs`;
+      if (p === null) return `${action} ${w.raw} · path set at run time`;
       lost.push(...(ctx.world.uncommitted(p, false) ?? []).map((e) => e.file));
     }
-    return lost.length ? `Throws away your edits in ${shown(lost, ctx)}` : null;
+    return lost.length ? `Discard edits in ${shown(lost, ctx)} · uncommitted` : null;
   };
   const here = [{ ...newWord(), parts: ['.'], raw: '.' }];
   const exists = (w) => {
@@ -241,46 +247,46 @@ function gitCheck({ args }, ctx) {
     case 'push':
       if (r.some((t) => t && (t.startsWith('--force') || t === '--mirror' || t === '--delete' || t === '--prune' || /^[+:]./.test(t)))
         || short('f') || short('d')) {
-        return 'Force-pushes, overwriting or deleting what is on the remote';
+        return 'Force-push · overwrites the remote';
       }
       return null;
     case 'reset':
-      return has('--hard') ? 'Hard-resets, throwing away uncommitted work' : null;
+      return has('--hard') ? 'Hard-reset · discards uncommitted work' : null;
     case 'clean':
-      return has('-n', '--dry-run') || short('n') ? null : 'Deletes the files git does not track';
+      return has('-n', '--dry-run') || short('n') ? null : 'Delete untracked files';
     case 'rebase':
-      return has('--abort', '--continue', '--edit-todo', '--show-current-patch') ? null : 'Rebases, rewriting history';
+      return has('--abort', '--continue', '--edit-todo', '--show-current-patch') ? null : 'Rebase · rewrites history';
     case 'filter-branch':
     case 'filter-repo':
-      return 'Rewrites history';
+      return 'Rewrite history';
     case 'branch':
-      return has('-D') || (has('-d', '--delete') && has('-f', '--force')) ? 'Force-deletes a branch' : null;
+      return has('-D') || (has('-d', '--delete') && has('-f', '--force')) ? 'Force-delete a branch' : null;
     case 'tag':
-      return has('-d', '--delete') ? 'Deletes a tag' : null;
+      return has('-d', '--delete') ? 'Delete a tag' : null;
     case 'update-ref':
-      return has('-d') ? 'Deletes a git ref' : null;
+      return has('-d') ? 'Delete a git ref' : null;
     case 'worktree':
-      return has('remove') && (has('--force') || short('f')) ? 'Force-removes a worktree' : null;
+      return has('remove') && (has('--force') || short('f')) ? 'Force-remove a worktree' : null;
     case 'reflog':
-      return has('delete', 'expire') ? 'Deletes reflog entries' : null;
+      return has('delete', 'expire') ? 'Delete reflog entries' : null;
     case 'gc':
-      return r.some((t) => t && t.startsWith('--prune')) ? 'Prunes commits nothing points at' : null;
+      return r.some((t) => t && t.startsWith('--prune')) ? 'Prune unreachable commits' : null;
     case 'stash':
-      return has('drop', 'clear') ? 'Deletes stashed work' : null;
+      return has('drop', 'clear') ? 'Delete stashed work' : null;
     case 'checkout': {
       if (has('-b', '-B', '--orphan')) return null;
-      if (has('-f', '--force')) return losing(here, 'Force-checks out');
+      if (has('-f', '--force')) return losing(here, 'Force-checkout');
       const dash = r.indexOf('--');
       const paths = dash >= 0 ? rest.slice(dash + 1) : positionals(rest).filter(exists);
-      return paths.length ? losing(paths, 'Checks out files') : null;
+      return paths.length ? losing(paths, 'Check out files') : null;
     }
     case 'restore':
       if (has('--staged', '-S') && !has('--worktree', '-W')) return null;
-      return losing(positionals(rest, new Set(['-s', '--source'])), 'Restores files');
+      return losing(positionals(rest, new Set(['-s', '--source'])), 'Restore files');
     case 'switch':
-      return has('-f', '--force', '--discard-changes') ? losing(here, 'Force-switches branches') : null;
+      return has('-f', '--force', '--discard-changes') ? losing(here, 'Force-switch branches') : null;
     case 'rm':
-      return (has('--force') || short('f')) && !has('--cached') ? losing(positionals(rest), 'Force-removes files from git') : null;
+      return (has('--force') || short('f')) && !has('--cached') ? losing(positionals(rest), 'Force-remove files from git') : null;
     default:
       return null;
   }

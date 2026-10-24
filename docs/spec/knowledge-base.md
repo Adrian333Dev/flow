@@ -4,7 +4,7 @@ How Flow learns about the world outside the project, and where it keeps what it 
 
 ## Scope
 
-- **In**: `/flow:research`, Context7, downloaded docs, the wiki of outside tools, research reports, capture's destinations for knowledge, findings, and `/flow:upkeep`'s routing.
+- **In**: `/flow:research`, Context7, downloaded docs, the wiki of outside tools, research reports, capture's destinations for knowledge, findings as the one store of what Flow learned, the session start view, notes, and `/flow:upkeep`'s routing.
 - **Out**: what makes a rule or writes a check, in `docs/spec/rules.md`. Reviewing, adopting and harvesting an outside skill, in `docs/spec/skills.md`. The failure log, in `docs/spec/failure-log.md`. Tickets, in `docs/spec/tickets.md`.
 
 ## Where everything lands
@@ -18,7 +18,8 @@ Each path, and what writes it:
 │  ├─ <topic>.md                          /flow:research, /flow:upkeep: clean knowledge, edited in place
 │  ├─ findings/<lesson>.md                capture: a lesson not yet folded into a page
 │  └─ downloads/                          fetch-docs.sh: this machine's alone, never synced
-├─ notes/<name>.md                        capture, flow note: anything with no home yet, from every project
+├─ findings/<lesson>.md                   next: flow findings new, a fact true in every project (the user, a machine)
+├─ notes/<name>.md                        flow note: the user's ideas and put-off work, from every project
 └─ research/<topic>/<question>.md         /flow:research: raw reports asked outside any project, none at first
 
 <project>/                                the project: .flow/ links into ~/.flow/projects/<name>/
@@ -99,8 +100,61 @@ Capture is the sweep the rule file runs at each checkpoint, filing what the conv
 - `V1` **Capture runs at checkpoints, never on sight**: a handoff, the wrap-up before the context fills, finished work reported, a groundwork branch closed, a plan step landed and verified. It reads the conversation in context, never the transcript on disk. A rule file written mid-session never reaches that session anyway.
 - `V1` **A lesson or fact about an outside tool or a field → a finding, `~/.flow/wiki/<subject>/findings/<lesson>.md`**, even while a skill covering it is loaded. `/flow:upkeep` folds it into the page that owns it.
 - `V1` **A lesson or fact about this project → `.flow/findings/<lesson>.md`.** A finding about a skill carries a `skill: <name>` header. `/flow:upkeep` moves a project fact to `CLAUDE.md` when most sessions need it, else to `docs/context/<subject>.md`, one question per file, rewritten rather than appended.
-- `V1` **A correction → `flow note "…" --label rule`**, with `--project home` where it holds in every project. `/flow:upkeep` shows it beside any rule line it contradicts, then writes it into the rule file. No profile file exists (`docs/spec/rules.md`).
-- `V1` **Anything else → `flow note "…"`**: one small file in `~/.flow/notes/`, under its project's prefix. `/flow:upkeep` promotes, drops or folds each note.
+- `next` **A correction rewrites the instruction it breaks, in place, at once** (`fw-204`, the user 2026-10-21). A correction is a fault in the instruction, so the fix goes to its source. Where the rule exists and did not fire, its place or shape changes. No profile file exists (`docs/spec/rules.md`).
+  - `never` **A correction filed as `flow note "…" --label rule`**, waiting for `/flow:upkeep`: an override on top of the rule it contradicts, loaded nowhere until upkeep runs. 16 such notes waited at once.
+- `never` **Anything else → `flow note "…"`**, refused 2026-10-23 (`fw-204`): notes became the agent's catch-all. Notes are the user's (`### Notes`).
+
+### Findings: one store for what Flow learned
+
+Designed in `fw-204` (2026-10-20 to 2026-10-24). The problem it answers: a fact the agent needed sat in a store it never opened, so it worked the fact out again or filed it twice (`fw-205` and `fw-207` filed one lesson 14 minutes apart).
+
+- `next` **A finding is the one kind of entry** for anything learned: a lesson about a tool, a fact about a project, the user or a machine, however small. Memory, findings and small facts are one mechanism: the agent creates an entry or rewrites one. Notes are not entries (`### Notes`).
+- `next` **The save test is the agent's judgment: will a future session need this?** No list of topics, no notability rules. Memory holds facts, never instructions: an instruction goes to its rule file.
+  - Refused: a list of topics memory holds (setup, refusals, warnings). Memory holds any topic, and the old `~/.flow/profile.md` failed by filling with whatever capture saw (`fw-202`).
+  - `later` **A record of removed entries, searched at filing**, so a line the user cut cannot return. Added the first time a cut entry comes back.
+- `next` **An entry lives where its subject lives, in one of 3 homes, with no default**: a fact of one project in its `.flow/findings/`, a fact about a tool or a domain in `~/.flow/wiki/<subject>/findings/`, anything else in `~/.flow/findings/`. A fact about a machine is a global finding that names the machine. Machines see each other's entries. `~/.flow/machines/` holds only each machine's record (`<name>.json`) and the setup how-to. Decided 2026-10-23 and 2026-10-24.
+- `next` **An entry is a markdown file named for its claim** in 4 to 8 words, with front matter `labels` and `updated` (the last edit, `2026-10-21 14:05`) and nothing else. No `#` heading and no template: the body states the claim first. The name is the title, and the folder is the scope, so neither is repeated. A body that changes what the name says renames the file. Decided 2026-10-21.
+- `next` **No length limit.** The agent keeps an entry as short as it can. Trigger to revisit: an entry growing with unrelated points.
+- `next` **A changed fact is rewritten in place.** A file whose every line is false is deleted, and its replacement is filed only if it passes the save test. Git keeps the old text.
+- `next` **An entry says in its own text when it becomes false**, and the agent that sees that moment pass deletes it. No timer, no expiry type, no separate pass. A temporary entry is the same kind of entry.
+  - Refused: a version stamp on every entry, since each release would mean updating entries one by one. Staleness of tool knowledge is the wiki's (`fw-227`).
+- `next` **Labels are hyphenated, self-explaining, usually 2 words** (`machine-setup`), reusable, never one per tool or ticket. A tool is the folder, never a label. The filing command shows the labels in use with counts.
+- `next` **`flow findings ["<query>"]` lists the closest findings; `flow findings new "<title>"` files one; `flow findings edit <name>` renames one.** The query takes `label:`, `wiki:`, `project:` and free words, the grammar of `flow notes`. `new` takes `--label`, `--wiki <subject>`, `--body <text|->`, `-p` and `--force`, builds the file name from the title and writes the front matter. `edit` renames and rewrites the old path wherever it is cited. No `drop`: the agent deletes a false entry by hand. A script stamps `updated` after any edit in a findings folder. `new --wiki` writes a stub `index.md` where the folder has none.
+- `next` **The filing check runs at creation, never on a rewrite by path.** It ranks the findings folders by shared words and rare labels, with the ranking `flow new` uses for tickets. Below a lower bar it prints nothing. Between the bars it writes and prints the related rows, one per entry (path, then labels), at most 20, then `and N more close`. Above a higher bar, a near-duplicate, it refuses until `--force`. It also names up to 3 wiki folders whose name or `index.md` matches the words, so a tool fact lands in the tool's folder. The bars are tuned on the `fw-205` / `fw-207` pair and on unrelated findings. The check reads findings only, never wiki pages or reports.
+- `next` **A wiki folder's findings reach the agent with its `index.md`.** When the agent reads a wiki folder's `index.md`, or the user `@`-mentions it, the hook that attaches a ticket's header (`docs/spec/tickets.md`, `fw-236`) adds that folder's findings grouped by label. Once per folder per session per agent, again when the groups change, after a compaction or a restart. A read through the shell fires nothing; the reading rules send file reads to `Read`.
+  - Refused: `index.md` regenerated on every change to a finding. A finding deleted by hand triggers no rebuild, a generated block clashes in git between machines, and the agent's hand edits to `index.md` would be lost.
+  - Refused: a rule to list the findings in the same message as the `index.md` read. A paired-read rule is the kind that does not fire.
+- `next` **A research report is reached through the findings that name it.** The ticket's closing step files at least one finding naming each report with lasting value, so its labels lead to it. No research line in the view.
+- `never` **Claude Code's auto memory**, kept off (2026-10-24): two memories would drift apart, it is per machine and never syncs, and its index hit its byte budget mid-task (issues #83114, #47959).
+
+### The session start view
+
+- `next` **A `SessionStart` hook prints a view of what exists**, computed from disk at each start, `resume`, `clear` and compaction. Nothing generated is written or synced, and the hook's text sits after `CLAUDE.md`, so no cache is broken at the head of the prompt. Decided 2026-10-20.
+- `next` **The view holds only what nearly every session needs**: label groups with counts, folder names and spec file names, under 40 lines, as a ceiling. No fact lines and no hand-written line per group, since those grow with every entry and go stale. No commands, since `~/.flow/CLAUDE.md`'s exploring section names them. A line stops at about 20 labels, then `+N more`.
+  ```text
+  Labels in use, (n) = entries
+  tickets           flow-issue (25), feature (22), rework-loop (11), ...
+  notes             <label> (n), ...
+  findings global   machine-setup (2), user-preference (3), active-warning (1)
+  findings project  <label> (n), ...
+  ~/.flow/wiki/     claude-code (31), node (4), ...
+  docs/spec/        product, tickets, skills, rules, ...
+  ```
+- `next` **The `docs/spec/` line is there so the agent opens a part's decisions before it proposes.** A refused option already sits in that file's `never` lines with its reason, so no store of refusals exists. What would overturn it: re-proposals continuing with the line loaded; then a hook injects the matching `never` lines on each prompt.
+- `next` **The wiki line lists the project's folders by last use, with the visit count**, once the wiki search exists; until then every folder, cut to the recent ones past about 15. Each visit through the search or the `index.md` hook adds to a counter: `usage.json` in the ticket's folder (`{"claude-code": {"count": 12, "last": "2026-10-24 14:05"}}`), or the project's `.flow/usage.json` with no ticket. It moves, syncs and archives with its ticket, and stays a few hundred bytes. The project's counts are the sum. The ticket's own list rides in its header (`fw-236`).
+  - Refused: one counter file per machine. A ticket continued on the other machine would show none of its folders.
+- `next` **A search over the wiki and the research folders** returns the related tools and sources for a situation, with `fw-227`'s stale notice. A child ticket of `fw-204`, built after `flow findings`.
+- `never` **A block of tickets in flight, or a line naming this machine and its projects**, refused 2026-10-24: not useful in nearly every session, and `flow next` lists the tickets.
+
+### Notes
+
+- `next` **Notes hold the user's ideas and put-off work.** The agent writes a note when the user asks, and when the user mentions an idea outside the current ticket. One note per topic, found by the filing check: a changed opinion rewrites the note in place, so no ticket is made, rewritten, merged or dropped for an idea. Decided 2026-10-23 and 2026-10-24.
+
+### Exploring
+
+- `next` **One section of `~/.flow/CLAUDE.md` holds everything about exploring**: the wiki, findings, notes, reports, the view and every command that opens them. The exploration steps of `/flow:research` move there, and the skill points to it. It rewrites `know-where-knowledge-lives` and `wiki-first` in place.
+- `next` **Before adding a wiki folder, the agent greps the `index.md` files** for every name and address of the tool, so one tool met through a repository and a site gets one folder.
+- `next` **Wiki folders stay flat until about 50**, when a flat tree grows too long to read. Nesting by owner (`vercel/skills`) waits for the search.
 
 ### Filing findings
 
@@ -209,6 +263,7 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
 - **A second project on a tool reads what the first one wrote**: a matching page answers with no outside request.
 - **A Context7 question asked twice through the same tool's folder makes no search request** the second time.
 - **A `downloads/` never appears in the Flow home's repository.**
+- **A fact stated once is never re-derived** (`fw-204`): the laptop case replayed with the view loaded, where the agent no longer proposes setting up the machine that has no Flow; a fresh session on "agent memory" finds its report through `flow findings`; the view stays under 40 lines.
 - **`/flow:research` has run on a wiki folder in a live session.** Not yet: both scripts passed their trials alone, against the real Context7 and real docs sites, and never through the skill.
 
 ## What is locked
@@ -231,6 +286,8 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
 ## References
 
 - `.flow/tickets/archive/fw-94/groundwork/map.md`: section 1, the wiki and research layout, and the reasoning behind it.
+- `.flow/tickets/204/ticket.md` → `## Decisions`: findings, the view, notes and exploring, with the reasoning.
+- `.flow/research/agent-memory/`: how other memory tools store, load and expire entries.
 
 - `.flow/research/context7/how-it-retrieves-docs.md`: how Context7 retrieves docs, supplied by the user.
 - `.flow/research/context7/which-tools-compete.md`: the tools competing with Context7, supplied by the user.

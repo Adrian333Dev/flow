@@ -799,13 +799,13 @@ core    0     1
 BY HEADLINE
 ASKS  AUTO  HEADLINE
 1     0     Pushes 3 commits to origin/main
-1     0     Writes into ~/.claude/settings.json, which could switch the guard off
+1     0     Write ~/.claude/settings.json · can switch the guard off
 0     1     Writes .claude/skills/x/SKILL.md
 
 THE TARGET: asks other than push and publish
 1 ask outside the list:
 AT                PROJECT  SOURCE  ANSWER  HEADLINE
-2026-10-13 09:31  shop     guard   refuse  Writes into ~/.claude/settings.json, which could switch the guard off
+2026-10-13 09:31  shop     guard   refuse  Write ~/.claude/settings.json · can switch the guard off
 ```
 
 `guard` is an ask from Flow's guard, `rule` one from a `permissions.ask` rule, and `core` one Claude Code raises on its own. An auto-allowed line is a core ask on a protected path that Flow allowed without a question, so it is counted apart. `AT` is UTC.

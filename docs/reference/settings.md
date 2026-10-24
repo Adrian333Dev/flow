@@ -181,9 +181,9 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 
 ```json
 "permissions": {
-  "defaultMode": "default",
+  "defaultMode": "acceptEdits",
   "disableBypassPermissionsMode": "disable",
-  "allow": ["Edit", "Edit(//**/.flow/**)", "Read", "WebFetch", "WebSearch", "Bash"],
+  "allow": ["Edit", "Edit(//**/.flow/**)", "Read", "WebFetch", "WebSearch", "Bash", "Monitor"],
   "ask": ["Bash(git push *)", "Bash(util git save *)", "Bash(npm publish *)",
           "Bash(pnpm publish *)", "Bash(yarn publish *)", "Bash(cargo publish *)"],
   "deny": ["…"],
@@ -191,9 +191,9 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 }
 ```
 
-- **`defaultMode`**: every session starts in Claude Code's ordinary mode, which asks only where a rule or a hook says to.
+- **`defaultMode`**: every session starts in Accept edits, in every project. In Manual, Claude Code asked before writes inside the project despite the `Edit` allow.
 - **`disableBypassPermissionsMode`**: the mode that skips every question can never be switched on.
-- **`allow`**: every edit, read, web fetch, web search and shell command runs without asking. The guard and the `ask` rules are what stop a harmful one.
+- **`allow`**: every edit, read, web fetch, web search, shell command and `Monitor` wait runs without asking. The guard and the `ask` rules are what stop a harmful one.
 - **`ask`**: a push, a publish or `util git save` (which pushes) always asks, since each puts work where other people see it. A plain `git commit` runs. Delete a line to let that command run unasked.
 - **`deny`**: never runs, in any mode:
   - Claude Code tools Flow replaces or never uses, such as plan mode and scheduled jobs. Each one left out also saves the tokens its description costs.

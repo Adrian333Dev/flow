@@ -14,14 +14,13 @@ const path = require('path');
 const { literal, isInside, pathOf, positionals } = require('./words');
 
 // Where a write could lock you out or switch this guard off. Each place carries
-// what a write there is, for "Writes into <path>, <what>". The one list.
+// what a write there is, for "Write <path> · <what>". The one list.
 function protectedPlaces({ root, world }) {
   const home = world.home;
-  const off = 'which could switch the guard off';
+  const off = 'can switch the guard off';
   return [
-    [path.join(home, '.ssh'), 'where your login keys live'],
+    [path.join(home, '.ssh'), 'login keys'],
     ...['settings.json', 'settings.local.json', 'plugins', 'dev-mods'].map((f) => [path.join(home, '.claude', f), off]),
-    [path.join(home, '.flow', 'repos', 'flow', 'scripts'), off],
     [path.join(root, '.claude', 'settings.json'), off],
     [path.join(root, '.claude', 'settings.local.json'), off],
   ];
@@ -73,7 +72,7 @@ function protectedPath(p, shown, ctx) {
     for (const [place, reason] of protectedPlaces(ctx)) {
       // A project that itself lives in one of these folders may still write to its own files.
       if (isInside(place, ctx.root) && isInside(ctx.root, candidate) && !candidate.startsWith(path.join(ctx.root, '.claude'))) continue;
-      if (isInside(place, candidate)) return `Writes into ${shown}, ${reason}`;
+      if (isInside(place, candidate)) return `Write ${shown} · ${reason}`;
     }
   }
   return null;

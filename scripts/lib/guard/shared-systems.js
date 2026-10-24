@@ -37,27 +37,27 @@ function shared({ program, args }) {
       const method = flagValue(r, ['-X', '--method']);
       const writes = method !== null && !/^GET$/i.test(method);
       const fields = r.some((t) => ['-f', '-F', '--field', '--raw-field', '--input'].includes(t));
-      return writes || fields ? `Changes a shared system: ${program} api` : null;
+      return writes || fields ? `Change a shared system · ${program} api` : null;
     }
     // A bare `vercel` deploys. Every other tool here prints its help.
     if (!words.length) {
       const harmless = r.length ? r.every((t) => t && VERSION_FLAGS.has(t)) : program !== 'vercel';
-      return harmless ? null : `Changes a shared system: ${program}`;
+      return harmless ? null : `Change a shared system · ${program}`;
     }
     const reads = words.some((t) => t && (READS.has(t) || /^(get|list|describe|show)-/.test(t)));
     const changes = words.some((t) => t && CHANGES.has(t));
-    return reads && !changes ? null : `Changes a shared system: ${program} ${words.filter(Boolean).join(' ')}`;
+    return reads && !changes ? null : `Change a shared system · ${program} ${words.filter(Boolean).join(' ')}`;
   }
 
   if (program === 'docker' || program === 'podman' || program === 'docker-compose') {
     const words = positionals(args, new Set(['-f', '--file', '-p', '--project-name', '-H', '--host', '--context'])).map(literal);
     const r = args.map(literal);
     const volumes = r.includes('-v') || r.includes('--volumes');
-    if (words[0] === 'push' || (words[0] === 'image' && words[1] === 'push')) return 'Pushes an image to a registry';
-    if (words[0] === 'volume' && ['rm', 'remove', 'prune'].includes(words[1])) return 'Deletes a docker volume and its data';
-    if (words[0] === 'system' && words[1] === 'prune' && volumes) return 'Deletes docker volumes and their data';
+    if (words[0] === 'push' || (words[0] === 'image' && words[1] === 'push')) return 'Push an image to a registry';
+    if (words[0] === 'volume' && ['rm', 'remove', 'prune'].includes(words[1])) return 'Delete a docker volume';
+    if (words[0] === 'system' && words[1] === 'prune' && volumes) return 'Delete docker volumes';
     if ((program === 'docker-compose' || words[0] === 'compose') && words.includes('down') && volumes) {
-      return 'Deletes docker compose volumes and their data';
+      return 'Delete docker compose volumes';
     }
   }
   return null;
@@ -74,19 +74,19 @@ function database({ program, args }, cmd) {
     const fed = [];
     for (let c = cmd.pipeFrom; c; c = c.pipeFrom) fed.push(...c.words.map((w) => w.raw));
     const source = [...args.map((w) => w.raw), ...hereInput(cmd), ...fed].join('\n');
-    if (WIPE.test(source)) return 'Drops or wipes database data';
+    if (WIPE.test(source)) return 'Wipe database data';
   }
-  if (program === 'dropdb' || program === 'dropuser') return `Drops a database with ${program}`;
+  if (program === 'dropdb' || program === 'dropuser') return `Drop a database · ${program}`;
   const words = positionals(args).map(literal);
   if (program === 'prisma' && ((words[0] === 'migrate' && words[1] === 'reset')
     || args.some((w) => ['--force-reset', '--accept-data-loss'].includes(literal(w))))) {
-    return 'Resets the database with prisma';
+    return 'Reset the database · prisma';
   }
   if ((program === 'rails' || program === 'rake') && words.some((t) => t && /^db:(drop|reset|purge|schema:load|truncate_all|migrate:reset)/.test(t))) {
-    return 'Resets the database with rails';
+    return 'Reset the database · rails';
   }
   if (/^python[\d.]*$/.test(program) && path.basename(words[0] ?? '') === 'manage.py' && ['flush', 'reset_db'].includes(words[1])) {
-    return 'Wipes the database with django';
+    return 'Wipe the database · django';
   }
   return null;
 }

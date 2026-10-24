@@ -13,7 +13,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 
 ## Rules
 
-- **`design-lives-in-the-map`** Cite `fw-16`'s map before the spec, whenever you answer or decide anything about the redesign. The spec lags the redesign until its build lands.
+- **`designed-is-not-built`** A design decided in a ticket changes nothing on disk until its build ticket closes. Until then every file follows the old model: a ticket, a skill or a folder that breaks the new design is the old model at work, never a fault in the file or in the design. Judge a file by the model that wrote it. For the redesign, cite `fw-16`'s map before the spec, which lags it.
 - **`read-the-spec-first`** Read `docs/spec/product.md` and the spec file of the part you touch, before changing skills, installation, the scripts or the docs tree.
 - **`never-suggest-upkeep`** Never offer `/flow:upkeep`, and never count the closed tickets waiting for it. End with the next ticket instead: each reminder costs the user a line to skip.
 - **`check-claude-code-updates`** When asked, run `bash lab/scripts/claude-code-changes.sh` and read each release against Flow. Write what touches Flow into `.flow/research/claude-code/releases-read-against-flow.md`, ticket each needed change, then set line 1 to the newest release read. Where Flow comes to rely on a newer release, raise `MIN_CLAUDE` in `scripts/lib/machine/prereq.js` and the README's Install line. Download again any page in `~/.flow/wiki/claude-code/downloads/pages/` whose topic a release changed.
@@ -27,4 +27,4 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 
 ## Temporary
 
-Flow runs on one machine and one project, this one. A second machine joins about two weeks after Flow is done. Never suggest setting it up or running anything for it. Keep changes compatible with it. Delete this section when it joins.
+Flow runs on this machine alone. A second machine joins soon, once this version of Flow is finished. Never suggest setting it up or running anything for it. Design every change so state that follows a ticket or a project syncs, and the other machine sees it. Sync faults such as git conflicts belong to the multi-machine tickets (`fw-6`, `fw-158`), never to the change at hand. Delete this section when the machine joins.

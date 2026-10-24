@@ -5,7 +5,7 @@ import { describe, expect, mock, test } from 'claude-code/testing'
 type Kit = any
 
 const PUSH = { command: 'git push origin main' }
-const SENTENCE = 'Pushes 3 commits to origin/main.'
+const SENTENCE = 'Push to origin/main'
 const GUARD_ASK = { decision: 'ask', reason: SENTENCE, hook: 'PreToolUse' }
 
 /**
@@ -13,7 +13,7 @@ const GUARD_ASK = { decision: 'ask', reason: SENTENCE, hook: 'PreToolUse' }
  * it. `finish()` answers Allow. `rendered` lists the questions the engine's own
  * node was asked to draw.
  */
-function openDialog(on: Parameters<typeof mock.env>[0], $: Kit, input: unknown, tool = 'Bash') {
+function openDialog(on: Parameters<typeof mock.env>[0], $: Kit, input: unknown, tool = 'Bash', ask: object = GUARD_ASK) {
   let release!: () => void
   const gate = new Promise<void>((resolve) => (release = resolve))
   let opened!: () => void
@@ -21,7 +21,7 @@ function openDialog(on: Parameters<typeof mock.env>[0], $: Kit, input: unknown, 
   const rendered: string[] = []
   const questions: string[] = []
   mock.env(on, { FLOW_HOME: '/h/.flow', HOME: '/h' })
-  on('tool.check', () => GUARD_ASK as never)
+  on('tool.check', () => ask as never)
   on('tool.call', async (_$, e) => {
     const call = e as unknown as { tool: string; questions?: { question: string }[] }
     if (call.tool !== 'AskUserQuestion' || !call.questions) return { result: 'ok' }
@@ -66,12 +66,17 @@ const mount = ($: Kit, question: string, requestId: string) =>
   } as never)
 
 describe('the draw above the dialog', () => {
-  test('draws the sentence and a one-line command in colour, over the reworded dialog', async ($, on) => {
+  test('draws the sentence by part, a rule, and the command by part, over the reworded dialog', async ($, on) => {
     const dialog = openDialog(on, $, PUSH)
     await dialog.asked
     const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_01')
-    expect(await ui.find({ type: 'Text', text: SENTENCE })).toMatchObject({ props: { bold: true, color: 'yellow' }, children: [SENTENCE] })
-    expect(await ui.find({ type: 'Text', text: 'git push origin main' })).toMatchObject({ props: { color: 'cyan' } })
+    expect(await ui.find({ type: 'Text', text: SENTENCE })).toMatchObject({
+      children: [{ props: { bold: true, color: 'yellow' }, children: ['Push to '] }, { props: { color: 'blue' }, children: ['origin/main'] }],
+    })
+    expect(await ui.find({ type: 'Text', text: /^━+$/ })).toMatchObject({ props: { dimColor: true } })
+    expect(await ui.find({ type: 'Text', text: 'git push origin main' })).toMatchObject({
+      children: [{ props: { bold: true }, children: ['git'] }, ' push origin main'],
+    })
     expect(await ui.find({ type: 'engine' })).toBeDefined()
     expect(dialog.rendered).toEqual(['Allow this command?'])
     await ui.unmount()
@@ -83,7 +88,6 @@ describe('the draw above the dialog', () => {
     await dialog.asked
     const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_02')
     expect(await ui.find({ type: 'Text', text: 'for f in a b; do' })).toMatchObject({
-      props: { color: 'cyan' },
       children: [
         { props: { color: 'magenta' }, children: ['for'] },
         ' f ',
@@ -95,8 +99,7 @@ describe('the draw above the dialog', () => {
       ],
     })
     expect(await ui.find({ type: 'Text', text: '  echo "$f" # show' })).toMatchObject({
-      props: { color: 'cyan' },
-      children: ['  echo ', { props: { color: 'green' }, children: ['"$f"'] }, ' ', { props: { dimColor: true }, children: ['# show'] }],
+      children: ['  ', { props: { bold: true }, children: ['echo'] }, ' ', { props: { color: 'green' }, children: ['"$f"'] }, ' ', { props: { dimColor: true }, children: ['# show'] }],
     })
     expect(await ui.find({ type: 'Text', text: 'done' })).toMatchObject({ children: [{ props: { color: 'magenta' }, children: ['done'] }] })
     await ui.unmount()
@@ -125,7 +128,26 @@ describe('the draw above the dialog', () => {
     await dialog.finish()
   })
 
-  test('blank lines stay while the command fits in 11 rows', async ($, on) => {
+  test('a delete draws its action red, its path blue and its reason dim', async ($, on) => {
+    const ask = { decision: 'ask', reason: 'Delete ~/old · outside project', hook: 'PreToolUse' }
+    const dialog = openDialog(on, $, { command: 'rm -rf ~/old' }, 'Bash', ask)
+    await dialog.asked
+    const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_12')
+    expect(await ui.find({ type: 'Text', text: 'Delete ~/old · outside project' })).toMatchObject({
+      children: [
+        { props: { bold: true, color: 'red' }, children: ['Delete '] },
+        { props: { color: 'blue' }, children: ['~/old'] },
+        { props: { dimColor: true }, children: [' · outside project'] },
+      ],
+    })
+    expect(await ui.find({ type: 'Text', text: 'rm -rf ~/old' })).toMatchObject({
+      children: [{ props: { bold: true }, children: ['rm'] }, ' ', { props: { color: 'cyan' }, children: ['-rf'] }, ' ', { props: { color: 'blue' }, children: ['~/old'] }],
+    })
+    await ui.unmount()
+    await dialog.finish()
+  })
+
+  test('blank lines stay while the command fits in 10 rows', async ($, on) => {
     const dialog = openDialog(on, $, { command: 'ls\n\nls -a' })
     await dialog.asked
     const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_08')
@@ -134,9 +156,9 @@ describe('the draw above the dialog', () => {
     await dialog.finish()
   })
 
-  test('a commit of 13 lines with 2 blank ones draws, without the blank rows', async ($, on) => {
-    const command = ["git add . && git commit -q -F - <<'EOF'", 'subject', '', ...Array(6).fill('a line of the message'), '', 'Co-Authored-By: x', 'EOF', 'git status'].join('\n')
-    expect(command.split('\n')).toHaveLength(13)
+  test('a commit of 12 lines with 2 blank ones draws, without the blank rows', async ($, on) => {
+    const command = ["git add . && git commit -q -F - <<'EOF'", 'subject', '', ...Array(5).fill('a line of the message'), '', 'Co-Authored-By: x', 'EOF', 'git status'].join('\n')
+    expect(command.split('\n')).toHaveLength(12)
     const dialog = openDialog(on, $, { command })
     await dialog.asked
     expect(dialog.questions[0]).toContain(command)
@@ -168,13 +190,13 @@ describe('the draw above the dialog', () => {
     await dialog.finish()
   })
 
-  test('folds a command of 12 lines: draws the first 11 in colour, the last ending …', async ($, on) => {
-    const dialog = openDialog(on, $, { command: Array(12).fill('ls').join('\n') })
+  test('folds a command of 11 lines: draws the first 10 in colour, the last ending …', async ($, on) => {
+    const dialog = openDialog(on, $, { command: Array(11).fill('ls').join('\n') })
     await dialog.asked
-    expect(dialog.questions[0]).toBe(`${SENTENCE}\n\n${[...Array(10).fill('ls'), 'ls…'].join('\n')}`)
+    expect(dialog.questions[0]).toBe(`${SENTENCE}\n\n${[...Array(9).fill('ls'), 'ls…'].join('\n')}`)
     const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_03')
-    expect(await ui.find({ type: 'Text', text: SENTENCE })).toMatchObject({ props: { bold: true, color: 'yellow' } })
-    expect(await ui.find({ type: 'Text', text: 'ls…' })).toMatchObject({ props: { color: 'cyan' } })
+    expect(await ui.find({ type: 'Text', text: SENTENCE })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'ls…' })).toMatchObject({ children: [{ props: { bold: true }, children: ['ls…'] }] })
     expect(dialog.rendered).toEqual(['Allow this command?'])
     await ui.unmount()
     await dialog.finish()
@@ -185,9 +207,9 @@ describe('the draw above the dialog', () => {
     const dialog = openDialog(on, $, { command: ["git commit -F - <<'EOF'", ...message, 'EOF'].join('\n') })
     await dialog.asked
     const ui = await mount($, dialog.questions[0]!, 'toolu_plugin_10')
-    expect(await ui.find({ type: 'Text', text: 'message line 8' })).toMatchObject({ children: [{ props: { color: 'green' }, children: ['message line 8'] }] })
-    expect(await ui.find({ type: 'Text', text: 'message line 9…' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: 'message line 10' })).toBeUndefined()
+    expect(await ui.find({ type: 'Text', text: 'message line 7' })).toMatchObject({ children: [{ props: { color: 'green' }, children: ['message line 7'] }] })
+    expect(await ui.find({ type: 'Text', text: 'message line 8…' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'message line 9' })).toBeUndefined()
     expect(await ui.find({ type: 'Text', text: /not shown/ })).toBeUndefined()
     await ui.unmount()
     await dialog.finish()

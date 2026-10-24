@@ -69,7 +69,7 @@ function judgeCommand(cmd, ctx) {
   if (!run) return null;
   if (run.inline) return judgeItems(run.inline, child(ctx));
   if (run.program === null) {
-    return downloads(run.word) ? 'Runs a downloaded script' : `Runs a program named by a variable: ${run.word.raw}`;
+    return downloads(run.word) ? 'Run a downloaded script' : `Run ${run.word.raw} · program set at run time`;
   }
   return judgeRun(run, cmd, ctx);
 }
@@ -130,9 +130,8 @@ function judgeRun(run, cmd, ctx) {
     const own = runner.includes(' ') ? positionals(args).slice(1) : args;
     // `pnpm exec` runs only what the project installed.
     if (runner === 'pnpm exec') return null;
-    const { reason, inner } = packageRunner(own, ctx, runner);
-    if (reason) return reason;
-    if (inner && inner.length) {
+    const inner = packageRunner(own);
+    if (inner.length) {
       const name = path.basename(literal(inner[0]) ?? '');
       return judgeRun({ program: name, programText: name, args: inner.slice(1) }, cmd, ctx);
     }

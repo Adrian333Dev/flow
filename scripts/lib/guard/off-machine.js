@@ -26,7 +26,11 @@ function network({ program, args }, ctx) {
 
   let sends = false;
   if (program === 'curl') {
-    sends = r.some((t) => t && (/^--(data|data-\w+|form|form-string|upload-file|json)(=|$)/.test(t) || /^-[a-zA-Z]*[dFT]/.test(t)))
+    // With -G, the --data values become the query of a plain GET: a search, not a send.
+    const get = r.some((t) => t && (t === '--get' || /^-[a-zA-Z]*G/.test(t)));
+    const data = (t) => /^--(data|data-\w+|json)(=|$)/.test(t) || /^-[a-zA-Z]*d/.test(t);
+    const upload = (t) => /^--(form|form-string|upload-file)(=|$)/.test(t) || /^-[a-zA-Z]*[FT]/.test(t);
+    sends = r.some((t) => t && (upload(t) || (!get && data(t))))
       || WRITE_METHOD.test(flagValue(r, ['-X', '--request']) ?? '');
   }
   if (program === 'wget') {
@@ -38,18 +42,18 @@ function network({ program, args }, ctx) {
   }
   if (sends) {
     const host = offMachine(args, ctx);
-    if (host) return `Sends data to ${host}`;
+    if (host) return `Send data to ${host}`;
   }
   if (program === 'scp') {
     const dest = positionals(args, new Set(['-P', '-i', '-o', '-F', '-c', '-l', '-S', '-J'])).pop();
-    if (dest && remoteSpec(dest)) return `Copies files to ${hostOf(dest)}`;
+    if (dest && remoteSpec(dest)) return `Copy files to ${hostOf(dest)}`;
   }
   if (program === 'rsync') {
     const dest = rsyncDestination(args);
-    if (dest && remoteSpec(dest)) return `Syncs files to ${hostOf(dest)}`;
+    if (dest && remoteSpec(dest)) return `Sync files to ${hostOf(dest)}`;
   }
-  if (program === 'sftp') return 'Opens a file transfer with another machine';
-  if (program === 'ssh' && !r.every((t) => t === '-V' || t === '-G')) return 'Connects to another machine over ssh';
+  if (program === 'sftp') return 'Open a file transfer to another machine';
+  if (program === 'ssh' && !r.every((t) => t === '-V' || t === '-G')) return 'Connect to another machine · ssh';
   return null;
 }
 

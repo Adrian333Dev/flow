@@ -11,8 +11,8 @@ import { mainField } from './headline'
 
 /** The dialog cuts its question at 2000 characters with a bare `…`, so the mod cuts first. */
 const MAX_QUESTION = 1999
-/** A sentence plus 11 lines of command fit the 12 rows the engine lets a draw use. */
-const MAX_COLOUR_LINES = 11
+/** A sentence, its rule and 10 lines of command fit the 12 rows the engine lets a draw use. */
+const MAX_COLOUR_LINES = 10
 const WRITE_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
 const OWN_ID = 'toolu_plugin_'
 const NOBODY = 'No one is here to ask. Choose another way, or stop.'
@@ -49,11 +49,11 @@ const nonBlank = (text: string) => text.split('\n').filter((line) => line.trim()
 /** Whether the draw keeps the blank lines: each costs a row, so only while every line fits. */
 export const keepsBlanks = (text: string) => text.split('\n').length <= MAX_COLOUR_LINES
 
-/** Whether the draw can carry the text in colour: nothing cut, and 11 lines or fewer, not counting the blank ones. */
+/** Whether the draw can carry the text in colour: nothing cut, and 10 lines or fewer, not counting the blank ones. */
 export const drawsInColour = (shown: Shown) => !shown.cut && nonBlank(shown.text) <= MAX_COLOUR_LINES
 
 /**
- * A command too long to colour whole, folded: up to its 11th non-blank line,
+ * A command too long to colour whole, folded: up to its 10th non-blank line,
  * with `…` ending that line. Undefined for a command that fits.
  */
 export function foldedText(text: string): string | undefined {

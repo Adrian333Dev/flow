@@ -16,13 +16,12 @@
  *      another host, ssh
  *   3. touching shared systems: a deploy or cloud tool doing more than read,
  *      a database drop
- *   4. running outside code: a download run straight away, an npx of a
- *      package the project lacks
+ *   4. running outside code: a download run straight away
  *   5. a write into ~/.ssh
  *   6. a write to a file that can switch the guard off: ~/.claude/settings.json
- *      and settings.local.json, ~/.claude/plugins, ~/.claude/dev-mods,
- *      ~/.flow/repos/flow/scripts, a project's .claude/settings*.json. An
- *      Edit or Write is judged by this kind alone.
+ *      and settings.local.json, ~/.claude/plugins, ~/.claude/dev-mods, a
+ *      project's .claude/settings*.json. An Edit or Write is judged by this
+ *      kind alone.
  *   7. reading a secret into the conversation: a private key, a cloud or
  *      GitHub login. The Read tool's reads are judged here too.
  *

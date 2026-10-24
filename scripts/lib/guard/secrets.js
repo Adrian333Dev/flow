@@ -52,7 +52,7 @@ function secretWord(word, ctx) {
   for (const t of expandAll(word, ctx) ?? []) {
     if (!path.isAbsolute(t) && ctx.dir === null) continue;
     const p = path.resolve(ctx.dir ?? '/', t);
-    if (isSecret(p, ctx.world.home) && !ctx.world.isDir(p)) return `Reads ${shown(p, ctx)}, a file of secrets, into the conversation`;
+    if (isSecret(p, ctx.world.home) && !ctx.world.isDir(p)) return `Read ${shown(p, ctx)} · secrets file`;
   }
   return null;
 }
@@ -71,7 +71,7 @@ function secrets({ program, args }, ctx) {
 function secretRead(file, cwd, world) {
   const p = path.resolve(cwd, file);
   if (!isSecret(p, world.home) || world.isDir(p)) return null;
-  return `Reads ${shown(p, { dir: path.resolve(cwd), world })}, a file of secrets, into the conversation`;
+  return `Read ${shown(p, { dir: path.resolve(cwd), world })} · secrets file`;
 }
 
 module.exports = { secrets, secretWord, secretRead, shown };

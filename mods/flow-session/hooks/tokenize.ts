@@ -1,16 +1,24 @@
 /**
  * tokenize.ts: cuts a shell command into coloured pieces, one list per line.
  *
- * Four kinds only, so the dialog never turns into a rainbow: strings, comments,
- * control words and operators (`for`, `then`, `|`, `&&`, `;`, `>`), and
- * everything else as plain. A here-doc's body is a string, such as a commit
- * message, and its closing line is a control word. A scanner of its own, since scripts/lib/guard/parse.js
- * reads a command into words and keeps no positions in the text. Naive on
- * purpose: joining a line's pieces always gives the line back.
+ * The kinds: a command's program, flags, variables, paths (a quoted one too),
+ * strings, comments, control words and operators (`for`, `then`, `|`, `&&`,
+ * `;`, `>`), and everything else as plain. A here-doc's body is a string, such
+ * as a commit message, and its closing line is a control word. A scanner of its
+ * own, since scripts/lib/guard/parse.js reads a command into words and keeps no
+ * positions in the text. Naive on purpose: joining a line's pieces always gives
+ * the line back.
  */
 
-export type PieceType = 'plain' | 'string' | 'comment' | 'control'
+export type PieceType = 'plain' | 'program' | 'flag' | 'variable' | 'path' | 'string' | 'comment' | 'control'
 export type Piece = { text: string; type: PieceType }
+
+/** A path, a URL or a file name: `~/x`, `./x`, `/x`, `a/b`, `https://x`, `.env`, `notes.md`. */
+export const isPath = (text: string) =>
+  /^(~|\.{1,2}\/|\/|[\w.-]+\/|[a-z][\w+.-]*:\/\/|\.[\w.-]+$|[\w-]*[A-Za-z][\w-]*\.[A-Za-z][A-Za-z0-9]{0,4}$)/.test(text)
+
+const ASSIGNMENT = /^\w+=/
+const QUOTED = /^(["'])(.*)\1$/
 
 const KEYWORDS = new Set(['for', 'in', 'do', 'done', 'if', 'then', 'elif', 'else', 'fi', 'while', 'until', 'case', 'esac', 'function', 'select'])
 // After these a new command starts, so the next word may be a keyword too.
@@ -80,7 +88,12 @@ function scanLine(line: string, state: State): Piece[] {
       state.words++
       return
     }
-    push(text, 'plain')
+    // `X=1 cmd`: the assignment leaves the next word the program.
+    if (state.atCommand && ASSIGNMENT.test(text)) return push(text, 'plain')
+    const type: PieceType = state.atCommand
+      ? 'program'
+      : text.startsWith('-') ? 'flag' : text.startsWith('$') ? 'variable' : isPath(text) ? 'path' : 'plain'
+    push(text, type)
     if (state.atCommand) state.head = text
     state.atCommand = false
     state.words++
@@ -147,8 +160,14 @@ function scanLine(line: string, state: State): Piece[] {
   return out
 }
 
+/** A quoted path draws as a path: `"src/a b.ts"`. */
+const quotedPath = (piece: Piece): Piece => {
+  const inner = piece.type === 'string' ? QUOTED.exec(piece.text)?.[2] : undefined
+  return inner !== undefined && isPath(inner) ? { ...piece, type: 'path' } : piece
+}
+
 /** The command's pieces, one list per line. A quote left open runs on into the next line. */
 export function tokenize(command: string): Piece[][] {
   const state: State = { quote: null, atCommand: true, head: '', words: 0, waiting: [], body: null }
-  return command.split('\n').map((line) => scanLine(line, state))
+  return command.split('\n').map((line) => scanLine(line, state).map(quotedPath))
 }

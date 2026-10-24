@@ -42,7 +42,7 @@ function claudeCode(on: Parameters<typeof mock.env>[0], core: Record<string, unk
 }
 
 const PUSH = { command: 'git push origin main' }
-const GUARD_ASK = { decision: 'ask', reason: 'Pushes 3 commits to origin/main.', hook: 'PreToolUse' }
+const GUARD_ASK = { decision: 'ask', reason: 'Push to origin/main', hook: 'PreToolUse' }
 
 describe('an ask the guard raised', () => {
   test('Allow runs the call, shows the sentence over the command, and logs it', async ($, on) => {
@@ -50,7 +50,7 @@ describe('an ask the guard raised', () => {
     const result = await $.tool.check({ tool: 'Bash', input: PUSH })
     expect(result).toEqual({ decision: 'allow' })
     expect(seen.asks).toHaveLength(1)
-    expect(seen.asks[0]!.question).toBe('Pushes 3 commits to origin/main.\n\ngit push origin main')
+    expect(seen.asks[0]!.question).toBe('Push to origin/main\n\ngit push origin main')
     expect(seen.asks[0]!.header).toBe('Permission')
     expect(JSON.stringify(seen.asks[0]!.options)).toContain('Refuse')
     expect(seen.lines).toHaveLength(1)
@@ -60,7 +60,7 @@ describe('an ask the guard raised', () => {
       agent: 'main',
       tool: 'Bash',
       source: 'guard',
-      headline: 'Pushes 3 commits to origin/main',
+      headline: 'Push to origin/main',
       command: 'git push origin main',
       answer: 'allow',
     })
@@ -133,11 +133,11 @@ describe('a command too long to colour', () => {
   const LONG = { command: lines.join('\n') }
   const labels = (options: unknown) => (options as { label: string }[]).map((option) => option.label)
 
-  test('opens folded with the first 11 lines, the last ending …, and two rows', async ($, on) => {
+  test('opens folded with the first 10 lines, the last ending …, and two rows', async ($, on) => {
     const seen = claudeCode(on, GUARD_ASK, 'Allow')
     expect(await $.tool.check({ tool: 'Bash', input: LONG })).toEqual({ decision: 'allow' })
     expect(seen.asks).toHaveLength(1)
-    expect(seen.asks[0]!.question).toBe(`Pushes 3 commits to origin/main.\n\n${[...lines.slice(0, 10), 'echo line 10…'].join('\n')}`)
+    expect(seen.asks[0]!.question).toBe(`Push to origin/main\n\n${[...lines.slice(0, 9), 'echo line 9…'].join('\n')}`)
     expect(labels(seen.asks[0]!.options)).toEqual(['Allow', 'Refuse'])
     expect(seen.lines).toHaveLength(1)
     expect(seen.lines[0]).toMatchObject({ answer: 'allow' })
@@ -162,8 +162,8 @@ describe('an ask a settings rule raised', () => {
   test('logs the rule as the settings spell it', async ($, on) => {
     const seen = claudeCode(on, { decision: 'ask', reason: 'Claude requested permissions to use Bash, but you haven’t granted it yet.', rule: 'Bash(git push *)' }, 'Allow')
     await $.tool.check({ tool: 'Bash', input: PUSH })
-    expect(seen.asks[0]!.question).toBe('Pushes commits to a remote.\n\ngit push origin main')
-    expect(seen.lines[0]).toMatchObject({ source: 'rule', rule: 'Bash(git push *)', headline: 'Pushes commits to a remote', answer: 'allow' })
+    expect(seen.asks[0]!.question).toBe('Push to a remote\n\ngit push origin main')
+    expect(seen.lines[0]).toMatchObject({ source: 'rule', rule: 'Bash(git push *)', headline: 'Push to a remote', answer: 'allow' })
   })
 })
 
@@ -180,7 +180,7 @@ describe('a core ask', () => {
   test('on anything else opens the dialog with the mod’s own sentence', async ($, on) => {
     const seen = claudeCode(on, { decision: 'ask', reason: 'Claude requested permissions to fetch https://x.dev' }, 'Refuse')
     await $.tool.check({ tool: 'WebFetch', input: { url: 'https://x.dev', prompt: 'p' } })
-    expect(seen.asks[0]!.question).toBe('Fetches this page.\n\nhttps://x.dev')
+    expect(seen.asks[0]!.question).toBe('Fetch this page\n\nhttps://x.dev')
     expect(seen.lines[0]).toMatchObject({ source: 'core', tool: 'WebFetch', answer: 'refuse' })
   })
 })

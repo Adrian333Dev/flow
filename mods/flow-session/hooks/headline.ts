@@ -15,10 +15,10 @@ export type Headline = {
 }
 
 const WRITES: Record<string, string> = {
-  Edit: 'Edits this file.',
-  MultiEdit: 'Edits this file.',
-  Write: 'Writes this file.',
-  NotebookEdit: 'Edits this notebook.',
+  Edit: 'Edit this file',
+  MultiEdit: 'Edit this file',
+  Write: 'Write this file',
+  NotebookEdit: 'Edit this notebook',
 }
 
 // A command starts at the text's start, a new line, or after `;`, `&`, `|` or `(`.
@@ -36,22 +36,21 @@ const SAVE = new RegExp(`${START}(?:u|util)\\s+(?:g|git)\\s+save\\b`)
  */
 function saveSentence(command: string): string {
   const flags = command.split(/["']/)[0]!
-  if (/\s--dry-run\b/.test(flags)) return 'Shows the git commands a save would run.'
+  if (/\s--dry-run\b/.test(flags)) return 'Show the git commands a save would run'
   const what = /\s(?:-p|--path)\s/.test(flags) ? 'the listed paths' : 'everything'
-  const it = what === 'everything' ? 'it' : 'them'
-  return /\s(?:-n|--no-push)\b/.test(flags) ? `Stages ${what} and commits ${it}.` : `Stages ${what}, commits ${it} and pushes.`
+  return /\s(?:-n|--no-push)\b/.test(flags) ? `Stage ${what} and commit` : `Stage ${what}, commit and push`
 }
 
 /** The sentence for a shell command: a publish, a save, a commit, a push or both, found anywhere in the command. */
 function bashSentence(command: string): string {
-  if (PUBLISH.test(command)) return 'Publishes a package.'
+  if (PUBLISH.test(command)) return 'Publish a package'
   if (SAVE.test(command)) return saveSentence(command)
   const commit = COMMIT.test(command)
   const push = PUSH.test(command)
-  if (commit && push) return 'Makes a git commit and pushes it.'
-  if (commit) return 'Makes a git commit.'
-  if (push) return 'Pushes commits to a remote.'
-  return 'Runs a shell command.'
+  if (commit && push) return 'Commit and push'
+  if (commit) return 'Commit'
+  if (push) return 'Push to a remote'
+  return 'Run a shell command'
 }
 
 const field = (input: unknown, name: string): string | undefined => {
@@ -83,10 +82,10 @@ function fieldLines(input: unknown): string {
   }
   const write = WRITES[tool]
   if (write) return { sentence: write, text: mainField(input) ?? '', kind: 'write' }
-  if (tool === 'Read') return { sentence: 'Reads this file.', text: mainField(input) ?? '', kind: 'command' }
-  if (tool === 'WebFetch') return { sentence: 'Fetches this page.', text: mainField(input) ?? '', kind: 'command' }
-  if (tool === 'WebSearch') return { sentence: 'Searches the web.', text: mainField(input) ?? '', kind: 'command' }
-  return { sentence: `Calls the tool ${tool}.`, text: fieldLines(input), kind: 'command' }
+  if (tool === 'Read') return { sentence: 'Read this file', text: mainField(input) ?? '', kind: 'command' }
+  if (tool === 'WebFetch') return { sentence: 'Fetch this page', text: mainField(input) ?? '', kind: 'command' }
+  if (tool === 'WebSearch') return { sentence: 'Search the web', text: mainField(input) ?? '', kind: 'command' }
+  return { sentence: `Call the tool ${tool}`, text: fieldLines(input), kind: 'command' }
 }
 
 /**
@@ -94,8 +93,8 @@ function fieldLines(input: unknown): string {
  * does not survive: Claude Code swaps in its long `requested permissions` text.
  */
 export function guardedSentence(tool: string, file: string): string {
-  if (/(^|\/)\.ssh\//.test(file)) return 'Writes into ~/.ssh.'
-  return `${(WRITES[tool] ?? 'Edits this file.').replace(/\.$/, '')}, which could switch the guard off.`
+  if (/(^|\/)\.ssh\//.test(file)) return 'Write into ~/.ssh · login keys'
+  return `${WRITES[tool] ?? 'Edit this file'} · can switch the guard off`
 }
 
 /** The dialog's own question, which the draw rewrites to. */

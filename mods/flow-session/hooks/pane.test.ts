@@ -27,10 +27,10 @@ const filler = (total: number) => 'x'.repeat(total - SENTENCE.length - 2)
 describe('drawsInColour', () => {
   const shown = (text: string) => questionText(SENTENCE, text)
 
-  test('counts 11 lines, not the blank ones', () => {
-    expect(drawsInColour(shown(Array(11).fill('ls').join('\n')))).toBe(true)
-    expect(drawsInColour(shown(Array(12).fill('ls').join('\n')))).toBe(false)
-    expect(drawsInColour(shown(`${Array(11).fill('ls').join('\n\n')}`))).toBe(true)
+  test('counts 10 lines, not the blank ones', () => {
+    expect(drawsInColour(shown(Array(10).fill('ls').join('\n')))).toBe(true)
+    expect(drawsInColour(shown(Array(11).fill('ls').join('\n')))).toBe(false)
+    expect(drawsInColour(shown(`${Array(10).fill('ls').join('\n\n')}`))).toBe(true)
   })
 
   test('a cut text never draws in colour', () => {
@@ -44,27 +44,27 @@ describe('drawsInColour', () => {
 
 describe('foldedText', () => {
   test('is undefined for a command that fits in colour', () => {
-    expect(foldedText(Array(11).fill('ls').join('\n'))).toBeUndefined()
+    expect(foldedText(Array(10).fill('ls').join('\n'))).toBeUndefined()
     expect(foldedText('ls')).toBeUndefined()
     expect(foldedText('')).toBeUndefined()
   })
 
-  test('keeps 11 lines and ends the 11th with …', () => {
+  test('keeps 10 lines and ends the 10th with …', () => {
     const lines = Array.from({ length: 36 }, (_, i) => `line ${i}`)
     const folded = foldedText(lines.join('\n'))!
-    expect(folded.split('\n')).toEqual([...lines.slice(0, 10), 'line 10…'])
+    expect(folded.split('\n')).toEqual([...lines.slice(0, 9), 'line 9…'])
   })
 
-  test('counts a command of 12 lines as long, and shows 11', () => {
-    const folded = foldedText(Array(12).fill('ls').join('\n'))!
-    expect(folded.split('\n')).toHaveLength(11)
+  test('counts a command of 11 lines as long, and shows 10', () => {
+    const folded = foldedText(Array(11).fill('ls').join('\n'))!
+    expect(folded.split('\n')).toHaveLength(10)
     expect(folded.endsWith('ls…')).toBe(true)
   })
 
-  test('keeps the blank lines before the 11th line but never counts them', () => {
+  test('keeps the blank lines before the 10th line but never counts them', () => {
     const lines = ['a', '', 'b', ...Array.from({ length: 12 }, (_, i) => `c${i}`)]
     const folded = foldedText(lines.join('\n'))!
-    expect(folded.split('\n')).toEqual(['a', '', 'b', ...Array.from({ length: 8 }, (_, i) => `c${i}`), 'c8…'])
+    expect(folded.split('\n')).toEqual(['a', '', 'b', ...Array.from({ length: 7 }, (_, i) => `c${i}`), 'c7…'])
   })
 
   test('has no count in it', () => {
@@ -73,9 +73,9 @@ describe('foldedText', () => {
 })
 
 describe('keepsBlanks', () => {
-  test('keeps blank lines only while every line fits in 11 rows', () => {
+  test('keeps blank lines only while every line fits in 10 rows', () => {
     expect(keepsBlanks(['a', '', 'b'].join('\n'))).toBe(true)
-    expect(keepsBlanks([...Array(10).fill('a'), '', 'b'].join('\n'))).toBe(false)
+    expect(keepsBlanks([...Array(9).fill('a'), '', 'b'].join('\n'))).toBe(false)
   })
 })
 
@@ -118,9 +118,9 @@ describe('questionText', () => {
 })
 
 describe('drawsInColour', () => {
-  test('is true for 11 lines and false for 12', () => {
-    expect(drawsInColour(questionText(SENTENCE, Array(11).fill('ls').join('\n')))).toBe(true)
-    expect(drawsInColour(questionText(SENTENCE, Array(12).fill('ls').join('\n')))).toBe(false)
+  test('is true for 10 lines and false for 11', () => {
+    expect(drawsInColour(questionText(SENTENCE, Array(10).fill('ls').join('\n')))).toBe(true)
+    expect(drawsInColour(questionText(SENTENCE, Array(11).fill('ls').join('\n')))).toBe(false)
   })
 
   test('is false for a cut text', () => {

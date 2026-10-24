@@ -7,7 +7,7 @@ const PUSH: LogFields = {
   session: '17da95cd-0000-4000-8000-000000000000',
   tool: 'Bash',
   source: 'rule',
-  headline: 'Pushes commits to a remote.',
+  headline: 'Push to a remote',
   command: 'git push origin main',
   rule: 'Bash(git push *)',
   answer: 'allow',
@@ -17,7 +17,7 @@ const PUSH: LogFields = {
 describe('logLine', () => {
   test('is the line of docs/spec/permissions.md', () => {
     expect(logLine(PUSH)).toBe(
-      '{"at":"2026-10-14T09:12:03Z","project":"flow-dev","session":"17da95cd","agent":"main","tool":"Bash","source":"rule","headline":"Pushes commits to a remote","command":"git push origin main","rule":"Bash(git push *)","answer":"allow","ms":4210}',
+      '{"at":"2026-10-14T09:12:03Z","project":"flow-dev","session":"17da95cd","agent":"main","tool":"Bash","source":"rule","headline":"Push to a remote","command":"git push origin main","rule":"Bash(git push *)","answer":"allow","ms":4210}',
     )
   })
 

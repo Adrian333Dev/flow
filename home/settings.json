@@ -203,7 +203,7 @@
     "bgIsolation": "none"
   },
   "permissions": {
-    "defaultMode": "default",
+    "defaultMode": "acceptEdits",
     "disableBypassPermissionsMode": "disable",
     "allow": [
       "Edit",
@@ -211,7 +211,8 @@
       "Read",
       "WebFetch",
       "WebSearch",
-      "Bash"
+      "Bash",
+      "Monitor"
     ],
     "ask": [
       "Bash(git push *)",

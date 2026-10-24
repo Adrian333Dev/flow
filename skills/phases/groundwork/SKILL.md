@@ -103,7 +103,7 @@ One question at a time. Interview until the decision is genuinely clear. A first
 
 1. **Pose the question**, and open its `###` section under `## Decisions`. Write the facts it rests on there as you find them.
 2. **Recommend**: "I'd go with X because Y."
-3. **Wait for the reaction.** Vague or partial → probe before closing.
+3. **Wait for the reaction.** No pushback closes it (`agreed`). Probe only pushback, or an answer too vague to write.
 4. **Write the decision** in that section once it locks, and tick the question `[x]`.
 
 Never gate a write behind a yes/no question. Never end a session with a settled question unwritten.
