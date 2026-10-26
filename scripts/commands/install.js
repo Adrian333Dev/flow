@@ -73,6 +73,7 @@ const actions = {};
 
 actions.install = {
   section: 'setup',
+  json: false,
   summary: 'put Flow on this machine: the links, the clones, the Flow home and its rules',
   flags: {
     root: { arg: '<dir>', hidden: true },

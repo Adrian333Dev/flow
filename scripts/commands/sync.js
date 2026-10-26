@@ -29,6 +29,7 @@ const actions = {};
 
 actions.sync = {
   section: 'setup',
+  json: false,
   summary: 'save ~/.flow/ and the project\'s tickets, bring the others\' work down, then send it up',
   flags: { root: { arg: '<dir>', hidden: true } },
   run({ flags }) {

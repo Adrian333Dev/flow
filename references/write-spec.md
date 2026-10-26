@@ -122,7 +122,7 @@ Give the paths. The user reads and approves before anything is created from it.
 
 **An objection is not new groundwork.** It reopens the one question it came from, in the ticket's `## Questions`. Walk that question, then rewrite the affected section.
 
-Approved, with questions still open → each stays a `## Questions` line in the ticket that owns it. One that stands alone becomes a ticket: `flow new "<the question>" --body -`, the body saying what would settle it.
+Approved, with questions still open → each stays a `## Questions` line in the ticket that owns it. One that stands alone becomes a ticket: `flow tickets new "<the question>" --body -`, the body saying what would settle it.
 
 Approved, with work to cut → `/flow:tickets-from-spec`. **Never cut a work ticket from here.**
 

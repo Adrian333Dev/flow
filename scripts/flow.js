@@ -22,7 +22,7 @@ const init = require('./commands/init');
 const settingsCommand = require('./commands/settings');
 const scorecard = require('./commands/scorecard');
 
-// `flow ls | head -2` closes the pipe while node is still writing into it. The
+// `flow tickets | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
 // whatever you were reading, for something that is not a failure at all: the
 // reader stopped, which is what `head` is for.
@@ -34,41 +34,35 @@ process.stdout.on('error', (e) => {
 const TITLE = 'flow: the board, setup, settings and audit';
 
 /**
- * One flat namespace. Tickets are what this tool is about, so they have no
- * name of their own: `flow ls`, `flow start exp-47`. Everything else keeps a
- * group: `notes`, `settings` and `audit`.
+ * Every command sits under a noun, and a noun typed alone lists. Bare stay
+ * `flow next`, which answers for Flow as a whole, and the 5 setup commands,
+ * which act on Flow itself.
  *
- * The order inside each section is the order help prints it. A command whose
- * section is missing here still runs and never prints. A command marked
- * `hidden` still never prints: `note`, the short form of `flow notes new`,
- * which the notes group's summary names.
+ * The order inside each section is the order help prints it.
  */
-const commands = {
-  ...board, ...tickets.actions, ...install, ...update, ...init, ...sync, ...doctor, ...scorecard,
-  note: notes.note,
-};
+const commands = { ...board, ...install, ...update, ...init, ...sync, ...doctor };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
-  { key: 'tickets', title: 'tickets' },
-  { key: 'status', title: 'status, the move is the command' },
   { key: 'setup', title: 'setup, this machine and its projects' },
-  { key: 'checks', title: 'rule checks' },
 ];
 
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { notes, settings: settingsCommand, audit },
+    groups: { tickets, notes, audit, settings: settingsCommand, scorecard },
     check: (_, flags) => {
       paths.useRoot(flags.root);
     },
-    fallback: tickets.fallback,
     sections: SECTIONS,
     title: TITLE,
   }) || 0;
 } catch (e) {
-  if (e instanceof FlowError) {
+  // Under --json a refusal is JSON on stdout too: a reader parses stdout either way.
+  if (e instanceof FlowError && cli.jsonMode()) {
+    process.stdout.write(`${JSON.stringify({ error: e.message })}\n`);
+    process.exitCode = 1;
+  } else if (e instanceof FlowError) {
     process.stderr.write(`flow: ${e.message}\n`);
     process.exitCode = 1;
   } else {

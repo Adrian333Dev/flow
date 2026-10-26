@@ -40,7 +40,7 @@ Every open ticket is also a skill named after its id, so typing `/shop` lists yo
 /shop-7    Ticket, in-progress: Safari loses the session cookie
 ```
 
-- **Typed alone**, `/shop-7` prints the ticket, as `flow shop-7` does.
+- **Typed alone**, `/shop-7` prints the ticket, as `flow tickets get shop-7` does.
 - **Typed after a phase**, `/flow:debug /shop-7`, it opens that phase on the ticket. Words after it reach the agent as instructions: `/flow:groundwork /shop-5 compare only free libraries`.
 - **Which tickets get one**: every ticket not `done` or `dropped`, parked ones included. `blocked` means it waits on another ticket.
 - **Where they live**: the project's `.claude/skills/<id>/`, and `~/.claude/skills/home-<n>/` for the tickets in your Flow home. git never sees them.

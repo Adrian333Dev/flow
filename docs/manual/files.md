@@ -112,7 +112,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ### What sessions learn
 
-- **`notes/`**: one small file per idea or put-off piece of work, for every project. `flow note` writes it, and each note names the project it belongs to.
+- **`notes/`**: one small file per idea or put-off piece of work, for every project. `flow notes new` writes it, and each note names the project it belongs to.
 - **`wiki/<tool>/`**: what Flow knows about one outside tool, shared by every project. `/flow:research` writes it.
 - **`research/<topic>/`**: research reports asked outside any project, one folder per topic and one file per question. Empty until one is asked.
 

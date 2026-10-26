@@ -5,8 +5,8 @@
  * Siblings are the open tickets that share a parent. Top-level tickets share the
  * empty one. Among siblings, a ticket with `rank:` comes first, by number, and
  * the tickets without one follow by id. A new ticket has no rank, so it lands
- * last on its own. Only a move writes a number: `flow rank`, or a position on
- * `flow new`.
+ * last on its own. Only a move writes a number: `flow tickets rank`, or a position on
+ * `flow tickets new`.
  */
 
 const store = require('./store');

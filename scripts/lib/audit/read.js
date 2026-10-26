@@ -148,7 +148,7 @@ function renderLines(raw, { full = false, thinking = false, results = new Map() 
  * One turn range of one session, rendered. The turn numbers come off `flow
  * audit turns`; the line numbers behind them never have to be typed.
  */
-function read(db, id, { range, full = false, thinking = false } = {}) {
+function readData(db, id, { range, full = false, thinking = false } = {}) {
   const s = findSession(db, id);
   const last = db.prepare('SELECT MAX(ordinal) n FROM turn WHERE session_id = ?').get(s.id).n || 0;
   const { from, to } = parseRange(range, last);
@@ -165,12 +165,19 @@ function read(db, id, { range, full = false, thinking = false } = {}) {
 
   const firstLine = rows[0].first_line;
   const lastLine = rows.at(-1).last_line;
-  const body = renderLines(slice(db, s.id, firstLine, lastLine), { full, thinking });
-
-  return [
-    `${short(s.id)} turns ${rows[0].ordinal}-${rows.at(-1).ordinal} · transcript lines ${firstLine}-${lastLine}`,
-    body,
-  ].join('\n');
+  return {
+    session: s.id,
+    from: rows[0].ordinal,
+    to: rows.at(-1).ordinal,
+    firstLine,
+    lastLine,
+    text: renderLines(slice(db, s.id, firstLine, lastLine), { full, thinking }),
+  };
 }
 
-module.exports = { read, parseRange, slice, renderLines };
+function read(db, id, options) {
+  const d = readData(db, id, options);
+  return `${short(d.session)} turns ${d.from}-${d.to} · transcript lines ${d.firstLine}-${d.lastLine}\n${d.text}`;
+}
+
+module.exports = { read, readData, parseRange, slice, renderLines };

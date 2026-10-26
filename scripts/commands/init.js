@@ -241,6 +241,7 @@ const actions = {};
 
 actions.init = {
   section: 'setup',
+  json: false,
   summary: 'set up the project you are in',
   flags: {
     root: { arg: '<dir>', hidden: true }, prefix: { arg: '<word>' },

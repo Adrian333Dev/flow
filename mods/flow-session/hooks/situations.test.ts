@@ -17,13 +17,13 @@ describe('entryFor', () => {
     expect(entryFor(edit('/w/references/review-code.md'))?.id).toBe('loaded-file')
     expect(entryFor(edit('/w/docs/spec/rules.md'))?.id).toBe('spec')
     expect(entryFor(edit('/w/docs/manual/restart.md'))?.id).toBe('markdown')
-    expect(entryFor(bash('cd x && flow audit ls'))?.id).toBe('command')
+    expect(entryFor(bash('cd x && flow audit'))?.id).toBe('command')
   })
 
   test('leaves code, a guide read, bare ticket commands and a help call alone', () => {
     expect(entryFor(edit('/w/mods/flow-session/hooks/window.ts'))).toBeUndefined()
     expect(entryFor(read('/h/.flow/references/style.md'))).toBeUndefined()
-    expect(entryFor(bash('flow start fw-284 --activity build'))).toBeUndefined()
+    expect(entryFor(bash('flow tickets start fw-284 --activity build'))).toBeUndefined()
     expect(entryFor(bash('flow audit --help'))).toBeUndefined()
     expect(entryFor({ tool: 'Grep', input: { pattern: 'x', path: '/w/a.md' } })).toBeUndefined()
   })
@@ -61,7 +61,7 @@ describe('knowledge', () => {
 describe('groupsOf', () => {
   test('finds flow groups and util groups anywhere in the command', () => {
     expect(groupsOf('flow audit sql "select 1" | head')).toEqual(['flow audit'])
-    expect(groupsOf('util fs tree . && flow notes ls')).toEqual(['util fs', 'flow notes'])
+    expect(groupsOf('util fs tree . && flow notes get x')).toEqual(['util fs', 'flow notes'])
     expect(groupsOf('flow new "x"; echo flowaudit')).toEqual([])
   })
 })
@@ -126,9 +126,9 @@ describe('planFor', () => {
   })
 
   test('a group\'s first command gets its help, a help call already there stops it', () => {
-    const plan = planFor([bash('flow audit ls')], new Set())
+    const plan = planFor([bash('flow audit')], new Set())
     expect(plan.added.map((a) => a.send)).toEqual([{ tool: 'Bash', command: 'flow audit --help', description: 'List the flow audit commands' }])
-    expect(planFor([bash('flow audit ls'), bash('flow audit --help')], new Set()).added).toEqual([])
-    expect(planFor([bash('flow audit ls')], new Set(['bash:flow audit --help'])).added).toEqual([])
+    expect(planFor([bash('flow audit'), bash('flow audit --help')], new Set()).added).toEqual([])
+    expect(planFor([bash('flow audit')], new Set(['bash:flow audit --help'])).added).toEqual([])
   })
 })

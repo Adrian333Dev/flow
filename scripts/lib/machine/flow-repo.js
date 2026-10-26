@@ -425,7 +425,7 @@ function sync(at, { roots = [], keepWas = true } = {}) {
 }
 
 /**
- * Run `fn` holding the Flow home's lock, the one `flow new` and every sync
+ * Run `fn` holding the Flow home's lock, the one `flow tickets new` and every sync
  * take, so a background sync and a typed command never meet inside git.
  */
 function withLock(at, fn) {

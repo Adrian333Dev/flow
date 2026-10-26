@@ -74,42 +74,60 @@ const tally = (map, key, isAuto) => {
 
 const when = (at) => `${String(at).slice(0, 10)} ${String(at).slice(11, 16)}`;
 
-/** The text `flow audit permissions` prints. */
-function view({ home, id, project, since, until, limit = 20 }) {
+/**
+ * The counts `flow audit permissions` reads, every row of them: `--limit`
+ * cuts the text alone, so `--json` carries the whole list.
+ */
+function viewData({ home, id, project, since, until }) {
   const { lines: all, skipped } = read(home);
   const lines = all.filter((entry) => matches(entry, { id, project, since, until }));
   const asks = lines.filter((entry) => entry.answer !== AUTO);
 
-  const out = [
-    `permission log: ${plural(lines.length, 'line')}, ${skipped} skipped (did not parse)`,
-    `${plural(asks.length, 'ask')} · ${lines.length - asks.length} auto-allowed`,
-  ];
-
-  if (lines.length) {
-    const bySource = new Map(SOURCES.map((source) => [source, { asks: 0, auto: 0 }]));
-    const byHeadline = new Map();
-    for (const entry of lines) {
-      tally(bySource, entry.source, entry.answer === AUTO);
-      tally(byHeadline, entry.headline || '-', entry.answer === AUTO);
-    }
-    out.push('', 'BY SOURCE');
-    out.push(table(['SOURCE', 'ASKS', 'AUTO-ALLOWED'],
-      [...bySource].map(([source, row]) => [source, row.asks, row.auto])));
-
-    const headlines = [...byHeadline]
-      .sort(([a, x], [b, y]) => y.asks - x.asks || y.auto - x.auto || (a < b ? -1 : a > b ? 1 : 0));
-    out.push('', 'BY HEADLINE');
-    out.push(table(['ASKS', 'AUTO', 'HEADLINE'],
-      headlines.slice(0, limit).map(([headline, row]) => [row.asks, row.auto, headline])));
-    if (headlines.length > limit) {
-      out.push(`${limit} of ${headlines.length} headlines shown. --limit ${headlines.length} for all.`);
-    }
+  const bySource = new Map(SOURCES.map((source) => [source, { asks: 0, auto: 0 }]));
+  const byHeadline = new Map();
+  for (const entry of lines) {
+    tally(bySource, entry.source, entry.answer === AUTO);
+    tally(byHeadline, entry.headline || '-', entry.answer === AUTO);
   }
+  const headlines = [...byHeadline]
+    .sort(([a, x], [b, y]) => y.asks - x.asks || y.auto - x.auto || (a < b ? -1 : a > b ? 1 : 0));
 
   const exempt = targetRules();
   const outside = asks
     .filter((entry) => !(entry.source === 'rule' && exempt.includes(entry.rule)))
     .sort((a, b) => (String(a.at) < String(b.at) ? -1 : String(a.at) > String(b.at) ? 1 : 0));
+
+  return {
+    lines: lines.length,
+    skipped,
+    asks: asks.length,
+    autoAllowed: lines.length - asks.length,
+    bySource: [...bySource].map(([source, row]) => ({ source, ...row })),
+    byHeadline: headlines.map(([headline, row]) => ({ headline, ...row })),
+    outside,
+  };
+}
+
+/** The text `flow audit permissions` prints. */
+function view({ limit = 20, ...options }) {
+  const { lines, skipped, asks, autoAllowed, bySource, byHeadline: headlines, outside } = viewData(options);
+
+  const out = [
+    `permission log: ${plural(lines, 'line')}, ${skipped} skipped (did not parse)`,
+    `${plural(asks, 'ask')} · ${autoAllowed} auto-allowed`,
+  ];
+
+  if (lines) {
+    out.push('', 'BY SOURCE');
+    out.push(table(['SOURCE', 'ASKS', 'AUTO-ALLOWED'], bySource.map((row) => [row.source, row.asks, row.auto])));
+
+    out.push('', 'BY HEADLINE');
+    out.push(table(['ASKS', 'AUTO', 'HEADLINE'],
+      headlines.slice(0, limit).map((row) => [row.asks, row.auto, row.headline])));
+    if (headlines.length > limit) {
+      out.push(`${limit} of ${headlines.length} headlines shown. --limit ${headlines.length} for all.`);
+    }
+  }
 
   out.push('', 'THE TARGET: asks other than push and publish');
   if (!outside.length) {
@@ -123,4 +141,4 @@ function view({ home, id, project, since, until, limit = 20 }) {
   return out.join('\n');
 }
 
-module.exports = { view };
+module.exports = { view, viewData };

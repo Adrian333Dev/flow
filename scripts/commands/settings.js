@@ -2,7 +2,7 @@
 /**
  * `flow settings`: switch the settings Flow reads on or off, at one level.
  *
- *   ls                    every setting, whether it is on here, and which level says so,
+ *   (alone)               every setting, whether it is on here, and which level says so,
  *                         then each number setting beside its default
  *   on | off <name>       write that setting at one level
  *   reset <name>          remove it from that level, so the level above decides
@@ -19,7 +19,7 @@
  */
 
 const path = require('path');
-const { out } = require('../lib/cli');
+const { out, json } = require('../lib/cli');
 const { FlowError } = require('../lib/error');
 const logs = require('../lib/logs/logs');
 const render = require('../lib/render');
@@ -77,26 +77,27 @@ function state(s, dir) {
 
 const actions = {};
 
-actions.ls = {
+/** `flow settings`, typed alone. */
+const listing = {
   summary: 'every setting, whether it is on here, and which level says so',
-  run({ positional, usage }) {
-    if (positional.length) throw new FlowError(`${usage} takes no words. Switch one with flow settings on, off or reset <name>.`);
+  run() {
     const dir = projects.top(process.cwd());
-    const rows = [['setting', 'state', 'level', '']];
-    for (const s of SETTINGS) {
+    const switches = SETTINGS.map((s) => {
       const now = state(s, dir);
-      rows.push([s.key, now.on ? 'on' : 'off', LEVEL_NAMES[now.level] || '', s.says]);
-    }
-    out(render.columns(rows));
+      return { key: s.key, on: now.on, level: now.level || null, says: s.says };
+    });
 
-    // `yours` is blank while the default decides, and differs from it only by an override.
+    // `yours` is null while the default decides, and differs from it only by an override.
     const all = settings.readGlobal();
-    const values = [['value', 'default', 'yours', '']];
-    for (const v of VALUES) {
-      const set = Number(all[v.key]) > 0 ? Number(all[v.key]) : '';
-      values.push([v.key, String(settings.DEFAULTS[v.key]), String(set), v.says]);
-    }
-    out(`\n${render.columns(values)}`);
+    const values = VALUES.map((v) => ({
+      key: v.key, default: settings.DEFAULTS[v.key], yours: Number(all[v.key]) > 0 ? Number(all[v.key]) : null, says: v.says,
+    }));
+
+    json({ settings: switches, values });
+    out(render.columns([['setting', 'state', 'level', ''],
+      ...switches.map((s) => [s.key, s.on ? 'on' : 'off', LEVEL_NAMES[s.level] || '', s.says])]));
+    out(`\n${render.columns([['value', 'default', 'yours', ''],
+      ...values.map((v) => [v.key, String(v.default), v.yours === null ? '' : String(v.yours), v.says])])}`);
     return 0;
   },
 };
@@ -134,6 +135,7 @@ function switchSetting({ positional, flags, state: wanted, by }) {
   logs.recordHistory(home, { type: 'setting', name: key, state: wanted || 'reset', level, by: `flow settings ${by}` });
   out(`${wanted || 'reset'}: ${key}, ${LEVEL_NAMES[level]}.`);
   const now = state(s, dir);
+  json({ key, state: wanted || 'reset', level, on: now.on, decidedBy: now.level || null });
   if (wanted === null) out(`${key} is now ${now.on ? 'on' : 'off'} here${now.level ? `, since ${LEVEL_NAMES[now.level]} says so` : ''}.`);
   else if (now.on !== (wanted === 'on')) out(`${key} is still ${now.on ? 'on' : 'off'} here, since ${LEVEL_NAMES[now.level]} says so.`);
   return 0;
@@ -160,4 +162,4 @@ actions.reset = {
   run: ({ positional, flags }) => switchSetting({ positional, flags, state: null, by: 'reset' }),
 };
 
-module.exports = { summary: 'switch the settings Flow reads on or off, or reset one', default: 'ls', actions };
+module.exports = { summary: 'switch the settings Flow reads on or off, or reset one', list: listing, actions };

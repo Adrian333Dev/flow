@@ -34,7 +34,7 @@
  * still `in-progress` is sitting on something that can change under it.
  *
  * `dropped` is the one status with no verb. Killing a ticket repairs whatever
- * depended on it, and that repair only exists in `flow drop`.
+ * depended on it, and that repair only exists in `flow tickets drop`.
  */
 const STATUSES = [
   { name: 'todo',        verb: 'todo',  rank: 1, open: true,  live: true,  inFlight: false, satisfies: false, terminal: false, reason: false },

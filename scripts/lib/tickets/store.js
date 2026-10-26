@@ -30,7 +30,7 @@ const settings = require('../settings');
 const { FlowError } = require('../error');
 const paths = require('../paths');
 
-// `was` is the id a ticket held before `flow move` took it to another place,
+// `was` is the id a ticket held before `flow tickets move` took it to another place,
 // or before a clash renumbered it, so the old id still finds it. `branch` is
 // the code branch the work is built on, written once: see ticket-history.js.
 // `title` is the short name, 2 to 4 hyphenated words; `description` is the
@@ -84,7 +84,7 @@ const toRank = (v) => {
 // answer "what did I finish last":
 // `filed` is stamped days later by the filing pass, ids are creation order and
 // not finishing order, and a file's mtime is rewritten by `git checkout` and by
-// `flow file`.
+// `flow tickets file`.
 //
 // `filed` holds the date the filing pass swept this ticket, and only that pass
 // writes it. `status: done` says the work is finished; `filed` says the
@@ -401,7 +401,7 @@ function relocate(t) {
 
 /**
  * A rename, or a copy then a delete where the 2 paths sit on different
- * filesystems. `flow move` can take a ticket from ~/.flow/ into a project on
+ * filesystems. `flow tickets move` can take a ticket from ~/.flow/ into a project on
  * another disk, and a rename across disks throws EXDEV.
  */
 function moveFolder(from, to) {
@@ -425,7 +425,7 @@ function setStatus(t, status, reason = '', activity = '') {
   const from = t.data.status;
   t.data.status = status;
   // The kind of work belongs to the stretch of work in progress; a move ends it.
-  // Only a pickup (`flow start --activity`) hands the next stretch its word.
+  // Only a pickup (`flow tickets start --activity`) hands the next stretch its word.
   t.data.activity = status === 'in-progress' ? activity : '';
   // The moment work stopped. Any move back to a live status clears it, because
   // a ticket in flight has no finish to point at.
@@ -580,7 +580,7 @@ function createTicket(root, { title, description, labels, parent, deps, tickets,
  *
  * `flow` used to report `4/9` in every list, which put a regex over
  * hand-written prose into the daily views and read zero whenever a plan was
- * shaped any other way. The count is back in `flow <id>` alone. There it
+ * shaped any other way. The count is back in `flow tickets get <id>` alone. There it
  * answers the question a session picking the ticket up actually has: is the
  * plan written, and is it finished, and it is counted at read time, so it
  * cannot drift from the file the way a stored number would. A plan with no

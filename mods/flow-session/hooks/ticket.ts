@@ -103,8 +103,8 @@ export function idsInPath(file: string, prefix?: string): string[] {
   return found && prefix ? [`${prefix}-${Number(found[1])}`] : []
 }
 
-/** The ticket ids a command picks up with `flow start <id>`, in the order it names them. A bare `flow <id>` only reads. */
-export const startedIn = (command: string): string[] => [...command.matchAll(/\b(?:flow|fw)\s+start\s+([a-z]+-\d+)\b/g)].map((match) => match[1] as string)
+/** The ticket ids a command picks up with `flow tickets start <id>`, in the order it names them. `flow tickets get <id>` only reads. */
+export const startedIn = (command: string): string[] => [...command.matchAll(/\b(?:flow\s+tickets|fw)\s+start\s+([a-z]+-\d+)\b/g)].map((match) => match[1] as string)
 
 /** Where a click on a badge's word lands: a file of the ticket and a line in it, counted from 1. */
 export type Target = { file: 'ticket' | 'map'; line: number }

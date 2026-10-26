@@ -358,7 +358,7 @@ export const register: Register = (on) => {
           files: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Files the next step works on: a path (whole file), `path#heading` (a markdown section), `path:from-to` (lines). A miss loads the whole file. With skills, 80 KB at most.',
+            description: 'Files the next step works on: a path (whole file), `path#heading` (a markdown section), `path:from-to` (lines). A miss loads the whole file. With skills, 40k tokens at most.',
           },
           skills: {
             type: 'array',

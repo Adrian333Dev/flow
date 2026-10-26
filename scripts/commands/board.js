@@ -1,58 +1,53 @@
 'use strict';
 /**
- * The 2 commands that answer a question about the work as a whole rather than
- * about one ticket. Everything ticket-shaped lives in commands/tickets.js; the
- * two files land in one flat namespace, and `section` decides where help
- * prints each command.
+ * `flow next`, the one bare command that answers about the work as a whole
+ * rather than one noun's list. Everything ticket-shaped lives in
+ * commands/tickets.js, under `flow tickets`.
  */
 
-const { FlowError } = require('../lib/error');
-const { out } = require('../lib/cli');
+const { out, json } = require('../lib/cli');
 const graph = require('../lib/tickets/graph');
 const render = require('../lib/tickets/render');
+const ticketJson = require('../lib/tickets/json');
+const store = require('../lib/tickets/store');
 const waiting = require('../lib/waiting');
-const { load, loadFor, PROJECT_FLAG } = require('./tickets');
+const { loadFor, PROJECT_FLAG } = require('./tickets');
 
 // Small, since every session opens on this answer and pays for each line in
 // context. The count of what was hidden always prints: a silent truncation is
 // the only way a ceiling does harm.
-const NEXT_LIMITS = { continuing: 3, ready: 5 };
-
-function nextLimit(flags) {
-  if (flags.all) return { continuing: Infinity, ready: Infinity };
-  if (flags.limit === undefined) return NEXT_LIMITS;
-  const n = Number(flags.limit);
-  if (!Number.isInteger(n) || n < 1) {
-    throw new FlowError(`--limit takes a whole number of tickets (got "${flags.limit}")`);
-  }
-  return { continuing: n, ready: n };
-}
+const READY_ROWS = 3;
 
 const board = {};
 
 /**
- * The board, which `/flow:start` opens a session on. `next` once ranked with
- * logic of its own, beside the board the old `flow get` printed with nothing named,
- * and the 2 disagreed about the child of open work.
+ * The board, which `/flow:start` opens a session on: the work started as a
+ * tree, then what could start, then the one ticket to take.
+ *
+ * Its JSON holds more than its text: the ready list whole, never cut to 3.
  */
 board.next = {
   section: 'board',
-  summary: 'what to work on, ranked',
-  flags: { limit: { arg: '<n>' }, all: { bool: true }, project: PROJECT_FLAG },
+  summary: 'what to work on: the work started, then what could start',
+  flags: { all: { bool: true }, project: PROJECT_FLAG },
   run({ flags }) {
     const { root, tickets } = loadFor(flags);
-    out(render.status(tickets, nextLimit(flags), waiting.count(root, tickets)));
-    return 0;
-  },
-};
+    const view = graph.nextView(tickets);
+    const owed = waiting.count(root, tickets);
+    out(render.next(view, tickets, owed, flags.all ? Infinity : READY_ROWS));
 
-board.check = {
-  section: 'board',
-  summary: 'cycles, dangling ids, dropped blockers, orphaned parents, unknown statuses',
-  run() {
-    const problems = graph.check(load().tickets);
-    out(render.checkReport(problems));
-    return graph.hasProblems(problems) ? 1 : 0;
+    const index = graph.indexById(tickets);
+    json({
+      project: { prefix: store.prefixOf(root), folder: root },
+      lastClosed: view.lastClosed && ticketJson.record(view.lastClosed, tickets, index),
+      inProgress: ticketJson.list(view.tree, tickets),
+      ready: view.ready.map((t) => ticketJson.record(t, tickets, index)),
+      take: view.take ? view.take.id : null,
+      parked: view.parked,
+      waiting: owed,
+      problems: view.problems,
+    });
+    return 0;
   },
 };
 

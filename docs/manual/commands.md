@@ -1,6 +1,30 @@
 # Commands
 
-Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in the terminal, and `flow <command> --help` shows one.
+Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in the terminal, `flow tickets --help` lists one noun's, and `flow tickets new --help` shows one command.
+
+**Commands sit under a noun**: `tickets`, `notes`, `audit`, `settings` and `scorecard`. A noun typed alone lists, so `flow tickets` is the ticket table. `flow next` and the setup commands stay bare, and a bare `flow` prints the help.
+
+**A query follows `--`, in double quotes**: `flow notes -- "cache"`. The `--` keeps a query such as `new` from reading as a command. A query the shell split into several words is refused, naming the quoted form.
+
+**An unknown command exits 1** with one error line, then the help of the noun it was typed under, or the whole help.
+
+**`--json` prints the result as JSON**, on every command but `install`, `update`, `init` and `sync`. Flow's own parts read it: the band and the hooks. A list is flat, one record per ticket in the order the text shows, each with its `parent` and its `depth` in the tree. A refusal prints `{"error": "<message>"}` and exits 1.
+
+```console
+$ flow tickets start shop-2 --json
+{
+  "ticket": {
+    "id": "shop-2",
+    "name": "shop-2-budget-store",
+    "status": "in-progress",
+    "parent": "shop-1",
+    …
+  },
+  "from": "todo",
+  "to": "in-progress",
+  …
+}
+```
 
 ## Table of contents
 
@@ -12,25 +36,24 @@ Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in
   - [`flow sync`](#flow-sync): back up your workflow and share it between your computers
 - [The board](#the-board): see all your tickets and what to work on next
   - [`flow next`](#flow-next): what to work on next
-  - [`flow ls`](#flow-ls): the open tickets in a table, or the ones a quoted query names
-  - [`flow labels`](#flow-labels): the labels on the tickets a query names, to narrow by
-  - [`flow tree`](#flow-tree): tickets nested under the ticket they were split from
-  - [`flow check`](#flow-check): find broken links between tickets
+  - [`flow tickets`](#flow-tickets): the open tickets as a tree, or the ones a quoted query names
+  - [`flow tickets labels`](#flow-tickets-labels): the labels on the tickets a query names, to narrow by
+  - [`flow tickets check`](#flow-tickets-check): find broken links between tickets
 - [One ticket](#one-ticket): show, create, change or remove one ticket
-  - [`flow <id>`](#flow-id): show one ticket
-  - [`flow new`](#flow-new): create a ticket
-  - [`flow edit`](#flow-edit): change a ticket's title, description, labels or links
-  - [`flow rank`](#flow-rank): put a ticket before or after another
-  - [`flow file`](#flow-file): mark finished tickets as checked for lessons
-  - [`flow drop`](#flow-drop): remove a ticket that will never be done
-  - [`flow move`](#flow-move): move tickets to another project by its prefix, or to your Flow home
+  - [`flow tickets get`](#flow-tickets-get): show one ticket
+  - [`flow tickets new`](#flow-tickets-new): create a ticket
+  - [`flow tickets edit`](#flow-tickets-edit): change a ticket's title, description, labels or links
+  - [`flow tickets rank`](#flow-tickets-rank): put a ticket before or after another
+  - [`flow tickets file`](#flow-tickets-file): mark finished tickets as checked for lessons
+  - [`flow tickets drop`](#flow-tickets-drop): remove a ticket that will never be done
+  - [`flow tickets move`](#flow-tickets-move): move tickets to another project by its prefix, or to your Flow home
 - [Notes](#notes): ideas and put-off work, each filed under a project's prefix
 - [Ticket status](#ticket-status): move a ticket from one stage to the next
 - [Settings](#settings): turn Flow's own settings on or off
 - [Rule checks](#rule-checks): see how well the agent follows your rules
 - [Audit](#audit): read back what Claude Code did in past sessions
+  - [`flow audit`](#flow-audit): every session, with its totals
   - [`flow audit index`](#flow-audit-index): read new sessions in
-  - [`flow audit ls`](#flow-audit-ls): every session, with its totals
   - [`flow audit get`](#flow-audit-get): one session in full
   - [`flow audit turns`](#flow-audit-turns): one session, prompt by prompt
   - [`flow audit read`](#flow-audit-read): the conversation itself
@@ -136,32 +159,31 @@ It runs by itself when a session ends, and every 30 minutes while you work, so y
 
 A ticket is one piece of work, kept as a folder in the project's `.flow/tickets/`. Its status is `todo`, `in-progress`, `done`, `parked` or `dropped`, and its labels name the kind of work.
 
-**Tickets come in rank order.** Tickets with the same parent are siblings, and top-level tickets share the empty parent. Among siblings, a ticket with a `rank:` number comes first, by number. The tickets without one follow by id, so a new ticket lands last. [`flow rank`](#flow-rank) moves a ticket.
+**Tickets come in rank order.** Tickets with the same parent are siblings, and top-level tickets share the empty parent. Among siblings, a ticket with a `rank:` number comes first, by number. The tickets without one follow by id, so a new ticket lands last. [`flow tickets rank`](#flow-tickets-rank) moves a ticket.
 
-**Outside a project, a read shows your Flow home.** In a folder that is no project, `flow ls`, `flow next` and the other reads run on the tickets in `~/.flow/tickets/`. They create nothing. A command that writes (`flow new`, `flow note`, a status move on a bare number) refuses and names the choices: `flow init` here, or `-p home`.
+**Outside a project, a read shows your Flow home.** In a folder that is no project, `flow tickets`, `flow next` and the other reads run on the tickets in `~/.flow/tickets/`. They create nothing. A command that writes (`flow tickets new`, `flow notes new`, a status move on a bare number) refuses and names the choices: `flow init` here, or `--project home`.
 
-**Every `flow ls` and `flow next` list begins with one line naming its project**: the prefix, then the project's folder. It is the same in a project, with `-p`, and in a folder that is no project, where it names your Flow home.
+**Every `flow tickets` and `flow next` list begins with one line naming its project**: the prefix, then the project's folder. It is the same in a project, with `-p`, and in a folder that is no project, where it names your Flow home.
 
 ```console
-$ flow ls -p home
+$ flow tickets -p home
 home  ~/.flow
-TICKET               STATUS  LABELS  PARENT
-home-3-backup-notes  todo    chore   -
+home-3-backup-notes  todo  chore
 
 1 of 1.
 ```
 
-**`-p <prefix>` runs a command in another project.** `flow new`, `flow ls`, `flow next` and `flow note` take `-p`, or `--project`, with the prefix of any project on this computer, from any folder. `home` is your Flow home. A command with an id reads the project from the id and takes no flag.
+**`-p <prefix>` runs a command in another project.** `flow tickets new`, `flow tickets`, `flow next` and `flow notes new` take `-p`, or `--project`, with the prefix of any project on this computer, from any folder. `home` is your Flow home. A command with an id reads the project from the id and takes no flag.
 
 ```console
-$ flow new "Dark mode: a theme switch" -p shop
+$ flow tickets new "Dark mode: a theme switch" -p shop
 created shop-7-dark-mode
 ```
 
 **Only a prefix works.** `-p global` is refused, naming `home`. A folder name is refused too, naming the prefix the folder has when it is a project here, and so are `all` and a prefix no project has.
 
 ```console
-$ flow ls -p ~/code/shop
+$ flow tickets -p ~/code/shop
 flow: /home/me/code/shop is not a project prefix. --project takes the prefix of a project, such as fw or home, never its folder.
   The project in /home/me/code/shop has the prefix shop.
   flow doctor lists the prefixes on this machine.
@@ -169,82 +191,98 @@ flow: /home/me/code/shop is not a project prefix. --project takes the prefix of 
 
 ### `flow next`
 
-What to work on next: tickets in progress first, then the ones that continue open work, then ready tickets in rank order. Blocked tickets show only when nothing is in progress or ready.
+What to work on next: the work in progress as a tree, then the ready tickets in rank order. Blocked tickets show only when nothing is in progress or ready.
 
 ```console
 $ flow next
 shop  ~/code/shop
 last closed  shop-5-chart-library
 
-in flight (1)
-  shop-4-safari-cookie  bug,urgent
+in progress
+  shop-1-budget-page       0/2
+  ├── shop-2-budget-store
+  └── shop-3-csv-export    blocked by shop-2
+  shop-4-safari-cookie     in progress
 
-continues shop-1 (1)
-  shop-2-budget-store  feature
-
-ready (1)
-  shop-6-dark-mode  feature,post-v1
+ready (3)
+  shop-6-dark-mode   feature,post-v1
+  shop-7-pdf-export  feature
+  shop-8-search-bar  feature
 
 take: shop-2-budget-store
-1 parked · waiting: 1 closed ticket, 2 notes, 3 findings
+1 parked · waiting: 1 closed ticket
 ```
 
-Each session opens on this screen, so it prints only what the next step needs. A ticket is its name and labels. The heading says the status, and a shared parent heads its section. Parked tickets are a count, with no reasons: `flow <id>` shows one.
+Each session opens on this screen, so it prints only what the next step needs.
 
-**`take:` names the ticket to start.** It is the first ticket that continues open work, else the first ready one. It is never one in progress, since a running session owns those.
+**`in progress` shows each ticket in progress with every open child under it, to any depth.** A parent shows how many of its children are done, `0/2`. A started child sorts before its todo siblings. A child waiting on another ticket says what blocks it.
 
-- **`--limit <n>`**: at most `n` tickets in each of the continuing and ready lists. 3 and 5 by default.
-- **`--all`**: every ticket in both.
+**`ready` holds the tickets that could start, outside the tree.** It shows 3, then `and N more (flow next --all)`. A ticket here is its name and labels. Parked tickets are a count, with no reasons: `flow tickets -- "status:parked"` shows them.
+
+**`take:` names the ticket to start.** It is the first ticket in the tree, from the top, that could start, else the first ready one. A blocked ticket is never named, and neither is one in progress, since a running session owns those.
+
+- **`--all`**: every ready ticket.
 - **`-p`, `--project <prefix>`**: another project's tickets, or `home`'s.
 
-### `flow ls`
+### `flow tickets`
 
-The open tickets in a table. Parked, done and dropped ones stay out, as a count, until the query names a status.
+The open tickets as a tree: each ticket under the one it was split from, to any depth. Parked, done and dropped ones stay out, as a count, until the query names a status.
 
 ```console
-$ flow ls
+$ flow tickets
 shop  ~/code/shop
-TICKET                STATUS       LABELS           PARENT
-shop-4-safari-cookie  in-progress  bug,urgent       -
-shop-6-dark-mode      todo         feature,post-v1  -
-shop-1-budget-page    todo         feature,v1       -
-shop-2-budget-store   todo         feature          shop-1
-shop-3-csv-export     todo         feature,v1       -
+shop-1-budget-page       in-progress  feature,v1       0/2
+├── shop-2-budget-store  todo         feature
+└── shop-3-csv-export    todo         feature          blocked by shop-2
+shop-4-safari-cookie     in-progress  bug,urgent
+shop-6-dark-mode         todo         feature,post-v1
+shop-7-pdf-export        todo         feature
+shop-8-search-bar        todo         feature
 
-5 of 6, 1 done or dropped hidden: "status:all".
+7 of 9, 1 parked, 1 done or dropped hidden: "status:all".
 ```
 
-**One quoted query narrows the table.** It is the same query `flow notes` reads. A word matches anywhere in the title, description, id, labels or body, and a word of 5 letters or more also matches a word one typo away. `field:value` terms narrow by a field:
+**The last column holds what each ticket needs said.** A parent shows how many of its children are done, `0/2`. A ticket waiting on another says what blocks it. A parked ticket shows the first words of its reason, so a reason opens with its most important words. Siblings come in progress first, then in rank order.
+
+**One quoted query narrows the tree.** It is the same query `flow notes` reads, after `--`. A word matches anywhere in the title, description, id, labels or body, and a word of 5 letters or more also matches a word one typo away. `field:value` terms narrow by a field:
 
 ```console
-$ flow ls "safary"
+$ flow tickets -- "safary"
 shop  ~/code/shop
-TICKET                STATUS       LABELS      PARENT
-shop-4-safari-cookie  in-progress  bug,urgent  -
+shop-4-safari-cookie  in-progress  bug,urgent
 
-1 of 6.
+1 of 9.
+```
+
+**A ticket whose parent the query left out stands at the top**, and names the parent it sits under:
+
+```console
+$ flow tickets -- "csv"
+shop  ~/code/shop
+shop-3-csv-export  todo  feature  blocked by shop-2, under shop-1
+
+1 of 9.
 ```
 
 **A comma inside a value means or, and a repeated field means and.** `"label:v1,post-v1"` finds a ticket with either label. `"label:feature label:v1"` finds a ticket with both.
 
-- **`"<query>"`**: words and the fields below, in double quotes as one argument, such as `flow ls "budget label:feature"`.
+- **`-- "<query>"`**: words and the fields below, in double quotes as one argument, such as `flow tickets -- "budget label:feature"`.
 - **`label:<label>`**: the tickets carrying a label.
 - **`status:<status>`**: `todo`, `in-progress`, `done`, `parked` or `dropped`. `status:all` shows every status.
-- **`parent:<id>`**: the tickets split from one ticket.
-- **`filed:no`**: finished tickets not yet checked for lessons. [`flow file`](#flow-file) marks them, and `filed:yes` finds the ones it marked.
+- **`parent:<id>`**: one ticket and everything split from it, to any depth.
+- **`filed:no`**: finished tickets not yet checked for lessons. [`flow tickets file`](#flow-tickets-file) marks them, and `filed:yes` finds the ones it marked.
 - **`-p`, `--project <prefix>`**: another project's tickets, or `home`'s. This is a flag beside the query, never a term inside it.
+- **`--flat`**: the plain table, one row per ticket with a `PARENT` column, in progress first.
 
 **A query with `label:flow-issue` reads every project on this computer, and `home`.** A Flow issue is filed in the project where the fault arose, so the list gathers them all, one group per project: the header line, then that project's table. The project you stand in comes first and `home` last. A project with no match shows `no tickets.`. One count line closes the list. `-p` limits it to one project. Every other query reads the project you stand in. A project whose folder is gone is skipped, and `flow doctor` names it.
 
 ```console
-$ flow ls "label:flow-issue"
+$ flow tickets -- "label:flow-issue"
 shop  ~/code/shop
-TICKET              STATUS  LABELS                   PARENT
-shop-9-wrong-total  todo    flow-issue,wrong-output  -
+shop-9-wrong-total  todo  flow-issue,wrong-output
 
 fw  ~/code/flow-dev
-TICKET                  STATUS  LABELS                  PARENT
-fw-214-hand-run-in-tmp  todo    flow-issue,rework-loop  -
+fw-214-hand-run-in-tmp  todo  flow-issue,rework-loop
 
 home  ~/.flow
 no tickets.
@@ -252,12 +290,12 @@ no tickets.
 2 of 21, 4 done or dropped hidden: "status:all".
 ```
 
-### `flow labels`
+### `flow tickets labels`
 
-`flow labels "<query>"`: the labels on the tickets a query names, each with how many of those tickets carry it. Add a label to the query to narrow the set, until it is small enough to read. The labels in the query itself are left out of the count. A query with `label:flow-issue` counts the tickets of every project and `home` together, in one count line and one list, since the repeat check asks whether a type is filed anywhere. Each id starts with its project's prefix, such as `shop-9`.
+`flow tickets labels -- "<query>"`: the labels on the tickets a query names, each with how many of those tickets carry it. Add a label to the query to narrow the set, until it is small enough to read. The labels in the query itself are left out of the count. A query with `label:flow-issue` counts the tickets of every project and `home` together, in one count line and one list, since the repeat check asks whether a type is filed anywhere. Each id starts with its project's prefix, such as `shop-9`.
 
 ```console
-$ flow labels "label:flow-issue"
+$ flow tickets labels -- "label:flow-issue"
 3 tickets, 3 open
 more labels: rework-loop 2, hook 1
 exp-12  todo         Agent restated the plan instead of building
@@ -267,33 +305,14 @@ exp-15  todo         Asked for a go after the user said go
 
 **The tickets are listed when 10 or fewer match.** More than that and the command says to add a `label:` term.
 
-- **`"<query>"`**: the same query `flow ls` reads. Done and dropped tickets stay out, with a count of them, until the query names a `status:`.
+- **`-- "<query>"`**: the same query `flow tickets` reads. Done and dropped tickets stay out, with a count of them, until the query names a `status:`.
 
-### `flow tree`
-
-Tickets nested under the ticket they were split from, with what each one waits on. Parked, finished and dropped tickets are hidden, as a count.
-
-```console
-$ flow tree
-shop-3-csv-export             todo         blocked by shop-2
-shop-7-pdf-export             todo         blocked by shop-2
-shop-6-dark-theme             todo
-shop-4-safari-cookie          in-progress
-shop-1-budget-page            todo         0/1 done
-└── shop-2-budget-store       todo
-
-6 tickets, 1 done or dropped hidden: flow tree --all
-```
-
-- **`--parent <id>`**: one ticket and everything under it.
-- **`--all`**: include parked tickets, with the reason for each, and finished and dropped ones.
-
-### `flow check`
+### `flow tickets check`
 
 Find broken links between tickets: tickets waiting on each other in a loop, a link to a ticket that does not exist, a wait on a dropped ticket, an open ticket under a closed one, a misspelled status, a ticket with no title or description. It exits 1 when it finds one, and `flow next` says when to run it.
 
 ```console
-$ flow check
+$ flow tickets check
 no problems: no cycles, no dangling ids, no dropped blockers, no closed parents, no unknown statuses, every ticket has a title and a description.
 ```
 
@@ -301,18 +320,18 @@ no problems: no cycles, no dangling ids, no dropped blockers, no closed parents,
 
 A ticket's id is the project's prefix and a number, `shop-4`. Its title is up to 4 hyphenated words, `safari-cookie`, and the two together name it everywhere: `shop-4-safari-cookie`. Its description is one sentence saying what the work is, opening with the short name. Any of these finds a ticket: `4`, `shop-4`, `shop-4-safari-cookie`, or a title word that matches one ticket alone, such as `safari`. Only the id part counts, so a name from before a rename, `shop-4-old-words`, still finds it. An id starting `home-` names a ticket kept in your Flow home, for work that belongs to no project.
 
-**An id works from any folder.** Its prefix names the project, read through the list of projects on this machine (`registry.json` in your Flow home). From inside `app`, `flow shop-4` shows the ticket of the `shop` project, and `flow start shop-4` starts it. The folder you stand in wins when its own prefix matches, and a bare number is always the current project's.
+**An id works from any folder.** Its prefix names the project, read through the list of projects on this machine (`registry.json` in your Flow home). From inside `app`, `flow tickets get shop-4` shows the ticket of the `shop` project, and `flow tickets start shop-4` starts it. The folder you stand in wins when its own prefix matches, and a bare number is always the current project's.
 
-A project joins the list by its first ticket write (`flow init`, `flow new`, `flow start` and the like), and a read never adds one. An unknown prefix fails with a message that names `flow doctor`, which lists the projects.
+A project joins the list by its first ticket write (`flow init`, `flow tickets new`, `flow tickets start` and the like), and a read never adds one. An unknown prefix fails with a message that names `flow doctor`, which lists the projects.
 
-### `flow <id>`
+### `flow tickets get`
 
-`flow <id>`: one ticket's fields, then its text, then the command that starts work on it. It takes no flags.
+`flow tickets get <id>`: one ticket's fields, then its text, then the command that starts work on it. It takes no flags.
 
 A `rank:` line shows only on a ticket that has a number. An `activity:` line shows on a ticket a phase has started.
 
 ```console
-$ flow 4
+$ flow tickets get 4
 shop-4-safari-cookie
 Safari loses the session cookie after login
 status: todo   parent: -
@@ -323,7 +342,7 @@ dependents: -
 ready:      yes
 path:       .flow/tickets/shop-4/ticket.md
 
-pick up with: flow start shop-4
+pick up with: flow tickets start shop-4
 ------------------------------------------------------------
 <!-- What changes and why. One paragraph. -->
 
@@ -333,82 +352,79 @@ pick up with: flow start shop-4
 <!-- One observable check. Write it now. -->
 ```
 
-### `flow new`
+### `flow tickets new`
 
-`flow new "<description>"`: create a ticket. The description is one sentence that opens with the ticket's short name, then a colon: `Export the budget as a PDF: ...`. The title is cut from it, up to 4 words before the colon, or the first 4 words where there is no colon. The ticket's folder is its id alone.
+`flow tickets new "<description>"`: create a ticket. The description is one sentence that opens with the ticket's short name, then a colon: `Export the budget as a PDF: ...`. The title is cut from it, up to 4 words before the colon, or the first 4 words where there is no colon. The ticket's folder is its id alone. `flow tickets edit --title` renames it.
 
 ```console
-$ flow new "PDF export: the budget page as a PDF" --deps shop-2 --label feature,v1 --after shop-3
+$ flow tickets new "PDF export: the budget page as a PDF" --deps shop-2 --label feature,v1
 created shop-7-pdf-export
         .flow/tickets/shop-7/ticket.md
-        rank: after shop-3
         labels: feature, v1
         deps: shop-2
 
-pick up with: flow start shop-7
+pick up with: flow tickets start shop-7
 ```
 
 A description with no words to cut a title from, such as `!!!`, is refused.
 
-A new ticket carries no rank and lands last. Add a place to put it elsewhere.
+A new ticket carries no rank and lands last. [`flow tickets rank`](#flow-tickets-rank) puts it elsewhere.
 
-When 2 computers take one number at the same moment, the later one makes no ticket and says so. Run `flow new` again, and it takes the next number:
+When 2 computers take one number at the same moment, the later one makes no ticket and says so. Run `flow tickets new` again, and it takes the next number:
 
 ```console
-$ flow new "PDF export: the budget page as a PDF"
+$ flow tickets new "PDF export: the budget page as a PDF"
 flow: no ticket was made: another machine took shop-7 first. Run it again.
 ```
 
-- **`--title <words>`**: the title in place of the cut one. Lowercase letters, digits and single hyphens, 40 characters at most, such as `login-redirect-loop`.
-- **`--before <id>`**, **`--after <id>`** or **`--first`**: where the ticket goes among its siblings. [`flow rank`](#flow-rank) explains the order.
 - **`--parent <id>`**: the ticket this one was split from.
 - **`--deps <id,id>`**: tickets that must reach `done` before this one can start.
 - **`--label <label,label>`**: tags in lowercase letters, digits and hyphens, 24 characters at most. Flow suggests 9: `feature`, `bug`, `chore`, `docs`, `refactor`, `research`, `topic`, `new-project` and `urgent`. Any other name works too, such as `v1` or `post-v1`.
 - **`--body <text>`**: the ticket's text, in place of the template. `--body -` reads it from standard input.
 - **`-p`, `--project <prefix>`**: the project that gets the ticket, from any folder. `home` files it in `~/.flow/tickets/`, numbered `home-1`.
 
-### `flow edit`
+### `flow tickets edit`
 
-`flow edit <id>`, with one flag per field to change. The status changes through its own commands, under [Ticket status](#ticket-status).
+`flow tickets edit <id>`, with one flag per field to change. The status changes through its own commands, under [Ticket status](#ticket-status).
 
 ```console
-$ flow edit shop-6 --title dark-theme --description "Dark theme for every page" --label feature,v1
+$ flow tickets edit shop-6 --title dark-theme --description "Dark theme for every page" --label feature,v1
 shop-6
   title: dark-mode → dark-theme
   description: "Dark mode for every page" → "Dark theme for every page"
   labels: [feature, post-v1] → [feature, v1]
 
-$ flow edit shop-3 --deps shop-5
+$ flow tickets edit shop-3 --deps shop-5
 shop-3
   deps: [shop-2, shop-5] → [shop-5]
 ```
 
-- **`--title <words>`**: the short name, as in [`flow new`](#flow-new). The folder and its path stay, so a rename breaks no link.
+- **`--title <words>`**: the short name in place of the one cut from the description. Lowercase letters, digits and single hyphens, 40 characters at most, such as `login-redirect-loop`. The folder and its path stay, so a rename breaks no link.
 - **`--description "<text>"`**: the one-sentence description. The title stays.
 - **`--label <label,label>`**: the ticket's labels, replacing the whole list. An empty value clears it.
 - **`--parent <id>`**: the ticket this one was split from. An empty value removes it.
 - **`--deps <id,id>`**: the tickets this one waits on, replacing the whole list. An empty value clears it. A wait that would make a loop is refused.
 - **`--activity <word>`**: the kind of work in flight, `design`, `build` or `debug`.
 
-The order changes through [`flow rank`](#flow-rank), never through `flow edit`.
+The order changes through [`flow tickets rank`](#flow-tickets-rank), never through `flow tickets edit`.
 
-### `flow rank`
+### `flow tickets rank`
 
-`flow rank <id>`, with one place: put an open ticket among its siblings. Siblings are the tickets that share a parent, and top-level tickets share the empty parent.
+`flow tickets rank <id>`, with one place: put an open ticket among its siblings. Siblings are the tickets that share a parent, and top-level tickets share the empty parent.
 
 ```console
-$ flow rank shop-4 --before shop-1
+$ flow tickets rank shop-4 --before shop-1
 shop-4-safari-cookie  before shop-1
       numbered 3 other tickets too, in their current order
 
-$ flow rank shop-3 --first
+$ flow tickets rank shop-3 --first
 shop-3-csv-export  first
 ```
 
 A move writes a `rank:` number on the moved ticket alone, halfway between its new neighbours. **The first move among tickets with no number numbers all of them once**, in their current order, as the first example shows. A move into a gap too small to split numbers the group again.
 
 ```console
-$ flow rank shop-2 --before shop-4
+$ flow tickets rank shop-2 --before shop-4
 flow: shop-4 is not an open ticket with the same parent: a ticket is ranked among its siblings.
 ```
 
@@ -417,12 +433,12 @@ flow: shop-4 is not an open ticket with the same parent: a ticket is ranked amon
 
 Give one place. A `done` or `dropped` ticket has none.
 
-### `flow file`
+### `flow tickets file`
 
-`flow file <id>...`: mark finished tickets as checked for lessons. `/flow:upkeep` runs it once it has written what a ticket taught into the wiki, your rules and your skills. Mark a ticket that taught nothing too, so it leaves `flow ls "status:done filed:no"`.
+`flow tickets file <id,id>`: mark finished tickets as checked for lessons. `/flow:upkeep` runs it once it has written what a ticket taught into the wiki, your rules and your skills. Mark a ticket that taught nothing too, so it leaves `flow tickets -- "status:done filed:no"`.
 
 ```console
-$ flow file shop-1 shop-2
+$ flow tickets file shop-1,shop-2
 shop-1-budget-page   filed 2026-10-02
 shop-2-budget-store  filed 2026-10-02
 
@@ -431,9 +447,9 @@ nothing left unfiled.
 
 - **`--force`**: mark again a ticket already marked, with today's date.
 
-### `flow drop`
+### `flow tickets drop`
 
-`flow drop <id> --reason "<why>"`: remove a ticket that will never be done. Its folder moves to `.flow/tickets/archive/`.
+`flow tickets drop <id> --reason "<why>"`: remove a ticket that will never be done. Its folder moves to `.flow/tickets/archive/`.
 
 **A drop refuses while an open ticket waits on this one**, and lists each. Add one of these:
 
@@ -441,7 +457,7 @@ nothing left unfiled.
 - **`--force`**: drop the waiting tickets too, all the way down.
 
 ```console
-$ flow drop shop-6 --reason "replaced by the new layout" --by shop-5
+$ flow tickets drop shop-6 --reason "replaced by the new layout" --by shop-5
 shop-6-old-layout  todo → dropped
       reason: replaced by the new layout
       moved → .flow/tickets/archive/shop-6
@@ -450,58 +466,55 @@ re-pointed to shop-5-chart-library:
   shop-3  deps → [shop-2, shop-5]
 ```
 
-### `flow move`
+### `flow tickets move`
 
-`flow move <id>... <place>`: move tickets to another project, or to `home`, your Flow home. The place is the project's prefix, such as `shop`, never its folder. Each ticket takes the next free number there. Its old id still finds it from the project it left.
+`flow tickets move <id,id> <place>`: move tickets to another project, or to `home`, your Flow home. The place is the project's prefix, such as `shop`, never its folder. Each ticket takes the next free number there. Its old id still finds it from the project it left.
 
 ```console
-$ flow move shop-4 home
+$ flow tickets move shop-4 home
 shop-4 → home-1-safari-cookie
 
-the old id still finds it from the project: flow shop-4
+the old id still finds it from the project (flow tickets get shop-4)
 ```
 
-**A link to a ticket staying behind refuses the whole move.** Move the linked tickets in the same command, or remove the link first with `flow edit --deps` or `--parent`.
+**A link to a ticket staying behind refuses the whole move.** Move the linked tickets in the same command, or remove the link first with `flow tickets edit --deps` or `--parent`.
 
 ## Notes
 
 A note is an idea or put-off work, one small file in `~/.flow/notes/`. It belongs to a project, named by that project's prefix: `shop`, or `home` for a note that holds in every project. A note shows its project's prefix, never its folder's name.
 
 ```console
-$ flow note "Export the budget as a CSV too" --label idea
+$ flow notes new "Export the budget as a CSV too" --label idea
 created export-the-budget-as-a-csv-too
         ~/.flow/notes/export-the-budget-as-a-csv-too.md
         project: shop
         labels: idea
 ```
 
-- **`flow note "<text>"`**: add a note to the project you are in. `flow notes new "<text>"` does the same.
+- **`flow notes new "<text>"`**: add a note to the project you are in.
 - **`--label <label,label>`**: tags, with the rules a ticket's labels follow.
 - **`-p`, `--project <prefix>`**: the project that gets the note, which must be a project on this computer, or `home`. Outside a project the note is refused without it.
-- **`flow notes "<query>"`**: the notes the query names, as JSON, newest change first. The query reads words, `label:` and `project:`. `project:<prefix>` takes a prefix, `project:home` the home notes, `project:here` this project's, and `project:all` every note. With no `project:` term, a query shows this project's notes and the home ones.
+- **`flow notes -- "<query>"`**: the notes the query names, as JSON, newest change first. The query reads words, `label:` and `project:`. `project:<prefix>` takes a prefix, `project:home` the home notes, `project:here` this project's, and `project:all` every note. With no `project:` term, a query shows this project's notes and the home ones.
 - **`flow notes get <name>`**, **`drop <name>`**, **`promote <name>`**: show a note, delete it, or turn it into a ticket in the project it belongs to.
 
 **A `project:` term needs only a prefix's shape**, since notes travel between your computers and the list of projects does not. `project:global` is refused, naming `home`, and so is a folder name.
-
 
 ## Ticket status
 
 Each status has a command named for where the ticket lands:
 
 ```text
-flow todo <id>                    back in the queue
-flow start <id> --activity <word> start working on it
-flow done <id>                    close it, and move its folder to the archive
-flow park <id> --reason "<why>"   set it aside
-flow revive --label <label>       bring back every parked ticket with a label
+flow tickets todo <id>                    back in the queue
+flow tickets start <id> --activity <word> start working on it
+flow tickets done <id>                    close it, and move its folder to the archive
+flow tickets park <id> --reason "<why>"   set it aside
 ```
 
 The skills move tickets for you. `--activity` is `design`, `build` or `debug`, and names the kind of work in flight. A move lists the tickets it unblocked:
 
 ```console
-$ flow done shop-2
+$ flow tickets done shop-2
 shop-2-budget-store  in-progress → done
-      activity: build
       moved → .flow/tickets/archive/2
 
 now ready:
@@ -514,43 +527,27 @@ now ready:
 - starting a ticket whose waits have not reached `done`;
 - starting a parent while one of its children is open;
 - closing a parent while one of its children is open;
-- `flow park` without `--reason`.
+- `flow tickets park` without `--reason`.
 
 `--force` overrides all but the last.
 
 ```console
-$ flow done shop-1
+$ flow tickets done shop-1
 flow: shop-1 has 1 open child ticket, its work is theirs:
   shop-2-budget-store  in-progress
-  Finish those, or close it anyway with: flow done shop-1 --force
+  Finish those, or close it anyway with: flow tickets done shop-1 --force
 ```
 
 **A reason opens with the words that matter most**, since a narrow list (the board's) shows only the first ones.
 
-**A parked ticket comes back through the command for the status it left.** A ticket parked while `in-progress` returns with `flow start`, and one parked from `todo` with `flow todo`:
+**A parked ticket comes back through the command for the status it left.** A ticket parked while `in-progress` returns with `flow tickets start`, and one parked from `todo` with `flow tickets todo`:
 
 ```console
-$ flow park shop-4 --reason "waiting on a Safari machine"
+$ flow tickets park shop-4 --reason "waiting on a Safari machine"
 shop-4-safari-cookie  in-progress → parked
       reason: waiting on a Safari machine
 
-revive with: flow start shop-4
-```
-
-**A label parks a set.** `flow park --label` parks every open ticket carrying it, in one commit, and `flow revive --label` returns each parked one to the status it left. A label no ticket carries changes nothing and lists the labels in use.
-
-```console
-$ flow park --label post-v1 --reason "after V1 ships"
-shop-8-dark-mode  todo → parked
-shop-9-pdf-export  in-progress → parked
-
-parked 2 tickets labelled post-v1: after V1 ships
-
-$ flow revive --label post-v1
-shop-8-dark-mode  parked → todo
-shop-9-pdf-export  parked → in-progress
-
-revived 2 tickets labelled post-v1
+revive with: flow tickets start shop-4
 ```
 
 ## Settings
@@ -558,7 +555,7 @@ revived 2 tickets labelled post-v1
 `flow settings` turns Flow's 4 on/off settings on or off, without opening a file. [Reference: settings](settings.md) explains each one.
 
 ```console
-$ flow settings ls
+$ flow settings
 setting        state  level
 reminder       on            a line beside every message, pointing Claude at the reply rules
 sessionCheck   on            the flow init suggestion, when a session opens
@@ -571,7 +568,7 @@ keepWarmLead     3                minutes before the prompt cache expires that /
 keepWarmMaxIdle  4                hours after your last request that /keepwarm stops pinging
 ```
 
-- **`flow settings ls`**: every setting, and the level that decides it, then each number setting with its default and your value. `yours` is blank while the default decides. A bare `flow settings` prints the same.
+- **`flow settings`**: every setting, and the level that decides it, then each number setting with its default and your value. `yours` is blank while the default decides.
 - **`flow settings on <name>`** and **`off <name>`**: switch a setting.
 - **`flow settings reset <name>`**: remove that level's switch, so the default decides.
 - **`--global`**: every project, on every computer. With no flag, the switch is for this folder.
@@ -606,17 +603,17 @@ No checks yet. One file each in /home/me/code/flow-dev/scripts/rule-checks.
 
 `flow audit` reads the transcripts Claude Code keeps of every session into an index, `~/.flow/audit/audit.db`, and answers questions from it. A read refreshes the index first when the last full run is over 30 minutes old, and the line under the coverage line says how old it is. The first build is `flow audit index`. A session id can be any start of it that matches one session alone, such as `a1b2`. A segment is one unbroken context window, and a turn is one prompt with everything it set off.
 
-A transcript names no machine, so the index tags each session with the name `flow install` saved for this computer, or `unnamed` before one is saved. Every answer from the index opens with one line per machine, its session count and its newest day. That line counts the whole index, whatever `--project` or `--since` narrows. The examples below leave it out.
+A transcript names no machine, so the index tags each session with the name `flow install` saved for this computer, or `unnamed` before one is saved. Every answer from the index opens with one line per machine, its session count and its newest day. That line counts the whole index, whatever a `project:` or `since:` term narrows. The examples below leave it out.
 
 ```console
-$ flow audit ls
+$ flow audit
 pc-wsl: 1 session, newest 2026-10-02
 
 SESSION   PROJECT  FROM        TO          SEG  TURNS  TOOLS  ERR  OUT  CACHE   COST
 a1b2c3d4  shop     2026-10-02  2026-10-02  1    2      6      1    840  330.0k  -
 ```
 
-`ls`, `get`, `turns`, `read`, `summary`, `timeline`, `context` and `sql` print it. `index`, `schema`, `keep`, `where` and `permissions` do not, since none of them answers from the sessions indexed. Release 1 copies no sessions between machines.
+`flow audit` itself, `get`, `turns`, `read`, `summary`, `timeline`, `context` and `sql` print it. `index`, `schema`, `keep`, `where` and `permissions` do not, since none of them answers from the sessions indexed. Release 1 copies no sessions between machines.
 
 ### `flow audit index`
 
@@ -629,27 +626,26 @@ $ flow audit index
 /home/me/.flow/audit/audit.db
 ```
 
-- **`--project <name>`**: one project's transcripts.
+- **`-- "project:<name>"`**: one project's transcripts.
 - **`--rebuild`**: delete the index and read everything again. Nothing is lost. It also tags every session with the machine's current name, which a rename does not change in rows already indexed.
 - **`--quiet`**: print the totals alone.
 
-### `flow audit ls`
+### `flow audit`
 
 Every session in the index, newest first.
 
 ```console
-$ flow audit ls
+$ flow audit
 SESSION   PROJECT  FROM        TO          SEG  TURNS  TOOLS  ERR  OUT  CACHE   COST
 a1b2c3d4  shop     2026-10-02  2026-10-02  1    2      6      1    840  330.0k  -
 ```
 
-- **`--project <name>`**: one project's sessions.
-- **`--since <date>`**: sessions from that date on, such as `2026-10-01`.
+- **`-- "<query>"`**: `project:<name>` for one project's sessions, `since:<date>` for sessions from that date on, such as `flow audit -- "project:shop since:2026-10-01"`.
 - **`--limit <n>`**: at most `n` sessions. 30 by default.
 
 ### `flow audit get`
 
-`flow audit get <id>`: one session in full, ending with the command to read its heaviest turn. A bare `flow audit <id>` is refused, and points here.
+`flow audit get <id>`: one session in full, ending with the command to read its heaviest turn. `flow audit <id>` is an unknown command, and prints the audit help.
 
 ```console
 $ flow audit get a1b2
@@ -709,7 +705,7 @@ a1b2c3d4 turns 1-1 · transcript lines 1-10
 
 ── user 09:00:07
   /flow:execute /shop-4
-   → Bash {"command":"flow shop-4"}
+   → Bash {"command":"flow tickets get shop-4"}
    ← Bash ok 2 B
    → Read {"file_path":"/home/me/code/shop/src/auth/login.ts"}
    ← Read ok 2 B
@@ -728,7 +724,7 @@ a1b2c3d4 turns 1-1 · transcript lines 1-10
 
 ### `flow audit summary`
 
-`flow audit summary [id]`: a few lines of totals, for one session, or for every session when no id is given.
+`flow audit summary [id] [-- "<query>"]`: a few lines of totals, for one session, or for every session when no id is given.
 
 ```console
 $ flow audit summary a1b2
@@ -739,8 +735,7 @@ out 840 · cache read 330.0k · cache write 3.0k
 Bash 3 (1 err)  Read 2  Edit 1
 ```
 
-- **`--project <name>`**: one project's sessions.
-- **`--since <date>`**: sessions from that date on.
+- **`-- "<query>"`**: `project:<name>` for one project's sessions, `since:<date>` for sessions from that date on.
 
 ### `flow audit timeline`
 
@@ -749,7 +744,7 @@ Bash 3 (1 err)  Read 2  Edit 1
 ```console
 $ flow audit timeline a1b2
 TURN  TOOL  OK   CALL
-1     Bash  ok   flow shop-4
+1     Bash  ok   flow tickets get shop-4
 1     Read  ok   /home/me/code/shop/src/auth/login.ts
 1     Read  ok   /home/me/code/shop/src/auth/session.ts
 1     Bash  ERR  npm test -- auth
@@ -781,7 +776,7 @@ peak: 61.0k · 6 requests
 
 ### `flow audit permissions`
 
-`flow audit permissions [id]`: count the permission questions Flow asked you, by where each came from and by what it said. A normal ticket build asks nothing except before a push or a publish, so the last section lists every other ask. Each of those is a rule to narrow.
+`flow audit permissions [id] [-- "<query>"]`: count the permission questions Flow asked you, by where each came from and by what it said. A normal ticket build asks nothing except before a push or a publish, so the last section lists every other ask. Each of those is a rule to narrow.
 
 This reads the permission log in `~/.flow/logs/permissions/`, never the index, so `flow audit index` is not needed first. A line that does not parse is skipped and counted. A missing log is an error, since `0 asks` there would read as a pass.
 
@@ -811,13 +806,12 @@ AT                PROJECT  SOURCE  ANSWER  HEADLINE
 `guard` is an ask from Flow's guard, `rule` one from a `permissions.ask` rule, and `core` one Claude Code raises on its own. An auto-allowed line is a core ask on a protected path that Flow allowed without a question, so it is counted apart. `AT` is UTC.
 
 - **`[id]`**: one session, by the start of its id.
-- **`--project <name>`**: one project's asks.
-- **`--since <date>`**, **`--until <date>`**: from and to a date, both included, such as `2026-10-13`.
+- **`-- "<query>"`**: `project:<name>` for one project's asks, `since:<date>` and `until:<date>` for a span, both days included, such as `flow audit permissions -- "since:2026-10-13"`.
 - **`--limit <n>`**: at most `n` headlines, and `n` asks outside the list. 20 by default.
 
 ### `flow audit sql`
 
-`flow audit sql "<query>"`: any other question, as SQL against the index. Only `SELECT` and `WITH` run.
+`flow audit sql "<sql>"`: any other question, as SQL against the index. Only `SELECT` and `WITH` run.
 
 ```console
 $ flow audit sql "select name, count(*) n from tool_call group by name order by n desc"

@@ -67,10 +67,10 @@ test('a project that arrives with .flow/ registers on its first ticket-writing c
   const dir = project('registry-clone');
   const home = homeOf(dir);
 
-  assert.strictEqual(flow(dir, ['ls']).code, 0);
+  assert.strictEqual(flow(dir, ['tickets']).code, 0);
   assert.deepStrictEqual(registry.read(home), {}, 'a read registers nothing');
 
-  const made = flow(dir, ['new', 'Try it', '--title', 'try-it']);
+  const made = flow(dir, ['tickets', 'new', 'Try it']);
   assert.strictEqual(made.code, 0, made.stderr);
   assert.deepStrictEqual(registry.read(home), { exp: real(dir) });
 });
@@ -80,7 +80,7 @@ test('a project moved to a new path updates its line on its next ticket-writing 
   const home = homeOf(dir);
   registry.write({ exp: path.join(dir, 'where-it-was') }, home);
 
-  const made = flow(dir, ['new', 'Try it', '--title', 'try-it']);
+  const made = flow(dir, ['tickets', 'new', 'Try it']);
   assert.strictEqual(made.code, 0, made.stderr);
   assert.deepStrictEqual(registry.read(home), { exp: real(dir) });
   assert.strictEqual(registry.register(dir, home), 'same');
@@ -92,7 +92,7 @@ test('a prefix another existing folder holds is a clash: the command works, the 
   const home = homeOf(dir);
   registry.write({ exp: other }, home);
 
-  const made = flow(dir, ['new', 'Try it', '--title', 'try-it']);
+  const made = flow(dir, ['tickets', 'new', 'Try it']);
   assert.strictEqual(made.code, 0, made.stderr);
   assert.deepStrictEqual(registry.read(home), { exp: other });
   assert.strictEqual(registry.register(dir, home), 'clash');

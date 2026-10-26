@@ -84,23 +84,6 @@ const rankByStatus = (list, pool) => {
 };
 
 /**
- * Ready tickets cut out of work that is still open: the child a session
- * split off so it could keep going, picked up in a later session.
- *
- * Membership carries the whole signal, so order inside the band stays
- * oldest-first like everywhere else. Recency was the obvious alternative and it
- * is wrong: a subject that decomposes cuts three children at once, and those
- * get worked in the order they were cut.
- */
-function continuingTickets(tickets) {
-  const index = indexById(tickets);
-  return readyTickets(tickets).filter((t) => {
-    const parent = t.data.parent ? index.get(t.data.parent) : null;
-    return !!parent && IN_FLIGHT.has(parent.data.status);
-  });
-}
-
-/**
  * The ticket that finished most recently. `closed` is the only field that can
  * answer it: ids are creation order, and `filed` is stamped days later.
  * Sorts as a string because `YYYY-MM-DD HH:MM` already sorts chronologically.
@@ -156,7 +139,29 @@ function openChildren(tickets, id) {
   return children(tickets, id).filter((t) => OPEN.has(t.data.status));
 }
 
-/** Children, their children, and so on: what `flow tree --parent` keeps. */
+/**
+ * How many of a parent's children are done, of all of them, or null for a
+ * ticket with none. Counted against every ticket, never a visible slice: a
+ * parent whose children are all done still reads 3/3 once they are hidden.
+ */
+function progress(tickets, id) {
+  const kids = children(tickets, id);
+  return kids.length ? { done: kids.filter((k) => k.data.status === 'done').length, total: kids.length } : null;
+}
+
+/** True when `id` is the parent of `t`, or its parent's parent, and so on. Cycle-safe. */
+function isUnder(t, id, index) {
+  const seen = new Set();
+  let current = t.data.parent;
+  while (current && !seen.has(current)) {
+    if (current === id) return true;
+    seen.add(current);
+    current = index.get(current)?.data.parent;
+  }
+  return false;
+}
+
+/** Children, their children, and so on: what `parent:<id>` keeps beside the ticket. */
 function descendants(tickets, id) {
   const found = [];
   const seen = new Set([id]);
@@ -179,10 +184,8 @@ function descendants(tickets, id) {
 /**
  * The parent forest: roots first, each node carrying its children.
  *
- * Ordering here is structural, and that is the whole difference between this
- * and `flow next`: that list is flat, and a child sits where its top parent
- * sits. A tree cannot do that without lying about the shape, so nesting wins
- * and rank only orders siblings and roots.
+ * Ordering is structural: nesting wins, and among siblings and roots work
+ * started comes before work new, then rank (`rankByStatus`).
  *
  * Deps are not drawn. They cross the tree: a ticket can depend on anything,
  * anywhere, so they surface as a note on the blocked ticket instead.
@@ -207,9 +210,50 @@ function forest(tickets) {
   const node = (t, seen) => {
     if (seen.has(t.id)) return { ticket: t, children: [] };
     const next = new Set(seen).add(t.id);
-    return { ticket: t, children: rank(kids.get(t.id) || [], tickets).map((c) => node(c, next)) };
+    return { ticket: t, children: rankByStatus(kids.get(t.id) || [], tickets).map((c) => node(c, next)) };
   };
-  return rank(roots, tickets).map((r) => node(r, new Set()));
+  return rankByStatus(roots, tickets).map((r) => node(r, new Set()));
+}
+
+/** The forest in display order, top down: one `{ ticket, depth }` per ticket, 0 at a root. */
+function flatten(nodes, depth = 0) {
+  return nodes.flatMap((n) => [{ ticket: n.ticket, depth }, ...flatten(n.children, depth + 1)]);
+}
+
+/**
+ * What `flow next` shows, before any text is drawn.
+ *
+ * The tree is the work started: every in-progress ticket, and under it every
+ * child still todo or in progress, to any depth. A parked or closed child
+ * stops the walk, since nothing under it is being worked. `take` is the first
+ * ticket in the tree that can be started, top down, so open work beats new;
+ * failing that, the first ready ticket. The ready list is every ready ticket
+ * outside the tree, in rank order, whole: the text cuts its rows.
+ */
+function nextView(tickets) {
+  const pool = new Map();
+  const walk = (t) => {
+    if (pool.has(t.id)) return;
+    pool.set(t.id, t);
+    for (const c of children(tickets, t.id)) if (c.data.status === 'todo' || IN_FLIGHT.has(c.data.status)) walk(c);
+  };
+  for (const t of tickets) if (IN_FLIGHT.has(t.data.status)) walk(t);
+
+  const tree = forest([...pool.values()]);
+  const ready = readyTickets(tickets);
+  const readyIds = new Set(ready.map((t) => t.id));
+  const outside = rank(ready.filter((t) => !pool.has(t.id)), tickets);
+  const take = flatten(tree).find(({ ticket }) => readyIds.has(ticket.id))?.ticket || outside[0] || null;
+
+  return {
+    lastClosed: lastClosed(tickets),
+    tree,
+    ready: outside,
+    take,
+    blocked: tree.length || outside.length ? [] : blockedTickets(tickets),
+    parked: tickets.filter((t) => t.data.status === 'parked').length,
+    problems: hasProblems(check(tickets)),
+  };
 }
 
 /** Would setting `parent` on `ticket` make it its own ancestor? */
@@ -285,7 +329,7 @@ function check(tickets) {
       if (!parent) danglingParents.push({ ticket: t, parent: t.data.parent });
       // Closing a parent with `--force` leaves its open children behind. Nothing
       // recorded the override before this: the parent said its work belonged to
-      // them, then finished without them, and `flow tree` nests live work under
+      // them, then finished without them, and `flow tickets` nests live work under
       // an archived ticket. Readiness never consults a parent, so nothing is
       // lost: only the claim, which is what this reports.
       else if (TERMINAL.has(parent.data.status)) closedParents.push({ ticket: t, parent });
@@ -323,7 +367,7 @@ function wouldCycle(tickets, ticketId, dep) {
 module.exports = {
   SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, STATUS_RANK,
   indexById, unmetDeps, readyTickets, blockedTickets, hasOpenChildren,
-  rank, rankByStatus, continuingTickets, lastClosed,
-  dependents, transitiveDependents, children, openChildren, descendants, forest, wouldOrphan,
+  rank, rankByStatus, lastClosed, nextView,
+  dependents, transitiveDependents, children, openChildren, progress, isUnder, descendants, forest, flatten, wouldOrphan,
   findCycles, check, hasProblems, wouldCycle,
 };

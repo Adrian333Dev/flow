@@ -9,13 +9,14 @@
 import type { EngineInterface } from 'claude-code'
 import type { Entry, Restart } from '../types'
 import { restartWindow, type Built } from './first-message'
-import { CAP, parseSpec, sectionLines, skillBody, slice, type Loaded } from './loads'
+import { CAP, parseSpec, sectionLines, skillBody, slice, tokensOf, type Loaded } from './loads'
 import { entryFor, keyOf, keysOf } from './situations'
 import { linksFromFile, wikiText, withWiki } from './skill-wiki'
 import { openHandles } from './ticket'
 
 const bytes = (text: string) => new TextEncoder().encode(text).length
 const kb = (n: number) => `${Math.max(1, Math.round(n / 1024))} KB`
+const kTokens = (n: number) => `${Math.max(1, Math.round(n / 1000))}k tokens`
 
 /** The folders a path may be relative to: the session's, and the user's home. */
 type Where = { root: string; user: string }
@@ -62,7 +63,7 @@ export async function resolveLoads($: EngineInterface, files: readonly string[],
     if (text === undefined) return { error: `${raw} cannot be read` }
     const part = slice(text, spec)
     loaded.push({ type: 'file', path, ...part })
-    sizes.push(`${raw} ${kb(bytes(part.text))}`)
+    sizes.push(`${raw} ${kTokens(tokensOf(part.text))}`)
   }
   const invoke: string[] = []
   let listed: string[] | undefined
@@ -76,10 +77,10 @@ export async function resolveLoads($: EngineInterface, files: readonly string[],
       continue
     }
     loaded.push({ type: 'skill', name, dir, text: skillBody(text), links: linksFromFile(text) })
-    sizes.push(`${name} ${kb(bytes(text))}`)
+    sizes.push(`${name} ${kTokens(tokensOf(text))}`)
   }
-  const total = loaded.reduce((sum, one) => sum + bytes(one.text), 0)
-  if (total > CAP) return { error: `files and skills hold ${kb(total)} (${sizes.join(', ')}), over the ${kb(CAP)} cap. Name fewer, or parts: path#heading, path:from-to` }
+  const total = loaded.reduce((sum, one) => sum + tokensOf(one.text), 0)
+  if (total > CAP) return { error: `files and skills hold about ${kTokens(total)} (${sizes.join(', ')}), over the cap of ${kTokens(CAP)}. Name fewer, or parts: path#heading, path:from-to` }
   return { loaded, invoke }
 }
 

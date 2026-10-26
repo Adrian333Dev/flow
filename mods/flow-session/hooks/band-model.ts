@@ -12,7 +12,7 @@ import type { Ticket } from './ticket'
 export const DONE_WORD = 'DONE ✓'
 
 /**
- * A ticket's file was read. `lights` is true when the command is `flow start` on the ticket:
+ * A ticket's file was read. `lights` is true when the command is `flow tickets start` on the ticket:
  * it goes leftmost, and the closed badges leave. A ticket only read keeps its place.
  */
 export function apply(entries: readonly Entry[], ticket: Ticket, lights: boolean): Entry[] {

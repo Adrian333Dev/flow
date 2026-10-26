@@ -23,7 +23,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { out } = require('../lib/cli');
+const { out, json } = require('../lib/cli');
 const render = require('../lib/render');
 const paths = require('../lib/paths');
 const checks = require('../lib/checks/checks');
@@ -99,64 +99,72 @@ function section(title, lines) {
   return lines.length ? [`${title}`, render.indent(lines.join('\n')), ''] : [];
 }
 
-const actions = {};
+/** The report as data: what `--json` prints and the text is drawn from. */
+function report() {
+  const { checks: all, problems } = checks.load();
+  const defined = definedRules(all);
+  const rows = scorecard.readAll();
+  const counts = tally(all, rows);
+  const results = rows.filter((r) => r.type === 'result');
+  const measured = all.filter((c) => defined.has(c.id)).length;
 
-actions.scorecard = {
-  section: 'checks',
-  summary: 'how the rule checks are doing, across every session',
-  run() {
-    const { checks: all, problems } = checks.load();
-    const defined = definedRules(all);
-    const rows = scorecard.readAll();
-    const counts = tally(all, rows);
-    const lines = [];
-
-    // A check that will not load is the whole report. Printed under the counts
-    // it reads as a footnote, and the counts it should have produced are the
-    // ones missing from them.
-    lines.push(...section('broken check files', problems));
-
-    // An id defined twice in one file names two different rules, so a check
-    // pointing at it gets whichever came first. Reported above the counts,
-    // because until it is fixed the counts below are about the wrong rule.
-    lines.push(...section('defined twice in one file',
-      scannedFiles(all).flatMap((f) => checks.duplicateIds(f)
-        .map((id) => `${id}  (${path.relative(paths.cloneRoot(), f) || f})`))));
-
-    lines.push(...section('stale: the check names a rule no file defines',
-      all.filter((c) => !defined.has(c.id)).map((c) => `${c.id}  (${c.rule})`)));
-
-    const violated = all
-      .map((c) => ({ c, n: counts.get(c.id) }))
-      .filter((r) => r.n.violations > 0)
-      .sort((a, b) => b.n.violations - a.n.violations);
-    lines.push(...section('violated most', violated.length
-      ? [render.table(['RULE', 'TIER', 'BROKEN', 'OF', 'RATE'],
-        violated.map(({ c, n }) => [c.id, c.tier, n.violations, n.relevant, pct(n)]))]
-      : []));
-
-    lines.push(...section(`ready for promotion: measure to warn, past ${MIN_VIOLATIONS} and ${Math.round(MIN_RATE * 100)}%`,
-      all.filter((c) => c.tier === 'measure')
-        .filter((c) => counts.get(c.id).violations >= MIN_VIOLATIONS && rate(counts.get(c.id)) >= MIN_RATE)
-        .map((c) => `${c.id}  ${counts.get(c.id).violations} of ${counts.get(c.id).relevant}`)));
-
+  return {
+    brokenFiles: problems,
+    definedTwice: scannedFiles(all).flatMap((f) => checks.duplicateIds(f)
+      .map((id) => ({ id, file: path.relative(paths.cloneRoot(), f) || f }))),
+    stale: all.filter((c) => !defined.has(c.id)).map((c) => ({ id: c.id, rule: c.rule })),
+    violated: all
+      .map((c) => ({ id: c.id, tier: c.tier, ...counts.get(c.id), rate: rate(counts.get(c.id)) }))
+      .filter((r) => r.violations > 0)
+      .sort((a, b) => b.violations - a.violations),
+    ready: all.filter((c) => c.tier === 'measure')
+      .filter((c) => counts.get(c.id).violations >= MIN_VIOLATIONS && rate(counts.get(c.id)) >= MIN_RATE)
+      .map((c) => ({ id: c.id, ...counts.get(c.id) })),
     // Never violated is not this list. A rule only gets written after a real
     // mistake, so zero violations means the fix took. Never *relevant* is the
     // signal: the situation the rule governs stopped happening.
-    lines.push(...section('never applied: loaded every session, never once relevant',
-      all.filter((c) => counts.get(c.id).relevant === 0).map((c) => c.id)));
+    neverApplied: all.filter((c) => counts.get(c.id).relevant === 0).map((c) => c.id),
+    measured,
+    notMeasurable: defined.size - measured,
+    results: results.length,
+    days: new Set(results.map((r) => r.at?.slice(0, 10))).size,
+    checks: all.length,
+  };
+}
 
-    const measured = all.filter((c) => defined.has(c.id)).length;
-    const sessions = new Set(rows.filter((r) => r.type === 'result').map((r) => r.at?.slice(0, 10))).size;
+/** `flow scorecard`, typed alone: the whole report, with no actions. */
+const listing = {
+  summary: 'how the rule checks are doing, across every session',
+  run() {
+    const data = report();
+    json(data);
+
+    // A check that will not load is the whole report. Printed under the counts
+    // it reads as a footnote, and the counts it should have produced are the
+    // ones missing from them. An id defined twice in one file names two
+    // different rules, so a check pointing at it gets whichever came first:
+    // reported above the counts too, which are about the wrong rule until it is fixed.
+    const lines = [
+      ...section('broken check files', data.brokenFiles),
+      ...section('defined twice in one file', data.definedTwice.map((d) => `${d.id}  (${d.file})`)),
+      ...section('stale: the check names a rule no file defines', data.stale.map((c) => `${c.id}  (${c.rule})`)),
+      ...section('violated most', data.violated.length
+        ? [render.table(['RULE', 'TIER', 'BROKEN', 'OF', 'RATE'],
+          data.violated.map((v) => [v.id, v.tier, v.violations, v.relevant, pct(v)]))]
+        : []),
+      ...section(`ready for promotion: measure to warn, past ${MIN_VIOLATIONS} and ${Math.round(MIN_RATE * 100)}%`,
+        data.ready.map((c) => `${c.id}  ${c.violations} of ${c.relevant}`)),
+      ...section('never applied: loaded every session, never once relevant', data.neverApplied),
+    ];
 
     if (!lines.length) out('nothing to report yet.');
     else out(lines.join('\n').trimEnd());
 
-    out(`\n${measured} rules measured, ${defined.size - measured} not measurable. ` +
-      `${rows.filter((r) => r.type === 'result').length} results over ${sessions} days.`);
-    if (!all.length) out(`No checks yet. One file each in ${checks.checksDir()}.`);
+    out(`\n${data.measured} rules measured, ${data.notMeasurable} not measurable. ` +
+      `${data.results} results over ${data.days} days.`);
+    if (!data.checks) out(`No checks yet. One file each in ${checks.checksDir()}.`);
     return 0;
   },
 };
 
-module.exports = actions;
+module.exports = { summary: 'how the rule checks are doing', list: listing };

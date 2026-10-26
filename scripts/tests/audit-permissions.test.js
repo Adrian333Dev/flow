@@ -118,7 +118,7 @@ test('a session is found by the start of its id', () => {
 });
 
 test('a project narrows the counts, and one ask outside the target reads in the singular', () => {
-  const result = permissions(both(), ['--project', 'shop']);
+  const result = permissions(both(), ['--', 'project:shop']);
   assert.strictEqual(result.code, 0, result.stderr);
   assert.strictEqual(result.stdout, [
     'permission log: 2 lines, 1 skipped (did not parse)',
@@ -146,9 +146,9 @@ test('a project narrows the counts, and one ask outside the target reads in the 
 test('a date range keeps both ends, whatever order the lines sit in', () => {
   const env = both();
   const header = (args) => permissions(env, args).stdout.split('\n')[0];
-  assert.strictEqual(header(['--since', '2026-10-13']), 'permission log: 4 lines, 1 skipped (did not parse)');
-  assert.strictEqual(header(['--until', '2026-09-30']), 'permission log: 2 lines, 1 skipped (did not parse)');
-  assert.strictEqual(header(['--since', '2026-10-12', '--until', '2026-10-12']), 'permission log: 2 lines, 1 skipped (did not parse)');
+  assert.strictEqual(header(['--', 'since:2026-10-13']), 'permission log: 4 lines, 1 skipped (did not parse)');
+  assert.strictEqual(header(['--', 'until:2026-09-30']), 'permission log: 2 lines, 1 skipped (did not parse)');
+  assert.strictEqual(header(['--', 'since:2026-10-12 until:2026-10-12']), 'permission log: 2 lines, 1 skipped (did not parse)');
 });
 
 test('a session with no lines prints that plainly', () => {
@@ -191,4 +191,12 @@ test('a missing log folder is an error, never a count of 0', () => {
   assert.notStrictEqual(result.code, 0);
   assert.match(result.stderr, /no permission log at /);
   assert.strictEqual(result.stdout, '');
+});
+
+test('--json prints every count, uncut by --limit', () => {
+  const data = JSON.parse(permissions(both(), ['--limit', '1', '--json']).stdout);
+  assert.deepStrictEqual([data.lines, data.skipped], [8, 1]);
+  assert.deepStrictEqual(data.bySource.map((s) => s.source), ['guard', 'rule', 'core']);
+  assert.ok(data.byHeadline.length > 1, 'every headline, where the text shows 1');
+  assert.ok(data.outside.every((e) => e.answer !== 'auto-allow'));
 });

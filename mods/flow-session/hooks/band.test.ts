@@ -52,9 +52,9 @@ function memoryStore(on: Parameters<typeof mock.env>[0], entries: Record<string,
 }
 
 describe('the band', () => {
-  test('draws a badge for a ticket that flow start picked up, with the corners and the count', async ($, on) => {
+  test('draws a badge for a ticket that flow tickets start picked up, with the corners and the count', async ($, on) => {
     claudeCode(on)
-    await $.tool.call({ tool: 'Bash', command: 'flow start fw-9 --activity build' })
+    await $.tool.call({ tool: 'Bash', command: 'flow tickets start fw-9 --activity build' })
     const ui = await $.ui.mount(BAND)
     const badge = await ui.find({ type: 'Button' })
     expect(badge?.key).toBe('badge-fw-9')
@@ -79,7 +79,7 @@ describe('the band', () => {
     const other = { v: 1, updated: new Date().toISOString(), band: [] }
     const kept = memoryStore(on, { 'session:other': other })
     on('session.id', () => ({ value: 's1' }))
-    await $.tool.call({ tool: 'Bash', command: 'flow start fw-9' })
+    await $.tool.call({ tool: 'Bash', command: 'flow tickets start fw-9' })
     const saved = kept.get('session:s1') as { v: number; band: { id: string }[] }
     expect(saved.v).toBe(1)
     expect(saved.band.map((entry) => entry.id)).toEqual(['fw-9'])
@@ -125,9 +125,9 @@ describe('the band', () => {
     await ui.unmount()
   })
 
-  test('a read of a ticket, with flow <id>, lights no badge', async ($, on) => {
+  test('a read of a ticket, with flow tickets get <id>, lights no badge', async ($, on) => {
     claudeCode(on)
-    await $.tool.call({ tool: 'Bash', command: 'flow fw-9' })
+    await $.tool.call({ tool: 'Bash', command: 'flow tickets get fw-9' })
     const ui = await $.ui.mount(BAND)
     expect(await ui.find({ type: 'Button' })).toBeUndefined()
     expect(await ui.find({ type: 'Text', text: 'drawn by Claude Code' })).toBeDefined()

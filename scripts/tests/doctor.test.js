@@ -194,7 +194,7 @@ test('a ticket still in the old format is named, and a current one is not', () =
   assert.strictEqual(old.code, 1);
   assert.match(old.stdout, /2-old-words is in a folder not named by its number: rename the folder to 2/);
   assert.match(old.stdout, /exp-3 holds a groundwork\/map\.md that is only the empty template: delete it/);
-  assert.match(old.stdout, /exp-3 is titled "feature", a label and no name: flow edit exp-3 --title/);
+  assert.match(old.stdout, /exp-3 is titled "feature", a label and no name: flow tickets edit exp-3 --title/);
   assert.doesNotMatch(old.stdout, /exp-1 /, 'a map holding a decision is not the template');
 });
 

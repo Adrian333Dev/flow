@@ -53,7 +53,7 @@ The new window holds only: the tickets in flight, the files and skills you name,
    - `path#heading` or `path:from-to` only for a large file whose rest the next step doesn't need.
    - Groundwork: `context.md` loads whole by itself. Name the specs and code the open questions touch.
    - Build: the file mid-edit, its test, the spec part it implements.
-   - 80 KB in all, skills included.
+   - 40k tokens in all, skills included.
 3. Pick `skills`: the phase skill running and any skill the next step follows.
 4. Write `message`, the note. Facts, compressed, no narration. In order:
    - Lessons not yet filed, each with its exact value, error text or path.
@@ -102,7 +102,7 @@ The tool's description, as the agent sees it in every request, one line per part
 ```text
 restart   Restart this session, as the restart guide sent with the ask says. Call it last. A subagent never restarts: it saves its state to files and begins its reply with `UNFINISHED:`.
 message   Your note to the new window, in the order the restart guide gives.
-files     Files the next step works on: a path (whole file), `path#heading` (a markdown section), `path:from-to` (lines). A miss loads the whole file. With skills, 80 KB at most.
+files     Files the next step works on: a path (whole file), `path#heading` (a markdown section), `path:from-to` (lines). A miss loads the whole file. With skills, 40k tokens at most.
 skills    Skills the new window starts with, such as `flow:execute`.
 ```
 
@@ -225,6 +225,6 @@ The tool answers with the reason, and nothing restarts:
 
 - **`A restart is already under way.`** Wait for it to finish.
 - **A helper agent is still running.** The agent calls the tool again after the helper's finished notice.
-- **`Nothing restarted:`**, followed by a file that cannot be read, a skill the session does not list, or each part's size past 80 KB. The agent names fewer files, and calls again.
+- **`Nothing restarted:`**, followed by a file that cannot be read, a skill the session does not list, or each part's size past 40k tokens in all. The agent names fewer files, and calls again.
 
 A restart that fails while building the new window leaves the session as it was. The log line says `restart failed, the session is as it was`, followed by the error.

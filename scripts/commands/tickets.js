@@ -1,11 +1,8 @@
 'use strict';
 /**
- * Everything that acts on a ticket.
- *
- * None of it is spelled `flow tickets ...`. A ticket is what this tool is
- * about, so these sit at the top level and the noun is left out: `flow ls`,
- * `flow start exp-47`. The groups (`cases`, `skills`, `settings`, `audit`,
- * `restore`) each name a different thing.
+ * Everything that acts on a ticket: `flow tickets`. The noun typed alone
+ * lists, `flow tickets -- "label:ui"` narrows the list, and every other word
+ * after it is a verb: `flow tickets get exp-47`, `flow tickets start exp-47`.
  *
  * The status verbs are generated from the status table rather than written out.
  * Each is the same call into `transition`, so a verb cannot skip a guard, and a
@@ -15,7 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 const { FlowError } = require('../lib/error');
-const { out, readBody } = require('../lib/cli');
+const { out, json, readBody, listOf } = require('../lib/cli');
 const { projectRootOrNull } = require('../lib/project');
 const store = require('../lib/tickets/store');
 const graph = require('../lib/tickets/graph');
@@ -23,6 +20,7 @@ const order = require('../lib/tickets/rank');
 const search = require('../lib/tickets/search');
 const query = require('../lib/query');
 const render = require('../lib/tickets/render');
+const ticketJson = require('../lib/tickets/json');
 const { indent } = require('../lib/render');
 const statuses = require('../lib/tickets/statuses');
 const records = require('../lib/tickets/records');
@@ -70,8 +68,8 @@ function loadHome() {
   return { root, tickets: store.readTickets(root) };
 }
 
-/** The flag `new`, `ls`, `next` and `note` take to name a project by its prefix. */
-const PROJECT_FLAG = { arg: '<prefix>', short: 'p' };
+/** The flag `new`, the list, `next` and `flow notes new` take to name a project by its prefix. */
+const PROJECT_FLAG = { arg: '<prefix>' };
 
 /** The project a write goes to: the one `--project` names, else the one it runs in, or a refusal. */
 function needProject(flags = {}) {
@@ -95,8 +93,8 @@ function loadFor(flags = {}) {
 }
 
 /** True when a query names the `flow-issue` label, which is filed where the fault arose and so is read from every project. */
-function wantsIssues(positional) {
-  return query.parse(positional.join(' '), QUERY_FIELDS).some((term) => term.field === 'label' && term.values.includes('flow-issue'));
+function wantsIssues(text) {
+  return query.parse(text, QUERY_FIELDS).some((term) => term.field === 'label' && term.values.includes('flow-issue'));
 }
 
 /**
@@ -129,7 +127,7 @@ function registered(word) {
   if (!folder) {
     throw new FlowError(
       `no project on this machine has the prefix "${word}".\n` +
-      '  A project is registered by its first ticket write: run a command that writes one (flow new, flow start) inside it, once.\n' +
+      '  A project is registered by its first ticket write: run a command that writes one (flow tickets new, flow tickets start) inside it, once.\n' +
       '  flow doctor lists the projects this machine knows.'
     );
   }
@@ -212,7 +210,7 @@ const describePosition = (target) =>
 
 /**
  * Writes the numbers that put `t` where `target` says: its own, and the other
- * tickets' where the group had to be numbered. Returns the lines to print.
+ * tickets' where the group had to be numbered. Returns how many others it numbered.
  */
 function placeTicket(t, tickets, target) {
   const placed = order.place(order.siblingsOf(tickets, t.data.parent), t, target);
@@ -222,9 +220,7 @@ function placeTicket(t, tickets, target) {
     other.ticket.data.rank = other.rank;
     store.writeTicket(other.ticket);
   }
-  return placed.others.length
-    ? [`numbered ${placed.others.length} other ticket${placed.others.length === 1 ? '' : 's'} too, in their current order`]
-    : [];
+  return placed.others.length;
 }
 
 /**
@@ -247,27 +243,6 @@ function followInParent(t, tickets, from, status) {
 }
 
 /**
- * `flow exp-47` reaches the lookup because `exp-47` matched no command, which
- * means a mistyped command, `flow buidl exp-47`, arrives here too and would
- * fail with a message about tickets. `unnamed` is passed on that path only, and
- * says what else it tried.
- */
-function find(tickets, ref, unnamed) {
-  try {
-    return store.findTicket(tickets, ref);
-  } catch (e) {
-    throw hinted(e, ref, unnamed);
-  }
-}
-
-function hinted(e, ref, unnamed) {
-  if (unnamed && e instanceof FlowError) {
-    return new FlowError(`${e.message}\n  "${ref}" is not a command either: flow --help lists them.`);
-  }
-  return e;
-}
-
-/**
  * The place an id points at: `home-4` is read from ~/.flow/ wherever this
  * runs, and a word that is the prefix of the project this runs in, or no word
  * at all, from that project. Any other word is a project's prefix, looked up
@@ -285,18 +260,12 @@ function placeOf(word) {
 
 /**
  * The place a ticket lives, its tickets, and the ticket. An id missing from a
- * project may belong to a ticket `flow move` took home, which kept it as `was:`.
+ * project may belong to a ticket `flow tickets move` took home, which kept it as `was:`.
  */
-function locate(ref, unnamed) {
-  let place;
+function locate(ref) {
+  const place = placeOf(store.wordOf(String(ref || '').trim().toLowerCase()));
   try {
-    place = placeOf(store.wordOf(String(ref || '').trim().toLowerCase()));
-  } catch (e) {
-    throw hinted(e, ref, unnamed);
-  }
-
-  try {
-    return { ...place, t: find(place.tickets, ref, unnamed) };
+    return { ...place, t: store.findTicket(place.tickets, ref) };
   } catch (e) {
     if (store.isHome(place.root)) throw e;
     const id = store.normalizeId(ref, place.tickets.prefix);
@@ -323,6 +292,10 @@ function locate(ref, unnamed) {
  */
 function transition(t, tickets, root, status, { force, reason, verb, batch, activity }) {
   const from = t.data.status;
+  const result = (fields) => json({
+    ticket: ticketJson.record(t, tickets), from, to: status, already: false, revived: '', inParent: null,
+    nowReady: [], nowBlocked: [], forcedPast: [], ...fields,
+  });
   if (from === status) {
     // A skill resuming a ticket in progress still names its kind of work.
     if (activity && status === 'in-progress' && t.data.activity !== activity) {
@@ -331,9 +304,11 @@ function transition(t, tickets, root, status, { force, reason, verb, batch, acti
       store.writeTicket(t);
       records.commit(root, `${t.id}: activity ${was} → ${activity}`);
       out(`${t.id} is already ${status}.\n      activity: ${was} → ${activity}`);
+      result({ already: true });
       return 0;
     }
     out(`${t.id} is already ${status}.`);
+    result({ already: true });
     return 0;
   }
 
@@ -407,6 +382,11 @@ function transition(t, tickets, root, status, { force, reason, verb, batch, acti
 
   const ready = graph.readyTickets(tickets).map((x) => x.id);
   const unblocked = tickets.filter((x) => ready.includes(x.id) && !before.includes(x.id));
+  const blocked = tickets.filter((x) => x.id !== t.id && before.includes(x.id) && !ready.includes(x.id));
+  result({
+    revived: revived || '', inParent,
+    nowReady: unblocked.map((x) => x.id), nowBlocked: blocked.map((x) => x.id), forcedPast: unmet.map((u) => u.dep),
+  });
   if (unblocked.length) {
     out('\nnow ready:');
     out(indent(render.ticketTable(unblocked)));
@@ -415,54 +395,12 @@ function transition(t, tickets, root, status, { force, reason, verb, batch, acti
   // The mirror. A move back down the line un-satisfies deps, so work `flow next`
   // was offering stops being workable, and the ticket that moved is not one of
   // them, since leaving `todo` drops it from the ready list on every pickup.
-  const blocked = tickets.filter((x) => x.id !== t.id && before.includes(x.id) && !ready.includes(x.id));
   if (blocked.length) {
     out('\nnow blocked:');
     out(indent(render.ticketTable(blocked)));
   }
-  if (status === 'parked') out(`\nrevive with: flow ${render.reviveVerb(t)} ${t.id}`);
+  if (status === 'parked') out(`\nrevive with: flow tickets ${render.reviveVerb(t)} ${t.id}`);
   return 0;
-}
-
-/**
- * Moves every ticket carrying `label` that `pick` selects, with one commit and
- * one send: a set put off together is one act, and a commit per ticket would
- * bury the log. A ticket whose move refuses stays where it was, and the rest
- * go on. A label no ticket carries is no error, since labels are free: the
- * labels in use are listed, so a typo shows.
- */
-function moveLabelled(label, { pick, targetOf, reason, verb, noun, none }) {
-  const { root, tickets } = load();
-  const name = String(label).trim().toLowerCase();
-  const picked = tickets.filter((t) => t.data.labels.includes(name) && pick(t));
-  if (!picked.length) {
-    const used = [...new Set(tickets.flatMap((t) => t.data.labels))].sort();
-    out(`${none(name)}${used.length ? ` Labels in use: ${used.join(', ')}.` : ''}`);
-    return 0;
-  }
-
-  const refused = [];
-  for (const t of picked) {
-    try {
-      transition(t, tickets, root, targetOf(t), { reason, verb: `flow ${verb} ${t.id}`, batch: true });
-    } catch (e) {
-      if (!(e instanceof FlowError)) throw e;
-      refused.push(`  ${t.id}  ${e.message.split('\n')[0]}`);
-    }
-  }
-
-  const moved = picked.length - refused.length;
-  const count = `${moved} ticket${moved === 1 ? '' : 's'}`;
-  if (moved) {
-    records.commit(root, `label ${name}: ${noun} ${count}`);
-    records.syncLater(root);
-  }
-  out(`\n${noun} ${count} labelled ${name}${reason ? `: ${reason}` : ''}`);
-  if (refused.length) {
-    out(`\nrefused (${refused.length}):`);
-    for (const r of refused) out(r);
-  }
-  return refused.length ? 1 : 0;
 }
 
 // ---------------------------------------------------------------- the board
@@ -471,16 +409,17 @@ const actions = {};
 
 const QUERY_FIELDS = ['label', 'status', 'parent', 'filed'];
 const OPEN_STATUSES = statuses.NAMES.filter((name) => !statuses.TERMINAL.has(name));
-// `flow labels` lists the tickets themselves up to this many, so one call reaches the leaf.
+// `flow tickets labels` lists the tickets themselves up to this many, so one call reaches the leaf.
 const LIST_UP_TO = 10;
 
 /**
  * The tickets one quoted query names (lib/query.js, the grammar `flow notes`
  * reads). Done and dropped stay out unless the query names a `status:` term,
  * and `status:all` names every status. `hidden` counts the ones left out.
+ * `parent:<id>` names the ticket and everything under it, to any depth.
  */
-function select(tickets, positional) {
-  const terms = query.parse(positional.join(' '), QUERY_FIELDS);
+function select(tickets, text) {
+  const terms = query.parse(text, QUERY_FIELDS);
   for (const term of terms) {
     if (term.field === 'status') {
       const bad = term.values.find((v) => v !== 'all' && !statuses.NAMES.includes(v));
@@ -492,11 +431,12 @@ function select(tickets, positional) {
     }
     if (term.field === 'parent') term.values = term.values.map((v) => store.requireId(v, tickets.prefix));
   }
+  const index = graph.indexById(tickets);
   const test = (list) => query.matcher(list, {
     word: (t, w) => search.matcher([w])(t),
     label: (t, v) => t.data.labels.includes(v),
     status: (t, v) => v === 'all' || t.data.status === v,
-    parent: (t, v) => t.data.parent === v,
+    parent: (t, v) => t.id === v || graph.isUnder(t, v, index),
     filed: (t, v) => (v === 'yes') === Boolean(t.data.filed),
   });
   if (query.has(terms, 'status')) return { terms, list: tickets.filter(test(terms)), hidden: 0, parked: 0 };
@@ -512,28 +452,38 @@ function hiddenNote(hidden, parked) {
   return parts.length ? `${parts.join(', ')} hidden: "status:all"` : '';
 }
 
-actions.ls = {
-  section: 'board',
-  summary: 'list open tickets; a quoted query like "label:ui,api status:all budget" narrows it',
-  args: '["<query>"]',
-  flags: { project: PROJECT_FLAG },
-  run({ positional, flags }) {
-    const across = flags.project === undefined && wantsIssues(positional);
+/**
+ * `flow tickets`, typed alone or with a query: the open tickets, each child
+ * under its parent to any depth. A child whose parent the query left out
+ * roots where it is, its row naming the parent. `--flat` prints the table.
+ */
+const listing = {
+  summary: 'list open tickets as a tree; a query like "label:ui,api status:all budget" narrows it',
+  args: '[-- "<query>"]',
+  query: true,
+  flags: { project: PROJECT_FLAG, flat: { bool: true } },
+  run({ query: text, flags }) {
+    const across = flags.project === undefined && wantsIssues(text);
     const { tickets, places } = across ? loadAll() : loadFor(flags);
-    const { list, hidden, parked } = select(tickets, positional);
+    const { list, hidden, parked } = select(tickets, text);
+    const draw = (shown) => (flags.flat ? render.ticketTable(graph.rankByStatus(shown, tickets)) : render.listing(shown, tickets));
 
     // Issues across projects print one group per project; any other listing is the one group loadFor headed.
-    if (places) {
-      places.forEach(({ root }, i) => {
-        out(`${i ? '\n' : ''}${placeLine(root)}`);
-        out(render.ticketTable(graph.rankByStatus(list.filter((t) => t.root === root), tickets)));
-      });
-    } else {
-      out(render.ticketTable(graph.rankByStatus(list, tickets)));
-    }
+    const groups = places ? places.map(({ root }) => list.filter((t) => t.root === root)) : [list];
+    groups.forEach((shown, i) => {
+      if (places) out(`${i ? '\n' : ''}${placeLine(places[i].root)}`);
+      out(draw(shown));
+    });
     const note = hiddenNote(hidden, parked);
     if (list.length) out(`\n${list.length} of ${tickets.length}${note ? `, ${note}` : ''}.`);
     else if (note) out(note);
+
+    json({
+      tickets: groups.flatMap((shown) => ticketJson.list(graph.forest(shown), tickets)),
+      total: tickets.length,
+      hidden,
+      parked,
+    });
     return 0;
   },
 };
@@ -543,95 +493,82 @@ actions.ls = {
  * how many of them carry it. A set small enough to read is listed whole.
  */
 actions.labels = {
-  section: 'board',
-  summary: 'the labels on the tickets a quoted query names, with counts; the tickets too when 10 or fewer',
-  args: '["<query>"]',
-  run({ positional }) {
-    const { tickets } = wantsIssues(positional) ? loadAll() : load();
-    const { terms, list, hidden, parked } = select(tickets, positional);
+  summary: 'the labels on the tickets a query names, with counts; the tickets too when 10 or fewer',
+  args: '[-- "<query>"]',
+  query: true,
+  run({ query: text }) {
+    const { tickets } = wantsIssues(text) ? loadAll() : load();
+    const { terms, list, hidden, parked } = select(tickets, text);
     const asked = new Set(terms.filter((t) => t.field === 'label').flatMap((t) => t.values));
     const counts = new Map();
     for (const t of list) for (const label of t.data.labels) if (!asked.has(label)) counts.set(label, (counts.get(label) || 0) + 1);
     const open = list.filter((t) => !statuses.TERMINAL.has(t.data.status)).length;
 
     const note = hiddenNote(hidden, parked);
+    const ranked = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const listed = list.length > LIST_UP_TO ? null : graph.rankByStatus(list, tickets);
+    json({
+      tickets: list.length, open, hidden, parked,
+      labels: ranked.map(([label, count]) => ({ label, count })),
+      list: listed && listed.map((t) => ticketJson.record(t, tickets)),
+    });
+
     out(`${list.length} ticket${list.length === 1 ? '' : 's'}, ${open} open${note ? `, ${note}` : ''}`);
-    if (counts.size) {
-      const ranked = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-      out(`more labels: ${ranked.map(([label, n]) => `${label} ${n}`).join(', ')}`);
-    }
-    if (list.length > LIST_UP_TO) {
+    if (ranked.length) out(`more labels: ${ranked.map(([label, n]) => `${label} ${n}`).join(', ')}`);
+    if (!listed) {
       out(`add a label: term to see the tickets (up to ${LIST_UP_TO} are listed).`);
       return 0;
     }
     const width = Math.max(0, ...list.map((t) => t.id.length));
-    for (const t of graph.rankByStatus(list, tickets)) out(`${t.id.padEnd(width)}  ${t.data.status.padEnd(11)}  ${t.data.title}`);
+    for (const t of listed) out(`${t.id.padEnd(width)}  ${t.data.status.padEnd(11)}  ${t.data.title}`);
     return 0;
   },
 };
 
-/**
- * The whole shape, which nothing else shows. `ls` is a flat table with a parent
- * column and `get` is one ticket: the hierarchy that `parent` builds had no
- * renderer at all.
- */
-actions.tree = {
-  section: 'board',
-  summary: 'the shape, nested by parent',
-  flags: { parent: { arg: '<id>' }, all: { bool: true } },
-  run({ flags }) {
-    const { tickets } = load();
-    if (!tickets.length) { out('no tickets yet.'); return 0; }
-
-    let pool = tickets;
-    if (flags.parent) {
-      const top = store.findTicket(tickets, flags.parent);
-      pool = [top, ...graph.descendants(tickets, top.id)];
-    }
-
-    // Done, dropped and parked collapse into a count by default. A tree
-    // carrying every finished ticket, or a row of reasons per parked one, is
-    // the noise a tree exists to strip.
-    const quiet = (t) => statuses.TERMINAL.has(t.data.status) || t.data.status === 'parked';
-    const visible = flags.all ? pool : pool.filter((t) => !quiet(t));
-    if (!visible.length) { out('nothing live here: flow tree --all includes parked, done and dropped.'); return 0; }
-
-    out(render.tree(graph.forest(visible), tickets));
-    const parked = pool.filter((t) => t.data.status === 'parked').length;
-    const hidden = pool.length - visible.length - (flags.all ? 0 : parked);
-    const left = flags.all ? [] : [parked ? `${parked} parked` : '', hidden ? `${hidden} done or dropped` : ''].filter(Boolean);
-    out(`\n${visible.length} ticket${visible.length === 1 ? '' : 's'}` +
-      (left.length ? `, ${left.join(', ')} hidden: flow tree --all` : ''));
-    return 0;
+actions.check = {
+  summary: 'cycles, dangling ids, dropped blockers, orphaned parents, unknown statuses',
+  run() {
+    const problems = graph.check(load().tickets);
+    out(render.checkReport(problems));
+    const ids = (list) => list.map((t) => t.id);
+    json({
+      ok: !graph.hasProblems(problems),
+      cycles: problems.cycles,
+      dangling: problems.dangling.map((d) => ({ id: d.ticket.id, dep: d.dep })),
+      droppedBlockers: problems.droppedBlockers.map((d) => ({ id: d.ticket.id, dep: d.dep })),
+      danglingParents: problems.danglingParents.map((d) => ({ id: d.ticket.id, parent: d.parent })),
+      closedParents: problems.closedParents.map((d) => ({ id: d.ticket.id, parent: d.parent.id, parentStatus: d.parent.data.status })),
+      unknownStatuses: problems.unknownStatuses.map((t) => ({ id: t.id, status: t.data.status })),
+      unnamed: ids(problems.unnamed),
+    });
+    return graph.hasProblems(problems) ? 1 : 0;
   },
 };
 
 // ---------------------------------------------------------------- one ticket
 
 /**
- * The fallback: `flow exp-47` matches no command, so it lands here. The word
- * must be or hold an id, since a title word would otherwise find a ticket and
- * a mistyped command, `flow get exp-47`, would read as a title. `flow ls
- * <words>` finds a ticket by its words.
+ * The word must be or hold an id, since a title word would otherwise find a
+ * ticket. `flow tickets -- "<words>"` finds a ticket by its words.
  */
-actions.show = {
-  section: 'tickets',
-  helpName: '<id>',
+actions.get = {
+  args: '<id>',
   summary: 'one ticket in full',
-  run({ positional, unnamed }) {
-    const [ref] = positional;
-    if (!ref) throw new FlowError('flow takes a ticket id, such as flow exp-47. The board is flow next.');
+  run({ positional, usage }) {
+    const [ref, ...extra] = positional;
+    if (!ref || extra.length) throw new FlowError(`usage: ${usage} <id>, such as ${usage} exp-47. The board is flow next.`);
     if (!/^\d+$/.test(ref) && !store.idOfRef(ref)) {
-      throw new FlowError(`"${ref}" is not a command or a ticket id: flow --help lists the commands.`);
+      throw new FlowError(`"${ref}" is no ticket id. Find one by its words with flow tickets -- "${ref}".`);
     }
 
-    const { root, tickets, t } = locate(ref, unnamed);
+    const { root, tickets, t } = locate(ref);
     out(render.show(t, tickets, root));
+    json(ticketJson.full(t, tickets));
     return 0;
   },
 };
 
-/** Why `flow new` made no ticket: the pull or the push behind it failed. */
+/** Why `flow tickets new` made no ticket: the pull or the push behind it failed. */
 function notMade(failed) {
   if (!failed.offline) return `no ticket was made: ${(failed.why || 'the push failed').replace(/\.$/, '')}.`;
   return `no ticket was made: the remote did not take it. git said: ${failed.why}\n` +
@@ -648,26 +585,21 @@ function takeBack(root, t) {
 }
 
 actions.new = {
-  section: 'tickets',
   args: '"<description>"',
-  summary: 'create one, last among its siblings unless a place is given',
+  summary: 'create one, last among its siblings; flow tickets rank places it',
   flags: {
-    title: { arg: '<words>' },
     parent: { arg: '<id>' },
     deps: { arg: '<id,id>' },
     label: { arg: '<label,label>' },
     body: { arg: '<text|->' },
-    before: { arg: '<id>' },
-    after: { arg: '<id>' },
-    first: { bool: true },
     force: { bool: true },
     project: PROJECT_FLAG,
   },
   run({ positional, flags, usage }) {
-    const description = positional.join(' ').trim();
-    if (!description) throw new FlowError(`usage: ${usage}`);
+    const [description, ...extra] = positional.map((p) => p.trim());
+    if (!description || extra.length) throw new FlowError(`usage: ${usage} "<short name>: <details>", in quotes`);
     // The description opens with the short name: `Safari cookie lost: gone after login`.
-    const title = flags.title !== undefined ? String(flags.title).trim() : store.titleFrom(description);
+    const title = store.titleFrom(description);
     const refused = store.badTitle(title);
     if (refused) throw new FlowError(refused);
 
@@ -694,11 +626,6 @@ actions.new = {
       if (!tickets.some((t) => t.id === parent)) throw new FlowError(`--parent names ${parent}, which does not exist.`);
     }
 
-    // Checked before anything is made, so a place that cannot be had creates no
-    // ticket. The empty id stands for the ticket not yet made.
-    const target = positionFrom(flags, tickets.prefix);
-    if (target) order.place(order.siblingsOf(tickets, parent), { id: '' }, target);
-
     let t = store.createTicket(root, { title, description, labels, parent, deps, tickets, body });
 
     // Pushed before the id is shown, so nobody ever sees a number change. A
@@ -713,17 +640,12 @@ actions.new = {
 
     out(`created ${store.nameOf(t)}`);
     out(`        ${rel(root, t.file)}`);
-    if (target) {
-      const renumbered = placeTicket(t, tickets, target);
-      records.commit(root, `${t.id}: ranked ${describePosition(target)}`);
-      records.syncLater(root);
-      out(`        rank: ${describePosition(target)}`);
-      for (const line of renumbered) out(`        ${line}`);
-    }
     if (labels.length) out(`        labels: ${labels.join(', ')}`);
     if (parent) out(`        parent: ${parent}`);
     if (deps.length) out(`        deps: ${deps.join(', ')}`);
-    out(`\npick up with: flow start ${t.id}`);
+    out(`\npick up with: flow tickets start ${t.id}`);
+    const after = store.readTickets(root);
+    json({ ticket: ticketJson.record(store.findTicket(after, t.id), after), renumbered: pulled.renumbered || [] });
     return 0;
   },
 };
@@ -734,7 +656,6 @@ actions.new = {
  * documented general form, so the surface read as if the verbs did not exist.
  */
 actions.edit = {
-  section: 'tickets',
   args: '<id>',
   summary: 'change a field',
   flags: {
@@ -750,20 +671,25 @@ actions.edit = {
     if (!positional[0]) throw new FlowError(`usage: ${usage} <id> [--title ...] [--description ...] [--label ...] [--activity ...]`);
 
     const { root, tickets, t } = locate(positional[0]);
+    // Each change as a line of text, and as `{ field, from, to }` for --json.
     const changes = [];
+    const fields = [];
+    const change = (field, to, text) => {
+      fields.push({ field, from: t.data[field], to });
+      changes.push(text);
+      t.data[field] = to;
+    };
 
     // The folder stays: a rename is this one field.
     if (flags.title !== undefined) {
       const title = String(flags.title).trim();
       const refused = store.badTitle(title);
       if (refused) throw new FlowError(refused);
-      changes.push(`title: ${t.data.title} → ${title}`);
-      t.data.title = title;
+      change('title', title, `title: ${t.data.title} → ${title}`);
     }
     if (flags.description !== undefined) {
       const description = String(flags.description).trim();
-      changes.push(`description: "${t.data.description}" → "${description}"`);
-      t.data.description = description;
+      change('description', description, `description: "${t.data.description}" → "${description}"`);
     }
     if (flags.parent !== undefined) {
       // Empty clears it: `--parent ""` un-splits a ticket.
@@ -775,27 +701,24 @@ actions.edit = {
           throw new FlowError(`${t.id} → ${parent} would make ${t.id} its own ancestor.`);
         }
       }
-      changes.push(`parent: ${t.data.parent || '-'} → ${parent || '-'}`);
-      t.data.parent = parent;
+      change('parent', parent, `parent: ${t.data.parent || '-'} → ${parent || '-'}`);
     }
     if (flags.deps !== undefined) {
-      // The whole list, the way `flow new --deps` takes it. Empty clears it.
+      // The whole list, the way `flow tickets new --deps` takes it. Empty clears it.
       const deps = [...new Set(store.toIdList(flags.deps, tickets.prefix))];
       for (const d of deps) {
         if (d === t.id) throw new FlowError('a ticket cannot depend on itself.');
         if (!tickets.some((x) => x.id === d)) throw new FlowError(`--deps names ${d}, which does not exist.`);
-        if (graph.wouldCycle(tickets, t.id, d)) throw new FlowError(`${t.id} → ${d} would close a dependency cycle. Run flow check.`);
+        if (graph.wouldCycle(tickets, t.id, d)) throw new FlowError(`${t.id} → ${d} would close a dependency cycle. Run flow tickets check.`);
       }
-      changes.push(`deps: [${t.data.deps.join(', ')}] → [${deps.join(', ')}]`);
-      t.data.deps = deps;
+      change('deps', deps, `deps: [${t.data.deps.join(', ')}] → [${deps.join(', ')}]`);
     }
 
     if (flags.label !== undefined) {
       // The whole list, the way `--deps` takes it. Empty clears it.
       const labels = labelsFrom(flags.label);
       checkNewLabels(labels, tickets, flags.force);
-      changes.push(`labels: [${t.data.labels.join(', ')}] → [${labels.join(', ')}]`);
-      t.data.labels = labels;
+      change('labels', labels, `labels: [${t.data.labels.join(', ')}] → [${labels.join(', ')}]`);
     }
 
     if (flags.activity !== undefined) {
@@ -805,23 +728,23 @@ actions.edit = {
         const refused = store.badActivity(activity);
         if (refused) throw new FlowError(refused);
         if (t.data.status !== 'in-progress') {
-          throw new FlowError(`${t.id} is ${t.data.status}: only an in-progress ticket has an activity. Start it with flow start ${t.id}.`);
+          throw new FlowError(`${t.id} is ${t.data.status}: only an in-progress ticket has an activity. Start it with flow tickets start ${t.id}.`);
         }
       }
-      changes.push(`activity: ${t.data.activity || '-'} → ${activity || '-'}`);
-      t.data.activity = activity;
+      change('activity', activity, `activity: ${t.data.activity || '-'} → ${activity || '-'}`);
     }
 
     if (!changes.length) {
       throw new FlowError(
-        'nothing to change: pass --title, --description, --label, --parent, --deps or --activity. Order is flow rank.\n' +
-        `  Status moves are their own commands: flow start ${t.id}, flow done ${t.id}, flow park ${t.id}.`
+        'nothing to change: pass --title, --description, --label, --parent, --deps or --activity. Order is flow tickets rank.\n' +
+        `  Status moves are their own commands: flow tickets start ${t.id}, flow tickets done ${t.id}, flow tickets park ${t.id}.`
       );
     }
 
     store.writeTicket(t);
     records.commit(root, `${t.id}: ${changes.join('; ')}`);
     out(`${t.id}\n  ${changes.join('\n  ')}`);
+    json({ ticket: ticketJson.record(t, tickets), changes: fields });
     return 0;
   },
 };
@@ -831,7 +754,6 @@ actions.edit = {
  * open ticket has a place, and only a sibling is a place to go beside.
  */
 actions.rank = {
-  section: 'tickets',
   args: '<id>',
   summary: 'put it before or after a sibling, or first or last',
   flags: {
@@ -853,45 +775,50 @@ actions.rank = {
     records.commit(root, `${t.id}: ranked ${describePosition(target)}`);
     records.syncLater(root);
     out(`${store.nameOf(t)}  ${describePosition(target)}`);
-    for (const line of renumbered) out(`      ${line}`);
+    if (renumbered) out(`      numbered ${renumbered} other ticket${renumbered === 1 ? '' : 's'} too, in their current order`);
+    json({ ticket: ticketJson.record(t, tickets), position: describePosition(target), renumbered });
     return 0;
   },
 };
 
 /**
- * The filing pass marks what it swept. Several ids at once, because sweeping a
- * batch of closed tickets is the normal case, and every id gets stamped,
- * including the tickets that produced nothing worth keeping. A ticket nobody
- * looked at and a ticket that taught nothing are indistinguishable from the
- * outside, so only the mark drains the queue.
+ * The filing pass marks what it swept. Several ids at once, comma-joined,
+ * because sweeping a batch of closed tickets is the normal case, and every id
+ * gets stamped, including the tickets that produced nothing worth keeping. A
+ * ticket nobody looked at and a ticket that taught nothing are
+ * indistinguishable from the outside, so only the mark drains the queue.
  */
 actions.file = {
-  section: 'tickets',
-  args: '<id>...',
+  args: '<id,id>',
   summary: 'stamp today on everything the filing pass swept',
   flags: { force: { bool: true } },
   run({ positional, flags, usage }) {
-    if (!positional.length) throw new FlowError(`usage: ${usage} <id>...`);
+    const refs = listOf(positional[0]);
+    if (!refs.length || positional.length > 1) throw new FlowError(`usage: ${usage} <id,id>, one comma-joined list`);
 
-    const { root, tickets } = locate(positional[0]);
+    const { root, tickets } = locate(refs[0]);
     const stamp = store.today();
-    const targets = positional.map((ref) => store.findTicket(tickets, ref));
+    const targets = refs.map((ref) => store.findTicket(tickets, ref));
+    const filed = [];
 
     for (const t of targets) {
       if (t.data.filed && !flags.force) {
         out(`${store.nameOf(t)}  already filed ${t.data.filed}`);
+        filed.push({ id: t.id, filed: t.data.filed, was: '', already: true });
         continue;
       }
       const previous = t.data.filed;
       t.data.filed = stamp;
       store.writeTicket(t);
       out(`${store.nameOf(t)}  filed ${stamp}${previous ? ` (was ${previous})` : ''}`);
+      filed.push({ id: t.id, filed: stamp, was: previous, already: false });
     }
 
     records.commit(root, `filed ${targets.map((t) => t.id).join(', ')}`);
     const left = tickets.filter((t) => t.data.status === 'done' && !t.data.filed);
+    json({ filed, unfiled: left.length });
     out(left.length
-      ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled: flow ls "status:done filed:no"`
+      ? `\n${left.length} closed ticket${left.length === 1 ? '' : 's'} still unfiled (flow tickets -- "status:done filed:no")`
       : '\nnothing left unfiled.');
     return 0;
   },
@@ -907,7 +834,6 @@ actions.file = {
  * be a verb that had to do something no other verb does.
  */
 actions.drop = {
-  section: 'tickets',
   args: '<id>',
   summary: 'kill it, and repair what depended on it',
   flags: {
@@ -962,8 +888,8 @@ actions.drop = {
         `${t.id} has ${affected.length} live dependent${affected.length === 1 ? '' : 's'}, directly or through others:\n` +
         affected.map((d) => `  ${store.nameOf(d)}  ${d.data.status}`).join('\n') +
         '\n\nLeft alone they can never become ready. Pick one:\n' +
-        `  flow drop ${t.id} --reason "${reason}" --by <id>    re-point them at the replacement\n` +
-        `  flow drop ${t.id} --reason "${reason}" --force      drop them too`
+        `  flow tickets drop ${t.id} --reason "${reason}" --by <id>    re-point them at the replacement\n` +
+        `  flow tickets drop ${t.id} --reason "${reason}" --force      drop them too`
       );
     }
 
@@ -986,18 +912,21 @@ actions.drop = {
       out(`\nre-pointed to ${store.nameOf(replacement)}:`);
       for (const d of repointed) out(`  ${d.id}  deps → [${d.data.deps.join(', ')}]`);
       if (!repointed.length) out('  nothing to re-point.');
+      json({ ticket: ticketJson.record(t, tickets), repointed: repointed.map((d) => d.id), droppedWith: [] });
       records.commit(root, `${t.id}: dropped, dependents re-pointed to ${replacement.id}`);
       records.syncLater(root);
       return 0;
     }
 
-    if (flags.force && affected.length) {
-      out(`\ndropped with it (${affected.length}):`);
-      for (const d of affected) {
+    const droppedWith = flags.force ? affected : [];
+    if (droppedWith.length) {
+      out(`\ndropped with it (${droppedWith.length}):`);
+      for (const d of droppedWith) {
         store.setStatus(d, 'dropped', `dropped with ${store.nameOf(t)}, which it depended on`);
         out(`  ${store.nameOf(d)}`);
       }
     }
+    json({ ticket: ticketJson.record(t, tickets), repointed: [], droppedWith: droppedWith.map((d) => d.id) });
     records.commit(root, `${t.id}: dropped`);
     records.syncLater(root);
     return 0;
@@ -1017,13 +946,12 @@ actions.drop = {
  * installed packages go with it.
  */
 actions.move = {
-  section: 'tickets',
-  args: '<id>... <home|prefix>',
+  args: '<id,id> <home|prefix>',
   summary: 'move tickets to ~/.flow/ or another project by its prefix, each taking a new number there',
   run({ positional, usage }) {
-    if (positional.length < 2) throw new FlowError(`usage: ${usage}`);
-    const to = positional[positional.length - 1];
-    const refs = positional.slice(0, -1);
+    if (positional.length !== 2) throw new FlowError(`usage: ${usage} <id,id> <home|prefix>, the ids one comma-joined list`);
+    const [given, to] = positional;
+    const refs = listOf(given);
 
     const from = locate(refs[0]);
     const moving = refs.map((ref) => store.findTicket(from.tickets, ref));
@@ -1048,7 +976,7 @@ actions.move = {
     if (links.length) {
       throw new FlowError(
         `a link across 2 places could never be followed:\n${links.map((l) => `  ${l}`).join('\n')}\n` +
-        '  Move the linked tickets in the same command, or remove the links first with flow edit --deps and --parent.'
+        '  Move the linked tickets in the same command, or remove the links first with flow tickets edit --deps and --parent.'
       );
     }
 
@@ -1066,6 +994,7 @@ actions.move = {
       out(`${t.data.was} → ${id}-${t.data.title}`);
     }
 
+    json({ moved: [...renamed].map(([from, to]) => ({ from, to })) });
     const said = [...renamed].map(([a, b]) => `${a} → ${b}`).join(', ');
     records.commit(from.root, `moved away: ${said}`);
     records.commit(target, `moved in: ${said}`);
@@ -1077,7 +1006,7 @@ actions.move = {
     if (store.isHome(target)) {
       const left = store.readTickets(from.root);
       const leads = [...renamed.keys()].filter((old) => !left.some((t) => t.data.was === old));
-      if (leads.length) out(`\nthe old id still finds it from the project: flow ${leads[0]}`);
+      if (leads.length) out(`\nthe old id still finds it from the project (flow tickets get ${leads[0]})`);
     }
     return 0;
   },
@@ -1094,11 +1023,9 @@ actions.move = {
 for (const s of statuses.VERBS) {
   const needsReason = statuses.NEEDS_REASON.has(s.name);
   actions[s.verb] = {
-    section: 'status',
-    args: s.name === 'parked' ? '[<id>]' : '<id>',
-    summary: s.name === 'parked' ? `${statuses.DOES[s.verb]}; --label parks every open ticket with it` : statuses.DOES[s.verb],
+    args: '<id>',
+    summary: statuses.DOES[s.verb],
     flags: {
-      ...(s.name === 'parked' ? { label: { arg: '<label>' } } : {}),
       ...(s.name === 'in-progress' ? { activity: { arg: '<word>' } } : {}),
       ...(needsReason
         ? { reason: { required: true, arg: '"<why>"', missing: `${s.verb}ing needs a reason: in six months it is the only thing that explains the ticket.` } }
@@ -1106,17 +1033,6 @@ for (const s of statuses.VERBS) {
       force: { bool: true },
     },
     run({ positional, flags, usage }) {
-      if (s.name === 'parked' && flags.label) {
-        if (positional.length) throw new FlowError('give a ticket id or --label, not both.');
-        return moveLabelled(flags.label, {
-          pick: (t) => statuses.OPEN.has(t.data.status) && t.data.status !== 'parked',
-          targetOf: () => 'parked',
-          reason: String(flags.reason).trim(),
-          verb: 'park',
-          noun: 'parked',
-          none: (name) => `no open ticket carries ${name}.`,
-        });
-      }
       if (!positional[0]) throw new FlowError(`usage: ${usage} <id>`);
       const activity = flags.activity ? String(flags.activity).trim().toLowerCase() : '';
       const refused = activity && store.badActivity(activity);
@@ -1126,31 +1042,11 @@ for (const s of statuses.VERBS) {
         activity,
         force: flags.force,
         reason: flags.reason ? String(flags.reason).trim() : '',
-        verb: `flow ${s.verb} ${t.id}`,
+        verb: `flow tickets ${s.verb} ${t.id}`,
       });
     },
   };
 }
-
-/**
- * The pair to `park --label`: every parked ticket carrying the label goes back
- * to the status it left, which `park` stored as `resume`.
- */
-actions.revive = {
-  section: 'status',
-  summary: 'bring back every parked ticket with a label, each to where it stopped',
-  flags: { label: { required: true, arg: '<label>' } },
-  run({ flags }) {
-    return moveLabelled(flags.label, {
-      pick: (t) => t.data.status === 'parked',
-      targetOf: (t) => (t.data.resume === 'in-progress' ? 'in-progress' : 'todo'),
-      reason: '',
-      verb: 'revive',
-      noun: 'revived',
-      none: (name) => `no parked ticket carries ${name}.`,
-    });
-  },
-};
 
 // ---------------------------------------------------------------- ticket skills
 
@@ -1188,7 +1084,7 @@ function registerProjects() {
   }
 }
 
-const WRITES = ['new', 'edit', 'rank', 'file', 'drop', 'move', 'revive', ...statuses.VERBS.map((s) => s.verb)];
+const WRITES = ['new', 'edit', 'rank', 'file', 'drop', 'move', ...statuses.VERBS.map((s) => s.verb)];
 for (const name of WRITES) {
   const run = actions[name].run;
   actions[name].run = (call) => {
@@ -1205,4 +1101,9 @@ for (const name of WRITES) {
   };
 }
 
-module.exports = { actions, fallback: actions.show, transition, load, loadFor, outside, projectNamed, PROJECT_FLAG };
+module.exports = {
+  summary: 'the tickets: list, read, create, change and move them',
+  list: listing,
+  actions,
+  transition, load, loadFor, outside, projectNamed, PROJECT_FLAG,
+};

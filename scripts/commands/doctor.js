@@ -11,7 +11,7 @@
  * Nothing is written. Every check is a read, so running this against a broken
  * machine can only ever tell you more about it.
  *
- * `flow check` is the other verification command and answers a different
+ * `flow tickets check` is the other verification command and answers a different
  * question: the ticket graph in the project you are standing in. That one needs
  * a project and refuses without one. This one needs a machine and runs from
  * anywhere, install day included.
@@ -31,7 +31,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { out } = require('../lib/cli');
+const { out, json } = require('../lib/cli');
 const failures = require('../lib/logs/failures');
 const installed = require('../lib/machine/installed');
 const { markdownFiles } = require('../lib/machine/links');
@@ -525,7 +525,7 @@ function checkTickets(root) {
       problems.push(`${t.id} holds a groundwork/map.md that is only the empty template: delete it`);
     }
     if (t.data.labels.includes(t.data.title)) {
-      problems.push(`${t.id} is titled "${t.data.title}", a label and no name: flow edit ${t.id} --title <up to 4 words>`);
+      problems.push(`${t.id} is titled "${t.data.title}", a label and no name: flow tickets edit ${t.id} --title "<up to 4 words>"`);
     }
   }
   return { name: 'tickets', problems, summary: `${count(tickets.length, 'ticket', 'tickets')} in the current format` };
@@ -605,6 +605,15 @@ const actions = {};
 
 /** The report, and the exit code a skill reads instead of the report. */
 function report(checks) {
+  const ran = checks.filter((c) => !c.skipped);
+  json({
+    installed: true,
+    checks: checks.map((c) => ({
+      name: c.name, skipped: c.skipped || null, problems: c.problems || [], notes: c.notes || [], summary: c.summary || null,
+    })),
+    failed: ran.filter((c) => c.problems.length).length,
+    ran: ran.length,
+  });
   out(doctorReport(checks));
   return checks.some((c) => c.problems && c.problems.length) ? 1 : 0;
 }
@@ -632,6 +641,7 @@ actions.doctor = {
     // Without it a fresh machine reads as 20 separate failures, all of them the
     // same failure said again.
     if (inspect(path.join(at.flow, 'scripts')).state === 'missing' && !anyFlowSkillLinked(at.agents)) {
+      json({ installed: false, checks: [], failed: 0, ran: 0 });
       out(
         `Flow is not installed here. ${paths.shorten(at.flow)} has no scripts link and ${paths.shorten(at.agents)} holds no Flow skill.\n\n` +
         `Install it, then run this again:\n\n  node ${path.join(clone, 'scripts', 'flow.js')} install\n`

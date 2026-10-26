@@ -11,7 +11,24 @@
 const fs = require('fs');
 const { FlowError } = require('./error');
 
-const out = (s) => process.stdout.write(s.endsWith('\n') ? s : s + '\n');
+/**
+ * `--json` on a run turns the text off: `out` prints nothing, and the action
+ * hands its result to `json`, printed once after it ran. One result per run,
+ * the last set: `flow notes promote` calls `flow tickets new`, and only the
+ * promote's result prints.
+ */
+const run = { json: false, result: undefined };
+
+const out = (s) => {
+  if (run.json) return;
+  process.stdout.write(s.endsWith('\n') ? s : s + '\n');
+};
+
+/** The result `--json` prints. Called by every action that takes `--json`. */
+const json = (data) => { run.result = data; };
+
+/** True while a `--json` run is on, so the entry point prints a refusal as JSON. */
+const jsonMode = () => run.json;
 
 const HELP_WORDS = ['-h', '--help', 'help'];
 const HELP_FLAGS = ['-h', '--help'];
@@ -28,44 +45,90 @@ function resolve(word, candidates, label, prefix = '') {
 }
 
 /**
- * Turns argv into positionals and flags, against what the action declared.
+ * The short form of each flag, typed by hand: 1 letter where free, 2 or 3 on
+ * a clash. One table, so a form means the same flag in every command. Docs
+ * and skills always write the long name. A hidden flag gets none.
+ */
+const SHORT = {
+  project: 'p', parent: 'pa', prefix: 'pre', prereq: 'prq',
+  label: 'l', limit: 'li', last: 'la',
+  force: 'f', first: 'fi', from: 'fr', full: 'fu',
+  by: 'b', body: 'bo', before: 'be',
+  reason: 'r', rebuild: 'rb',
+  activity: 'a', after: 'af', all: 'al',
+  deps: 'd', description: 'de',
+  turns: 't', thinking: 'th',
+  global: 'g', quiet: 'q',
+  flat: 'fl',
+};
+
+/**
+ * `--json` is on every action but the ones declaring `json: false` (install,
+ * update, init, sync), so it is added here rather than declared 20 times. It
+ * is hidden from each help line, and said once under the help's title.
+ */
+const JSON_FLAG = { bool: true, hidden: true };
+const takesJson = (decl) => decl.json !== false;
+
+/** The short form a declared flag is typed with, or null. */
+const shortOf = (name, flag) => (flag.hidden ? null : SHORT[name] || null);
+
+/**
+ * Turns argv into positionals, flags and the query, against what the action
+ * declared.
  *
  * An undeclared flag fails here. It used to be collected and ignored, so
  * `--statuss building` exited 0 having changed nothing, which reads exactly
  * like success.
  *
- * A flag declared with `letter: true` is one letter typed after one dash,
- * where a wide convention already owns the letter: `-y` answers yes, as in
- * `npm init -y`. It has no two-dash form.
+ * `--` marks the one argument after it as the query, for an action declared
+ * with `query: true`. A flag may still follow: `flow tickets -- "label:ui" -p fw`.
+ * A word left over beside a query is a query the shell split, since its
+ * quotes were dropped, and is refused naming the quoted form. An action
+ * declared with `query: 'beside'` also takes positionals before the `--`, as
+ * `flow audit summary <id> -- "since:2026-10-01"` does; a word after it is
+ * still refused.
  *
- * A value flag declared with `short: 'p'` is also typed `-p <value>`, and
- * lands in `flags` under its long name.
+ * A short form (`SHORT`) is matched whole, never bundled: `-pa` is `--parent`,
+ * never `-p -a`. It lands in `flags` under its long name.
  */
 function parseArgs(argv, decl = {}) {
-  const declared = decl.flags || {};
-  const names = Object.keys(declared).filter((name) => !declared[name].letter);
-  const letters = Object.keys(declared).filter((name) => declared[name].letter);
-  const shorts = Object.fromEntries(names.filter((name) => declared[name].short).map((name) => [declared[name].short, name]));
+  const declared = takesJson(decl) ? { ...decl.flags, json: JSON_FLAG } : decl.flags || {};
+  const names = Object.keys(declared);
+  const shorts = Object.fromEntries(names.filter((name) => shortOf(name, declared[name])).map((name) => [shortOf(name, declared[name]), name]));
   const positional = [];
   const flags = {};
+  let query;
+  let beforeQuery = 0;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
 
+    if (arg === '--') {
+      if (!decl.query) throw new FlowError(`${decl.usage || 'this command'} takes no query.`);
+      if (query !== undefined) throw new FlowError('one query only: quote it after a single "--".');
+      beforeQuery = positional.length;
+      query = argv[++i];
+      if (query === undefined) throw new FlowError(`"--" needs a quoted query after it: ${decl.usage} -- "label:ui cache".`);
+      continue;
+    }
+
     if (!arg.startsWith('--')) {
-      if (arg.startsWith('-') && letters.includes(arg.slice(1))) {
-        flags[arg.slice(1)] = true;
-        continue;
-      }
       if (arg.startsWith('-') && shorts[arg.slice(1)]) {
         const name = shorts[arg.slice(1)];
+        if (declared[name].bool) {
+          flags[name] = true;
+          continue;
+        }
         const value = argv[++i];
-        if (value === undefined) throw new FlowError(`-${arg.slice(1)} needs a value.`);
-        flags[name] = value;
+        if (value === undefined) throw new FlowError(`${arg} needs a value.`);
+        flags[name] = declared[name].values ? resolve(value, declared[name].values, `${arg} value`) : value;
         continue;
       }
       if (arg.startsWith('-') && arg.length > 1) {
-        throw new FlowError(`flags take two dashes: "--${arg.replace(/^-+/, '')}", not "${arg}".`);
+        const known = Object.keys(SHORT).find((name) => SHORT[name] === arg.slice(1));
+        if (known) throw new FlowError(`${decl.usage || 'this command'} takes no --${known} (${arg}).`);
+        throw new FlowError(`unknown flag "${arg}". Long flags take two dashes, such as --${arg.replace(/^-+/, '')}.`);
       }
       positional.push(arg);
       continue;
@@ -73,7 +136,6 @@ function parseArgs(argv, decl = {}) {
 
     const eq = arg.indexOf('=');
     const typed = eq === -1 ? arg.slice(2) : arg.slice(2, eq);
-    if (!typed) throw new FlowError('"--" on its own is not a flag.');
     if (!names.length) throw new FlowError(`${decl.usage || 'this command'} takes no flags.`);
 
     const name = resolve(typed, names, 'flag', '--');
@@ -90,13 +152,20 @@ function parseArgs(argv, decl = {}) {
     flags[name] = flag.values ? resolve(value, flag.values, `--${name} value`) : value;
   }
 
+  const loose = decl.query === 'beside' ? (query === undefined ? [] : positional.slice(beforeQuery)) : positional;
+  if (decl.query && loose.length) {
+    const words = [query, ...loose].filter((w) => w !== undefined).join(' ');
+    const ids = decl.query === 'beside' ? positional.slice(0, beforeQuery).map((w) => ` ${w}`).join('') : '';
+    throw new FlowError(`quote the query: ${decl.usage}${ids} -- "${words}"`);
+  }
+
   for (const [name, flag] of Object.entries(declared)) {
     if (flag.required && flags[name] === undefined) {
       throw new FlowError(flag.missing || `--${name} is required.`);
     }
   }
 
-  return { positional, flags };
+  return { positional, flags, query };
 }
 
 /**
@@ -106,27 +175,39 @@ function parseArgs(argv, decl = {}) {
  *
  * `--help` or `-h` anywhere after the command prints that command's lines from
  * the help, and runs nothing.
+ *
+ * Under `--json` the mode is on before the flags are read, so a refusal of the
+ * flags prints as JSON too. An action that set no result is a bug in flow,
+ * refused loudly rather than printing nothing.
  */
 function runAction(action, argv, usage, check, extra) {
   if (argv.some((a) => HELP_FLAGS.includes(a))) {
     out(actionLines(usage.replace(/ [^ ]+$/, ''), { [usage.split(' ').pop()]: action }).map((l) => l.slice(2)).join('\n'));
     return 0;
   }
-  const { positional, flags } = parseArgs(argv, { ...action, usage });
+  run.json = takesJson(action) && argv.includes('--json');
+  run.result = undefined;
+  const { positional, flags, query } = parseArgs(argv, { ...action, usage });
   if (check) check(action, flags);
-  return action.run({ positional, flags, usage, ...extra });
+  const code = action.run({ positional, flags, query, usage, ...extra });
+  if (!run.json) return code;
+  if (run.result === undefined) throw new FlowError(`${usage} set no JSON result: a bug in flow.`);
+  process.stdout.write(`${JSON.stringify(run.result, null, 2)}\n`);
+  return code;
 }
 
+const err = (s) => process.stderr.write(s.endsWith('\n') ? s : s + '\n');
+
 /**
- * The first word is the command or the group. Tickets have no name of their
- * own here: `flow ls`, `flow start exp-47`. A word that names no command is a
- * ticket id, which is what makes `flow exp-47` show one.
+ * The first word is a bare command or a noun. A noun typed alone runs its
+ * `list` action, and so does a noun followed by `--` and a query or by a
+ * flag: `flow notes`, `flow notes -- "cache"`, `flow tickets -p fw`. Any
+ * other word after a noun is a verb, so a one-word query never reads as one.
  *
- * A group may name a default action, and the same rule then runs one level
- * down: a word naming no action is that action's argument, which is what makes
- * `flow notes cache` reach `flow notes ls cache`.
+ * An unknown command, a removed one included, exits 1 with one error line and
+ * the help of the noun it was typed under, or the whole help at the top.
  */
-function dispatch(argv, { commands, groups, fallback, sections, title, check }) {
+function dispatch(argv, { commands, groups, sections, title, check }) {
   if (!argv.length || HELP_WORDS.includes(argv[0])) {
     out(help({ commands, groups, sections, title }));
     return 0;
@@ -135,35 +216,34 @@ function dispatch(argv, { commands, groups, fallback, sections, title, check }) 
   const [first, ...rest] = argv;
   if (first.startsWith('-')) throw new FlowError(`"${first}" is a flag: a command comes first.`);
 
-  const names = [...Object.keys(commands), ...Object.keys(groups)];
-  const name = names.includes(first) ? first : null;
+  if (commands[first]) return runAction(commands[first], rest, `flow ${first}`, check);
 
-  if (!name) return runAction(fallback, argv, 'flow <id>', check, { unnamed: names });
-  if (commands[name]) return runAction(commands[name], rest, `flow ${name}`, check);
+  const group = groups[first];
+  if (!group) {
+    err(`flow: unknown command "${first}".\n`);
+    err(help({ commands, groups, sections, title }));
+    return 1;
+  }
 
-  const group = groups[name];
   const [typed, ...args] = rest;
-
-  // A group with nothing after it runs its default action when that needs no
-  // argument, which every group's `ls` does: `flow notes` lists. A group with
-  // no default, or one whose default needs an argument, prints its help.
-  if (!typed || HELP_WORDS.includes(typed)) {
-    const fallbackAction = group.default && group.actions[group.default];
-    const optional = !fallbackAction?.args || fallbackAction.args.startsWith('[');
-    if (!typed && fallbackAction && optional) {
-      return runAction(fallbackAction, [], `flow ${name} ${group.default}`, check);
-    }
-    out(groupHelp(name, group));
+  if (HELP_WORDS.includes(typed)) {
+    out(groupHelp(first, group));
     return 0;
   }
 
-  const actions = Object.keys(group.actions);
-  if (group.default && !actions.includes(typed)) {
-    return runAction(group.actions[group.default], rest, `flow ${name} ${group.default}`, check);
+  if (typed === undefined || typed.startsWith('-')) {
+    if (group.list) return runAction(group.list, rest, `flow ${first}`, check);
+    out(groupHelp(first, group));
+    return typed === undefined ? 0 : 1;
   }
 
-  const action = resolve(typed, actions, `${name} action`);
-  return runAction(group.actions[action], args, `flow ${name} ${action}`, check);
+  const action = group.actions?.[typed];
+  if (!action) {
+    err(`flow: unknown command "${first} ${typed}".\n`);
+    err(groupHelp(first, group));
+    return 1;
+  }
+  return runAction(action, args, `flow ${first} ${typed}`, check);
 }
 
 // ---------------------------------------------------------------- help
@@ -178,9 +258,10 @@ function flagText(action) {
   return Object.entries(action.flags || {})
     .filter(([, flag]) => !flag.hidden)
     .map(([name, flag]) => {
-      const typed = flag.short ? `-${flag.short}, --${name}` : `--${name}`;
-      return flag.letter ? `[-${name}]` : flag.required ? `--${name} ${flag.arg || '<value>'}` :
-        flag.bool ? `[--${name}]` : `[${typed} ${flag.arg || '<value>'}]`;
+      const short = shortOf(name, flag);
+      const typed = short ? `-${short}, --${name}` : `--${name}`;
+      return flag.required ? `${typed} ${flag.arg || '<value>'}` :
+        flag.bool ? `[${typed}]` : `[${typed} ${flag.arg || '<value>'}]`;
     })
     .join(' ');
 }
@@ -210,28 +291,17 @@ function actionLines(prefix, actions) {
   return lines;
 }
 
-/**
- * A group's actions, and the line saying which of them can be left out.
- */
+/** A noun's list line, typed as the noun alone, then its verbs. */
 function groupLines(name, group) {
-  const lines = actionLines(`flow ${name}`, group.actions);
-  if (group.default) {
-    const action = group.actions[group.default];
-    lines.push(line(
-      `  flow ${name}${action.args ? ' ' + action.args : ''}`,
-      `${group.default} is the default and can be left out`
-    ));
-  }
+  const lines = group.list ? actionLines('flow', { [name]: group.list }) : [];
+  lines.push(...actionLines(`flow ${name}`, group.actions || {}));
   return lines;
 }
 
-/**
- * Commands print in sections, though they all live in one flat namespace. The
- * sections are for reading: 18 commands in one alphabetical block hides which
- * ones move a ticket and which ones only look at it.
- */
+/** The bare commands in their sections, then each noun with its verbs. */
 function help({ commands, groups, sections, title }) {
-  const lines = [title];
+  const plain = Object.keys(commands).filter((name) => !takesJson(commands[name]));
+  const lines = [title, `--json on every command${plain.length ? ` but ${joinAnd(plain)}` : ''} prints JSON.`];
   for (const s of sections) {
     const picked = Object.fromEntries(Object.entries(commands).filter(([, a]) => a.section === s.key && !a.hidden));
     if (!Object.keys(picked).length) continue;
@@ -272,4 +342,10 @@ function readBody(flags) {
   return flags.body == null ? undefined : flags.body;
 }
 
-module.exports = { out, resolve, parseArgs, dispatch, joinAnd, readBody };
+/**
+ * The items of a comma-joined list argument: `fw-1,fw-2`. Spaces around a
+ * comma are dropped, so a list the shell kept whole still reads.
+ */
+const listOf = (value) => String(value ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+
+module.exports = { out, json, jsonMode, resolve, parseArgs, dispatch, joinAnd, readBody, listOf, SHORT };

@@ -12,9 +12,12 @@
  *   flow audit summary [id]                 compact metrics, one screen
  *   flow audit timeline <id>                every tool call, in order
  *   flow audit context <id>                 the context size at each request
- *   flow audit ls|sql                       counts, costs, open queries
+ *   flow audit, flow audit sql "<sql>"      counts, costs, open queries
  *   flow audit read <id> --turns 412-460    the conversation, bounded
  *   flow audit permissions [id]             the permission asks, counted
+ *
+ * Narrowing is a query after `--`: `flow audit -- "project:shop since:2026-10-01"`.
+ * Its terms are `project:`, `since:` and `until:`, each taking one value.
  *
  * Nothing is recorded by Flow. `~/.claude/projects/<project>/<session>.jsonl`
  * is written by Claude Code whether Flow is installed or not, and every
@@ -37,10 +40,11 @@ const store = require('../lib/audit/database');
 const scan = require('../lib/audit/scan');
 const query = require('../lib/audit/query');
 const reader = require('../lib/audit/read');
+const terms = require('../lib/query');
 const permissions = require('../lib/audit/permissions');
 const flowRepo = require('../lib/machine/flow-repo');
 const paths = require('../lib/paths');
-const { out } = require('../lib/cli');
+const { out, json, jsonMode } = require('../lib/cli');
 const { FlowError } = require('../lib/error');
 
 const actions = {};
@@ -66,6 +70,16 @@ const answer = (db, text) => {
   return `${covered}${indexed ? `\nindex read ${ago(indexed)}` : ''}\n\n${text}`;
 };
 
+/**
+ * Prints an answer from the index: its text, or under `--json` its rows with
+ * the coverage and the index's age. Each side is computed only when printed.
+ */
+const reply = (db, text, data) => {
+  if (!jsonMode()) return out(answer(db, text()));
+  const indexed = store.indexedAt(db);
+  json({ coverage: query.coverageData(db), indexedAt: indexed ? indexed.toISOString() : null, ...data() });
+};
+
 const STALE_MS = 30 * 60 * 1000;
 
 const one = (positional, usage, what) => {
@@ -73,6 +87,23 @@ const one = (positional, usage, what) => {
   if (extra.length) throw new FlowError(`${usage} takes one ${what}.`);
   return value;
 };
+
+/**
+ * The narrowing a query names, as `{ project, since, until }`, each null when
+ * absent. Only the fields an action reads are legal, each with one value, and
+ * a loose word has nothing to search, so both are refused.
+ */
+function narrowing(text, fields, usage) {
+  const found = { project: null, since: null, until: null };
+  for (const term of terms.parse(text, fields, { keepCase: true })) {
+    if (!term.field) throw new FlowError(`${usage} searches no words: its terms are ${fields.map((f) => `${f}:`).join(', ')}.`);
+    if (term.values.length > 1) throw new FlowError(`${term.field}: takes one value.`);
+    found[term.field] = term.values[0];
+  }
+  return found;
+}
+
+const QUERY_ARGS = '[-- "<query>"]';
 
 // ---------------------------------------------------------------- building
 
@@ -84,16 +115,17 @@ const one = (positional, usage, what) => {
  * appended to is skipped without being opened.
  */
 actions.index = {
-  summary: 'read new transcript lines into the index',
+  args: QUERY_ARGS,
+  summary: 'read new transcript lines into the index; "project:shop" reads one project',
+  query: true,
   flags: {
-    project: { arg: '<name>' },
     rebuild: { bool: true },
     quiet: { bool: true },
   },
-  run({ flags }) {
+  run({ flags, query: text, usage }) {
     const started = Date.now();
     const result = build({
-      project: flags.project || null,
+      project: narrowing(text, ['project'], usage).project,
       rebuild: flags.rebuild,
       onFile: flags.quiet ? null : (entry, added) => {
         if (added.skipped || !added.lines) return;
@@ -102,6 +134,7 @@ actions.index = {
     });
 
     const seconds = ((Date.now() - started) / 1000).toFixed(1);
+    json({ files: result.files, skipped: result.skipped, lines: result.lines, sessions: result.sessions.size, seconds: Number(seconds), index: store.dbPath() });
     out(`${result.files} transcripts read, ${result.skipped} unchanged, ` +
         `${result.lines} new lines, ${result.sessions.size} sessions: ${seconds}s`);
     out(store.dbPath());
@@ -161,22 +194,17 @@ function reading() {
 
 // ---------------------------------------------------------------- reading
 
-actions.ls = {
-  summary: 'every session indexed, newest first',
-  flags: {
-    project: { arg: '<name>' },
-    since: { arg: '<date>' },
-    limit: { arg: '<n>' },
-  },
-  run({ positional, flags, usage }) {
-    // The group's default, so an id typed the old way lands here and would list everything.
-    if (positional.length) throw new FlowError(`${usage} takes no session id: \`flow audit get ${positional[0]}\` shows one.`);
+/** `flow audit`, typed alone or with a query. */
+const listing = {
+  args: QUERY_ARGS,
+  summary: 'every session indexed, newest first; "project:shop since:2026-10-01" narrows it',
+  query: true,
+  flags: { limit: { arg: '<n>' } },
+  run({ flags, query: text, usage }) {
+    const { project, since } = narrowing(text, ['project', 'since'], usage);
     const db = reading();
-    out(answer(db, query.sessions(db, {
-      project: flags.project || null,
-      since: flags.since || null,
-      limit: Number(flags.limit || 30),
-    })));
+    const options = { project, since, limit: Number(flags.limit || 30) };
+    reply(db, () => query.sessions(db, options), () => query.sessionsData(db, options));
     return 0;
   },
 };
@@ -186,7 +214,8 @@ actions.get = {
   summary: 'one session in full, segments, tools, files, heaviest turns',
   run({ positional, usage }) {
     const db = reading();
-    out(answer(db, query.session(db, one(positional, usage, 'session id'))));
+    const id = one(positional, usage, 'session id');
+    reply(db, () => query.session(db, id), () => query.sessionData(db, id));
     return 0;
   },
 };
@@ -201,10 +230,9 @@ actions.turns = {
   flags: { from: { arg: '<turn>' }, limit: { arg: '<n>' } },
   run({ positional, flags, usage }) {
     const db = reading();
-    out(answer(db, query.turns(db, one(positional, usage, 'session id'), {
-      from: flags.from ? Number(flags.from) : null,
-      limit: Number(flags.limit || 60),
-    })));
+    const id = one(positional, usage, 'session id');
+    const options = { from: flags.from ? Number(flags.from) : null, limit: Number(flags.limit || 60) };
+    reply(db, () => query.turns(db, id, options), () => query.turnsData(db, id, options));
     return 0;
   },
 };
@@ -219,30 +247,22 @@ actions.read = {
   },
   run({ positional, flags, usage }) {
     const db = reading();
-    out(answer(db, reader.read(db, one(positional, usage, 'session id'), {
-      range: flags.turns,
-      full: flags.full,
-      thinking: flags.thinking,
-    })));
+    const id = one(positional, usage, 'session id');
+    const options = { range: flags.turns, full: flags.full, thinking: flags.thinking };
+    reply(db, () => reader.read(db, id, options), () => reader.readData(db, id, options));
     return 0;
   },
 };
 
 actions.summary = {
-  args: '[id]',
+  args: `[id] ${QUERY_ARGS}`,
   summary: 'compact metrics for one session, or an aggregate across many',
-  flags: {
-    project: { arg: '<name>' },
-    since: { arg: '<date>' },
-  },
-  run({ positional, flags }) {
-    const [id] = positional;
+  query: 'beside',
+  run({ positional, query: text, usage }) {
+    const { project, since } = narrowing(text, ['project', 'since'], usage);
     const db = reading();
-    out(answer(db, query.summary(db, {
-      session: id || null,
-      project: flags.project || null,
-      since: flags.since || null,
-    })));
+    const options = { session: one(positional, usage, 'session id') || null, project, since };
+    reply(db, () => query.summary(db, options), () => query.summaryData(db, options));
     return 0;
   },
 };
@@ -253,9 +273,9 @@ actions.timeline = {
   flags: { limit: { arg: '<n>' } },
   run({ positional, usage, flags }) {
     const db = reading();
-    out(answer(db, query.timeline(db, one(positional, usage, 'session id'), {
-      limit: Number(flags.limit || 500),
-    })));
+    const id = one(positional, usage, 'session id');
+    const options = { limit: Number(flags.limit || 500) };
+    reply(db, () => query.timeline(db, id, options), () => query.timelineData(db, id, options));
     return 0;
   },
 };
@@ -266,40 +286,38 @@ actions.context = {
   flags: { limit: { arg: '<n>' } },
   run({ positional, usage, flags }) {
     const db = reading();
-    out(answer(db, query.context(db, one(positional, usage, 'session id'), {
-      limit: Number(flags.limit || 200),
-    })));
+    const id = one(positional, usage, 'session id');
+    const options = { limit: Number(flags.limit || 200) };
+    reply(db, () => query.context(db, id, options), () => query.contextData(db, id, options));
     return 0;
   },
 };
 
 actions.permissions = {
-  args: '[id]',
+  args: `[id] ${QUERY_ARGS}`,
   summary: 'the permission asks, counted by source and headline',
-  flags: {
-    project: { arg: '<name>' },
-    since: { arg: '<date>' },
-    until: { arg: '<date>' },
-    limit: { arg: '<n>' },
-  },
-  run({ positional, flags, usage }) {
-    out(permissions.view({
+  query: 'beside',
+  flags: { limit: { arg: '<n>' } },
+  run({ positional, flags, query: text, usage }) {
+    const options = {
       id: one(positional, usage, 'session id') || null,
-      project: flags.project || null,
-      since: flags.since || null,
-      until: flags.until || null,
-      limit: Number(flags.limit || 20),
-    }));
+      ...narrowing(text, ['project', 'since', 'until'], usage),
+    };
+    if (jsonMode()) json(permissions.viewData(options));
+    else out(permissions.view({ ...options, limit: Number(flags.limit || 20) }));
     return 0;
   },
 };
 
 actions.sql = {
-  args: '<query>',
+  args: '"<sql>"',
   summary: 'any question the named ones do not cover',
   run({ positional, usage }) {
+    const [sql, ...extra] = positional;
+    if (!sql) throw new FlowError(`${usage} needs the SQL, quoted: ${usage} "SELECT count(*) FROM session".`);
+    if (extra.length) throw new FlowError(`quote the SQL: ${usage} "${positional.join(' ')}"`);
     const db = reading();
-    out(answer(db, query.sql(db, one(positional, usage, 'query: quote it'))));
+    reply(db, () => query.sql(db, sql), () => query.sqlData(db, sql));
     return 0;
   },
 };
@@ -307,7 +325,9 @@ actions.sql = {
 actions.schema = {
   summary: 'the tables and their columns, for writing a query',
   run() {
-    out(query.schema(reading()));
+    const db = reading();
+    json(query.schemaData(db));
+    out(query.schema(db));
     return 0;
   },
 };
@@ -335,17 +355,22 @@ actions.keep = {
 
     const dir = path.join(store.auditDir(), 'kept');
     fs.mkdirSync(dir, { recursive: true });
+    const kept = [];
+    const gone = [];
 
     for (const row of rows) {
       if (!fs.existsSync(row.path)) {
+        gone.push(row.path);
         out(`  gone: ${row.path}`);
         continue;
       }
       const target = path.join(dir, path.basename(row.path) + '.gz');
       fs.writeFileSync(target, zlib.gzipSync(fs.readFileSync(row.path)));
       const size = fs.statSync(target).size;
+      kept.push({ path: target, bytes: size });
       out(`  ${target}  ${query.bytes(size)}`);
     }
+    json({ kept, gone });
     return 0;
   },
 };
@@ -353,6 +378,7 @@ actions.keep = {
 actions.where = {
   summary: 'the two paths this reads and writes',
   run() {
+    json({ transcripts: store.projectsDir(), index: store.dbPath() });
     out(`transcripts  ${store.projectsDir()}`);
     out(`index        ${store.dbPath()}`);
     return 0;
@@ -361,6 +387,6 @@ actions.where = {
 
 module.exports = {
   summary: 'what Claude Code did, read back after the fact',
-  default: 'ls',
+  list: listing,
   actions,
 };

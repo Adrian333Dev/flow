@@ -14,12 +14,13 @@ const notesOf = (dir) => path.join(dir, 'flow-home', 'notes');
 function other(dir) {
   const bee = project(`${path.basename(dir)}-bee`);
   write(bee, '.flow/settings.json', '{\n  "ticketPrefix": "bee"\n}\n');
-  const made = flow(bee, ['new', 'Thing', '--title', 'thing'], { FLOW_HOME: path.join(dir, 'flow-home') });
+  const made = flow(bee, ['tickets', 'new', 'Thing'], { FLOW_HOME: path.join(dir, 'flow-home') });
   assert.strictEqual(made.code, 0, made.stderr);
   return bee;
 }
-const listed = (dir, ...args) => JSON.parse(flow(dir, ['notes', ...args]).stdout);
-const names = (dir, ...args) => listed(dir, ...args).map((n) => n.name);
+const asked = (query) => (query === undefined ? [] : ['--', query]);
+const listed = (dir, query) => JSON.parse(flow(dir, ['notes', ...asked(query)]).stdout);
+const names = (dir, query) => listed(dir, query).map((n) => n.name);
 const skillsOf = (dir) => path.join(dir, '.claude', 'skills');
 
 // Notes are listed newest change first, and the file clock is only so fine.
@@ -27,7 +28,7 @@ const settle = () => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0
 
 test('flow note creates a file named for its words, and flow notes prints it as JSON', () => {
   const dir = project('notes-create');
-  const made = flow(dir, ['note', 'try', 'X', 'in', 'the', 'board', '--label', 'board']);
+  const made = flow(dir, ['notes', 'new', 'try X in the board', '--label', 'board']);
   assert.strictEqual(made.code, 0, made.stderr);
   assert.match(made.stdout, /created try-x-in-the-board/);
 
@@ -47,7 +48,7 @@ test('flow note creates a file named for its words, and flow notes prints it as 
 
 test('flow note with no text prints usage, and flow notes new takes quoted text', () => {
   const dir = project('notes-usage');
-  const none = flow(dir, ['note']);
+  const none = flow(dir, ['notes', 'new']);
   assert.strictEqual(none.code, 1);
   assert.match(none.stderr, /usage: flow note/);
 
@@ -79,17 +80,17 @@ test('the title is the words before a colon, else the first line', () => {
 
 test('a second note with the same words gets -2, then -3', () => {
   const dir = project('notes-duplicates');
-  for (let i = 0; i < 3; i++) assert.strictEqual(flow(dir, ['note', 'cache the parse']).code, 0);
+  for (let i = 0; i < 3; i++) assert.strictEqual(flow(dir, ['notes', 'new', 'cache the parse']).code, 0);
   assert.deepStrictEqual(fs.readdirSync(notesOf(dir)).sort(), ['cache-the-parse-2.md', 'cache-the-parse-3.md', 'cache-the-parse.md']);
 });
 
 test('a list shows the newest change first, and a query narrows it', () => {
   const dir = project('notes-query');
-  flow(dir, ['note', 'first idea about parsers', '--label', 'parser']);
+  flow(dir, ['notes', 'new', 'first idea about parsers', '--label', 'parser']);
   settle();
-  flow(dir, ['note', 'second idea about the board', '--label', 'board,ui']);
+  flow(dir, ['notes', 'new', 'second idea about the board', '--label', 'board,ui']);
   settle();
-  flow(dir, ['note', 'third idea about parsers']);
+  flow(dir, ['notes', 'new', 'third idea about parsers']);
   assert.deepStrictEqual(names(dir), ['third-idea-about-parsers', 'second-idea-about-the-board', 'first-idea-about-parsers']);
 
   // Editing the file moves it to the top.
@@ -105,17 +106,27 @@ test('a list shows the newest change first, and a query narrows it', () => {
   assert.deepStrictEqual(names(dir, 'label:parser parsers'), ['first-idea-about-parsers']);
   assert.deepStrictEqual(names(dir, 'UI'), ['second-idea-about-the-board'], 'a word also reads the labels');
 
-  const loose = flow(dir, ['notes', 'parsers', 'board']);
+  const loose = flow(dir, ['notes', '--', 'parsers', 'board']);
   assert.strictEqual(loose.code, 1);
-  assert.match(loose.stderr, /one quoted query/);
+  assert.match(loose.stderr, /quote the query: flow notes -- "parsers board"/);
+
+  // A query equal to an action's name still searches once it follows `--`.
+  flow(dir, ['notes', 'new', 'a new parser']);
+  assert.deepStrictEqual(names(dir, 'new'), ['a-new-parser']);
+  const bare = flow(dir, ['notes', 'new']);
+  assert.strictEqual(bare.code, 1, 'flow notes new asks for its text');
+
+  const verb = flow(dir, ['notes', 'parsers']);
+  assert.strictEqual(verb.code, 1, 'a word after the noun is an action');
+  assert.match(verb.stderr, /unknown command "notes parsers"/);
 });
 
 test('a query reads the project: here and home by default, all or a prefix on request', () => {
   const dir = project('notes-projects');
   other(dir);
-  flow(dir, ['note', 'a note of here']);
-  flow(dir, ['note', 'a note of nowhere', '--project', 'home']);
-  flow(dir, ['note', 'a note of another', '-p', 'bee']);
+  flow(dir, ['notes', 'new', 'a note of here']);
+  flow(dir, ['notes', 'new', 'a note of nowhere', '--project', 'home']);
+  flow(dir, ['notes', 'new', 'a note of another', '-p', 'bee']);
 
   assert.deepStrictEqual(names(dir).sort(), ['a-note-of-here', 'a-note-of-nowhere']);
   assert.deepStrictEqual(names(dir, 'project:all').sort(), ['a-note-of-another', 'a-note-of-here', 'a-note-of-nowhere']);
@@ -131,40 +142,40 @@ test('a note names its project by prefix: global, a folder name, all and an unkn
   const dir = project('notes-refuse');
   const bee = other(dir);
 
-  const global = flow(dir, ['note', 'x', '--project', 'global']);
+  const global = flow(dir, ['notes', 'new', 'x', '--project', 'global']);
   assert.strictEqual(global.code, 1);
   assert.match(global.stderr, /"global" is now named "home"/);
 
-  const folder = flow(dir, ['note', 'x', '--project', path.basename(bee)]);
+  const folder = flow(dir, ['notes', 'new', 'x', '--project', path.basename(bee)]);
   assert.strictEqual(folder.code, 1);
   assert.match(folder.stderr, /is not a project prefix\. --project takes the prefix of a project/);
   assert.match(folder.stderr, /has the prefix bee/);
 
-  assert.match(flow(dir, ['note', 'x', '--project', 'all']).stderr, /is not a project prefix/);
-  assert.match(flow(dir, ['note', 'x', '--project', 'zzz']).stderr, /no project on this machine has the prefix "zzz"/);
+  assert.match(flow(dir, ['notes', 'new', 'x', '--project', 'all']).stderr, /is not a project prefix/);
+  assert.match(flow(dir, ['notes', 'new', 'x', '--project', 'zzz']).stderr, /no project on this machine has the prefix "zzz"/);
   assert.deepStrictEqual(fs.existsSync(notesOf(dir)) ? fs.readdirSync(notesOf(dir)) : [], [], 'no refusal made a note');
 
-  assert.match(flow(dir, ['notes', 'project:global']).stderr, /"global" is now named "home"/);
-  assert.match(flow(dir, ['notes', 'project:my-app']).stderr, /project:my-app is not a project prefix/);
-  assert.strictEqual(flow(dir, ['notes', 'project:zzz']).code, 0, 'a prefix this machine does not know still reads: notes travel, the registry does not');
+  assert.match(flow(dir, ['notes', '--', 'project:global']).stderr, /"global" is now named "home"/);
+  assert.match(flow(dir, ['notes', '--', 'project:my-app']).stderr, /project:my-app is not a project prefix/);
+  assert.strictEqual(flow(dir, ['notes', '--', 'project:zzz']).code, 0, 'a prefix this machine does not know still reads: notes travel, the registry does not');
 });
 
 test('outside a project the query still works for home and all', () => {
   const dir = project('notes-outside');
-  flow(dir, ['note', 'a note of here']);
-  flow(dir, ['note', 'a home one', '--project', 'home']);
+  flow(dir, ['notes', 'new', 'a note of here']);
+  flow(dir, ['notes', 'new', 'a home one', '--project', 'home']);
   // A folder with no `.flow/` is no Flow project.
   const bare = path.join(dir, 'bare');
   fs.mkdirSync(bare);
-  const run = (...args) => JSON.parse(flow(dir, ['notes', ...args], { FLOW_PROJECT: bare }).stdout);
+  const run = (query) => JSON.parse(flow(dir, ['notes', ...asked(query)], { FLOW_PROJECT: bare }).stdout);
   assert.deepStrictEqual(run('project:all').map((n) => n.name).sort(), ['a-home-one', 'a-note-of-here']);
   assert.deepStrictEqual(run().map((n) => n.name), ['a-home-one'], 'here matches nothing outside a project');
 });
 
 test('a note is named by its whole file name or its path', () => {
   const dir = project('notes-refs');
-  flow(dir, ['note', 'remember the retry']);
-  flow(dir, ['note', 'remember the cache']);
+  flow(dir, ['notes', 'new', 'remember the retry']);
+  flow(dir, ['notes', 'new', 'remember the cache']);
 
   const whole = flow(dir, ['notes', 'get', 'remember-the-retry']);
   assert.strictEqual(whole.code, 0, whole.stderr);
@@ -183,7 +194,7 @@ test('a note is named by its whole file name or its path', () => {
 
 test('flow notes drop deletes a note', () => {
   const dir = project('notes-drop');
-  flow(dir, ['note', 'remember the retry']);
+  flow(dir, ['notes', 'new', 'remember the retry']);
   assert.strictEqual(flow(dir, ['notes', 'drop', 'remember-the-retry']).code, 0);
   assert.deepStrictEqual(listed(dir), []);
   assert.match(flow(dir, ['notes', 'get', 'remember-the-retry']).stderr, /no note/);
@@ -191,7 +202,7 @@ test('flow notes drop deletes a note', () => {
 
 test('flow notes promote makes a ticket from the note and removes the note', () => {
   const dir = project('notes-promote');
-  flow(dir, ['note', 'Cache the parse: it is slow on big files', '--label', 'perf']);
+  flow(dir, ['notes', 'new', 'Cache the parse: it is slow on big files', '--label', 'perf']);
   const r = flow(dir, ['notes', 'promote', 'cache-the-parse']);
   assert.strictEqual(r.code, 0, r.stderr);
   assert.match(r.stdout, /promoted cache-the-parse → exp-1/);
@@ -205,8 +216,8 @@ test('flow notes promote makes a ticket from the note and removes the note', () 
 test('promote refuses a note of another project and says where to run it', () => {
   const dir = project('notes-promote-other');
   other(dir);
-  flow(dir, ['note', 'Belongs elsewhere', '--project', 'bee']);
-  flow(dir, ['note', 'Belongs nowhere', '--project', 'home']);
+  flow(dir, ['notes', 'new', 'Belongs elsewhere', '--project', 'bee']);
+  flow(dir, ['notes', 'new', 'Belongs nowhere', '--project', 'home']);
   const refused = flow(dir, ['notes', 'promote', 'belongs-elsewhere']);
   assert.strictEqual(refused.code, 1);
   assert.match(refused.stderr, /belongs to bee, not exp: run promote inside the project with the prefix bee/);
@@ -216,9 +227,9 @@ test('promote refuses a note of another project and says where to run it', () =>
 
 test('a note gets no skill, and a parked ticket keeps its own', () => {
   const dir = project('notes-skills');
-  flow(dir, ['note', 'Add a notes page to the board']);
-  flow(dir, ['new', 'Parser', '--title', 'parser']);
-  flow(dir, ['park', 'exp-1', '--reason', 'waiting']);
+  flow(dir, ['notes', 'new', 'Add a notes page to the board']);
+  flow(dir, ['tickets', 'new', 'Parser']);
+  flow(dir, ['tickets', 'park', 'exp-1', '--reason', 'waiting']);
   assert.deepStrictEqual(fs.readdirSync(skillsOf(dir)), ['exp-1']);
 });
 
@@ -230,7 +241,7 @@ test('a note made in the Flow home is home, and a project lists it', () => {
   fs.mkdirSync(home, { recursive: true });
   // Its own Claude Code folder: the shared one is wiped by other test files running at the same time.
   const claude = path.join(dir, 'claude');
-  const r = flow(dir, ['note', 'never write kind', '--label', 'profile'], { FLOW_PROJECT: user, FLOW_HOME: home, CLAUDE_CONFIG_DIR: claude });
+  const r = flow(dir, ['notes', 'new', 'never write kind', '--label', 'profile'], { FLOW_PROJECT: user, FLOW_HOME: home, CLAUDE_CONFIG_DIR: claude });
   assert.strictEqual(r.code, 0, r.stderr);
   const file = path.join(home, 'notes', 'never-write-kind.md');
   assert.match(fs.readFileSync(file, 'utf8'), /project: home/);
@@ -245,7 +256,7 @@ test('2 notes created at the same moment both survive, even with the same words'
   const dir = project('notes-parallel');
   const env = { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: path.join(dir, 'flow-home') };
   const add = (text) => new Promise((resolve) => {
-    const child = spawn(process.execPath, [path.join(SCRIPTS, 'flow.js'), 'note', text], { cwd: dir, env });
+    const child = spawn(process.execPath, [path.join(SCRIPTS, 'flow.js'), 'notes', 'new', text], { cwd: dir, env });
     child.on('close', resolve);
   });
   const codes = await Promise.all([add('from one session'), add('from another session'), add('same words'), add('same words')]);

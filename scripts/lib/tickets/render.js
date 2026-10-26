@@ -22,24 +22,18 @@ function ticketTable(tickets) {
 }
 
 /**
- * The forest, drawn. One line per ticket: the branch, then status and whatever
- * single fact matters most about it: how much of a parent is done, what a
- * blocked ticket waits on, why a parked one was set aside.
+ * The forest, drawn: the branch and the name, then the columns `cells(t,
+ * root)` gives each ticket. `flow tickets` and `flow next` pick their own.
  */
-function tree(nodes, all) {
-  if (!nodes.length) return 'nothing to show.';
-  const index = graph.indexById(all);
+function tree(nodes, cells) {
+  if (!nodes.length) return 'no tickets.';
   const rows = [];
 
   const walk = (list, prefix, root) => {
     list.forEach((n, i) => {
       const last = i === list.length - 1;
       const t = n.ticket;
-      rows.push([
-        prefix + (root ? '' : last ? '└── ' : '├── ') + store.nameOf(t),
-        t.data.status,
-        treeNote(t, all, index),
-      ]);
+      rows.push([prefix + (root ? '' : last ? '└── ' : '├── ') + store.nameOf(t), ...cells(t, root)]);
       if (n.children.length) walk(n.children, root ? '' : prefix + (last ? '    ' : '│   '), false);
     });
   };
@@ -49,28 +43,48 @@ function tree(nodes, all) {
 }
 
 /**
- * Counted against every ticket, never the visible slice: a parent whose
- * children are all done must still read 3/3 once those children are hidden.
- */
-function treeNote(t, all, index) {
-  const kids = graph.children(all, t.id);
-  if (kids.length) return `${progressOf(t, all)} done`;
-  if (t.data.status === 'todo') {
-    const unmet = graph.unmetDeps(t, index);
-    if (unmet.length) return `blocked by ${unmet.map((u) => u.dep).join(', ')}`;
-  }
-  return t.data.reason || '';
-}
-
-/**
- * How many of a parent's children are finished: the parent's whole progress
- * story, and the only counting `flow` does. It reads `status` in frontmatter,
+ * How many of a parent's children are done, of all of them: `3/5`, never a
+ * word, or null for a ticket with none. It reads `status` in frontmatter,
  * which these commands own outright, so it cannot disagree with anything.
  */
 function progressOf(t, tickets) {
-  const kids = graph.children(tickets, t.id);
-  if (kids.length === 0) return null;
-  return `${kids.filter((k) => k.data.status === 'done').length}/${kids.length}`;
+  const p = graph.progress(tickets, t.id);
+  return p ? `${p.done}/${p.total}` : null;
+}
+
+/** What a blocked todo waits on, or null. */
+function blockedNote(t, index) {
+  if (t.data.status !== 'todo') return null;
+  const unmet = graph.unmetDeps(t, index);
+  return unmet.length ? `blocked by ${unmet.map((u) => u.dep).join(', ')}` : null;
+}
+
+/** The opening words of a text, cut at a word near `max` characters with `…`. */
+function firstWords(text, max = 40) {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const space = cut.lastIndexOf(' ');
+  return `${(space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,.;:]+$/, '')}…`;
+}
+
+/**
+ * The `flow tickets` listing: the forest of what the query named, each row its
+ * status, labels and the facts that matter: a parent's count, what a blocked
+ * ticket waits on, a parked one's reason, and the parent of a child whose
+ * parent the query left out (`under fw-16`), which the tree no longer shows.
+ */
+function listing(list, all) {
+  const index = graph.indexById(all);
+  const shown = new Set(list.map((t) => t.id));
+  return tree(graph.forest(list), (t, root) => {
+    const notes = [
+      progressOf(t, all),
+      blockedNote(t, index),
+      t.data.status === 'parked' && t.data.reason ? firstWords(t.data.reason) : null,
+      root && t.data.parent && index.has(t.data.parent) && !shown.has(t.data.parent) ? `under ${t.data.parent}` : null,
+    ];
+    return [t.data.status, t.data.labels.join(',') || '-', notes.filter(Boolean).join(', ')];
+  });
 }
 
 const blockText = (u) =>
@@ -163,8 +177,8 @@ const reviveVerb = (t) => statuses.VERB_OF[t.data.resume] || 'todo';
  */
 function pickupLine(ticket) {
   const { status } = ticket.data;
-  if (status === 'todo') return `pick up with: flow start ${ticket.id}`;
-  if (status === 'parked') return `pick up with: flow ${reviveVerb(ticket)} ${ticket.id}`;
+  if (status === 'todo') return `pick up with: flow tickets start ${ticket.id}`;
+  if (status === 'parked') return `pick up with: flow tickets ${reviveVerb(ticket)} ${ticket.id}`;
   return null;
 }
 
@@ -173,7 +187,7 @@ function pickupLine(ticket) {
  *
  * The count is safe here for the reason a stored one would not be: it is read
  * off `plan.md` every time this prints, so there is no second copy to keep
- * true. It stays out of `ls` and `tree`, where `status` already answers what
+ * true. It stays out of the lists, where `status` already answers what
  * the count was standing in for.
  */
 /**
@@ -241,87 +255,50 @@ const ticketLines = (list) =>
   indent(columns(list.map((t) => [store.nameOf(t), t.data.labels.join(',') || '-'])));
 
 /**
- * The session opener, printed by `flow next`. Four questions
- * what did I finish last, what is still open, what continues it, what could
- * start. Read-only on purpose: this is the view for not knowing what is next,
- * and picking is a separate act.
+ * The session opener, printed by `flow next` from `graph.nextView`: what
+ * finished last, the work started as a tree, what could start, and the one
+ * ticket to take. Read-only on purpose: picking is a separate act.
  *
  * Small on purpose: every `/flow:start` and `/flow:execute` pays for these
- * lines in context. A ticket is its name and labels. Parked tickets are a
- * count, since a deliberate "not now" must not read as "forgotten" and must
- * not cost a row each.
+ * lines in context. A tree row is its name and one fact; a ready row its name
+ * and labels. Parked tickets are a count, since a deliberate "not now" must
+ * not read as "forgotten" and must not cost a row each. A line holds one
+ * colon at most: 2 read as 2 labels.
  */
-function status(tickets, limits, waiting) {
+function next(view, tickets, waiting, readyRows = Infinity) {
   if (!tickets.length) return 'no tickets yet.';
   const out = [];
+  const index = graph.indexById(tickets);
 
-  // The context a new session has lost. Nothing else on screen says what the
-  // last piece of work even was. Id and title only: the status, the stamp and
-  // the report list all pushed the title off to the right, where it read as
-  // noise. `closed` still decides which ticket this is; it just does not print.
-  const last = graph.lastClosed(tickets);
-  if (last) {
-    out.push(`last closed  ${store.nameOf(last)}`);
-    out.push('');
+  // The context a new session has lost: what the last piece of work was.
+  if (view.lastClosed) out.push(`last closed  ${store.nameOf(view.lastClosed)}`, '');
+
+  // The work started, with every open child under it, so the children of a
+  // parent in progress are seen as its rest rather than as new work.
+  if (view.tree.length) {
+    const note = (t) => progressOf(t, tickets) || blockedNote(t, index) || (graph.IN_FLIGHT.has(t.data.status) ? 'in progress' : '');
+    out.push('in progress', indent(tree(view.tree, (t) => [note(t)])), '');
   }
 
-  // A parent with open children waits on them, and picking it up refuses, so
-  // its children stand in for it: in flight themselves, or continuing it below.
-  const inFlight = tickets.filter((t) =>
-    graph.IN_FLIGHT.has(t.data.status) && !graph.hasOpenChildren(tickets, t.id));
-  if (inFlight.length) {
-    out.push(`in flight (${inFlight.length})`);
-    out.push(ticketLines(graph.rank(inFlight, tickets)));
+  if (view.ready.length) {
+    const shown = view.ready.slice(0, readyRows);
+    out.push(`ready (${view.ready.length})`, ticketLines(shown));
+    if (shown.length < view.ready.length) out.push(`  and ${view.ready.length - shown.length} more (flow next --all)`);
     out.push('');
-  }
-
-  // A section capped at its limit says how many it left out.
-  const section = (heading, list, limit) => {
-    const ranked = graph.rank(list, tickets);
-    const shown = ranked.slice(0, limit);
-    out.push(`${heading} (${ranked.length})`);
-    out.push(ticketLines(shown));
-    if (shown.length < ranked.length) out.push(`  and ${ranked.length - shown.length} more: flow next --all`);
-    out.push('');
-    return ranked;
-  };
-
-  // Above the ready list even when a top-ranked ticket is sitting in it:
-  // unfinished work beats new work, and a ticket nobody has started is new
-  // however it is ranked. Rank only orders inside a band. The parent in the
-  // heading, when all share one, replaces a parent column on every row.
-  const continuing = graph.continuingTickets(tickets);
-  let take = null;
-  if (continuing.length) {
-    const parents = new Set(continuing.map((t) => t.data.parent));
-    const heading = parents.size === 1 ? `continues ${[...parents][0]}` : 'continues open work';
-    take = section(heading, continuing, limits.continuing)[0];
-  }
-
-  const carried = new Set(continuing.map((t) => t.id));
-  const ready = graph.readyTickets(tickets).filter((t) => !carried.has(t.id));
-  if (ready.length) {
-    const ranked = section('ready', ready, limits.ready);
-    take = take || ranked[0];
-  } else if (!inFlight.length && !continuing.length) {
-    const blocked = graph.blockedTickets(tickets);
+  } else if (!view.tree.length) {
+    const { blocked } = view;
     out.push(blocked.length
-      ? `nothing ready. ${blocked.length} todo ticket${blocked.length === 1 ? '' : 's'} blocked:\n${blockedLines(blocked.slice(0, 8))}`
-      : 'nothing ready and nothing blocked: no todo tickets left.');
-    out.push('');
+      ? `nothing ready. ${blocked.length} todo ticket${blocked.length === 1 ? '' : 's'} blocked\n${blockedLines(blocked.slice(0, 8))}`
+      : 'nothing ready and nothing blocked, no todo tickets left.', '');
   }
 
-  // The ticket to take next. Never one in flight: those belong to sessions
-  // already running.
-  if (take) out.push(`take: ${store.nameOf(take)}`);
+  if (view.take) out.push(`take: ${store.nameOf(view.take)}`);
 
   // Each prints only when owed. A line that reads "none" every run is a line
   // the reader learns to skip, and these exist to be noticed.
-  const parked = tickets.filter((t) => t.data.status === 'parked').length;
-  const owed = [parked ? `${parked} parked` : null, waitingLine(waiting)].filter(Boolean);
+  const owed = [view.parked ? `${view.parked} parked` : null, waitingLine(waiting)].filter(Boolean);
   if (owed.length) out.push(owed.join(' · '));
-  const problems = graph.check(tickets);
-  if (graph.hasProblems(problems)) out.push('the ticket graph has problems: flow check');
+  if (view.problems) out.push('the ticket graph has problems, listed by flow tickets check');
 
   return out.join('\n').replace(/\n+$/, '');
 }
@@ -331,7 +308,7 @@ function checkReport(problems) {
 
   const out = [];
   if (problems.unnamed.length) {
-    out.push(`no title or description (${problems.unnamed.length}), add them with flow edit:`);
+    out.push(`no title or description (${problems.unnamed.length}), added by flow tickets edit:`);
     for (const t of problems.unnamed.slice(0, 10)) out.push(`  ${t.id}`);
     if (problems.unnamed.length > 10) out.push(`  and ${problems.unnamed.length - 10} more`);
     out.push('');
@@ -371,4 +348,4 @@ function checkReport(problems) {
   return out.join('\n').trimEnd();
 }
 
-module.exports = { ticketTable, tree, blockText, show, status, checkReport, reviveVerb };
+module.exports = { ticketTable, tree, listing, blockText, show, next, checkReport, reviveVerb };

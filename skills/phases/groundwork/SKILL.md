@@ -18,7 +18,7 @@ Same 4 phases at any size, however much the first message already settles.
 
 ## Arriving
 
-**No ticket** → the agent makes one first, after a look in `flow ls` for one on this subject.
+**No ticket** → the agent makes one first, after a look in `flow tickets` for one on this subject.
 
 **Outside a project**, the ticket lives in `~/.flow/tickets/`, and Phase 4's `docs/` routes land under `~/.flow/`.
 
@@ -29,7 +29,7 @@ Same 4 phases at any size, however much the first message already settles.
 - **Every `[x]`** → Phase 4 routes what the ticket decided
 - **An older ticket holds `groundwork/map.md`, or `###` sections under `## Decisions`.** Work it in that shape and start no second one.
 
-**Then `flow start <id> --activity design`**, also where the ticket is already `in-progress`.
+**Then `flow tickets start <id> --activity design`**, also where the ticket is already `in-progress`.
 
 **A ticket that reads both ways stops the run.** Questions ticked with nothing written under them, a section abandoned mid-sentence, a ticket about another subject: say what you found and ask.
 
@@ -116,7 +116,7 @@ Add a sub-question that surfaces mid-conversation as a `[ ]` child at once. Walk
 
 ### When a question is its own subject
 
-It leaves and gets its own ticket and session: `flow new "…" --parent <id>`. Then add its line to the parent's `## Tasks`, since `flow new` does not.
+It leaves and gets its own ticket and session: `flow tickets new "…" --parent <id>`. Then add its line to the parent's `## Tasks`, since `flow tickets new` does not.
 
 **The body carries what the child cannot get by opening this ticket**: the question written out, and every decision here that binds it. Never copy the reasoning, and never copy a whole section.
 
@@ -207,14 +207,14 @@ Run only at 3 moments:
 
 Confirm every question is resolved or deliberately deferred, then send each decision to the file that owns it. **Every route is conditional**: most runs use 1 or 2.
 
-- **Work committed to here** → this ticket, or its children, shaped by the list below. Each carries what was decided and a `## References` section. **Copy the lines that ticket needs, never the whole list.** A child's order is the parent's `## Tasks`; `deps` is only for a wait outside the family. **Create and fill a child in one command**: `flow new "<short name>: <sentence>" --parent <id> --body -` takes the body on stdin. Never create, then edit.
+- **Work committed to here** → this ticket, or its children, shaped by the list below. Each carries what was decided and a `## References` section. **Copy the lines that ticket needs, never the whole list.** A child's order is the parent's `## Tasks`; `deps` is only for a wait outside the family. **Create and fill a child in one command**: `flow tickets new "<short name>: <sentence>" --parent <id> --body -` takes the body on stdin. Never create, then edit.
 - **A question that is its own subject** → a child ticket, one per subject. Phase 2 carries the split rule and what the body holds.
 - **Work an earlier run already wrote into `docs/spec/`** → `/flow:tickets-from-spec`. Tickets for what this ticket decided are the first route.
 - **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `~/.flow/references/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
 - **The project's `CLAUDE.md` still holds the template's comments** in its title and `## Project` → write both from what was decided, and delete the comments.
 - **Settled and dying with the build**, this build's non-goals included → already written in the ticket. Leave it there.
 - **Decided, but not now** → `## Deferred`, with the reason.
-- **The answer is no** → say why, in the question's section. A ticket with nothing to build closes with `flow done`. Any other ticket → propose dropping it: on a yes, `flow drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: its dependents wait for the revival.
+- **The answer is no** → say why, in the question's section. A ticket with nothing to build closes with `flow tickets done`. Any other ticket → propose dropping it: on a yes, `flow tickets drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: its dependents wait for the revival.
 - **Anything else** → `## Capture`.
 
 **Then shape the ticket, once, and only here:**
@@ -222,7 +222,7 @@ Confirm every question is resolved or deliberately deferred, then send each deci
 - **Exactly 1 unit of work** → this ticket. Its `## Tasks` lists the steps, if it needs them.
 - **Several units** → children via `--parent <id>`. Each is one you can try and see working, named by what it does, never by a layer of the code. The parent's `## Tasks` lists them in build order, one line each starting with the child's id: `- [ ] exp-48: …`. **The parent keeps only what no child holds**: the wiring, the integration test, the final suite. It closes after its last child.
 
-**Then say what happens next**: `flow next` lists what is workable, and **`/flow:execute`** takes one ticket. A ticket with nothing to build, where the decisions are the deliverable: `flow done <id>` once the user says it is done, or after its last child closes.
+**Then say what happens next**: `flow next` lists what is workable, and **`/flow:execute`** takes one ticket. A ticket with nothing to build, where the decisions are the deliverable: `flow tickets done <id>` once the user says it is done, or after its last child closes.
 
 ## Asking questions
 

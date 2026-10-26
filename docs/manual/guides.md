@@ -52,7 +52,7 @@ With nothing after the edit, the line ends `Read this guide, then make it again.
 [Added by Flow] The flow audit commands.
 ```
 
-Bare ticket commands, such as `flow start`, bring nothing.
+Ticket commands, such as `flow tickets start`, bring nothing.
 
 ## What counts as already read
 

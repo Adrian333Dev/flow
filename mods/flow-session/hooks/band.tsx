@@ -4,7 +4,7 @@
  * A badge is the ticket's id and short name in black on `#ffb703`, joined to its word and
  * count on the terminal's background plus 7% of that colour. The band is one row: it ends with a
  * green Restart button, shown between turns from `LEAD` under the wrap-up limit (button.ts), and the issue count in red.
- * A ticket lights only when `flow start <id>` picks it up, and then sits leftmost; its file is read again whenever a
+ * A ticket lights only when `flow tickets start <id>` picks it up, and then sits leftmost; its file is read again whenever a
  * command or an edit touches it, and at each turn's end. For as long as a turn runs, the badge
  * the session works (the leftmost open one) shows a pale bar 3 cells wide moving along
  * it and a spinner turning after its word; `band-settings.json` switches either off. The rules
@@ -52,7 +52,7 @@ let mock: { name: string; scenario: Scenario } | undefined
 let lastMock: string | undefined
 let mockActing = false
 
-/** What a tool call names: ticket ids, and which of them `flow start` picks up, which lights. The call's fields sit on the event itself. */
+/** What a tool call names: ticket ids, and which of them `flow tickets start` picks up, which lights. The call's fields sit on the event itself. */
 async function namedBy($: EngineInterface, tool: string, call: object): Promise<{ ids: string[]; started: string[] }> {
   const fields = call as { command?: unknown; file_path?: unknown }
   if (tool === 'Bash' && typeof fields.command === 'string') {
@@ -226,7 +226,7 @@ export async function bandMock($: EngineInterface, args: string): Promise<string
     await update($, band, () => [])
     await clearMock($)
     await save($).catch((error) => lost($, 'save', error))
-    return 'Band emptied. `flow start <id>` lights a ticket again.'
+    return 'Band emptied. `flow tickets start <id>` lights a ticket again.'
   }
   const { scenarios, error } = await readScenarios($)
   if (error) return error
@@ -281,7 +281,7 @@ export async function bandTurnStart($: EngineInterface, e: TurnStartInput): Prom
 
 /**
  * Runs a tool call. `run` is the call itself; the tickets it names are read again after it.
- * A `flow start <id>` makes that ticket the one the session works.
+ * A `flow tickets start <id>` makes that ticket the one the session works.
  */
 export async function bandToolCall<R>($: EngineInterface, e: ToolCallInput, run: () => Promise<R>): Promise<R> {
   const { ids, started } = await namedBy($, e.tool, e)
@@ -293,7 +293,7 @@ export async function bandToolCall<R>($: EngineInterface, e: ToolCallInput, run:
   }
 }
 
-/** Tickets a command named were changed or looked at: reads them again, and one picked up by `flow start` goes leftmost and is the one the session works. */
+/** Tickets a command named were changed or looked at: reads them again, and one picked up by `flow tickets start` goes leftmost and is the one the session works. */
 async function touched($: EngineInterface, ids: string[], started: string[]): Promise<void> {
   for (const id of ids) await refresh($, id, started.includes(id)).catch(() => undefined)
   if (!ids.length) return

@@ -32,10 +32,10 @@
  * once someone has seen it. 2 people taking the same number in the same
  * moment is the one clash one folder per ticket cannot avoid, and a refused
  * push is how it shows. A new ticket's folder is its id alone, so the 2 folders
- * collide: `flow new` makes no ticket, undoes its commit, and says to run it
+ * collide: `flow tickets new` makes no ticket, undoes its commit, and says to run it
  * again. A folder made before that has words after the id, and is renumbered
  * and pushed again. Where the push fails for any other reason, offline or
- * signed out, `flow new` makes no ticket at all, and says what git said.
+ * signed out, `flow tickets new` makes no ticket at all, and says what git said.
  *
  * Every git call in `.flow/` holds one lock, so the background push and a
  * command typed at the same moment never meet inside git.

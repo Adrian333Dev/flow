@@ -12,8 +12,8 @@ Answer a question about how something behaved by counting it in the records: whe
 
 The records: past sessions through `flow audit`, the logs in `~/.flow/logs/`, ticket history, `git log`.
 
-- **On a ticket** → `flow start <id> --activity debug`, also where it is already `in-progress`.
-- **No ticket** → `flow new "<question>" --label audit`, then the same command.
+- **On a ticket** → `flow tickets start <id> --activity debug`, also where it is already `in-progress`.
+- **No ticket** → `flow tickets new "<question>" --label audit`, then the same command.
 
 `~/.flow/wiki/audit/` holds the records, the queries that worked and their traps.
 

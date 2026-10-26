@@ -34,6 +34,7 @@ const actions = {};
 
 actions.update = {
   section: 'setup',
+  json: false,
   summary: "pull Flow's clone, then run flow install again",
   flags: {
     root: { arg: '<dir>', hidden: true },

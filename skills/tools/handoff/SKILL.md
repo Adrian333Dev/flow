@@ -28,14 +28,14 @@ A sentence from the user counts: a constraint, a correction, a leaning not yet l
 
 Change `## Done when` only when a skill re-decides what the ticket is.
 
-**Work with no ticket** → `flow new "…" --body -`, then `flow start <id>`. The body: one paragraph on the job and why, and a `## Done when`. Then fill its `context.md` by the list above.
+**Work with no ticket** → `flow tickets new "…" --body -`, then `flow tickets start <id>`. The body: one paragraph on the job and why, and a `## Done when`. Then fill its `context.md` by the list above.
 
 ## 2. Capture the conversation
 
 Run it when this conversation ends here: all remaining work moves to another session or model. Run it alone when asked. Skip it when part of the work stays here, and for a subagent's brief. Unclear → run it.
 
 1. **Start after the last quote list in this conversation.** None → the first message.
-2. **Walk the user's messages to the last, in your visible turn.** Never in thinking. For each message that corrects, decides, sets something aside, leaves it undone, or shows irritation or doubt, write one line: their words in quotes, the route, the file. A user still unhappy after a fix is one issue ticket, never waiting for a repeat: `flow new "<the area>: <what the user rejected>" --label flow-issue,rework-loop`.
+2. **Walk the user's messages to the last, in your visible turn.** Never in thinking. For each message that corrects, decides, sets something aside, leaves it undone, or shows irritation or doubt, write one line: their words in quotes, the route, the file. A user still unhappy after a fix is one issue ticket, never waiting for a repeat: `flow tickets new "<the area>: <what the user rejected>" --label flow-issue,rework-loop`.
 
    ```text
    "never write kind in a field name" → a correction → ~/.flow/notes/never-write-kind-in-a-field-name.md

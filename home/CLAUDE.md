@@ -31,12 +31,12 @@ One user message, your work, one reply. In that order, every time.
 - **`wiki-first`** Work against an outside tool or field → its `~/.flow/wiki/<subject>/` first, `findings/` not yet folded included, then its docs. Never training memory alone.
 - **`know-where-knowledge-lives`** Look where a thing is filed before asking or guessing:
   - A fact of this project → `docs/context/`. Why it was built so → `docs/spec/`.
-  - A mistake of a type → `flow labels "label:flow-issue"`.
-  - Ideas and put-off work → `flow notes "label:<subject>"`.
+  - A mistake of a type → `flow tickets labels -- "label:flow-issue"`.
+  - Ideas and put-off work → `flow notes -- "label:<subject>"`.
   - Earlier research → `.flow/research/<topic>/`.
   - Steps that repeat → a how-to page in the wiki, or a skill.
 - **`never-ask-what-a-command-answers`** Whether a file exists, where it sits, what a command prints: run the lookup, then report what it found.
-- **`past-sessions-through-audit`** A past session → `flow audit`: `ls` finds it, `context` and `timeline` narrow it, `read --turns` opens it. The raw transcript only for what the index does not store, such as message text.
+- **`past-sessions-through-audit`** A past session → `flow audit`: the noun alone lists it, `context` and `timeline` narrow it, `read --turns` opens it. The raw transcript only for what the index does not store, such as message text.
 
 ## Writing files
 
@@ -87,13 +87,13 @@ One phase at a time:
 **`file-by-type`** Every route adds a new file or a new line:
 
 - A lesson or fact about a tool or this project, a failed attempt with its cause, a procedure done before → a finding: `~/.flow/wiki/<tool>/findings/<lesson>.md` for any project, `.flow/findings/<lesson>.md` for this project.
-- A correction → `flow note "…" --label rule`, with `--project home` where it holds in every project.
-- A decision → the `docs/spec/` file that owns it (`~/.flow/references/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow note "…"`. One batch, never mid-discussion.
-- Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow note "…"`.
-- Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow labels "label:flow-issue"` lists the types. A type already listed is a repeat. How to write one: `~/.flow/references/issue-tickets.md`.
+- A correction → `flow notes new "…" --label rule`, with `--project home` where it holds in every project.
+- A decision → the `docs/spec/` file that owns it (`~/.flow/references/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow notes new "…"`. One batch, never mid-discussion.
+- Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow notes new "…"`.
+- Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow tickets new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow tickets labels -- "label:flow-issue"` lists the types. A type already listed is a repeat. How to write one: `~/.flow/references/issue-tickets.md`.
 - A wrong rule-check warning → `.flow/findings/scorecard.md`
 - Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
-- Anything else worth keeping, friction that repeated included → `flow note "…"`
+- Anything else worth keeping, friction that repeated included → `flow notes new "…"`
 
 **`name-the-finding`** Name a finding for its lesson in 4 to 8 words: what went wrong, what fixed it, the rule that follows. Skip what a loaded skill already says. Never put a project's or a client's detail in `~/.flow`. About a skill in this session's skill list, loaded or not → open the file with frontmatter `skill: <name>`.
 
@@ -101,30 +101,28 @@ One phase at a time:
 
 - A decision confirmed with no open threads → its spec file.
 - A rule reversed, or a correction → rewrite the rule it breaks in place: `~/.flow/CLAUDE.md` where it holds everywhere, the project's `## Rules` where it holds there alone.
-- "Make a ticket" → `flow new`.
+- "Make a ticket" → `flow tickets new`.
 
 What you inferred stays a note or a new file. `/flow:upkeep` shows it in its plan.
 
-**`tickets-follow-the-ask`** The user asks for a ticket → `flow ls "<words>"` for one on the subject, then `flow new "…"` with its reason and a `## Done when`. A list is one ticket with a checklist. A fault in work just built reopens the ticket that built it. "This session's ticket" is the one this session works, never another in progress.
+**`tickets-follow-the-ask`** The user asks for a ticket → `flow tickets -- "<words>"` for one on the subject, then `flow tickets new "…"` with its reason and a `## Done when`. A list is one ticket with a checklist. A fault in work just built reopens the ticket that built it. "This session's ticket" is the one this session works, never another in progress.
 
-**`capture-reads-nothing`** Read no file to file. Two exceptions: a finding that contradicts an older one (read that one file, replace its text), and `flow labels "label:flow-issue"`, to spot a repeat.
+**`capture-reads-nothing`** Read no file to file. Two exceptions: a finding that contradicts an older one (read that one file, replace its text), and `flow tickets labels -- "label:flow-issue"`, to spot a repeat.
 
 **`name-what-was-filed`** When capture wrote files at a checkpoint, end the reply with `Filed: <path>, <path>`. Nothing written, no line.
 
 ## Scripts
 
-`flow <group> --help`
+`flow <noun> --help`. A query is one quoted argument after `--`: `flow notes -- "label:ui"`.
 
-Groups:
+Nouns, each listing when typed alone:
+- tickets: find (labels, tree, get), change (new, edit, drop), status (todo, start, done, park)
 - notes: ideas and put-off work
 - audit: past sessions, read back
 
-Ticket commands, no group word yet:
-- find: next, ls, labels, tree
-- change: new, edit, drop
-- status: todo, start, done, park
-- `flow start <id> --activity design|build|debug`: every time you take a ticket on, after a restart too. The user names a ticket to work → start it and run the phase skill that fits, same turn.
-- `flow new "<name>: <details>"`; outside a project add `-p home`, numbered `home-1`.
+- `flow next`: what to work on.
+- `flow tickets start <id> --activity design|build|debug`: every time you take a ticket on, after a restart too. The user names a ticket to work → start it and run the phase skill that fits, same turn.
+- `flow tickets new "<name>: <details>"`; outside a project add `--project home`, numbered `home-1`.
 
 `util fs tree [path]`: a folder as a tree, with each file's line count.
 

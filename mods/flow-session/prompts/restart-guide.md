@@ -8,7 +8,7 @@ The new window holds only: the tickets in flight, the files and skills you name,
    - `path#heading` or `path:from-to` only for a large file whose rest the next step doesn't need.
    - Groundwork: `context.md` loads whole by itself. Name the specs and code the open questions touch.
    - Build: the file mid-edit, its test, the spec part it implements.
-   - 80 KB in all, skills included.
+   - 40k tokens in all, skills included.
 3. Pick `skills`: the phase skill running and any skill the next step follows.
 4. Write `message`, the note. Facts, compressed, no narration. In order:
    - Lessons not yet filed, each with its exact value, error text or path.

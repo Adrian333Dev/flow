@@ -10,17 +10,22 @@
  * whose left side is no field stays a word, so `https://x` is searched as text.
  */
 
-/** The terms of a query: `{ field, values }`, with `field` null for a word (its one value). */
-function parse(query, fields) {
+/**
+ * The terms of a query: `{ field, values }`, with `field` null for a word (its
+ * one value). Values are lowercased for matching, unless `keepCase`: a date
+ * like `2026-10-12T10:00` compares as typed.
+ */
+function parse(query, fields, { keepCase = false } = {}) {
   const terms = [];
+  const cased = (v) => (keepCase ? v : v.toLowerCase());
   for (const raw of String(query ?? '').split(/\s+/).filter(Boolean)) {
     const at = raw.indexOf(':');
     const field = at > 0 ? raw.slice(0, at).toLowerCase() : null;
     const value = field ? raw.slice(at + 1) : '';
     if (field && fields.includes(field) && value) {
-      terms.push({ field, values: value.split(',').filter(Boolean).map((v) => v.toLowerCase()) });
+      terms.push({ field, values: value.split(',').filter(Boolean).map(cased) });
     } else {
-      terms.push({ field: null, values: [raw.toLowerCase()] });
+      terms.push({ field: null, values: [cased(raw)] });
     }
   }
   return terms;

@@ -72,7 +72,7 @@ const firstLine = (note) => (note.body.split('\n').find((l) => l.trim()) || '').
 
 /**
  * A note's title: the words before the first `: ` of its first line, cut as
- * `flow new` cuts a ticket's, else the whole first line. A list cuts a long
+ * `flow tickets new` cuts a ticket's, else the whole first line. A list cuts a long
  * one to its width.
  */
 function titleOf(note) {

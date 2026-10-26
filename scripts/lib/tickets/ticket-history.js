@@ -11,7 +11,7 @@
  * Tickets live on the branch `flow`, apart from the code, so nothing else says
  * which code branch a ticket's work is on, or which sessions worked on it.
  * `history.md` sits in the ticket's folder rather than in commit messages, so
- * it travels with `flow move` and exists where `.flow/` is a plain folder.
+ * it travels with `flow tickets move` and exists where `.flow/` is a plain folder.
  *
  * The session is Claude Code's, read from `CLAUDE_CODE_SESSION_ID`, which
  * Claude Code sets for every command it runs. Its title is the last one in the

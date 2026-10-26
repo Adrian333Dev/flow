@@ -66,7 +66,7 @@ describe('readTicket', () => {
 
 describe('idsIn', () => {
   test('finds each ticket id once', () => {
-    expect(idsIn('flow start fw-137 && flow fw-137 fw-16')).toEqual(['fw-137', 'fw-16'])
+    expect(idsIn('flow tickets start fw-137 && flow tickets get fw-137 fw-16')).toEqual(['fw-137', 'fw-16'])
   })
 
   test('finds none in plain text', () => {
@@ -88,12 +88,12 @@ describe('idsInPath', () => {
 })
 
 describe('startedIn', () => {
-  test('finds the ids that flow start picks up, in order, and not the ones a command only names', () => {
-    expect(startedIn('flow start fw-9 --activity build && flow fw-16 && fw start fw-7')).toEqual(['fw-9', 'fw-7'])
+  test('finds the ids that flow tickets start picks up, in order, and not the ones a command only names', () => {
+    expect(startedIn('flow tickets start fw-9 --activity build && flow tickets get fw-16 && fw start fw-7')).toEqual(['fw-9', 'fw-7'])
   })
 
   test('a read, a done or a park picks nothing up', () => {
-    expect(startedIn('flow fw-73')).toEqual([])
+    expect(startedIn('flow tickets get fw-73')).toEqual([])
     expect(startedIn('flow done fw-133; flow park fw-16')).toEqual([])
   })
 })

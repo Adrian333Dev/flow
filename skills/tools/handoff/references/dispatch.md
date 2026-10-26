@@ -4,7 +4,7 @@ For a job going to a session that reports back, or to a subagent starting now. T
 
 ## Where it goes
 
-- **A session that reports back** → a new ticket, `flow new "…" --body -`. A child of the ticket that dispatched it, where one exists.
+- **A session that reports back** → a new ticket, `flow tickets new "…" --body -`. A child of the ticket that dispatched it, where one exists.
 - **A subagent starting now** → the prompt, never a file.
 
 ## What it carries

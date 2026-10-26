@@ -55,7 +55,7 @@ function render(t, index) {
     'disable-model-invocation: true',
     '---',
     `${MARK}${t.id}, rewritten by flow on every ticket change -->`,
-    `!\`flow ${t.id} 2>&1 || true\``,
+    `!\`flow tickets get ${t.id} 2>&1 || true\``,
     '',
     'On what exists, the files win. On decisions and what is still open, `ticket.md` wins over `context.md`.',
     '',

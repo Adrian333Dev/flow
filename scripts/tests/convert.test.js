@@ -59,9 +59,9 @@ function snapshot(dir) {
 
 test('flow check names the tickets with no description', () => {
   const dir = oldProject('convert-check');
-  const r = flow(dir, ['check']);
+  const r = flow(dir, ['tickets', 'check']);
   assert.strictEqual(r.code, 1);
-  assert.match(r.stdout, /no title or description \(5\), add them with flow edit/);
+  assert.match(r.stdout, /no title or description \(5\), added by flow tickets edit/);
 });
 
 test('convert-tickets --dry-run counts and writes nothing', () => {
@@ -109,7 +109,7 @@ test('convert-tickets gives every ticket the new shape and touches nothing else'
   assert.ok(!('rank' in read(dir, 'archive/exp-5-old-thing')), 'a closed ticket gets no rank');
 
   assert.deepStrictEqual(snapshot(dir), before, 'every file but the frontmatter of ticket.md is unchanged');
-  assert.strictEqual(flow(dir, ['check']).code, 0);
+  assert.strictEqual(flow(dir, ['tickets', 'check']).code, 0);
 });
 
 test('convert-tickets twice changes nothing the second time', () => {

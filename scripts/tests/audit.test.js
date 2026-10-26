@@ -169,7 +169,13 @@ test('every answer from the index opens with one coverage line per machine', () 
   }
 
   // A filter narrows the rows and leaves the coverage whole.
-  assert.match(audit(named, ['ls', '--project', 'nothing-like-it']).stdout, line);
+  assert.match(audit(named, ['--', 'project:nothing-like-it']).stdout, line);
+  assert.match(audit(named, ['summary', id, '--', 'since:2026-09-01']).stdout, line);
+
+  // The query names the index's fields alone, one value each.
+  assert.match(audit(named, ['--', 'cache']).stderr, /searches no words/);
+  assert.match(audit(named, ['--', 'project:a,b']).stderr, /project: takes one value/);
+  assert.match(audit(named, ['sql', 'SELECT', '1']).stderr, /quote the SQL: flow audit sql "SELECT 1"/);
 
   // What does not answer from the index opens with nothing.
   for (const args of [['where'], ['schema']]) {
@@ -398,7 +404,7 @@ test('timeline lists every tool call in a session', () => {
   assert.match(result.stdout, /Grep\s+ERR/);
 });
 
-test('bare flow audit lists the sessions, and a bare id points at get', () => {
+test('bare flow audit lists the sessions, and a bare id is no action', () => {
   const { file, env } = roots('audit-default');
   fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
   assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
@@ -412,12 +418,13 @@ test('bare flow audit lists the sessions, and a bare id points at get', () => {
 
   const shortcut = audit(env, [SESSION.slice(0, 8)]);
   assert.notStrictEqual(shortcut.code, 0);
-  assert.match(shortcut.stderr, /flow audit get /);
+  assert.match(shortcut.stderr, /unknown command "audit /);
+  assert.match(shortcut.stderr, /flow audit get <id>/);
 });
 
 test('a query against a missing index says how to build one', () => {
   const { env } = roots('audit-empty');
-  const result = audit(env, ['ls']);
+  const result = audit(env, []);
   assert.notStrictEqual(result.code, 0);
   assert.match(result.stderr, /flow audit index/);
 });
@@ -445,4 +452,35 @@ test('a read refreshes an index older than 30 minutes, and says how old it is', 
   assert.strictEqual(stale.code, 0, stale.stderr);
   assert.match(stale.stdout, /index read just now/);
   assert.match(stale.stdout, /\b3 turns/);
+});
+
+test('--json prints the index rows with the coverage, on every view', () => {
+  const { file, env } = roots('audit-json');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  const index = JSON.parse(audit(env, ['index', '--json']).stdout);
+  assert.deepStrictEqual([index.files, index.sessions], [1, 1]);
+
+  const asJson = (...args) => JSON.parse(audit(env, [...args, '--json']).stdout);
+  const listed = asJson();
+  assert.deepStrictEqual(listed.coverage.map((c) => c.sessions), [1]);
+  assert.ok(listed.indexedAt);
+  assert.deepStrictEqual(listed.sessions.map((s) => s.id), [SESSION]);
+
+  const id = SESSION.slice(0, 8);
+  assert.strictEqual(asJson('get', id).session.id, SESSION);
+  assert.strictEqual(asJson('turns', id).turns.length, 3);
+  assert.strictEqual(asJson('summary').totals.sessions, 1);
+  assert.strictEqual(asJson('timeline', id).total, 5);
+  assert.ok(Array.isArray(asJson('context', id).requests));
+  assert.deepStrictEqual(asJson('sql', 'SELECT COUNT(*) n FROM turn').rows, [{ n: 3 }]);
+  assert.ok(asJson('schema').tables.some((t) => t.name === 'session'));
+  assert.deepStrictEqual(Object.keys(asJson('where')), ['transcripts', 'index']);
+
+  const read = asJson('read', id, '--turns', '1');
+  assert.deepStrictEqual([read.session, read.from, read.to], [SESSION, 1, 1]);
+  assert.match(read.text, /read the layout/);
+
+  const kept = asJson('keep', id);
+  assert.strictEqual(kept.kept.length, 1);
+  assert.deepStrictEqual(kept.gone, []);
 });

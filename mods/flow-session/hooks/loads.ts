@@ -12,8 +12,11 @@ import type { Link } from './skill-wiki'
 
 export type Built = Pick<SessionMessage, 'role' | 'text' | 'toolUses' | 'toolResults'>
 
-/** Files and skills together, in bytes. Tickets stand outside it. */
-export const CAP = 80 * 1024
+/** Files and skills together, in tokens. Tickets stand outside it. */
+export const CAP = 40_000
+
+/** A text's tokens, estimated at 4 bytes a token: close for English and code, and needs no tokenizer. */
+export const tokensOf = (text: string) => Math.ceil(new TextEncoder().encode(text).length / 4)
 
 /** What a `files` entry asks for. `from` and `to` are line numbers counted from 1, both included. */
 export type Spec = { path: string; heading?: string; from?: number; to?: number }

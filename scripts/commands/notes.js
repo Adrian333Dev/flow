@@ -1,28 +1,27 @@
 'use strict';
 /**
- * Notes: ideas and put-off work as small files (lib/notes.js). `flow notes` is
- * the group, and `flow note <text>` is the short form that adds one at once.
+ * Notes: ideas and put-off work as small files (lib/notes.js), under
+ * `flow notes`.
  *
  * A note has no id: a command names it by its whole file name without `.md`,
- * or its path. `ls` takes one quoted query (lib/query.js) and prints the paths.
- * A query selects and a flag sets: `new` takes `--label` and `--project`, and
- * `ls` takes neither.
+ * or its path. `flow notes` typed alone lists them, and `flow notes -- "<query>"`
+ * narrows the list (lib/query.js). A query selects and a flag sets: `new`
+ * takes `--label` and `--project`, and the list takes neither.
  *
  * No `edit`: the file is plain text, so the board's editor or any editor
  * covers it. `promote` is the one extra action, because it makes a ticket and
- * removes a note, which no standard action does. `flow note` is a kept
- * exception to the command principles: notes are thrown in mid-work, so the
- * short form is typed most.
+ * removes a note, which no standard action does.
  */
 
 const { FlowError } = require('../lib/error');
-const { out } = require('../lib/cli');
+const { out, json } = require('../lib/cli');
 const { projectRoot, projectRootOrNull } = require('../lib/project');
 const store = require('../lib/tickets/store');
 const records = require('../lib/tickets/records');
 const query = require('../lib/query');
 const notes = require('../lib/notes');
 const tickets = require('./tickets');
+const ticketJson = require('../lib/tickets/json');
 
 const FIELDS = ['label', 'project'];
 
@@ -55,14 +54,20 @@ function hereName() {
 /** Notes live in the Flow home, so a save is the home's background sync. */
 const saved = () => records.syncLater(store.homeRoot());
 
-/** Adds the note and prints what was made. Both `flow note` and `flow notes new` run it. */
+/** One note as `--json` prints it, the list's shape. */
+const noteJson = (n) => ({
+  name: n.id, title: notes.titleOf(n), date: n.data.date, project: n.data.project, labels: n.data.labels, path: n.file, text: n.body,
+});
+
+/** Adds the note and prints what was made. */
 function add(words, flags, usage) {
-  const text = words.join(' ').trim();
-  if (!text) throw new FlowError(`usage: ${usage}`);
+  const [text, ...extra] = words.map((w) => w.trim());
+  if (!text || extra.length) throw new FlowError(`usage: ${usage} "<text>", in quotes`);
   const root = flags.project === undefined ? projectRootOrNull() : tickets.projectNamed(flags.project, '--project');
   if (!root) throw tickets.outside();
   const { note } = notes.create({ text, labels: labelsFrom(flags.label), project: notes.projectOf(root) });
   saved();
+  json({ note: noteJson(note) });
   out(`created ${note.id}`);
   out(`        ${note.file}`);
   out(`        project: ${note.data.project}`);
@@ -77,12 +82,13 @@ const needsRef = (positional, usage) => {
 
 const actions = {};
 
-actions.ls = {
-  args: '["<query>"]',
+/** `flow notes`, typed alone or with a query. */
+const listing = {
+  args: '[-- "<query>"]',
   summary: 'every note whole as JSON, newest change first; a query like "label:ui,profile project:all cache" narrows it',
-  run({ positional, usage }) {
-    if (positional.length > 1) throw new FlowError(`${usage} takes one quoted query: "label:profile cache".`);
-    const terms = query.parse(positional[0], FIELDS);
+  query: true,
+  run({ query: text }) {
+    const terms = query.parse(text, FIELDS);
     for (const term of terms.filter((t) => t.field === 'project')) term.values.forEach(checkProjectWord);
     if (!query.has(terms, 'project')) terms.push({ field: 'project', values: ['here', store.HOME_WORD] });
     const wantsHere = terms.some((t) => t.field === 'project' && t.values.includes('here'));
@@ -92,9 +98,9 @@ actions.ls = {
       label: (n, v) => n.data.labels.includes(v),
       project: (n, v) => v === 'all' || n.data.project.toLowerCase() === (v === 'here' ? here?.toLowerCase() : v),
     });
-    out(JSON.stringify(notes.readNotes().filter(test).map((n) => ({
-      name: n.id, title: notes.titleOf(n), date: n.data.date, project: n.data.project, labels: n.data.labels, path: n.file, text: n.body,
-    })), null, 2));
+    const found = notes.readNotes().filter(test).map(noteJson);
+    json(found);
+    out(JSON.stringify(found, null, 2));
     return 0;
   },
 };
@@ -113,6 +119,7 @@ actions.get = {
   summary: 'show one, with its path',
   run({ positional, usage }) {
     const note = notes.findNote(notes.readNotes(), needsRef(positional, usage));
+    json({ note: noteJson(note) });
     out(`${note.id}   ${note.data.date}   project: ${note.data.project}${note.data.labels.length ? `   labels: ${note.data.labels.join(', ')}` : ''}`);
     out(`  ${note.file}`);
     out(`\n${note.body}`);
@@ -127,13 +134,14 @@ actions.drop = {
     const note = notes.findNote(notes.readNotes(), needsRef(positional, usage));
     notes.remove(note);
     saved();
+    json({ dropped: note.id });
     out(`dropped ${note.id}: ${notes.titleOf(note)}`);
     return 0;
   },
 };
 
 /**
- * The ticket is made by `flow new`'s own code, so its number, its push and its
+ * The ticket is made by `flow tickets new`'s own code, so its number, its push and its
  * refusals are the same. The note goes only once the ticket exists. A ticket
  * belongs to the project it is made in, so a note of another project is refused.
  */
@@ -153,31 +161,21 @@ actions.promote = {
     tickets.actions.new.run({
       positional: [notes.firstLine(note)],
       flags: { body: note.body, label: note.data.labels.join(',') },
-      usage: 'flow new',
+      usage: 'flow tickets new',
     });
 
-    const made = store.readTickets(root).find((t) => !known.has(t.id));
+    const after = store.readTickets(root);
+    const made = after.find((t) => !known.has(t.id));
     notes.remove(note);
     saved();
+    json({ note: note.id, ticket: made ? ticketJson.record(made, after) : null });
     out(`\npromoted ${note.id} → ${made ? made.id : 'a new ticket'}`);
     return 0;
   },
 };
 
-/** `flow note try X --label board`: the text is every word that is not a flag, so quotes are optional. */
-const note = {
-  hidden: true,
-  args: '<text>...',
-  summary: 'add a note at once; the short form of flow notes new',
-  flags: { label: { arg: '<label,label>' }, project: tickets.PROJECT_FLAG },
-  run({ positional, flags, usage }) {
-    return add(positional, flags, usage);
-  },
-};
-
 module.exports = {
-  summary: 'ideas and put-off work as small files; flow note <text> adds one at once',
-  default: 'ls',
+  summary: 'ideas and put-off work as small files',
+  list: listing,
   actions,
-  note,
 };

@@ -78,14 +78,14 @@ test('offline, flow new makes no ticket, and gives out no number', () => {
 
   const away = `${t.remote}.away`;
   fs.renameSync(t.remote, away);
-  const offline = t.in(ana, 'new', 'Export csv', '--title', 'export-csv');
+  const offline = t.in(ana, 'tickets', 'new', 'Export csv');
   fs.renameSync(away, t.remote);
   assert.strictEqual(offline.code, 1);
   assert.match(offline.stderr, /no ticket was made: the remote did not take it\. git said: fatal: .*does not appear to be a git repository/);
   assert.deepStrictEqual(idsIn(ana), []);
   assert.strictEqual(git(path.join(ana, '.flow'), 'status', '--porcelain').out, '', 'nothing left behind');
 
-  assert.match(t.in(ana, 'new', 'Export csv', '--title', 'export-csv').stdout, /created exp-1/);
+  assert.match(t.in(ana, 'tickets', 'new', 'Export csv').stdout, /created exp-1/);
 });
 
 test('a push the server refuses stops flow new at once, with the server\'s words', () => {
@@ -97,7 +97,7 @@ test('a push the server refuses stops flow new at once, with the server\'s words
   // git answers `! [remote rejected]`, as GitHub did in its outage of 2026-10-07.
   const hook = path.join(t.remote, 'hooks', 'pre-receive');
   fs.writeFileSync(hook, '#!/bin/sh\necho "Internal Server Error" >&2\nexit 1\n', { mode: 0o755 });
-  const refused = t.in(ana, 'new', 'Export csv', '--title', 'export-csv');
+  const refused = t.in(ana, 'tickets', 'new', 'Export csv');
   fs.rmSync(hook);
   assert.strictEqual(refused.code, 1);
   assert.match(refused.stderr, /git said: remote: Internal Server Error/);
@@ -115,7 +115,7 @@ test('2 people taking one number in the same moment: the second makes no ticket,
 
   // Ben's number is taken before Ana's push lands, as when both type flow new at once.
   const mine = store.createTicket(ben, { title: 'export-csv', description: 'Export csv' });
-  assert.match(t.in(ana, 'new', 'Login page', '--title', 'login-page').stdout, /created exp-1-login-page/);
+  assert.match(t.in(ana, 'tickets', 'new', 'Login page').stdout, /created exp-1-login-page/);
   const claimed = records.claim(ben, mine.id);
   assert.strictEqual(claimed.ok, false);
   assert.strictEqual(claimed.why, 'another machine took exp-1 first. Run it again.');
@@ -125,7 +125,7 @@ test('2 people taking one number in the same moment: the second makes no ticket,
   records.commit(ben, 'exp-1: taken back, never sent');
   assert.ok(records.sync(ben).ok, 'the next sync is not stuck on the lost number');
   assert.deepStrictEqual(idsIn(ben), ['1']);
-  assert.match(t.in(ben, 'new', 'Export csv', '--title', 'export-csv').stdout, /created exp-2-export-csv/);
+  assert.match(t.in(ben, 'tickets', 'new', 'Export csv').stdout, /created exp-2-export-csv/);
 });
 
 test('2 people giving out different counts at once: the second makes no ticket, and the counter keeps the higher', () => {
@@ -138,8 +138,8 @@ test('2 people giving out different counts at once: the second makes no ticket, 
 
   // Ben's counter goes to 1 while Ana's goes to 2: both changed its one line.
   const mine = store.createTicket(ben, { title: 'export-csv', description: 'Export csv' });
-  t.in(ana, 'new', 'Login page', '--title', 'login-page');
-  t.in(ana, 'new', 'Logout', '--title', 'logout');
+  t.in(ana, 'tickets', 'new', 'Login page');
+  t.in(ana, 'tickets', 'new', 'Logout');
   const claimed = records.claim(ben, mine.id);
   assert.strictEqual(claimed.ok, false);
   assert.match(claimed.why, /another machine took exp-1 first/);
@@ -147,7 +147,7 @@ test('2 people giving out different counts at once: the second makes no ticket, 
   store.remove(mine);
   records.commit(ben, 'exp-1: taken back, never sent');
   assert.ok(records.sync(ben).ok);
-  assert.match(t.in(ben, 'new', 'Export csv', '--title', 'export-csv').stdout, /created exp-3-export-csv/);
+  assert.match(t.in(ben, 'tickets', 'new', 'Export csv').stdout, /created exp-3-export-csv/);
   assert.strictEqual(fs.readFileSync(path.join(ben, '.flow', 'ticket-counter'), 'utf8'), '3\n');
 });
 
@@ -155,13 +155,13 @@ test('each command that changes a ticket commits it, and flow runs from inside .
   const t = team('records-commits');
   const ana = t.clone('ana');
   t.branch(ana, 'exp');
-  t.in(ana, 'new', 'Login page', '--title', 'login-page');
+  t.in(ana, 'tickets', 'new', 'Login page');
 
-  const moved = t.in(ana, 'start', 'exp-1');
+  const moved = t.in(ana, 'tickets', 'start', 'exp-1');
   assert.strictEqual(moved.code, 0, moved.stderr);
   assert.strictEqual(git(path.join(ana, '.flow'), 'log', '-1', '--format=%s').out, 'exp-1: todo → in-progress');
 
-  const inside = t.in(path.join(ana, '.flow', 'tickets'), 'exp-1');
+  const inside = t.in(path.join(ana, '.flow', 'tickets'), 'tickets', 'get', 'exp-1');
   assert.strictEqual(inside.code, 0, inside.stderr);
   assert.match(inside.stdout, /^exp-1-login-page$/m);
 });
@@ -170,13 +170,13 @@ test('a save syncs its objects to disk, so a crash right after it leaves no empt
   const t = team('records-fsync');
   const ana = t.clone('ana');
   t.branch(ana, 'exp');
-  t.in(ana, 'new', 'Login page', '--title', 'login-page');
+  t.in(ana, 'tickets', 'new', 'Login page');
 
   // A post-commit hook runs even under --no-verify, and sees the -c settings of the commit that ran it.
   const seen = path.join(t.dir, 'fsync-seen');
   const hook = path.join(ana, '.git', 'hooks', 'post-commit');
   fs.writeFileSync(hook, `#!/bin/sh\ngit config --get core.fsync > '${seen}'\n`, { mode: 0o755 });
-  const moved = t.in(ana, 'start', 'exp-1');
+  const moved = t.in(ana, 'tickets', 'start', 'exp-1');
   assert.strictEqual(moved.code, 0, moved.stderr);
   assert.strictEqual(fs.readFileSync(seen, 'utf8').trim(), 'committed');
   assert.ok(!git(ana, 'config', '--get', 'core.fsync').ok, 'the repository\'s own config is untouched');
@@ -186,19 +186,19 @@ test('a save git refuses says so, and stays an open issue until a save works', (
   const t = team('records-unsaved');
   const ana = t.clone('ana');
   t.branch(ana, 'exp');
-  t.in(ana, 'new', 'Login page', '--title', 'login-page');
+  t.in(ana, 'tickets', 'new', 'Login page');
 
   // What a crash left behind: the branch pointing at a commit whose object never reached the disk.
   const ref = path.join(ana, '.git', 'refs', 'heads', 'flow');
   const good = fs.readFileSync(ref, 'utf8');
   fs.writeFileSync(ref, `${'1'.repeat(40)}\n`);
-  const broken = t.in(ana, 'start', 'exp-1');
+  const broken = t.in(ana, 'tickets', 'start', 'exp-1');
   assert.match(broken.stderr, /the tickets in .*\.flow were not saved: (fatal|error): /);
   const job = `save ${path.resolve(ana)}`;
   assert.ok(failures.open(t.home).some((issue) => issue.job === job), 'the failure log holds an open issue');
 
   fs.writeFileSync(ref, good);
-  const fixed = t.in(ana, 'todo', 'exp-1');
+  const fixed = t.in(ana, 'tickets', 'todo', 'exp-1');
   assert.strictEqual(fixed.code, 0, fixed.stderr);
   assert.doesNotMatch(fixed.stderr, /not saved/);
   assert.ok(!failures.open(t.home).some((issue) => issue.job === job), 'the next save that works closes it');
@@ -217,7 +217,7 @@ test('flow init links .flow/ into the Flow home, hidden from git, and writes the
   assert.strictEqual(fs.readlinkSync(path.join(ana, '.flow')), dir);
   assert.match(fs.readFileSync(path.join(ana, '.git', 'info', 'exclude'), 'utf8'), /^\.flow$/m);
   assert.ok(!fs.existsSync(path.join(ana, '.gitignore')) || !/^\.flow/m.test(fs.readFileSync(path.join(ana, '.gitignore'), 'utf8')), 'no .flow/ line');
-  assert.match(t.in(ana, 'new', 'Try it', '--title', 'try-it').stdout, /created exp-1/);
+  assert.match(t.in(ana, 'tickets', 'new', 'Try it').stdout, /created exp-1/);
   assert.ok(fs.existsSync(path.join(dir, 'tickets')), 'the ticket landed in the Flow home folder');
   assert.strictEqual(git(ana, 'status', '--porcelain', '--', '.flow').out, '', 'git never sees .flow');
   assert.ok(!git(ana, 'rev-parse', '--verify', 'flow').ok, 'no branch');
@@ -281,7 +281,7 @@ test('flow init: the folder carries the repository, so another clone of it joins
   const t = team('records-home');
   const ana = t.clone('ana');
   assert.strictEqual(t.in(ana, 'init', '--prefix', 'exp').code, 0);
-  t.in(ana, 'new', 'Login page', '--title', 'login-page');
+  t.in(ana, 'tickets', 'new', 'Login page');
   const dir = path.join(t.home, 'projects', 'ana');
   assert.strictEqual(JSON.parse(fs.readFileSync(path.join(dir, 'settings.json'), 'utf8')).repository, t.remote);
 
@@ -290,7 +290,7 @@ test('flow init: the folder carries the repository, so another clone of it joins
   assert.strictEqual(joined.code, 0, joined.stderr);
   assert.match(joined.stdout, /where another machine put this project's tickets/);
   assert.strictEqual(fs.readlinkSync(path.join(ben, '.flow')), dir);
-  assert.match(t.in(ben, 'exp-1').stdout, /Login page/);
+  assert.match(t.in(ben, 'tickets', 'get', 'exp-1').stdout, /Login page/);
 });
 
 test('the remote reads the same in every form git holds it', () => {
@@ -305,17 +305,17 @@ test('the remote reads the same in every form git holds it', () => {
 
 test('flow move takes tickets home, rewrites their links, keeps was, and carries ignored files', () => {
   const dir = project('records-move');
-  flow(dir, ['new', 'Parser', '--title', 'parser']);
-  flow(dir, ['new', 'Parser tests', '--title', 'parser-tests', '--deps', 'exp-1']);
-  flow(dir, ['new', 'Unrelated', '--title', 'unrelated']);
+  flow(dir, ['tickets', 'new', 'Parser']);
+  flow(dir, ['tickets', 'new', 'Parser tests', '--deps', 'exp-1']);
+  flow(dir, ['tickets', 'new', 'Unrelated']);
   const folder = '1';
   write(path.join(dir, '.flow', 'tickets', folder), 'protos/speed/node_modules/lib.js', 'x\n');
 
-  const refused = flow(dir, ['move', 'exp-2', 'home']);
+  const refused = flow(dir, ['tickets', 'move', 'exp-2', 'home']);
   assert.strictEqual(refused.code, 1);
   assert.match(refused.stderr, /exp-1/, 'names the ticket the link would leave behind');
 
-  const moved = flow(dir, ['move', 'exp-1', 'exp-2', 'home']);
+  const moved = flow(dir, ['tickets', 'move', 'exp-1,exp-2', 'home']);
   assert.strictEqual(moved.code, 0, moved.stderr);
   assert.match(moved.stdout, /^exp-1 → home-1-parser$/m);
   assert.match(moved.stdout, /^exp-2 → home-2-parser-tests$/m);
@@ -328,15 +328,15 @@ test('flow move takes tickets home, rewrites their links, keeps was, and carries
   assert.ok(fs.existsSync(path.join(home, '1', 'protos', 'speed', 'node_modules', 'lib.js')));
 
   // From inside the project, the old id and the home id both reach it.
-  assert.match(flow(dir, ['exp-1']).stdout, /^home-1-parser$/m);
-  assert.match(flow(dir, ['home-2']).stdout, /^home-2-parser-tests$/m);
+  assert.match(flow(dir, ['tickets', 'get', 'exp-1']).stdout, /^home-1-parser$/m);
+  assert.match(flow(dir, ['tickets', 'get', 'home-2']).stdout, /^home-2-parser-tests$/m);
 });
 
 test('a ticket records its code branch when work starts, and a history line per move', () => {
   const t = team('records-history');
   const ana = t.clone('ana');
   t.branch(ana, 'exp');
-  t.in(ana, 'new', 'Budget page', '--title', 'budget-page');
+  t.in(ana, 'tickets', 'new', 'Budget page');
   git(ana, 'checkout', '-q', '-b', 'feature/budgets');
 
   const env = { ...process.env, FLOW_HOME: t.home, CLAUDE_CODE_SESSION_ID: 'abc-123', CLAUDE_CONFIG_DIR: path.join(t.dir, 'claude') };
@@ -345,7 +345,7 @@ test('a ticket records its code branch when work starts, and a history line per 
     '{"type":"ai-title","aiTitle":"Made up"}\n{"type":"custom-title","customTitle":"Budget \\"work\\""}\n');
   const as = (...args) => run('flow.js', args, { cwd: ana, env });
 
-  assert.strictEqual(as('start', 'exp-1').code, 0);
+  assert.strictEqual(as('tickets', 'start', 'exp-1').code, 0);
   const dir = path.join(ana, '.flow', 'tickets', '1');
   assert.match(fs.readFileSync(path.join(dir, 'ticket.md'), 'utf8'), /^branch: feature\/budgets$/m);
   const lines = fs.readFileSync(path.join(dir, 'history.md'), 'utf8').trim().split('\n');
@@ -354,5 +354,5 @@ test('a ticket records its code branch when work starts, and a history line per 
   assert.strictEqual(git(path.join(ana, '.flow'), 'log', '-1', '--format=%s').out, 'exp-1: todo → in-progress');
 
   git(ana, 'checkout', '-q', 'main');
-  assert.match(t.in(ana, 'exp-1').stdout, /^branch:\s+feature\/budgets   \(checked out here: main\)$/m);
+  assert.match(t.in(ana, 'tickets', 'get', 'exp-1').stdout, /^branch:\s+feature\/budgets   \(checked out here: main\)$/m);
 });
