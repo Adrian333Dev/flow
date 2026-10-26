@@ -161,26 +161,6 @@ function isUnder(t, id, index) {
   return false;
 }
 
-/** Children, their children, and so on: what `parent:<id>` keeps beside the ticket. */
-function descendants(tickets, id) {
-  const found = [];
-  const seen = new Set([id]);
-  let frontier = [id];
-  while (frontier.length) {
-    const next = [];
-    for (const current of frontier) {
-      for (const c of children(tickets, current)) {
-        if (seen.has(c.id)) continue;
-        seen.add(c.id);
-        found.push(c);
-        next.push(c.id);
-      }
-    }
-    frontier = next;
-  }
-  return found;
-}
-
 /**
  * The parent forest: roots first, each node carrying its children.
  *
@@ -368,6 +348,6 @@ module.exports = {
   SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, STATUS_RANK,
   indexById, unmetDeps, readyTickets, blockedTickets, hasOpenChildren,
   rank, rankByStatus, lastClosed, nextView,
-  dependents, transitiveDependents, children, openChildren, progress, isUnder, descendants, forest, flatten, wouldOrphan,
+  dependents, transitiveDependents, children, openChildren, progress, isUnder, forest, flatten, wouldOrphan,
   findCycles, check, hasProblems, wouldCycle,
 };
