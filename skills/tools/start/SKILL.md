@@ -16,7 +16,7 @@ disable-model-invocation: true
 
 ## When a ticket is above
 
-**Read the ticket's `## State` above before opening a file**: it says where the work stopped and what is still open.
+**Read the ticket above before opening a file**: `## Questions` and `## Tasks` say where the work stopped and what is still open, and the `context:` line names the sections in `context.md`. An older ticket says it in `## State`.
 
 **A `branch:` line saying `checked out here:` another branch** → tell the user which branch the work is on before routing, and wait.
 

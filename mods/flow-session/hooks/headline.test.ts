@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { guardedSentence, headline, mainField, questionFor } from './headline'
+import { guardedSentence, headline, mainField } from './headline'
 
 describe('headline', () => {
   test('a shell command keeps itself as the text', () => {
-    expect(headline('Bash', { command: 'npm test' })).toEqual({ sentence: 'Run a shell command', text: 'npm test', kind: 'command' })
+    expect(headline('Bash', { command: 'npm test' })).toEqual({ sentence: 'Run a shell command', text: 'npm test' })
   })
 
   test('a commit, a push and a publish get their own sentence', () => {
@@ -53,7 +53,7 @@ describe('headline', () => {
 
   test('a write names its path and asks about a write', () => {
     const edit = headline('Edit', { file_path: '/p/.claude/skills/x/SKILL.md', old_string: 'a', new_string: 'b' })
-    expect(edit).toEqual({ sentence: 'Edit this file', text: '/p/.claude/skills/x/SKILL.md', kind: 'write' })
+    expect(edit).toEqual({ sentence: 'Edit this file', text: '/p/.claude/skills/x/SKILL.md' })
     expect(headline('Write', { file_path: '/p/a.md', content: 'x' }).sentence).toBe('Write this file')
     expect(headline('NotebookEdit', { notebook_path: '/p/n.ipynb' }).text).toBe('/p/n.ipynb')
   })
@@ -65,7 +65,7 @@ describe('headline', () => {
   })
 
   test('another tool shows one line per field', () => {
-    expect(headline('mcp__x__go', { a: 'one', b: 2 })).toEqual({ sentence: 'Call the tool mcp__x__go', text: 'a: one\nb: 2', kind: 'command' })
+    expect(headline('mcp__x__go', { a: 'one', b: 2 })).toEqual({ sentence: 'Call the tool mcp__x__go', text: 'a: one\nb: 2' })
   })
 
   test('an input that is not an object gives empty text', () => {
@@ -88,12 +88,5 @@ describe('guardedSentence', () => {
     expect(guardedSentence('Edit', '/h/.claude/settings.json')).toBe('Edit this file · can switch the guard off')
     expect(guardedSentence('Write', '/h/.claude/settings.json')).toBe('Write this file · can switch the guard off')
     expect(guardedSentence('Write', '/h/.ssh/config')).toBe('Write into ~/.ssh · login keys')
-  })
-})
-
-describe('questionFor', () => {
-  test('names a write or a command', () => {
-    expect(questionFor('write')).toBe('Allow this write?')
-    expect(questionFor('command')).toBe('Allow this command?')
   })
 })

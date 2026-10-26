@@ -51,7 +51,7 @@ Put Flow on this computer. It links Flow's skills and scripts, downloads the too
 
 ```console
 $ flow install
-Flow is installed: 11 skills, each typed under the plugin name, as /flow:groundwork.
+Flow is installed: 12 skills, each typed under the plugin name, as /flow:groundwork.
 named: this machine is pc-wsl
 started: your Flow home, sent up so your other machines join it
 Every line of the install is in ~/.flow/logs/install.log.
@@ -102,7 +102,7 @@ ok    programs: node, git, claude, gh all resolve
 ok    claude code: 2.1.304, and Flow needs 2.1.287 or later
 ok    names: flow, fw, util, u all resolve
 ok    util: fs tree runs
-ok    ~/.agents: 11 skills linked under skills/flow/
+ok    ~/.agents: 12 skills linked under skills/flow/
 ok    ~/.claude: skills/flow, 0 agents, 0 rules, 0 commands and CLAUDE.md linked
 ok    settings.json: 18 hooks registered, every file they name on disk, sessions start in "default" mode
 ok    ~/.flow: scripts, references and docs resolve into this clone

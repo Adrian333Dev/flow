@@ -27,7 +27,7 @@ Same 4 phases at any size, however much the first message already settles.
 - **None listed** → Phase 1
 - **Any `[ ]`** → Phase 2, from the first one
 - **Every `[x]`** → Phase 4 routes what the ticket decided
-- **An older ticket holds `groundwork/map.md`.** Treat it as the questions and start no second one.
+- **An older ticket holds `groundwork/map.md`, or `###` sections under `## Decisions`.** Work it in that shape and start no second one.
 
 **Then `flow start <id> --activity design`**, also where the ticket is already `in-progress`.
 
@@ -54,7 +54,7 @@ Then list 4 things:
 
 Sharpen vague input: what was tried already, and what forced this now.
 
-**Write down what you found, where it will be used.** What binds the whole ticket (the goals and limits the user set for this work, constraints on every question, contradictions) goes in `## Context`, a few lines. A fact only one question rests on goes in that question's section under `## Decisions`, with the path you read it from.
+**Write down what you found, where it will be used.** What binds the whole ticket (the goals and limits the user set for this work, constraints on every question, contradictions) goes in `## Context`, a few lines. A fact only one question rests on goes in that question's section of `context.md`, with the path you read it from.
 
 **Write only what is specific to this ticket.** A preference of the user, a fact about the project, or how an outside tool behaves goes where `## Capture` sends it. A finding may sit in both.
 
@@ -101,10 +101,10 @@ Questions that constrain other questions go first: say which constrains which.
 
 One question at a time. Interview until the decision is genuinely clear. A first answer is not clarity.
 
-1. **Pose the question**, and open its `###` section under `## Decisions`. Write the facts it rests on there as you find them.
+1. **Pose the question**, and open its section in `context.md`, headed by its handle: `## 1.2`. Write the facts it rests on there as you find them.
 2. **Recommend**: "I'd go with X because Y."
 3. **Wait for the reaction.** No pushback closes it (`agreed`). Probe only pushback, or an answer too vague to write.
-4. **Write the decision** in that section once it locks, and tick the question `[x]`.
+4. **Write the decision** in that section once it locks. Then tick the question `[x]` in `ticket.md` and end its line with the answer in short.
 
 Never gate a write behind a yes/no question. Never end a session with a settled question unwritten.
 
@@ -201,7 +201,7 @@ Run only at 3 moments:
 
 2–4, under `## Assumptions` in `ticket.md`. Nothing genuinely uncertain → skip.
 
-**Name the non-goals.** What this deliberately does not cover, and why. Write them under `## Decisions` as `### Non-goals`.
+**Name the non-goals.** What this deliberately does not cover, and why. Write them under `## Non-goals` in `ticket.md`, one line each.
 
 ## Phase 4: route what was decided
 
@@ -212,9 +212,9 @@ Confirm every question is resolved or deliberately deferred, then send each deci
 - **Work an earlier run already wrote into `docs/spec/`** → `/flow:tickets-from-spec`. Tickets for what this ticket decided are the first route.
 - **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `~/.flow/references/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
 - **The project's `CLAUDE.md` still holds the template's comments** in its title and `## Project` → write both from what was decided, and delete the comments.
-- **Settled and dying with the build**, this build's non-goals included → already written in `## Decisions`. Leave it there.
+- **Settled and dying with the build**, this build's non-goals included → already written in the ticket. Leave it there.
 - **Decided, but not now** → `## Deferred`, with the reason.
-- **The answer is no** → say why, under `## Decisions`. A ticket with nothing to build closes with `flow done`. Any other ticket → propose dropping it: on a yes, `flow drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: its dependents wait for the revival.
+- **The answer is no** → say why, in the question's section. A ticket with nothing to build closes with `flow done`. Any other ticket → propose dropping it: on a yes, `flow drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: its dependents wait for the revival.
 - **Anything else** → `## Capture`.
 
 **Then shape the ticket, once, and only here:**
@@ -237,14 +237,7 @@ Applies in Phases 1 and 2 both.
 
 ## The files
 
-All in `ticket.md`, each updated in place:
-
-- **`## Questions`**: the checklist, below.
-- **`## Context`**: a few lines that bind the whole ticket. The goals and limits the user set for this work, constraints on every question, contradictions found. Only what is specific to this ticket.
-- **`## Decisions`**: one `###` section per question, opened when the question is posed. It carries the facts that question rests on, with paths. Once the question locks, it carries the decision, the reasoning, the alternatives rejected and why. **Never summarize the conversation: write for a reader who was never here.**
-- **`## Assumptions`**, **`## Deferred`**, **`## References`**.
-
-Past about 300 lines, a question's section moves to `decisions/<subject>.md` and leaves a one-line pointer. `## Context` never moves, because it stays short.
+`ticket.md` and `context.md`, each updated in place as each answer locks, shaped by `~/.flow/references/write-tickets.md`. Groundwork writes `## Context`, `## Questions`, `## Assumptions`, `## Non-goals`, `## Deferred` and `## References`.
 
 ### `## Questions` format
 
@@ -256,13 +249,21 @@ Markdown checklist. Zero-based indices, children extending the parent, nested as
 
 ```markdown
 - [ ] 0: Distribution
-  - [x] 0.0: which platform do we publish to first?
+  - [x] 0.0: which platform do we publish to first? YouTube: the audience already watches there.
   - [ ] 0.1: do we cut vertical versions for shorts?
     - [ ] 0.1.0: who owns the re-cut, us or the editor?
 - [ ] 1: Production
   - [ ] 1.0: do we script every episode, or run to a beat sheet?
   - [ ] 1.1: what is the smallest kit we buy before episode one?
 - [ ] 2: how many episodes ship before we judge the format?
+```
+
+Its section in `context.md`:
+
+```markdown
+## 0.0
+
+YouTube first. The 3 test videos drew 4,100 views there against 300 on TikTok (`reports/first-platform.md`). Rejected: TikTok first, since the shorts would need a re-cut nobody owns yet (0.1.0).
 ```
 
 ### `## References`
@@ -280,7 +281,7 @@ One line each: the path, then what it says, in a few words.
 - `/flow:visualize`: invoke before proposing the panel's layout
 ```
 
-Nothing read this run → no section. Phase 4 splits the list across the tickets it cuts.
+Nothing read this run → no section. Phase 4 splits the list across the tickets it cuts. Every later phase keeps adding to it.
 
 ## Hard rules
 

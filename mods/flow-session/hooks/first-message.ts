@@ -1,11 +1,11 @@
 /**
  * first-message.ts: the messages a restarted session starts from.
  *
- * The mod builds the new window from the old one, never the old agent's memory of it: an opening
- * line, the old window's dialogue word for word (as one `Read` of a file the mod wrote), what the
- * agent chose to load, the agent's note, and the user's messages it never answered. The loads are
- * `Read` and `Skill` calls with their results (hooks/loads.ts), so the terminal draws them
- * collapsed and the agent edits without reading the files again.
+ * The mod builds the new window from the disk, never the old agent's memory of it: an opening of
+ * instructions, the tickets in flight with their `context.md`, what the agent chose to load, the
+ * agent's note, and the user's messages it never answered, each whole. The loads are `Read`
+ * and `Skill` calls with their results (hooks/loads.ts), so the terminal draws them collapsed and
+ * the agent edits without reading the files again.
  */
 import type { Tracked } from '../types'
 import { NOTE_PREFIX, OPENING } from './dialogue'
@@ -15,10 +15,11 @@ export type { Built }
 
 /** What a restart carries. `tickets` and `loads` are in the order they are shown. */
 export type Window = {
-  /** The file the dialogue was written to, and the file of the window before it, if any. */
-  dialogue: { path: string; text: string; previous?: string }
+  /** Each ticket's `ticket.md`, then its `context.md`, whole or the sections of its open questions. */
   tickets: readonly Loaded[]
   loads: readonly Loaded[]
+  /** Skills the session lists with no file to load, such as a built-in one: the new agent invokes each. */
+  invoke: readonly string[]
   note: string
   /** The user's messages the agent never answered, oldest first. */
   asked: readonly string[]
@@ -28,25 +29,22 @@ export type Window = {
 
 const user = (text: string): Built => ({ role: 'user', text, toolUses: [] })
 
-/** What the new agent is told first. */
+/** What the new agent is told first: instructions alone. A typed restart waits for the user, so it says nothing of continuing. */
 function opening(window: Window): string {
-  const { previous } = window.dialogue
-  const lines = [
-    `${OPENING} The old window is carried, not summarized. Below: its dialogue word for word, what the old agent loaded, its note, and the user's messages it did not answer.${previous ? ` The window before it is ${previous}.` : ''}`,
-    "Where the dialogue and a ticket's `## State` differ, the dialogue wins.",
-    'After you answer the user, run the capture pass (`## Capture` in CLAUDE.md) over the dialogue and the note.',
-  ]
-  if (window.manual) lines.push('Nothing runs now. The user writes next.')
-  return lines.join('\n\n')
+  return [
+    window.manual ? OPENING : `${OPENING} Continue from the note.`,
+    ...window.invoke.map((name) => `Invoke the \`${name}\` skill first.`),
+    ...(window.asked.length ? ["Answer every point of the user's messages below."] : []),
+    'Conflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.',
+    'After answering, run `## Capture` over the note.',
+  ].join('\n')
 }
 
-/** The conversation after a restart, oldest first: the six parts below the fixed part Claude Code adds. */
+/** The conversation after a restart, oldest first, below the fixed part Claude Code adds. */
 export function restartWindow(window: Window): Built[] {
-  const { path, text } = window.dialogue
-  const file: Loaded = { type: 'file', path, text, from: 1, to: text.split('\n').length, whole: true }
   return [
     user(opening(window)),
-    ...callsFor([file, ...window.tickets, ...window.loads]),
+    ...callsFor([...window.tickets, ...window.loads]),
     user(`${NOTE_PREFIX}\n\n${window.note}`),
     ...window.asked.map(user),
   ]

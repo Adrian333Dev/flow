@@ -141,4 +141,4 @@ The marker `~/.flow/logs/setup-pending` exists while a setup session is owed, an
 
 ## References
 
-- `lab/archive/`: the retired survey, forms, originals, `flow restore` and `flow uninstall`, and the update sessions. `.flow/tickets/16/groundwork/map.md` → `## 25` says why.
+- `lab/archive/`: the retired survey, forms, originals, `flow restore` and `flow uninstall`, and the update sessions. `.flow/tickets/16/context.md` → `## 25` says why.

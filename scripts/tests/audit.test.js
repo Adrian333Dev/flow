@@ -274,6 +274,21 @@ test('a file is attributed by every route, and confidence says which', () => {
   assert.strictEqual(audit(env, ['sql', "SELECT COUNT(*) n FROM file_touch WHERE path LIKE '%/the'"]).stdout.trim().split('\n').pop().trim(), '0');
 });
 
+test('a read a mod wrote into the window, with no toolUseResult, still records its file', () => {
+  const { file, env } = roots('audit-mod-read');
+  // A restart's window: the call and a bare result block, as dialogue.ts writes them.
+  const result = base('user', {
+    promptId: 'p1',
+    message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_restart_1', content: '     1\tbody' }] },
+  });
+  fs.writeFileSync(file, asLines([prompt('p1', 'Session restarted.'), calls('toolu_restart_1', 'Read', { file_path: `${CWD}/ticket.md` }), result, says('ok')]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const touches = audit(env, ['sql', 'SELECT path, via FROM file_touch']).stdout;
+  assert.match(touches, new RegExp(`${CWD}/ticket.md +Read`));
+  assert.match(audit(env, ['sql', 'SELECT result_line FROM tool_call']).stdout, /\b3\b/);
+});
+
 test('indexing an appended transcript matches indexing it whole', () => {
   const whole = roots('audit-whole');
   fs.writeFileSync(whole.file, asLines([...firstHalf(), ...secondHalf()]));

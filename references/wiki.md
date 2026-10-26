@@ -19,6 +19,7 @@
 
 - **A tool's folder** takes its GitHub repository name: `next.js`. No repository → the product's name. 2 repositories sharing a name → `owner_repo`. A standard with its own docs, such as OAuth 2.1, gets a folder like a tool.
 - **A field's folder** takes a plain name: `text-to-speech`, `chrome-extensions`.
+- **A skill's folder** takes the skill's name, `audit`, and covers every record the skill reads. The skill links it in its frontmatter (`references/knowledge.md` → `### Shape`). Its `index.md` loads with the skill: keep it under about 40 lines.
 - **Make the folder with its `index.md`**, on the first page written about its subject. A finding makes the folder alone.
 - **Never write a global index.** `util fs tree ~/.flow/wiki` lists every folder.
 

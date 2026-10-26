@@ -31,7 +31,7 @@ Batch every step. Never carry one item to its home before the next is sorted.
 
 ## Sources
 
-- **Closed tickets nobody filed.** `flow ls "status:done filed:no"`. Read each whole: `ticket.md`, `history.md`, its decision files, `reports/`, and `groundwork/map.md` on a ticket not yet converted. A prototype is read through its report. List `protos/` by file name and open a file the report names. Raw evidence is never harvested.
+- **Closed tickets nobody filed.** `flow ls "status:done filed:no"`. Read each whole: `ticket.md`, `context.md`, `history.md`, its decision files, `reports/`, and `groundwork/map.md` on a ticket not yet converted. A prototype is read through its report. List `protos/` by file name and open a file the report names. Raw evidence is never harvested.
 - **The failure log**, `~/.flow/logs/failures/<year>-<month>.jsonl`, from the line after the newest `swept` marker. A month's file with no marker also reads the month before, from its marker.
 - **Notes**, `flow notes`: this project's and the global ones. Promote with `flow notes promote <name>`, inside the project it belongs to. Drop with `flow notes drop <name>`. Fold into a home, or keep.
   - A `rule` note, or an old `profile` one, is a correction capture inferred. Show it beside any line it contradicts.
@@ -59,7 +59,7 @@ Flag a ticket that looped, ran long or ran heavy next to the batch's others. Lis
 - **A capability or tool gap** → a how-to page, a skill, or a research ticket.
 - **A flaw in Flow's design**, a phase or a tool → a groundwork ticket for the workflow.
 
-An earlier case of the same issue is a note beside the line. Reading whole sessions is a separate analysis the user starts.
+An earlier case of the same issue is a note beside the line. A question that needs whole sessions read → `/flow:audit`.
 
 ## Where a fact goes
 
@@ -67,7 +67,7 @@ Would the sentence be true in a different project? Yes → global. No → this p
 
 - **A tool or field** → the page owning it in `~/.flow/wiki/<subject>/`, by `~/.flow/references/wiki.md`
 - **Rule true everywhere, always relevant** → the section of `~/.flow/CLAUDE.md` that owns it. Never a rule file with no `paths:`
-- **Rule true everywhere, for one stack or file type** → `claude/rules/<topic>.md` in Flow's clone, with `paths:`
+- **Rule true everywhere, for one stack or file type** → a guide in Flow's `references/`, plus an entry in `mods/flow-session/hooks/situations.ts` that sends it. Never `claude/rules/` with `paths:`
 - **Rule for this project** → its `CLAUDE.md` `## Rules`, or `.claude/rules/<topic>.md` with `paths:`
 - **Project fact most sessions need** → its `CLAUDE.md`
 - **Project fact only some work needs** → `docs/context/<subject>.md`
@@ -116,4 +116,4 @@ Write no check while the rule checks are off. Keep an existing one in step when 
 
 ## Building or reshaping a skill
 
-**Read `references/write-skills.md`** before creating or restructuring one.
+**Read `~/.flow/references/knowledge.md`** before creating or restructuring one.

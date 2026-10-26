@@ -450,8 +450,10 @@ function indexTranscript(db, stmt, entry) {
       }
 
       // --- what came back, and which files it moved
-      if (e.type === 'user' && e.toolUseResult !== undefined) {
-        const blocks = toolResultBlocks(e.message);
+      // A result a mod wrote into the window, such as a restart's reads, has the
+      // block alone and no `toolUseResult`.
+      const blocks = e.type === 'user' ? toolResultBlocks(e.message) : [];
+      if (e.type === 'user' && (e.toolUseResult !== undefined || blocks.length)) {
         const useId = blocks.length ? blocks[0].tool_use_id : null;
         const isError = blocks.some((b) => b.is_error) ? 1 : 0;
         let call = useId ? tools.get(useId) : null;
@@ -462,7 +464,8 @@ function indexTranscript(db, stmt, entry) {
         const duration = e.toolUseResult && typeof e.toolUseResult === 'object'
           ? e.toolUseResult.durationMs ?? null : null;
         if (call) {
-          stmt.toolResult.run(line, resultBytes(e.toolUseResult), isError, duration, call.id);
+          const result = e.toolUseResult !== undefined ? e.toolUseResult : blocks[0].content;
+          stmt.toolResult.run(line, resultBytes(result), isError, duration, call.id);
           if (isError) turnTotals.errors += 1;
         }
 

@@ -9,7 +9,7 @@ One ticket, from pickup to `done`. No ticket named → `flow next`, and recommen
 
 ## Pick up
 
-1. Read `ticket.md`: the decisions, `## Questions`, `## Tasks`, `## State`.
+1. Read `ticket.md`, the index: `## Questions` with their answers, `## Decisions`, `## Tasks`, `## References`. Open a `context.md` section only where a task needs its reasoning. An older ticket's `## State` says where its work stopped.
 2. `flow start <id> --activity build`.
 3. `## Questions` still open → name them. The user decides whether the build waits for `/flow:groundwork`.
 4. A child's work is built in the child, never in its parent.
@@ -28,8 +28,13 @@ Read the code the ticket changes first. Then the tasks.
 
 Build to the end. Run each step's check, tick it, start the next. Stop only for a decision that is really the user's.
 
+Write as the work goes, never at the end, by `~/.flow/references/write-tickets.md`. A restart continues from the 2 files alone.
+
 - **File a lesson the moment it lands**, by `## Capture`.
-- **A discovery that changes a decision** → rewrite that decision in this ticket. Keep the dropped direction as one line with its reason.
+- **A discovery that changes a decision** → rewrite its line in `ticket.md`, and its section in `context.md` with the reason and the dropped direction.
+- **A decision made alone, a dead end, a trap hit** → a section in `context.md`, headed by the task's name. A decision also gets one line under `## Decisions` in `ticket.md`: what, and why.
+- **A file, tool or page the work needs** → a line in `## References`.
+- **Routine output** → nowhere.
 - **Plan wrong** → rewrite the tasks and say what changed. **Separable work found** → propose a child ticket. **The ticket no longer makes sense** → propose `flow drop <id> --reason "<why>" --by <id>`.
 
 ### When a check fails
@@ -45,7 +50,7 @@ Fix it while the cause is in front of you, and keep going as long as every fix s
 2. Run the full suite, in the turn you report it.
 3. Read the diff once against the decisions, then against `~/.flow/references/review-code.md`. A ticket that produced a document reads `~/.flow/references/style.md` instead. A ticket that produced a decision reads neither.
 4. Fix what is wrong, then `flow done <id>`.
-5. Delete `## State`. Anything in it still true goes where `## Capture` sends it first.
+5. An older ticket's `## State`: anything in it still true goes where `## Capture` sends it, then delete the section.
 6. Report. Open with the decisions you made alone, one line each. Then what changed and what the check showed, briefly. End with the next ticket from `flow next`, and why.
 
 ## After `done`

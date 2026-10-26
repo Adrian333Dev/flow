@@ -28,8 +28,8 @@ describe('offersRestart', () => {
 })
 
 describe('wrapUpLine', () => {
-  const FINISH = 'Finish this step, then call the restart tool with your note.'
-  const STOP = 'Stop now and call the restart tool with your note.'
+  const FINISH = 'Finish this step, then restart.'
+  const STOP = 'Stop now and restart.'
 
   test('is silent under the limit: no size notice at any mark', () => {
     for (const [before, now] of [[0, 119000], [110000, 122000], [128000, 131000], [141000, 149999]]) expect(wrapUpLine(before!, now!, 150000)).toBeUndefined()

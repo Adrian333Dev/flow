@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { idsIn, idsInPath, readTicket, startedIn, target } from './ticket'
+import { idsIn, idsInPath, openHandles, readTicket, startedIn, target } from './ticket'
 
 const ticket = (fields: string, body = '') => `---\nid: fw-9\ntitle: band-test\nstatus: in-progress\n${fields}---\n\n${body}`
 
@@ -118,5 +118,16 @@ describe('target', () => {
   test('any other word, and a list with nothing open, point at the top', () => {
     expect(target(body, undefined, 'DEBUG')).toEqual({ file: 'ticket', line: 1 })
     expect(target(ticket('', tasks('- [x] a')), undefined, 'BUILD 1/1')).toEqual({ file: 'ticket', line: 1 })
+  })
+})
+
+describe('openHandles', () => {
+  test('names the handles of the open questions alone, at any depth', () => {
+    const body = '## Questions\n\n- [x] 1: done\n  - [ ] 1.2: open\n- [ ] `fw-3`: in backticks\n- [ ] no handle here\n<!-- - [ ] 9: commented -->\n\n## Tasks\n\n- [ ] 4: a task'
+    expect(openHandles(ticket('', body))).toEqual(['1.2', 'fw-3'])
+  })
+
+  test('a ticket with no questions has none', () => {
+    expect(openHandles(ticket('', '## Tasks\n\n- [ ] a'))).toEqual([])
   })
 })

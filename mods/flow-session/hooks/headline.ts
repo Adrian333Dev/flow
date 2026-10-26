@@ -1,17 +1,15 @@
 /**
  * headline.ts: the plain sentence and the text under it for an ask, from the tool and its input.
  *
- * The dialog shows a sentence, then the command or path alone. A guard ask brings
+ * The dialog shows the sentence alone; the text goes to the log. A guard ask brings
  * its own sentence, so the one here is for every other ask: a core ask's own
  * reason is long and full of paths.
  */
 
 export type Headline = {
   sentence: string
-  /** What the dialog shows beneath the sentence: the command, the path, the address. */
+  /** The command, the path or the address, for the log. */
   text: string
-  /** A write asks `Allow this write?`, everything else `Allow this command?`. */
-  kind: 'command' | 'write'
 }
 
 const WRITES: Record<string, string> = {
@@ -75,17 +73,18 @@ function fieldLines(input: unknown): string {
     .join('\n')
 }
 
-/** The headline for a call. `Bash` gets a sentence by command only for a commit, a push and a publish. */export function headline(tool: string, input: unknown): Headline {
+/** The headline for a call. `Bash` gets a sentence by command only for a commit, a push and a publish. */
+export function headline(tool: string, input: unknown): Headline {
   if (tool === 'Bash') {
     const command = field(input, 'command') ?? ''
-    return { sentence: bashSentence(command), text: command, kind: 'command' }
+    return { sentence: bashSentence(command), text: command }
   }
   const write = WRITES[tool]
-  if (write) return { sentence: write, text: mainField(input) ?? '', kind: 'write' }
-  if (tool === 'Read') return { sentence: 'Read this file', text: mainField(input) ?? '', kind: 'command' }
-  if (tool === 'WebFetch') return { sentence: 'Fetch this page', text: mainField(input) ?? '', kind: 'command' }
-  if (tool === 'WebSearch') return { sentence: 'Search the web', text: mainField(input) ?? '', kind: 'command' }
-  return { sentence: `Call the tool ${tool}`, text: fieldLines(input), kind: 'command' }
+  if (write) return { sentence: write, text: mainField(input) ?? '' }
+  if (tool === 'Read') return { sentence: 'Read this file', text: mainField(input) ?? '' }
+  if (tool === 'WebFetch') return { sentence: 'Fetch this page', text: mainField(input) ?? '' }
+  if (tool === 'WebSearch') return { sentence: 'Search the web', text: mainField(input) ?? '' }
+  return { sentence: `Call the tool ${tool}`, text: fieldLines(input) }
 }
 
 /**
@@ -96,6 +95,3 @@ export function guardedSentence(tool: string, file: string): string {
   if (/(^|\/)\.ssh\//.test(file)) return 'Write into ~/.ssh · login keys'
   return `${WRITES[tool] ?? 'Edit this file'} · can switch the guard off`
 }
-
-/** The dialog's own question, which the draw rewrites to. */
-export const questionFor = (kind: Headline['kind']) => (kind === 'write' ? 'Allow this write?' : 'Allow this command?')

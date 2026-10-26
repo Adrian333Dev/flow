@@ -52,9 +52,10 @@ export const offersRestart = (tokens: number | undefined, limit: number, on: boo
 /** The two lines a session is sent: at the limit, and 30k past it. */
 export type Lines = { finish: string; stop: string }
 
+/** The restart guide (hooks/restart-guide.ts) follows either line. */
 export const MAIN_LINES: Lines = {
-  finish: 'Finish this step, then call the restart tool with your note.',
-  stop: 'Stop now and call the restart tool with your note.',
+  finish: 'Finish this step, then restart.',
+  stop: 'Stop now and restart.',
 }
 
 /**

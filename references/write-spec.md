@@ -6,7 +6,7 @@
 
 One test, asked of each decision: **does it outlive the thing being built?**
 
-- **No, it dies with the build** → `## Decisions` in the ticket's `ticket.md`, or `decisions/<subject>.md` once it passes about 300 lines.
+- **No, it dies with the build** → the ticket: its line in `ticket.md`, its reasoning in its `context.md` section.
 - **Yes, and it belongs to one part of the product** → that part's file, `docs/spec/<part>.md`, both what the part does and how it is built. No file for the part yet → its section in `product.md`.
 - **Yes, and it covers the whole product**: what it is, who it is for, the bets → `docs/spec/product.md`.
 - **Yes, and it is a build decision every part shares**: the stack, the repo layout → `docs/spec/tech.md`.
@@ -95,7 +95,7 @@ Same skeleton at every scope. A part's file covers that part, and `tech.md` what
 
 Written under the decision, in whichever file holds it.
 
-- **The reason**: a line or two, dated. Longer reasoning stays in the ticket's `## Decisions`, named from the line.
+- **The reason**: a line or two, dated. Longer reasoning stays in the ticket's `context.md`, named from the line.
 - **What it makes harder**: a line, only where the decision has a cost the reader would not guess.
 - **What was refused, and why**, under the decision it lost to.
 - **The bets** → `product.md` → `## Bets`. Phase 3 names them. A risk goes there too, with what happens if it fires.

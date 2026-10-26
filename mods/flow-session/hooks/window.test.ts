@@ -1,87 +1,45 @@
 import type { EngineInterface } from 'claude-code'
 import { describe, expect, test } from 'claude-code/testing'
 import type { Entry, Restart } from '../types'
-import { buildWindow } from './window'
-
-const DIR = '/work/flow-dev/.flow/restarts'
-const NAME = (n: number) => ({ name: `17da95cd-${n}.md`, kind: 'file', size: 1, isLink: false })
-
-const say = (text: string) => ({ role: 'user', text, toolUses: [] }) as never
-const reply = (text: string) => ({ role: 'assistant', text, toolUses: [] }) as never
+import { buildWindow, resolveLoads } from './window'
 
 const restart = (over: Partial<Restart> = {}): Restart => ({ message: 'NOTE', files: [], skills: [], size: 150000, started: true, manual: false, ...over })
 const entry = (id: string, isDone = false): Entry => ({ id, name: id, word: 'BUILD 1/2', isDone, acting: false })
 
-type Disk = { files: Record<string, string>; listed?: ReturnType<typeof NAME>[]; writeFails?: boolean }
 type Built = { messages: { text: string; toolUses: { input: { file_path?: string } }[] }[]; log: string }
 
 /**
  * The part of the engine `buildWindow` uses, over a disk the test holds. The kit's `$` is the
- * mod's hooks, not the engine, so the function is handed this stand-in.
+ * mod's hooks, not the engine, so the function is handed this stand-in. It writes nothing.
  */
-function engine(state: Disk): { $: EngineInterface; written: Record<string, string> } {
-  const written: Record<string, string> = {}
+function engine(state: { files: Record<string, string>; listed?: string[] }): { $: EngineInterface } {
+  const usage = async () => ({ context: { tokens: 0, window: 0, breakdown: { skills: { skillFrontmatter: (state.listed ?? []).map((name) => ({ name, source: 'built-in', tokens: 0 })) } } } })
   const $ = {
-    session: { root: async () => '/work/flow-dev', id: async () => '17da95cd-0000-4000-8000-000000000000' },
+    session: { root: async () => '/work/flow-dev', id: async () => '17da95cd-0000-4000-8000-000000000000', usage },
     env: { get: async () => '/h' },
     fs: {
-      list: async () => state.listed ?? [],
       exists: async (path: string) => path in state.files,
       read: async (path: string) => {
         if (!(path in state.files)) throw new Error('no such file')
         return state.files[path]!
       },
-      write: async (path: string, content: string) => {
-        if (state.writeFails) throw new Error('disk full')
-        written[path] = content
-      },
     },
   } as unknown as EngineInterface
-  return { $, written }
+  return { $ }
 }
 
-const build = ($: EngineInterface, over: { messages?: never[]; restart?: Restart; entries?: Entry[] } = {}) =>
-  buildWindow($, { messages: over.messages ?? [say('hello'), reply('hi')], restart: over.restart ?? restart(), asked: [], entries: over.entries ?? [], restartTool: 'restart', home: '/h/.flow' })
+const build = ($: EngineInterface, over: { restart?: Restart; entries?: Entry[]; asked?: string[] } = {}) =>
+  buildWindow($, { restart: over.restart ?? restart(), asked: over.asked ?? [], entries: over.entries ?? [], home: '/h/.flow' })
 
-describe('the dialogue file of a window', () => {
-  test('is numbered one above the highest window of this session, and holds the dialogue', async () => {
-    const { $, written } = engine({ files: {}, listed: [NAME(1), NAME(3), { ...NAME(9), name: 'ffffffff-9.md' }] })
-    expect(await build($)).toHaveProperty('messages')
-    expect(Object.keys(written)).toEqual([`${DIR}/17da95cd-4.md`])
-    expect(written[`${DIR}/17da95cd-4.md`]).toContain('<!-- window 4 · user messages: 1 -->')
-    expect(written[`${DIR}/17da95cd-4.md`]).toContain('[user]\nhello\n\n[agent]\nhi')
-  })
-
-  test('is window 1 when the folder holds none, and the opening names no earlier file', async () => {
-    const { $, written } = engine({ files: {} })
-    const built = (await build($)) as Built
-    expect(Object.keys(written)).toEqual([`${DIR}/17da95cd-1.md`])
-    expect(built.messages[0]!.text).not.toContain('The window before it')
-  })
-
-  test('with fewer than 5 messages of the user carries the newest segments of the file before', async () => {
-    const before = ['<!-- window 1 · user messages: 3 -->\n\nOLD ONE\n', '<!-- window 2 · user messages: 2 -->\n\nOLD TWO\n'].join('\n')
-    const { $, written } = engine({ files: { [`${DIR}/17da95cd-2.md`]: before }, listed: [NAME(1), NAME(2)] })
-    const built = (await build($)) as Built
-    const file = written[`${DIR}/17da95cd-3.md`]!
-    // 1 user message now, 2 in window 2, 3 in window 1: 5 are held only with both
-    expect(file.indexOf('OLD ONE')).toBeGreaterThan(-1)
-    expect(file.indexOf('OLD ONE')).toBeLessThan(file.indexOf('OLD TWO'))
-    expect(file.indexOf('OLD TWO')).toBeLessThan(file.indexOf('hello'))
-    expect(built.messages[0]!.text).toContain(`The window before it is ${DIR}/17da95cd-2.md`)
-  })
-
-  test('with 5 messages of the user carries nothing', async () => {
-    const { $, written } = engine({ files: { [`${DIR}/17da95cd-1.md`]: '<!-- window 1 · user messages: 3 -->\n\nOLD ONE\n' }, listed: [NAME(1)] })
-    await build($, { messages: ['a', 'b', 'c', 'd', 'e'].flatMap((word) => [say(word), reply(word)]) as never[] })
-    expect(written[`${DIR}/17da95cd-2.md`]).not.toContain('OLD ONE')
-  })
-
-  test('a failed write returns the error and no messages', async () => {
-    const { $ } = engine({ files: {}, writeFails: true })
-    const built = await build($)
-    expect(built).not.toHaveProperty('messages')
-    expect((built as { error: string }).error).toContain(`${DIR}/17da95cd-1.md could not be written`)
+describe('the opening of a window', () => {
+  test('opens with instructions alone, and reads no dialogue', async () => {
+    const { $ } = engine({ files: {} })
+    const built = (await build($, { asked: ['ONE'] })) as Built
+    expect(built.messages[0]!.text).toStartWith('Session restarted. Continue from the note.')
+    expect(built.messages[0]!.text).not.toContain('flow audit')
+    expect(built.messages.flatMap((m) => m.toolUses)).toHaveLength(0)
+    expect(built.messages.at(-1)!.text).toBe('ONE')
+    expect(built.log).toContain('1 unanswered messages')
   })
 })
 
@@ -96,6 +54,39 @@ describe('the loads of a window', () => {
     expect(paths(built)).toContain('/work/flow-dev/a.ts')
   })
 
+  test('a ticket loads with the context.md sections of its open questions, and a section named again loads once', async () => {
+    const CONTEXT = '/work/flow-dev/.flow/tickets/244/context.md'
+    const ticket = '## Questions\n\n- [x] 1: done\n  - [ ] 1.1: open\n- [ ] 2: open, no section\n- [ ] no handle\n\n## Tasks'
+    const context = '## 1\n\nONE\n\n## 1.1\n\nOPEN\n\n## Loose\n\nLOOSE'
+    const { $ } = engine({ files: { [TICKET]: ticket, [CONTEXT]: context } })
+    const built = (await build($, { restart: restart({ files: ['.flow/tickets/244/context.md#1.1'] }), entries: [entry('fw-244')] })) as Built
+    expect(paths(built)).toEqual([TICKET, CONTEXT])
+    const text = JSON.stringify(built.messages)
+    expect(text).toContain('OPEN')
+    expect(text).not.toContain('ONE')
+    expect(text).not.toContain('LOOSE')
+    expect(built.log).toContain('1 tickets with 1 open sections')
+  })
+
+  test('a ticket in groundwork loads its whole context.md', async () => {
+    const CONTEXT = '/work/flow-dev/.flow/tickets/244/context.md'
+    const ticket = '## Questions\n\n- [ ] 1.1: open\n'
+    const context = '## 1\n\nONE\n\n## 1.1\n\nOPEN\n\n## Loose\n\nLOOSE'
+    const { $ } = engine({ files: { [TICKET]: ticket, [CONTEXT]: context } })
+    const built = (await build($, { entries: [{ ...entry('fw-244'), word: 'DESIGN 1/3' }] })) as Built
+    expect(paths(built)).toEqual([TICKET, CONTEXT])
+    const text = JSON.stringify(built.messages)
+    for (const part of ['ONE', 'OPEN', 'LOOSE']) expect(text).toContain(part)
+  })
+
+  test('each matched file brings its guides once, and a guide the agent named loads once', async () => {
+    const G = (name: string) => `/h/.flow/references/${name}`
+    const files = { [TICKET]: 'T', '/work/flow-dev/docs/spec/a.md': 'S', [G('write-tickets.md')]: 'WT', [G('style.md')]: 'ST', [G('write-spec.md')]: 'WS', '/work/flow-dev/a.ts': 'A' }
+    const { $ } = engine({ files })
+    const built = (await build($, { restart: restart({ files: ['docs/spec/a.md', 'a.ts', '/h/.flow/references/style.md'] }), entries: [entry('fw-244')] })) as Built
+    expect(paths(built)).toEqual([TICKET, G('write-tickets.md'), G('write-spec.md'), '/work/flow-dev/docs/spec/a.md', '/work/flow-dev/a.ts', G('style.md')])
+  })
+
   test('a ticket that is done is not loaded', async () => {
     const { $ } = engine({ files: { [TICKET]: 'T1' } })
     expect(paths((await build($, { entries: [entry('fw-244', true)] })) as Built)).not.toContain(TICKET)
@@ -106,5 +97,29 @@ describe('the loads of a window', () => {
     const built = (await build($, { restart: restart({ files: ['big.md'] }) })) as Built
     expect(built.log).toContain('loads dropped: files and skills hold 90 KB (big.md 90 KB), over the 80 KB cap')
     expect(JSON.stringify(built.messages)).not.toContain('xxxx')
+  })
+
+  test('a skill the session lists with no file, such as a built-in one, is named in the opening for the agent to invoke', async () => {
+    const { $ } = engine({ files: {}, listed: ['plugin-authoring'] })
+    const built = (await build($, { restart: restart({ skills: ['plugin-authoring'] }) })) as Built
+    expect(built.messages[0]!.text).toContain('Invoke the `plugin-authoring` skill first.')
+    expect(built.messages.flatMap((m) => m.toolUses)).toHaveLength(0)
+    expect(built.log).toContain('1 skills to invoke')
+  })
+
+  test('a restarted skill brings its wiki index once, as the skill.prompt hook would', async () => {
+    const skill = ['---', 'name: audit', 'metadata:', '  wiki:', '    audit: load', '---', '# Audit'].join('\n')
+    const files = { '/h/.claude/skills/flow/skills/audit/SKILL.md': skill, '/h/.flow/wiki/audit/index.md': 'AUDIT-INDEX\n' }
+    const { $ } = engine({ files })
+    const window = JSON.stringify((await build($, { restart: restart({ skills: ['flow:audit'] }) })).messages)
+    expect(window).toContain("[Added by Flow] The index of this skill's wiki folder, /h/.flow/wiki/audit/index.md:\\n\\nAUDIT-INDEX")
+    expect(window.split('AUDIT-INDEX')).toHaveLength(2)
+    const named = JSON.stringify((await build(engine({ files }).$, { restart: restart({ skills: ['flow:audit'], files: ['/h/.flow/wiki/audit/index.md'] }) })).messages)
+    expect(named).not.toContain("[Added by Flow] The index of this skill's wiki folder")
+  })
+
+  test('a skill the session does not list is still refused', async () => {
+    const { $ } = engine({ files: {}, listed: ['plugin-authoring'] })
+    expect(await resolveLoads($, [], ['plugin-authorng'])).toEqual({ error: 'the skill plugin-authorng is not found' })
   })
 })

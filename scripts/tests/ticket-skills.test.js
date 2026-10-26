@@ -34,7 +34,7 @@ test('flow new writes a user-only skill for the ticket, labelled with its status
   assert.match(text, /^disable-model-invocation: true$/m);
   assert.match(text, /^<!-- flow: ticket exp-1, /m);
   assert.match(text, /^!`flow exp-1 2>&1 \|\| true`$/m);
-  assert.match(text, /^On what exists, the files win\. On decisions and what is still open, `## State` wins/m);
+  assert.match(text, /^On what exists, the files win\. On decisions and what is still open, `ticket\.md` wins over `context\.md`/m);
   assert.strictEqual(fs.readFileSync(path.join(skillsOf(dir), 'exp-1', '.gitignore'), 'utf8'), '*\n');
 });
 

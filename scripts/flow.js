@@ -4,7 +4,7 @@
  * flow: the board, setup, settings and audit.
  *
  * The entry point only: it names the commands and hands argv to the argument
- * layer. Every command and its flags are listed in docs/reference/commands.md.
+ * layer. Every command and its flags are listed in docs/manual/commands.md.
  */
 
 const { FlowError } = require('./lib/error');

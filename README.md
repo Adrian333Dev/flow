@@ -12,7 +12,7 @@ It runs a solo developer's work in 3 phases: design the decisions, build one tic
 - `mods/flow-session/`: Flow's Claude Code mod, in TypeScript: the ticket badges, the meters under the prompt and the restart tool
 - `project-template/`: the files `flow init` writes into a project
 - `docs/spec/`: what each part of Flow does, and why
-- `docs/reference/`: every command, file, setting and skill
+- `docs/manual/`: every command, file, setting and skill, and how a session restarts
 - `lab/`: the maintainers' workspace, with the archive of retired code
 
 ## Install
@@ -25,4 +25,4 @@ The script clones Flow into `~/.flow/repos/flow`, then runs `flow install`. It n
 
 To update, run `flow update`. It pulls the clone, then runs `flow install` again.
 
-[The command reference](docs/reference/commands.md) lists every `flow` command.
+[The command reference](docs/manual/commands.md) lists every `flow` command.

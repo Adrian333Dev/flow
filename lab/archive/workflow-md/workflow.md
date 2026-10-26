@@ -29,7 +29,7 @@ Any run routes what it decided, to several places or to none:
 - a durable fact about the project → its `CLAUDE.md` where most sessions need it, otherwise `docs/context/<subject>.md`
 - decided but not now, and anything else that dies with the build → the ticket's own decisions
 
-**Groundwork lives in its ticket's `ticket.md`.** An older ticket holds `groundwork/map.md` instead, read as its `## Questions`. A run outside a project routes nothing to `docs/`.
+**Groundwork lives in its ticket**: the questions and their answers in `ticket.md`, the reasoning in `context.md`. An older ticket holds `groundwork/map.md` instead, read as its `## Questions`. A run outside a project routes nothing to `docs/`.
 
 ## Tickets
 
@@ -47,25 +47,21 @@ Any run routes what it decided, to several places or to none:
 
 **Pickup decides a ticket's shape.** `/flow:start` routes it, and nothing else happens there. **The ticket does not move at pickup.** The skill that takes it runs `flow start <id> --activity <word>`, after reading the ticket. `/flow:groundwork` settles what the ticket is. `/flow:execute` plans, builds and reviews it.
 
-**The ticket's sections decide the phase: `## Questions`, `## Tasks`, the hunt in `## State`.** Where the status disagrees, every phase skill reads those first, says the disagreement out loud, and corrects the status. Evidence reading both ways → ask the user.
+**The ticket's sections decide the phase: `## Questions`, `## Tasks`, the hunt in `reports/`.** Where the status disagrees, every phase skill reads those first, says the disagreement out loud, and corrects the status. Evidence reading both ways → ask the user.
 
-**A ticket's own skill prints the ticket with `flow <id>`.** `/flow:handoff` writes `## State`, which holds work in flight and is deleted at `done`. Whoever cut the ticket wrote `## References`: what the build has to respect, kept to `done`. A session reads the files it lists that the work needs, in one parallel batch.
-
-**Two sources can disagree.** On what exists, the files win. On decisions and what is still open, `## State` wins over the rest of the ticket.
+**A ticket holds its work in 2 files, `ticket.md` and `context.md`**, shaped by `references/write-tickets.md`. A session reads the files `## References` lists that the work needs, in one parallel batch.
 
 ## Inside each place
 
 **Two roots.** `docs/` holds the project's own documents, including whatever was there before Flow. `.flow/` holds Flow's working store: a link into the project's folder in the Flow home (`~/.flow/projects/<name>/`), made by `flow init`.
 
-- **`.flow/tickets/47/`**: `ticket.md` (frontmatter, body, and whichever of `## Questions`, `## Tasks`, `## References`, `## Done when` and `## State` the work has written); `intake/` when material for this job gets dropped in; `reports/` appears when the work writes them, one report per thing answered, named after what it answers. `protos/` holds a prototype's code, one folder per prototype. `history.md` gets a line from `flow` at each status move: the session and the code branch. A job handed to another session is its own child ticket, never a file in here. Terminal tickets move to `.flow/tickets/archive/`.
-- **`.flow/tickets/47/groundwork/map.md`**: on an older ticket only, its questions and decisions in one file. A new ticket writes no `groundwork/` folder.
+- **`.flow/tickets/47/`**: one ticket's folder, laid out in `references/write-tickets.md`.
 - **`docs/spec/`.** `product.md`, always: what the product is, who it is for, what it bets on, and an index line per other spec file. `<part>.md`, once a part of the product outgrows its section there: what that part does and how it is built. `tech.md`, only once a build decision covers every part: the stack, the repo layout. Every behavior carries its release (V1, V2…) / next / later / never, and every decision its reason and what it refused, in the file that holds it. Markdown only.
 - **`.flow/research/<topic>/`**: the reports `/flow:research` wrote for this project, before their facts are harvested into the wiki. One folder per topic, one file per question, one set for the whole project, in `.flow/` beside the tickets. Research asked outside any project goes to `~/.flow/research/<topic>/`.
 - **`docs/intake/`**: input that arrived as files somebody already worked on, plus `index.md` grading every file in it. Nothing here is current, including anything labelled decided. `/flow:groundwork` reads it through `references/read-intake.md`.
 - **`CLAUDE.md`**: what every session in this project needs: what the project is, its own rules, and whatever else most sessions would get wrong without.
 - **`docs/context/<subject>.md`**: durable project facts only some work needs, one file per subject: a deploy path, a service's limit, any command past install, run, test and check.
 - **`.flow/findings/<lesson>.md`**: a lesson or fact about this project, filed at a checkpoint and folded into a page, a rule or a skill by `/flow:upkeep`.
-- **`.flow/handoffs/<name>.md`**: what fits no ticket, written for work continuing in another session. The mod deletes it after one clean turn.
 
 ## Departing
 

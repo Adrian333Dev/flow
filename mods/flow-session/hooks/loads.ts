@@ -8,6 +8,7 @@
  */
 import type { SessionMessage } from 'claude-code'
 import { FAKE_ID } from './dialogue'
+import type { Link } from './skill-wiki'
 
 export type Built = Pick<SessionMessage, 'role' | 'text' | 'toolUses' | 'toolResults'>
 
@@ -51,16 +52,16 @@ export function sectionLines(text: string, heading: string): { from: number; to:
   return start < 0 ? undefined : { from: start + 1, to: lines.length }
 }
 
-/** What a spec reads of a file's text: the lines and where they start, or why they cannot be read. */
-export function slice(text: string, spec: Spec): { text: string; from: number; to: number; whole: boolean } | { error: string } {
+/**
+ * What a spec reads of a file's text: the lines and where they start. A heading the file lacks or a
+ * range outside it loads the whole file: refusing would cost the old window another full request.
+ */
+export function slice(text: string, spec: Spec): { text: string; from: number; to: number; whole: boolean } {
   const lines = text.split('\n')
   if (spec.heading !== undefined) {
     const found = sectionLines(text, spec.heading)
-    if (!found) return { error: `${spec.path} has no heading "${spec.heading}"` }
-    return { text: lines.slice(found.from - 1, found.to).join('\n'), ...found, whole: false }
-  }
-  if (spec.from !== undefined && spec.to !== undefined) {
-    if (spec.from < 1 || spec.to < spec.from || spec.from > lines.length) return { error: `${spec.path}:${spec.from}-${spec.to} is not a range of its ${lines.length} lines` }
+    if (found) return { text: lines.slice(found.from - 1, found.to).join('\n'), ...found, whole: false }
+  } else if (spec.from !== undefined && spec.to !== undefined && spec.from >= 1 && spec.to >= spec.from && spec.from <= lines.length) {
     const to = Math.min(spec.to, lines.length)
     return { text: lines.slice(spec.from - 1, to).join('\n'), from: spec.from, to, whole: false }
   }
@@ -70,7 +71,7 @@ export function slice(text: string, spec: Spec): { text: string; from: number; t
 /** What was read of a file, ready to be written as a call. */
 export type Loaded =
   | { type: 'file'; path: string; text: string; from: number; to: number; whole: boolean }
-  | { type: 'skill'; name: string; dir: string; text: string }
+  | { type: 'skill'; name: string; dir: string; text: string; links?: Link[] }
 
 /** A `Read` of lines `from` to `to` (the whole file when `whole`), as a call and its result. */
 function readPair(id: string, file: Extract<Loaded, { type: 'file' }>): Built[] {

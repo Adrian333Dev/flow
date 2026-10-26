@@ -132,6 +132,7 @@ function show(ticket, tickets, root) {
     tasksLine(ticket),
     mapLine(ticket),
     planLine(ticket),
+    contextLine(ticket),
     decisionsLine(ticket),
     reportsLine(ticket),
     ticket.data.closed ? `closed:     ${ticket.data.closed}` : null,
@@ -209,6 +210,12 @@ const questionsLine = (ticket) => {
 const tasksLine = (ticket) => {
   const tasks = store.taskCount(ticket);
   return tasks ? `tasks:      ${tasks.done}/${tasks.total} done` : null;
+};
+
+/** The handles `context.md` holds, so a section is opened by name without reading the file. */
+const contextLine = (ticket) => {
+  const sections = store.contextSections(ticket);
+  return sections ? `context:    ${store.CONTEXT}   ${sections.join(', ') || '-'}` : null;
 };
 
 const decisionsLine = (ticket) => {

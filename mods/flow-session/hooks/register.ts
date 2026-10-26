@@ -5,9 +5,10 @@
  * the agent calls the `restart` tool with its note and the files and skills to
  * load. The mod ends that turn, compacts between turns, and answers the
  * compaction itself, so the session and its transcript stay and no model
- * writes a summary. The answer is built by hooks/window.ts: the old window's
- * dialogue as a file, the tickets, files and skills loaded as `Read` and
- * `Skill` calls, the note, and the user's messages it did not answer. A typed
+ * writes a summary. The answer is built by hooks/window.ts: the tickets with
+ * the `context.md` sections of their open questions, and the files and skills,
+ * loaded as `Read` and `Skill` calls, the note, and the user's messages it did
+ * not answer, each whole. The old turns stay in the transcript. A typed
  * `/restart` stops after the compaction. An automatic one submits `CONTINUE`.
  *
  * `/copy-v2` (Alt+C in `~/.claude/keybindings.json`) copies the agent's last message, `/copy-all` (Alt+A)
@@ -15,9 +16,9 @@
  *
  * `/keepwarm` (hooks/keepwarm.ts) pings the prompt cache before it expires, for one session at a time, and stops at the first ping that misses.
  *
- * Also: dragged files load as mentions, a handoff note is removed once read,
- * the agent is warned at the wrap-up mark, `#` in the prompt box lists the
- * notes of `flow notes`, and every permission ask opens Claude Code's question
+ * Also: dragged files load as mentions, the agent is warned at the wrap-up
+ * mark, `#` in the prompt box lists the notes of `flow notes`, and every
+ * permission ask opens Claude Code's question
  * dialog (hooks/pane.ts) and is logged (hooks/log.ts).
  *
  * The band above the prompt, one badge for each ticket the session works and a
@@ -25,9 +26,10 @@
  * registered from here.
  */
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, Register } from 'claude-code'
+import type { EngineInterface, Register, TurnStepChunk } from 'claude-code'
 import type { Entry, Restart, Tracked } from '../types'
 import { restartAsk } from './ask'
+import { restartGuide } from './restart-guide'
 import { pressed, pressLost, restartEnded, turnEnded, turnStarted } from './button'
 import { copyAll, copyLast, saveReply } from './copy'
 import { CONTINUE } from './dialogue'
@@ -37,31 +39,23 @@ import { mention, pastedPaths, relativeTo } from './drag'
 import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './band'
 import { closeWarm, keepWarmCommand, cancel as warmCancel, noteActive, noteBroken, noteTranscript, tick as warmTick, type Deps as WarmDeps } from './keepwarm'
 import { drawMeters, metersClear, metersMeasure, metersRead, metersRefresh, metersStart, metersSwitch, metersWarmed } from './meters-row'
-import { drawRows, type MakeText } from './draw'
-import { guardedSentence, headline, questionFor } from './headline'
+import { guardedSentence, headline } from './headline'
 import { appendCommand, logLine, logPath, sourceOf, type LogAnswer, type LogFields } from './log'
-import { isNote } from './note'
 import { parseNote, rows, ticketPrefix, type Note } from './notes'
 import {
   classify,
   cover,
   denyFor,
-  drawsInColour,
-  foldedText,
-  forgetDraw,
   guardedWrite,
   isAutoAllow,
   isCovered,
-  isOwnQuestion,
   nobodyReason,
-  questionText,
-  recallDraw,
-  rememberDraw,
   storeVerdict,
   takeVerdict,
   verdictKey,
-  type Shown,
 } from './pane'
+import { steer, type Streamed } from './situations'
+import { heldBy, linksOf, wikiText, withWiki } from './skill-wiki'
 import { AGENT_LINES, kilo, sizeOf, wrapUpLine, wrapUpSettings } from './wrap-up'
 
 const RESTART_TOOL = 'mcp__flow-session__restart'
@@ -82,12 +76,14 @@ const helpers = new Set<string>()
 // Each helper agent's context size at its last request, and at the last check that could send a line. A subagent's size is its own.
 const agentSizes = new Map<string, number>()
 const agentChecked = new Map<string, number>()
-let mentionedNotes: string[] = []
-const noteTurns = new Map<string, string[]>()
 // The `#` list runs on every keystroke, so a note file is parsed again only when its change time moves.
 const listedNotes = new Map<string, Note>()
 // Whether a person is at the prompt (false for `claude -p`). Unknown after a hot reload, which counts as somebody.
 let interactive: boolean | undefined
+// The header each call steered by hooks/situations.ts gets on its result, by call id, taken once the result is in.
+const guideHeaders = new Map<string, string>()
+/** The agents whose `Skill` call is running, last on top: `skill.prompt` names no agent, and fires inside the call. */
+const skillCallers: (string | undefined)[] = []
 
 /** Prints the size change once the new conversation has a response: `usage()` has no figure before that. */
 async function logSize($: EngineInterface): Promise<void> {
@@ -114,6 +110,11 @@ function readList(e: object, key: 'files' | 'skills'): string[] | undefined {
 /** A settings file's text, or undefined when it is missing or unreadable. */
 const readText = ($: EngineInterface, file: string) => $.fs.read(file).catch(() => undefined)
 
+/** The wiki text of a skill's links, for the window of the agent that called it. */
+async function skillWiki($: EngineInterface, links: Parameters<typeof wikiText>[0], agentId: string | undefined): Promise<string> {
+  return wikiText(links, await flowHome($), await heldBy($, agentId), (path) => readText($, path))
+}
+
 /** The Flow home: `FLOW_HOME`, else `~/.flow`. */
 const flowHome = async ($: EngineInterface) => (await $.env.get('FLOW_HOME')) ?? `${await $.env.get('HOME')}/.flow`
 
@@ -138,8 +139,9 @@ async function wrapUp($: EngineInterface): Promise<string | undefined> {
   const before = lastChecked
   lastChecked = now
   const line = wrapUpLine(before, now, limit)
-  if (line) $.ui.log(`wrap-up line sent at ${kilo(now)}`)
-  return line
+  if (!line) return undefined
+  $.ui.log(`wrap-up line sent at ${kilo(now)}`)
+  return `${line}\n\n${await restartGuide($)}`
 }
 
 /**
@@ -214,11 +216,6 @@ async function noteProject($: EngineInterface, home: string): Promise<string> {
   return ticketPrefix(await readText($, `${root}/.flow/settings.json`)) ?? root.slice(root.lastIndexOf('/') + 1)
 }
 
-/** `$.fs` has no delete, so the notes go through `rm`. */
-async function removeNotes($: EngineInterface, paths: readonly string[]): Promise<void> {
-  for (const path of paths) await $.process.run(['rm', '--', path]).catch(() => undefined)
-}
-
 /** True for a message the user typed, not the mod's own prompt, a notification or the /restart command. */
 const usersOwn = (e: { origin?: { kind: string }; isMeta?: true; text: string }) =>
   !e.isMeta && (e.origin === undefined || e.origin.kind === 'composer' || e.origin.kind === 'bridge') && !/^\/restart\b/.test(e.text)
@@ -231,7 +228,7 @@ const usersOwn = (e: { origin?: { kind: string }; isMeta?: true; text: string })
  */
 async function askForRestart($: EngineInterface, args: string): Promise<void> {
   if ((await read($, tracked)).requested) return
-  const ask = restartAsk(args)
+  const ask = restartAsk(args, await restartGuide($))
   await update($, tracked, pressed)
   void $.clock
     .sleep(100)
@@ -294,7 +291,7 @@ async function logAsk($: EngineInterface, fields: Omit<LogFields, 'at' | 'projec
  * the ask unchanged, so `classic.PermissionRequest` can deny with an interrupt.
  * A typed note stores a verdict without one. A dialog that fails for any other
  * reason returns the ask unchanged with no verdict, so Claude Code asks itself.
- * A command too long to colour is cut to its first lines, the last ending `…`.
+ * The question is the sentence alone: the tool's row above the dialog shows the command.
  */
 async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<Decided> {
   const shown = headline(e.tool, e.input)
@@ -313,20 +310,13 @@ async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<
     return { decision: 'deny', reason: nobodyReason() }
   }
 
-  const fold = foldedText(shown.text)
-  const text: Shown = fold === undefined ? questionText(sentence, shown.text) : { question: `${sentence}\n\n${fold}`, sentence, text: fold, cut: false }
-  const colour = fold !== undefined || drawsInColour(text)
-  if (colour) rememberDraw(text.question, { sentence, text: text.text, colour, asks: questionFor(shown.kind) })
   const started = Date.now()
   let label: string | undefined
   let failure = ''
   try {
-    label = await $.ui.ask(text.question, { options: ['Allow', 'Refuse'], header: 'Permission' })
+    label = await $.ui.ask(sentence, { options: ['Allow', 'Refuse'], header: 'Permission' })
   } catch (error) {
-    failure = reasonOf(error)
-  } finally {
-    if (colour) forgetDraw(text.question)
-  }
+    failure = reasonOf(error)  }
   const ms = Date.now() - started
 
   // Esc and the fourth row reject with "no answer (…)". Anything else is the dialog failing.
@@ -356,20 +346,19 @@ export const register: Register = (on) => {
     void warmTick($, warmDeps($))
     await $.tool.register({
       name: 'restart',
-      description: `Restart this session. The new window opens with the dialogue so far, the tickets in flight, the \`files\` and \`skills\` you name, and your \`message\`. Call it last. Only the main session restarts: a subagent saves its state to files and begins its reply with \`UNFINISHED:\`.`,
+      description: 'Restart this session, as the restart guide sent with the ask says. Call it last. A subagent never restarts: it saves its state to files and begins its reply with `UNFINISHED:`.',
       isDeferred: false,
       inputSchema: {
         type: 'object',
         properties: {
           message: {
             type: 'string',
-            description:
-              'Your note to the new window, in short plain sentences. First what sits in no reply, file or ticket: each lesson with its exact detail (value, error text, path) ready to file, each decision not yet written down, each earlier fact still needed. Then the next steps in detail, and questions waiting on the user. Skip what the dialogue, the tickets or the files you name already say.',
+            description: 'Your note to the new window, in the order the restart guide gives.',
           },
           files: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Files the new window starts with, so you edit them without reading again: a path, `path#heading` for a markdown section, `path:from-to` for lines you still know. Tickets in flight load already. With skills, 80 KB at most.',
+            description: 'Files the next step works on: a path (whole file), `path#heading` (a markdown section), `path:from-to` (lines). A miss loads the whole file. With skills, 80 KB at most.',
           },
           skills: {
             type: 'array',
@@ -422,13 +411,6 @@ export const register: Register = (on) => {
     return { text: 'Restarting: the agent writes its note.' }
   }).catch(() => ({ text: 'The restart command failed, so nothing restarted.' }))
 
-  // A note for another session: the mention records it, the next main turn
-  // takes it, and that turn's clean answer removes the file.
-  on('prompt.mention', async ($, e, next) => {
-    if (e.agentId === undefined && isNote(await $.session.root(), e.path)) mentionedNotes.push(e.path)
-    return next(e)
-  })
-
   on('turn.start', async ($, e, next) => {
     await bandTurnStart($, e)
     if (e.agentId !== undefined) helpers.add(e.agentId)
@@ -437,8 +419,6 @@ export const register: Register = (on) => {
       warmCancel()
       await noteActive($).catch(() => undefined)
       await update($, tracked, (t) => turnStarted(t, e.turnId))
-      if (mentionedNotes.length) noteTurns.set(e.turnId, mentionedNotes)
-      mentionedNotes = []
     }
     return next(e)
   })
@@ -470,7 +450,10 @@ export const register: Register = (on) => {
 
   on('tool.call', async ($, e, next) => {
     if (e.agentId === undefined) void metersRefresh($).catch(() => undefined)
-    const done = await bandToolCall($, e, () => next(e))
+    const steered = await bandToolCall($, e, () => next(e))
+    const header = guideHeaders.get(e.tool_use_id)
+    guideHeaders.delete(e.tool_use_id)
+    const done = header && steered.result !== undefined ? { ...steered, context: [header, ...(steered.context ?? [])] } : steered
     if (TOOL.test(e.tool) || done.result === undefined) return done
     if (e.agentId !== undefined) {
       // A subagent ignores a line inside a tool result as injected text (probed, Haiku): it goes as a message to the agent.
@@ -480,6 +463,25 @@ export const register: Register = (on) => {
     }
     const line = await wrapUp($).catch(() => undefined)
     return line ? { ...done, context: [...(done.context ?? []), line] } : done
+  })
+
+  // A skill's wiki folder rides after its text (hooks/skill-wiki.ts), tested against the window of
+  // the agent that called it. A typed skill has no `Skill` call: the main window.
+  on('tool.call', { tool: 'Skill' }, async (_$, e, next) => {
+    skillCallers.push(e.agentId)
+    try {
+      return await next(e)
+    } finally {
+      skillCallers.splice(skillCallers.lastIndexOf(e.agentId), 1)
+    }
+  })
+
+  on('skill.prompt', async ($, e, next) => {
+    const out = await next(e)
+    const links = linksOf(e.frontmatter)
+    if (!links.length) return out
+    const added = await skillWiki($, links, skillCallers.at(-1)).catch((error) => void $.ui.log(`wiki folder not sent: ${reasonOf(error)}`))
+    return added ? { ...out, text: withWiki(out.text, added) } : out
   })
 
   // A closed session stops warming, and a session opened again starts with the switch off.
@@ -523,11 +525,6 @@ export const register: Register = (on) => {
       agentSizes.delete(e.agentId)
       agentChecked.delete(e.agentId)
     }
-    const notes = noteTurns.get(e.turnId)
-    if (notes) {
-      noteTurns.delete(e.turnId)
-      if (e.reason === 'answer') await removeNotes($, notes)
-    }
     if (e.agentId === undefined) {
       void saveReply($).catch((error) => $.ui.log(`the reply was not saved: ${reasonOf(error)}`))
       if (e.reason === 'answer') await update($, tracked, (t) => afterAnswer(t, e.answer, t.restart !== undefined))
@@ -554,18 +551,6 @@ export const register: Register = (on) => {
     return verdict ? { decision: denyFor(verdict) } : next(e)
   }).catch(() => ({}))
 
-  // The mod's own question draws in colour above the dialog, which is
-  // reworded to ask `Allow this command?`. The model's own questions pass.
-  // Nothing is read and nothing runs in here: the draw comes from module state.
-  on('ui.render', { component: 'AskUserQuestion' }, async ($, e, next) => {
-    const questions = e.props.questions as { question?: string }[]
-    const draw = isOwnQuestion(e.requestId) ? recallDraw(questions[0]?.question ?? '') : undefined
-    if (!draw) return next(e)
-    const { Box, Text } = $.ui.resolve(e)
-    const dialog = await next({ ...e, props: { ...e.props, questions: questions.map((q) => ({ ...q, question: draw.asks })) } })
-    return Box({ flexDirection: 'column', children: [...drawRows(draw, Text as unknown as MakeText, e.viewport?.columns), dialog] })
-  })
-
   // The band of tickets the session works (hooks/band.tsx).
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) =>
     drawBand($, e, next, () => void askForRestart($, '').catch((error) => $.ui.log(`the Restart button failed: ${reasonOf(error)}`))),
@@ -579,11 +564,41 @@ export const register: Register = (on) => {
     return next(e)
   })
   // Every request of the main loop refreshes the context, so a long turn shows its size as it grows.
+  // The guides sent by situation (hooks/situations.ts) steer the response: from its first tool call on,
+  // the chunks wait for the stop, so a write held back never leaves the chain, and the added calls go last.
   on('turn.step', async function* ($, e, next) {
     if (e.agentId === undefined) void metersRefresh($).catch(() => undefined)
-    const response = yield* next(e)
-    if (e.agentId !== undefined && response.usage) agentSizes.set(e.agentId, sizeOf(response.usage))
-    return response
+    const waiting: TurnStepChunk[] = []
+    const streamed = new Map<number, Streamed>()
+    let last = -1
+    for await (const c of next(e)) {
+      if ('index' in c && typeof c.index === 'number') last = Math.max(last, c.index)
+      if (c.kind === 'tool') streamed.set(c.index, { index: c.index, id: c.id, name: c.name, json: '' })
+      if (c.kind === 'input') {
+        const call = streamed.get(c.index)
+        if (call) call.json += c.json
+      }
+      if (c.kind !== 'stop') {
+        if (streamed.size) waiting.push(c)
+        else yield c
+        continue
+      }
+      if (e.agentId !== undefined && c.usage) agentSizes.set(e.agentId, sizeOf(c.usage))
+      const steering = streamed.size ? await steer($, e.agentId, [...streamed.values()]).catch((error) => void $.ui.log(`guides not sent: ${reasonOf(error)}`)) : undefined
+      // A held block's own chunks are dropped. The engine's opaque ones carry no block, and pass.
+      for (const w of waiting) if (w.kind === 'engine' || w.kind === 'stop' || !steering?.drop.has(w.index)) yield w
+      for (const [id, header] of steering?.headers ?? []) guideHeaders.set(id, header)
+      for (const [i, call] of (steering?.add ?? []).entries()) {
+        last += 1
+        yield { kind: 'tool', index: last, id: steering!.addedIds[i]!, name: call.name }
+        yield { kind: 'input', index: last, json: JSON.stringify(call.input) }
+      }
+      if (steering?.drop.size) $.ui.log(`held back ${steering.drop.size} calls until the guides are read`)
+      waiting.length = 0
+      yield c
+    }
+    // A response cut off before its stop passes on what it held, unsteered.
+    yield* waiting
   })
   on('classic.SessionStart', async ($, e, next) => {
     await metersRead($, e.transcript_path).catch(() => undefined)
@@ -602,14 +617,16 @@ export const register: Register = (on) => {
   })
   on('ui.render', { component: 'PromptHint' }, async ($, e, next) => drawMeters($, e, next))
 
-  // The restart's compaction becomes the six-part window (hooks/window.ts). A dialogue file that cannot be written skips it.
+  // The restart's compaction becomes the window of hooks/window.ts. A dialogue file that cannot be written skips it.
   on('session.compact', async ($, e, next) => {
     if (e.agentId !== undefined) return next(e)
     const { asked, restart } = await read($, tracked)
     if (e.trigger !== 'manual' || !restart?.started) return { skip: REFUSAL }
-    const built = await buildWindow($, { messages: e.messages, restart, asked, entries: await read($, band), restartTool: RESTART_TOOL, home: await flowHome($) })
-    if ('error' in built) {
-      stopped = `Restart stopped, the session is as it was: ${built.error}.`
+    let built: Awaited<ReturnType<typeof buildWindow>>
+    try {
+      built = await buildWindow($, { restart, asked, entries: await read($, band), home: await flowHome($) })
+    } catch (error) {
+      stopped = `Restart stopped, the session is as it was: ${reasonOf(error)}.`
       return { skip: stopped }
     }
     $.ui.log(built.log)

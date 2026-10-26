@@ -30,7 +30,7 @@ Plus 4 where someone waits on an answer:
 
 ## A continuation
 
-A subagent whose reply began `UNFINISHED:` left its state in the files it named. The next one starts from them, in a prompt that carries only:
+A subagent keeps its progress as it works in `jobs/<job>.md` in the ticket's folder, one `##` section per part of the job, edited in place. A subagent whose reply began `UNFINISHED:` left its state there and in the files it named. The next one starts from them, in a prompt that carries only:
 
 - **The question**, as the first brief put it.
 - **The files to read first**, the ones the reply named. They hold the sources read, the findings and what is left.
@@ -41,4 +41,4 @@ Never the first brief's history or the old reply: the files hold them, and the n
 
 ## Where the answer goes
 
-The brief names it. A dispatched job ends by saying its answers in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, the research file `/flow:research` names for a question. The ticket's `## State` carries the job's progress, never its answer.
+The brief names it. A dispatched job ends by saying its answers in its final message, and by writing them into the file its own skill names: `reports/<failure>.md` for a hunt, the research file `/flow:research` names for a question. `jobs/<job>.md` carries the job's progress, never its answer. `reports/` holds final answers only.

@@ -40,7 +40,7 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 4. **Fix the cause, then re-run the failing check.** A fix checked against a different command, a manual click, or your own reading of the diff is unverified.
 
-**Open `reports/<failure>.md` at step 1**, in the ticket folder, named after what failed, and write the hunt into it as it runs: the failing check, every hypothesis and how it died, what survived. When the hunt ends, add the cause, the fix, and the output that proves it. A fact that outlives the bug entirely, a verified command, a settled convention, goes where `## Capture` sends it as well. A handoff mid-hunt writes one line in `## State` naming the report.
+**Open `reports/<failure>.md` at step 1**, in the ticket folder, named after what failed, and write the hunt into it as it runs: the failing check, every hypothesis and how it died, what survived. When the hunt ends, add the cause, the fix, and the output that proves it. A fact that outlives the bug entirely, a verified command, a settled convention, goes where `## Capture` sends it as well. Name the report in the ticket's `## References` when you open it, so a restart mid-hunt finds it.
 
 **Close it with a status**: `FIXED`, `FOUND_NOT_FIXED` where the cause is proved and the fix needs a decision nobody gave, or `UNPROVEN` where the hypotheses ran out. `UNPROVEN` is a real result: what got ruled out is the deliverable.
 

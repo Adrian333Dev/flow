@@ -1,6 +1,6 @@
 # Permissions
 
-What runs without asking, what asks, and how a question reaches the user. A session on a set-up project builds a ticket and asks only before a push or a publish. Three layers decide: the settings rules, the guard, and Flow's mod, which draws every question and writes the log. The guard stops a helpful agent's accidents. It is no defense against a deliberate attack.
+What runs without asking, what asks, and how a question reaches the user. A session on a set-up project builds a ticket and asks only before a push or a publish. Three layers decide: the settings rules, the guard, and Flow's mod, which puts every question and writes the log. The guard stops a helpful agent's accidents. It is no defense against a deliberate attack.
 
 ## Scope
 
@@ -72,21 +72,16 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 ### The pane
 
 - `V1` **Flow's mod answers every ask with Claude Code's own question dialog**, opened by `$.ui.ask` from its `tool.check` hook. Options: Allow, Refuse. Enter picks, Esc refuses, and text typed ahead stays in the input. Why the dialog: the band above the input cannot take Enter, and the user wants the pane to block input as Claude Code's prompt does (`fw-110`, `fw-112`). Decided 2026-10-13.
-- `V1` **The dialog shows one short sentence, a thick dim rule (`━`) as wide as the terminal, then the command alone**, about 6 rows. The rule came 2026-10-24: the user could not tell the sentence from the command without reading both. The mod draws all 3 above the dialog's own rule and rewrites the dialog's own question to `Allow this command?` (`Allow this write?` for a write). For a tool other than `Bash`, the mod writes the sentence and the path from the tool and its input, since a core ask's own reason is long and full of paths.
-- `V1` **The text given to `$.ui.ask` is the sentence, a blank line and the command.** It shows as it stands only when the engine refuses the draw, and it reads well on its own then.
-- `V1` **Never JSON in a prompt.** The text given to `$.ui.ask` reads well on its own, so a refused tree still reads well. What the draw needs travels in the mod's state, keyed by that text. Ruled by the user 2026-10-13.
-- `V1` **Each part of the sentence and the command has its own look, from the terminal's theme.** The sentence: the action bold, `red` when it destroys or overwrites (delete, discard, drop, wipe, reset, force-anything, rewrite, rebase, prune) and `yellow` otherwise, each path `blue`, the reason dim. The command, one line or many: the program bold, flags `cyan`, strings `green`, variables, control words and operators (`for`, `if`, `|`, `&&`, `;`, `>`) purple (`magenta`), paths and URLs `blue` (a quoted path too), comments dim, other arguments plain. A here-doc's body, such as a commit message, is one string and draws `green`, with its closing line a control word. Named colours only, never hex. Decided by the user 2026-10-24, from `.flow/research/permission-dialog/colour-options-2.html`: the action and every path must stand out at a glance. It replaces the restrained set of 2026-10-13 (bold yellow sentence, all-`cyan` one-line command), set after the user called an 8-colour page a rainbow. Overturned by: the user calling the 6 colours a rainbow once the build shows them.
-- `V1` **A command of up to 10 non-blank lines shows whole, in colour.** The mod draws the sentence, the rule and the command in colour when they fit: 10 non-blank lines, since the rule took a row on 2026-10-24. A blank line costs a row, margins included, so the colour draw keeps blank lines while every line fits in 10 rows and leaves them out beyond that, and the command itself is unchanged. The engine also counts each piece of text of 40 characters or more as extra rows, so the draw cuts a long piece into pieces of 39 or fewer. Allow, Refuse and the other two rows stay on screen at any length, since the dialog sits at the bottom of the page and the command grows upward off the top (`fw-119`: 12 of 12 cases, a 40-line, a 120-line and a 2610-character command, at 50 and 24 terminal rows). The options need a terminal of 14 rows or more. Ruled by the user 2026-10-13. The sentence and the rule take 2 of the 12 rows. Moving it into the dialog's question, to give the command a 12th line, was weighed and dropped on 2026-10-17: it costs the bold yellow, and a 13-line command is still cut.
-- `V1` **A longer command is cut to its first 10 non-blank lines, in colour, the 10th ending `…`.** It has no count and no row for a notice, and the dialog has no way to show the rest. Why: the user found a 36-line commit all white, and a draw holds 12 rows, so colour can reach only the head of a long command (`fw-116`). The command stays whole in the chat: the user can see it with Ctrl+O or by clicking the tool call (the user's word, not probed). Ruled by the user 2026-10-17. Overturned by: the user wanting the tail in the dialog, or an engine that lifts the 12-row cap.
-- `V1` **The mod cuts a long text itself, below 2000 characters, and ends it with a line saying the rest is not shown, with no count.** The dialog cuts its question text at 2000 characters with a bare `…`, so the tail of a command can be invisible. The sentence counts toward the 2000. The user wants to know that something is cut, never how much (2026-10-17). It applies to a text that is not cut by the fold, such as one very long line.
+- `V1` **The dialog's question is the sentence alone**, such as `Push to origin/main`. The tool's row above the dialog shows the command, and a click expands it to the whole script. For a tool other than `Bash`, the mod writes the sentence from the tool and its input, since a core ask's own reason is long and full of paths. Decided by the user 2026-10-24 (`fw-282`). Overturned by: a subagent's ask whose tool row sits folded in the agent's panel, so no command is in view (not checked yet).
+- `V1` **Never JSON in a prompt.** The question reads well on its own. Ruled by the user 2026-10-13.
+- `never` **A copy of the command drawn in colour above the dialog**, folded to 10 lines and cut below 2000 characters, built 2026-10-13 to 2026-10-24 (`fw-113`, `fw-116`, `fw-119`). The tool's row already shows the command, and the draw cost 3 files and a render hook. Retired 2026-10-24 by `fw-282`. The code is in `lab/archive/mod-permission-draw/`.
 - `never` **A button or a row that shows the rest of a command.** `fw-119` found that a click button is pressed only by the mouse, in the fullscreen terminal. `fw-113` found that an option row opens a second dialog, which confused the user. `fw-116` built the row again and the user removed it on 2026-10-17 as too ugly.
 - `V1` **Rows 3 and 4 stay.** No clean removal exists. Row 3 is a typed note: the call is denied with no interrupt, and the agent reads the note and carries on. Row 4 is a plain Refuse.
 - `V1` **A refusal stops the turn, with Claude Code's own screen**: `Interrupted · What should Claude do instead?`. On Refuse, Esc or row 4, `tool.check` stores the verdict in the mod's state and returns the ask unchanged. A `classic.PermissionRequest` hook in the same mod then answers `{ behavior: 'deny', interrupt: true }`. Called route A2. Ruled by the user 2026-10-13: a refusal that lets the agent carry on is wrong. Overturned by: a Claude Code release that changes `classic.PermissionRequest` in mods, or two identical calls at once colliding on the stored key (tool name plus command).
 - `V1` **The dialog waits with no timeout while the user is there.** Silence is never a yes. Where nobody can answer (`claude -p`, no screen), the mod denies with no interrupt: `No one is here to ask. Choose another way, or stop.`
 - `V1` **A subagent's ask opens in the main session and takes its turn.** A refusal stops that subagent and the main turn goes on. Each session's mod holds its own state, so parallel sessions never block each other.
-- `V1` **The mod restyles its own question only**, never one the agent asks. The build checks that the render site's call id tells them apart: the model's own calls carry a `toolu_` id, and the mod's ask carries `toolu_plugin_`.
 - `V1` **The `AskUserQuestion` deny leaves `home/settings.json`.** The dialog is that tool, and a deny by name, or by `AskUserQuestion(*)`, makes `$.ui.ask` fail. The agent may call the tool again, and nothing blocks it. Ruled by the user 2026-10-13, overturning the ruling of 2026-09-21 whose reason was the tool's schema in every request.
-- `later` **An edit's dialog shows 4 to 6 changed lines**, `−` for old and `+` for new, from the call's own input. The path and the sentence ship first.
+- `never` **An edit's dialog showing 4 to 6 changed lines.** The tool's row shows the edit, as it shows a command. Dropped 2026-10-24 with the colour draw (`fw-282`).
 - `later` **Hiding the tool's definition from the agent** by changing the request a mod sends, to win back the schema's tokens. Reopen only if the cost shows in the numbers.
 
 ### The log
@@ -117,7 +112,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 - **`home/settings.json`**: the allow, ask and deny lists, and the guard's matcher.
 - **`scripts/hooks/guard.js`**: the `PreToolUse` hook. Judges `Bash` and `Read` by command and path, `Edit` and `Write` by the folder rule, and fails closed.
 - **`scripts/lib/guard/`**: one file per kind of harm, the parser, and `world.js`, the one file that reads the disk. The narrowed folder list lives in one place here.
-- **The pane**: one module in its own mod, `flow-permissions`, apart from `flow-session` (decided 2026-10-20, `fw-172`, built by `fw-233`). It holds the dialog, route A2, the tokenizer, the headline for every tool other than `Bash`, and the log write. The path rule that lets a mod folder be edited without an ask covers every Flow mod.
+- **The pane**: one module in its own mod, `flow-permissions`, apart from `flow-session` (decided 2026-10-20, `fw-172`, built by `fw-233`). It holds the dialog, route A2, the headline for every tool other than `Bash`, and the log write. The path rule that lets a mod folder be edited without an ask covers every Flow mod.
 - **`~/.flow/logs/permissions/`**: the log.
 - **`scripts/commands/audit.js`**: gains the permissions view.
 
@@ -125,12 +120,10 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 
 The mod's hook receives the ask as `{ decision: 'ask', reason, rule, hook }` from `next(e)`. `reason` is the guard's sentence or Claude Code's long text, `rule` is the settings rule that asked, such as `Bash(git push *)`, and `hook` is `PreToolUse` when the guard asked. The event carries `tool_use_id`, `agentId` and `input` (`{ command }` for `Bash`, `{ file_path, old_string, new_string }` for an edit).
 
-The text given to `$.ui.ask` for a push. The mod draws it in colour over the dialog, and its own question reads `Allow this command?`:
+The dialog for a push, under the tool's row that shows `git push origin main`:
 
 ```text
 Push to origin/main
-
-git push origin main
 
   1. Allow
   2. Refuse
@@ -161,9 +154,7 @@ One log line:
 - **The guard throws** → the call asks with `The guard failed, so this command asks first.`
 - **Nobody can answer** (`claude -p`, a background session with no screen) → the call is denied with no interrupt and a message to the agent.
 - **Two identical calls ask at once** → they share the stored verdict's key. Rare, and the worst case is one wrong stop.
-- **The dialog cannot draw a long command in colour** (over 10 lines, not counting blank ones) → the dialog shows the first 10 lines, the 10th ending `…`. The chat's tool line holds the whole command.
 - **The terminal has fewer than 14 rows** → some option rows scroll off. Enter and Esc still answer.
-- **The engine refuses the coloured draw** → the sentence and the command show as plain text in the dialog's question.
 - **A command the guard cannot see inside** (`node -e`, `python3 -c`, a script the agent wrote and then runs) → it runs. The guard catches the forms Claude writes and is no wall.
 - **A command typed behind `!`** reaches no hook.
 - **Another machine added log lines** → `flow sync` keeps both sets.
@@ -184,7 +175,7 @@ One log line:
 
 ## Bets
 
-- **Claude Code keeps the mods API as it is in 2.1.296**: `tool.check`, `classic.PermissionRequest`, `$.ui.ask`, and `ui.render` on the question dialog. Mods are early access. If it changes, the pane falls back to Claude Code's own prompt and the guard still judges.
+- **Claude Code keeps the mods API as it is in 2.1.296**: `tool.check`, `classic.PermissionRequest`, and `$.ui.ask`. Mods are early access. If it changes, the pane falls back to Claude Code's own prompt and the guard still judges.
 - **Flow stays on a plan with no managed settings.** On a Team or Enterprise plan, `sec-default` loads and holds a guard ask over the mod's allow, so Claude Code's prompt would appear after the pane.
 - **The user does not run auto mode.** Whether `tool.check` sees asks there is untested.
 

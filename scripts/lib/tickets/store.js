@@ -569,6 +569,7 @@ function createTicket(root, { title, description, labels, parent, deps, tickets,
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, 'ticket.md');
   fs.writeFileSync(file, frontmatter.stringify(storedData({ data, root }), TICKET_KEYS, body));
+  fs.writeFileSync(path.join(dir, CONTEXT), renderTemplate(CONTEXT, {}));
   countNumber(root, id);
 
   return { id, dirName: path.basename(dir), dir, file, data, body, root };
@@ -639,8 +640,18 @@ function mapQuestions(t) {
 const mdFiles = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort() : []);
 const reportFiles = (t) => mdFiles(path.join(t.dir, 'reports'));
 
-/** Decision files beside `ticket.md`, once the decisions outgrow it: `decisions/<subject>.md`. */
+/** Decision files beside `ticket.md`, on a ticket made before `context.md`: `decisions/<subject>.md`. */
 const decisionFiles = (t) => mdFiles(path.join(t.dir, 'decisions'));
+
+/** The sections beside the index, one per handle in `ticket.md`, edited in place. */
+const CONTEXT = 'context.md';
+
+/** The `##` headings of `context.md`, in file order, or null where the ticket has none. */
+function contextSections(t) {
+  const file = path.join(t.dir, CONTEXT);
+  if (!fs.existsSync(file)) return null;
+  return fs.readFileSync(file, 'utf8').split('\n').filter((l) => /^## /.test(l)).map((l) => l.slice(3).trim());
+}
 
 /** The text under `## <heading>` up to the next `##` heading, or null where the ticket has none. */
 function section(body, heading) {
@@ -736,5 +747,5 @@ module.exports = {
   normalizeId, idNumber, requireId, slugify, labelOf, idOfRef, folderName, nameOf, titleFrom, badTitle, toIdList, toLabelList, badLabel, badActivity, today, now,
   COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber,
   historyFile, appendHistory, readHistory,
-  hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, questionCount, taskCount, tickTask,
+  hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, CONTEXT, contextSections, questionCount, taskCount, tickTask,
 };

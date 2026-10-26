@@ -21,6 +21,7 @@ Each phase works on one ticket. Type the phase, then the ticket's id as a skill:
 - **`/flow:start`** (only you can start it): open a session on the board, or on one ticket. Bare, it shows the board and recommends what to work on. With a ticket, `/flow:start /shop-7`, it picks the phase the ticket needs.
 - **`/flow:handoff`**: write into the ticket what the next session needs to carry on, so `/clear` loses nothing.
 - **`/flow:research`**: find out how an outside tool really works, from its documentation and source. What it learns goes in `~/.flow/wiki/<tool>/`, shared by every project.
+- **`/flow:audit`**: answer a question about how something behaved, such as whether the agent follows a guide Flow sends, by counting the cases in past sessions and Flow's logs against a baseline. It writes a report with the sessions and turns that prove the answer. What it learns, such as the queries that worked, goes in `~/.flow/wiki/audit/`.
 - **`/flow:visualize`**: draw diagrams, screen mockups and HTML previews, in a message or in a document.
 - **`/flow:upkeep`** (only you can start it): fold closed tickets, notes, findings and the failure log into the wiki, rules and skills. It shows one plan first.
 - **`/flow:tickets-from-spec`** (only you can start it): cut the next chunk of planned work out of `docs/spec/` into tickets, earliest release first.

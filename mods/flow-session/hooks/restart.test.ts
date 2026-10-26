@@ -6,43 +6,43 @@ const REFUSAL = { skip: 'Flow compacts only at its own restart. Run /restart.' }
 describe('restartWindow', () => {
   const file = { type: 'file' as const, path: '/p/a.ts', text: 'one\ntwo', from: 1, to: 2, whole: true }
   const skill = { type: 'skill' as const, name: 'flow:execute', dir: '/s/execute', text: 'BODY' }
-  const window = { dialogue: { path: '/p/.flow/restarts/abc-2.md', text: 'DIALOGUE' }, tickets: [file], loads: [skill], note: 'NOTE', asked: ['ONE', 'TWO'], manual: false }
+  const window = { tickets: [file], loads: [skill], invoke: [] as string[], note: 'NOTE', asked: ['ONE', 'TWO'], manual: false }
 
-  test('has the six parts in order: opening, dialogue, tickets and loads, note, unanswered messages', () => {
+  test('has its parts in order: opening, tickets and loads, note, unanswered messages', () => {
     const messages = restartWindow(window)
-    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant', 'user', 'assistant', 'user', 'assistant', 'user', 'user', 'user', 'user'])
-    expect(messages[0]!.text).toContain('The session restarted.')
-    expect(messages[0]!.text).not.toContain('abc-2.md')
-    expect(messages[0]!.text).toContain('the dialogue wins')
-    expect(messages[0]!.text).toContain('capture pass')
-    expect(messages[1]!.toolUses[0]).toMatchObject({ tool: 'Read', input: { file_path: '/p/.flow/restarts/abc-2.md' } })
-    expect(messages[2]!.toolResults![0]!.text).toBe('     1\tDIALOGUE')
-    expect(messages[3]!.toolUses[0]).toMatchObject({ tool: 'Read', input: { file_path: '/p/a.ts' } })
-    expect(messages[4]!.toolResults![0]!.text).toBe('     1\tone\n     2\ttwo')
-    expect(messages[5]!.toolUses[0]).toMatchObject({ tool: 'Skill', input: { skill: 'flow:execute' } })
-    expect(messages[6]!.toolResults![0]!.text).toContain('Base directory for this skill: /s/execute\n\nBODY')
-    expect(messages[7]!.text).toBe('Note from the old agent:\n\nNOTE')
-    expect([messages[8]!.text, messages[9]!.text]).toEqual(['ONE', 'TWO'])
+    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant', 'user', 'assistant', 'user', 'user', 'user', 'user'])
+    expect(messages[0]!.text).toBe(
+      "Session restarted. Continue from the note.\nAnswer every point of the user's messages below.\nConflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.\nAfter answering, run `## Capture` over the note.",
+    )
+    expect(messages[1]!.toolUses[0]).toMatchObject({ tool: 'Read', input: { file_path: '/p/a.ts' } })
+    expect(messages[2]!.toolResults![0]!.text).toBe('     1\tone\n     2\ttwo')
+    expect(messages[3]!.toolUses[0]).toMatchObject({ tool: 'Skill', input: { skill: 'flow:execute' } })
+    expect(messages[4]!.toolResults![0]!.text).toContain('Base directory for this skill: /s/execute\n\nBODY')
+    expect(messages[5]!.text).toBe('Note from the old agent:\n\nNOTE')
+    expect([messages[6]!.text, messages[7]!.text]).toEqual(['ONE', 'TWO'])
+  })
+
+  test('with every message answered, the opening asks for no answer', () => {
+    expect(restartWindow({ ...window, asked: [] })[0]!.text).not.toContain('Answer every point')
   })
 
   test('every call has its own result in a separate message, with matching ids', () => {
     const messages = restartWindow(window)
     const calls = messages.flatMap((m) => m.toolUses.map((u) => u.tool_use_id))
     const results = messages.flatMap((m) => (m.toolResults ?? []).map((r) => r.tool_use_id))
-    expect(new Set(calls).size).toBe(3)
+    expect(new Set(calls).size).toBe(2)
     expect(results).toEqual(calls)
     expect(messages.filter((m) => m.toolUses.length).every((m) => !m.toolResults)).toBe(true)
   })
 
-  test('a typed restart says nothing runs, and names the window before', () => {
-    const [opening] = restartWindow({ ...window, manual: true, asked: [], dialogue: { ...window.dialogue, previous: '/p/.flow/restarts/abc-1.md' } })
-    expect(opening!.text).toContain('Nothing runs now.')
-    expect(opening!.text).toContain('The window before it is /p/.flow/restarts/abc-1.md')
+  test('a typed restart says nothing of continuing: the user writes next', () => {
+    const [opening] = restartWindow({ ...window, manual: true, asked: [] })
+    expect(opening!.text.split('\n')[0]).toBe('Session restarted.')
   })
 
-  test('with no loads and no unanswered messages, the dialogue and the note remain', () => {
+  test('with no loads and no unanswered messages, the opening and the note remain', () => {
     const messages = restartWindow({ ...window, tickets: [], loads: [], asked: [] })
-    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant', 'user', 'user'])
+    expect(messages.map((m) => m.role)).toEqual(['user', 'user'])
   })
 })
 

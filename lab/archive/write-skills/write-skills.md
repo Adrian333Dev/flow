@@ -1,6 +1,6 @@
 # Writing a skill
 
-**Read `~/.flow/references/style.md` and `cut-loaded-files.md` beside it before writing.** They hold the style, the `description` included.
+**Read `~/.flow/references/style.md` and `write-loaded-files.md` beside it before writing.** They hold the style, the `description` included.
 
 ## Before writing one
 

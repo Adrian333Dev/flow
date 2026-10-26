@@ -9,8 +9,8 @@
  *
  * A skill holds a label and one rule. Its body runs `flow <id>` when typed, so
  * the ticket is read at that moment, and a stale skill shows an old row but
- * never old data. The rule is what a session needs when `## State` and the
- * files disagree. `disable-model-invocation` keeps every name out of context.
+ * never old data. The rule is what a session needs when the index, its
+ * sections and the files disagree. `disable-model-invocation` keeps every name out of context.
  * Each folder carries a `.gitignore` holding `*`, so git ignores it without an
  * edit to the project's own.
  *
@@ -57,7 +57,7 @@ function render(t, index) {
     `${MARK}${t.id}, rewritten by flow on every ticket change -->`,
     `!\`flow ${t.id} 2>&1 || true\``,
     '',
-    'On what exists, the files win. On decisions and what is still open, `## State` wins over the rest of the ticket.',
+    'On what exists, the files win. On decisions and what is still open, `ticket.md` wins over `context.md`.',
     '',
   ].join('\n');
 }

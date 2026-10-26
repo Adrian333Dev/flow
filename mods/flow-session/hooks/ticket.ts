@@ -85,6 +85,15 @@ export function readTicket(text: string, map?: string, prefix?: string): Ticket 
   return { id, name: fields.title ? `${id}-${fields.title}` : id, status, word: shown.join(' ') }
 }
 
+/** The handles of the open questions in a `ticket.md`: `- [ ] 1.2: …` is `1.2`, the heading of its section in `context.md`. A question with no handle has none. */
+export function openHandles(text: string): string[] {
+  const questions = section(split(text).body, 'Questions')?.replace(/<!--[\s\S]*?-->/g, '') ?? ''
+  return questions
+    .split('\n')
+    .map((line) => /^\s*(?:\d+[.)]|[-*])\s+\[ \]\s+`?([^\s:`]+)`?:/.exec(line)?.[1])
+    .filter((handle): handle is string => handle !== undefined)
+}
+
 /** The ticket ids a command names, such as `fw-137`. */
 export const idsIn = (text: string): string[] => [...new Set(text.match(/\b[a-z]+-\d+\b/g) ?? [])]
 

@@ -31,7 +31,8 @@
  *   status-line.json   left by the retired status line on older machines
  *   audit/, changes/   what this machine's sessions left: the transcript
  *                 index, and what each subagent changed
- *   projects/*\/restarts/   the dialogue files of this machine's restarted windows
+ *   projects/*\/restarts/   retired: the dialogue files of restarted windows,
+ *                 which may remain on older machines
  *   projects/*\/replies/    the agent's replies the mod saved on this machine
  *   a wiki tool's downloads   pages fetched once per machine
  *   node_modules/   what a prototype in a ticket installed, fetched again

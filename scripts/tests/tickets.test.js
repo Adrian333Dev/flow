@@ -575,14 +575,15 @@ test('flow <id> still counts the questions of an old ticket\'s map', () => {
   assert.match(worked.stdout, /^map: +groundwork\/map\.md +2\/4 answered$/m);
 });
 
-test('a new ticket is one file', () => {
+test('a new ticket is the index and its sections', () => {
   const dir = project('tickets-one-file');
 
   const r = flow(dir, ['new', 'Split the parser', '--title', 'split-the-parser']);
   assert.strictEqual(r.code, 0, r.stderr);
   const [t] = ticket(dir);
-  assert.deepStrictEqual(fs.readdirSync(path.join(dir, '.flow', 'tickets', t.folder)), ['ticket.md']);
+  assert.deepStrictEqual(fs.readdirSync(path.join(dir, '.flow', 'tickets', t.folder)).sort(), ['context.md', 'ticket.md']);
   assert.doesNotMatch(r.stdout, /map\.md/);
+  assert.match(flow(dir, [t.id]).stdout, /^context: +context\.md +Loose$/m);
 });
 
 test('flow <id> counts ## Questions and ## Tasks, and lists decisions/', () => {
@@ -604,10 +605,12 @@ test('flow <id> counts ## Questions and ## Tasks, and lists decisions/', () => {
   flow(dir, ['new', 'Split the parser', '--title', 'split-the-parser', '--body', body]);
   const [t] = ticket(dir);
   write(dir, `.flow/tickets/${t.folder}/decisions/seam.md`, '# Seam\n');
+  write(dir, `.flow/tickets/${t.folder}/context.md`, '## 0\n\nThe seam.\n\n## 0.0\n\n## Loose\n');
 
   const shown = flow(dir, [t.id]).stdout;
   assert.match(shown, /^questions: +1\/2 answered$/m);
   assert.match(shown, /^tasks: +1\/2 done$/m);
+  assert.match(shown, /^context: +context\.md +0, 0\.0, Loose$/m);
   assert.match(shown, /^decisions: +decisions\/seam\.md$/m);
 });
 

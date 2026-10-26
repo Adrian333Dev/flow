@@ -1,10 +1,10 @@
 # Skills
 
-How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 11, typed `/flow:<name>`. 3 of them are the phases, the 3 kinds of work. The other 8 are the tools around the work.
+How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 12, typed `/flow:<name>`. 3 of them are the phases, the 3 kinds of work. The other 9 are the tools around the work.
 
 ## Scope
 
-- **In**: Flow's 11 skills and what each does, the 3 phases, `/flow:handoff`, how skills install, outside skills and how they are used, overlays and arguments.
+- **In**: Flow's 12 skills and what each does, the 3 phases, `/flow:handoff`, how skills install, outside skills and how they are used, overlays and arguments.
 - **Out**: ticket skills, in `docs/spec/tickets.md`. `/flow:research`, the wiki and how `/flow:upkeep` routes a finding, in `docs/spec/knowledge-base.md`. `/flow:visualize`, in `docs/spec/drawing.md`. The checks `/flow:upkeep` writes, in `docs/spec/rules.md`.
 
 ## Where a skill lives
@@ -12,7 +12,7 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 ```text
 ~/.flow/repos/flow/skills/                 Flow's skills, the one real copy
 ├─ phases/    groundwork, execute, debug
-└─ tools/     handoff, research, review-code, start,
+└─ tools/     audit, handoff, research, review-code, start,
               tickets-from-spec, upkeep, visualize, write-spec
 ~/.agents/skills/flow/                     the plugin folder
 ├─ .claude-plugin/plugin.json              copied, names the set "flow"
@@ -28,13 +28,14 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 
 ### Flow's skills
 
-- `V1` **11 skills in 2 groups**: `phases/` (`groundwork`, `execute`, `debug`) and `tools/` (`handoff`, `research`, `review-code`, `start`, `tickets-from-spec`, `upkeep`, `visualize`, `write-spec`).
+- `V1` **12 skills in 2 groups**: `phases/` (`groundwork`, `execute`, `debug`) and `tools/` (`audit`, `handoff`, `research`, `review-code`, `start`, `tickets-from-spec`, `upkeep`, `visualize`, `write-spec`).
 - `V1` **Every skill is typed `/flow:<name>`, and no folder or `name` carries the prefix.** `skills/.claude-plugin/plugin.json` names the set `flow`, and Claude Code adds the prefix as the skill loads. Decided 2026-09-18: bare, `setup`, `help` and `migrate` claimed ground on a machine with other skills.
 - `V1` **Every skill is always on**: `flow install` links each one, and nothing switches one off.
 - `V1` **5 skills only the user can start**: `/flow:review-code`, `/flow:start`, `/flow:tickets-from-spec`, `/flow:upkeep` and `/flow:write-spec`, each `disable-model-invocation: true`. `home/CLAUDE.md` → `user-only-skills` names `/flow:start`, `/flow:tickets-from-spec` and `/flow:upkeep`, so the agent suggests them.
 - `V1` **A description says what the skill is and what it covers**, never its steps and never when to fire it. Claude Code loads every description at session start and fires a skill from it alone. A description summing up the steps gets followed in place of the file.
 - `V1` **A shell line in a skill runs one named command**, never logic written inline: `` !`flow exp-47 2>&1 || true` ``.
 - `V1` **A skill splits into files only where a part is read on some runs and not others.** `references/` holds those parts, `scripts/` what the skill runs.
+- `V1` **A skill links wiki folders in its frontmatter**: `metadata: { wiki: { <folder>: load | name } }` (`fw-290`, the user 2026-10-25). When the skill loads, started by the agent or typed, the `flow-session` mod appends each `load` folder's `index.md` to the skill's text, and one line naming each `name` folder. Each folder goes once per window: a window holding its line, or a whole `Read` of its `index.md`, gets nothing. A folder whose `index.md` is missing falls back to the line. A subagent's window is judged alone, and the restart window adds the same text. Built on Claude Code's `skill.prompt` event, not a `Read` added to the response (the user, 2026-10-26): no added call, and a typed skill is covered too. Its cases: `fw-290` `context.md` `## 5`. A linked skill carries one line at the step where it learns, sending what worked to the folder's findings, since capture runs only at checkpoints. Why: the failure `fw-204` named was a fact sitting in a store the agent never opened, and a skill's load is when its field's knowledge is needed. `metadata` is Claude Code's field for a tool's own data, and Claude Code ignores it.
 - `V1` **An edit to a skill is live at once**, in every project and in sessions already open, since every link points into the clone. Adding, renaming or removing one needs `flow install`.
 - `V1` **`/flow:execute`, `/flow:debug` and their review stay as they are**, agreed by the user 2026-10-02. Newer models may run many of the checks unasked, but nobody knows which, and Flow is meant for weaker models too. A check goes once beta sessions show it adds nothing.
 - `later` **Each skill audited against what the work touched**, scoped to the files changed, or the reads have no end.
@@ -57,20 +58,23 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 ### The tools
 
 - `V1` **`/flow:start` opens a session**: the board from `flow next`, or one ticket, picking its phase from its type and status.
-- `never` **`/flow:help`, a skill answering any question about Flow or Claude Code.** Dropped 2026-10-14 by the user (`fw-124`): Flow is for them alone, any session answers from `docs/reference/`, `flow doctor` and the logs, and the description loaded into every session for nothing. The skill is in `lab/archive/help/`.
+- `never` **`/flow:help`, a skill answering any question about Flow or Claude Code.** Dropped 2026-10-14 by the user (`fw-124`): Flow is for them alone, any session answers from the docs (now `docs/manual/`, which no loaded file points at), `flow doctor` and the logs, and the description loaded into every session for nothing. The skill is in `lab/archive/help/`.
 - `V1` **`/flow:tickets-from-spec` cuts the next release's behaviors out of `docs/spec/` into tickets**, earliest release first.
-- `V1` **`/flow:upkeep` folds closed tickets, notes, findings and the failure log into the wiki, rules and skills**, user only. It shows one plan and stops, then writes, through `references/write-skills.md` and `references/write-checks.md`. It also reads `flow audit summary` for tickets that looped or ran long.
+- `V1` **`/flow:upkeep` folds closed tickets, notes, findings and the failure log into the wiki, rules and skills**, user only. It shows one plan and stops, then writes, through `~/.flow/references/knowledge.md` and `references/write-checks.md`. It also reads `flow audit summary` for tickets that looped or ran long.
 - `next` **`/flow:upkeep` stays the periodic sweep, and `/flow:file` is a separate closing step per ticket** (`fw-204`, 2026-10-24). Upkeep consolidates, prunes, flags stale pages and changes existing text, so it keeps its plan, the user's yes and its user-only flag. `/flow:file` only routes one ticket's lessons into new files and lines, so the agent runs it at done, park and drop (`docs/spec/tickets.md`). Upkeep then reads what piled up, never closed tickets whole. Its sources change: the index and `context.md` replace `map.md`, decision files and `## State`.
   - Refused: one skill with two scopes, `/flow:upkeep <id>` and `/flow:upkeep`. The two read as the same command, and a closing step must not start rewriting skills.
 - `V1` **`/flow:review-code` and `/flow:write-spec` load a criteria file**, user only: `references/review-code.md` for the code a session changed, `references/write-spec.md` for the decisions written into `docs/spec/`. Review runs in the same session, never a subagent.
+- `V1` **`/flow:audit` answers a question about how something behaved, from the records** (`fw-290`, the user 2026-10-25): sessions through `flow audit`, the logs in `~/.flow/logs/`, ticket histories, `git log`. A guideline the agent adapts to the question, with 2 hard rules: the question, with what a yes, a no and the baseline look like, is written before any data is read; and no conclusion stands on cases read without a count over every case. It writes `reports/<question>.md`, opening `ANSWERED`, `TOO_EARLY` or `NO_RECORD`, on the ticket it runs on, or one it makes labelled `audit`. A failure found becomes a ticket; a fault with no known cause goes to `/flow:debug`. A raw transcript is read only for what the index does not store. Its wiki folder, `audit/`, is linked `load`. Why: such questions come often (a broken restart, whether an added guide is followed, waste in builds, a trial `CLAUDE.md`), and naming the command gave the records but no method.
+  - Refused: a how-to page in the wiki. A page never loads by itself, where a skill fires from its description.
+  - Refused: a check ticket made automatically when a change ships. A ticket needing a later check names the measurement in its `## Done when`.
 
 ### `/flow:handoff`
 
-- `V1` **A handoff writes the state a session that was not here needs.** One test decides each line: would that session get it wrong without it? It never runs at a restart (`fw-228`, decided 2026-10-21, built by `fw-246`): the restart carries the dialogue and the agent's note. Capture is step 4, and it also runs alone, in the new window after a restart, from the carried dialogue and the note.
-- `V1` **Working a ticket, the state is `## State` at the bottom of `ticket.md`**, under 3 labels, written once at the handoff. `Now`: half-done or in flight. `Found`: what cost effort to learn and lives in no file. `Open`: decisions half-made. `Now` is rewritten whole, `Found` and `Open` keep the lines still true. The files a session changed are not written: the mod records them (`fw-97`).
-- `V1` **`## State` never restates `plan.md`, `map.md`, the ticket body or a research report.**
-- `next` **The handoff mostly dissolves** (`fw-204`, 2026-10-24). The index and `context.md` already hold the state, written as the work goes, so `## State` written once at the handoff and the handoff file go. Capture stays as a checkpoint action. Dispatching a subagent or another model, and the start message for it, stay. A subagent keeps its own `jobs/<job>.md` in `context.md`'s format as it works, so a replacement continues when its context fills; `reports/` holds final reports only.
-- `V1` **Work with no ticket gets one.** Work continuing in another session or model also gets a handoff file, `.flow/handoffs/<name>.md`, holding only what fits no ticket. The mod deletes it after one clean turn. A job for a session that reports back gets a child ticket, and a subagent a prompt, both written once from `references/dispatch.md`.
+- `V1` **A handoff brings the ticket up to date for a session that was not here.** One test decides each line: would that session get it wrong without it? It never runs at a restart (`fw-228`, decided 2026-10-21, built by `fw-246`): the restart carries the ticket, its open sections and the agent's note. Capture is step 2, and it also runs alone, in the new window after a restart, from the note.
+- `V1` **The handoff mostly dissolves** (`fw-204`, 2026-10-24, built by `fw-267`). The index and `context.md` already hold the state, written as the work goes, so the handoff only fills what the work missed. Capture stays as a checkpoint action. Dispatching a subagent or another model, and the start message for it, stay. A subagent keeps its own `jobs/<job>.md` in `context.md`'s format as it works, so a replacement continues when its context fills; `reports/` holds final reports only. The files a session changed are not written: the mod records them (`fw-97`).
+  - `never` **`## State` at the bottom of `ticket.md`, written once at the handoff** under `Now`, `Found` and `Open`. Replaced 2026-10-24 by `fw-267`: state written once at the end is lost to a crash, and a restart needed the dialogue to rebuild it. The old skill is `lab/archive/handoff/SKILL-before-fw-267.md`.
+  - `never` **A handoff file, `.flow/handoffs/<name>.md`, deleted by the mod after one clean turn.** Replaced 2026-10-24 by `fw-267`: the order of the next work goes in the start message, and the rest in the ticket. The hook is `lab/archive/mod-handoff-note/`.
+- `V1` **Work with no ticket gets one.** A job for a session that reports back gets a child ticket, and a subagent a prompt, both written once from `references/dispatch.md`.
 - `V1` **The reply opens with the path of each file written.** A restart runs no handoff, so this reply never ends one: the agent's note rides the restart call (`fw-228`). Work for another session or model ends on what the user types there: the ticket's skill (`/exp-47`), then each skill the work needs, after a check that the ticket's status matches where the work stands. `/flow:start` is for a user who does not know what to work on.
 - `later` **A resumed session told the old transcript is there**: a detail the handoff lacks → the last session in `history.md`, opened with `flow audit`.
 
@@ -123,8 +127,7 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 - **`skills/`**: Flow's skills, and `skills/.claude-plugin/plugin.json`.
 - **`scripts/lib/skills/skills.js`**: the skill catalog and what installs.
 - **`scripts/hooks/overlays.js`**: the overlays.
-- **`references/knowledge.md`**: used whole or harvested, and the order for reaching a service.
-- **`skills/tools/upkeep/references/write-skills.md`**: how a skill is written.
+- **`references/knowledge.md`**: used whole or harvested, the order for reaching a service, and how a skill is written. It took over `write-skills.md` 2026-10-26 (`fw-284`), so one file serves `/flow:research`, `/flow:upkeep` and `read-before-adding` in `home/CLAUDE.md`.
 
 ## What passes between them
 

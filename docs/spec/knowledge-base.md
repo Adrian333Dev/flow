@@ -91,6 +91,8 @@ The wiki is `~/.flow/wiki/`: clean knowledge an agent can browse, one folder per
 - `V1` **The rule file's `## Reading` sends work against an outside tool to its folder first**, then its docs, never training memory alone. A page never loads by itself, where a skill's description fires on the work. Approved by the user 2026-10-12. What would overturn it: the line not firing in practice, answered by a small skill per tool that only points to its folder.
 - `V1` **`flow sync` carries `index.md` and the pages to every machine.** Every `downloads/` holds a `.gitignore` of `*` and stays on its machine.
 - `V1` **No project's or client's detail ever enters `~/.flow/`**, since the Flow home goes to GitHub. The test: would the sentence be true in a different project?
+- `V1` **A skill's field gets a folder like any other, linked from the skill** (`docs/spec/skills.md`, `fw-290`, 2026-10-25). The folder's `index.md` arrives with the skill's text, so the skill names the folder and never says to read it. Its pages and findings live in the wiki, written by any project and carried by `flow sync`. `/flow:audit`'s folder is `audit/`, covering every record it reads.
+  - Refused: a knowledge folder inside each skill, grown as it works. A skill is Flow's code, which the agent never edits from a project, and a local edit blocks `flow update`'s pull.
 - `never` **A global `index.md` listing every folder.** It goes stale. `util fs tree ~/.flow/wiki` does not. Ruled by the user 2026-10-12.
 
 ### Capture
@@ -180,7 +182,7 @@ The harvest reads raw reports or an outside skill, and writes what holds into wi
 - **`skills/tools/research/scripts/fetch-docs.sh`**: downloads into a tool's `downloads/` from any folder. `--package` or `--repo` names where the latest release is read, and `--clone` clones or pulls the source into `downloads/repo/`.
 - **`home/CLAUDE.md` → `## Capture`**: where each kind of knowledge goes. **`## Reading`**: work against an outside tool starts from its wiki folder.
 - **`skills/tools/upkeep/SKILL.md`**: the routing from closed tickets, notes and findings to their homes.
-- **`~/.flow/references/knowledge.md`**: the map of what an agent draws on past the rules, read before adding a skill, a plugin or an MCP server.
+- **`~/.flow/references/knowledge.md`**: the map of what an agent draws on past the rules, and how a skill is written, read before proposing a skill, a plugin or an MCP server.
 
 ## What passes between them
 

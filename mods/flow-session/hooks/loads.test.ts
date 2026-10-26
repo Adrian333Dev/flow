@@ -33,10 +33,10 @@ describe('slice', () => {
     expect(slice(DOC, { path: 'd.md', heading: 'B' })).toEqual({ text: '## B\nb1', from: 11, to: 12, whole: false })
   })
 
-  test('a range past the end stops at the last line, and one wholly outside is an error', () => {
+  test('a range past the end stops at the last line; one wholly outside, or a heading the file lacks, loads the whole file', () => {
     expect(slice('a\nb', { path: 'f', from: 2, to: 9 })).toMatchObject({ text: 'b', from: 2, to: 2 })
-    expect(slice('a\nb', { path: 'f', from: 5, to: 9 })).toHaveProperty('error')
-    expect(slice(DOC, { path: 'd.md', heading: 'Z' })).toHaveProperty('error')
+    expect(slice('a\nb', { path: 'f', from: 5, to: 9 })).toEqual({ text: 'a\nb', from: 1, to: 2, whole: true })
+    expect(slice(DOC, { path: 'd.md', heading: 'Z' })).toMatchObject({ from: 1, to: 12, whole: true })
   })
 })
 
