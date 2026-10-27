@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { AGENT_LINES, LEAD, offersRestart, sizeOf, wrapUpLine, wrapUpSettings } from './wrap-up'
+import { AGENT_LINES, HARD, LEAD, offersRestart, sizeOf, wrapUpLine, wrapUpSettings } from './wrap-up'
 
 describe('offersRestart', () => {
   const idle = { running: false, requested: false, restarting: false }
@@ -40,18 +40,19 @@ describe('wrapUpLine', () => {
     expect(wrapUpLine(0, 150000, 150000)).toBe(FINISH)
   })
 
-  test('says stop now when the size crosses 30k past the limit', () => {
-    expect(wrapUpLine(152300, 180000, 150000)).toBe(STOP)
-    expect(wrapUpLine(179999, 180001, 150000)).toBe(STOP)
+  test('says stop now when the size crosses 100k past the limit', () => {
+    expect(HARD).toBe(100000)
+    expect(wrapUpLine(152300, 260000, 150000)).toBe(STOP)
+    expect(wrapUpLine(249999, 250001, 150000)).toBe(STOP)
   })
 
   test('says each once, never on a check between or after the marks', () => {
-    expect(wrapUpLine(152300, 160000, 150000)).toBeUndefined()
-    expect(wrapUpLine(180000, 230000, 150000)).toBeUndefined()
+    expect(wrapUpLine(152300, 200000, 150000)).toBeUndefined()
+    expect(wrapUpLine(250000, 300000, 150000)).toBeUndefined()
   })
 
   test('a size that jumps past both marks gets the second line alone', () => {
-    expect(wrapUpLine(140000, 215000, 150000)).toBe(STOP)
+    expect(wrapUpLine(140000, 265000, 150000)).toBe(STOP)
   })
 
   test('names no size and no handoff', () => {
@@ -62,8 +63,8 @@ describe('wrapUpLine', () => {
 describe('a subagent’s lines', () => {
   test('say the same marks with their own words: save to files, begin with UNFINISHED', () => {
     expect(wrapUpLine(169000, 172300, 170000, AGENT_LINES)).toBe(AGENT_LINES.finish)
-    expect(wrapUpLine(172300, 200000, 170000, AGENT_LINES)).toBe(AGENT_LINES.stop)
-    expect(wrapUpLine(172300, 180000, 170000, AGENT_LINES)).toBeUndefined()
+    expect(wrapUpLine(172300, 270000, 170000, AGENT_LINES)).toBe(AGENT_LINES.stop)
+    expect(wrapUpLine(172300, 200000, 170000, AGENT_LINES)).toBeUndefined()
     for (const line of [AGENT_LINES.finish, AGENT_LINES.stop]) {
       expect(line).toContain('UNFINISHED:')
       expect(line).not.toMatch(/\d|restart|handoff/)

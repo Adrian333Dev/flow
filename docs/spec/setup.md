@@ -33,10 +33,10 @@ How Flow gets onto a machine and into a project, stays current, and shares the u
 ### Installing on a machine
 
 - `V1` **One pasted line installs Flow**, the README's install line. `install.sh` checks for git, node, claude and gh, clones Flow into `~/.flow/repos/flow/`, and runs `flow install`. It is bash because it runs before Flow is on disk. `--use <folder>` skips the clone. Ruled by the user 2026-09-23.
-- `V1` **Prerequisites are checked by running them**: the 4 programs on the PATH, and Claude Code at `MIN_CLAUDE` (2.1.287) or later. A failure stops the run. A prerequisite is what Flow calls and never installs.
+- `V1` **Prerequisites are checked by running them**: the 4 programs on the PATH, Node at `MIN_NODE` (24.12.0) or later, and Claude Code at `MIN_CLAUDE` (2.1.310, the newest release read against Flow) or later. A failure stops the run. A Claude Code newer than `MIN_CLAUDE` adds a note to `flow doctor` and never fails it. A prerequisite is what Flow calls and never installs.
 - `V1` **`flow install` checks everything before it links anything.** It signs `gh` in, finds the Flow home at `<login>/flow-home`, checks the repository is a Flow home, and asks the one question last: the machine's name. A failed check prints `stopped: <why>`, exits 1, and links nothing.
 - `V1` **The machine's name is offered, never invented**: read from the hardware, as `<laptop|pc|server>-<wsl|distro>`, or a Mac's model, `macbook-pro`. It is shown dim, so Enter keeps it and the first key erases it. It is saved as git's `flow.machine`. With no terminal, the offer is taken.
-- `V1` **`flow install` links per item, and never replaces anything that is not a link.** `flow` and `fw` link to `scripts/flow.js`. `util` and `u` come from `util install`, and util is cloned with `--depth 1` into `~/.flow/repos/`.
+- `V1` **`flow install` links per item, and never replaces anything that is not a link.** `flow` and `fw` link to `scripts/flow.ts`. `util` and `u` come from `util install`, and util is cloned with `--depth 1` into `~/.flow/repos/`.
 - `V1` **`flow install` starts `~/.flow/CLAUDE.md` from `home/CLAUDE.md` where it is absent**, and links `~/.claude/CLAUDE.md` to it. It never edits `~/.claude/settings.json`: the setup session does.
 - `V1` **A machine joins the Flow home with `flow install`.** The first machine makes the private repository `<login>/flow-home`, described `Managed by Flow. Never rename, edit or make public.` A later machine pulls it before anything else, then commits its own record, `machines/<name>.json`. It refuses a repository that is not a Flow home (its `.gitignore` opens with a fixed mark), and a `~/.flow/` holding a file the download would overwrite.
 - `V1` **`flow install` owes the setup session** where `~/.claude/CLAUDE.md` is not yet Flow's link, and opens it last. `flow update` owes it on every run. The marker is `~/.flow/logs/setup-pending`. A run that owes nothing opens no session. The run's output goes to `~/.flow/logs/install.log`.
@@ -89,13 +89,13 @@ How Flow gets onto a machine and into a project, stays current, and shares the u
 ## The parts
 
 - **`install.sh`**: the pasted line's script.
-- **`scripts/commands/install.js`**: the check, the links, the clones, the Flow home.
-- **`scripts/commands/init.js`**, **`project-template/`**: the project's setup and its scaffold.
-- **`scripts/commands/update.js`**: the pull and the new install.
-- **`scripts/commands/sync.js`**, **`scripts/lib/machine/flow-repo.js`**: `flow sync`, the Flow home, the machine records and the list of what never travels.
-- **`scripts/commands/doctor.js`**: the checks.
-- **`scripts/lib/machine/`**: the links, the machine's name, the prerequisites and `MIN_CLAUDE`, and the owed setup session.
-- **`scripts/lib/registry.js`**: the registry.
+- **`scripts/commands/install.ts`**: the check, the links, the clones, the Flow home.
+- **`scripts/commands/init.ts`**, **`project-template/`**: the project's setup and its scaffold.
+- **`scripts/commands/update.ts`**: the pull and the new install.
+- **`scripts/commands/sync.ts`**, **`scripts/features/machine/flow-repo.ts`**: `flow sync`, the Flow home, the machine records and the list of what never travels.
+- **`scripts/commands/doctor.ts`**: the checks.
+- **`scripts/features/machine/`**: the links, the machine's name, the prerequisites, `MIN_NODE` and `MIN_CLAUDE`, and the owed setup session.
+- **`scripts/shared/registry.ts`**: the registry.
 - **`scripts/sessions/setup.md`**: the setup session's instructions.
 
 ## What passes between them

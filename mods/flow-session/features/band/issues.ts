@@ -1,7 +1,7 @@
 /**
  * issues.ts: how many Flow issues are open, from the failure log.
  *
- * Repeats `open()` in `scripts/lib/logs/failures.js`, which the mod cannot require. An
+ * Repeats `open()` in `scripts/features/logs/failures.ts`, which the mod cannot require. An
  * issue is a job whose last run failed: a line with a `job` opens it and a later
  * `cleared` line for the same job closes it.
  */

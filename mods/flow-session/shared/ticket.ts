@@ -1,12 +1,12 @@
 /**
- * ticket.ts: reads a ticket's text the way the band needs it: its name, status, word and count.
+ * ticket.ts: reads a ticket the way the band needs it: its name, status, word and count.
  *
- * The mod cannot require Flow's scripts, so `STEP`, `QUESTION` and the counting repeat
- * `scripts/lib/tickets/store.js`. The word is the ticket's `activity:`; without one,
- * `DESIGN` while `## Questions` has an open box, else `BUILD` while `## Tasks` has one,
- * else the status.
+ * The mod cannot require Flow's scripts, so it asks them: `flow tickets get <ids> --json` answers
+ * for every id in one process, with the counts and the lines of the open work already worked out.
+ * The word is the ticket's `activity`; without one, `DESIGN` while `## Questions` has an open
+ * box, else `BUILD` while `## Tasks` has one, else the status.
  */
-import { frontmatter } from './frontmatter'
+import type { EngineInterface } from 'claude-code'
 
 export type Ticket = {
   id: string
@@ -18,40 +18,25 @@ export type Ticket = {
 
 type Count = { done: number; total: number }
 
-// The same patterns as the scripts: a step sits at the left margin, a question at any indent.
-const STEP = /^ {0,3}(?:\d+[.)]|[-*])\s+\[([ xX])\]/
-const QUESTION = /^\s*(?:\d+[.)]|[-*])\s+\[([ xX])\]/
-
-/** Ticked and total boxes of a text. A commented-out box is not a box. */
-function countBoxes(text: string | undefined, pattern: RegExp): Count | undefined {
-  if (text === undefined) return undefined
-  const boxes = text
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .split('\n')
-    .map((line) => pattern.exec(line))
-    .filter((match): match is RegExpExecArray => match !== null)
-  return boxes.length ? { done: boxes.filter((m) => m[1] !== ' ').length, total: boxes.length } : undefined
+/** The fields of `flow tickets get --json` that the band reads. A count is null where the ticket has no list. */
+export type TicketJson = {
+  id: string
+  name: string
+  status: string
+  activity?: string | null
+  questions: Count | null
+  tasks: Count | null
+  /** The groundwork map of an older ticket: its count and the line of its first open box. */
+  map: (Count & { line: number | null }) | null
+  /** The lines of `ticket.md`, from 1, of the first open task and of the first open question. */
+  firstOpen: { task: number | null; question: number | null }
+  /** The handles of the open questions: `1.2` is the heading of its section in `context.md`. */
+  openQuestions: string[]
+  path: string
 }
 
-/** The text under `## <heading>` up to the next `##` heading, or undefined where there is none. */
-function section(body: string, heading: string): string | undefined {
-  const lines = body.split('\n')
-  const start = lines.findIndex((line) => line.trim() === `## ${heading}`)
-  if (start === -1) return undefined
-  const rest = lines.slice(start + 1)
-  const end = rest.findIndex((line) => /^## /.test(line))
-  return (end === -1 ? rest : rest.slice(0, end)).join('\n')
-}
-
-/** The frontmatter fields, unquoted, and the body after them. */
-function split(text: string): { fields: Record<string, string>; body: string } {
-  const { fields, body } = frontmatter(text)
-  const unquoted = Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, value.replace(/^["']|["']$/g, '')]))
-  return { fields: unquoted, body }
-}
-
-const isOpen = (count?: Count) => count !== undefined && count.done < count.total
-const show = (count?: Count) => (count ? `${count.done}/${count.total}` : '')
+const isOpen = (count?: Count | null) => count != null && count.done < count.total
+const show = (count?: Count | null) => (count ? `${count.done}/${count.total}` : '')
 
 /** The `ticketPrefix` in the text of a `.flow/settings.json`, or undefined when it holds none. */
 export function ticketPrefix(settings: string | undefined): string | undefined {
@@ -63,39 +48,33 @@ export function ticketPrefix(settings: string | undefined): string | undefined {
   }
 }
 
-/** The full id of a stored one: `9` is `fw-9` in a project whose prefix is `fw`; `fw-9` and `home-3` are as they are. */
-const fullId = (stored: string, prefix?: string): string => (/^\d+$/.test(stored) && prefix ? `${prefix}-${Number(stored)}` : stored)
-
 /**
- * The ticket in `text` (a `ticket.md`), or undefined where it has no id or status.
- * `map` is the text of its `groundwork/map.md`, counted for a design ticket with no questions of its own.
- * `prefix` is the project's `ticketPrefix`: the file holds the number alone.
+ * The tickets `ids` name, read by one `flow tickets get` run from the project at `cwd`. One id
+ * prints the ticket itself and several print `{ tickets, missing }`; an id with no ticket is
+ * left out. Where `flow` cannot run, or prints no JSON, the answer is none.
  */
-export function readTicket(text: string, map?: string, prefix?: string): Ticket | undefined {
-  const { fields, body } = split(text)
-  const { status } = fields
-  const id = fields.id ? fullId(fields.id, prefix) : undefined
-  if (!id || !status) return undefined
-  const questions = countBoxes(section(body, 'Questions'), QUESTION)
-  const tasks = countBoxes(section(body, 'Tasks'), STEP)
-  const activity = fields.activity?.toLowerCase()
-  const word = activity || (isOpen(questions) ? 'design' : isOpen(tasks) ? 'build' : status)
-  const designs = word === 'design'
-  const count = designs
-    ? (questions ?? countBoxes(map, QUESTION) ?? tasks)
-    : (tasks ?? questions ?? countBoxes(map, QUESTION))
-  // A ticket with no list shows the word alone: a cause hunt has nothing to count.
-  const shown = [word.toUpperCase(), activity || isOpen(questions) || isOpen(tasks) ? show(count) : ''].filter(Boolean)
-  return { id, name: fields.title ? `${id}-${fields.title}` : id, status, word: shown.join(' ') }
+export async function readTickets($: EngineInterface, ids: readonly string[], cwd: string): Promise<TicketJson[]> {
+  if (!ids.length) return []
+  try {
+    const ran = await $.process.run(['flow', 'tickets', 'get', ...ids, '--json'], { cwd, timeoutMs: 10000 })
+    const data = JSON.parse(ran.stdout) as { error?: string; tickets?: TicketJson[] } & TicketJson
+    if (data.tickets) return data.tickets
+    return data.error === undefined ? [data] : []
+  } catch {
+    return []
+  }
 }
 
-/** The handles of the open questions in a `ticket.md`: `- [ ] 1.2: …` is `1.2`, the heading of its section in `context.md`. A question with no handle has none. */
-export function openHandles(text: string): string[] {
-  const questions = section(split(text).body, 'Questions')?.replace(/<!--[\s\S]*?-->/g, '') ?? ''
-  return questions
-    .split('\n')
-    .map((line) => /^\s*(?:\d+[.)]|[-*])\s+\[ \]\s+`?([^\s:`]+)`?:/.exec(line)?.[1])
-    .filter((handle): handle is string => handle !== undefined)
+/** The ticket as the band shows it. */
+export function readTicket(json: TicketJson): Ticket {
+  const questions = json.questions
+  const tasks = json.tasks
+  const activity = json.activity?.toLowerCase()
+  const word = activity || (isOpen(questions) ? 'design' : isOpen(tasks) ? 'build' : json.status)
+  const count = word === 'design' ? (questions ?? json.map ?? tasks) : (tasks ?? questions ?? json.map)
+  // A ticket with no list shows the word alone: a cause hunt has nothing to count.
+  const shown = [word.toUpperCase(), activity || isOpen(questions) || isOpen(tasks) ? show(count) : ''].filter(Boolean)
+  return { id: json.id, name: json.name, status: json.status, word: shown.join(' ') }
 }
 
 /** The ticket ids a command names, such as `fw-137`. */
@@ -113,35 +92,17 @@ export const startedIn = (command: string): string[] => [...command.matchAll(/\b
 /** Where a click on a badge's word lands: a file of the ticket and a line in it, counted from 1. */
 export type Target = { file: 'ticket' | 'map'; line: number }
 
-/** The line of the first open box in `text`, or in the lines under `## <heading>` when one is named. Commented-out lines are skipped. */
-function firstOpen(text: string, pattern: RegExp, heading?: string): number | undefined {
-  const lines = text.split('\n')
-  let inside = heading === undefined
-  let commented = false
-  for (const [at, line] of lines.entries()) {
-    if (heading !== undefined && /^## /.test(line)) inside = line.trim() === `## ${heading}`
-    if (commented || line.includes('<!--')) commented = !line.includes('-->')
-    else if (inside && pattern.exec(line)?.[1] === ' ') return at + 1
-  }
-  return undefined
-}
-
 /**
  * Where the word of `ticket` points: `BUILD` at the first open task, `DESIGN` at the first open
  * question (the map's, when the ticket has none), any other word at the top of the ticket.
  */
-export function target(ticket: string, map: string | undefined, word: string): Target {
+export function target(json: TicketJson, word: string): Target {
   const top: Target = { file: 'ticket', line: 1 }
   const first = word.split(' ')[0]?.toLowerCase()
-  if (first === 'build') {
-    const line = firstOpen(ticket, STEP, 'Tasks')
-    return line ? { file: 'ticket', line } : top
-  }
+  if (first === 'build') return json.firstOpen.task ? { file: 'ticket', line: json.firstOpen.task } : top
   if (first === 'design') {
-    const line = firstOpen(ticket, QUESTION, 'Questions')
-    if (line) return { file: 'ticket', line }
-    const inMap = map === undefined ? undefined : firstOpen(map, QUESTION)
-    return inMap ? { file: 'map', line: inMap } : top
+    if (json.firstOpen.question) return { file: 'ticket', line: json.firstOpen.question }
+    return json.map?.line ? { file: 'map', line: json.map.line } : top
   }
   return top
 }

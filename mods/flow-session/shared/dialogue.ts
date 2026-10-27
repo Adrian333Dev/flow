@@ -11,8 +11,9 @@ import type { SessionMessage } from 'claude-code'
 export const ASK_PREFIX = 'Restart now:'
 /** The prompt the mod submits to start the turn after an automatic restart. */
 export const CONTINUE = 'Continue from the note.'
-/** How the first and the note's message of a restarted window begin. */
+/** How the first message of a restarted window begins. */
 export const OPENING = 'Session restarted.'
+/** How the message holding the agent's note begins. */
 export const NOTE_PREFIX = 'Note from the old agent:'
 /** The id prefix of a call the mod wrote into a window. */
 export const FAKE_ID = 'toolu_restart_'

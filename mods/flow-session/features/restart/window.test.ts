@@ -12,11 +12,17 @@ type Built = { messages: { text: string; toolUses: { input: { file_path?: string
  * The part of the engine `buildWindow` uses, over a disk the test holds. The kit's `$` is the
  * mod's hooks, not the engine, so the function is handed this stand-in. It writes nothing.
  */
-function engine(state: { files: Record<string, string>; listed?: string[] }): { $: EngineInterface } {
+function engine(state: { files: Record<string, string>; listed?: string[]; open?: Record<string, string[]> }): { $: EngineInterface } {
   const usage = async () => ({ context: { tokens: 0, window: 0, breakdown: { skills: { skillFrontmatter: (state.listed ?? []).map((name) => ({ name, source: 'built-in', tokens: 0 })) } } } })
   const $ = {
     session: { root: async () => '/work/flow-dev', id: async () => '17da95cd-0000-4000-8000-000000000000', usage },
     env: { get: async () => '/h' },
+    process: {
+      run: async (argv: string[]) => {
+        const found = argv.slice(3, -1).map((id) => ({ id, openQuestions: state.open?.[id] ?? [] }))
+        return { exitCode: 0, stdout: JSON.stringify(found.length === 1 ? found[0] : { tickets: found, missing: [] }), stderr: '' }
+      },
+    },
     fs: {
       exists: async (path: string) => path in state.files,
       read: async (path: string) => {
@@ -58,7 +64,7 @@ describe('the loads of a window', () => {
     const CONTEXT = '/work/flow-dev/.flow/tickets/244/context.md'
     const ticket = '## Questions\n\n- [x] 1: done\n  - [ ] 1.1: open\n- [ ] 2: open, no section\n- [ ] no handle\n\n## Tasks'
     const context = '## 1\n\nONE\n\n## 1.1\n\nOPEN\n\n## Loose\n\nLOOSE'
-    const { $ } = engine({ files: { [TICKET]: ticket, [CONTEXT]: context } })
+    const { $ } = engine({ files: { [TICKET]: ticket, [CONTEXT]: context }, open: { 'fw-244': ['1.1', '2'] } })
     const built = (await build($, { restart: restart({ files: ['.flow/tickets/244/context.md#1.1'] }), entries: [entry('fw-244')] })) as Built
     expect(paths(built)).toEqual([TICKET, CONTEXT])
     const text = JSON.stringify(built.messages)

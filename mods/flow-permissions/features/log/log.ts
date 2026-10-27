@@ -1,7 +1,7 @@
 /**
  * log.ts: one line per ask for `~/.flow/logs/permissions/<year>-<month>.jsonl`.
  *
- * `flow audit permissions` (scripts/lib/audit/permissions.js) reads it. It skips
+ * `flow audit permissions` (scripts/features/audit/permissions.ts) reads it. It skips
  * a line without a string `source` and `answer`, counts `answer: "auto-allow"`
  * apart from asks, and exempts a `source: "rule"` line whose `rule` is spelled
  * as in home/settings.json → `permissions.ask`.

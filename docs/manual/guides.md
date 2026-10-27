@@ -1,6 +1,6 @@
 # Guides sent by situation
 
-Flow's `flow-session` mod watches each response the agent writes. When a response touches a file that a writing guide covers, the mod adds a `Read` of that guide to the same response. When the response edits or writes such a file before the guide is read, the mod holds the edit back and reads the guide in its place. The list lives in `mods/flow-session/hooks/situations.ts`.
+Flow's `flow-session` mod watches each response the agent writes. When a response touches a file that a writing guide covers, the mod adds a `Read` of that guide to the same response. When the response edits or writes such a file before the guide is read, the mod holds the edit back and reads the guide in its place. The list lives in `mods/flow-session/features/guides/situations.ts`.
 
 ## Table of contents
 

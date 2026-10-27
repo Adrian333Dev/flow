@@ -1,0 +1,485 @@
+/**
+ * `flow audit`: the reader, against a transcript built line by line.
+ *
+ * A hand-built transcript rather than a real one: the assertions here are
+ * about the derivations, and a real session cannot be asserted against without
+ * restating what it holds. The shapes are copied from what Claude Code
+ * actually writes (verified 2026-09-02 against version 2.1.258) so a change
+ * to the format breaks this file rather than passing quietly.
+ *
+ * The incremental walk is the case worth guarding. It resumes from a byte
+ * offset, so the failure it can have is double-counting an appended tail, and
+ * nothing about the output would look wrong.
+ */
+
+import { test } from 'node:test';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+import { project, run } from '../../shared/testing.ts';
+
+const CWD = '/home/me/code/demo';
+const SESSION = '11111111-2222-3333-4444-555555555555';
+const PROJECT = '-home-me-code-demo';
+
+let clock = Date.parse('2026-09-02T10:00:00.000Z');
+const stamp = () => new Date((clock += 1000)).toISOString();
+
+const base = (type, extra) => ({
+  parentUuid: null, isSidechain: false, type, uuid: `u${clock}`, timestamp: stamp(),
+  userType: 'external', entrypoint: 'cli', cwd: CWD, sessionId: SESSION,
+  version: '2.1.258', gitBranch: 'main', ...extra,
+});
+
+const prompt = (promptId, text) =>
+  base('user', { promptId, promptSource: 'typed', message: { role: 'user', content: text } });
+
+const says = (text, usage = {}) => base('assistant', {
+  message: {
+    model: 'claude-opus-5', role: 'assistant', content: [{ type: 'text', text }],
+    usage: { input_tokens: 5, output_tokens: 100, cache_read_input_tokens: 2000, cache_creation_input_tokens: 50, ...usage },
+  },
+});
+
+const calls = (id, name, input) => base('assistant', {
+  message: {
+    model: 'claude-opus-5', role: 'assistant',
+    content: [{ type: 'tool_use', id, name, input }],
+    usage: { input_tokens: 1, output_tokens: 20, cache_read_input_tokens: 1000, cache_creation_input_tokens: 10 },
+  },
+});
+
+const returns = (id, promptId, result, isError = false) => base('user', {
+  promptId,
+  message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: id, content: 'ok', is_error: isError }] },
+  toolUseResult: result,
+});
+
+const compaction = (pre, post) => base('system', {
+  subtype: 'compact_boundary', isMeta: true, content: 'Conversation compacted',
+  compactMetadata: { trigger: 'manual', preTokens: pre, postTokens: post, cumulativeDroppedTokens: pre - post, durationMs: 4000 },
+});
+
+/** The transcript both halves of the incremental test are built from. */
+function firstHalf() {
+  return [
+    prompt('p1', 'read the layout'),
+    calls('t1', 'Read', { file_path: `${CWD}/docs/layout.md` }),
+    returns('t1', 'p1', { type: 'text', file: { filePath: `${CWD}/docs/layout.md`, content: 'body', startLine: 1, numLines: 40, totalLines: 90 } }),
+    calls('t2', 'Bash', { command: "cat notes.md && sed -n '10,20p' docs/layout.md" }),
+    returns('t2', 'p1', { stdout: 'text', stderr: '', interrupted: false, isImage: false }),
+    says('here is the layout'),
+    base('attachment', { attachment: { type: 'nested_memory', path: `${CWD}/CLAUDE.md`, displayPath: 'CLAUDE.md', content: 'rules' } }),
+    base('system', { subtype: 'turn_duration', isMeta: true, durationMs: 61000, messageCount: 7 }),
+  ];
+}
+
+function secondHalf() {
+  return [
+    compaction(190000, 15000),
+    base('user', { promptId: 'p2', isCompactSummary: true, isVisibleInTranscriptOnly: true, message: { role: 'user', content: 'This session is being continued…' } }),
+    prompt('p3', 'now write the file'),
+    calls('t3', 'Write', { file_path: `${CWD}/out.md`, content: 'x' }),
+    returns('t3', 'p3', { type: 'create', filePath: `${CWD}/out.md`, content: 'x', structuredPatch: [{ newStart: 1, newLines: 3 }] }),
+    // A heredoc body is prose, and prose parses as commands unless it is
+    // stripped: `tail the log` once recorded a file named `the`.
+    calls('t4', 'Bash', { command: "cat > guide.md <<'EOF'\ntail the log and see\nEOF" }),
+    returns('t4', 'p3', { stdout: '', stderr: '', interrupted: false, isImage: false }),
+    calls('t5', 'Grep', { pattern: 'x' }),
+    returns('t5', 'p3', 'Error: nothing matched', true),
+    says('done'),
+  ];
+}
+
+const asLines = (events) => events.map((e) => JSON.stringify(e)).join('\n') + '\n';
+
+/** A scratch pair of roots: transcripts to read, and an index to write. */
+function roots(name) {
+  const dir = project(name);
+  const claude = path.join(dir, 'claude');
+  const home = path.join(dir, 'flow-home');
+  const file = path.join(claude, 'projects', PROJECT, `${SESSION}.jsonl`);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  return {
+    dir,
+    file,
+    env: { ...process.env, CLAUDE_CONFIG_DIR: claude, FLOW_HOME: home, FLOW_PROJECT: dir },
+  };
+}
+
+const audit = (env, args) => run('flow.ts', ['audit', ...args], { env });
+
+test('a transcript becomes sessions, segments, turns, tools and file touches', () => {
+  const { file, env } = roots('audit-shape');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const rows = (sql) => audit(env, ['sql', sql]).stdout;
+
+  // Two segments: the compaction ends the first, the file ends the second.
+  assert.match(rows('SELECT ordinal, ended_by, trigger, pre_tokens FROM segment ORDER BY ordinal'), /1 +compact +manual +190000/);
+  assert.match(rows('SELECT ordinal, ended_by FROM segment ORDER BY ordinal'), /2 +end/);
+
+  // Three turns, and the compaction summary is one of them.
+  assert.match(rows("SELECT COUNT(*) n FROM turn"), /\b3\b/);
+  assert.match(rows("SELECT ordinal, source FROM turn WHERE source = 'compact'"), /2 +compact/);
+
+  // A turn carries what the assistant spent inside it, from the usage blocks.
+  assert.match(rows("SELECT output_tokens FROM turn WHERE prompt_id = 'p1'"), /140/);
+  assert.match(rows("SELECT duration_ms, messages FROM turn WHERE prompt_id = 'p1'"), /61000 +7/);
+
+  // Every tool call finds its result, including the errored one.
+  assert.match(rows('SELECT COUNT(*) n FROM tool_call WHERE result_line IS NOT NULL'), /\b5\b/);
+  assert.match(rows("SELECT name, is_error FROM tool_call WHERE is_error = 1"), /Grep +1/);
+});
+
+test('every session carries the name of the machine that indexed it', () => {
+  const named = roots('audit-machine');
+  fs.writeFileSync(named.file, asLines(firstHalf()));
+  const config = path.join(named.dir, 'gitconfig');
+  fs.writeFileSync(config, '[flow]\n\tmachine = pc-test\n');
+  assert.strictEqual(audit({ ...named.env, GIT_CONFIG_GLOBAL: config }, ['index', '--quiet']).code, 0);
+  assert.match(audit(named.env, ['sql', 'SELECT machine FROM session']).stdout, /^pc-test$/m);
+
+  // Before `flow install` saved a name, the tag says so rather than guessing one.
+  const bare = roots('audit-machine-unnamed');
+  fs.writeFileSync(bare.file, asLines(firstHalf()));
+  assert.strictEqual(audit(bare.env, ['index', '--quiet']).code, 0);
+  assert.match(audit(bare.env, ['sql', 'SELECT machine FROM session']).stdout, /^unnamed$/m);
+});
+
+test('every answer from the index opens with one coverage line per machine', () => {
+  const { dir, file, env } = roots('audit-coverage');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  const config = path.join(dir, 'gitconfig');
+  fs.writeFileSync(config, '[flow]\n\tmachine = pc-test\n');
+  const named = { ...env, GIT_CONFIG_GLOBAL: config };
+  assert.strictEqual(audit(named, ['index', '--quiet']).code, 0);
+
+  const line = /^pc-test: 1 session, newest 2026-09-02\nindex read just now\n\n/;
+  const id = SESSION.slice(0, 8);
+  for (const args of [[], ['get', id], ['turns', id], ['read', id, '--turns', '1'], ['summary'],
+    ['timeline', id], ['context', id], ['sql', 'SELECT 1 n']]) {
+    const shown = audit(named, args);
+    assert.strictEqual(shown.code, 0, shown.stderr);
+    assert.match(shown.stdout, line, `flow audit ${args.join(' ')}`);
+  }
+
+  // A filter narrows the rows and leaves the coverage whole.
+  assert.match(audit(named, ['--', 'project:nothing-like-it']).stdout, line);
+  assert.match(audit(named, ['summary', id, '--', 'since:2026-09-01']).stdout, line);
+
+  // The query names the index's fields alone, one value each.
+  assert.match(audit(named, ['--', 'cache']).stderr, /searches no words/);
+  assert.match(audit(named, ['--', 'project:a,b']).stderr, /project: takes one value/);
+  assert.match(audit(named, ['sql', 'SELECT', '1']).stderr, /quote the SQL: flow audit sql "SELECT 1"/);
+
+  // What does not answer from the index opens with nothing.
+  for (const args of [['where'], ['schema']]) {
+    assert.doesNotMatch(audit(named, args).stdout, /pc-test/, `flow audit ${args.join(' ')}`);
+  }
+});
+
+test('a long prompt is stored whole, and a listing still trims it', () => {
+  const { file, env } = roots('audit-long-prompt');
+  const long = 'word '.repeat(400) + 'the end';
+  fs.writeFileSync(file, asLines([prompt('p1', long), says('ok')]));
+
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+  assert.match(audit(env, ['sql', 'SELECT length(prompt) n FROM turn']).stdout, new RegExp(`\\b${long.length}\\b`));
+  assert.doesNotMatch(audit(env, ['turns', SESSION.slice(0, 8)]).stdout, /the end/);
+});
+
+test('a reply written as several lines counts its tokens once', () => {
+  const { file, env } = roots('audit-reply-once');
+  // Claude Code writes one line per content block, each with the reply's whole usage.
+  const usage = { input_tokens: 3, output_tokens: 70, cache_read_input_tokens: 9000, cache_creation_input_tokens: 40 };
+  const block = (content) => base('assistant', {
+    message: { id: 'msg_1', model: 'claude-opus-5', role: 'assistant', content: [content], usage },
+  });
+  fs.writeFileSync(file, asLines([
+    prompt('p1', 'edit it'),
+    block({ type: 'text', text: 'editing' }),
+    block({ type: 'tool_use', id: 't1', name: 'Edit', input: { file_path: `${CWD}/a.md` } }),
+    returns('t1', 'p1', { filePath: `${CWD}/a.md` }),
+  ]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const rows = (sql) => audit(env, ['sql', sql]).stdout;
+  assert.match(rows("SELECT cache_read, output_tokens FROM turn WHERE prompt_id = 'p1'"), /^9000 +70$/m);
+  assert.match(rows('SELECT COUNT(*) n FROM request'), /^1$/m);
+  assert.match(rows('SELECT r.message_id FROM tool_call c JOIN request r ON r.id = c.request_id'), /msg_1/);
+});
+
+test('a reply keeps its largest count, across lines and across walks', () => {
+  const { file, env } = roots('audit-reply-largest');
+  // A reply opening with thinking writes its first line mid-stream; a later
+  // copy of a reply can carry every count at 0. Both seen in real transcripts.
+  const block = (content, usage) => base('assistant', {
+    message: {
+      id: 'msg_1', model: 'claude-opus-5', role: 'assistant', content: [content],
+      usage: { input_tokens: 3, cache_read_input_tokens: 9000, cache_creation_input_tokens: 40, ...usage },
+    },
+  });
+  fs.writeFileSync(file, asLines([
+    prompt('p1', 'write it'),
+    block({ type: 'thinking', thinking: '' }, { output_tokens: 4 }),
+  ]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  fs.appendFileSync(file, asLines([
+    block({ type: 'tool_use', id: 't1', name: 'Write', input: { file_path: `${CWD}/a.md`, content: 'x' } }, { output_tokens: 5237 }),
+    returns('t1', 'p1', { filePath: `${CWD}/a.md` }),
+    block({ type: 'text', text: 'done' }, { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 }),
+  ]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const rows = (sql) => audit(env, ['sql', sql]).stdout;
+  assert.match(rows('SELECT output_tokens, cache_read FROM request'), /^5237 +9000$/m);
+  assert.match(rows("SELECT output_tokens, cache_read FROM turn WHERE prompt_id = 'p1'"), /^5237 +9000$/m);
+  assert.match(rows('SELECT output_tokens FROM session'), /^5237$/m);
+  assert.match(rows('SELECT r.message_id FROM tool_call c JOIN request r ON r.id = c.request_id'), /msg_1/);
+});
+
+test('context prints the size at each request, and marks the first edit', () => {
+  const { file, env } = roots('audit-context');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const shown = audit(env, ['context', SESSION.slice(0, 4)]);
+  assert.strictEqual(shown.code, 0, shown.stderr);
+  // The Write in turn 3 is the 4th request; each tool call's request read 1000 + 1 + 10.
+  assert.match(shown.stdout, /^first edit: request 4, turn 3, line \d+, context 1\.0k$/m);
+  assert.match(shown.stdout, /^peak: 2\.1k · 7 requests$/m);
+  assert.match(shown.stdout, /^4 +3 +\d+ +\S+ +1\.0k +20 +Write +← first edit$/m);
+});
+
+test('a file is attributed by every route, and confidence says which', () => {
+  const { file, env } = roots('audit-files');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const touches = audit(env, ['sql',
+    'SELECT path, given, type, confidence, via, start_line, end_line FROM file_touch ORDER BY id']).stdout;
+
+  // The Read tool reports its own line range even though the call passed none.
+  assert.match(touches, new RegExp(`${CWD}/docs/layout.md.+read +exact +Read +1 +40`));
+  // A relative path is resolved against the directory the event ran in, so one
+  // file is one row rather than two.
+  assert.match(touches, new RegExp(`${CWD}/notes.md +notes.md +read +parsed +bash:cat`));
+  assert.match(touches, /bash:sed +10 +20/);
+  // An attachment enters context with no tool call at all.
+  assert.match(touches, new RegExp(`${CWD}/CLAUDE.md.+declared +attachment:nested_memory`));
+  assert.match(touches, new RegExp(`${CWD}/out.md.+write +exact +Write`));
+
+  // Nothing from inside the heredoc body.
+  assert.doesNotMatch(touches, /\bthe\b *\|/);
+  assert.strictEqual(audit(env, ['sql', "SELECT COUNT(*) n FROM file_touch WHERE path LIKE '%/the'"]).stdout.trim().split('\n').pop()!.trim(), '0');
+});
+
+test('a read a mod wrote into the window, with no toolUseResult, still records its file', () => {
+  const { file, env } = roots('audit-mod-read');
+  // A restart's window: the call and a bare result block, as dialogue.ts writes them.
+  const result = base('user', {
+    promptId: 'p1',
+    message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_restart_1', content: '     1\tbody' }] },
+  });
+  fs.writeFileSync(file, asLines([prompt('p1', 'Session restarted.'), calls('toolu_restart_1', 'Read', { file_path: `${CWD}/ticket.md` }), result, says('ok')]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const touches = audit(env, ['sql', 'SELECT path, via FROM file_touch']).stdout;
+  assert.match(touches, new RegExp(`${CWD}/ticket.md +Read`));
+  assert.match(audit(env, ['sql', 'SELECT result_line FROM tool_call']).stdout, /\b3\b/);
+});
+
+test('indexing an appended transcript matches indexing it whole', () => {
+  const whole = roots('audit-whole');
+  fs.writeFileSync(whole.file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(whole.env, ['index', '--quiet']).code, 0);
+
+  const grown = roots('audit-grown');
+  fs.writeFileSync(grown.file, asLines(firstHalf()));
+  assert.strictEqual(audit(grown.env, ['index', '--quiet']).code, 0);
+  fs.appendFileSync(grown.file, asLines(secondHalf()));
+
+  const second = audit(grown.env, ['index', '--quiet']);
+  assert.strictEqual(second.code, 0, second.stderr);
+  assert.match(second.stdout, /1 transcripts read/);
+
+  const counts = 'SELECT (SELECT COUNT(*) FROM event) e, (SELECT COUNT(*) FROM turn) t, ' +
+    '(SELECT COUNT(*) FROM segment) s, (SELECT COUNT(*) FROM tool_call) c, ' +
+    '(SELECT COUNT(*) FROM file_touch) f, (SELECT SUM(output_tokens) FROM turn) o';
+  assert.strictEqual(audit(grown.env, ['sql', counts]).stdout, audit(whole.env, ['sql', counts]).stdout);
+
+  // And a file nothing appended to is not opened again.
+  const third = audit(grown.env, ['index', '--quiet']);
+  assert.match(third.stdout, /0 transcripts read, 1 unchanged/);
+});
+
+test('read takes a turn range and refuses to take a session', () => {
+  const { file, env } = roots('audit-read');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const slice = audit(env, ['read', SESSION.slice(0, 8), '--turns', '1']);
+  assert.strictEqual(slice.code, 0, slice.stderr);
+  assert.match(slice.stdout, /read the layout/);
+  assert.match(slice.stdout, /→ Read/);
+  assert.doesNotMatch(slice.stdout, /now write the file/);
+
+  const unbounded = audit(env, ['read', SESSION.slice(0, 8)]);
+  assert.notStrictEqual(unbounded.code, 0);
+  assert.match(unbounded.stderr, /--turns is required/);
+
+  const missing = audit(env, ['read', SESSION.slice(0, 8), '--turns', '99']);
+  assert.notStrictEqual(missing.code, 0);
+  assert.match(missing.stderr, /has no turns 99-99/);
+});
+
+test('sql reads and never writes', () => {
+  const { file, env } = roots('audit-sql');
+  fs.writeFileSync(file, asLines(firstHalf()));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const write = audit(env, ['sql', 'DELETE FROM event']);
+  assert.notStrictEqual(write.code, 0);
+  assert.match(write.stderr, /SELECT and WITH only/);
+
+  const sneaky = audit(env, ['sql', 'SELECT 1; PRAGMA writable_schema = 1']);
+  assert.notStrictEqual(sneaky.code, 0);
+
+  assert.strictEqual(audit(env, ['sql', 'SELECT COUNT(*) n FROM event']).code, 0);
+
+  const fn = audit(env, ['sql', "SELECT replace('abc','b','x') r"]);
+  assert.strictEqual(fn.code, 0);
+  assert.match(fn.stdout, /axc/);
+
+  const statement = audit(env, ['sql', "REPLACE INTO meta (key, value) VALUES ('a', 'b')"]);
+  assert.notStrictEqual(statement.code, 0);
+
+  const unknown = audit(env, ['sql', 'SELECT * FROM nothing_here']);
+  assert.notStrictEqual(unknown.code, 0);
+  assert.match(unknown.stderr, /no such table: nothing_here/);
+  assert.doesNotMatch(unknown.stderr, /\n\s+at /);
+});
+
+test('summary shows compact metrics for one session', () => {
+  const { file, env } = roots('audit-summary');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const result = audit(env, ['summary', SESSION.slice(0, 8)]);
+  assert.strictEqual(result.code, 0, result.stderr);
+  assert.match(result.stdout, /3 turns/);
+  assert.match(result.stdout, /5 tools/);
+  assert.match(result.stdout, /1 errors/);
+  assert.match(result.stdout, /Read \d/);
+  assert.match(result.stdout, /Bash \d/);
+});
+
+test('summary without an id aggregates across sessions', () => {
+  const { file, env } = roots('audit-summary-all');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const result = audit(env, ['summary']);
+  assert.strictEqual(result.code, 0, result.stderr);
+  assert.match(result.stdout, /1 sessions/);
+  assert.match(result.stdout, /5 tools/);
+});
+
+test('timeline lists every tool call in a session', () => {
+  const { file, env } = roots('audit-timeline');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const result = audit(env, ['timeline', SESSION.slice(0, 8)]);
+  assert.strictEqual(result.code, 0, result.stderr);
+  assert.match(result.stdout, /Read\s+ok/);
+  assert.match(result.stdout, /Bash\s+ok/);
+  assert.match(result.stdout, /Write\s+ok/);
+  assert.match(result.stdout, /Grep\s+ERR/);
+});
+
+test('bare flow audit lists the sessions, and a bare id is no action', () => {
+  const { file, env } = roots('audit-default');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const listed = audit(env, []);
+  assert.strictEqual(listed.code, 0, listed.stderr);
+  assert.match(listed.stdout, new RegExp(SESSION.slice(0, 8)));
+
+  const one = audit(env, ['get', SESSION.slice(0, 8)]);
+  assert.strictEqual(one.code, 0, one.stderr);
+
+  const shortcut = audit(env, [SESSION.slice(0, 8)]);
+  assert.notStrictEqual(shortcut.code, 0);
+  assert.match(shortcut.stderr, /unknown command "audit /);
+  assert.match(shortcut.stderr, /flow audit get <id>/);
+});
+
+test('a query against a missing index says how to build one', () => {
+  const { env } = roots('audit-empty');
+  const result = audit(env, []);
+  assert.notStrictEqual(result.code, 0);
+  assert.match(result.stderr, /flow audit index/);
+});
+
+test('a read refreshes an index older than 30 minutes, and says how old it is', () => {
+  const { file, env } = roots('audit-throttle');
+  fs.writeFileSync(file, asLines(firstHalf()));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  // Fresh: the appended turns stay unread, and the age shows under the coverage line.
+  fs.appendFileSync(file, asLines(secondHalf()));
+  const fresh = audit(env, ['summary']);
+  assert.strictEqual(fresh.code, 0, fresh.stderr);
+  assert.match(fresh.stdout, /index read just now/);
+  assert.match(fresh.stdout, /\b1 turns/);
+
+  // Stale: the same read takes the appended turns in first.
+  const where = audit(env, ['where']).stdout.match(/index\s+(\S+)/)![1];
+  const db = new DatabaseSync(where);
+  db.prepare("UPDATE meta SET value = ? WHERE key = 'indexed_at'")
+    .run(new Date(Date.now() - 45 * 60000).toISOString());
+  db.close();
+
+  const stale = audit(env, ['summary']);
+  assert.strictEqual(stale.code, 0, stale.stderr);
+  assert.match(stale.stdout, /index read just now/);
+  assert.match(stale.stdout, /\b3 turns/);
+});
+
+test('--json prints the index rows with the coverage, on every view', () => {
+  const { file, env } = roots('audit-json');
+  fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));
+  const index = JSON.parse(audit(env, ['index', '--json']).stdout);
+  assert.deepStrictEqual([index.files, index.sessions], [1, 1]);
+
+  const asJson = (...args) => JSON.parse(audit(env, [...args, '--json']).stdout);
+  const listed = asJson();
+  assert.deepStrictEqual(listed.coverage.map((c) => c.sessions), [1]);
+  assert.ok(listed.indexedAt);
+  assert.deepStrictEqual(listed.sessions.map((s) => s.id), [SESSION]);
+
+  const id = SESSION.slice(0, 8);
+  assert.strictEqual(asJson('get', id).session.id, SESSION);
+  assert.strictEqual(asJson('turns', id).turns.length, 3);
+  assert.strictEqual(asJson('summary').totals.sessions, 1);
+  assert.strictEqual(asJson('timeline', id).total, 5);
+  assert.ok(Array.isArray(asJson('context', id).requests));
+  assert.deepStrictEqual(asJson('sql', 'SELECT COUNT(*) n FROM turn').rows, [{ n: 3 }]);
+  assert.ok(asJson('schema').tables.some((t) => t.name === 'session'));
+  assert.deepStrictEqual(Object.keys(asJson('where')), ['transcripts', 'index']);
+
+  const read = asJson('read', id, '--turns', '1');
+  assert.deepStrictEqual([read.session, read.from, read.to], [SESSION, 1, 1]);
+  assert.match(read.text, /read the layout/);
+
+  const kept = asJson('keep', id);
+  assert.strictEqual(kept.kept.length, 1);
+  assert.deepStrictEqual(kept.gone, []);
+});

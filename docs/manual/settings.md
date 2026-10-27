@@ -85,7 +85,7 @@ Tells the agent to restart the session once the conversation passes [`wrapUpAt`]
 Finish this step, then restart.
 ```
 
-The restart guide follows the line: what to save to the ticket, which files to load and what the note holds. At 30,000 past the limit it sends one more, `Stop now and restart.`, with the same guide. Neither names the size or a handoff. A helper agent that still runs delays the restart until it finishes. A helper agent follows the same limit on its own conversation: it cannot restart, so the mod sends it a message to save its state to its report files and begin its reply with `UNFINISHED:` and their paths, unless it is within a few steps of its final report. The session that sent it starts the next subagent from those files. At 30,000 past the limit the message is `Stop now`. From 30,000 under the limit the band above the prompt shows a green Restart button for restarting by hand. A press sends the agent one prompt asking for its note, with the guide. The button shows only between turns, and a press hides it until the restart ends. The restart keeps the session and its transcript. The new window holds the tickets in flight with their `context.md` (whole in groundwork, else the sections of open questions), the files and skills the agent named, the agent's note, and your messages it never answered, each whole. The old dialogue stays in the session's transcript, for `flow audit`. A typed `/restart` stops there. An automatic restart then submits `Continue from the note.`.
+The restart guide follows the line: what to save to the ticket, which files to load and what the note holds. At 100,000 past the limit it sends one more, `Stop now and restart.`, with the same guide. Neither names the size or a handoff. A helper agent that still runs delays the restart until it finishes. A helper agent follows the same limit on its own conversation: it cannot restart, so the mod sends it a message to save its state to its report files and begin its reply with `UNFINISHED:` and their paths, unless it is within a few steps of its final report. The session that sent it starts the next subagent from those files. At 100,000 past the limit the message is `Stop now`. From 30,000 under the limit the band above the prompt shows a green Restart button for restarting by hand. A press sends the agent one prompt asking for its note, with the guide. The button shows only between turns, and a press hides it until the restart ends. The restart keeps the session and its transcript. The new window holds the tickets in flight with their `context.md` (whole in groundwork, else the sections of open questions), the files and skills the agent named, the agent's note, and your messages it never answered, each whole. The old dialogue stays in the session's transcript, for `flow audit`. A typed `/restart` stops there. An automatic restart then submits `Continue from the note.`.
 
 ## Other keys in Flow's files
 
@@ -154,16 +154,16 @@ These are the keys Flow keeps in `~/.claude/settings.json`. Every other key in t
 
 Hooks are scripts Claude Code runs at a fixed moment, such as before every shell command. Flow's live in `~/.flow/scripts/hooks/`, and the sync job in `~/.flow/scripts/jobs/`:
 
-- **`guard.js`**, before every shell command, edit, write and file read: asks you before a call that could lose work, send data off the computer, change a shared system or switch the guard off, and before Claude reads a private key or a login.
-- **`changes.js`**, around every edit and command: records which helper agent changed which file, in `~/.flow/changes/<session>/`.
-- **`rule-check.js`**, before every edit: tests the edit against your rules. No rule check exists yet, so it does nothing.
-- **`instructions-loaded.js`**, when a rule file loads: records which rules the agent has read.
-- **`check-ticket.js`**, when you type a phase skill or `/flow:start`: refuses where Flow is not set up.
-- **`overlays.js`**, when a skill loads: adds the lines in `~/.flow/skill-overlays/<skill>.md`.
-- **`reminder.js`**, on every message you send: prints [`reminder`](#reminder).
-- **`session-check.js`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), rewrites the ticket skills, and starts the background sync.
-- **`failures.js`**, when a tool call or the API fails: adds a line to the failure log in `~/.flow/logs/failures/`.
-- **`records-sync.js`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
+- **`guard.ts`**, before every shell command, edit, write and file read: asks you before a call that could lose work, send data off the computer, change a shared system or switch the guard off, and before Claude reads a private key or a login.
+- **`changes.ts`**, around every edit and command: records which helper agent changed which file, in `~/.flow/changes/<session>/`.
+- **`rule-check.ts`**, before every edit: tests the edit against your rules. No rule check exists yet, so it does nothing.
+- **`instructions-loaded.ts`**, when a rule file loads: records which rules the agent has read.
+- **`check-ticket.ts`**, when you type a phase skill or `/flow:start`: refuses where Flow is not set up.
+- **`overlays.ts`**, when a skill loads: adds the lines in `~/.flow/skill-overlays/<skill>.md`.
+- **`reminder.ts`**, on every message you send: prints [`reminder`](#reminder).
+- **`session-check.ts`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), rewrites the ticket skills, and starts the background sync.
+- **`failures.ts`**, when a tool call or the API fails: adds a line to the failure log in `~/.flow/logs/failures/`.
+- **`records-sync.ts`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
 
 ### `env`
 
@@ -206,7 +206,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 ### `fileSuggestion`
 
 ```json
-"fileSuggestion": { "type": "command", "command": "node \"$HOME/.flow/scripts/hooks/file-suggestion.js\"" }
+"fileSuggestion": { "type": "command", "command": "node \"$HOME/.flow/scripts/hooks/file-suggestion.ts\"" }
 ```
 
 Builds the list of files `@` opens, in place of Claude Code's own list:

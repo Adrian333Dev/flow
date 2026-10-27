@@ -106,7 +106,7 @@ One file until one file stops working.
 
 **Plain, common words, no invented or rare terms**, in what a skill says and in what it produces.
 
-**A command on the `PATH` is written bare**: `flow next`, `util fs tree docs`. Every other script is `~/.flow/scripts/<file.ext>`. A script is `flow.js` on disk and `flow` to type, since the symlink drops the extension.
+**A command on the `PATH` is written bare**: `flow next`, `util fs tree docs`. Every other script is `~/.flow/scripts/<file.ext>`. A script is `flow.ts` on disk and `flow` to type, since the symlink drops the extension.
 
 ### Knowledge files
 

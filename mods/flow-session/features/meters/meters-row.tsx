@@ -14,9 +14,9 @@ import { coldAt, lastRequest, transcriptTail } from '../../shared/cache'
 import { flowSettings } from '../../shared/settings'
 import { readTracked } from '../../shared/state'
 import { SEPARATOR, fit, meters, type Tone } from './meters'
-import { offersRestart, wrapUpSettings } from '../wrap-up/wrap-up'
+import { LIMIT, offersRestart, wrapUpSettings } from '../wrap-up/wrap-up'
 
-const reading = atom({ plugin: 'flow-session', key: 'meters' } as const, { limit: 170000, rates: [], beat: 0 })
+const reading = atom({ plugin: 'flow-session', key: 'meters' } as const, { limit: LIMIT, rates: [], beat: 0 })
 
 // Whether `wrapUp` is on in `~/.flow/settings.json`, read with the limit. Off, the band offers no restart.
 let wrapUpOn = true

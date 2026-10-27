@@ -44,7 +44,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ audit/
 │  └─ changes/<session>/
 └─ .local/bin/
-   ├─ flow, fw                    → <clone>/scripts/flow.js
+   ├─ flow, fw                    → <clone>/scripts/flow.ts
    └─ util, u                     → ~/.flow/repos/util
 
 <project>/
@@ -134,7 +134,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 ## `~/.local/bin/`
 
-- **`flow`** and **`fw`**: links to `scripts/flow.js` in your clone. `flow install` makes them.
+- **`flow`** and **`fw`**: links to `scripts/flow.ts` in your clone. `flow install` makes them.
 - **`util`** and **`u`**: links into `~/.flow/repos/util/`. `flow install` makes them.
 
 ## In a project

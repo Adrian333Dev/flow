@@ -1,11 +1,11 @@
 /**
  * notes.ts: the rows of the `#` list, built from the files in `~/.flow/notes/`.
  *
- * `flow notes` writes those files (scripts/lib/notes.js). Typing `#` in the
+ * `flow notes` writes those files (scripts/features/notes/notes.ts). Typing `#` in the
  * prompt box lists the labels with their counts, then the newest notes, and
  * `#board` narrows the list. Taking a label row writes `#label`, and taking a
  * note row writes an `@` mention of its file. The query matches as
- * scripts/lib/query.js does: a word must appear in the text, the labels or the
+ * scripts/shared/query.ts does: a word must appear in the text, the labels or the
  * project.
  */
 import type { EngineInterface } from 'claude-code'

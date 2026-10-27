@@ -5,6 +5,7 @@
  * the 5-hour limit, the week, the cache. Each has a dim label, a value and a tone for its colour.
  * A narrow row loses whole meters, never part of one, in the order the map (20.5.0) set.
  */
+import { kilo } from '../../shared/format'
 
 export type Tone = 'plain' | 'ok' | 'warn' | 'bad'
 
@@ -77,9 +78,6 @@ export const modelColour = (id: string) => (MODEL_COLOURS.find(([family]) => fam
 /** The colour of an effort level, or undefined for one not listed. */
 export const effortColour = (effort: string | number) => EFFORT_COLOURS.find(([level]) => level.test(String(effort).toLowerCase()))?.[1]
 
-/** Whole thousands, such as `142k`. */
-const thousands = (tokens: number) => `${Math.round(tokens / 1000)}k`
-
 /** Time left as `47m`, `3h12m` or `2d4h`, `0m` once it has passed. */
 export function remaining(ms: number): string {
   if (ms >= DAY) return `${Math.floor(ms / DAY)}d${Math.floor((ms % DAY) / HOUR)}h`
@@ -110,7 +108,7 @@ export function meters(reading: Reading, now: number): Meter[] {
   }
   if (reading.tokens !== undefined) {
     const used = reading.tokens / reading.limit
-    const parts: Part[] = [{ text: thousands(reading.tokens) }, { text: `/${thousands(reading.limit)}`, dim: true }]
+    const parts: Part[] = [{ text: kilo(reading.tokens) }, { text: `/${kilo(reading.limit)}`, dim: true }]
     found.push({ id: 'context', label: 'context', value: parts.map((part) => part.text).join(''), tone: used >= 1 ? 'bad' : used >= CONTEXT_WARN ? 'warn' : 'ok', parts })
   }
   const five = reading.rates.find((rate) => rate.kind === 'five_hour')

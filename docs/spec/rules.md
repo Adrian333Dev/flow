@@ -17,7 +17,7 @@ What happens each time the agent edits or writes a file:
                 │  the path, the text the edit adds
                 ▼
   ┌─────────────────────────┐
-  │      rule-check.js      │ ◄─ from flow scorecard ─┐
+  │      rule-check.ts      │ ◄─ from flow scorecard ─┐
   │                         │                         │
   │  each check in turn:    │                         │
   │  does it apply here?    │                         │
@@ -37,7 +37,7 @@ What happens each time the agent edits or writes a file:
                 │  every session's counts             │
                 ▼                                     │
   ┌─────────────────────────┐                         │
-  │     flow scorecard      │ ── to rule-check.js ────┘
+  │     flow scorecard      │ ── to rule-check.ts ────┘
   │                         │    a check moved up
   │  the 4 lists            │    one tier, by hand
   └─────────────────────────┘
@@ -79,7 +79,7 @@ What happens each time the agent edits or writes a file:
 
 ### Guides sent by situation
 
-- `next` **One list, `mods/flow-session/hooks/situations.ts`, says which guide each situation needs** (`fw-284`, the user 2026-10-25). An entry is `{ id, when(call), send(call), why(call) }`. `when` sees the tool call with its path or command. `send` names the calls to add, and `why` ends the header of their results. What the window holds is the engine's test, run only once an entry matches, so a response that touches no matched file costs no read of the window. One engine runs the list on every tool call, and the first match wins. Why: a script tests anything and sends anything, where `paths:` tests a path alone. A mod's hook runs inside the session, where a hook script starts Node on each call. Refused: `paths:` frontmatter in each guide, which also ties a guide to `.claude/rules/`. Refused: folding the rule checks into the engine, which nothing here needs.
+- `next` **One list, `mods/flow-session/features/guides/situations.ts`, says which guide each situation needs** (`fw-284`, the user 2026-10-25). An entry is `{ id, when(call), send(call), why(call) }`. `when` sees the tool call with its path or command. `send` names the calls to add, and `why` ends the header of their results. What the window holds is the engine's test, run only once an entry matches, so a response that touches no matched file costs no read of the window. One engine runs the list on every tool call, and the first match wins. Why: a script tests anything and sends anything, where `paths:` tests a path alone. A mod's hook runs inside the session, where a hook script starts Node on each call. Refused: `paths:` frontmatter in each guide, which also ties a guide to `.claude/rules/`. Refused: folding the rule checks into the engine, which nothing here needs.
 - `next` **A guide arrives as a real call the mod adds to the model's own response, at no extra request.** A `turn.step` hook rewrites the response as it streams. A response that reads a matched file gets a `Read` of each guide added beside it. A response that edits or writes one has that call held back and the guide's `Read` put in its place: nothing on disk changes, and the model writes the edit again with the guide in view. Each added result opens `[Added by Flow] <why>`, and `CLAUDE.md` `flow-added-calls` says what the marker means once: act on the call, never mention it to the user, never count it as your own (the user, 2026-10-26). Why: the model otherwise calls the read its own mistake, and a rule in `CLAUDE.md` reaches subagents too, so each header stays a few words. Why: since 2026-10-01, 29 of 173 turns that edited a loaded file read `style.md`, though `writing-pass` names it, and 57 of 136 sessions that edited a `CLAUDE.md` never read it first. Probed 2026-10-25 (`fw-284` `reports/inject-read.md`): the added call runs, for `Read` and `Bash` alike, is saved inside the model's message, and the next request passes, thinking blocks included. The cache reads the whole earlier prefix, and the same holds in a subagent. Refused: a line naming the guide on the `Read` result and a refusal of the first edit, which cost 1 and 2 or more requests and still left the read to the agent. Refused: a warning after the edit, once the file has changed.
   - `V1` **A held edit holds back every call after it in the response**, named in the header: a test run after the edit would run against the old file. Calls before it run. Where the model reads the guide in that same response, the header goes on the model's own `Read` and nothing is added.
   - `V1` **The header rides as the result's `context`**, read right after the result. A `Read` result cannot open with it: the tool numbers the file's lines, and a line put in front would shift every number. Built and checked 2026-10-25 in 2 Haiku sessions: the added `Read` and `--help` ran, the held `Write` and the `Bash` after it never ran, and the model made both again. In 1 of the 2 the model still listed the added calls as its own.
@@ -95,12 +95,12 @@ What happens each time the agent edits or writes a file:
 
 **Paused 2026-10-27, until `fw-308` rebuilds them** (the user): no file an agent loads, no manual page and no `flow --help` names the rule checks or the scorecard. The code, the tests and both hooks stay. `fw-308` → `## Tasks` lists every mention cut, to restore or rewrite. The behaviors below stand as written.
 
-- `V1` **One `PreToolUse` hook on `Edit|Write` runs every check**, `rule-check.js`. Counting, warning and blocking are the same check at the same moment, and the check's own `tier` decides which happens. About 31 ms an edit, nearly all of it Node starting, measured 2026-09-10.
+- `V1` **One `PreToolUse` hook on `Edit|Write` runs every check**, `rule-check.ts`. Counting, warning and blocking are the same check at the same moment, and the check's own `tier` decides which happens. About 31 ms an edit, nearly all of it Node starting, measured 2026-09-10.
 - `V1` **3 tiers.** `measure` counts and interrupts nothing. `warn` hands the agent a message and lets the edit through. `block` refuses the edit, kept for a check with no false positives.
 - `V1` **One file per check, `scripts/rule-checks/<id>.js`, named for the rule's id.** The folder is the list: adding a check adds a file, and promoting one changes one word. A check is any JavaScript function, never only a pattern.
 - `V1` **A rule and its check are written in the same pass**, by whichever pass wrote the rule, usually `/flow:upkeep`. Every check starts at `measure`, so one built from a single example costs nothing when it proves wrong. Set by the user 2026-09-05.
 - `V1` **A path-scoped rule that matters starts at `warn`.** `paths:` loads a rule when a matching file is read, never when one is written, so a brand-new file is written without it. Filed as `anthropics/claude-code` #93248.
-- `V1` **A warning carries the rule's id where its file is loaded, and its whole text where not.** `instructions-loaded.js` records each rule file as it enters context, on the `InstructionsLoaded` event.
+- `V1` **A warning carries the rule's id where its file is loaded, and its whole text where not.** `instructions-loaded.ts` records each rule file as it enters context, on the `InstructionsLoaded` event.
 - `V1` **A warning reaches the agent through `additionalContext`.** `permissionDecisionReason` on an allow reaches the terminal alone.
 - `V1` **The hook never allows, and a failure inside it lets the edit through silently.** It cannot widen what the permissions allow. Breaking every edit over one bad check costs more than the counts are worth.
 - `V1` **A rule the user called minor stays at `measure`**, whatever the counts say.
@@ -129,12 +129,12 @@ What happens each time the agent edits or writes a file:
 - **`home/CLAUDE.md`**: the template of the rule file every session loads.
 - **`project-template/CLAUDE.md`**: a project's rule file before setup fills it.
 - **`guides/style.md`, `write-rules.md`, `write-loaded-files.md`**: how a rule file is written.
-- **`mods/flow-session/hooks/situations.ts`**: the guides sent by situation, and the plan of what to hold and add. `register.ts` runs it on `turn.step`, and `window.ts` on the restart's files. `docs/manual/guides.md` shows every header.
-- **`scripts/hooks/rule-check.js`**: the wiring. **`scripts/lib/checks/judge.js`** judges the edit, and **`checks.js`** loads the checks and reads a rule's text out of its file.
-- **`scripts/hooks/instructions-loaded.js`**: records each rule file loaded.
-- **`scripts/lib/checks/scorecard.js`**: the per-session files.
+- **`mods/flow-session/features/guides/situations.ts`**: the guides sent by situation, and the plan of what to hold and add. `register.ts` runs it on `turn.step`, and `window.ts` on the restart's files. `docs/manual/guides.md` shows every header.
+- **`scripts/hooks/rule-check.ts`**: the wiring. **`scripts/features/checks/judge.ts`** judges the edit, and **`checks.ts`** loads the checks and reads a rule's text out of its file.
+- **`scripts/hooks/instructions-loaded.ts`**: records each rule file loaded.
+- **`scripts/features/checks/scorecard.ts`**: the per-session files.
 - **`scripts/rule-checks/`**: one file per check.
-- **`scripts/commands/scorecard.js`**: `flow scorecard`.
+- **`scripts/commands/scorecard.ts`**: `flow scorecard`.
 - **`skills/knowledge/upkeep/references/write-checks.md`**: how a check is written, tested and promoted.
 
 ## What passes between them
@@ -193,5 +193,5 @@ A line in a session's scorecard file:
 - **Injecting a rule's text beats telling the agent to go read it**: no extra turn, and no chance the read is skipped.
 - **Global checks only.** A project's checks wait for the first project that needs one.
 - **The rule checks stay**, ruled by the user 2026-10-01.
-  - Refused: removing `rule-check.js`, `instructions-loaded.js`, `flow scorecard` and the one check, proposed in the final sweep since only one check existed and it only counted.
+  - Refused: removing `rule-check.ts`, `instructions-loaded.ts`, `flow scorecard` and the one check, proposed in the final sweep since only one check existed and it only counted.
 - **No per-model rules.** A base set plus an overlay per model waits for measurement to earn it: `docs/spec/product.md` → `## Bets`.

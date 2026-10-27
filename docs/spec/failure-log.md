@@ -11,7 +11,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 
 ```text
  ┌───────────────────┐   ┌───────────────────┐   ┌───────────────────┐
- │    failures.js    │   │   Flow's scripts  │   │     the agent     │
+ │    failures.ts    │   │   Flow's scripts  │   │     the agent     │
  │                   │   │                   │   │                   │
  │  a failed MCP     │   │  install, the     │   │  what no hook     │
  │  tool, Flow       │   │  background pull, │   │  sees: a missing  │
@@ -42,7 +42,7 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 
 ### The 3 writers
 
-- `V1` **`failures.js`, on `PostToolUseFailure` for `Bash` and `mcp__*`, and on `StopFailure`.**
+- `V1` **`failures.ts`, on `PostToolUseFailure` for `Bash` and `mcp__*`, and on `StopFailure`.**
 - `V1` **Flow's own scripts, through `failures.record()`**, for what runs where no session sees it: a clone `flow install` could not make, a background pull or fetch, a `flow sync` git could not finish.
 - `V1` **The agent, by `home/CLAUDE.md` → `## Capture`**, with a shell command, for what no hook sees: a subagent that changed files and sent no change record, a skill's command that did nothing. No command was built for writing.
 
@@ -74,10 +74,10 @@ How Flow records its own broken machinery, and where every log it keeps lives. T
 
 ## The parts
 
-- **`scripts/hooks/failures.js`**: the hook, and the filter on which commands count.
-- **`scripts/lib/logs/failures.js`**: `record()`, the line, and which jobs are open.
-- **`scripts/lib/logs/logs.js`**: the folder and the file per month.
-- **`mods/flow-session/hooks/issues.ts`** and **`scripts/commands/doctor.js`**: the 2 readers of open issues.
+- **`scripts/hooks/failures.ts`**: the hook, and the filter on which commands count.
+- **`scripts/features/logs/failures.ts`**: `record()`, the line, and which jobs are open.
+- **`scripts/features/logs/logs.ts`**: the folder and the file per month.
+- **`mods/flow-session/features/band/issues.ts`** and **`scripts/commands/doctor.ts`**: the 2 readers of open issues.
 
 ## What passes between them
 
@@ -109,7 +109,7 @@ A background job failing, then clearing:
 
 ## How you know it worked
 
-- **`npm test` feeds `failures.js` the calls the Claude Code docs describe.** In a live session: not yet.
+- **`npm test` feeds `failures.ts` the calls the Claude Code docs describe.** In a live session: not yet.
 - **An open issue shown, fixed on request and cleared** in the beta.
 
 ## What is locked

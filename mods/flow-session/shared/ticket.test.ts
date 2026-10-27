@@ -1,66 +1,85 @@
+import type { EngineInterface } from 'claude-code'
 import { describe, expect, test } from 'claude-code/testing'
-import { idsIn, idsInPath, openHandles, readTicket, startedIn, target, ticketPrefix } from './ticket'
+import { idsIn, idsInPath, readTicket, readTickets, startedIn, target, ticketPrefix, type TicketJson } from './ticket'
 
-const ticket = (fields: string, body = '') => `---\nid: fw-9\ntitle: band-test\nstatus: in-progress\n${fields}---\n\n${body}`
-
-const tasks = (...boxes: string[]) => `## Tasks\n\n${boxes.join('\n')}\n`
+/** What `flow tickets get --json` says of a ticket with nothing open, with the fields a test sets laid over it. */
+const json = (over: Partial<TicketJson> = {}): TicketJson => ({
+  id: 'fw-9',
+  name: 'fw-9-band-test',
+  status: 'in-progress',
+  activity: null,
+  questions: null,
+  tasks: null,
+  map: null,
+  firstOpen: { task: null, question: null },
+  openQuestions: [],
+  path: '/p/.flow/tickets/9/ticket.md',
+  ...over,
+})
 
 describe('readTicket', () => {
   test('the activity is the word, in capitals, with the count of the tasks', () => {
-    const text = ticket('activity: build\n', tasks('- [x] one', '- [x] two', '- [ ] three', '- [ ] four', '- [ ] five'))
-    expect(readTicket(text)).toEqual({ id: 'fw-9', name: 'fw-9-band-test', status: 'in-progress', word: 'BUILD 2/5' })
+    expect(readTicket(json({ activity: 'build', tasks: { done: 2, total: 5 } }))).toEqual({ id: 'fw-9', name: 'fw-9-band-test', status: 'in-progress', word: 'BUILD 2/5' })
   })
 
   test('an activity with no list shows the word alone', () => {
-    expect(readTicket(ticket('activity: debug\n'))?.word).toBe('DEBUG')
+    expect(readTicket(json({ activity: 'debug' })).word).toBe('DEBUG')
   })
 
   test('a word the agent set is drawn as it is, in capitals', () => {
-    expect(readTicket(ticket('activity: proto\n', tasks('- [ ] a')))?.word).toBe('PROTO 0/1')
+    expect(readTicket(json({ activity: 'proto', tasks: { done: 0, total: 1 } })).word).toBe('PROTO 0/1')
   })
 
   test('a design ticket counts its questions, then the map, then its tasks', () => {
-    const questions = '## Questions\n\n- [x] a\n- [ ] b\n\n'
-    expect(readTicket(ticket('activity: design\n', questions + tasks('- [ ] t')))?.word).toBe('DESIGN 1/2')
-    expect(readTicket(ticket('activity: design\n', tasks('- [x] t')), '- [x] m1\n- [ ] m2\n- [ ] m3\n')?.word).toBe('DESIGN 1/3')
-    expect(readTicket(ticket('activity: design\n', tasks('- [x] t', '- [ ] u')))?.word).toBe('DESIGN 1/2')
+    const tasks = { done: 1, total: 2 }
+    expect(readTicket(json({ activity: 'design', questions: { done: 1, total: 2 }, tasks: { done: 0, total: 1 } })).word).toBe('DESIGN 1/2')
+    expect(readTicket(json({ activity: 'design', tasks: { done: 1, total: 1 }, map: { done: 1, total: 3, line: 5 } })).word).toBe('DESIGN 1/3')
+    expect(readTicket(json({ activity: 'design', tasks })).word).toBe('DESIGN 1/2')
   })
 
   test('with no activity, an open question says DESIGN', () => {
-    const text = ticket('', '## Questions\n\n1. [ ] which?\n\n' + tasks('- [ ] t'))
-    expect(readTicket(text)?.word).toBe('DESIGN 0/1')
+    expect(readTicket(json({ questions: { done: 0, total: 1 }, tasks: { done: 0, total: 1 } })).word).toBe('DESIGN 0/1')
   })
 
   test('with no activity and no open question, an open task says BUILD', () => {
-    expect(readTicket(ticket('', tasks('- [x] a', '- [ ] b')))?.word).toBe('BUILD 1/2')
+    expect(readTicket(json({ tasks: { done: 1, total: 2 } })).word).toBe('BUILD 1/2')
   })
 
   test('with neither, the status in capitals and no count', () => {
-    expect(readTicket(ticket('', tasks('- [x] a', '- [x] b')))?.word).toBe('IN-PROGRESS')
-    expect(readTicket(ticket(''))?.word).toBe('IN-PROGRESS')
+    expect(readTicket(json({ tasks: { done: 2, total: 2 } })).word).toBe('IN-PROGRESS')
+    expect(readTicket(json()).word).toBe('IN-PROGRESS')
+  })
+})
+
+describe('readTickets', () => {
+  /** An engine whose `flow` prints `stdout`; `runs` holds each command it was asked to run. */
+  const engine = (stdout: string, runs: { argv: string[]; cwd?: string }[] = []) =>
+    ({
+      process: {
+        run: async (argv: string[], init?: { cwd?: string }) => {
+          runs.push({ argv, cwd: init?.cwd })
+          return { exitCode: 0, stdout, stderr: '' }
+        },
+      },
+    }) as unknown as EngineInterface
+
+  test('asks for every id in one run, in the project folder', async () => {
+    const runs: { argv: string[]; cwd?: string }[] = []
+    const found = await readTickets(engine(JSON.stringify({ tickets: [json(), json({ id: 'fw-10' })], missing: [] }), runs), ['fw-9', 'fw-10'], '/p')
+    expect(found.map((t) => t.id)).toEqual(['fw-9', 'fw-10'])
+    expect(runs).toEqual([{ argv: ['flow', 'tickets', 'get', 'fw-9', 'fw-10', '--json'], cwd: '/p' }])
   })
 
-  test('a commented-out box is not a box', () => {
-    expect(readTicket(ticket('activity: build\n', tasks('- [x] a', '<!-- - [ ] b -->')))?.word).toBe('BUILD 1/1')
+  test('one id answers with the ticket itself', async () => {
+    expect((await readTickets(engine(JSON.stringify(json())), ['fw-9'], '/p')).map((t) => t.id)).toEqual(['fw-9'])
   })
 
-  test('an indented task is a note under a step, not a step', () => {
-    expect(readTicket(ticket('activity: build\n', tasks('- [ ] a', '    - [ ] detail')))?.word).toBe('BUILD 0/1')
-  })
-
-  test('a title becomes part of the name; none leaves the id', () => {
-    expect(readTicket('---\nid: fw-9\nstatus: todo\n---\n')?.name).toBe('fw-9')
-  })
-
-  test('a bare id takes the project prefix, and a full one is kept', () => {
-    const bare = '---\nid: 9\ntitle: band-test\nstatus: todo\n---\n'
-    expect(readTicket(bare, undefined, 'fw')).toMatchObject({ id: 'fw-9', name: 'fw-9-band-test' })
-    expect(readTicket(bare.replace('id: 9', 'id: fw-9'), undefined, 'abc')).toMatchObject({ id: 'fw-9', name: 'fw-9-band-test' })
-  })
-
-  test('a text with no id or status is not a ticket', () => {
-    expect(readTicket('no frontmatter')).toBeUndefined()
-    expect(readTicket('---\nid: fw-9\n---\n')).toBeUndefined()
+  test('a refusal, text that is not JSON and no ids give none, and no ids start no run', async () => {
+    const runs: { argv: string[] }[] = []
+    expect(await readTickets(engine('{"error":"no ticket"}', runs), ['fw-9'], '/p')).toEqual([])
+    expect(await readTickets(engine('not json'), ['fw-9'], '/p')).toEqual([])
+    expect(await readTickets(engine('{}', runs), [], '/p')).toEqual([])
+    expect(runs).toHaveLength(1)
   })
 })
 
@@ -99,36 +118,23 @@ describe('startedIn', () => {
 })
 
 describe('target', () => {
-  const body = ticket('', '## Questions\n\n- [x] a\n- [ ] b\n\n' + tasks('- [x] one', '<!-- - [ ] gone -->', '- [ ] two'))
-  const lineOf = (text: string, needle: string) => text.split('\n').findIndex((line) => line.includes(needle)) + 1
+  const open = json({ firstOpen: { task: 12, question: 5 } })
 
   test('build points at the first open task', () => {
-    expect(target(body, undefined, 'BUILD 1/2')).toEqual({ file: 'ticket', line: lineOf(body, '- [ ] two') })
+    expect(target(open, 'BUILD 1/2')).toEqual({ file: 'ticket', line: 12 })
   })
 
   test('design points at the first open question', () => {
-    expect(target(body, undefined, 'DESIGN 1/2')).toEqual({ file: 'ticket', line: lineOf(body, '- [ ] b') })
+    expect(target(open, 'DESIGN 1/2')).toEqual({ file: 'ticket', line: 5 })
   })
 
   test('design with no question of its own points at the map', () => {
-    const own = ticket('', tasks('- [ ] t'))
-    expect(target(own, '# Map\n\n- [x] a\n- [ ] b\n', 'DESIGN 1/2')).toEqual({ file: 'map', line: 4 })
+    expect(target(json({ map: { done: 1, total: 2, line: 4 } }), 'DESIGN 1/2')).toEqual({ file: 'map', line: 4 })
   })
 
   test('any other word, and a list with nothing open, point at the top', () => {
-    expect(target(body, undefined, 'DEBUG')).toEqual({ file: 'ticket', line: 1 })
-    expect(target(ticket('', tasks('- [x] a')), undefined, 'BUILD 1/1')).toEqual({ file: 'ticket', line: 1 })
-  })
-})
-
-describe('openHandles', () => {
-  test('names the handles of the open questions alone, at any depth', () => {
-    const body = '## Questions\n\n- [x] 1: done\n  - [ ] 1.2: open\n- [ ] `fw-3`: in backticks\n- [ ] no handle here\n<!-- - [ ] 9: commented -->\n\n## Tasks\n\n- [ ] 4: a task'
-    expect(openHandles(ticket('', body))).toEqual(['1.2', 'fw-3'])
-  })
-
-  test('a ticket with no questions has none', () => {
-    expect(openHandles(ticket('', '## Tasks\n\n- [ ] a'))).toEqual([])
+    expect(target(open, 'DEBUG')).toEqual({ file: 'ticket', line: 1 })
+    expect(target(json(), 'BUILD 1/1')).toEqual({ file: 'ticket', line: 1 })
   })
 })
 

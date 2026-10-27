@@ -14,16 +14,17 @@ import { restartGuide } from '../restart/restart-guide'
 import { kilo, reasonOf } from '../../shared/format'
 import { flowSettings, parseObject } from '../../shared/settings'
 
-const LIMIT = 170000
+/** The limit when no setting names one. */
+export const LIMIT = 170000
 /** How far past the limit the second line comes. A turn that passes it a little is no problem. */
-export const HARD = 30000
+export const HARD = 100000
 /** How far under the limit the band offers the Restart button. */
 export const LEAD = 30000
 
 /**
  * `wrapUp` and `wrapUpAt` from the text of `~/.flow/settings.json` and
  * `settings.local.json`. A switch is read from the first file alone, as
- * `scripts/lib/settings.js` does, and the local file wins for the limits.
+ * `scripts/shared/settings.ts` does, and the local file wins for the limits.
  */
 export function wrapUpSettings(globalText?: string, localText?: string): { wrapUp: boolean; limit: number } {
   const global = parseObject(globalText)
@@ -40,7 +41,7 @@ export function wrapUpSettings(globalText?: string, localText?: string): { wrapU
 export const offersRestart = (tokens: number | undefined, limit: number, on: boolean, busy: Busy): boolean =>
   on && !busy.running && !busy.requested && !busy.restarting && tokens !== undefined && tokens >= Math.max(limit - LEAD, 0)
 
-/** The two lines a session is sent: at the limit, and 30k past it. */
+/** The two lines a session is sent: at the limit, and `HARD` past it. */
 export type Lines = { finish: string; stop: string }
 
 /** The restart guide follows either line. */

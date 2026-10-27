@@ -1,8 +1,20 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
 import { flush } from '../../shared/testing'
 
-const TICKET = '---\nid: 9\ntitle: band-test\nstatus: in-progress\nactivity: build\n---\n\n## Tasks\n\n- [x] one\n- [ ] two\n'
-const ENTRY = { size: 0, mtimeMs: 0, isLink: false }
+/** What `flow tickets get <id> --json` prints for a ticket in `build` with one of its 2 tasks done. */
+const ticketJson = (id: string) => ({
+  id,
+  name: `${id}-band-test`,
+  status: 'in-progress',
+  activity: 'build',
+  questions: null,
+  tasks: { done: 1, total: 2 },
+  map: null,
+  firstOpen: { task: 11, question: null },
+  openQuestions: [],
+  path: `/work/.flow/tickets/${id.replace(/\D+/, '')}/ticket.md`,
+})
+const RAN = { exitCode: 0, stderr: '', isStdoutTruncated: false, isStderrTruncated: false }
 
 const BAND = {
   plugin: 'flow-session',
@@ -19,20 +31,26 @@ const BAND = {
   },
 } as const
 
-/** Answers what Claude Code answers: the folder, one ticket and the failure log. */
-function claudeCode(on: Parameters<typeof mock.env>[0], log = '') {
+/** Answers what Claude Code answers: the folder, `flow tickets get` and the failure log. Returns each command run. */
+function claudeCode(on: Parameters<typeof mock.env>[0], log = ''): string[][] {
+  const runs: string[][] = []
   mock.env(on, { FLOW_HOME: '/h/.flow', HOME: '/h' })
   on('session.root', () => ({ value: '/work' }))
-  on('fs.list', () => ({ value: [{ name: '9-band-test', kind: 'dir', ...ENTRY }] }))
   on('fs.read', (_$, e) => {
     const path = (e as unknown as { path: string }).path
-    if (path.endsWith('/ticket.md')) return { value: TICKET }
     if (path.endsWith('/.flow/settings.json')) return { value: '{"ticketPrefix":"fw"}' }
     if (path.includes('/logs/failures/')) return { value: log }
     return { deny: 'missing' }
   })
+  on('process.run', (_$, e) => {
+    const argv = (e as unknown as { argv: string[] }).argv
+    runs.push(argv)
+    const found = argv[0] === 'flow' ? argv.slice(3, -1).map(ticketJson) : []
+    return { value: { ...RAN, stdout: JSON.stringify(found.length === 1 ? found[0] : { tickets: found, missing: [] }) } }
+  })
   on('tool.call', () => ({ result: 'ok' }))
   on('ui.render', () => ({ type: 'Text', props: {}, children: ['drawn by Claude Code'] }))
+  return runs
 }
 
 /** The plugin's store in memory, as a Map the test reads: the test engine has no `$.store` to read with. */
@@ -85,6 +103,19 @@ describe('the band', () => {
     expect(saved.v).toBe(1)
     expect(saved.band.map((entry) => entry.id)).toEqual(['fw-9'])
     expect(kept.get('session:other')).toEqual(other)
+  })
+
+  test('reads every badge again in one flow process at a turn end', async ($, on) => {
+    const runs = claudeCode(on)
+    on('turn.start', (_$, e) => ({ turnId: (e as unknown as { turnId: string }).turnId }))
+    on('turn.complete', () => ({ text: '' }) as never)
+    await $.tool.call({ tool: 'Bash', command: 'flow tickets start fw-9' })
+    await $.tool.call({ tool: 'Bash', command: 'flow tickets start fw-10' })
+    runs.length = 0
+    await $.turn.start({ text: '', turnId: 't1' })
+    await $.turn.complete({ turnId: 't1', reason: 'answer', answer: 'Done.', durationMs: 1, isAborted: false })
+    const flows = runs.filter((argv) => argv[0] === 'flow')
+    expect(flows).toEqual([['flow', 'tickets', 'get', 'fw-10', 'fw-9', '--json']])
   })
 
   test('puts the saved band back at start, and prunes records older than 14 days', async ($, on) => {

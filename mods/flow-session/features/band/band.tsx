@@ -4,8 +4,8 @@
  * A badge is the ticket's id and short name in black on `#ffb703`, joined to its word and
  * count on the terminal's background plus 7% of that colour. The band is one row: it ends with a
  * green Restart button, shown between turns from `LEAD` under the wrap-up limit (button.ts), and the issue count in red.
- * A ticket lights only when `flow tickets start <id>` picks it up, and then sits leftmost; its file is read again whenever a
- * command or an edit touches it, and at each turn's end. For as long as a turn runs, the badge
+ * A ticket lights only when `flow tickets start <id>` picks it up, and then sits leftmost; `flow tickets get` reads it again whenever a
+ * command or an edit touches it, and for every badge at once at each turn's end. For as long as a turn runs, the badge
  * the session works (the leftmost open one) shows a pale bar 3 cells wide moving along
  * it and a spinner turning after its word; `band-settings.json` switches either off. The rules
  * for joining and leaving are in band-model.ts; this file only feeds them and draws the result.
@@ -25,7 +25,7 @@ import { failureFiles, openIssues } from './issues'
 import { DEFAULT_LOOK, parseLook, type Look } from './look'
 import { restartOffered } from '../meters/meters-row'
 import { isExpired, isRecordKey, makeRecord, parseRecord, recordKey } from './record'
-import { idsIn, idsInPath, readTicket, startedIn, target, ticketPrefix } from '../../shared/ticket'
+import { idsIn, idsInPath, readTicket, readTickets, startedIn, target, ticketPrefix } from '../../shared/ticket'
 
 const issues = atom({ plugin: 'flow-session', key: 'issues' } as const, 0)
 const frame = atom({ plugin: 'flow-session', key: 'frame' } as const, 0)
@@ -69,7 +69,7 @@ async function namedBy($: EngineInterface, tool: string, call: object): Promise<
 
 /**
  * The project's ticket prefix: `ticketPrefix` in `.flow/settings.json`, else the word its folder
- * offers (`offerWord` in scripts/lib/tickets/store.js, which this repeats: the mod cannot require it).
+ * offers (`offerWord` in scripts/features/tickets/store.ts, which this repeats: the mod cannot require it).
  */
 async function prefixOf($: EngineInterface): Promise<string | undefined> {
   const root = await $.session.root()
@@ -97,7 +97,7 @@ async function folderOf($: EngineInterface, id: string): Promise<string | undefi
 
 /**
  * A click on a badge opens the ticket in VS Code through `code`. The name opens `ticket.md`;
- * the word opens the file at the open list its word names (ticket.ts `target`), read as it is now.
+ * the word opens the file at the open list its word names (ticket.ts `target`), asked of `flow` as it is now.
  */
 async function openTicket($: EngineInterface, id: string, atWord: boolean): Promise<void> {
   const folder = await folderOf($, id)
@@ -105,21 +105,25 @@ async function openTicket($: EngineInterface, id: string, atWord: boolean): Prom
   const file = `${folder}/ticket.md`
   let path = file
   if (atWord) {
-    const text = await readText($, file)
-    const map = await readText($, `${folder}/groundwork/map.md`)
-    const found = text === undefined ? undefined : target(text, map, readTicket(text, map, await prefixOf($))?.word ?? '')
+    const [json] = await readTickets($, [id], await $.session.root())
+    const found = json && target(json, readTicket(json).word)
     if (found) path = `${found.file === 'map' ? `${folder}/groundwork/map.md` : file}:${found.line}`
   }
   const result = await $.process.run(atWord ? ['code', '-g', path] : ['code', path], { timeoutMs: 10000 })
   if (result.exitCode !== 0) $.ui.log(`opening ${id} failed: ${result.stderr.trim() || `code exited ${result.exitCode}`}`)
 }
 
-async function refresh($: EngineInterface, id: string, lights: boolean): Promise<void> {
-  const folder = await folderOf($, id)
-  const text = folder ? await readText($, `${folder}/ticket.md`) : undefined
-  if (!folder || text === undefined) return
-  const ticket = readTicket(text, await readText($, `${folder}/groundwork/map.md`), await prefixOf($))
-  if (ticket) await updateBand($, (entries) => apply(entries ?? [], ticket, lights))
+/**
+ * Reads the tickets of this project again, all in one `flow` process, and puts each on the band.
+ * `lit` are the ids `flow tickets start` picked up: they go leftmost. An id of another place has no ticket here.
+ */
+async function refresh($: EngineInterface, ids: readonly string[], lit: readonly string[] = []): Promise<void> {
+  const prefix = await prefixOf($)
+  const mine = ids.filter((id) => /^([a-z]+)-\d+$/.exec(id)?.[1] === prefix)
+  for (const json of await readTickets($, mine, await $.session.root())) {
+    const ticket = readTicket(json)
+    await updateBand($, (entries) => apply(entries ?? [], ticket, lit.includes(ticket.id)))
+  }
 }
 
 /** A failure of the saved record, put in the log so a band that never comes back is not silent. */
@@ -151,7 +155,7 @@ async function restore($: EngineInterface): Promise<void> {
   const saved = parseRecord(await $.store.get(recordKey(await $.session.id())))
   if (!saved?.band.length) return
   await updateBand($, () => saved.band)
-  for (const entry of saved.band) await refresh($, entry.id, false).catch(() => undefined)
+  await refresh($, saved.band.map((entry) => entry.id)).catch(() => undefined)
   $.ui.log(`band restored: ${saved.band.length} from ${saved.updated}`)
 }
 
@@ -278,7 +282,7 @@ export async function bandToolCall<R>($: EngineInterface, e: ToolCallInput, run:
 
 /** Tickets a command named were changed or looked at: reads them again, and one picked up by `flow tickets start` goes leftmost and is the one the session works. */
 async function touched($: EngineInterface, ids: string[], started: string[]): Promise<void> {
-  for (const id of ids) await refresh($, id, started.includes(id)).catch(() => undefined)
+  await refresh($, ids, started).catch(() => undefined)
   if (!ids.length) return
   await pointWave($).catch(() => undefined)
   await save($).catch((error) => lost($, 'save', error))
@@ -317,7 +321,7 @@ export async function bandShell($: EngineInterface, e: SessionAppendInput): Prom
 export async function bandTurnComplete($: EngineInterface, e: TurnCompleteInput): Promise<void> {
   if (e.agentId !== undefined) return
   turnRunning = false
-  for (const entry of await readBand($).catch(() => [])) await refresh($, entry.id, false).catch(() => undefined)
+  await refresh($, (await readBand($).catch(() => [])).map((entry) => entry.id)).catch(() => undefined)
   await pointWave($).catch(() => undefined)
   await save($).catch((error) => lost($, 'save', error))
   await countIssues($).catch(() => undefined)

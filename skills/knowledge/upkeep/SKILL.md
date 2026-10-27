@@ -66,7 +66,7 @@ Would the sentence be true in a different project? Yes → global. No → this p
 
 - **A tool or field** → the page owning it in `~/.flow/wiki/<subject>/`, by `~/.flow/guides/wiki.md`
 - **Rule true everywhere, always relevant** → the section of `~/.flow/CLAUDE.md` that owns it. Never a rule file with no `paths:`
-- **Rule true everywhere, for one stack or file type** → a guide in Flow's `guides/`, plus an entry in `mods/flow-session/hooks/situations.ts` that sends it. Never `claude/rules/` with `paths:`
+- **Rule true everywhere, for one stack or file type** → a guide in Flow's `guides/`, plus an entry in `mods/flow-session/features/guides/situations.ts` that sends it. Never `claude/rules/` with `paths:`
 - **Rule for this project** → its `CLAUDE.md` `## Rules`, or `.claude/rules/<topic>.md` with `paths:`
 - **Project fact most sessions need** → its `CLAUDE.md`
 - **Project fact only some work needs** → `docs/context/<subject>.md`

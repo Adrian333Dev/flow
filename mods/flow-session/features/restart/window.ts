@@ -2,9 +2,9 @@
  * window.ts: builds the restarted window from the disk and the old conversation.
  *
  * Reads the files and skills the agent named, the tickets the session works and the `context.md`
- * sections of their open questions, and the guides those files need (features/guides/situations.ts), and
- * hands the parts to first-message.ts. The old
- * window's turns stay in the session's transcript, where `flow audit` reads them.
+ * sections of their open questions, and the guides those files need (features/guides/situations.ts),
+ * and hands the parts to first-message.ts. The old window's turns stay in the session's transcript,
+ * where `flow audit` reads them.
  */
 import type { EngineInterface } from 'claude-code'
 import type { Entry, Restart } from '../../shared/types'
@@ -12,7 +12,7 @@ import { restartWindow, type Built } from './first-message'
 import { CAP, parseSpec, sectionLines, skillBody, slice, tokensOf, type Loaded } from './loads'
 import { entryFor, keyOf, keysOf } from '../guides/situations'
 import { linksFromFile, wikiText, withWiki } from '../guides/skill-wiki'
-import { openHandles } from '../../shared/ticket'
+import { readTickets } from '../../shared/ticket'
 
 const bytes = (text: string) => new TextEncoder().encode(text).length
 const kb = (n: number) => `${Math.max(1, Math.round(n / 1024))} KB`
@@ -84,10 +84,10 @@ export async function resolveLoads($: EngineInterface, files: readonly string[],
   return { loaded, invoke }
 }
 
-/** The sections of `context.md` (its text at `path`) that the open questions of a `ticket.md` name. A handle with no section is skipped. */
-function openSections(ticket: string, path: string, context: string): Loaded[] {
+/** The sections of `context.md` (its text at `path`) that the handles of a ticket's open questions name. A handle with no section is skipped. */
+function openSections(handles: readonly string[], path: string, context: string): Loaded[] {
   const lines = context.split('\n')
-  return openHandles(ticket).flatMap((handle) => {
+  return handles.flatMap((handle) => {
     const found = sectionLines(context, handle)
     return found ? [{ type: 'file' as const, path, text: lines.slice(found.from - 1, found.to).join('\n'), ...found, whole: false }] : []
   })
@@ -97,10 +97,13 @@ function openSections(ticket: string, path: string, context: string): Loaded[] {
  * The ticket files of the badges in flight, each followed by its `context.md`: whole in groundwork
  * (`design`), where every topic stays in play, else the sections of its open questions.
  * `fw-244` is `.flow/tickets/244/ticket.md` beside its `context.md`, and a `home` ticket sits under the Flow home.
+ * The handles of the open questions come from `flow tickets get`, one process for all the badges.
  */
 async function ticketLoads($: EngineInterface, entries: readonly Entry[], where: Where, home: string): Promise<Loaded[]> {
   const found: Loaded[] = []
-  for (const entry of entries.filter((e) => !e.isDone)) {
+  const open = entries.filter((e) => !e.isDone)
+  const handles = new Map((await readTickets($, open.map((e) => e.id), where.root)).map((json) => [json.id, json.openQuestions]))
+  for (const entry of open) {
     const [, prefix, number] = /^(.+)-(\d+)$/.exec(entry.id) ?? []
     if (!prefix || !number) continue
     const base = prefix === 'home' ? home : `${where.root}/.flow`
@@ -112,7 +115,7 @@ async function ticketLoads($: EngineInterface, entries: readonly Entry[], where:
       const context = await $.fs.read(`${dir}/context.md`).catch(() => undefined)
       if (context !== undefined && /^design\b/i.test(entry.word)) {
         found.push({ type: 'file', path: `${dir}/context.md`, text: context, from: 1, to: context.split('\n').length, whole: true })
-      } else if (context !== undefined) found.push(...openSections(text, `${dir}/context.md`, context))
+      } else if (context !== undefined) found.push(...openSections(handles.get(entry.id) ?? [], `${dir}/context.md`, context))
       break
     }
   }
