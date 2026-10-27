@@ -98,7 +98,7 @@ function checkTests(clone, { bin }) {
   const suite = (dir) => spawnSync(process.execPath, ['--test', '**/*.test.ts'], { cwd: dir, stdio: 'ignore' });
 
   if (suite(path.join(clone, 'scripts')).status === 0) ran.push('flow');
-  else problems.push(`the flow suite fails: run npm test in ${path.join(clone, 'scripts')}`);
+  else problems.push(`the flow suite fails: run pnpm test in ${path.join(clone, 'scripts')}`);
 
   const util = bin ? inspect(path.join(bin, 'util')) : { state: 'missing' };
   if (util.state !== 'ok') {
@@ -106,7 +106,7 @@ function checkTests(clone, { bin }) {
   } else {
     const utilClone = path.dirname(util.target!);
     if (suite(utilClone).status === 0) ran.push('util');
-    else problems.push(`the util suite fails: run npm test in ${utilClone}`);
+    else problems.push(`the util suite fails: run pnpm test in ${utilClone}`);
   }
 
   return { name: 'tests', problems, summary: `${ran.join(' and ')} suites pass` };

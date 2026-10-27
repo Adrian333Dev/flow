@@ -1,7 +1,7 @@
 /**
  * What has to be on a machine before Flow runs, checked by running it.
  *
- * A prerequisite is something Flow calls and never installs: the 4 programs it
+ * A prerequisite is something Flow calls and never installs: the 5 programs it
  * shells out to, and a Claude Code recent enough for Flow. Everything Flow puts on a machine itself belongs to
  * `flow doctor`'s other checks, where a missing piece is repaired rather than
  * treated as a wall. util is one of those: `flow install` clones and links it.
@@ -21,6 +21,7 @@ const PROGRAMS = [
   { name: 'git', why: 'a project is found by asking git for its root' },
   { name: 'claude', why: 'Flow is a workflow for Claude Code' },
   { name: 'gh', why: 'your Flow home is kept in a private GitHub repository through it' },
+  { name: 'pnpm', why: "the scripts' type check (TypeScript) installs and runs through it" },
 ];
 
 /**
@@ -59,7 +60,7 @@ function onPath(name) {
   return null;
 }
 
-/** The 4 programs, resolved on PATH. */
+/** The 5 programs, resolved on PATH. */
 function checkPrograms() {
   const problems : string[] = [];
   const found : string[] = [];

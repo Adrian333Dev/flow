@@ -27,7 +27,7 @@ main() {
     shift
   done
 
-  for program in git node claude gh; do
+  for program in git node claude gh pnpm; do
     command -v "$program" >/dev/null || missing+=" $program"
   done
   if [ -n "$missing" ]; then

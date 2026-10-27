@@ -120,7 +120,7 @@ Check that Flow is installed correctly. It changes nothing, names the fix on eac
 $ flow doctor
 ok    issues: every job running in the background worked last time
 ok    clone: 1 submodule on the commit this clone points at
-ok    programs: node, git, claude, gh all resolve
+ok    programs: node, git, claude, gh, pnpm all resolve
 ok    node: 24.15.0, and Flow needs 24.12.0 or later
 ok    claude code: 2.1.310, and Flow needs 2.1.310 or later
 ok    names: flow, fw, util, u all resolve

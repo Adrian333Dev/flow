@@ -44,7 +44,7 @@ Release 1 uses a one-time development branch named `v1`. An installed copy never
 
 ## Running the tests
 
-`npm test` inside `scripts/` runs Flow's suite. Its summary prints the passing and failing counts:
+`pnpm test` inside `scripts/` runs Flow's suite. Its summary prints the passing and failing counts:
 
 ```text
 ℹ pass 292

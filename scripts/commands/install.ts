@@ -173,6 +173,9 @@ actions.install = {
 
     if (!flags['no-clone']) done.push(...cloneMissing(at));
 
+    // A test sandbox (`--root`) has no business installing the real clone's dependencies.
+    if (!flags.root) done.push(...installDependencies(clone));
+
     if (bin) {
       for (const [name, file] of Object.entries(installed.BIN)) {
         link(path.join(clone, file), path.join(bin, name));
@@ -240,6 +243,18 @@ function guarded(perform) {
       throw e;
     }
   };
+}
+
+/**
+ * Install `scripts/`'s dependencies from the committed lockfile: TypeScript,
+ * which only `tsc --noEmit` uses. A failure is logged and never stops the
+ * install, since Flow runs without them.
+ */
+function installDependencies(clone) {
+  const ran = spawnSync('pnpm', ['install', '--frozen-lockfile'], { cwd: path.join(clone, 'scripts'), encoding: 'utf8' });
+  if (ran.status === 0) return [];
+  const why = (ran.stderr || ran.error?.message || '').trim().split('\n').pop();
+  return [`could not install the scripts dependencies with pnpm: ${why}`];
 }
 
 /** Start `~/.flow/CLAUDE.md` from Flow's own rules where the Flow home brought none. */

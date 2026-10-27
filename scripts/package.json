@@ -2,6 +2,7 @@
   "name": "flow-scripts",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "pnpm@11.5.2",
   "type": "module",
   "description": "Flow's scripts, and the tests that run them. Node runs the TypeScript directly; typescript only checks types.",
   "scripts": {
