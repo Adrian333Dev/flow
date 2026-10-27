@@ -23,7 +23,6 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ settings.json
 │  ├─ skills/flow                 → ~/.agents/skills/flow
 │  ├─ skills/<name>               a skill of your own, for every project
-│  ├─ skills/home-<n>/            a ticket skill
 │  └─ projects/                   Claude Code's record of every session
 ├─ .flow/
 │  ├─ CLAUDE.md                   your rules
@@ -54,8 +53,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 ├─ .uncommitted-include
 ├─ .claude/
 │  ├─ settings.json
-│  ├─ skills/<name>
-│  └─ skills/<id>/                a ticket skill
+│  └─ skills/<name>
 ├─ .flow/
 │  ├─ tickets/<number>/
 │  ├─ tickets/archive/
@@ -83,7 +81,6 @@ Each folder here can also hold entries from other tools. `flow install` never re
 - **`settings.json`**: Claude Code's settings. No Flow command writes it: a setup session adds Flow's keys and keeps yours. [Settings](settings.md#claude-codes-settings-file) covers each key.
 - **`skills/flow`**: a link to `~/.agents/skills/flow/`, which is how Claude Code finds Flow's skills.
 - **`skills/<name>`**: a skill of your own, loaded in every project. Claude Code reads it, and Flow never writes it.
-- **`skills/home-<n>/`**: a [ticket skill](skills.md#ticket-skills) for each open ticket in your Flow home.
 - **`projects/`**: Claude Code's record of every session. `flow audit` reads it.
 
 ## `~/.flow/`
@@ -153,7 +150,6 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 
 - **`settings.json`**: this project's Claude Code settings, added on top of `~/.claude/settings.json`.
 - **`skills/<name>`**: a skill this project keeps for itself, loaded in this project alone.
-- **`skills/<id>/`**: a [ticket skill](skills.md#ticket-skills) for each open ticket. git never sees them.
 
 ### `.flow/`
 

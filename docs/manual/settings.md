@@ -65,7 +65,7 @@ Prints a line when a session opens and something needs attention, and nothing ot
 Flow: not set up here. Run flow init to set it up on this computer, or flow settings off setupReminder to stop this.
 ```
 
-Off, the line stops. The work behind it goes on: the ticket skills still match your tickets.
+Off, the line stops. The work behind it goes on: the background sync still starts.
 
 ### `setupReminder`
 
@@ -161,7 +161,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 - **`check-ticket.ts`**, when you type a phase skill or `/flow:start`: refuses where Flow is not set up.
 - **`overlays.ts`**, when a skill loads: adds the lines in `~/.flow/skill-overlays/<skill>.md`.
 - **`reminder.ts`**, on every message you send: prints [`reminder`](#reminder).
-- **`session-check.ts`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), rewrites the ticket skills, and starts the background sync.
+- **`session-check.ts`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), and starts the background sync.
 - **`failures.ts`**, when a tool call or the API fails: adds a line to the failure log in `~/.flow/logs/failures/`.
 - **`records-sync.ts`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
 

@@ -12,7 +12,7 @@ Write a briefing in short plain sentences, in this order. Skip a part with nothi
 A line stays only where the next session acts wrongly without it. Steps already taken never pass. Write fragments, no filler.
 
 ```text
-Load: /flow:execute, then /fw-179 (the band's badges; read context.md#Restart button).
+Load: /flow:execute @.flow/tickets/179/ticket.md (the band's badges; read context.md#Restart button).
 Task: fw-179, the band's badges. Built: the badges. Not built: the restart button, shown past the wrap-up limit.
 User said: leave fw-73 (a parallel session's). ~/.flow/study-cases/ stays until the user says delete.
 Next: draw the button with /flow:visualize: small, right side, before the issue count, a press restarts. User's yes, then build.

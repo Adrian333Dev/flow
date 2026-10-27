@@ -45,7 +45,6 @@ import * as place from '../features/tickets/records-place.ts';
 import * as projects from '../shared/project.ts';
 import * as settings from '../shared/settings.ts';
 import * as store from '../features/tickets/store.ts';
-import * as ticketSkills from '../features/tickets/ticket-skills.ts';
 import * as paths from '../shared/paths.ts';
 
 const show = paths.shorten;
@@ -178,16 +177,9 @@ function writeTemplate(clone, project) {
   return wrote;
 }
 
-/**
- * The folder the ticket skills go in, made now because Claude Code sees a skill
- * added mid-session only under a folder that existed when the session started.
- */
-const makeSkillsFolder = (project) => fs.mkdirSync(ticketSkills.folderOf(project), { recursive: true });
-
 /** The records folder's first files: the prefix, and what it ignores. */
 function seedRecords(project, prefix) {
   const dir = path.join(project, '.flow');
-  makeSkillsFolder(project);
   fs.mkdirSync(path.join(dir, 'tickets'), { recursive: true });
   const file = settings.projectFile(project);
   settings.write(file, { ...settings.read(file), ticketPrefix: prefix });
@@ -219,7 +211,6 @@ function init(at, clone, flags) {
 
   // Another machine set the project up: its tickets are linked, and nothing is written.
   if (isSetUp(home)) {
-    makeSkillsFolder(project);
     registerProject(project, at.flow, done);
     out(`${done.join('\n')}\n\nset up: ${show(project)}, with the tickets another machine started.`);
     return 0;

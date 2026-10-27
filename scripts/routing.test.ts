@@ -45,8 +45,6 @@ test('from project A, flow <id> and flow start <id> work on a ticket of project 
   assert.match(started.stdout, /bee-1-thing {2}todo → in-progress/);
   assert.match(fs.readFileSync(path.join(b, '.flow', 'tickets', '1', 'ticket.md'), 'utf8'), /^status: in-progress$/m);
 
-  assert.match(fs.readFileSync(path.join(b, '.claude', 'skills', 'bee-1', 'SKILL.md'), 'utf8'), /in-progress/, 'B\'s skill follows');
-  assert.ok(!fs.existsSync(path.join(a, '.claude', 'skills', 'bee-1')), 'A gets no skill for B\'s ticket');
   assert.deepStrictEqual(Object.keys(registry.read(home)), ['bee'], 'A wrote no ticket, so A stays unregistered');
 });
 
@@ -106,7 +104,6 @@ test('flow move takes the destination project as a prefix, and refuses a folder'
   assert.strictEqual(moved.code, 0, moved.stderr);
   assert.match(moved.stdout, /exp-1 → bee-2-wanderer/);
   assert.ok(fs.existsSync(path.join(b, '.flow', 'tickets', '2', 'ticket.md')));
-  assert.ok(fs.existsSync(path.join(b, '.claude', 'skills', 'bee-2', 'SKILL.md')), 'B\'s skills follow the move in');
   assert.ok(Object.keys(registry.read(home)).includes('bee'));
 });
 
@@ -160,7 +157,6 @@ test('-p and --project name a project by its prefix for new, ls and next, from a
   assert.match(made.stdout, /created bee-2-from-afar/);
   assert.ok(fs.existsSync(path.join(b, '.flow', 'tickets', '2', 'ticket.md')), 'the ticket landed in B');
   assert.ok(!fs.existsSync(path.join(a, '.flow', 'tickets')), 'A got nothing');
-  assert.ok(fs.existsSync(path.join(b, '.claude', 'skills', 'bee-2', 'SKILL.md')), 'B\'s skills follow');
 
   for (const flag of ['-p', '--project']) {
     const ls = flow(a, ['tickets', flag, 'bee']);

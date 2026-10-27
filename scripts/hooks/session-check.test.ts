@@ -1,6 +1,6 @@
 /**
- * `session-check`: the SessionStart hook that makes the ticket skills match the
- * tickets and suggests `flow init` where a repository has no `.flow/`.
+ * `session-check`: the SessionStart hook that suggests `flow init` where a
+ * repository has no `.flow/`.
  */
 
 import { test } from 'node:test';
@@ -57,16 +57,10 @@ test('a folder under the home folder with no .flow of its own is not a project',
   write(home, 'tickets/home-4-backup-script/ticket.md',
     '---\nid: home-4\ntitle: Backup script\nstatus: in-progress\ntype: chore\n---\n\nBody.\n');
 
-  // The ticket in ~/.flow/ gets its skill in Claude Code's folder, and the hook
-  // asks Claude Code to scan the skill folders again so the first prompt has it.
-  const at = { home, project: playground, user };
-  const first = check(at);
-  assert.deepStrictEqual(JSON.parse(first.stdout), { hookSpecificOutput: { hookEventName: 'SessionStart', reloadSkills: true } });
-  assert.ok(fs.existsSync(path.join(user, '.claude', 'skills', 'home-4', 'SKILL.md')), 'a ticket of the machine, so a skill');
-
-  const second = check(at);
-  assert.strictEqual(second.stdout, '', 'the skill is there, so there is nothing to scan');
+  const result = check({ home, project: playground, user });
+  assert.strictEqual(result.stdout, '', 'no setup line: the folder is no repository');
   assert.ok(!fs.existsSync(path.join(playground, '.claude')), 'the home folder is never read as a project');
+  assert.ok(!fs.existsSync(path.join(user, '.claude', 'skills')), 'a ticket gets no skill');
 });
 
 test('a git repository with no .flow gets the setup line, shown to the user alone, unless a setting says not', () => {

@@ -18,7 +18,7 @@ One user message, your work, one reply. In that order, every time.
    - **`one-approval-runs-to-the-end`** The build, every record it makes stale, the tests, the writing pass, then a check of your work against `~/.flow/guides/review-code.md`. Never stop at a checkpoint to wait for a second go.
 5. **`act-then-answer-once`** One line as you take each step: "editing `docs/spec/product.md`". Every action first, then one answer: the only message the user reads.
    - **`move-forward-never-sideways`** No confirming settled points, no summarizing agreement, no recapping before the next topic. State what is now true, never the sequence that produced it.
-   - **`end-with-the-next-step`** Work handed over for review, a ticket closed, a topic settled, a stop at the context limit → end by recommending the next step, with its reason. Give the command to type where one exists. e.g `/flow:execute /exp-47`
+   - **`end-with-the-next-step`** Work handed over for review, a ticket closed, a topic settled, a stop at the context limit → end by recommending the next step, with its reason. Give the command to type where one exists. A ticket is the `@` mention its `#exp-47` row writes, after the phase: `/flow:execute @.flow/tickets/47/ticket.md`.
 ## Reading
 
 - **`plan-the-reads`** Before the first call, list everything the step needs: files, searches, checks. Send every call that needs no other call's result in one message. A call sent alone resends the whole conversation.

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 !`flow next 2>&1 || true`
 
-**A ticket is above**, printed by its own skill in `/flow:start /exp-47` → route it by `## When a ticket is above`. Never recommend from the board printed beside it.
+**A ticket is attached**, an `@` mention of its `ticket.md` in `/flow:start @.flow/tickets/47/ticket.md` → route it by `## When a ticket is attached`. Never recommend from the board printed beside it.
 
 **A refusal, and no ticket** → say why and stop.
 
@@ -14,18 +14,18 @@ disable-model-invocation: true
 
 **The board is above**: recommend one ticket and say what decides it: work already in flight beats work cut out of it, and both beat anything new. Then wait. The user picks.
 
-## When a ticket is above
+## When a ticket is attached
 
-**Read the ticket above before opening a file**: `## Questions` and `## Tasks` say where the work stopped and what is still open, and the `context:` line names the sections in `context.md`. An older ticket says it in `## State`.
+**Read the attached ticket and its header before opening a file**: `## Questions` and `## Tasks` say where the work stopped and what is still open. An older ticket says it in `## State`.
 
-**A `branch:` line saying `checked out here:` another branch** → tell the user which branch the work is on before routing, and wait.
+**`branch:` in the frontmatter names another branch than the one checked out** → tell the user which branch the work is on before routing, and wait.
 
-Pick the skill, say in one line what decided it, then invoke it here with no argument. The ticket is already above.
+Pick the skill, say in one line what decided it, then invoke it here with no argument. The ticket is already attached.
 
 Take the first line that matches:
 
-- **An open `## Questions` line** (the `questions:` line short of its total) → `/flow:groundwork`
-- **An open `## Tasks` line** (the `tasks:` line short of its total) → `/flow:execute`
+- **An open `## Questions` line** (the header's `questions:` row) → `/flow:groundwork`
+- **An open `## Tasks` line** → `/flow:execute`
 - **A `bug` label, or a failure with no known cause** → `/flow:debug`
 - **Neither list written** → read the body: a decision still to make → `/flow:groundwork`; the change already clear → `/flow:execute`
 

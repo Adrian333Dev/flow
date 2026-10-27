@@ -67,7 +67,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 ## The parts, one file each
 
 - `docs/spec/setup.md`: installing Flow on a machine, setting up a project, updating by a pull and `flow install`, and syncing machines.
-- `docs/spec/tickets.md`: the ticket store, the `flow` ticket commands, the ticket skills, and the status moves each phase makes.
+- `docs/spec/tickets.md`: the ticket store, the `flow` ticket commands, the `#` ticket list and the ticket header, and the status moves each phase makes.
 - `docs/spec/skills.md`: Flow's skills and its 3 phases, how skills install, outside skills and their sources, and overlays.
 - `docs/spec/permissions.md`: what runs without asking, what asks, the guard, the dialog that asks, and the log of asks.
 - `docs/spec/rules.md`: the rule file, how a rule is written, the rule checks and the scorecard.
@@ -93,7 +93,7 @@ Improve   preferences, tool knowledge, mistakes → filed into skills, rules and
 - `V1` **`/keepwarm` renews a session's prompt cache while the user is away.** Decided 2026-10-24. Per session, off until `/keepwarm on`, and the switch survives an in-place restart and a hot reload (the host holds it). Closing the session (exit, `/clear`, resume) turns it off, decided 2026-10-24: a session opened again starts off and the user switches it on again. Shortly before the cache expires (`keepWarmLead`, 3 minutes) the mod calls `$.model.fork` with one tiny question: it sends the main thread's last request again, so the API serves the same prefix from the cache and the expiry clock starts over, and nothing reaches the transcript. `$.model.complete` cannot do this, because it has its own system prompt and no history, so its prefix differs and warms nothing. Every ping is judged by `cache_read_input_tokens` (a hit serves at least 90% of the prompt); the first ping that is not a hit, or fails, turns the switch off and says why, so a bug costs one miss and never repeats. The pings stop `keepWarmMaxIdle` (4 hours) after the user's last request, and after 12 pings for one request. A hit sets the meters row's cache countdown, since the transcript shows no fork. `/keepwarm status` says when the next ping goes out, and `/keepwarm ping` sends one now and reports the figures. A ping costs about $0.03 at 150,000 tokens and a miss about $1 (ticket `fw-100`, `token-costs.md`): with a 1-hour cache, pings pay off for gaps up to about a day, and with a 5-minute cache the break-even is about 2 hours.
 - `never` **A ping that runs while the user works, or at a cache that is cold or empty**, refused 2026-10-24. The mod pings only from idle: no main turn, restart or helper agent running, and a timer only wakes a fresh read of the facts, so a user who keeps working moves the due time and nothing is sent. It never pings a cache past its expiry (that ping would pay the whole prefix), nor one a model switch or a restart emptied.
 - `V1` **`@` lists every file, git-ignored ones included, most recently changed first**, answered from a saved walk in about 50 ms.
-- `V1` **The session start prints one line only when something needs attention**: a git repository with no Flow. It also makes every skill link and ticket skill match the settings, and starts the background pull and sync.
+- `V1` **The session start prints one line only when something needs attention**: a git repository with no Flow. It also makes every skill link match the settings, and starts the background pull and sync.
 - `never` **A typed `/compact` let through on the second try**, refused 2026-10-01: people learn to type it twice. The mod refuses it every time, with no override setting.
 
 ### Subagents
@@ -180,7 +180,7 @@ Each piece below was proposed for removal on 2026-10-01 and kept. Raise one agai
 - `V1` **`flow audit`**, read by `/flow:upkeep`.
 - `V1` **`flow cases`**, retired 2026-10-19 into issue tickets (`fw-181`). A case kept the output for good and closed naming the file that fixed it, so a rule shortened later still shows why it exists. A ticket does the same.
 - `V1` **The settings levels and the overlays**, which make Flow flexible.
-- `V1` **The ticket skills and the `@` file list**: each small and asked for. The skill updater and the restore and uninstall forms left 2026-10-14 (`fw-124`).
+- `V1` **The `#` ticket list and the `@` file list**: each small and asked for. The ticket skills they replaced went 2026-10-27 (`fw-236`). The skill updater and the restore and uninstall forms left 2026-10-14 (`fw-124`).
 
 ### Other harnesses, models and platforms
 

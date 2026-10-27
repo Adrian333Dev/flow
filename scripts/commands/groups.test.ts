@@ -106,6 +106,7 @@ test('a parked group holds its todo and in-progress tickets, and the files keep 
   const { data } = asJson(dir, ['tickets', 'get', 'exp-1']);
   const record = data.ticket || data;
   assert.strictEqual(record.status, 'parked');
+  assert.strictEqual(record.storedStatus, 'todo');
   assert.strictEqual(record.heldBy, 'later');
   assert.deepStrictEqual(record.groups, ['later']);
 

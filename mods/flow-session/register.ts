@@ -13,7 +13,8 @@ import { inSkillCall, withSkillWiki } from './features/guides/skill-wiki'
 import { steerStep, withGuideHeader } from './features/guides/steer-step'
 import { cancel as warmCancel, closeWarm, keepWarm, noteBroken, registerKeepWarm, replan, warmTranscript, warmTurnEnded, warmTurnStarted } from './features/keepwarm/keepwarm'
 import { drawMeters, metersMeasure, metersRead, metersRefresh, metersStart, metersSwitch } from './features/meters/meters-row'
-import { noteRows } from './features/notes/notes'
+import { listRows } from './features/notes/notes'
+import { withFileContext } from './features/ticket-context/ticket-context'
 import {
   RESTART_CALL,
   askForRestart,
@@ -68,9 +69,9 @@ export const register: Register = (on) => {
     return next(e)
   })
 
-  // The note rows join beneath the engine's own, so a failure here shows no rows at all.
+  // The note and ticket rows join beneath the engine's own, so a failure here shows no rows at all.
   on('prompt.autocomplete', { token: /^#/ }, async ($, e, next) => {
-    const found = await noteRows($, e.token)
+    const found = await listRows($, e.token)
     const before = await next(e)
     return { suggestions: [...before.suggestions, ...found] }
   }).catch(() => ({ suggestions: [] }))
@@ -94,6 +95,13 @@ export const register: Register = (on) => {
   })
 
   on('tool.call', { tool: 'Skill' }, async (_$, e, next) => inSkillCall(e.agentId, () => next(e)))
+
+  // A ticket's header or a wiki folder's labels, beside the file read or mentioned.
+  // A failure passes the read through as it was: next(e) after a first call settles with that call's result.
+  on('tool.call', { tool: 'Read' }, async ($, e, next) => withFileContext($, (e as { file_path?: unknown }).file_path, e.agentId, await next(e))).catch(
+    async (_$, e, next) => next(e),
+  )
+  on('prompt.mention', async ($, e, next) => withFileContext($, e.path, e.agentId, await next(e)))
 
   on('skill.prompt', async ($, e, next) => withSkillWiki($, e.frontmatter, await next(e)))
 

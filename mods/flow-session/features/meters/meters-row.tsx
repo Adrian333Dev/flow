@@ -13,6 +13,7 @@ import { busyWith } from '../restart/button'
 import { coldAt, lastRequest, transcriptTail } from '../../shared/cache'
 import { flowSettings } from '../../shared/settings'
 import { readTracked } from '../../shared/state'
+import { noteColumns } from '../../shared/viewport'
 import { SEPARATOR, fit, meters, type Tone } from './meters'
 import { LIMIT, offersRestart, wrapUpSettings } from '../wrap-up/wrap-up'
 
@@ -100,6 +101,7 @@ export async function drawMeters(
   e: RenderInput<'PromptHint'>,
   next: (e: RenderInput<'PromptHint'>) => Promise<RenderElement>,
 ): Promise<RenderElement> {
+  noteColumns(e.viewport?.columns)
   const { beat: _beat, ...now } = await read($, reading)
   const columns = (e.viewport?.columns ?? 100) - MODE_COLUMNS
   const shown = fit(meters(now, Date.now()), columns)

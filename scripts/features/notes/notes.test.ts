@@ -19,7 +19,6 @@ function other(dir) {
 const asked = (query?: string) => (query === undefined ? [] : ['--', query]);
 const listed = (dir: string, query?: string) => JSON.parse(flow(dir, ['notes', ...asked(query)]).stdout);
 const names = (dir: string, query?: string): string[] => listed(dir, query).map((n: { name: string }) => n.name);
-const skillsOf = (dir) => path.join(dir, '.claude', 'skills');
 
 // Notes are listed newest change first. A test sets the file times itself: waiting on the clock failed once in a full run.
 const changedAgo = (dir, name, seconds) => {
@@ -225,14 +224,6 @@ test('promote refuses a note of another project and says where to run it', () =>
   assert.deepStrictEqual(names(dir, 'project:all').sort(), ['belongs-elsewhere', 'belongs-nowhere']);
 });
 
-test('a note gets no skill, and a parked ticket keeps its own', () => {
-  const dir = project('notes-skills');
-  flow(dir, ['notes', 'new', 'Add a notes page to the board']);
-  flow(dir, ['tickets', 'new', 'Parser']);
-  flow(dir, ['tickets', 'park', 'exp-1', '--reason', 'waiting']);
-  assert.deepStrictEqual(fs.readdirSync(skillsOf(dir)), ['exp-1']);
-});
-
 test('a note made in the Flow home is home, and a project lists it', () => {
   const dir = project('notes-home');
   // As FLOW_PROJECT=$HOME names it: the folder whose `.flow/` is the Flow home.
@@ -245,7 +236,6 @@ test('a note made in the Flow home is home, and a project lists it', () => {
   assert.strictEqual(r.code, 0, r.stderr);
   const file = path.join(home, 'notes', 'never-write-kind.md');
   assert.match(fs.readFileSync(file, 'utf8'), /project: home/);
-  assert.ok(!fs.existsSync(path.join(claude, 'skills', 'home-note-1')), 'no skill for a note');
 
   fs.mkdirSync(path.join(dir, 'flow-home', 'notes'), { recursive: true });
   fs.copyFileSync(file, path.join(dir, 'flow-home', 'notes', 'never-write-kind.md'));

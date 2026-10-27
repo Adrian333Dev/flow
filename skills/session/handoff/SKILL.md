@@ -47,7 +47,7 @@ Run it when this conversation ends here: all remaining work moves to another ses
 
 ## 3. End the reply
 
-Open with the full path of each file written. Then end with what the user types in the other session or model: the ticket's skill (`/exp-47`) if applies, then each skill the work needs (`/flow:groundwork`, `/flow:execute`, etc.). Write it by `references/start-message.md`, at the length the work needs.
+Open with the full path of each file written. Then end with what the user types in the other session or model: each skill the work needs (`/flow:groundwork`, `/flow:execute`, etc.), then the ticket's mention, `@.flow/tickets/47/ticket.md`, if one applies. Write it by `references/start-message.md`, at the length the work needs.
 
   - **Run `flow <id>` first.** Fix a status that no longer matches where the work stands.
   - **Several tickets** → the one to continue first, and the order of the rest.

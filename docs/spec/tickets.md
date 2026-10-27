@@ -1,10 +1,10 @@
 # Tickets
 
-How Flow holds a project's work. A ticket is one piece of work: its status, its plan and its history, in one folder. A project's tickets live in the Flow home, and `.flow/` in the project is a link to them, so every code branch sees the same tickets. The `flow` command creates, moves and ranks them. Each open ticket is also a skill the user types, `/exp-47`, which loads it into a phase.
+How Flow holds a project's work. A ticket is one piece of work: its status, its plan and its history, in one folder. A project's tickets live in the Flow home, and `.flow/` in the project is a link to them, so every code branch sees the same tickets. The `flow` command creates, moves and ranks them. Typing `#exp` lists the open tickets, and a ticket the agent reads arrives with a header of its live fields.
 
 ## Scope
 
-- **In**: the ticket's folder and fields, ids, where a project's tickets live, sync of tickets, the `flow` ticket and board commands, the ticket skills, the status moves the agent makes, and what a ticket records about its sessions.
+- **In**: the ticket's folder and fields, ids, where a project's tickets live, sync of tickets, the `flow` ticket and board commands, the `#` ticket list and the ticket header, the status moves the agent makes, and what a ticket records about its sessions.
 - **Out**: `flow init` and the rest of setup, in `docs/spec/setup.md`. What `/flow:handoff` writes into a ticket, in `docs/spec/skills.md`.
 
 ## A ticket's life
@@ -106,7 +106,7 @@ Each status, and what moves a ticket into it:
 - `V1` **A label with a card is a group** (`fw-235`, decided by the user 2026-10-21, built 2026-10-27). The card is `.flow/groups/<label>.md` with `title`, `rank`, `parked:` (the reason, once) and optionally `group_by: label`; membership is carrying the label. `flow-issue` is a group built into the code, with no file. Groups are made on purpose, never automatically, and do not nest. They have their own noun (`fw-149`, 2026-10-26), since a group is never started: `flow groups` lists, `flow groups rank <label> --first|--last|--before <label>|--after <label>` ranks, `flow groups park <label> --reason "<why>"` and `flow groups revive <label>`. A rank or a park makes the card, and a label no ticket carries is refused with the labels in use. Refused: a labels file, a field on the ticket, parent tickets as groups (`v1` and `post-v1` cut across parents, and `seo` gets new tickets after it looks finished).
   - **`flow groups rank` takes relative moves, like `flow tickets rank`** (the user 2026-10-27). Why: with `--rank N` the user picks numbers and tracks the gaps. A group is ranked among the ranked groups alone, so the first move ranks no other card.
   - **Only a ranked group reorders a list.** `flow next` and `flow tickets` print each ranked group's tickets under its label, in rank order, before the rest. A ticket sits once, under the first ranked group among its top ancestor's labels, so a child stays where its parent sits. Why: a section for every unranked group would sink `flow-issue` tickets below the rest by a rule, which `fw-149` refused.
-  - **Any parked group holds a ticket, whatever its other labels.** The file keeps its stored `status`; `store.statusOf` reads a held ticket as `parked`, so it is never ready, never in the in-progress tree, and its `--json` record says `status: parked` with `heldBy`. `flow tickets get` prints `status: todo (held by post-v1)`, and `flow next` prints `15 held by post-v1` beside the parked count. `flow tickets start` refuses a held ticket unless `--force`, naming `flow groups revive`. Why: a started ticket that `flow next` hides would be work nobody sees.
+  - **Any parked group holds a ticket, whatever its other labels.** The file keeps its stored `status`; `store.statusOf` reads a held ticket as `parked`, so it is never ready, never in the in-progress tree, and its `--json` record says `status: parked` with `heldBy`, and `storedStatus` the file's own. `flow tickets get` prints `status: todo (held by post-v1)`, and `flow next` prints `15 held by post-v1` beside the parked count. `flow tickets start` refuses a held ticket unless `--force`, naming `flow groups revive`. Why: a started ticket that `flow next` hides would be work nobody sees.
 - `V1` **`flow tickets check` finds cycles, dangling ids, dropped blockers, orphaned parents, unknown statuses, and a ticket with no title or description.**
 - `V1` **A one-time script converts the old tickets**, `lab/scripts/convert-tickets.ts`, never a `flow` command, archived to `lab/archive/` after its real run. It rewrites only the frontmatter of each `ticket.md`: the old `title` becomes the `description`, the new `title` is the folder's words, `type` becomes a label, the old statuses become `in-progress`, and `priority` goes. A live `priority: high` ticket takes a `rank` among its siblings, so it keeps its place ahead of the unranked ones. Every other priority just goes. Maps, plans, reports, prototypes and folder names are not touched, and a second run changes nothing. Decided with the user 2026-10-14: a harvest into new tickets would break every id and link, for what a frontmatter rewrite does at no loss. A script, since no one but the user holds old-shape tickets.
 - `V1` **`flow tickets -- "<query>"` takes one quoted query**, the grammar `flow notes` reads (`scripts/shared/query.ts`). Fields: `label`, `status`, `parent` (the ticket and its whole subtree, counted the same by `flow tickets labels`), `filed` (`filed:no` is a closed ticket `/flow:upkeep` has not filed) and words. A comma inside a value means either, a repeated field means both: `"label:flow-issue label:rework-loop"`. Rank order. The flags `--status`, `--label`, `--parent` and `--unfiled` are gone, with no migration. Decided with the user 2026-10-19: one grammar for notes and tickets, and drilling down is label intersection, so no label has to sit in one place of a tree.
@@ -136,21 +136,31 @@ Each status, and what moves a ticket into it:
 - `V1` **`history.md` gets one line per status move**: `2026-09-29 14:02  todo → in-progress  <session id>  "<title>"  feature/budgets`. In the folder rather than in commit messages, so it travels with `flow tickets move`.
 - `V1` **The session id is `CLAUDE_CODE_SESSION_ID`**, and the title is the transcript's `/rename` title, else its generated one.
 
-### Ticket skills
+### The ticket list and the header
 
-- `V1` **Each open ticket is a skill only the user can start**, `<project>/.claude/skills/exp-47/`, and `~/.claude/skills/home-4/` for home tickets. Typing `/exp` lists each with its status and description, else its title: `/exp-1   Ticket, in-progress: Daemon detection (project)`. A parked ticket gets one too, since typing its words is how it is found. A `done` or `dropped` ticket gets none.
-- `V1` **The skill holds a label and one rule.** It runs `flow exp-47` when typed, so a stale skill shows an old row and never old data. The rule: on what exists the files win, and on decisions and what is still open `ticket.md` wins over `context.md`.
+- `V1` **Typing `#` lists the open tickets** (`fw-236`, decided by the user 2026-10-21). They come after the note label rows and before the notes, matched on id, name, description and labels, 8 at most. Taking a row writes an `@` mention of the ticket's `ticket.md`: `@.flow/tickets/236/ticket.md`, or the absolute path for a ticket outside the session's folder. The list runs `flow tickets --json --flat` and keeps the answer 10 seconds, since one run takes about 240 ms and the list runs on every keystroke.
+  - **A row is a short handle, then its words, on one line** (the user 2026-10-27): the ticket's name cut at a word to 24 characters, then the status and the description without its short name. A note row reads `note` (`home note` for another project), then its title and labels. Each description is cut at a word to the terminal's width, which the meters row records on every draw, since the engine wraps a long description onto a second line and cuts an overlong label from the left (`~/.flow/wiki/claude-code/findings/typeahead-cuts-overlong-labels-from-the-left.md`).
+
+    ```text
+    #memory               1 note
+    fw-204-memory         in-progress · what the agent keeps across sessions…
+    fw-275-memory-rules   todo · rewrite the loaded rules for findings…
+    note                  Track filing through commands · #memory
+    ```
+
+    Refused: the note's or ticket's words as the label, which ran the rows together like one paragraph (seen 2026-10-27).
+  - **`#t:` lists tickets alone, `#n:` labels and notes alone** (the user 2026-10-27). Plain `#` still lists both. Why: up to 8 note rows pushed the tickets below the 5 rows the list shows. `#f:` is free for findings, `later`.
+  - **A ticket matches on what its row shows, its name and description** (the user 2026-10-27). The words typed show underlined (the user 2026-10-28), by a combining low line (U+0332) after each matched character. Why: a row is plain text, and since 2.1.312 the engine strips terminal style codes from it (`#[1mmem[22mory`, seen 2026-10-28). Refused: bold and colour, which need those codes; bold letters from Unicode's math block, too faint to see in the dim description (the user 2026-10-28). Bold returns once a release gives a mod row the match field the engine's own rows carry. Reasoning: `fw-236` `context.md` `## Bold the match`. Refused: `#t:` searching the body through `flow tickets -- "<words>"`, built and dropped the same day. A body match showed a row with nothing marked, and title and description were enough for the user.
+- `V1` **A ticket reaches a phase as a mention**: `/flow:execute @.flow/tickets/47/ticket.md`, typed by taking a `#exp-47` row after the skill name. Claude Code attaches the file, and the mention hook adds the header (probed 2026-10-27, 2.1.311). A bare id typed as text still works: the agent reads `ticket.md`, and the `Read` hook adds the header.
+- `V1` **A `Read` or an `@` mention of a `ticket.md` attaches the ticket's header**: the facts the file does not show, one row each, an empty row left out. Effective status (`todo (held by post-v1)`), activity, labels, parent, children done (`26/35 done`), what it waits on, what waits on it, and the open questions by number. No body. The data is one call, `flow tickets get <n> --json`, run in the project root found in the path, so archived tickets get one too. Sibling files in the folder, `Edit` and `Write` get none. Why: the facts change with every `flow` command, so a copy in the file or in a skill goes stale.
+  - **The header never enters the file text.** It rides as the hook's `context`, which the model reads and the file never holds, in a `text` fence under a line saying `flow` generated it and the fields change through `flow tickets` alone. Checked live: 2 edits after a read copied no header line.
+  - **It goes once per window.** A window already holding the exact header text gets none, so a compaction, a restart and a changed header each send it again, and a subagent's window counts apart. Refused: a per-session map of headers sent, which a compaction leaves stale.
+- `V1` **A `Read` or an `@` mention of `~/.flow/wiki/<folder>/index.md` attaches that folder's findings labels with counts** (`fw-204`), once per window as the header goes: `hooks 4 · engine 2 · no label 1`, and the `flow findings` query that lists one label's.
+- `next` **The header also carries the wiki and research folders this ticket, its parent and its children used most**, by last use, with the visit count (`fw-204`), from their `usage.json` counters (`docs/spec/knowledge-base.md`). Waits on `fw-274`, which builds the counter.
 - `never` **`flow <id>` takes an id and nothing else.** `exp-47`, `47` and `exp-47-old-words` all find the ticket. A word that is no command and holds no id is refused, so a mistyped command never reads as a title word. `flow ls <words>` finds a ticket by its words. Replaced 2026-10-26 by `flow tickets get <id>` (`fw-149`): every command sits under a noun.
 - `V1` **`flow tickets get <id>` replaces `flow <id>`** (`fw-149`, 2026-10-26), the verb `flow notes get` already uses, so an id never has to be told from a verb.
-- `V1` **A ticket reaches a phase through its own skill alone**: `/flow:execute /exp-47` loads both, the phase first. `/exp-47` alone prints the ticket. A typed id is plain text the agent looks up. Approved by the user 2026-09-30.
-- `V1` **The skills stay current**: rewritten after every `flow` command that writes a ticket, and at session start, which reloads the skill list.
-- `V1` **A user-only skill's description costs no context**, confirmed with `/context`.
-- `never` **Tickets offered in the `@` list**: Claude Code inserts the picked line as a path, so a description would attach nothing.
-- `next` **The ticket header (next line) also carries the wiki folders this ticket, its parent and its children used most** (`fw-204`), from their `usage.json` counters (`docs/spec/knowledge-base.md`). The same hook attaches a wiki folder's findings when its `index.md` is read. Agents stop running `flow <id>`, since the header hands them the ticket; the command stays as the hook's data source, `flow <id> --json`.
-- `next` **A `#` ticket list replaces the `/fw-NN` skills** (`fw-236`, decided by the user 2026-10-21). Typing `#fw-17` lists open tickets by id, title and label, as `#` lists notes. A picked row writes an `@` mention of `ticket.md`, and a hook on that mention attaches a short generated header: effective status, activity, labels, parent and children progress, waits-on and blocks, open questions. A Read of a `ticket.md` gets the same header through the hook's model-only `context`, fenced and never part of the file text. It attaches once per ticket per session for each agent, again when its text changes, and after a compaction or a restart. This turns the `never` above around: the mention hook, not the list row, carries the facts. The ticket-skill generator and its skill folders are archived to `lab/archive/`, not deleted.
-- `later` **A hook rewriting the skills on a hand edit to `ticket.md`.**
-- `later` **The skills rewritten after a pull**, by the background sync and `flow sync`.
-- `later` **A `ticketSkills` setting turning the list off.**
+- `never` **Each open ticket as a skill only the user can start**, `.claude/skills/exp-47/` and `~/.claude/skills/home-4/`, listed by typing `/exp`, running `flow exp-47` when typed, rewritten after every `flow` command that wrote a ticket and at session start. Approved 2026-09-30, replaced by the `#` list (`fw-236`, the user 2026-10-21): the folders went stale after every pull, cost a rewrite on every command, and the agent's own `Read` of a ticket got nothing. The generator, its test and one skill as an example are in `lab/archive/ticket-skills/`. Its open `later` lines went with it: a rewrite on a hand edit, a rewrite after a pull, a `ticketSkills` setting.
+- `never` **Tickets offered in the `@` list**: Claude Code inserts the picked line as a path, so a description would attach nothing. The `#` list sidesteps it: its row writes the mention, and the mention hook carries the facts.
 - `later` **A hook moving the status before the phase skill loads.**
 
 ### Status moves the agent makes
@@ -173,33 +183,34 @@ Each status, and what moves a ticket into it:
 - **`scripts/features/tickets/search.ts`**: the loose word match behind `flow tickets -- "<words>"`.
 - **`scripts/features/tickets/records.ts`**: commits, pushes and pulls of a project's tickets, and the checkout of the older branch `flow` that a project may still have. **`records-place.ts`**: the Flow home, where every new project's tickets live.
 - **`scripts/jobs/records-sync.ts`**: every send nobody typed.
-- **`scripts/features/tickets/ticket-skills.ts`**: writes and deletes the ticket skills.
 - **`scripts/features/tickets/ticket-history.ts`**: `history.md` lines.
 - **`scripts/commands/tickets.ts`**, **`scripts/commands/board.ts`**: the commands.
+- **`mods/flow-session/features/ticket-context/ticket-context.ts`**: the ticket header and a wiki folder's findings labels, sent on a `Read` (`tool.call`) and an `@` mention (`prompt.mention`). Reads `flow tickets get <n> --json` and `flow findings --json`.
+- **`mods/flow-session/features/notes/notes.ts`**: the `#` list, its ticket rows from `flow tickets --json --flat`. **`mods/flow-session/shared/viewport.ts`**: the terminal width it cuts rows to.
 
 ## What passes between them
 
-A ticket skill's `SKILL.md`:
+The header, as the agent receives it on a `Read` of `fw-236`'s `ticket.md`:
 
-```markdown
----
-name: exp-47
-description: "Ticket, in-progress: Daemon detection"
-disable-model-invocation: true
----
-<!-- flow: ticket exp-47, rewritten by flow on every ticket change -->
-!`flow exp-47 2>&1 || true`
-
-On what exists, the files win. On decisions and what is still open, `ticket.md` wins over `context.md`.
+````text
+[Added by Flow] fw-236 as `flow` reports it. These lines are generated, not part of /home/me/code/flow-dev/.flow/tickets/236/ticket.md: never copy them into the file. Change these fields with `flow tickets` alone.
+```text
+status:      in-progress
+activity:    build
+labels:      feature
+parent:      fw-204
 ```
+````
+
+A `#` list row: `{ text: '@.flow/tickets/236/ticket.md ', label: 'fw-236-ticket-context', description: 'in-progress · ticket-context: a header on a Read…' }`, its description cut to the terminal's width.
 
 ## One real case: working a ticket
 
-1. The user types `/flow:execute /exp-47`. Both skills load, and `flow exp-47` prints the ticket.
+1. The user types `/flow:execute `, then `#exp-47`, and takes the row. The prompt reads `/flow:execute @.flow/tickets/47/ticket.md`. The skill loads, Claude Code attaches `ticket.md`, and the mention hook adds the header.
 2. `/flow:execute` reads the ticket, then runs `flow tickets start exp-47`. `history.md` gains a line with the session id, and `branch: feature/budgets` is recorded. The move commits and pushes in the background.
 3. The user approves the plan, and the agent builds it with the ticket still `in-progress`. Each task ticks in `## Tasks`, and a trap hit gets its section in `context.md`.
 4. The context fills, and the agent restarts the window.
-5. After `/clear`, the user types `/exp`, picks `/exp-47   Ticket, in-progress: …`, and the next session starts from `ticket.md` and the sections it names.
+5. The restarted window starts from `ticket.md` and the `context.md` sections the note names. Its `Read` of `ticket.md` gets the header again, since the new window holds none.
 6. The tests pass. `flow tickets done exp-47` unblocks `exp-48`, which depended on it, and `flow next` ranks `exp-48` first.
 
 ## How it fails
@@ -209,8 +220,9 @@ On what exists, the files win. On decisions and what is still open, `ticket.md` 
 - **2 machines take one `home-` number at once** → the later `flow tickets new` merges, finds the clash, makes no ticket, and says to run it again.
 - **A home ticket made before claims existed clashes** → `flow sync` renumbers it, with `was:`.
 - **The same ticket changed on both sides** → the pull is put back, the local version stays committed, and the user merges by hand.
-- **A typed `/exp-99` for no such ticket** → plain text reaches the phase, and the agent finds no ticket.
-- **A ticket pulled by the background sync** → its skill shows the old row until the next command that writes, or the next session.
+- **A typed `exp-99` for no such ticket** → plain text reaches the phase, and the agent finds no ticket.
+- **`flow` fails, times out or knows no such ticket on a `Read`** → the read passes with no header, and the mod logs the cause.
+- **A ticket path under `~/.flow/projects/<name>/tickets/`**, the folder `.flow/` links to → no header, since no project root sits in the path.
 - **`.flow/` deleted by hand** → the next `flow init` links it again. The tickets sit in the Flow home and are untouched.
 
 ## How you know it worked
@@ -225,5 +237,6 @@ On what exists, the files win. On decisions and what is still open, `ticket.md` 
   - Refused: a branch of the project's repository (`lab/archive/branch-storage/`). Its one gain was that a teammate who could read the project could read its tickets, and Flow is a personal workflow.
   - The risk named: Beads ran a sync branch and deleted it, 5,720 lines of repair, because every issue sat in one file. One folder per ticket is the answer.
 - **An id carries its place's word**, so 2 places never produce one id. A letter per place, `g4`, was refused: `t` reads as ticket and `g` does not.
-- **One way to name a ticket to a skill: its ticket skill.** Approved by the user 2026-09-30. The skill shows the title and status in the list, which a typed id cannot.
+- **One way to name a ticket to a skill: an `@` mention of its `ticket.md`, written by a `#` list row** (`fw-236`, the user 2026-10-21). The row shows the title and status, which a typed id cannot, and the mention brings the header with it.
+  - Refused: one skill per ticket (approved 2026-09-30, archived 2026-10-27). The folders went stale between commands, and the agent's own `Read` of a ticket got nothing.
   - Refused: 20 declared arguments so a short instruction expands to nothing. Nobody reading the skill would understand it, and it rests on behavior the docs never promise.

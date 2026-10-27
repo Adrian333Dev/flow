@@ -5,7 +5,7 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 ## Scope
 
 - **In**: Flow's 12 skills and what each does, the 3 phases, `/flow:handoff`, how skills install, outside skills and how they are used, overlays and arguments.
-- **Out**: ticket skills, in `docs/spec/tickets.md`. `/flow:research`, the wiki and how `/flow:upkeep` routes a finding, in `docs/spec/knowledge-base.md`. `/flow:visualize`, in `docs/spec/drawing.md`. The checks `/flow:upkeep` writes, in `docs/spec/rules.md`.
+- **Out**: the `#` ticket list and the ticket header, in `docs/spec/tickets.md`. `/flow:research`, the wiki and how `/flow:upkeep` routes a finding, in `docs/spec/knowledge-base.md`. `/flow:visualize`, in `docs/spec/drawing.md`. The checks `/flow:upkeep` writes, in `docs/spec/rules.md`.
 
 ## Where a skill lives
 
@@ -77,12 +77,12 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
   - `never` **`## State` at the bottom of `ticket.md`, written once at the handoff** under `Now`, `Found` and `Open`. Replaced 2026-10-24 by `fw-267`: state written once at the end is lost to a crash, and a restart needed the dialogue to rebuild it. The old skill is `lab/archive/handoff/SKILL-before-fw-267.md`.
   - `never` **A handoff file, `.flow/handoffs/<name>.md`, deleted by the mod after one clean turn.** Replaced 2026-10-24 by `fw-267`: the order of the next work goes in the start message, and the rest in the ticket. The hook is `lab/archive/mod-handoff-note/`.
 - `V1` **Work with no ticket gets one.** A job for a session that reports back gets a child ticket, and a subagent a prompt, both written once from `references/dispatch.md`.
-- `V1` **The reply opens with the path of each file written.** A restart runs no handoff, so this reply never ends one: the agent's note rides the restart call (`fw-228`). Work for another session or model ends on what the user types there: the ticket's skill (`/exp-47`), then each skill the work needs, after a check that the ticket's status matches where the work stands. `/flow:start` is for a user who does not know what to work on.
+- `V1` **The reply opens with the path of each file written.** A restart runs no handoff, so this reply never ends one: the agent's note rides the restart call (`fw-228`). Work for another session or model ends on what the user types there: each skill the work needs, then the ticket's mention (`/flow:execute @.flow/tickets/47/ticket.md`), after a check that the ticket's status matches where the work stands. `/flow:start` is for a user who does not know what to work on.
 - `later` **A resumed session told the old transcript is there**: a detail the handoff lacks → the last session in `history.md`, opened with `flow audit`.
 
 ### Arguments
 
-- `V1` **A skill invoked over and over stays short and takes no argument.** The 4 phases and `/flow:handoff` take none, since a ticket arrives through its own skill. A long skill takes one only where it names what the skill opens.
+- `V1` **A skill invoked over and over stays short and takes no argument.** The 4 phases and `/flow:handoff` take none, since a ticket arrives as an `@` mention of its `ticket.md`. A long skill takes one only where it names what the skill opens.
   - Why: an argument changes the skill's text, so Claude Code loads a body already in context a second time. And whoever supplies an argument is at the keyboard, where a skill the agent starts reads the conversation instead.
 - `V1` **No `argument-hint` and no ticket id in a Flow skill's description.** Both invite the argument the rule bars.
 - `V1` **The rule binds Flow's own skills**, never an outside one.

@@ -1,15 +1,10 @@
 /**
- * What the SessionStart hook does: make the ticket skills match the tickets,
- * start the background sync, and suggest `flow init` where a repository has no
- * `.flow/`. `hooks/session-check.ts` is the wiring.
+ * What the SessionStart hook does: start the background sync, and suggest
+ * `flow init` where a repository has no `.flow/`. `hooks/session-check.ts` is
+ * the wiring.
  *
  * It waits for nothing. `flow doctor` stays the full check, since it runs both
  * test suites and takes seconds.
- *
- * It makes the ticket skills match the tickets, which a ticket edited by hand
- * or pulled from another machine needs: `tickets/ticket-skills.ts`. When that
- * changed a skill it asks Claude Code to scan the skill folders again
- * (`reloadSkills`), so the first prompt already sees the change.
  *
  * It starts one job, detached. In a project linked into the Flow home,
  * `jobs/records-sync.ts` syncs the Flow home. Starting a process is not
@@ -23,7 +18,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import * as records from '../tickets/records.ts';
-import * as ticketSkills from '../tickets/ticket-skills.ts';
 import * as settings from '../../shared/settings.ts';
 import * as paths from '../../shared/paths.ts';
 import * as project from '../../shared/project.ts';
@@ -89,21 +83,12 @@ function startRecordsPull(at: Folders, cwd: string) {
 }
 
 /**
- * What the session opens with: `reminder` for the user alone, and `reload`
- * where a skill changed. `"sessionCheck": false` in ~/.flow/settings.json
- * silences the reminder, and never the ticket skills.
+ * What the session opens with: `reminder`, for the user alone.
+ * `"sessionCheck": false` in ~/.flow/settings.json silences it.
  */
 function check(at: Folders, cwd: string) {
-  let reminder: string | null = null;
-  if (settings.prints('sessionCheck')) reminder = setupReminder(at, cwd);
-
-  let reload = false;
-  try {
-    reload = ticketSkills.sync({ project: project.around(cwd, at), claude: paths.claudeHome() });
-  } catch {
-    // A ticket skill that cannot be written never stops a session.
-  }
-  return { reminder, reload };
+  const reminder = settings.prints('sessionCheck') ? setupReminder(at, cwd) : null;
+  return { reminder };
 }
 
 /** Start the background job, where one is due. */
