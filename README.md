@@ -21,7 +21,7 @@ It runs a solo developer's work in 3 phases: design the decisions, build one tic
 curl -fsSL https://raw.githubusercontent.com/Adrian333Dev/flow/main/install.sh | bash
 ```
 
-The script clones Flow into `~/.flow/repos/flow`, then runs `flow install`. It needs Claude Code 2.1.310 or later, Node 24.12 or later, `git`, `gh` and `pnpm`. Built and used on Linux, through WSL, with Claude's 5.5 models.
+The script clones Flow into `~/.flow/repos/flow`, then runs `flow install`. It needs Claude Code 2.1.310 or later, Node 24.12 or later, `git`, `gh`, `pnpm` and ripgrep (`rg`). Built and used on Linux, through WSL, with Claude's 5.5 models.
 
 To update, run `flow update`. It pulls the clone, then runs `flow install` again.
 

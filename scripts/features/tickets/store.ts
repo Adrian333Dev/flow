@@ -307,8 +307,13 @@ function move(t, target, id, renamed) {
   countNumber(target, id);
 }
 
-/** Deletes a ticket's folder whole. Only a new ticket the remote never took goes this way. */
+/**
+ * Deletes a ticket's folder whole: a new ticket the remote never took, or one
+ * `flow tickets delete` removes. The counter is raised first, since a ticket
+ * made before the counter existed would otherwise free its number.
+ */
 function remove(t) {
+  if (t.root) countNumber(t.root, t.id);
   fs.rmSync(t.dir, { recursive: true, force: true });
 }
 
@@ -463,6 +468,6 @@ function renderTemplate(name, vars) {
 // The ids, fields and folder parts live in their own files; callers keep asking this one.
 export { WORD, requireId } from './ids.ts';
 export { slugify, titleFrom, badTitle, toLabelList, badLabel, badActivity, today, now } from './fields.ts';
-export { hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, contextSections, questionCount, taskCount, openWork, tickTask } from './ticket-body.ts';
+export { hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, contextSections, questionCount, taskCount, openWork, tickTask, taskOf, removeTask } from './ticket-body.ts';
 export { HOME_WORD, offerWord, badWord, wordOf, idOfFolder, normalizeId, idNumber, idOfRef, folderName, toIdList, CONTEXT };
 export { TICKET_KEYS, recordsDir, isHome, homeRoot, ticketsDir, archiveDir, prefixOf, labelOf, nameOf, COUNTER, readTickets, statusOf, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber, historyFile, appendHistory, readHistory };

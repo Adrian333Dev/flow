@@ -171,6 +171,8 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
   ~/.flow/wiki/     node, jscpd, tree-sitter, ast-grep, ..., +19 more
   docs/spec/        product, drawing, failure-log, knowledge-base, ...
   ```
+
+  The wiki line lists first the folders this project visited, the latest visit first, each with its visit count in brackets, as the labels show theirs. The rest follow, the most recently changed first once the line holds more than 15. [`flow search`](commands.md#flow-search) says what counts as a visit.
 - **`failures.ts`**, when a tool call or the API fails: adds a line to the failure log in `~/.flow/logs/failures/`.
 - **`records-sync.ts`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
 
@@ -253,6 +255,7 @@ A skill you keep takes `"on"`. [`flow doctor`](commands.md#flow-doctor) names ev
 - **`feedbackSurveyRate: 0`**: Claude Code's feedback survey prompt.
 - **`disableArtifact`**: the artifact tool.
 - **`autoCompactEnabled: false`**: Claude Code swapping a long conversation for its own summary.
+- **`awaySummaryEnabled: false`**: the one-line recap Claude Code shows when you come back to a session after a few minutes away. `/recap` still makes one on demand.
 - **`autoMemoryEnabled: false`**: Claude Code's memory, which stays on one computer. Flow keeps what is worth remembering in your rules and project files.
 - **`respondToBashCommands: false`**: a command you type behind `!` shows its output, and the agent waits for your next message.
 - **`worktree.bgIsolation: "none"`**: a session running in the background edits your files where they are.

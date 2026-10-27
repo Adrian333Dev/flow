@@ -3,133 +3,157 @@ import { FlowError } from '../../shared/error.ts';
 import { out, json, listOf } from '../../shared/cli.ts';
 import type { Action } from '../../shared/cli.ts';
 import * as store from './store.ts';
-import * as graph from './graph.ts';
 import * as ticketJson from './json.ts';
 import * as statuses from './statuses.ts';
 import * as records from './records.ts';
+import * as mentions from './mentions.ts';
 import { touched, rel, locate, projectNamed } from './places.ts';
 import type { Ticket } from './types.ts';
 
+/** One ticket's link to the ticket leaving: it waits on it, or it is its child. */
+type Link = { ticket: Ticket; field: 'deps' | 'parent' };
+
 /**
- * The ticket `--by` names to take over a dropped ticket's dependents, or a
- * refusal: it must exist, differ from the dropped one, be live, and close no
- * dependency cycle with the dependents it takes.
+ * The links other tickets hold to `t`, among `among`. Only the near edge
+ * counts: a ticket waiting on a dependent of `t` is fine once that edge moves.
  */
-function replacementFor(t: Ticket, tickets: Ticket[] & { prefix: string }, value): Ticket {
-  const byId = store.requireId(value, tickets.prefix);
-  if (byId === t.id) throw new FlowError(`${t.id} cannot replace itself.`);
-  const found = tickets.find((x) => x.id === byId);
-  if (!found) throw new FlowError(`--by names ${byId}, which does not exist.`);
-
-  // A dropped replacement blocks every dependent forever, which is the
-  // exact harm --by exists to prevent. `done` is fine: the edge is
-  // satisfied on arrival, so it costs nothing beyond a line of frontmatter.
-  if (found.data.status === 'dropped') {
-    throw new FlowError(
-      `--by names ${found.id}, which is itself dropped: those dependents could never become ready.\n` +
-      '  Pick a live replacement, or drop them too with --force.'
-    );
+function linksTo(t: Ticket, among: Ticket[]): Link[] {
+  const links: Link[] = [];
+  for (const other of among) {
+    if (other.id === t.id) continue;
+    if (other.data.deps.includes(t.id)) links.push({ ticket: other, field: 'deps' });
+    if (other.data.parent === t.id) links.push({ ticket: other, field: 'parent' });
   }
-
-  // `dep` refuses an edge that would close a loop. --by writes the same
-  // kind of edge, checked before the drop is written, because a refusal
-  // after it would leave the graph half-edited.
-  const loops = graph.dependents(tickets, t.id).filter((d) =>
-    statuses.LIVE.has(d.data.status) && d.id !== found.id && graph.wouldCycle(tickets, d.id, found.id)
-  );
-  if (loops.length) {
-    throw new FlowError(
-      `re-pointing at ${found.id} would close a dependency cycle:\n` +
-      loops.map((d) => `  ${d.id} → ${found.id} → … → ${d.id}`).join('\n') +
-      '\n  Pick a different replacement, or drop them too with --force.'
-    );
-  }
-  return found;
+  return links;
 }
 
-/** Points every live direct dependent of `t` at `replacement` instead. Returns the ones it rewrote. */
-function repoint(t: Ticket, tickets: Ticket[], replacement: Ticket) {
-  const repointed: Ticket[] = [];
-  for (const d of graph.dependents(tickets, t.id)) {
-    if (!statuses.LIVE.has(d.data.status)) continue;
-    const kept = d.data.deps.filter((x) => x !== t.id);
-    d.data.deps = [...new Set([...kept, ...(replacement.id === d.id ? [] : [replacement.id])])];
-    store.writeTicket(d);
-    repointed.push(d);
-  }
-  return repointed;
+/** A link as a refusal line, with the edit that moves it. `--deps` takes the whole list, so it shows the ids kept. */
+function linkLine(t: Ticket, link: Link) {
+  const { ticket: other, field } = link;
+  if (field === 'parent') return `  ${other.id} has parent ${t.id}    flow tickets edit ${other.id} --parent <id>`;
+  const kept = other.data.deps.filter((d) => d !== t.id);
+  return `  ${other.id} depends on ${t.id}    flow tickets edit ${other.id} --deps ${[...kept, '<ids>'].join(',')}`;
 }
+
+/** Removes each link to `t`: the id leaves `deps`, and a child loses its parent. Writes each ticket. */
+function clearLinks(t: Ticket, links: Link[]) {
+  for (const { ticket: other, field } of links) {
+    if (field === 'deps') other.data.deps = other.data.deps.filter((d) => d !== t.id);
+    else other.data.parent = '';
+    store.writeTicket(other);
+  }
+}
+
+const describeLinks = (links: Link[]) => links.map(({ ticket, field }) => ({ id: ticket.id, field }));
 
 /**
- * Dropping is the one destructive edit here, and its damage lands on tickets
- * the user was not thinking about: `deps` is stored on one side only, so
- * killing t047 silently strands whatever depended on it. Bare `drop` therefore
- * refuses while live dependents exist and prints the whole chain first.
+ * A drop strands the tickets linked to it: `deps` is stored on one side only,
+ * so a ticket waiting on a dropped one never becomes ready, and a child keeps
+ * a parent that will never close. Bare `drop` refuses while a live ticket
+ * waits on it or an open child sits under it, naming the edit that moves each
+ * link. Where the work went is the agent's to say: it is seldom one ticket.
+ * `--force` clears the links instead.
  *
  * It is the one status with no verb, for that repair. `flow dropped t047` would
  * be a verb that had to do something no other verb does.
  */
 const drop: Action = {
   args: '<id>',
-  summary: 'kill it, and repair what depended on it',
+  summary: 'kill it, once nothing open waits on it or sits under it',
   flags: {
     reason: { required: true, arg: '"<why>"', missing: 'dropping needs --reason "<why>".' },
-    by: { arg: '<id>' },
     force: { bool: true },
   },
   run({ positional, flags, usage }) {
     if (!positional[0]) throw new FlowError(`usage: ${usage} <id> --reason "<why>"`);
-    if (flags.by && flags.force) {
-      throw new FlowError('--by and --force are mutually exclusive: one rescues dependents, the other kills them.');
-    }
 
     const { root, tickets, t } = locate(positional[0]);
     const reason = String(flags.reason).trim();
-    const replacement = flags.by ? replacementFor(t, tickets, flags.by) : null;
-
-    const affected = graph.transitiveDependents(tickets, t.id);
-    if (affected.length && !flags.by && !flags.force) {
+    const links = linksTo(t, tickets.filter((other) => statuses.LIVE.has(other.data.status)));
+    if (links.length && !flags.force) {
       throw new FlowError(
-        `${t.id} has ${affected.length} live dependent${affected.length === 1 ? '' : 's'}, directly or through others:\n` +
-        affected.map((d) => `  ${store.nameOf(d)}  ${d.data.status}`).join('\n') +
-        '\n\nLeft alone they can never become ready. Pick one:\n' +
-        `  flow tickets drop ${t.id} --reason "${reason}" --by <id>    re-point them at the replacement\n` +
-        `  flow tickets drop ${t.id} --reason "${reason}" --force      drop them too`
+        `${t.id} has ${links.length} open link${links.length === 1 ? '' : 's'}, which would never resolve. Move each to where its work went, then drop again:\n` +
+        links.map((link) => linkLine(t, link)).join('\n') +
+        `\n  Or clear them: flow tickets drop ${t.id} --reason "${reason}" --force`
       );
     }
 
+    clearLinks(t, links);
     const { from, moved } = store.setStatus(t, 'dropped', reason);
     out(`${store.nameOf(t)}  ${from} → dropped`);
     out(`      reason: ${reason}`);
     if (moved) out(`      moved → ${rel(root, moved.to)}`);
-
-    // --by only matters for tickets that depend on this one *directly*;
-    // anything further out keeps working once the near edge is repaired.
-    if (replacement) {
-      const repointed = repoint(t, tickets, replacement);
-      out(`\nre-pointed to ${store.nameOf(replacement)}:`);
-      for (const d of repointed) out(`  ${d.id}  deps → [${d.data.deps.join(', ')}]`);
-      if (!repointed.length) out('  nothing to re-point.');
-      json({ ticket: ticketJson.record(t, tickets), repointed: repointed.map((d) => d.id), droppedWith: [] });
-      records.commit(root, `${t.id}: dropped, dependents re-pointed to ${replacement.id}`);
-      records.syncLater(root);
-      return 0;
-    }
-
-    const droppedWith = flags.force ? affected : [];
-    if (droppedWith.length) {
-      out(`\ndropped with it (${droppedWith.length}):`);
-      for (const d of droppedWith) {
-        store.setStatus(d, 'dropped', `dropped with ${store.nameOf(t)}, which it depended on`);
-        out(`  ${store.nameOf(d)}`);
-      }
-    }
-    json({ ticket: ticketJson.record(t, tickets), repointed: [], droppedWith: droppedWith.map((d) => d.id) });
+    if (links.length) out(`      cleared: ${links.map(({ ticket, field }) => `${ticket.id} ${field}`).join(', ')}`);
+    json({ ticket: ticketJson.record(t, tickets), cleared: describeLinks(links) });
     records.commit(root, `${t.id}: dropped`);
     records.syncLater(root);
     return 0;
   },
 };
+
+/**
+ * A real delete, for a ticket whose content the agent copied into others: a
+ * merge. Nothing stays, so every link and mention would point at nothing, and
+ * it refuses on both: a ticket linked to it (any status), and a line naming
+ * its id or path in the project or the Flow home. Its own line in its
+ * parent's `## Tasks` goes with it, so that line is no mention. A closed
+ * ticket is a record and refuses too. `--force` overrides all 3, clearing the
+ * links and leaving the mentions.
+ *
+ * Its number stays given out: `ticket-counter` holds it (`store.remove`).
+ */
+const remove: Action = {
+  args: '<id>',
+  summary: 'delete a ticket merged into others, once nothing links to it or mentions it',
+  flags: { force: { bool: true } },
+  run({ positional, flags, usage }) {
+    if (!positional[0] || positional.length > 1) throw new FlowError(`usage: ${usage} <id>`);
+
+    const { root, tickets, t } = locate(positional[0]);
+    const parent = t.data.parent ? tickets.find((p) => p.id === t.data.parent) : undefined;
+    // The parent's task line goes with the ticket, so it is no mention.
+    const parentFile = parent ? mentions.real(parent.file) : '';
+    const task = parent ? store.taskOf(parent, t.id).trim() : '';
+    const ignore = (file: string, text: string) => Boolean(task) && file === parentFile && text.trim() === task;
+
+    const closed = statuses.TERMINAL.has(t.data.status);
+    const links = linksTo(t, tickets);
+    const found = mentions.find(t, ignore);
+    if ((closed || links.length || found.length) && !flags.force) {
+      const parts: string[] = [];
+      if (closed) parts.push(`${t.id} is ${t.data.status}: a closed ticket is a record of the work.`);
+      if (links.length) parts.push(`${links.length} ticket link${links.length === 1 ? '' : 's'} to it. Move each to where its piece went:\n${links.map((link) => linkLine(t, link)).join('\n')}`);
+      if (found.length) parts.push(`${found.length} mention${found.length === 1 ? '' : 's'} of it. Edit each to name where its piece went:\n${shown(root, found)}`);
+      throw new FlowError(`${store.nameOf(t)} was not deleted.\n${parts.join('\n')}\n  Then run this again, or delete anyway with --force.`);
+    }
+
+    clearLinks(t, links);
+    const untasked = parent ? store.removeTask(parent, t.id) : false;
+    if (untasked) store.writeTicket(parent);
+    store.remove(t);
+
+    out(`deleted ${store.nameOf(t)}`);
+    if (untasked) out(`      removed its line in ${parent!.id}'s ## Tasks`);
+    if (links.length) out(`      cleared: ${links.map(({ ticket, field }) => `${ticket.id} ${field}`).join(', ')}`);
+    if (found.length) out(`      still mentioned in ${found.length} place${found.length === 1 ? '' : 's'}:\n${shown(root, found)}`);
+    json({
+      deleted: t.id,
+      cleared: describeLinks(links),
+      untasked: untasked ? parent!.id : null,
+      mentions: found.map((m) => ({ file: m.file, line: m.line })),
+    });
+    records.commit(root, `${t.id}: deleted`);
+    records.syncLater(root);
+    return 0;
+  },
+};
+
+/** The mentions as lines, the first 10, then a count of the rest. */
+function shown(root: string, found: mentions.Mention[]) {
+  const lines = found.slice(0, 10).map((m) => `  ${mentions.describe(root, m)}`);
+  if (found.length > 10) lines.push(`  and ${found.length - 10} more`);
+  return lines.join('\n');
+}
 
 /** The links between the moving tickets and the ones staying behind, as lines for the refusal. */
 function linksAcross(moving: Ticket[], all: Ticket[]) {
@@ -216,4 +240,4 @@ const move: Action = {
   },
 };
 
-export { drop, move };
+export { drop, remove, move };

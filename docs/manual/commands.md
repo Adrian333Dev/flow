@@ -46,12 +46,15 @@ $ flow tickets start shop-2 --json
   - [`flow tickets rank`](#flow-tickets-rank): put a ticket before or after another
   - [`flow tickets file`](#flow-tickets-file): mark finished tickets as checked for lessons
   - [`flow tickets drop`](#flow-tickets-drop): remove a ticket that will never be done
+  - [`flow tickets delete`](#flow-tickets-delete): delete a ticket merged into others
   - [`flow tickets move`](#flow-tickets-move): move tickets to another project by its prefix, or to your Flow home
 - [Notes](#notes): ideas and put-off work, each filed under a project's prefix
 - [Findings](#findings): what sessions learned, one file per claim, in a project, the wiki or your Flow home
   - [`flow findings new`](#flow-findings-new): file a finding, refused where one already says the same
   - [`flow findings`](#flow-findings): one row per finding, narrowed and ranked by a query
   - [`flow findings edit`](#flow-findings-edit): rename a finding and rewrite the paths citing it, or set its labels
+- [The wiki and research](#the-wiki-and-research): find the wiki folders and research reports a situation needs
+  - [`flow search`](#flow-search): the closest wiki folders and reports, one line each
 - [Ticket status](#ticket-status): move a ticket from one stage to the next
 - [Groups](#groups): a label with a card, to rank a set of tickets or park it with one reason
   - [`flow groups`](#flow-groups): the groups with open tickets, each with its done count
@@ -129,7 +132,7 @@ Check that Flow is installed correctly. It changes nothing, names the fix on eac
 $ flow doctor
 ok    issues: every job running in the background worked last time
 ok    clone: 1 submodule on the commit this clone points at
-ok    programs: node, git, claude, gh, pnpm all resolve
+ok    programs: node, git, claude, gh, pnpm, rg all resolve
 ok    node: 24.15.0, and Flow needs 24.12.0 or later
 ok    claude code: 2.1.310, and Flow needs 2.1.310 or later
 ok    names: flow, fw, util, u all resolve
@@ -149,7 +152,7 @@ A failing line names the fix beneath it, such as `util is not linked: run flow i
 - **`projects`**: the prefix and folder of each project on this computer. It names a registered folder that is gone, the current folder's prefix when another folder holds it (the fix is `ticketPrefix` in `.flow/settings.json`), a line whose folder has since changed its `ticketPrefix`, and the current project missing from the list. With any of these it adds a note listing every registered project. It reads the file and scans nothing.
 - **`tickets`**: inside a project, names each ticket made before the current format: a folder named with more than its id, a `groundwork/map.md` that is only the empty template, and a title that is one of the ticket's own labels. Outside a project it is skipped.
 
-- **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.310 or later. A Claude Code newer than that adds a `note` line, because nobody has read that release against Flow yet. It works before Flow is installed.
+- **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude`, `gh`, `pnpm` and `rg` (ripgrep), and that Claude Code is 2.1.310 or later. A Claude Code newer than that adds a `note` line, because nobody has read that release against Flow yet. It works before Flow is installed.
 
 ### `flow sync`
 
@@ -464,19 +467,36 @@ nothing left unfiled.
 
 `flow tickets drop <id> --reason "<why>"`: remove a ticket that will never be done. Its folder moves to `.flow/tickets/archive/`.
 
-**A drop refuses while an open ticket waits on this one**, and lists each. Add one of these:
-
-- **`--by <id>`**: make the waiting tickets wait on a replacement.
-- **`--force`**: drop the waiting tickets too, all the way down.
+**A drop refuses while an open ticket waits on this one, or an open child sits under it.** It lists each, with the edit that moves it to where its work went. `--force` clears the links instead, and drops nothing else.
 
 ```console
-$ flow tickets drop shop-6 --reason "replaced by the new layout" --by shop-5
+$ flow tickets drop shop-6 --reason "replaced by the new layout"
+flow: shop-6 has 1 open link, which would never resolve. Move each to where its work went, then drop again:
+  shop-3 depends on shop-6    flow tickets edit shop-3 --deps shop-2,<ids>
+  Or clear them: flow tickets drop shop-6 --reason "replaced by the new layout" --force
+$ flow tickets edit shop-3 --deps shop-2,shop-5
+$ flow tickets drop shop-6 --reason "replaced by the new layout"
 shop-6-old-layout  todo → dropped
       reason: replaced by the new layout
-      moved → .flow/tickets/archive/shop-6
+      moved → .flow/tickets/archive/6
+```
 
-re-pointed to shop-5-chart-library:
-  shop-3  deps → [shop-2, shop-5]
+### `flow tickets delete`
+
+`flow tickets delete <id>`: delete a ticket whose content was copied into others, its folder included. Its number is never given out again.
+
+**A delete refuses while anything still points at the ticket**:
+
+- **A link**: a ticket waiting on it, or a child under it. Each comes with the edit that moves it.
+- **A mention**: a line in the project or in `~/.flow` naming its id or its path, such as `.flow/tickets/6/`. ripgrep finds them.
+- **A closed ticket**: done or dropped, kept as a record of the work.
+
+Its line in its parent's `## Tasks` goes with it. `--force` deletes anyway: it clears the links and lists the mentions left.
+
+```console
+$ flow tickets delete shop-6
+deleted shop-6-old-layout
+      removed its line in shop-1's ## Tasks
 ```
 
 ### `flow tickets move`
@@ -612,6 +632,26 @@ $ flow findings edit the-budget-export-drops-the-currency-column --title "budget
   citations rewritten in 1 file:
     ~/code/shop/docs/context/export.md
 ```
+
+## The wiki and research
+
+### `flow search`
+
+Find which wiki folders and research reports hold what a situation needs. Describe the situation after `--`. Each line shows a path, then the first line of the folder's `index.md` or the report's heading. The closest come first, and the top 10 show.
+
+```console
+$ flow search -- "terminal sessions tmux"
+~/.flow/wiki/tmux/
+~/.flow/wiki/terminal/
+.flow/research/claude-code/what-companion-tools-do.md   claude-code-tools
+.flow/research/control-tower/tmux-restore-and-claude-resume.md   Bring back the layout and the sessions after a reboot
+~/.flow/wiki/codex/   OpenAI's coding agent for the terminal. In use: codex-cli 0.155.0.
+.flow/research/control-tower/tools-that-manage-claude-sessions.md   Tools that manage many Claude Code sessions
+```
+
+- **A wiki folder ranks by** its name, its `index.md`, and the names of its pages and findings.
+- **A research report ranks by** its topic, its file name and its text. A report sits in its topic folder or one folder below it. A topic shows its 3 closest reports, so one large topic cannot fill the list.
+- **Reading a file inside a wiki folder or a research topic counts a visit**, once per folder per session window, for the ticket the session started. The session start view lists the folders you visit most recently first, with their counts. The search itself counts nothing.
 
 ## Ticket status
 

@@ -32,7 +32,7 @@ How Flow gets onto a machine and into a project, stays current, and shares the u
 
 ### Installing on a machine
 
-- `V1` **One pasted line installs Flow**, the README's install line. `install.sh` checks for git, node, claude, gh and pnpm, clones Flow into `~/.flow/repos/flow/`, and runs `flow install`, which installs `scripts/`'s dependencies with `pnpm install --frozen-lockfile` (the user, 2026-10-27: pnpm for every package, never npm). It is bash because it runs before Flow is on disk. `--use <folder>` skips the clone. Ruled by the user 2026-09-23.
+- `V1` **One pasted line installs Flow**, the README's install line. `install.sh` checks for git, node, claude, gh, pnpm and rg (ripgrep, which `flow tickets delete` searches with), clones Flow into `~/.flow/repos/flow/`, and runs `flow install`, which installs `scripts/`'s dependencies with `pnpm install --frozen-lockfile` (the user, 2026-10-27: pnpm for every package, never npm). It is bash because it runs before Flow is on disk. `--use <folder>` skips the clone. Ruled by the user 2026-09-23.
 - `V1` **Prerequisites are checked by running them**: the 5 programs on the PATH, Node at `MIN_NODE` (24.12.0) or later, and Claude Code at `MIN_CLAUDE` (2.1.310, the newest release read against Flow) or later. A failure stops the run. A Claude Code newer than `MIN_CLAUDE` adds a note to `flow doctor` and never fails it. A prerequisite is what Flow calls and never installs.
 - `V1` **`flow install` checks everything before it links anything.** It signs `gh` in, finds the Flow home at `<login>/flow-home`, checks the repository is a Flow home, and asks the one question last: the machine's name. A failed check prints `stopped: <why>`, exits 1, and links nothing.
 - `V1` **The machine's name is offered, never invented**: read from the hardware, as `<laptop|pc|server>-<wsl|distro>`, or a Mac's model, `macbook-pro`. It is shown dim, so Enter keeps it and the first key erases it. It is saved as git's `flow.machine`. With no terminal, the offer is taken.
@@ -110,7 +110,7 @@ The marker `~/.flow/logs/setup-pending` exists while a setup session is owed, an
 
 ## One real case: a machine joins an existing Flow home
 
-1. The user pastes the install line. `install.sh` finds git, node, claude, gh and pnpm, and clones Flow.
+1. The user pastes the install line. `install.sh` finds git, node, claude, gh, pnpm and rg, and clones Flow.
 2. `flow install` signs `gh` in, finds `<login>/flow-home` with files in it, and checks it opens with the Flow home's mark.
 3. It offers `laptop-wsl`. The user presses Enter.
 4. It checks the Flow home's files out into `~/.flow/`, links Flow, and commits `machines/laptop-wsl.json`.

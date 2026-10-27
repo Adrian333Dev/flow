@@ -9,6 +9,7 @@
  * whoever made the call. Each added call's result is headed `[Added by Flow]`.
  */
 import type { EngineInterface } from 'claude-code'
+import { type Block, windowMessages } from '../../shared/window'
 
 /** A tool call as the response holds it: its tool and parsed arguments. */
 export type Call = { tool: string; input: Record<string, unknown> }
@@ -138,8 +139,6 @@ export function keysOf(call: Call): string[] {
     .map((group) => `bash:${group} --help`)
 }
 
-type Block = { type: string; [field: string]: unknown }
-
 /** The keys the window holds: each call it answered, by `keysOf`. */
 export function windowKeys(messages: readonly { content: readonly Block[] }[]): Set<string> {
   const answered = new Set<string>()
@@ -219,8 +218,7 @@ export const inputOf = (send: Send, home: string): Record<string, unknown> =>
 
 /** The keys the window of the agent that made the step holds. A window the session cannot read holds none. */
 export async function windowOf($: EngineInterface, agentId: string | undefined): Promise<Set<string>> {
-  const messages = agentId === undefined ? await $.session.messages({ as: 'api' }) : await $.session.messages({ as: 'api', agentId })
-  return Array.isArray(messages) ? windowKeys(messages as { content: Block[] }[]) : new Set()
+  return windowKeys((await windowMessages($, agentId)) as { content: Block[] }[])
 }
 
 /** A tool call as it streamed: its block, id, name and the JSON of its arguments. */

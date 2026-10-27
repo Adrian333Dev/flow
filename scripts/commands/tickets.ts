@@ -13,10 +13,10 @@ import * as statuses from '../features/tickets/statuses.ts';
 import { touched, setWriting } from '../features/tickets/places.ts';
 import { listing, labels, check, get } from '../features/tickets/read-actions.ts';
 import { writeActions } from '../features/tickets/write-actions.ts';
-import { drop, move } from '../features/tickets/drop-actions.ts';
+import { drop, remove, move } from '../features/tickets/drop-actions.ts';
 import { statusActions } from '../features/tickets/status-actions.ts';
 
-const actions: Record<string, Action> = { labels, check, get, ...writeActions, drop, move, ...statusActions };
+const actions: Record<string, Action> = { labels, check, get, ...writeActions, drop, delete: remove, move, ...statusActions };
 
 /**
  * A command that wrote a ticket registers the projects it touched
@@ -33,7 +33,7 @@ function registerProjects() {
   }
 }
 
-const WRITES = ['new', 'edit', 'rank', 'file', 'drop', 'move', ...statuses.VERBS.map((s) => s.verb)];
+const WRITES = ['new', 'edit', 'rank', 'file', 'drop', 'delete', 'move', ...statuses.VERBS.map((s) => s.verb)];
 for (const name of WRITES) {
   const run = actions[name].run;
   actions[name].run = (call) => {

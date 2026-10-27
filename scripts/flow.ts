@@ -22,6 +22,7 @@ import audit from './commands/audit.ts';
 import init from './commands/init.ts';
 import settingsCommand from './commands/settings.ts';
 import scorecard from './commands/scorecard.ts';
+import search from './commands/search.ts';
 
 // `flow tickets | head -2` closes the pipe while node is still writing into it. The
 // default handling for that is an uncaught EPIPE and a stack trace printed over
@@ -41,10 +42,11 @@ const TITLE = 'flow: the board, setup, settings and audit';
  *
  * The order inside each section is the order help prints it.
  */
-const commands = { ...board, ...install, ...update, ...init, ...sync, ...doctor };
+const commands = { ...board, ...search, ...install, ...update, ...init, ...sync, ...doctor };
 
 const SECTIONS = [
   { key: 'board', title: 'the board' },
+  { key: 'knowledge', title: 'the wiki and research' },
   { key: 'setup', title: 'setup, this machine and its projects' },
 ];
 

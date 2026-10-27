@@ -160,11 +160,8 @@ function openWork(t: Ticket) {
  */
 function tickTask(parent, childId, done) {
   const lines = parent.body.split('\n');
-  const start = lines.findIndex((l) => l.trim() === '## Tasks');
-  if (start === -1) return 'missing';
-
-  const line = new RegExp(`^(\\s*(?:[-*]|\\d+[.)])\\s+\\[)([ xX])(\\]\\s+[*\`]*[a-z]{2,8}-${idNumber(childId)}(?![\\w-]))`);
-  for (let i = start + 1; i < lines.length && !/^## /.test(lines[i]); i++) {
+  const line = taskLine(childId);
+  for (const i of taskRows(lines)) {
     const m = lines[i].match(line);
     if (!m) continue;
     if ((m[2] !== ' ') === done) return 'same';
@@ -175,4 +172,33 @@ function tickTask(parent, childId, done) {
   return 'missing';
 }
 
-export { CONTEXT, hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, contextSections, questionCount, taskCount, openWork, tickTask };
+/** The line in a parent's `## Tasks` that starts with the child's number, in 3 groups: before the box, the box, the id. */
+const taskLine = (childId) => new RegExp(`^(\\s*(?:[-*]|\\d+[.)])\\s+\\[)([ xX])(\\]\\s+[*\`]*[a-z]{2,8}-${idNumber(childId)}(?![\\w-]))`);
+
+/** The indexes of the lines under `## Tasks`, up to the next heading. */
+function taskRows(lines: string[]) {
+  const start = lines.findIndex((l) => l.trim() === '## Tasks');
+  if (start === -1) return [];
+  const rows: number[] = [];
+  for (let i = start + 1; i < lines.length && !/^## /.test(lines[i]); i++) rows.push(i);
+  return rows;
+}
+
+/** The child's line in `parent`'s `## Tasks`, or '' where it has none. */
+function taskOf(parent, childId) {
+  const lines = parent.body.split('\n');
+  const i = taskRows(lines).find((row) => taskLine(childId).test(lines[row]));
+  return i === undefined ? '' : lines[i];
+}
+
+/** Removes the child's line from `parent`'s `## Tasks`, for a child deleted. True where a line went. */
+function removeTask(parent, childId) {
+  const lines = parent.body.split('\n');
+  const i = taskRows(lines).find((row) => taskLine(childId).test(lines[row]));
+  if (i === undefined) return false;
+  lines.splice(i, 1);
+  parent.body = lines.join('\n');
+  return true;
+}
+
+export { CONTEXT, hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, contextSections, questionCount, taskCount, openWork, tickTask, taskOf, removeTask };

@@ -8,7 +8,7 @@
  *   notes             rule (6), ui (3), ...
  *   findings global   machine-setup (2), user-preference (3)
  *   findings project  hooks (4), ...
- *   ~/.flow/wiki/     claude-code, node, ...
+ *   ~/.flow/wiki/     claude-code (31), node (4), audit, ...
  *   docs/spec/        product, tickets, skills, ...
  *
  * Computed from disk at each start and written nowhere. A store with nothing
@@ -20,14 +20,15 @@ import path from 'node:path';
 import * as store from '../tickets/store.ts';
 import * as findings from '../findings/findings.ts';
 import * as notes from '../notes/notes.ts';
+import * as usage from '../usage/usage.ts';
 import { select } from '../tickets/select.ts';
 import type { Ticket } from '../tickets/types.ts';
 
 // A line stops here, then says how many it left out.
 const LABELS_PER_LINE = 20;
 
-// Every wiki folder is listed up to here, then the most recently changed ones.
-// Replaced by the folders the project used, once visits are counted (`fw-274`).
+// The wiki line names this many folders: the ones this project visited, by last
+// visit, then the most recently changed others.
 const WIKI_FOLDERS = 15;
 
 const HEAD_WIDTH = 'findings project'.length + 2;
@@ -71,12 +72,18 @@ function changed(dir: string) {
   }
 }
 
-/** The wiki folders by name, or the most recently changed ones once they pass `WIKI_FOLDERS`. */
-function wikiFolders() {
+/**
+ * The wiki folders: the ones the project visited first, by last visit, each
+ * with its visits in brackets. The others follow by name, or the most recently
+ * changed of them once the line passes `WIKI_FOLDERS`.
+ */
+function wikiFolders(root: string | null) {
   const all = findings.subjects();
-  if (all.length <= WIKI_FOLDERS) return all.join(', ');
-  const recent = [...all].sort((a, b) => changed(path.join(findings.wikiDir(), b)) - changed(path.join(findings.wikiDir(), a)));
-  return capped(recent, WIKI_FOLDERS);
+  const visited = (root ? usage.totals(root) : []).filter(([folder]) => all.includes(folder));
+  const seen = new Set(visited.map(([folder]) => folder));
+  let rest = all.filter((f) => !seen.has(f));
+  if (all.length > WIKI_FOLDERS) rest = rest.sort((a, b) => changed(path.join(findings.wikiDir(), b)) - changed(path.join(findings.wikiDir(), a)));
+  return capped([...visited.map(([folder, v]) => `${folder} (${v.count})`), ...rest], WIKI_FOLDERS);
 }
 
 /** The project's spec files, `product` first, without `.md`. */
@@ -98,7 +105,7 @@ function view(root: string | null) {
     ['notes', counted(noteLabels(root ? store.prefixOf(root) : null))],
     ['findings global', counted(findingLabels(home))],
     ['findings project', root ? counted(findingLabels(root)) : ''],
-    ['~/.flow/wiki/', wikiFolders()],
+    ['~/.flow/wiki/', wikiFolders(root)],
     ['docs/spec/', root ? specFiles(root) : ''],
   ];
   const lines = rows.filter(([, text]) => text).map(([head, text]) => `${head.padEnd(HEAD_WIDTH)}${text}`);

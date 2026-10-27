@@ -72,6 +72,9 @@ test('the view counts the labels of every store, names the folders, and drops an
   flow('notes', 'new', 'Try a darker theme', '--label', 'ui');
   flow('findings', 'new', 'laptop runs wsl on windows', '--project', 'home', '--label', 'machine-setup');
   flow('findings', 'new', 'node test skips type checks', '--wiki', 'node', '--label', 'test-runner');
+  flow('findings', 'new', 'tmux survives closing every terminal', '--wiki', 'tmux', '--label', 'terminal-sessions');
+  flow('visit', 'tmux');
+  flow('visit', 'tmux', '--ticket', '1');
   write(at.project, 'docs/spec/tickets.md', '# Tickets\n');
   write(at.project, 'docs/spec/product.md', '# Product\n');
   for (let i = 0; i < 25; i++) write(at.project, `.flow/findings/claim-${String(i).padStart(2, '0')}.md`, `---\nlabels: [label-${String(i).padStart(2, '0')}]\n---\n\nText.\n`);
@@ -86,7 +89,7 @@ test('the view counts the labels of every store, names the folders, and drops an
     'findings global   machine-setup (1)',
   ]);
   assert.match(lines[4], /^findings project  label-00 \(1\), .*label-19 \(1\), \+5 more$/, 'a line stops at 20 labels');
-  assert.deepStrictEqual(lines.slice(5), ['~/.flow/wiki/     node', 'docs/spec/        product, tickets']);
+  assert.deepStrictEqual(lines.slice(5), ['~/.flow/wiki/     tmux (2), node', 'docs/spec/        product, tickets'], 'a visited folder first, its visits summed over the project and its tickets');
 });
 
 test('a git repository with no .flow gets the setup line, shown to the user alone, unless a setting says not', () => {

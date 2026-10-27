@@ -15,6 +15,7 @@ import { cancel as warmCancel, closeWarm, keepWarm, noteBroken, registerKeepWarm
 import { drawMeters, metersMeasure, metersRead, metersRefresh, metersStart, metersSwitch } from './features/meters/meters-row'
 import { listRows } from './features/notes/notes'
 import { withFileContext } from './features/ticket-context/ticket-context'
+import { countVisit } from './features/usage/visits'
 import {
   RESTART_CALL,
   askForRestart,
@@ -98,9 +99,13 @@ export const register: Register = (on) => {
 
   // A ticket's header or a wiki folder's labels, beside the file read or mentioned.
   // A failure passes the read through as it was: next(e) after a first call settles with that call's result.
-  on('tool.call', { tool: 'Read' }, async ($, e, next) => withFileContext($, (e as { file_path?: unknown }).file_path, e.agentId, await next(e))).catch(
-    async (_$, e, next) => next(e),
-  )
+  // A read inside a wiki folder or a research topic counts a visit, never awaited into the read's result.
+  on('tool.call', { tool: 'Read' }, async ($, e, next) => {
+    const path = (e as { file_path?: unknown }).file_path
+    const done = await next(e)
+    if (done.deny === undefined && !done.isError) void countVisit($, path, e.agentId, e.tool_use_id)
+    return withFileContext($, path, e.agentId, done)
+  }).catch(async (_$, e, next) => next(e))
   on('prompt.mention', async ($, e, next) => withFileContext($, e.path, e.agentId, await next(e)))
 
   on('skill.prompt', async ($, e, next) => withSkillWiki($, e.frontmatter, await next(e)))

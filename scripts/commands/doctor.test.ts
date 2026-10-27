@@ -207,7 +207,7 @@ test('--prereq checks what Flow calls and nothing Flow installs', () => {
 
   const ok = at(utilStub(dir));
   assert.strictEqual(ok.code, 0, ok.stderr);
-  assert.match(ok.stdout, /ok {4}programs: node, git, claude, gh, pnpm all resolve/);
+  assert.match(ok.stdout, /ok {4}programs: node, git, claude, gh, pnpm, rg all resolve/);
   assert.ok(!/util|skills|hooks|settings|version/.test(ok.stdout), `an install check ran anyway:\n${ok.stdout}`);
 
   const broken = at(dir, { PATH: path.join(dir, 'nothing-here') });

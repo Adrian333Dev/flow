@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { project, flow } from '../shared/testing.ts';
-import * as frontmatter from '../shared/frontmatter.ts';
 import { parseFull, ticket, ticketFile } from '../features/tickets/testing.ts';
 
 test('flow edit --activity sets the kind of work on an in-progress ticket, and any status move clears it', () => {
@@ -209,53 +208,103 @@ test('the commands of the 8 statuses are gone', () => {
   assert.strictEqual(parseFull(fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8')).data.status, 'todo');
 });
 
-test('flow drop requires --reason, refuses on dependents, --by repairs', () => {
+test('flow drop requires --reason, refuses on an open dependent or child naming the edit, and --by is gone', () => {
   const dir = project('tickets-drop');
-
   flow(dir, ['tickets', 'new', 'Will drop']);
-  flow(dir, ['tickets', 'new', 'Depends on it']);
-  flow(dir, ['tickets', 'new', 'Replacement']);
-  const [t1, t2, t3] = ticket(dir);
+  flow(dir, ['tickets', 'new', 'Depends on it', '--deps', 'exp-1']);
+  flow(dir, ['tickets', 'new', 'Its child', '--parent', 'exp-1']);
+  flow(dir, ['tickets', 'new', 'Elsewhere']);
 
-  flow(dir, ['tickets', 'edit', t2.id, '--deps', t1.id]);
-
-  const noReason = flow(dir, ['tickets', 'drop', t1.id]);
-  assert.notStrictEqual(noReason.code, 0);
+  const noReason = flow(dir, ['tickets', 'drop', 'exp-1']);
+  assert.strictEqual(noReason.code, 1);
   assert.match(noReason.stderr, /reason/);
 
-  const hasDeps = flow(dir, ['tickets', 'drop', t1.id, '--reason', 'obsolete']);
-  assert.notStrictEqual(hasDeps.code, 0);
-  assert.match(hasDeps.stderr, /dependent/);
+  const linked = flow(dir, ['tickets', 'drop', 'exp-1', '--reason', 'obsolete']);
+  assert.strictEqual(linked.code, 1);
+  assert.match(linked.stderr, /exp-2 depends on exp-1 {4}flow tickets edit exp-2 --deps <ids>/);
+  assert.match(linked.stderr, /exp-3 has parent exp-1 {4}flow tickets edit exp-3 --parent <id>/);
 
-  const repaired = flow(dir, ['tickets', 'drop', t1.id, '--reason', 'obsolete', '--by', t3.id]);
-  assert.strictEqual(repaired.code, 0, repaired.stderr);
+  const by = flow(dir, ['tickets', 'drop', 'exp-1', '--reason', 'obsolete', '--by', 'exp-4']);
+  assert.strictEqual(by.code, 1);
+  assert.match(by.stderr, /unknown flag "--by"/);
 
-  const t2After = parseFull(fs.readFileSync(ticketFile(dir, t2.id), 'utf8'));
-  assert.ok(t2After.data.deps.includes(t3.id), `deps should now include ${t3.id}`);
-  assert.ok(!t2After.data.deps.includes(t1.id), `deps should no longer include ${t1.id}`);
+  flow(dir, ['tickets', 'edit', 'exp-2', '--deps', 'exp-4']);
+  flow(dir, ['tickets', 'edit', 'exp-3', '--parent', 'exp-4']);
+  const dropped = flow(dir, ['tickets', 'drop', 'exp-1', '--reason', 'obsolete']);
+  assert.strictEqual(dropped.code, 0, dropped.stderr);
+  assert.match(ticketFile(dir, 'exp-1'), /archive/, 'a dropped folder stays, in the archive');
 });
 
-test('flow drop --force cascades to transitive dependents', () => {
+test('flow drop --force clears the links and drops nothing else', () => {
   const dir = project('tickets-drop-force');
-
   flow(dir, ['tickets', 'new', 'Root']);
-  flow(dir, ['tickets', 'new', 'Middle']);
-  flow(dir, ['tickets', 'new', 'Leaf']);
-  const [t1, t2, t3] = ticket(dir);
+  flow(dir, ['tickets', 'new', 'Middle', '--deps', 'exp-1']);
+  flow(dir, ['tickets', 'new', 'Leaf', '--deps', 'exp-2']);
+  flow(dir, ['tickets', 'new', 'Child', '--parent', 'exp-1']);
 
-  flow(dir, ['tickets', 'edit', t2.id, '--deps', t1.id]);
-  flow(dir, ['tickets', 'edit', t3.id, '--deps', t2.id]);
-
-  const r = flow(dir, ['tickets', 'drop', t1.id, '--reason', 'abandoned', '--force']);
+  const r = flow(dir, ['tickets', 'drop', 'exp-1', '--reason', 'abandoned', '--force']);
   assert.strictEqual(r.code, 0, r.stderr);
+  assert.match(r.stdout, /cleared: exp-2 deps, exp-4 parent/);
 
-  for (const id of [t1.id, t2.id, t3.id]) {
-    const file = ticketFile(dir, id);
-    const fm = frontmatter.parse(fs.readFileSync(file, 'utf8'));
-    assert.strictEqual(fm.data.status, 'dropped', `${id} should be dropped`);
-    const history = fs.readFileSync(path.join(path.dirname(file), 'history.md'), 'utf8');
-    assert.match(history, /todo → dropped/, `${id} should record the drop in history.md`);
-  }
+  const data = (id) => parseFull(fs.readFileSync(ticketFile(dir, id), 'utf8')).data;
+  assert.strictEqual(data('exp-1').status, 'dropped');
+  assert.match(fs.readFileSync(path.join(path.dirname(ticketFile(dir, 'exp-1')), 'history.md'), 'utf8'), /todo → dropped/);
+  for (const id of ['exp-2', 'exp-3', 'exp-4']) assert.strictEqual(data(id).status, 'todo', `${id} stays`);
+  assert.deepStrictEqual(data('exp-2').deps || [], []);
+  assert.deepStrictEqual(data('exp-3').deps, ['exp-2'], 'only the near edge moves');
+  assert.strictEqual(data('exp-4').parent || '', '');
+});
+
+test('flow tickets delete removes a merged ticket whole, its parent\'s task line too, and never frees its number', () => {
+  const dir = project('tickets-delete');
+  flow(dir, ['tickets', 'new', 'Parent', '--body', '## Tasks\n\n- [ ] exp-2: Merged away\n- [ ] exp-3: Kept']);
+  flow(dir, ['tickets', 'new', 'Merged away', '--parent', 'exp-1']);
+  flow(dir, ['tickets', 'new', 'Kept', '--parent', 'exp-1']);
+
+  const r = flow(dir, ['tickets', 'delete', 'exp-2']);
+  assert.strictEqual(r.code, 0, r.stderr);
+  assert.match(r.stdout, /^deleted exp-2-merged-away\n {6}removed its line in exp-1's ## Tasks\n/);
+  assert.throws(() => ticketFile(dir, 'exp-2'), /no ticket exp-2/);
+  const parent = fs.readFileSync(ticketFile(dir, 'exp-1'), 'utf8');
+  assert.doesNotMatch(parent, /exp-2/);
+  assert.match(parent, /- \[ \] exp-3: Kept/);
+
+  flow(dir, ['tickets', 'new', 'After the delete']);
+  assert.deepStrictEqual(ticket(dir).map((t) => t.id).sort(), ['exp-1', 'exp-3', 'exp-4'], 'the next number is 4, never 2');
+});
+
+test('flow tickets delete refuses on a link, a mention or a closed ticket, and --force clears the links', () => {
+  const dir = project('tickets-delete-refuse');
+  flow(dir, ['tickets', 'new', 'Source']);
+  flow(dir, ['tickets', 'new', 'Waits on it', '--deps', 'exp-1']);
+  flow(dir, ['tickets', 'new', 'Its child', '--parent', 'exp-1']);
+  fs.mkdirSync(path.join(dir, 'docs'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'docs', 'plan.md'), 'Built in exp-1, not exp-10.\nSee .flow/tickets/1/context.md.\n');
+  fs.writeFileSync(path.join(dir, 'flow-home', 'note.md'), 'exp-1 taught this.\n');
+
+  const refused = flow(dir, ['tickets', 'delete', 'exp-1']);
+  assert.strictEqual(refused.code, 1);
+  assert.match(refused.stderr, /exp-1-source was not deleted\.\n2 ticket links to it\./);
+  assert.match(refused.stderr, /exp-2 depends on exp-1 {4}flow tickets edit exp-2 --deps <ids>/);
+  assert.match(refused.stderr, /3 mentions of it\./);
+  assert.match(refused.stderr, /docs\/plan\.md:1 {2}Built in exp-1, not exp-10\./);
+  assert.match(refused.stderr, /docs\/plan\.md:2 {2}See \.flow\/tickets\/1\/context\.md\./);
+  assert.match(refused.stderr, /flow-home\/note\.md:1 {2}exp-1 taught this\./);
+  assert.ok(fs.existsSync(ticketFile(dir, 'exp-1')), 'a refusal deletes nothing');
+
+  const forced = flow(dir, ['tickets', 'delete', 'exp-1', '--force']);
+  assert.strictEqual(forced.code, 0, forced.stderr);
+  assert.match(forced.stdout, /cleared: exp-2 deps, exp-3 parent\n {6}still mentioned in 3 places:/);
+  const data = (id) => parseFull(fs.readFileSync(ticketFile(dir, id), 'utf8')).data;
+  assert.deepStrictEqual(data('exp-2').deps || [], []);
+  assert.strictEqual(data('exp-3').parent || '', '');
+
+  flow(dir, ['tickets', 'start', 'exp-2']);
+  flow(dir, ['tickets', 'done', 'exp-2']);
+  const closed = flow(dir, ['tickets', 'delete', 'exp-2']);
+  assert.strictEqual(closed.code, 1);
+  assert.match(closed.stderr, /exp-2 is done: a closed ticket is a record of the work\./);
+  assert.strictEqual(flow(dir, ['tickets', 'delete', 'exp-2', '--force']).code, 0);
 });
 
 test('moving to the current status is a no-op', () => {

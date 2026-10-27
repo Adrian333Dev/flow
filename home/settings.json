@@ -207,6 +207,7 @@
   "disableArtifact": true,
   "autoMemoryEnabled": false,
   "autoCompactEnabled": false,
+  "awaySummaryEnabled": false,
   "respondToBashCommands": false,
   "worktree": {
     "bgIsolation": "none"

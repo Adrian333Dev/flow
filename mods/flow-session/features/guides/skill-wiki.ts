@@ -12,6 +12,7 @@
 import type { EngineInterface } from 'claude-code'
 import { reasonOf } from '../../shared/format'
 import { flowHome, readText } from '../../shared/home'
+import { type Block, windowMessages } from '../../shared/window'
 
 export type Link = { folder: string; mode: 'load' | 'name' }
 
@@ -92,8 +93,6 @@ export async function wikiText(links: readonly Link[], home: string, held: Held,
 /** A skill's text with its wiki text after it. */
 export const withWiki = (text: string, wiki: string) => (wiki ? `${text.trimEnd()}\n\n${wiki}` : text)
 
-type Block = { type: string; [field: string]: unknown }
-
 const textOf = (block: Block): string => {
   if (typeof block.text === 'string') return block.text
   if (typeof block.content === 'string') return block.content
@@ -116,8 +115,7 @@ export function heldIn(messages: readonly { content: string | readonly Block[] }
 
 /** What the window of an agent holds: the main loop's where `agentId` is none. A window the session cannot read holds nothing. */
 export async function heldBy($: EngineInterface, agentId: string | undefined): Promise<Held> {
-  const messages = agentId === undefined ? await $.session.messages({ as: 'api' }) : await $.session.messages({ as: 'api', agentId })
-  return Array.isArray(messages) ? heldIn(messages as { content: Block[] }[]) : { text: '', reads: new Set() }
+  return heldIn(await windowMessages($, agentId))
 }
 
 // The agents whose `Skill` call is running, last on top: `skill.prompt` names no agent, and fires inside the call.

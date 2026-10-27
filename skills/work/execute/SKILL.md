@@ -35,7 +35,7 @@ Write as the work goes, never at the end, by `~/.flow/guides/write-tickets.md`. 
 - **A decision made alone, a dead end, a trap hit** → a section in `context.md`, headed by the task's name. A decision also gets one line under `## Decisions` in `ticket.md`: what, and why.
 - **A file, tool or page the work needs** → a line in `## References`.
 - **Routine output** → nowhere.
-- **Plan wrong** → rewrite the tasks and say what changed. **Separable work found** → propose a child ticket. **The ticket no longer makes sense** → propose `flow tickets drop <id> --reason "<why>" --by <id>`.
+- **Plan wrong** → rewrite the tasks and say what changed. **Separable work found** → propose a child ticket. **The ticket no longer makes sense** → propose `flow tickets drop <id> --reason "<why>"`.
 
 ### When a check fails
 
