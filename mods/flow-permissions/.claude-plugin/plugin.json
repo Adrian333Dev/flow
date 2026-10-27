@@ -1,0 +1,5 @@
+{
+  "name": "flow-permissions",
+  "version": "0.1.0",
+  "description": "Flow's permission mod: puts every permission ask to the user in Claude Code's question dialog, and logs each ask."
+}

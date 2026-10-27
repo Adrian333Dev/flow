@@ -3,11 +3,11 @@
   "idleCompaction": false,
   "env": {
     "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS": "1",
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/.flow/repos/flow/mods/flow-session"
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/.flow/repos/flow/mods/flow-session:~/.flow/repos/flow/mods/flow-permissions"
   },
   "fileSuggestion": {
     "type": "command",
-    "command": "node \"$HOME/.flow/scripts/hooks/file-suggestion.js\""
+    "command": "node \"$HOME/.flow/scripts/hooks/file-suggestion.ts\""
   },
   "hooks": {
     "PreToolUse": [
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/guard.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/guard.ts\""
           }
         ]
       },
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.ts\""
           }
         ]
       },
@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/rule-check.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/rule-check.ts\""
           }
         ]
       }
@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.ts\""
           }
         ]
       },
@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\" --wait",
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.ts\" --wait",
             "asyncRewake": true,
             "timeout": 86400
           }
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/overlays.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/overlays.ts\""
           }
         ]
       }
@@ -76,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.ts\""
           }
         ]
       },
@@ -85,7 +85,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/failures.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/failures.ts\""
           }
         ]
       }
@@ -95,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/failures.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/failures.ts\""
           }
         ]
       }
@@ -105,7 +105,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/jobs/records-sync.js\" --hook stop",
+            "command": "node \"$HOME/.flow/scripts/jobs/records-sync.ts\" --hook stop",
             "async": true
           }
         ]
@@ -116,7 +116,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/jobs/records-sync.js\" --hook end"
+            "command": "node \"$HOME/.flow/scripts/jobs/records-sync.ts\" --hook end"
           }
         ]
       }
@@ -126,7 +126,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.ts\""
           }
         ]
       }
@@ -136,7 +136,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/changes.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/changes.ts\""
           }
         ]
       }
@@ -146,7 +146,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/instructions-loaded.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/instructions-loaded.ts\""
           }
         ]
       }
@@ -157,7 +157,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/check-ticket.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/check-ticket.ts\""
           }
         ]
       },
@@ -165,7 +165,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/overlays.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/overlays.ts\""
           }
         ]
       }
@@ -175,7 +175,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/reminder.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/reminder.ts\""
           }
         ]
       }
@@ -185,7 +185,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/session-check.js\""
+            "command": "node \"$HOME/.flow/scripts/hooks/session-check.ts\""
           }
         ]
       }

@@ -121,7 +121,8 @@ $ flow doctor
 ok    issues: every job running in the background worked last time
 ok    clone: 1 submodule on the commit this clone points at
 ok    programs: node, git, claude, gh all resolve
-ok    claude code: 2.1.304, and Flow needs 2.1.287 or later
+ok    node: 24.15.0, and Flow needs 24.12.0 or later
+ok    claude code: 2.1.310, and Flow needs 2.1.310 or later
 ok    names: flow, fw, util, u all resolve
 ok    util: fs tree runs
 ok    ~/.agents: 12 skills linked under skills/flow/
@@ -139,7 +140,7 @@ A failing line names the fix beneath it, such as `util is not linked: run flow i
 - **`projects`**: the prefix and folder of each project on this computer. It names a registered folder that is gone, the current folder's prefix when another folder holds it (the fix is `ticketPrefix` in `.flow/settings.json`), a line whose folder has since changed its `ticketPrefix`, and the current project missing from the list. With any of these it adds a note listing every registered project. It reads the file and scans nothing.
 - **`tickets`**: inside a project, names each ticket made before the current format: a folder named with more than its id, a `groundwork/map.md` that is only the empty template, and a title that is one of the ticket's own labels. Outside a project it is skipped.
 
-- **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.287 or later. It works before Flow is installed.
+- **`--prereq`**: check only the programs Flow needs and never installs, `node`, `git`, `claude` and `gh`, and that Claude Code is 2.1.310 or later. A Claude Code newer than that adds a `note` line, because nobody has read that release against Flow yet. It works before Flow is installed.
 
 ### `flow sync`
 
@@ -325,7 +326,9 @@ A project joins the list by its first ticket write (`flow init`, `flow tickets n
 
 ### `flow tickets get`
 
-`flow tickets get <id>`: one ticket's fields, then its text, then the command that starts work on it. It takes no flags.
+`flow tickets get <id>`: one ticket's fields, then its text, then the command that starts work on it. It takes no flags besides `--json`.
+
+Several ids print each ticket in turn, and an id with no ticket is named at the end without stopping the rest. `--json` prints the ticket itself for one id and `{ "tickets": [...], "missing": [...] }` for several. Beside the counts it holds `firstOpen` (the file line in `ticket.md` of the first open task and of the first open question), `openQuestions` (the handles of the open questions) and, on a ticket made before `## Questions`, `map` (its count and first open line). The band in the session reads these and runs one `flow` process per turn end for all its badges.
 
 A `rank:` line shows only on a ticket that has a number. An `activity:` line shows on a ticket a phase has started.
 

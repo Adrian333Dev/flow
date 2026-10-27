@@ -52,7 +52,7 @@ Do this before writing any code.
 
 ## Testing it
 
-Every check gets a test in `~/.flow/scripts/tests/`, holding at minimum one real violation and one real clean example. `npm test` runs them.
+Every check gets a test beside the code it checks, as a `*.test.ts` file, holding at minimum one real violation and one real clean example. `npm test` runs them.
 
 ## The 3 tiers
 

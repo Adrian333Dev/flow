@@ -112,7 +112,7 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 
 ### Overlays
 
-- `V1` **The user extends any skill with `~/.flow/skill-overlays/<name>.md`**, the name without its plugin's prefix. `overlays.js` hands it to the agent under `# Overlay` each time the skill loads, in every project, typed or started by the agent, in a subagent too. Flow's skills and outside ones get the same mechanism, the user's call 2026-09-28.
+- `V1` **The user extends any skill with `~/.flow/skill-overlays/<name>.md`**, the name without its plugin's prefix. `overlays.ts` hands it to the agent under `# Overlay` each time the skill loads, in every project, typed or started by the agent, in a subagent too. Flow's skills and outside ones get the same mechanism, the user's call 2026-09-28.
   - Global only, ruled by the user 2026-10-12: an addition is almost always to an outside skill and wanted in every project. A fact true for one project goes in its `CLAUDE.md`.
 - `never` **A per-project overlay, `.flow/overlays/<name>.md`**, dropped by the user 2026-10-12 for simplicity. No overlay file existed. The hook and its test are in `lab/archive/project-overlays/`.
 - `later` **An overlay for a skill a subagent preloads through `skills:`**, from a `SubagentStart` hook. Flow ships no such subagent. Approved 2026-09-28.
@@ -127,8 +127,8 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 ## The parts
 
 - **`skills/`**: Flow's skills, and `skills/.claude-plugin/plugin.json`.
-- **`scripts/lib/skills/skills.js`**: the skill catalog and what installs.
-- **`scripts/hooks/overlays.js`**: the overlays.
+- **`scripts/features/skills/skills.ts`**: the skill catalog and what installs.
+- **`scripts/hooks/overlays.ts`**: the overlays.
 - **`guides/knowledge.md`**: used whole or harvested, the order for reaching a service, and how a skill is written. It took over `write-skills.md` 2026-10-26 (`fw-284`), so one file serves `/flow:research`, `/flow:upkeep` and `read-before-adding` in `home/CLAUDE.md`.
 
 ## What passes between them
@@ -160,7 +160,7 @@ End every review with the next ticket to take, and why.
 
 - **Claude Code loads `flow@skills-dir` and names its skills `flow:<name>`**: proven 2026-09-18 in a scratch install.
 - **`npm test` covers the links and the overlays.**
-- **`overlays.js` in a live session.** Not yet: its test feeds it the calls the docs describe.
+- **`overlays.ts` in a live session.** Not yet: its test feeds it the calls the docs describe.
 - **The beta runs each phase on real work**, `fw-2` to `fw-14`.
 
 ## What is locked

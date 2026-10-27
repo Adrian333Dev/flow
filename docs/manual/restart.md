@@ -37,7 +37,7 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 3 things start a restart, and each sends the agent one message ending in the restart guide:
 
 - **At the limit**, 170,000 tokens by default ([`wrapUpAt`](settings.md#wrapupat)): `Finish this step, then restart.`
-- **At 30,000 past it**, with no restart yet: `Stop now and restart.`
+- **At 100,000 past it**, with no restart yet: `Stop now and restart.`
 - **By hand**: a press of the green Restart button above the prompt (shown from 30,000 under the limit), or `/restart`: `Restart now:`. Words typed after `/restart` follow under `User:`.
 
 The guide, as the agent receives it, from `mods/flow-session/prompts/restart-guide.md`:
@@ -71,7 +71,7 @@ A helper agent still running delays the restart until it finishes. A helper agen
 From the session that started you: your window is full, and this replaces the stopping point in your brief. Unless you are within a few steps of your final report, write what you learned to your report files now: the sources read, the findings, what is left to do. Then begin your reply with `UNFINISHED:` and the paths of those files.
 ```
 
-At 30,000 past its limit:
+At 100,000 past its limit:
 
 ```md
 From the session that started you: stop now, whatever your brief says. Write what you learned to your report files and begin your reply with `UNFINISHED:` and their paths.
@@ -85,7 +85,7 @@ The agent first writes the window's decisions and findings into the ticket's `ti
 {
   "message": "- Lesson: python3 heredoc used to cut tests, against edit-with-edit. File a flow-issue if the type repeats.\n- fw-268 reopened. Mod suite 306 pass.\n- User's message: (1) how unanswered messages are found: open, answer it. (2) delete the 13 restart files: done.\n- First action: lab/archive/README.md, the mod-restart-dialogue line: add the retired parts.\n- Next: the unchecked tasks in fw-268, in order.",
   "files": [
-    "mods/flow-session/hooks/first-message.ts",
+    "mods/flow-session/features/restart/first-message.ts",
     "lab/archive/README.md",
     "docs/spec/product.md#Session"
   ],
@@ -171,7 +171,7 @@ The mod empties the conversation and writes this one in its place. Each file and
     "role": "assistant",
     "tool_use": {
       "name": "Read",
-      "input": { "file_path": "mods/flow-session/hooks/first-message.ts" },
+      "input": { "file_path": "mods/flow-session/features/restart/first-message.ts" },
     },
   },
   {

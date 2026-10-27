@@ -1,6 +1,6 @@
 {
   "subagentStatusLine": {
     "type": "command",
-    "command": "node \"$HOME/.flow/repos/flow/mods/flow-session/agent-rows.js\""
+    "command": "node \"$HOME/.flow/repos/flow/mods/flow-session/features/meters/agent-rows.js\""
   }
 }

@@ -4,7 +4,7 @@ What runs without asking, what asks, and how a question reaches the user. A sess
 
 ## Scope
 
-- **In**: the `permissions` block of `home/settings.json`, the guard (`scripts/hooks/guard.js` and `scripts/lib/guard/`), the pane in Flow's mod, the log in `~/.flow/logs/permissions/`, and `flow audit`'s permissions view.
+- **In**: the `permissions` block of `home/settings.json`, the guard (`scripts/hooks/guard.ts` and `scripts/features/guard/`), the pane in Flow's `flow-permissions` mod, the log in `~/.flow/logs/permissions/`, and `flow audit`'s permissions view.
 - **Out**: Flow's mod itself and its layout, in `fw-16` and `fw-14`. The other hooks, in `docs/spec/product.md` → `### Hooks and guardrails`.
 
 ## How a call is decided
@@ -45,7 +45,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 - `V1` **Anything not serious always runs.** Reading a `.env` file, a write to a shell startup file or the global git settings, a global install and a scheduled job leave the guard's list. Ruled 2026-10-12: the user wants as few prompts as possible.
 - `V1` **A write under `~/.claude`, `~/.flow` and `~/.agents` runs unchecked**, except the files that can switch the guard off. Tickets, the wiki, logs, `workflow-notes.md`, skills, rules and `CLAUDE.md` steer the agent and cannot disable the guard. Ruled 2026-10-12. Overturned by: evidence that the guard's files are reachable another way.
 - `V1` **A project's `.flow` is a symlink into `~/.flow/projects/<name>`, so `~/.flow/projects/` stays off the guard's list.** The old rule judged the real path, and 50 asks in 35 minutes came from appends to a note file and scratch files under a ticket.
-- `V1` **A write to a protected path with no guard reason is allowed by the mod and logged `auto-allow`.** Claude Code asks for every write under `.claude`, and no settings rule removes the ask. The mod's allow does (probed in `fw-110`). The same holds for Edit and Write from the main agent under `mods/flow-session/`, a loaded mod folder: 53 of the 67 logged asks, and only while the mod itself is edited. `.claude-plugin/plugin.json` and `hooks/hooks.json` still ask, since a manifest decides which hooks load. Decided 2026-10-18.
+- `V1` **A write to a protected path with no guard reason is allowed by the mod and logged `auto-allow`.** Claude Code asks for every write under `.claude`, and no settings rule removes the ask. The mod's allow does (probed in `fw-110`). The same holds for Edit and Write from the main agent under `mods/flow-session/` and `mods/flow-permissions/`, the loaded mod folders: 53 of the 67 logged asks, and only while the mod itself is edited. `.claude-plugin/plugin.json` and `hooks/hooks.json` still ask, since a manifest decides which hooks load. Decided 2026-10-18.
 - `V1` **The target is zero asks in a normal ticket build**, push and publish aside. `flow audit`'s permissions view reads it. An ask outside that list is a fault, fixed by narrowing a rule. Approved 2026-10-12, commit dropped from the list 2026-10-18.
 
 ### What asks
@@ -60,7 +60,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
   - A write into `~/.ssh`.
   - Reading a private key, a cloud login or a GitHub login into the conversation.
   - A write to the files that can switch the guard off: `~/.claude/settings.json`, `settings.local.json`, `~/.claude/plugins`, `~/.claude/dev-mods` and a project's `.claude/settings*.json`. Flow's own `scripts/` left the list 2026-10-24: 16 asks in 5 days, all from building Flow in its own repository, where git restores the folder.
-- `V1` **The guard judges `Edit` and `Write` as well as `Bash` and `Read`.** The matcher in `home/settings.json` widens to `^(Edit|Write|Bash|Read)$`, and `guard.js` gains one branch, the folder rule above. The old limit was a choice in the matcher, not in Claude Code.
+- `V1` **The guard judges `Edit` and `Write` as well as `Bash` and `Read`.** The matcher in `home/settings.json` widens to `^(Edit|Write|Bash|Read)$`, and `guard.ts` gains one branch, the folder rule above. The old limit was a choice in the matcher, not in Claude Code.
 - `V1` **Each ask stays an ask, never a deny.** A deny cannot be overridden and sends the agent into a retry loop.
 - `V1` **The deny list stays**: `sudo`, `su`, `mkfs`, `--dangerously-skip-permissions`, reads of `~/.ssh` and `~/.aws`, plan mode, and the tools Flow replaces. `AskUserQuestion` leaves it.
 - `V1` **The guard's sentence is the action, its target, and why it asks in 2 or 3 words**: `Delete ~/.claude/dev-mods/x · outside project`, `Delete web/a.png · not in git`. The action is a verb in the imperative, a path stays whole, and ` · ` starts the reason. The mod's own sentences take the same form: `Push to a remote`, `Edit this file · can switch the guard off`. Decided by the user 2026-10-24: the long sentences were read twice. The reason stays because it is the only part saying why this delete asks when most run unasked. Overturned by: the user finding the reason unread.
@@ -110,11 +110,11 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 ## The parts
 
 - **`home/settings.json`**: the allow, ask and deny lists, and the guard's matcher.
-- **`scripts/hooks/guard.js`**: the `PreToolUse` hook. Judges `Bash` and `Read` by command and path, `Edit` and `Write` by the folder rule, and fails closed.
-- **`scripts/lib/guard/`**: one file per kind of harm, the parser, and `world.js`, the one file that reads the disk. The narrowed folder list lives in one place here.
+- **`scripts/hooks/guard.ts`**: the `PreToolUse` hook. Judges `Bash` and `Read` by command and path, `Edit` and `Write` by the folder rule, and fails closed.
+- **`scripts/features/guard/`**: one file per kind of harm, the parser, and `world.ts`, the one file that reads the disk. The narrowed folder list lives in one place here.
 - **The pane**: one module in its own mod, `flow-permissions`, apart from `flow-session` (decided 2026-10-20, `fw-172`, built by `fw-233`). It holds the dialog, route A2, the headline for every tool other than `Bash`, and the log write. The path rule that lets a mod folder be edited without an ask covers every Flow mod.
 - **`~/.flow/logs/permissions/`**: the log.
-- **`scripts/commands/audit.js`**: gains the permissions view.
+- **`scripts/commands/audit.ts`**: gains the permissions view.
 
 ## What passes between them
 
