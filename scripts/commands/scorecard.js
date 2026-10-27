@@ -167,4 +167,5 @@ const listing = {
   },
 };
 
-module.exports = { summary: 'how the rule checks are doing', list: listing };
+// Hidden from the help until fw-308 rebuilds the rule checks: no check exists to count.
+module.exports = { summary: 'how the rule checks are doing', list: listing, hidden: true };

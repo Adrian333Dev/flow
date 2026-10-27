@@ -92,7 +92,7 @@ test('--help prints the surface without needing a project', () => {
   assert.strictEqual(result.code, 0, result.stderr);
   assert.match(result.stdout, /flow tickets new/);
   assert.match(result.stdout, /flow next/);
-  assert.match(result.stdout, /flow scorecard/);
+  assert.doesNotMatch(result.stdout, /flow scorecard/, 'paused until fw-308, and still runs when typed');
   assert.doesNotMatch(result.stdout, /--root|--no-bin|--no-clone|--tests/, 'hidden from a person, still run by tests and skills');
 });
 

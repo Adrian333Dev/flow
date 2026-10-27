@@ -121,7 +121,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 - **`logs/install.log`**: every line of this computer's last `flow install`.
 - **`logs/history/<month>.jsonl`**: one line per change Flow made to this computer: a repository downloaded, an install.
 - **`logs/failures/<month>.jsonl`**: one line per failure of a Flow command, a hook, a tool from a plugin, or the API.
-- **`logs/scorecards/<session>.jsonl`**: one line per rule check that ran. `flow scorecard` reads them.
+- **`logs/scorecards/<session>.jsonl`**: which rule files entered each session.
 - **`audit/`**: the index `flow audit` searches, built from `~/.claude/projects/`. `audit/kept/` holds the sessions `flow audit keep` saved.
 - **`changes/<session>/`**: what each helper agent changed. Deleted after 7 days untouched.
 

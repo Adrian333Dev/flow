@@ -156,7 +156,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 
 - **`guard.js`**, before every shell command, edit, write and file read: asks you before a call that could lose work, send data off the computer, change a shared system or switch the guard off, and before Claude reads a private key or a login.
 - **`changes.js`**, around every edit and command: records which helper agent changed which file, in `~/.flow/changes/<session>/`.
-- **`rule-check.js`**, before every edit: tests the edit against your rules, and records the result for `flow scorecard`.
+- **`rule-check.js`**, before every edit: tests the edit against your rules. No rule check exists yet, so it does nothing.
 - **`instructions-loaded.js`**, when a rule file loads: records which rules the agent has read.
 - **`check-ticket.js`**, when you type a phase skill or `/flow:start`: refuses where Flow is not set up.
 - **`overlays.js`**, when a skill loads: adds the lines in `~/.flow/skill-overlays/<skill>.md`.

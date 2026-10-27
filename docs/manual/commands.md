@@ -2,7 +2,7 @@
 
 Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in the terminal, `flow tickets --help` lists one noun's, and `flow tickets new --help` shows one command.
 
-**Commands sit under a noun**: `tickets`, `notes`, `audit`, `settings` and `scorecard`. A noun typed alone lists, so `flow tickets` is the ticket table. `flow next` and the setup commands stay bare, and a bare `flow` prints the help.
+**Commands sit under a noun**: `tickets`, `notes`, `audit` and `settings`. A noun typed alone lists, so `flow tickets` is the ticket table. `flow next` and the setup commands stay bare, and a bare `flow` prints the help.
 
 **A query follows `--`, in double quotes**: `flow notes -- "cache"`. The `--` keeps a query such as `new` from reading as a command. A query the shell split into several words is refused, naming the quoted form.
 
@@ -50,7 +50,6 @@ $ flow tickets start shop-2 --json
 - [Notes](#notes): ideas and put-off work, each filed under a project's prefix
 - [Ticket status](#ticket-status): move a ticket from one stage to the next
 - [Settings](#settings): turn Flow's own settings on or off
-- [Rule checks](#rule-checks): see how well the agent follows your rules
 - [Audit](#audit): read back what Claude Code did in past sessions
   - [`flow audit`](#flow-audit): every session, with its totals
   - [`flow audit index`](#flow-audit-index): read new sessions in
@@ -581,22 +580,6 @@ keepWarmMaxIdle  4                hours after your last request that /keepwarm s
 $ flow settings on setupReminder --global
 on: setupReminder, everywhere.
 setupReminder is still off here, since this folder says so.
-```
-
-## Rule checks
-
-### `flow scorecard`
-
-How well the agent follows your rules, across every session. A rule check is a small script that tests each change the agent makes against one rule, and records the result. A check is one file in `scripts/rule-checks/`.
-
-The scorecard lists checks that fail to load, checks naming a rule that no longer exists, the rules broken most, checks broken often enough to start warning, and rules that never once applied. It ends with how many rules have a check at all, so a clean report never reads as a clean session.
-
-```console
-$ flow scorecard
-nothing to report yet.
-
-0 rules measured, 121 not measurable. 353 results over 14 days.
-No checks yet. One file each in /home/me/code/flow-dev/scripts/rule-checks.
 ```
 
 ## Audit

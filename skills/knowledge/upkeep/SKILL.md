@@ -35,8 +35,7 @@ Batch every step. Never carry one item to its home before the next is sorted.
 - **The failure log**, `~/.flow/logs/failures/<year>-<month>.jsonl`, from the line after the newest `swept` marker. A month's file with no marker also reads the month before, from its marker.
 - **Notes**, `flow notes`: this project's and the global ones. Promote with `flow notes promote <name>`, inside the project it belongs to. Drop with `flow notes drop <name>`. Fold into a home, or keep.
   - A `rule` note, or an old `profile` one, is a correction capture inferred. Show it beside any line it contradicts.
-- **Findings**: `~/.flow/wiki/<subject>/findings/` and `.flow/findings/`, `scorecard.md` excepted. Fold each into its home and delete the file in the same plan. `checked:` and `version:` carry onto the page line.
-- **`flow scorecard` and `.flow/findings/scorecard.md`**: the rules broken most, and the wrong warnings. A wrong warning → fix the check, or rewrite the rule when it is too vague for any check. Clear the filed lines, and delete the file once empty.
+- **Findings**: `~/.flow/wiki/<subject>/findings/` and `.flow/findings/`. Fold each into its home and delete the file in the same plan. `checked:` and `version:` carry onto the page line.
 - **A report research left unstamped** because it contradicts a page line: settle it in the plan. Sweep no other report.
 
 ## Old records (temporary)
@@ -67,7 +66,7 @@ Would the sentence be true in a different project? Yes → global. No → this p
 
 - **A tool or field** → the page owning it in `~/.flow/wiki/<subject>/`, by `~/.flow/guides/wiki.md`
 - **Rule true everywhere, always relevant** → the section of `~/.flow/CLAUDE.md` that owns it. Never a rule file with no `paths:`
-- **Rule true everywhere, for one stack or file type** → a guide in Flow's `references/`, plus an entry in `mods/flow-session/hooks/situations.ts` that sends it. Never `claude/rules/` with `paths:`
+- **Rule true everywhere, for one stack or file type** → a guide in Flow's `guides/`, plus an entry in `mods/flow-session/hooks/situations.ts` that sends it. Never `claude/rules/` with `paths:`
 - **Rule for this project** → its `CLAUDE.md` `## Rules`, or `.claude/rules/<topic>.md` with `paths:`
 - **Project fact most sessions need** → its `CLAUDE.md`
 - **Project fact only some work needs** → `docs/context/<subject>.md`
@@ -107,12 +106,6 @@ Research only adds to a page. This skill also:
 Steps that repeat across tickets are never captured whole. A finding that names a repeat is the signal. Read the findings, the reports and the script whole, then write one how-to page in the tool's or field's folder: steps with their expected results, "If it fails", `Checked against <tool> <version>, <date>`.
 
 Make it a skill instead where a script has to run, or after the agent skipped the page twice. A new skill is project-level, unless the same steps serve other projects.
-
-## Checks
-
-Write no check while the rule checks are off. Keep an existing one in step when its rule is renamed or deleted.
-
-**Read `references/write-checks.md`** before changing a check or reading `flow scorecard`.
 
 ## Building or reshaping a skill
 

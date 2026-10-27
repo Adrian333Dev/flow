@@ -93,6 +93,8 @@ What happens each time the agent edits or writes a file:
 
 ### Rule checks
 
+**Paused 2026-10-27, until `fw-308` rebuilds them** (the user): no file an agent loads, no manual page and no `flow --help` names the rule checks or the scorecard. The code, the tests and both hooks stay. `fw-308` → `## Tasks` lists every mention cut, to restore or rewrite. The behaviors below stand as written.
+
 - `V1` **One `PreToolUse` hook on `Edit|Write` runs every check**, `rule-check.js`. Counting, warning and blocking are the same check at the same moment, and the check's own `tier` decides which happens. About 31 ms an edit, nearly all of it Node starting, measured 2026-09-10.
 - `V1` **3 tiers.** `measure` counts and interrupts nothing. `warn` hands the agent a message and lets the edit through. `block` refuses the edit, kept for a check with no false positives.
 - `V1` **One file per check, `scripts/rule-checks/<id>.js`, named for the rule's id.** The folder is the list: adding a check adds a file, and promoting one changes one word. A check is any JavaScript function, never only a pattern.

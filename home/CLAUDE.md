@@ -91,7 +91,6 @@ One phase at a time:
 - A decision → the `docs/spec/` file that owns it (`~/.flow/guides/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow notes new "…"`. One batch, never mid-discussion.
 - Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow notes new "…"`.
 - Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow tickets new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow tickets labels -- "label:flow-issue"` lists the types. A type already listed is a repeat. How to write one: `~/.flow/guides/issue-tickets.md`.
-- A wrong rule-check warning → `.flow/findings/scorecard.md`
 - Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
 - Anything else worth keeping, friction that repeated included → `flow notes new "…"`
 

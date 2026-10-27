@@ -251,8 +251,9 @@ function dispatch(argv, { commands, groups, sections, title, check }) {
 const GUTTER = 38;
 
 /**
- * A flag or a command marked `hidden` works and never prints in the help: the
- * ones the tests and the agent's skills use, which a person never types.
+ * A flag, a command or a noun marked `hidden` works and never prints in the
+ * help: the ones the tests and the agent's skills use, which a person never
+ * types, and a noun paused until its feature is rebuilt.
  */
 function flagText(action) {
   return Object.entries(action.flags || {})
@@ -309,6 +310,7 @@ function help({ commands, groups, sections, title }) {
     lines.push(...actionLines('flow', picked));
   }
   for (const [name, group] of Object.entries(groups)) {
+    if (group.hidden) continue;
     lines.push('', group.summary ? `${name}: ${group.summary}` : name);
     lines.push(...groupLines(name, group));
   }
