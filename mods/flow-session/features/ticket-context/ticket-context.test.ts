@@ -46,7 +46,7 @@ describe('wikiFolderOf', () => {
 })
 
 describe('ticketHeader', () => {
-  test('a ticket with every fact shows each on its row, inside a fence under the label', () => {
+  test('a ticket with every fact shows each the front matter lacks on its row, inside a fence under the label', () => {
     const header = ticketHeader(
       record({
         status: 'parked',
@@ -67,9 +67,6 @@ describe('ticketHeader', () => {
         '[Added by Flow] fw-236 as `flow` reports it. These lines are generated, not part of /work/.flow/tickets/236/ticket.md: never copy them into the file. Change these fields with `flow tickets` alone.',
         '```text',
         'status:      todo (held by post-v1)',
-        'activity:    build',
-        'labels:      feature, post-v1',
-        'parent:      fw-204',
         'children:    4/12 done',
         'waits on:    fw-12 (todo)',
         'dependents:  fw-300 (todo)',
@@ -79,8 +76,8 @@ describe('ticketHeader', () => {
     )
   })
 
-  test('a bare ticket shows its status alone', () => {
-    expect(ticketHeader(record(), PATH).split('\n').slice(1)).toEqual(['```text', 'status:      in-progress', '```'])
+  test('a ticket whose front matter shows every fact gets no header', () => {
+    expect(ticketHeader(record({ activity: 'build', labels: ['feature'], parent: 'fw-204' }), PATH)).toBe('')
   })
 
   test('a held ticket from a flow with no storedStatus says parked', () => {
@@ -115,7 +112,7 @@ function claudeCode(on: Parameters<typeof mock.env>[0], window: () => unknown[],
   on('process.run', (_$, e) => {
     const { argv, init } = e as unknown as { argv: string[]; init?: { cwd?: string } }
     if (argv[3] !== 'fw-236') runs.push({ argv, cwd: init?.cwd })
-    const out = argv[1] === 'tickets' ? record({ activity: 'build' }) : [{ labels: ['mod-api'] }]
+    const out = argv[1] === 'tickets' ? record({ progress: { done: 1, total: 3 } }) : [{ labels: ['mod-api'] }]
     return { value: { ...RAN, stdout: JSON.stringify(out) } }
   })
   on('tool.call', () => ({ result: 'file text' }))
@@ -130,7 +127,7 @@ describe('the Read hook', () => {
     const runs = claudeCode(on, () => [])
     const done = await $.tool.call({ tool: 'Read', file_path: PATH })
     expect(contextOf(done)).toHaveLength(1)
-    expect(contextOf(done)[0]).toContain('activity:    build')
+    expect(contextOf(done)[0]).toContain('children:    1/3 done')
     expect(runs).toEqual([{ argv: ['flow', 'tickets', 'get', '236', '--json'], cwd: '/work' }])
   })
 
@@ -139,7 +136,7 @@ describe('the Read hook', () => {
     claudeCode(on, () => [{ role: 'user', content: [{ type: 'text', text: held }] }])
     held = contextOf(await $.tool.call({ tool: 'Read', file_path: PATH }))[0]!
     expect(contextOf(await $.tool.call({ tool: 'Read', file_path: PATH }))).toEqual([])
-    held = held.replace('build', 'design')
+    held = held.replace('1/3', '2/3')
     expect(contextOf(await $.tool.call({ tool: 'Read', file_path: PATH }))).toHaveLength(1)
   })
 

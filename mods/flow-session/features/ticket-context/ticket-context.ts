@@ -50,19 +50,20 @@ export function wikiFolderOf(path: string, home: string): string | undefined {
 const row = (key: string, value: string) => `${`${key}:`.padEnd(13)}${value}`
 const briefs = (list: readonly { id: string; status?: string; reason?: string }[]) => list.map((b) => `${b.id} (${b.status ?? b.reason})`).join(', ')
 
-/** The header of a ticket: the facts its file does not show, one row each, the empty ones left out. */
+/**
+ * The header of a ticket: the facts its file does not show, one row each, the empty ones left out, and
+ * empty where none is left. The front matter already shows status, activity, labels, parent and the
+ * ids it waits on, so status comes only where a parked group overrides it.
+ */
 export function ticketHeader(r: TicketRecord, path: string): string {
-  const status = r.heldBy ? `${r.storedStatus ?? r.status} (held by ${r.heldBy})` : r.status
   const rows = [
-    row('status', status),
-    r.activity && row('activity', r.activity),
-    r.labels.length && row('labels', r.labels.join(', ')),
-    r.parent && row('parent', r.parent),
+    r.heldBy && row('status', `${r.storedStatus ?? r.status} (held by ${r.heldBy})`),
     r.progress && row('children', `${r.progress.done}/${r.progress.total} done`),
     r.blockedBy.length && row('waits on', briefs(r.blockedBy)),
     r.dependents.length && row('dependents', briefs(r.dependents)),
     r.openQuestions.length && row('questions', `${r.openQuestions.length} open (${r.openQuestions.join(', ')})`),
   ].filter((line): line is string => typeof line === 'string' && line !== '')
+  if (!rows.length) return ''
   return [
     `[Added by Flow] ${r.id} as \`flow\` reports it. These lines are generated, not part of ${path}: never copy them into the file. Change these fields with \`flow tickets\` alone.`,
     '```text',

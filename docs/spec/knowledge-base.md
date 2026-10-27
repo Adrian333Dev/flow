@@ -131,8 +131,10 @@ Designed in `fw-204` (2026-10-20 to 2026-10-24). The problem it answers: a fact 
 
 ### The session start view
 
-- `next` **A `SessionStart` hook prints a view of what exists**, computed from disk at each start, `resume`, `clear` and compaction. Nothing generated is written or synced, and the hook's text sits after `CLAUDE.md`, so no cache is broken at the head of the prompt. Decided 2026-10-20.
-- `next` **The view holds only what nearly every session needs**: label groups with counts, folder names and spec file names, under 40 lines, as a ceiling. No fact lines and no hand-written line per group, since those grow with every entry and go stale. No commands, since `~/.flow/CLAUDE.md`'s exploring section names them. A line stops at about 20 labels, then `+N more`.
+- `V1` **A `SessionStart` hook prints a view of what exists**, computed from disk at each start, `resume`, `clear` and compaction. Nothing generated is written or synced, and the hook's text sits after `CLAUDE.md`, so no cache is broken at the head of the prompt. Decided 2026-10-20, built by `fw-273` in `scripts/features/session-start/view.ts`.
+- `V1` **The view holds only what nearly every session needs**: label groups with counts, folder names and spec file names, under 40 lines, as a ceiling. No fact lines and no hand-written line per group, since those grow with every entry and go stale. No commands, since `~/.flow/CLAUDE.md`'s exploring section names them. A line stops at 20 labels, then `+N more`.
+  - Each line counts what the plain listing shows: open tickets that are not parked, and the notes of this project and the home. Outside a project, the home's tickets, and no project findings or spec line.
+  - A store with nothing in it drops its line, and a view with no line prints nothing.
   ```text
   Labels in use, (n) = entries
   tickets           flow-issue (25), feature (22), rework-loop (11), ...
@@ -142,8 +144,8 @@ Designed in `fw-204` (2026-10-20 to 2026-10-24). The problem it answers: a fact 
   ~/.flow/wiki/     claude-code (31), node (4), ...
   docs/spec/        product, tickets, skills, rules, ...
   ```
-- `next` **The `docs/spec/` line is there so the agent opens a part's decisions before it proposes.** A refused option already sits in that file's `never` lines with its reason, so no store of refusals exists. What would overturn it: re-proposals continuing with the line loaded; then a hook injects the matching `never` lines on each prompt.
-- `next` **The wiki line lists the project's folders by last use, with the visit count**, once the wiki search exists; until then every folder, cut to the recent ones past about 15. Each visit through the search or the `index.md` hook adds to a counter: `usage.json` in the ticket's folder (`{"claude-code": {"count": 12, "last": "2026-10-24 14:05"}}`), or the project's `.flow/usage.json` with no ticket. It moves, syncs and archives with its ticket, and stays a few hundred bytes. The project's counts are the sum. The ticket's own list rides in its header (`fw-236`).
+- `V1` **The `docs/spec/` line is there so the agent opens a part's decisions before it proposes.** A refused option already sits in that file's `never` lines with its reason, so no store of refusals exists. What would overturn it: re-proposals continuing with the line loaded; then a hook injects the matching `never` lines on each prompt.
+- `next` **The wiki line lists the project's folders by last use, with the visit count**, once the wiki search exists. Until then (`V1`) it lists every folder by name, and past 15 the 15 changed most recently on disk. Each visit through the search or the `index.md` hook adds to a counter: `usage.json` in the ticket's folder (`{"claude-code": {"count": 12, "last": "2026-10-24 14:05"}}`), or the project's `.flow/usage.json` with no ticket. It moves, syncs and archives with its ticket, and stays a few hundred bytes. The project's counts are the sum. The ticket's own list rides in its header (`fw-236`).
   - Refused: one counter file per machine. A ticket continued on the other machine would show none of its folders.
 - `next` **A search over the wiki and the research folders** returns the related tools and sources for a situation, with `fw-227`'s stale notice. A child ticket of `fw-204`, built after `flow findings`.
 - `never` **A block of tickets in flight, or a line naming this machine and its projects**, refused 2026-10-24: not useful in nearly every session, and `flow next` lists the tickets.
@@ -265,7 +267,7 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
 - **A second project on a tool reads what the first one wrote**: a matching page answers with no outside request.
 - **A Context7 question asked twice through the same tool's folder makes no search request** the second time.
 - **A `downloads/` never appears in the Flow home's repository.**
-- **A fact stated once is never re-derived** (`fw-204`): the laptop case replayed with the view loaded, where the agent no longer proposes setting up the machine that has no Flow; a fresh session on "agent memory" finds its report through `flow findings`; the view stays under 40 lines.
+- **A fact stated once is never re-derived** (`fw-204`), measured by `/flow:audit` on real sessions: the agent no longer proposes setting up the machine that has no Flow; a fresh session on "agent memory" finds its report through `flow findings`; the view stays under 40 lines.
 - **`/flow:research` has run on a wiki folder in a live session.** Not yet: both scripts passed their trials alone, against the real Context7 and real docs sites, and never through the skill.
 
 ## What is locked

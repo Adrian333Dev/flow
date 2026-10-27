@@ -152,7 +152,8 @@ Each status, and what moves a ticket into it:
   - **`#t:` lists tickets alone, `#n:` labels and notes alone** (the user 2026-10-27). Plain `#` still lists both. Why: up to 8 note rows pushed the tickets below the 5 rows the list shows. `#f:` is free for findings, `later`.
   - **A ticket matches on what its row shows, its name and description** (the user 2026-10-27). The words typed show underlined (the user 2026-10-28), by a combining low line (U+0332) after each matched character. Why: a row is plain text, and since 2.1.312 the engine strips terminal style codes from it (`#[1mmem[22mory`, seen 2026-10-28). Refused: bold and colour, which need those codes; bold letters from Unicode's math block, too faint to see in the dim description (the user 2026-10-28). Bold returns once a release gives a mod row the match field the engine's own rows carry. Reasoning: `fw-236` `context.md` `## Bold the match`. Refused: `#t:` searching the body through `flow tickets -- "<words>"`, built and dropped the same day. A body match showed a row with nothing marked, and title and description were enough for the user.
 - `V1` **A ticket reaches a phase as a mention**: `/flow:execute @.flow/tickets/47/ticket.md`, typed by taking a `#exp-47` row after the skill name. Claude Code attaches the file, and the mention hook adds the header (probed 2026-10-27, 2.1.311). A bare id typed as text still works: the agent reads `ticket.md`, and the `Read` hook adds the header.
-- `V1` **A `Read` or an `@` mention of a `ticket.md` attaches the ticket's header**: the facts the file does not show, one row each, an empty row left out. Effective status (`todo (held by post-v1)`), activity, labels, parent, children done (`26/35 done`), what it waits on, what waits on it, and the open questions by number. No body. The data is one call, `flow tickets get <n> --json`, run in the project root found in the path, so archived tickets get one too. Sibling files in the folder, `Edit` and `Write` get none. Why: the facts change with every `flow` command, so a copy in the file or in a skill goes stale.
+- `V1` **A `Read` or an `@` mention of a `ticket.md` attaches the ticket's header**: the facts the file does not show, one row each, an empty row left out, and no header where none is left. The status only where a parked group overrides it (`todo (held by post-v1)`), children done (`26/35 done`), what it waits on with each one's status, what waits on it, and the open questions by number. No body.
+  - Refused: rows for status, activity, labels and parent, which the front matter already shows (the user, 2026-10-28). Refused with it: hiding the front matter from the `Read`, since the agent would take the missing lines for a broken tool, and its edits match the real file. The data is one call, `flow tickets get <n> --json`, run in the project root found in the path, so archived tickets get one too. Sibling files in the folder, `Edit` and `Write` get none. Why: the facts change with every `flow` command, so a copy in the file or in a skill goes stale.
   - **The header never enters the file text.** It rides as the hook's `context`, which the model reads and the file never holds, in a `text` fence under a line saying `flow` generated it and the fields change through `flow tickets` alone. Checked live: 2 edits after a read copied no header line.
   - **It goes once per window.** A window already holding the exact header text gets none, so a compaction, a restart and a changed header each send it again, and a subagent's window counts apart. Refused: a per-session map of headers sent, which a compaction leaves stale.
 - `V1` **A `Read` or an `@` mention of `~/.flow/wiki/<folder>/index.md` attaches that folder's findings labels with counts** (`fw-204`), once per window as the header goes: `hooks 4 · engine 2 · no label 1`, and the `flow findings` query that lists one label's.
@@ -190,15 +191,13 @@ Each status, and what moves a ticket into it:
 
 ## What passes between them
 
-The header, as the agent receives it on a `Read` of `fw-236`'s `ticket.md`:
+The header, as the agent receives it on a `Read` of `fw-204`'s `ticket.md`:
 
 ````text
-[Added by Flow] fw-236 as `flow` reports it. These lines are generated, not part of /home/me/code/flow-dev/.flow/tickets/236/ticket.md: never copy them into the file. Change these fields with `flow tickets` alone.
+[Added by Flow] fw-204 as `flow` reports it. These lines are generated, not part of /home/me/code/flow-dev/.flow/tickets/204/ticket.md: never copy them into the file. Change these fields with `flow tickets` alone.
 ```text
-status:      in-progress
-activity:    build
-labels:      feature
-parent:      fw-204
+children:    6/12 done
+questions:   2 open (0, 0.3)
 ```
 ````
 

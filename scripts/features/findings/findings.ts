@@ -275,6 +275,6 @@ function rootOf(place: Place) {
 
 export type { Finding, Place };
 export {
-  KEYS, wikiDir, subjectDir, projectDir, subjects, read, readAll, find, badTitle, nameOf, target, create,
+  KEYS, wikiDir, subjectDir, projectDir, subjects, readDir, read, readAll, find, badTitle, nameOf, target, create,
   touch, rename, stamp, isFindingFile, labelCounts, rootOf,
 };

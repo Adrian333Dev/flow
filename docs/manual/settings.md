@@ -161,7 +161,16 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 - **`check-ticket.ts`**, when you type a phase skill or `/flow:start`: refuses where Flow is not set up.
 - **`overlays.ts`**, when a skill loads: adds the lines in `~/.flow/skill-overlays/<skill>.md`.
 - **`reminder.ts`**, on every message you send: prints [`reminder`](#reminder).
-- **`session-check.ts`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), and starts the background sync.
+- **`session-check.ts`**, when a session opens: prints [`sessionCheck`](#sessioncheck) and [`setupReminder`](#setupreminder), and starts the background sync. It also gives the agent the session start view, the labels in use in each store with their counts, then the wiki folders and the spec files:
+
+  ```text
+  Labels in use, (n) = entries
+  tickets           flow-issue (46), feature (24), rework-loop (12), ...
+  notes             profile (15), rule (13), permissions (5), ...
+  findings project  agent-habits (8), ticket-state (5), session-restart (4), ...
+  ~/.flow/wiki/     node, jscpd, tree-sitter, ast-grep, ..., +19 more
+  docs/spec/        product, drawing, failure-log, knowledge-base, ...
+  ```
 - **`failures.ts`**, when a tool call or the API fails: adds a line to the failure log in `~/.flow/logs/failures/`.
 - **`records-sync.ts`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
 

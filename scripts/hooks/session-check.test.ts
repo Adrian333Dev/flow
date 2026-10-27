@@ -1,6 +1,6 @@
 /**
  * `session-check`: the SessionStart hook that suggests `flow init` where a
- * repository has no `.flow/`.
+ * repository has no `.flow/`, and gives the agent the session start view.
  */
 
 import { test } from 'node:test';
@@ -61,6 +61,32 @@ test('a folder under the home folder with no .flow of its own is not a project',
   assert.strictEqual(result.stdout, '', 'no setup line: the folder is no repository');
   assert.ok(!fs.existsSync(path.join(playground, '.claude')), 'the home folder is never read as a project');
   assert.ok(!fs.existsSync(path.join(user, '.claude', 'skills')), 'a ticket gets no skill');
+});
+
+test('the view counts the labels of every store, names the folders, and drops an empty line', () => {
+  const at = place('session-view');
+  const env = { ...process.env, FLOW_HOME: at.home, HOME: at.user, CLAUDE_CONFIG_DIR: path.join(at.user, '.claude'), FLOW_PROJECT: at.project };
+  const flow = (...args: string[]) => assert.strictEqual(run('flow.ts', args, { cwd: at.project, env }).code, 0, args.join(' '));
+  flow('tickets', 'new', 'cache-fix: the cache drops entries', '--label', 'bug,ui');
+  flow('tickets', 'new', 'menu-fix: the menu flickers', '--label', 'ui');
+  flow('notes', 'new', 'Try a darker theme', '--label', 'ui');
+  flow('findings', 'new', 'laptop runs wsl on windows', '--project', 'home', '--label', 'machine-setup');
+  flow('findings', 'new', 'node test skips type checks', '--wiki', 'node', '--label', 'test-runner');
+  write(at.project, 'docs/spec/tickets.md', '# Tickets\n');
+  write(at.project, 'docs/spec/product.md', '# Product\n');
+  for (let i = 0; i < 25; i++) write(at.project, `.flow/findings/claim-${String(i).padStart(2, '0')}.md`, `---\nlabels: [label-${String(i).padStart(2, '0')}]\n---\n\nText.\n`);
+
+  const output = JSON.parse(check(at).stdout);
+  assert.strictEqual(output.systemMessage, undefined, 'nothing for the user');
+  const lines = output.hookSpecificOutput.additionalContext.split('\n');
+  assert.deepStrictEqual(lines.slice(0, 4), [
+    'Labels in use, (n) = entries',
+    'tickets           ui (2), bug (1)',
+    'notes             ui (1)',
+    'findings global   machine-setup (1)',
+  ]);
+  assert.match(lines[4], /^findings project  label-00 \(1\), .*label-19 \(1\), \+5 more$/, 'a line stops at 20 labels');
+  assert.deepStrictEqual(lines.slice(5), ['~/.flow/wiki/     node', 'docs/spec/        product, tickets']);
 });
 
 test('a git repository with no .flow gets the setup line, shown to the user alone, unless a setting says not', () => {
