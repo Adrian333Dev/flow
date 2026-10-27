@@ -65,7 +65,7 @@ An earlier case of the same issue is a note beside the line. A question that nee
 
 Would the sentence be true in a different project? Yes → global. No → this project. Never write a project's or a client's detail into `~/.flow`.
 
-- **A tool or field** → the page owning it in `~/.flow/wiki/<subject>/`, by `~/.flow/references/wiki.md`
+- **A tool or field** → the page owning it in `~/.flow/wiki/<subject>/`, by `~/.flow/guides/wiki.md`
 - **Rule true everywhere, always relevant** → the section of `~/.flow/CLAUDE.md` that owns it. Never a rule file with no `paths:`
 - **Rule true everywhere, for one stack or file type** → a guide in Flow's `references/`, plus an entry in `mods/flow-session/hooks/situations.ts` that sends it. Never `claude/rules/` with `paths:`
 - **Rule for this project** → its `CLAUDE.md` `## Rules`, or `.claude/rules/<topic>.md` with `paths:`
@@ -116,4 +116,4 @@ Write no check while the rule checks are off. Keep an existing one in step when 
 
 ## Building or reshaping a skill
 
-**Read `~/.flow/references/knowledge.md`** before creating or restructuring one.
+**Read `~/.flow/guides/knowledge.md`** before creating or restructuring one.

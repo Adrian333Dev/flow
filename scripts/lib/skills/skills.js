@@ -3,7 +3,7 @@
  * The skill catalog and what installs.
  *
  * A skill is a folder holding `SKILL.md`, filed 1 level deep under a group:
- * `skills/phases/groundwork/`. The group only files it.
+ * `skills/work/groundwork/`. The group only files it.
  *
  * Flow's own skills have no list of names. A list is a hand-maintained copy of
  * what the tree already says, and it can only ever be wrong; a group folder is

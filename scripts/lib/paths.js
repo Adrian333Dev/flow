@@ -8,7 +8,7 @@
  *   ~/.claude  what Claude Code reads. It reaches ~/.agents and ~/.flow
  *              through links, and holds no original of Flow's
  *   ~/.flow    the rule file CLAUDE.md, which flow sync carries, the clones in
- *              repos/, scripts/, references/, docs/ and the settings
+ *              repos/, scripts/, guides/, docs/ and the settings
  *
  * `~/.agents` holds the originals because the name belongs to no vendor.
  * Claude Code does not read it, so it gets a link.

@@ -12,7 +12,7 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 **Research any subject.** A question with no tool behind it, such as market research, uses level 4 and the report file below.
 ## A question starts from the wiki
 
-`~/.flow/wiki/<subject>/` holds what Flow knows about one outside tool or field: `index.md`, topic pages, and this machine's downloads. Read `~/.flow/references/wiki.md` before any write into it.
+`~/.flow/wiki/<subject>/` holds what Flow knows about one outside tool or field: `index.md`, topic pages, and this machine's downloads. Read `~/.flow/guides/wiki.md` before any write into it.
 
 1. **A loaded skill covering the subject comes first.**
 2. **Read `index.md` and the pages whose names match the question.** Answered → stop, with no outside request.
@@ -36,7 +36,7 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
    - **Skills on GitHub:** `gh search code <word> --filename SKILL.md`
    - **Plugin marketplaces**, repositories holding `.claude-plugin/marketplace.json`, the file Claude Code reads to list plugins: `gh search code <word> --filename marketplace.json`
    - **Still nothing:** write a level 4 prompt, below, and name ChatGPT for it. It searches GitHub well.
-4. **Judge what comes back by `~/.flow/references/knowledge.md`.** A skill → `## An outside skill`: the review, then used whole or harvested. A service → `## Reach a service through a command`. Pick which to read first:
+4. **Judge what comes back by `~/.flow/guides/knowledge.md`.** A skill → `## An outside skill`: the review, then used whole or harvested. A service → `## Reach a service through a command`. Pick which to read first:
    - **Rank by publisher first:** the tool's own maker beats anyone else. Then the repo's stars and last push.
    - **Weigh install counts least.**
    - **Read the top 3** in full before recommending one, and name what the others lose on.
@@ -108,7 +108,7 @@ Using what came back:
 1. **List the candidates** in one search, here or in one `general-purpose` agent. No deep reading yet.
 2. **Pick the few worth a full read.**
 3. **Read a short source here**: a page or two, one grep for a signature, a file whose name you already have.
-4. **Send each long source to its own `general-purpose` subagent**: a cloned codebase, megabytes of downloaded docs, a question that means opening 20 files. Never 2 agents on one source. `~/.flow/references/subagents.md` says the rest.
+4. **Send each long source to its own `general-purpose` subagent**: a cloned codebase, megabytes of downloaded docs, a question that means opening 20 files. Never 2 agents on one source. `~/.flow/guides/subagents.md` says the rest.
 
 **Dispatch on how much there is to read, never on the level.**
 
@@ -176,6 +176,6 @@ A value holding `: ` goes in double quotes.
 Runs at the end of every research pass, on the report just written.
 
 1. **Walk the report section by section.** Keep each lasting fact about the tool or field that would make a fresh agent wrong without it, whatever the question was.
-2. **Add each fact to the page owning it**, or start a page, by `~/.flow/references/wiki.md`. Only add. A fact contradicting a line already there stays out, and the report stays unstamped: `/flow:upkeep` settles it.
+2. **Add each fact to the page owning it**, or start a page, by `~/.flow/guides/wiki.md`. Only add. A fact contradicting a line already there stays out, and the report stays unstamped: `/flow:upkeep` settles it.
 3. **Write `harvested: <date>` in the report's header**, last.
 4. **An outside skill** is read whole and harvested the same way. Mark its `## Skills` line `harvested at <commit>`, then delete the throwaway clone, unless a skill from that repository is used whole.

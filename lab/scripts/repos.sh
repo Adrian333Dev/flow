@@ -95,7 +95,7 @@ skills/browser-harness                 https://github.com/browser-use/browser-ha
 # agents/cavecrew-*.md are the model for a subagent's fixed output.
 skills/caveman                         https://github.com/JuliusBrussee/caveman.git
 
-# 2 NestJS skill sets, the case behind references/knowledge.md's review of
+# 2 NestJS skill sets, the case behind guides/knowledge.md's review of
 # outside skills. docs/spec/skills.md.
 skills/claude-skills                   https://github.com/Jeffallan/claude-skills.git
 skills/agent-nestjs-skills             https://github.com/Kadajett/agent-nestjs-skills.git

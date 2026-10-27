@@ -1,6 +1,6 @@
  # Write a loaded file
 
-Beside `style.md`, for any file that enters an agent's context: a rule file, a skill and its references, a command, an agent, a guide in `references/`, a mod's prompt.
+Beside `style.md`, for any file that enters an agent's context: a rule file, a skill and its references, a command, an agent, a guide in `guides/`, a mod's prompt.
 
 ## 1. Mark each piece
 
@@ -13,7 +13,7 @@ Steps first, in order, with the whole sequence visible before any detail. Refere
 
 ## 2. Section shapes
 
-- **Where things live**: paths, files, what each holds → a labeled list: the path as the label, one line of what is in it. Never write prose about placement. `## The folder` in `references/write-tickets.md` is the model.
+- **Where things live**: paths, files, what each holds → a labeled list: the path as the label, one line of what is in it. Never write prose about placement. `## The folder` in `guides/write-tickets.md` is the model.
 - **A procedure** → numbered steps, each ending on a check the agent can evaluate. "Every behavior carries a mark" is a check; "understanding reached" is not.
 - **Rules at one altitude** → a flat bulleted list under one heading.
 

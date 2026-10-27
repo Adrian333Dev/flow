@@ -153,12 +153,12 @@ actions.install = {
     }
 
     // Named by path rather than typed: settings.json points hooks at
-    // ~/.flow/scripts, a skill reads ~/.flow/references, and a session reads
+    // ~/.flow/scripts, a skill reads ~/.flow/guides, and a session reads
     // ~/.flow/docs. Claude Code reads none of the 3, which is why they sit
     // outside ~/.claude. A link rather than a copy, so a page edited in the
     // clone is the page a session reads.
     fs.mkdirSync(at.flow, { recursive: true });
-    for (const name of ['scripts', 'references', 'docs']) {
+    for (const name of ['scripts', 'guides', 'docs']) {
       link(path.join(clone, name), path.join(at.flow, name));
       done.push(`linked: ${show(path.join(at.flow, name))}`);
     }

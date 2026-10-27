@@ -16,8 +16,8 @@ const LINE = 'Before replying, follow the rules.\n';
 function flowHome(name, settings) {
   const dir = path.join(SCRATCH, name, 'flow-home');
   fs.rmSync(dir, { recursive: true, force: true });
-  fs.mkdirSync(path.join(dir, 'references'), { recursive: true });
-  fs.writeFileSync(path.join(dir, 'references', 'reminder.md'), LINE);
+  fs.mkdirSync(path.join(dir, 'scripts', 'hooks'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'scripts', 'hooks', 'reminder.md'), LINE);
   if (settings) fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify(settings));
   return dir;
 }

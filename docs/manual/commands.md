@@ -128,7 +128,7 @@ ok    util: fs tree runs
 ok    ~/.agents: 12 skills linked under skills/flow/
 ok    ~/.claude: skills/flow, 0 agents, 0 rules, 0 commands and CLAUDE.md linked
 ok    settings.json: 18 hooks registered, every file they name on disk, sessions start in "default" mode
-ok    ~/.flow: scripts, references and docs resolve into this clone
+ok    ~/.flow: scripts, guides and docs resolve into this clone
 ok    projects: fw ~/code/flow-dev
 ok    tickets: 220 tickets in the current format
 

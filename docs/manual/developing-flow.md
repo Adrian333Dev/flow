@@ -19,7 +19,7 @@ $ ls -ld ~/.flow/repos/flow
 lrwxrwxrwx 1 me me 22 Oct 18 00:08 /home/me/.flow/repos/flow -> /home/me/code/flow-dev
 ```
 
-`~/.flow/scripts`, `~/.flow/references` and `~/.flow/docs` point into the same copy. No second copy exists to fall out of date.
+`~/.flow/scripts`, `~/.flow/guides` and `~/.flow/docs` point into the same copy. No second copy exists to fall out of date.
 
 ## What an edit reaches at once
 

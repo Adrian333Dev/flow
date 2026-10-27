@@ -9,8 +9,8 @@
  * behind the conversation. A line arriving with the message puts them back in
  * front of the agent.
  *
- * The text lives in references/reminder.md, reached through the symlink
- * ~/.flow/references, so changing the line stays one edit and no code.
+ * The text lives beside this file, in reminder.md, reached through the symlink
+ * ~/.flow/scripts, so changing the line stays one edit and no code.
  *
  * The hook ran `cat` over that file until 2026-09-20. A bare `cat` cannot read
  * a setting, and every line Flow prints by itself now answers to one:
@@ -27,7 +27,7 @@ const paths = require('../lib/paths');
 
 if (settings.prints('reminder')) {
   try {
-    const file = path.join(paths.flowHome(), 'references', 'reminder.md');
+    const file = path.join(paths.flowHome(), 'scripts', 'hooks', 'reminder.md');
     process.stdout.write(fs.readFileSync(file, 'utf8'));
   } catch {
     // A reminder nobody can read is a reminder nobody gets. Never a failure.

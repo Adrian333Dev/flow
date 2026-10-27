@@ -5,7 +5,7 @@ How Flow draws: `/flow:visualize`, the skill every diagram, screen mockup and co
 ## Scope
 
 - **In**: picking the medium, the 3 ways to draw, the characters an agent may use, the conventions every diagram follows, `canvas.js`, what drawing costs, and the engine that may come later.
-- **Out**: when a spec or a reply must carry a drawing, which `references/write-spec.md` and `home/CLAUDE.md` → `ui-is-drawn` say.
+- **Out**: when a spec or a reply must carry a drawing, which `guides/write-spec.md` and `home/CLAUDE.md` → `ui-is-drawn` say.
 
 ## What an answer is drawn in
 
@@ -71,7 +71,7 @@ what the answer has to show
 
 ## The parts
 
-- **`skills/tools/visualize/SKILL.md`**: the medium, the methods, the rules, the patterns, the structure of a design proposal. One file, since every run needs all of it.
+- **`skills/techniques/visualize/SKILL.md`**: the medium, the methods, the rules, the patterns, the structure of a design proposal. One file, since every run needs all of it.
 - **`references/draw-mockups.md`**: frames and HTML previews. **`rarer-forms.md`**: the schedule, record boxes and aligned scales. **`hooks-lifecycle.md`**, **`youtube-page.md`**, **`worked-example.md`**: finished drawings, read on some runs.
 - **`scripts/canvas.js`**: the grid and its checks.
 

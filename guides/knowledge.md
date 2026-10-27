@@ -9,7 +9,7 @@ Everything an agent draws on past Flow's rules and its own training: skills, plu
 - **Personal skills**: `~/.claude/skills/<name>/` for every project, `<project>/.claude/skills/<name>/` for one. Claude Code loads them, and Flow neither links nor switches them.
 - **A plugin**: a bundle from a Claude Code marketplace: skills, often hooks, commands and an MCP server. Claude Code installs and updates it.
 - **An MCP server**: a running program that hands the agent extra tools. Configured per project in `.mcp.json`.
-- **The wiki**: `~/.flow/wiki/<subject>/`, one folder per outside tool or field, every project's. `references/wiki.md` holds its layout.
+- **The wiki**: `~/.flow/wiki/<subject>/`, one folder per outside tool or field, every project's. `guides/wiki.md` holds its layout.
 - **An overlay**: `~/.flow/skill-overlays/<skill>.md`, the user's additions to any skill, handed over in every project as it loads. No plugin prefix in the name.
 
 ## Everything starts on for one project
@@ -35,7 +35,7 @@ Found by `/flow:research`, or already on the machine when setup runs. Never swit
 - **Knowledge or process.** A skill with its own work order, such as "Analyze, Design, Implement, Verify", competes with `/flow:execute`.
 - **What the agent gets wrong without it.** Only that part earns context. General engineering the agent already knows does not.
 - **Where the user would disagree.** Each disagreement is a line to rewrite or drop.
-- **The description.** `~/.flow/references/write-loaded-files.md` → `## 6. Frontmatter descriptions` holds the bar.
+- **The description.** `~/.flow/guides/write-loaded-files.md` → `## 6. Frontmatter descriptions` holds the bar.
 
 Install counts and stars only pick which 3 to read.
 
@@ -71,7 +71,7 @@ Write it by `style.md` and `write-loaded-files.md`. They hold the style, the `de
 
 - **One job, sayable in a sentence.** 2 sentences means 2 skills.
 - **Nothing already covers it.** Something close → extend that skill.
-- **Aim for the density of `skills/tools/upkeep`.**
+- **Aim for the density of `skills/knowledge/upkeep`.**
 
 ### Flow's own skills
 

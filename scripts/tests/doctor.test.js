@@ -115,9 +115,9 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   settings.skillOverrides = { [skill]: 'off' };
   fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
 
-  const references = path.join(m.flowHome, 'references');
-  fs.unlinkSync(references);
-  fs.symlinkSync(path.join(m.dir, 'gone'), references);
+  const guides = path.join(m.flowHome, 'guides');
+  fs.unlinkSync(guides);
+  fs.symlinkSync(path.join(m.dir, 'gone'), guides);
 
   const report = doctor(m, { bin: utilStub(m.dir) });
 
@@ -125,7 +125,7 @@ test('a missing link, a missing hook, a stale override and a dead path are each 
   assert.match(report.stdout, new RegExp(`skills/${skill} is not linked: run flow install`));
   assert.match(report.stdout, /no InstructionsLoaded hook running instructions-loaded\.js/);
   assert.match(report.stdout, new RegExp(`skillOverrides names "${skill}", a Flow skill, and does nothing`));
-  assert.match(report.stdout, /references points at .*gone, which is gone/);
+  assert.match(report.stdout, /guides points at .*gone, which is gone/);
 });
 
 test('a synced skill with no skillOverrides entry is named, and any entry settles it', () => {

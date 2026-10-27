@@ -26,7 +26,7 @@ Plus 4 where someone waits on an answer:
 
 **A bug with no failing check built yet** → its `## Done when` is the observable: the failure as seen, and what not seeing it would look like.
 
-**A subagent also follows `~/.flow/references/subagents.md`**: its size, its stopping point, its model.
+**A subagent also follows `~/.flow/guides/subagents.md`**: its size, its stopping point, its model.
 
 ## A continuation
 

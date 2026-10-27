@@ -91,7 +91,7 @@ Stop fixing: the shape of the code is the cause. Name the structure that makes t
 
 **Brief it with two things**: the report's path, and the failing check. No ticket is made.
 
-`~/.flow/references/subagents.md` says how a question it has reaches the user.
+`~/.flow/guides/subagents.md` says how a question it has reaches the user.
 
 **When a fix comes back, re-run the failing check yourself.** It passes → close the ticket by the rule above.
 

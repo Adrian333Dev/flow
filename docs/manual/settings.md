@@ -55,7 +55,7 @@ Prints one line beside every message you send, so the agent keeps following the 
 Follow `## The reply`, and pass every `### Before sending` test. If it applies, follow `## Capture`.
 ```
 
-The text comes from `~/.flow/references/reminder.md`.
+The text comes from `~/.flow/scripts/hooks/reminder.md`.
 
 ### `sessionCheck`
 

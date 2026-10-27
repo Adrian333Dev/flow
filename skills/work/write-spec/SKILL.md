@@ -6,4 +6,4 @@ disable-model-invocation: true
 
 Write the decisions this session settled into the spec, by the criteria below. Show the paths and stop.
 
-@~/.flow/references/write-spec.md
+@~/.flow/guides/write-spec.md

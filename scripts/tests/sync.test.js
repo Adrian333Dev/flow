@@ -57,7 +57,7 @@ test('what belongs to one machine is what the ignore file names, at the top of ~
     '/restore.md',
     '/settings.local.json',
     '/scripts',
-    '/references',
+    '/guides',
     '/docs',
     '/repos/',
     '/logs/',

@@ -35,10 +35,10 @@ const touches = (call: Call) => ['Read', 'Edit', 'Write'].includes(call.tool) &&
 const markdown = (call: Call) => touches(call) && pathOf(call).endsWith('.md')
 const code = (call: Call) =>
   touches(call) && /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py|rb|go|rs|java|kt|swift|c|h|cc|cpp|hpp|cs|php|sh|bash|lua|svelte|vue|scala|ex|exs|dart|sql)$/.test(pathOf(call))
-/** Every guide an entry sends, in Flow's `references/`. */
+/** Every guide an entry sends, in Flow's `guides/`. */
 const GUIDES = ['style.md', 'write-loaded-files.md', 'write-rules.md', 'write-spec.md', 'write-tickets.md', 'knowledge.md', 'write-code.md'] as const
 type Guide = (typeof GUIDES)[number]
-const guides = (...names: Guide[]): Send[] => names.map((name) => ({ tool: 'Read', path: `references/${name}` }))
+const guides = (...names: Guide[]): Send[] => names.map((name) => ({ tool: 'Read', path: `guides/${name}` }))
 const guideWhy = (what: string) => () => `Guide for ${what}.`
 
 /** The `flow` and `util` groups a command runs, by the word after the program's name. */
@@ -77,7 +77,7 @@ export const ENTRIES: readonly Entry[] = [
   },
   {
     id: 'loaded-file',
-    when: (call) => markdown(call) && /\/skills\/|\/\.claude\/(commands|agents|output-styles)\/|\/references\/|\/mods\/[^/]+\/prompts\//.test(pathOf(call)),
+    when: (call) => markdown(call) && /\/skills\/|\/\.claude\/(commands|agents|output-styles)\/|\/references\/|\/guides\/|\/mods\/[^/]+\/prompts\//.test(pathOf(call)),
     send: () => guides('style.md', 'write-loaded-files.md'),
     why: guideWhy('files an agent loads'),
   },
@@ -110,8 +110,8 @@ export const ENTRIES: readonly Entry[] = [
   },
 ]
 
-/** True where a path is one of the guides: its own `references/<name>`, in the Flow home or a checkout of Flow. */
-const isGuide = (path: string) => GUIDES.some((guide) => path.endsWith(`/references/${guide}`))
+/** True where a path is one of the guides: its own `guides/<name>`, in the Flow home or a checkout of Flow. */
+const isGuide = (path: string) => GUIDES.some((guide) => path.endsWith(`/guides/${guide}`))
 
 /** The entry that covers a call, or undefined. A read of a guide itself is covered by none. */
 export function entryFor(call: Call): Entry | undefined {
@@ -130,7 +130,7 @@ export function keysOf(call: Call): string[] {
   if (call.tool === 'Read') {
     const { offset, limit } = call.input as { offset?: number; limit?: number }
     if (limit !== undefined || (offset !== undefined && offset > 1)) return []
-    return GUIDES.filter((guide) => pathOf(call).endsWith(`/references/${guide}`)).map((guide) => `read:references/${guide}`)
+    return GUIDES.filter((guide) => pathOf(call).endsWith(`/guides/${guide}`)).map((guide) => `read:guides/${guide}`)
   }
   const command = commandOf(call)
   return groupsOf(command)

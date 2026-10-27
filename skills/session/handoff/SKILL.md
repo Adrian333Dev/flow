@@ -17,7 +17,7 @@ Where the work continues sets the steps:
 
 ## 1. Bring the ticket up to date
 
-The work already wrote both files as it went. Fill what it missed, in each ticket this session worked, by `~/.flow/references/write-tickets.md`:
+The work already wrote both files as it went. Fill what it missed, in each ticket this session worked, by `~/.flow/guides/write-tickets.md`:
 
 - **A decision made out loud and written nowhere** → its line in `ticket.md`, and its section in `context.md`.
 - **What cost real effort to learn**: the version that mattered, the exact payload, the trap already hit → the section of the question or task it belongs to.

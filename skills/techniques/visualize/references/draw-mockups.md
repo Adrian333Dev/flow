@@ -52,7 +52,7 @@ One file, ~200 lines, one round with the user:
 **Failure:** clearing a hole the overlay's own size, which strands the tails of the covered lines.
 
 ```
-┌─ flow   skills/tools/visualize/SKILL.md ─────────────────────────────────────┐
+┌─ flow   skills/techniques/visualize/SKILL.md ─────────────────────────────────────┐
 │ ▼ skills              │   1  # Writing a context file                        │
 │   ▼ tools             │   2                                                  │
 │     ▼ visualize       │   3  Applies to every markdown an agent reads -      │

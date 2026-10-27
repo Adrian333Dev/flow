@@ -28,7 +28,7 @@ Read the code the ticket changes first. Then the tasks.
 
 Build to the end. Run each step's check, tick it, start the next. Stop only for a decision that is really the user's.
 
-Write as the work goes, never at the end, by `~/.flow/references/write-tickets.md`. A restart continues from the 2 files alone.
+Write as the work goes, never at the end, by `~/.flow/guides/write-tickets.md`. A restart continues from the 2 files alone.
 
 - **File a lesson the moment it lands**, by `## Capture`.
 - **A discovery that changes a decision** → rewrite its line in `ticket.md`, and its section in `context.md` with the reason and the dropped direction.
@@ -48,7 +48,7 @@ Fix it while the cause is in front of you, and keep going as long as every fix s
 
 1. Update every record the change made stale: `docs/spec/`, `docs/context/`, other tickets that cite it.
 2. Run the full suite, in the turn you report it.
-3. Read the diff once against the decisions, then against `~/.flow/references/review-code.md`. A ticket that produced a document reads `~/.flow/references/style.md` instead. A ticket that produced a decision reads neither.
+3. Read the diff once against the decisions, then against `~/.flow/guides/review-code.md`. A ticket that produced a document reads `~/.flow/guides/style.md` instead. A ticket that produced a decision reads neither.
 4. Fix what is wrong, then `flow tickets done <id>`.
 5. An older ticket's `## State`: anything in it still true goes where `## Capture` sends it, then delete the section.
 6. Report. Open with the decisions you made alone, one line each. Then what changed and what the check showed, briefly. End with the next ticket from `flow next`, and why.

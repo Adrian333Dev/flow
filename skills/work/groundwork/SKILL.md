@@ -147,7 +147,7 @@ A cheap check (one command, a 10-second script) just runs. Anything bigger is a 
 - **Build only what the question needs.** No tests, no error handling past runnable, no abstractions, no persistence the question doesn't test. Print the full state after every action.
 - **One prototype per unknown.** Four unknowns are four prototypes. Wiring them together is fine, and they stay naive.
 - **The report is the result, never the code.** In a ticket: code in `protos/<name>/`, report in `reports/<question>.md`, with measured answers first in the question's words and the numbers, then the steps that worked, in order, and where each failed. With no ticket: scratch in `tmp/`, and the answer goes where its decision lands. The code is never promoted into the real build.
-- **Where it runs:** here by default. One subagent is allowed (`~/.flow/references/subagents.md`).
+- **Where it runs:** here by default. One subagent is allowed (`~/.flow/guides/subagents.md`).
 
 ### When the question is genuinely hard
 
@@ -210,7 +210,7 @@ Confirm every question is resolved or deliberately deferred, then send each deci
 - **Work committed to here** → this ticket, or its children, shaped by the list below. Each carries what was decided and a `## References` section. **Copy the lines that ticket needs, never the whole list.** A child's order is the parent's `## Tasks`; `deps` is only for a wait outside the family. **Create and fill a child in one command**: `flow tickets new "<short name>: <sentence>" --parent <id> --body -` takes the body on stdin. Never create, then edit.
 - **A question that is its own subject** → a child ticket, one per subject. Phase 2 carries the split rule and what the body holds.
 - **Work an earlier run already wrote into `docs/spec/`** → `/flow:tickets-from-spec`. Tickets for what this ticket decided are the first route.
-- **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `~/.flow/references/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
+- **Anything settled that outlives the build**: what it must do, how it's built, why a call was made, what was refused, what the whole thing bets on → **read `~/.flow/guides/write-spec.md`**. It picks the file. A new direction reached in _any_ run goes there, including a ticket-sized one.
 - **The project's `CLAUDE.md` still holds the template's comments** in its title and `## Project` → write both from what was decided, and delete the comments.
 - **Settled and dying with the build**, this build's non-goals included → already written in the ticket. Leave it there.
 - **Decided, but not now** → `## Deferred`, with the reason.
@@ -237,7 +237,7 @@ Applies in Phases 1 and 2 both.
 
 ## The files
 
-`ticket.md` and `context.md`, each updated in place as each answer locks, shaped by `~/.flow/references/write-tickets.md`. Groundwork writes `## Context`, `## Questions`, `## Assumptions`, `## Non-goals`, `## Deferred` and `## References`.
+`ticket.md` and `context.md`, each updated in place as each answer locks, shaped by `~/.flow/guides/write-tickets.md`. Groundwork writes `## Context`, `## Questions`, `## Assumptions`, `## Non-goals`, `## Deferred` and `## References`.
 
 ### `## Questions` format
 

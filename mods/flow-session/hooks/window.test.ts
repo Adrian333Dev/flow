@@ -80,10 +80,10 @@ describe('the loads of a window', () => {
   })
 
   test('each matched file brings its guides once, and a guide the agent named loads once', async () => {
-    const G = (name: string) => `/h/.flow/references/${name}`
+    const G = (name: string) => `/h/.flow/guides/${name}`
     const files = { [TICKET]: 'T', '/work/flow-dev/docs/spec/a.md': 'S', [G('write-tickets.md')]: 'WT', [G('style.md')]: 'ST', [G('write-spec.md')]: 'WS', '/work/flow-dev/a.ts': 'A' }
     const { $ } = engine({ files })
-    const built = (await build($, { restart: restart({ files: ['docs/spec/a.md', 'a.ts', '/h/.flow/references/style.md'] }), entries: [entry('fw-244')] })) as Built
+    const built = (await build($, { restart: restart({ files: ['docs/spec/a.md', 'a.ts', '/h/.flow/guides/style.md'] }), entries: [entry('fw-244')] })) as Built
     expect(paths(built)).toEqual([TICKET, G('write-tickets.md'), G('write-spec.md'), '/work/flow-dev/docs/spec/a.md', '/work/flow-dev/a.ts', G('style.md')])
   })
 

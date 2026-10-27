@@ -1,6 +1,6 @@
 # Skills
 
-How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 12, typed `/flow:<name>`. 3 of them are the phases, the 3 kinds of work. The other 9 are the tools around the work.
+How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 12, typed `/flow:<name>`. 3 of them are the phases, the 3 kinds of work.
 
 ## Scope
 
@@ -11,9 +11,11 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 
 ```text
 ~/.flow/repos/flow/skills/                 Flow's skills, the one real copy
-├─ phases/    groundwork, execute, debug
-└─ tools/     audit, handoff, research, review-code, start,
-              tickets-from-spec, upkeep, visualize, write-spec
+├─ work/        groundwork, write-spec, tickets-from-spec,
+│               execute, review-code, debug
+├─ techniques/  visualize
+├─ knowledge/   research, audit, upkeep
+└─ session/     start, handoff
 ~/.agents/skills/flow/                     the plugin folder
 ├─ .claude-plugin/plugin.json              copied, names the set "flow"
 └─ skills/<name> → the clone               one link per skill
@@ -28,7 +30,7 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 
 ### Flow's skills
 
-- `V1` **12 skills in 2 groups**: `phases/` (`groundwork`, `execute`, `debug`) and `tools/` (`audit`, `handoff`, `research`, `review-code`, `start`, `tickets-from-spec`, `upkeep`, `visualize`, `write-spec`).
+- `V1` **12 skills in 4 groups, by what a skill does** (`fw-233` 0.4.0, 2026-10-27): `work/`, the steps that move a ticket (`groundwork`, `write-spec`, `tickets-from-spec`, `execute`, `review-code`, `debug`); `techniques/`, a way of thinking used in any step (`visualize`); `knowledge/`, what Flow knows, gathered and kept (`research`, `audit`, `upkeep`); `session/`, starting and handing over a session (`start`, `handoff`). The group only files a skill: it is typed `/flow:<name>` either way. Why: a new skill's group is plain before it is written. Refused: `phases/` and `tools/`, where `tools/` held 9 unrelated skills and a skill is no tool in Claude Code's sense. Refused: groups by job (`design/`, `build/`), which `visualize` fits badly. Refused: one flat folder, since many skills are coming.
 - `V1` **Every skill is typed `/flow:<name>`, and no folder or `name` carries the prefix.** `skills/.claude-plugin/plugin.json` names the set `flow`, and Claude Code adds the prefix as the skill loads. Decided 2026-09-18: bare, `setup`, `help` and `migrate` claimed ground on a machine with other skills.
 - `V1` **Every skill is always on**: `flow install` links each one, and nothing switches one off.
 - `V1` **5 skills only the user can start**: `/flow:review-code`, `/flow:start`, `/flow:tickets-from-spec`, `/flow:upkeep` and `/flow:write-spec`, each `disable-model-invocation: true`. `home/CLAUDE.md` → `user-only-skills` names `/flow:start`, `/flow:tickets-from-spec` and `/flow:upkeep`, so the agent suggests them.
@@ -45,8 +47,8 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 
 Closed at 3, set by the user. Prototype was the fourth, until it became a step inside `/flow:groundwork`. The skill is in `lab/archive/prototype/`.
 
-- `V1` **`/flow:groundwork` finds every decision the work needs**, the ones nobody raised included, and writes each answer down. 4 steps: list the open decisions as the ticket's `## Questions`, walk them one at a time with the user, attack the result with real cases, then route each decision to the file that owns it, the spec through `references/write-spec.md`. No plan and no code.
-- `V1` **`/flow:execute` builds one ticket**: it reads the ticket and runs `flow start`, plans (a checklist under `## Tasks` for more than about 3 steps, which the user may read and never approves), builds to the end, reviews the diff in the same session by `references/review-code.md`, and runs `flow done` once its own check passes. It stops for a decision that is the user's, and before building where the approach departs from what the user said.
+- `V1` **`/flow:groundwork` finds every decision the work needs**, the ones nobody raised included, and writes each answer down. 4 steps: list the open decisions as the ticket's `## Questions`, walk them one at a time with the user, attack the result with real cases, then route each decision to the file that owns it, the spec through `guides/write-spec.md`. No plan and no code.
+- `V1` **`/flow:execute` builds one ticket**: it reads the ticket and runs `flow start`, plans (a checklist under `## Tasks` for more than about 3 steps, which the user may read and never approves), builds to the end, reviews the diff in the same session by `guides/review-code.md`, and runs `flow done` once its own check passes. It stops for a decision that is the user's, and before building where the approach departs from what the user said.
 - `V1` **`/flow:debug` finds a cause by evidence**: a check that fails on this exact bug every run, 3 hypotheses of 3 different kinds shown before any is tested, a written prediction before each run, and a fix proved by the same check. It writes `reports/<failure>.md`, opening `FIXED`, `FOUND_NOT_FIXED` or `UNPROVEN`.
 - `V1` **A prototype is a step inside `/flow:groundwork`**: naive code answering one question, run only once talking and reading have both failed, kept in `protos/<name>/` in its ticket beside a report of what it found, never promoted into the real build.
 - `V1` **A prototype runs in its own session, on a child ticket**, agreed by the user 2026-10-02. Its installs, errors and reruns would fill a long groundwork session, and Flow refuses `/compact`. Revisit if most beta prototypes turn out to be 10-line probes.
@@ -60,10 +62,10 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 - `V1` **`/flow:start` opens a session**: the board from `flow next`, or one ticket, picking its phase from its type and status.
 - `never` **`/flow:help`, a skill answering any question about Flow or Claude Code.** Dropped 2026-10-14 by the user (`fw-124`): Flow is for them alone, any session answers from the docs (now `docs/manual/`, which no loaded file points at), `flow doctor` and the logs, and the description loaded into every session for nothing. The skill is in `lab/archive/help/`.
 - `V1` **`/flow:tickets-from-spec` cuts the next release's behaviors out of `docs/spec/` into tickets**, earliest release first.
-- `V1` **`/flow:upkeep` folds closed tickets, notes, findings and the failure log into the wiki, rules and skills**, user only. It shows one plan and stops, then writes, through `~/.flow/references/knowledge.md` and `references/write-checks.md`. It also reads `flow audit summary` for tickets that looped or ran long.
+- `V1` **`/flow:upkeep` folds closed tickets, notes, findings and the failure log into the wiki, rules and skills**, user only. It shows one plan and stops, then writes, through `~/.flow/guides/knowledge.md` and `references/write-checks.md`. It also reads `flow audit summary` for tickets that looped or ran long.
 - `next` **`/flow:upkeep` stays the periodic sweep, and `/flow:file` is a separate closing step per ticket** (`fw-204`, 2026-10-24). Upkeep consolidates, prunes, flags stale pages and changes existing text, so it keeps its plan, the user's yes and its user-only flag. `/flow:file` only routes one ticket's lessons into new files and lines, so the agent runs it at done, park and drop (`docs/spec/tickets.md`). Upkeep then reads what piled up, never closed tickets whole. Its sources change: the index and `context.md` replace `map.md`, decision files and `## State`.
   - Refused: one skill with two scopes, `/flow:upkeep <id>` and `/flow:upkeep`. The two read as the same command, and a closing step must not start rewriting skills.
-- `V1` **`/flow:review-code` and `/flow:write-spec` load a criteria file**, user only: `references/review-code.md` for the code a session changed, `references/write-spec.md` for the decisions written into `docs/spec/`. Review runs in the same session, never a subagent.
+- `V1` **`/flow:review-code` and `/flow:write-spec` load a criteria file**, user only: `guides/review-code.md` for the code a session changed, `guides/write-spec.md` for the decisions written into `docs/spec/`. Review runs in the same session, never a subagent.
 - `V1` **`/flow:audit` answers a question about how something behaved, from the records** (`fw-290`, the user 2026-10-25): sessions through `flow audit`, the logs in `~/.flow/logs/`, ticket histories, `git log`. A guideline the agent adapts to the question, with 2 hard rules: the question, with what a yes, a no and the baseline look like, is written before any data is read; and no conclusion stands on cases read without a count over every case. It writes `reports/<question>.md`, opening `ANSWERED`, `TOO_EARLY` or `NO_RECORD`, on the ticket it runs on, or one it makes labelled `audit`. A failure found becomes a ticket; a fault with no known cause goes to `/flow:debug`. A raw transcript is read only for what the index does not store. Its wiki folder, `audit/`, is linked `load`. Why: such questions come often (a broken restart, whether an added guide is followed, waste in builds, a trial `CLAUDE.md`), and naming the command gave the records but no method.
   - Refused: a how-to page in the wiki. A page never loads by itself, where a skill fires from its description.
   - Refused: a check ticket made automatically when a change ships. A check that waits on real sessions goes as a line in one ticket of such checks (`fw-294`), never in the `## Done when` of the ticket that built the change: a parent cannot close while a check waits weeks (the user, 2026-10-26).
@@ -97,7 +99,7 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 
 ### Outside skills
 
-- `V1` **An outside skill is used whole or harvested, never anything between**, decided with the user 2026-09-27. Used whole: runs as published. Harvested: never switched on, read into wiki pages (`docs/spec/knowledge-base.md` → `### The harvest`). `~/.flow/references/knowledge.md` holds the rules.
+- `V1` **An outside skill is used whole or harvested, never anything between**, decided with the user 2026-09-27. Used whole: runs as published. Harvested: never switched on, read into wiki pages (`docs/spec/knowledge-base.md` → `### The harvest`). `~/.flow/guides/knowledge.md` holds the rules.
 - `V1` **Used whole is the default.** The agent suggests a harvest where an overlay would rewrite most of the skill, or the skill is mostly facts the wiki already covers, and harvests on the user's yes. A skill on an expertise harvests into a field's folder. Decided by the user 2026-10-12 (`fw-94`): a skill can be about anything, and a harvest is not always smooth.
   - Refused: harvest as the default, ruled 2026-09-27 because every switched-on description loads each turn.
 - `V1` **A maker's own skill is used whole, and never suggested for a harvest**, since a copy misses each release. What would overturn it: a maker's skill whose description or process breaks Flow's rules.
@@ -127,7 +129,7 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 - **`skills/`**: Flow's skills, and `skills/.claude-plugin/plugin.json`.
 - **`scripts/lib/skills/skills.js`**: the skill catalog and what installs.
 - **`scripts/hooks/overlays.js`**: the overlays.
-- **`references/knowledge.md`**: used whole or harvested, the order for reaching a service, and how a skill is written. It took over `write-skills.md` 2026-10-26 (`fw-284`), so one file serves `/flow:research`, `/flow:upkeep` and `read-before-adding` in `home/CLAUDE.md`.
+- **`guides/knowledge.md`**: used whole or harvested, the order for reaching a service, and how a skill is written. It took over `write-skills.md` 2026-10-26 (`fw-284`), so one file serves `/flow:research`, `/flow:upkeep` and `read-before-adding` in `home/CLAUDE.md`.
 
 ## What passes between them
 

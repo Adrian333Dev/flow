@@ -176,13 +176,13 @@ The harvest reads raw reports or an outside skill, and writes what holds into wi
 
 ## The parts
 
-- **`skills/tools/research/SKILL.md`**: the steps from the wiki folder, the search for what already solves a need, the 4 levels, and where a report goes.
-- **`references/wiki.md`**: a wiki folder's layout, `index.md`, `_sources.md`, a page's version lines, and how a page changes. Read before any write into the wiki, by research and capture both.
-- **`skills/tools/research/scripts/context7.sh`**: Bash over Context7's web API with `curl`. `search <name> <question>`, and `ask <id|folder[@version]> <question>`, `--tool <folder>` writing the id into `index.md`.
-- **`skills/tools/research/scripts/fetch-docs.sh`**: downloads into a tool's `downloads/` from any folder. `--package` or `--repo` names where the latest release is read, and `--clone` clones or pulls the source into `downloads/repo/`.
+- **`skills/knowledge/research/SKILL.md`**: the steps from the wiki folder, the search for what already solves a need, the 4 levels, and where a report goes.
+- **`guides/wiki.md`**: a wiki folder's layout, `index.md`, `_sources.md`, a page's version lines, and how a page changes. Read before any write into the wiki, by research and capture both.
+- **`skills/knowledge/research/scripts/context7.sh`**: Bash over Context7's web API with `curl`. `search <name> <question>`, and `ask <id|folder[@version]> <question>`, `--tool <folder>` writing the id into `index.md`.
+- **`skills/knowledge/research/scripts/fetch-docs.sh`**: downloads into a tool's `downloads/` from any folder. `--package` or `--repo` names where the latest release is read, and `--clone` clones or pulls the source into `downloads/repo/`.
 - **`home/CLAUDE.md` → `## Capture`**: where each kind of knowledge goes. **`## Reading`**: work against an outside tool starts from its wiki folder.
-- **`skills/tools/upkeep/SKILL.md`**: the routing from closed tickets, notes and findings to their homes.
-- **`~/.flow/references/knowledge.md`**: the map of what an agent draws on past the rules, and how a skill is written, read before proposing a skill, a plugin or an MCP server.
+- **`skills/knowledge/upkeep/SKILL.md`**: the routing from closed tickets, notes and findings to their homes.
+- **`~/.flow/guides/knowledge.md`**: the map of what an agent draws on past the rules, and how a skill is written, read before proposing a skill, a plugin or an MCP server.
 
 ## What passes between them
 
@@ -271,12 +271,12 @@ A failure from `context7.sh`, one line and a non-zero exit: `context7: unavailab
 ## What is locked
 
 - **Context7 is called by a script, never an MCP server.** A script can check the tool's shortcuts before calling and write what it learns to a file. An MCP answer only lands in the conversation. What would flip it: Context7 closing its web API, or its MCP server doing clearly more.
-- **A tool is reached through a command, a script, then an MCP server, in that order.** An MCP server only where the tool has no other way in, or needs a live session, such as a browser. `~/.flow/references/knowledge.md` → `## Reach a service through a command`.
+- **A tool is reached through a command, a script, then an MCP server, in that order.** An MCP server only where the tool has no other way in, or needs a live session, such as a browser. `~/.flow/guides/knowledge.md` → `## Reach a service through a command`.
 - **One folder per tool or field, on the machine, shared by every project.** What every project and both machines learn about one subject meets in one set of pages.
   - Refused: the toolbox file as the one place per tool, with `docs:` and `context7:` fields. One file per tool cannot hold the knowledge. Ruled 2026-09-19.
   - Refused: one copy per project, in `tmp/references/<tool>/`, which never got a structure or rules.
 - **The folder is named `wiki/`**, picked 2026-09-19 from the user's candidates: 4 letters, a word everyone knows, and a set of pages one per subject.
-  - Refused: `tools/`, which reads like part of Flow. `knowledge/`, too long. `refs`, beside `~/.flow/references/`. `context`, every project's `docs/context/`. `library`, the user's planned tool catalog. `intel` and `lore`, slang and a rare word.
+  - Refused: `tools/`, which reads like part of Flow. `knowledge/`, too long. `refs`, beside `~/.flow/references/` (now `~/.flow/guides/`). `context`, every project's `docs/context/`. `library`, the user's planned tool catalog. `intel` and `lore`, slang and a rare word.
 - **Downloads are never committed.** Each machine refreshes its own anyway. Git would store a new copy of a 480 KB `llms-full.txt` on every change, and cannot commit a clone as files.
   - Refused: `index.md` recording download dates. It syncs and the downloads do not, so its dates would describe the other machine's files.
 - **Project research lives in `.flow/research/<topic>/`.** `.flow/` links into the Flow home, one folder for every code branch, so a report never conflicts across feature branches. Approved 2026-10-06, replacing `docs/research/`. Topic folders replaced the flat layout 2026-10-12 (`fw-94`): 50 flat names hid which report held what.

@@ -47,7 +47,7 @@ The guide, as the agent receives it, from `mods/flow-session/prompts/restart-gui
 
 The new window holds only: the tickets in flight, the files and skills you name, your note, the user's unanswered messages word for word. Nothing else of this conversation survives.
 
-1. Update the ticket. Everything this window learned or decided goes into `ticket.md` and `context.md`, by `~/.flow/references/write-tickets.md`: decisions, answers, findings, context, dead ends, task state. Check: the note restates none of it.
+1. Update the ticket. Everything this window learned or decided goes into `ticket.md` and `context.md`, by `~/.flow/guides/write-tickets.md`: decisions, answers, findings, context, dead ends, task state. Check: the note restates none of it.
 2. Pick `files`: the files the next step works on, so the new agent starts with few reads.
    - Whole file by default.
    - `path#heading` or `path:from-to` only for a large file whose rest the next step doesn't need.
@@ -158,7 +158,7 @@ The mod empties the conversation and writes this one in its place. Each file and
     "role": "assistant",
     "tool_use": {
       "name": "Read",
-      "input": { "file_path": "~/.flow/references/write-tickets.md" },
+      "input": { "file_path": "~/.flow/guides/write-tickets.md" },
     },
   },
   {
