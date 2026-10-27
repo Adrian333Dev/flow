@@ -37,6 +37,7 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  ├─ ticket-counter
 │  ├─ projects/<project>/         a project's tickets, kept privately
 │  ├─ notes/                      ideas and put-off work, every project
+│  ├─ findings/                   what sessions learned outside any project or tool
 │  ├─ skill-overlays/<skill>.md   lines you add to a skill
 │  ├─ wiki/<tool>/
 │  ├─ research/<topic>/
@@ -113,7 +114,8 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 ### What sessions learn
 
 - **`notes/`**: one small file per idea or put-off piece of work, for every project. `flow notes new` writes it, and each note names the project it belongs to.
-- **`wiki/<tool>/`**: what Flow knows about one outside tool, shared by every project. `/flow:research` writes it.
+- **`findings/`**: one file per thing a session learned that belongs to no project and no tool: you, a computer, a way of working. `flow findings new --project home` writes it. [Findings](commands.md#findings) covers all 3 places a finding lives.
+- **`wiki/<tool>/`**: what Flow knows about one outside tool, shared by every project. `/flow:research` writes its pages, and `flow findings new --wiki <tool>` its `findings/`.
 - **`research/<topic>/`**: research reports asked outside any project, one folder per topic and one file per question. Empty until one is asked.
 
 ### Records of what happened
@@ -160,7 +162,7 @@ The project's tickets and what sessions learn in it. It is a link into `~/.flow/
 - **`tickets/<number>/`**: one folder per ticket, named by its number alone, such as `7/` for `shop-7`. The files hold no prefix either: `id`, `parent` and `deps` are numbers, so changing `ticketPrefix` keeps every ticket. Each holds a `ticket.md`, the index of its questions, decisions and tasks, and a `context.md`, one section per question or task. `reports/`, `protos/`, `jobs/` and `history.md` appear once the work writes them.
 - **`tickets/archive/`**: finished and dropped tickets, moved here whole.
 - **`ticket-counter`**: the highest ticket number this project ever gave out, such as `75`, so a deleted or moved ticket's number never goes to a new one.
-- **`findings/`**: one file per lesson a session learned, waiting for `/flow:upkeep`.
+- **`findings/`**: one file per thing a session learned about this project. `flow findings new` writes it.
 - **`replies/`**: every message the agent wrote since your last message, saved at the end of each turn as `<session>-<n>.md`, where `n` counts your messages in the window. It holds a `---` between the messages and no tool calls, the same text `/copy-all` copies. The mod keeps the newest 100 files. They stay on this computer.
 - **`research/<topic>/`**: the research reports this project asked for, one folder per topic. `/flow:research` writes them.
 - **`settings.json`**: this project's [`ticketPrefix`](settings.md#ticketprefix).

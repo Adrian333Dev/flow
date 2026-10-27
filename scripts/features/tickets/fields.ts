@@ -73,15 +73,15 @@ function now() {
   return `${today()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-function slugify(title) {
+function slugify(title, max = SLUG_MAX) {
   const base = String(title)
     .toLowerCase()
     .replace(/['’]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
   if (!base) throw new FlowError('that title produces an empty slug: it needs words, not punctuation.');
-  if (base.length <= SLUG_MAX) return base;
-  const cut = base.slice(0, SLUG_MAX);
+  if (base.length <= max) return base;
+  const cut = base.slice(0, max);
   const lastDash = cut.lastIndexOf('-');
   return (lastDash > 12 ? cut.slice(0, lastDash) : cut).replace(/-+$/, '');
 }

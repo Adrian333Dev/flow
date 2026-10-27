@@ -68,6 +68,15 @@
             "command": "node \"$HOME/.flow/scripts/hooks/overlays.ts\""
           }
         ]
+      },
+      {
+        "matcher": "^(Edit|Write)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/hooks/findings-stamp.ts\""
+          }
+        ]
       }
     ],
     "PostToolUseFailure": [

@@ -17,7 +17,6 @@ import { out, json } from '../shared/cli.ts';
 import type { Action } from '../shared/cli.ts';
 import { projectRoot, projectRootOrNull } from '../shared/project.ts';
 import * as store from '../features/tickets/store.ts';
-import * as records from '../features/tickets/records.ts';
 import * as query from '../shared/query.ts';
 import * as notes from '../features/notes/notes.ts';
 import * as tickets from './tickets.ts';
@@ -52,9 +51,6 @@ function hereName() {
   return root ? notes.projectOf(root) : null;
 }
 
-/** Notes live in the Flow home, so a save is the home's background sync. */
-const saved = () => records.syncLater(store.homeRoot());
-
 /** One note as `--json` prints it, the list's shape. */
 const noteJson = (n) => ({
   name: n.id, title: notes.titleOf(n), date: n.data.date, project: n.data.project, labels: n.data.labels, path: n.file, text: n.body,
@@ -67,7 +63,6 @@ function add(words, flags, usage) {
   const root = flags.project === undefined ? projectRootOrNull() : projectNamed(flags.project, '--project');
   if (!root) throw outside();
   const { note } = notes.create({ text, labels: labelsFrom(flags.label), project: notes.projectOf(root) });
-  saved();
   json({ note: noteJson(note) });
   out(`created ${note.id}`);
   out(`        ${note.file}`);
@@ -134,7 +129,6 @@ actions.drop = {
   run({ positional, usage }) {
     const note = notes.findNote(notes.readNotes(), needsRef(positional, usage));
     notes.remove(note);
-    saved();
     json({ dropped: note.id });
     out(`dropped ${note.id}: ${notes.titleOf(note)}`);
     return 0;
@@ -169,7 +163,6 @@ actions.promote = {
     const after = store.readTickets(root);
     const made = after.find((t) => !known.has(t.id));
     notes.remove(note);
-    saved();
     json({ note: note.id, ticket: made ? ticketJson.record(made, after) : null });
     out(`\npromoted ${note.id} → ${made ? made.id : 'a new ticket'}`);
     return 0;

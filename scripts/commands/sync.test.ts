@@ -62,7 +62,7 @@ test('what belongs to one machine is what the ignore file names, at the top of ~
     '/logs/',
     '/skills-update.json',
     '/skills-update.lock',
-    '/records-sync.json',
+    '/records-sync*',
     '/registry.json',
     '/status-line.json',
     '/audit/',

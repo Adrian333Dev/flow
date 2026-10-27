@@ -20,11 +20,16 @@
  *   --hook end               the SessionEnd hook. Claude Code gives it 1.5
  *                            seconds, so it starts a detached run and returns
  *
+ * One sync per place runs at a time, see `single`. 156 edits in a row once
+ * started 156 syncs, which queued on the records lock until a write behind
+ * them gave up after 20 seconds.
+ *
  * Offline, a run fails quietly and the next checkpoint tries again. Every
  * other failure goes to the failure log as an open issue, which the status
  * line counts, and the next run that works closes it: features/logs/failures.ts.
  */
 
+import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import * as records from '../features/tickets/records.ts';
@@ -36,6 +41,9 @@ import * as hook from '../shared/hook.ts';
 import { git } from '../shared/git.ts';
 
 const DUE_AFTER = 30 * 60 * 1000;
+
+/** A runner's mark older than this belongs to a run that died, and is taken over. */
+const STALE_AFTER = 5 * 60 * 1000;
 
 /** The Flow home's sync, as the failure log names the job. */
 const HOME_JOB = 'sync ~/.flow';
@@ -79,6 +87,52 @@ function syncHome(at, linked) {
   }
 }
 
+function take(file) {
+  try {
+    fs.writeFileSync(file, String(process.pid), { flag: 'wx' });
+    return true;
+  } catch {
+    const held = fs.statSync(file, { throwIfNoEntry: false });
+    if (held && Date.now() - held.mtimeMs < STALE_AFTER) return false;
+    fs.rmSync(file, { force: true });
+    try {
+      fs.writeFileSync(file, String(process.pid), { flag: 'wx' });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+/**
+ * Run `job` unless another run of the same place holds
+ * `~/.flow/records-sync.<key>.running`. A run asked for meanwhile leaves
+ * `records-sync.<key>.again`, and the holder goes once more, so a write made
+ * during its run still leaves now rather than at the next checkpoint.
+ */
+function single(at, key, job) {
+  const base = path.join(at.flow, `records-sync.${key.replace(/[^a-zA-Z0-9]+/g, '-')}`);
+  const running = `${base}.running`;
+  const again = `${base}.again`;
+  if (!take(running)) {
+    fs.writeFileSync(again, '');
+    return;
+  }
+  for (;;) {
+    try {
+      do {
+        fs.rmSync(again, { force: true });
+        fs.writeFileSync(running, String(process.pid));
+        job();
+      } while (fs.existsSync(again));
+    } finally {
+      fs.rmSync(running, { force: true });
+    }
+    // A mark left between the last look and the release would otherwise wait for the next checkpoint.
+    if (!fs.existsSync(again) || !take(running)) return;
+  }
+}
+
 /** Something in `.flow/` not yet sent: uncommitted, or committed and not pushed. */
 function waiting(root) {
   const dir = path.join(root, '.flow');
@@ -93,16 +147,18 @@ function later(args) {
   child.unref();
 }
 
-try {
+function main() {
   const at = paths.folders();
   const args = process.argv.slice(2);
   const flag = (name) => args.includes(name);
   const value = (name) => args[args.indexOf(name) + 1];
+  const project = (root) => single(at, root, () => syncProject(at, root));
+  const home = (linked) => single(at, 'home', () => syncHome(at, linked));
 
   if (flag('--project')) {
-    syncProject(at, path.resolve(value('--project')));
+    project(path.resolve(value('--project')));
   } else if (flag('--home')) {
-    syncHome(at, flag('--in') ? path.resolve(value('--in')) : null);
+    home(flag('--in') ? path.resolve(value('--in')) : null);
   } else if (flag('--hook')) {
     const event = hook.event() || {};
     const root = records.projectAt(event.cwd || process.cwd());
@@ -111,10 +167,18 @@ try {
       if (root) later(['--project', root, '--now']);
       later(['--home', ...(linked ? ['--in', linked] : []), '--now']);
     } else if (value('--hook') === 'stop') {
-      if (root && waiting(root) && Date.now() - lastSent(at, root) >= DUE_AFTER) syncProject(at, root);
-      if (repo.changed(at) && Date.now() - lastSent(at, 'home') >= DUE_AFTER) syncHome(at, linked);
+      if (root && waiting(root) && Date.now() - lastSent(at, root) >= DUE_AFTER) project(root);
+      if (repo.changed(at) && Date.now() - lastSent(at, 'home') >= DUE_AFTER) home(linked);
     }
   }
-} catch {
-  // A background save never breaks a session. The next checkpoint tries again.
 }
+
+if (import.meta.main) {
+  try {
+    main();
+  } catch {
+    // A background save never breaks a session. The next checkpoint tries again.
+  }
+}
+
+export { single };

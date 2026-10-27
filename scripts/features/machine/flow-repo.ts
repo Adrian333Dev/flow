@@ -99,7 +99,7 @@ const IGNORED = [
   '/logs/',
   '/skills-update.json',
   '/skills-update.lock',
-  '/records-sync.json',
+  '/records-sync*',
   '/registry.json',
   '/status-line.json',
   '/audit/',

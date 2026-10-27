@@ -8,7 +8,7 @@
 ~/.flow/wiki/next.js/
 ├─ index.md               what it is, the version in use, skills reviewed, doc shortcuts
 ├─ <topic>.md             one page per topic, edited in place
-├─ findings/<lesson>.md   one file per lesson, not yet folded into a page
+├─ findings/<claim>.md    one file per fact, named for its claim, not yet folded into a page
 └─ downloads/             this machine's alone, never synced
    ├─ _sources.md         what was downloaded, when, and the tool's latest release then
    ├─ llms.txt
@@ -20,7 +20,7 @@
 - **A tool's folder** takes its GitHub repository name: `next.js`. No repository → the product's name. 2 repositories sharing a name → `owner_repo`. A standard with its own docs, such as OAuth 2.1, gets a folder like a tool.
 - **A field's folder** takes a plain name: `text-to-speech`, `chrome-extensions`.
 - **A skill's folder** takes the skill's name, `audit`, and covers every record the skill reads. The skill links it in its frontmatter (`guides/knowledge.md` → `### Shape`). Its `index.md` loads with the skill: keep it under about 40 lines.
-- **Make the folder with its `index.md`**, on the first page written about its subject. A finding makes the folder alone.
+- **Make the folder with its `index.md`.** The first finding filed for a subject writes a stub one. The first page written about the subject fills it in.
 - **Never write a global index.** `util fs tree ~/.flow/wiki` lists every folder.
 
 ## `index.md`
@@ -84,17 +84,20 @@ Checked against Claude Code 2.1.296, 2026-10-12.
 
 ## A finding
 
-One lesson, one file, named for it in 4 to 8 words: `compound-command-saves-one-rule-per-piece.md`. Capture adds it with no read of any page and no choice of page: the subject's folder name is all it needs. A subject with no folder yet gets the folder alone, and the first page written for it adds `index.md`. The upkeep skill (`/flow:upkeep`) folds findings into the pages, then deletes the folded files.
+One fact, one file, named for its claim in 4 to 8 words. File it with `flow findings new "<claim>" --wiki <subject>`: it writes the header, and refuses a finding that says nearly the same. Capture needs no read of any page and no choice of page: the subject's folder name is all it needs. The upkeep skill (`/flow:upkeep`) folds findings into the pages, then deletes the folded files.
 
 ```md
-checked: 2026-10-16
-version: 2.1.300
+---
+labels: [permission-rules]
+updated: 2026-10-16 14:05
+---
 
-"Always allow" on a compound command saves one rule per piece.
+"Always allow" on a compound command saves one rule per piece. Checked on Claude Code 2.1.300.
 ```
 
-- **Both header lines are optional.** `checked: <date>` for a fact that expires (a price, a limit). `version: <x>` for one bound to a version.
-- **A finding that contradicts an older one** replaces that file's text. Read only that file.
+- **The header holds `labels` and `updated` alone.** A hook sets `updated` after each edit.
+- **The text states the claim first.** A fact bound to a version names it in a sentence. A fact that expires (a price, a limit) says when it becomes false.
+- **A changed fact rewrites its file in place.** A text that no longer matches the name renames it: `flow findings edit <name> --title "<claim>"`.
 
 ## Changing a page
 

@@ -2,7 +2,7 @@
 
 Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in the terminal, `flow tickets --help` lists one noun's, and `flow tickets new --help` shows one command.
 
-**Commands sit under a noun**: `tickets`, `notes`, `audit` and `settings`. A noun typed alone lists, so `flow tickets` is the ticket table. `flow next` and the setup commands stay bare, and a bare `flow` prints the help.
+**Commands sit under a noun**: `tickets`, `notes`, `findings`, `audit` and `settings`. A noun typed alone lists, so `flow tickets` is the ticket table. `flow next` and the setup commands stay bare, and a bare `flow` prints the help.
 
 **A query follows `--`, in double quotes**: `flow notes -- "cache"`. The `--` keeps a query such as `new` from reading as a command. A query the shell split into several words is refused, naming the quoted form.
 
@@ -48,6 +48,10 @@ $ flow tickets start shop-2 --json
   - [`flow tickets drop`](#flow-tickets-drop): remove a ticket that will never be done
   - [`flow tickets move`](#flow-tickets-move): move tickets to another project by its prefix, or to your Flow home
 - [Notes](#notes): ideas and put-off work, each filed under a project's prefix
+- [Findings](#findings): what sessions learned, one file per claim, in a project, the wiki or your Flow home
+  - [`flow findings new`](#flow-findings-new): file a finding, refused where one already says the same
+  - [`flow findings`](#flow-findings): one row per finding, narrowed and ranked by a query
+  - [`flow findings edit`](#flow-findings-edit): rename a finding and rewrite the paths citing it, or set its labels
 - [Ticket status](#ticket-status): move a ticket from one stage to the next
 - [Settings](#settings): turn Flow's own settings on or off
 - [Audit](#audit): read back what Claude Code did in past sessions
@@ -127,7 +131,7 @@ ok    names: flow, fw, util, u all resolve
 ok    util: fs tree runs
 ok    ~/.agents: 12 skills linked under skills/flow/
 ok    ~/.claude: skills/flow, 0 agents, 0 rules, 0 commands and CLAUDE.md linked
-ok    settings.json: 18 hooks registered, every file they name on disk, sessions start in "default" mode
+ok    settings.json: 19 hooks registered, every file they name on disk, sessions start in "default" mode
 ok    ~/.flow: scripts, guides and docs resolve into this clone
 ok    projects: fw ~/code/flow-dev
 ok    tickets: 220 tickets in the current format
@@ -153,7 +157,9 @@ went up: pc-wsl: 1 file
 shop's tickets: nothing new came down, 1 commit went up.
 ```
 
-It runs by itself when a session ends, and every 30 minutes while you work, so you rarely type it.
+It runs by itself when a session ends, and every 30 minutes while you work, so you rarely type it. Type it to send your work now.
+
+**A change other computers must see early syncs at once**, in the background: a new ticket, a status move, a drop, a move, `flow tickets rank` and `flow init`. A finding or a note waits for the next 30-minute sync, so 200 edits in a row send once. Only one sync of a place runs at a time. A sync asked for meanwhile runs right after it.
 
 ## The board
 
@@ -173,7 +179,7 @@ home-3-backup-notes  todo  chore
 1 of 1.
 ```
 
-**`-p <prefix>` runs a command in another project.** `flow tickets new`, `flow tickets`, `flow next` and `flow notes new` take `-p`, or `--project`, with the prefix of any project on this computer, from any folder. `home` is your Flow home. A command with an id reads the project from the id and takes no flag.
+**`-p <prefix>` runs a command in another project.** `flow tickets new`, `flow tickets`, `flow next`, `flow notes new` and `flow findings new` take `-p`, or `--project`, with the prefix of any project on this computer, from any folder. `home` is your Flow home. A command with an id reads the project from the id and takes no flag.
 
 ```console
 $ flow tickets new "Dark mode: a theme switch" -p shop
@@ -500,6 +506,107 @@ created export-the-budget-as-a-csv-too
 - **`flow notes get <name>`**, **`drop <name>`**, **`promote <name>`**: show a note, delete it, or turn it into a ticket in the project it belongs to.
 
 **A `project:` term needs only a prefix's shape**, since notes travel between your computers and the list of projects does not. `project:global` is refused, naming `home`, and so is a folder name.
+
+## Findings
+
+A finding is one thing a session learned, in one markdown file named for its claim in 4 to 8 words. It lives where its subject lives, in one of 3 folders:
+
+- **`<project>/.flow/findings/`**: a fact of one project.
+- **`~/.flow/wiki/<subject>/findings/`**: a fact about an outside tool or a field, in that subject's wiki folder.
+- **`~/.flow/findings/`**: anything else: you, a computer, a way of working.
+
+The file opens with its labels and the minute it last changed, then states its claim:
+
+```md
+---
+labels: [csv-export, money-format]
+updated: 2026-10-27 09:27
+---
+
+The CSV export writes amounts without their currency, so a budget in euros reads as dollars. The `currency` field is never mapped in `exportBudget`.
+```
+
+**A hook sets `updated`** after every `Edit` or `Write` the agent makes to a file in a findings folder. A false finding is deleted by hand, and git keeps its text. Agents read a finding by its path, so no command shows one.
+
+### `flow findings new`
+
+```console
+$ flow findings new "the budget export drops the currency column" --project shop --label csv-export --body "The CSV export writes amounts without their currency, so a budget in euros reads as dollars. The `currency` field is never mapped in `exportBudget`."
+filed ~/code/shop/.flow/findings/the-budget-export-drops-the-currency-column.md
+labels in use: csv-export (1), dev-server (1)
+```
+
+- **`"<title>"`**: the claim in 4 to 8 words. The file name keeps every word.
+- **`-p`, `--project <prefix>`**: file it in that project's `.flow/findings/`, or in `~/.flow/findings/` with `home`.
+- **`--wiki <subject>`**: file it in `~/.flow/wiki/<subject>/findings/`. A folder with no `index.md` gets a stub one to fill in.
+- **`--label <label,label>`**: tags, with the rules a ticket's labels follow. Every filing prints the labels in use, most used first.
+- **`--body <text|->`**: the text, or `-` to read it from the input.
+- **`--force`**: file it though a finding says nearly the same.
+
+**Every finding names its folder.** With neither `--project` nor `--wiki`, `new` refuses and lists the 3:
+
+```console
+$ flow findings new "the budget export drops the currency column"
+flow: say where the finding belongs, since a finding lives where its subject lives:
+  --project shop   a fact of this project
+  --wiki <subject>  a fact about a tool or a field, in its wiki folder
+  --project home    anything else: the user, a machine, a way of working
+```
+
+**`new` compares the finding with the ones already filed**: this project's, your Flow home's and every wiki folder's, by shared words and labels. A finding that says nearly the same is refused, naming the one to rewrite instead:
+
+```console
+$ flow findings new "csv export loses the budget currency field" --project shop --label csv-export --body "The budget CSV export writes amounts without the currency field, so euros read as dollars. `exportBudget` never maps `currency`."
+flow: not filed: a finding says nearly the same.
+  ~/code/shop/.flow/findings/the-budget-export-drops-the-currency-column.md   csv-export
+  Rewrite it in place. A claim that really differs files with --force.
+```
+
+A finding close to others, though not the same, is filed, and up to 20 close ones are listed:
+
+```console
+$ flow findings new "the budget import guesses the currency" --project shop --label csv-import --body "A CSV with no currency column imports every amount in the account currency. The budget export writes no currency either."
+filed ~/code/shop/.flow/findings/the-budget-import-guesses-the-currency.md
+close findings:
+  ~/code/shop/.flow/findings/the-budget-export-drops-the-currency-column.md   csv-export
+labels in use: csv-export (1), csv-import (1), dev-server (1)
+```
+
+A finding filed in a project or your Flow home also names up to 3 wiki folders whose name or `index.md` matches its words, where it may belong instead.
+
+### `flow findings`
+
+One row per finding: its path, then its labels, the latest change first.
+
+```console
+$ flow findings
+~/.flow/wiki/recharts/findings/recharts-tooltip-needs-a-fixed-width.md   chart-layout
+~/code/shop/.flow/findings/the-budget-export-drops-the-currency-column.md   csv-export
+~/code/shop/.flow/findings/the-budget-import-guesses-the-currency.md   csv-import
+~/code/shop/.flow/findings/vite-dev-server-ignores-env-changes-until-restart.md   dev-server
+```
+
+**A query after `--` narrows the list**: `label:`, `project:`, `wiki:` and words. With no `project:` or `wiki:` term the list holds this project's findings, your Flow home's and every wiki folder's. `project:<prefix>` and `wiki:<subject>` name the folders to read instead, `project:all` and `wiki:all` every one. Words rank the rows closest first, and the top 20 show.
+
+```console
+$ flow findings -- "label:csv-export currency"
+~/code/shop/.flow/findings/the-budget-export-drops-the-currency-column.md   csv-export
+```
+
+### `flow findings edit`
+
+`<name>` is the file name without `.md`, or the path where 2 findings share a name.
+
+- **`--title "<claim>"`**: rename the finding, then rewrite its old path in every text file of this project and of `~/.flow`, logs and downloads aside.
+- **`--label <label,label>`**: replace its labels with this list.
+
+```console
+$ flow findings edit the-budget-export-drops-the-currency-column --title "budget csv export drops the currency"
+~/code/shop/.flow/findings/budget-csv-export-drops-the-currency.md
+  renamed the-budget-export-drops-the-currency-column → budget-csv-export-drops-the-currency
+  citations rewritten in 1 file:
+    ~/code/shop/docs/context/export.md
+```
 
 ## Ticket status
 
