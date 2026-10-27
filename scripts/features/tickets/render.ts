@@ -9,6 +9,7 @@ import * as graph from './graph.ts';
 import * as store from './store.ts';
 import * as statuses from './statuses.ts';
 import * as ticketHistory from './ticket-history.ts';
+import type { Group } from './groups.ts';
 
 function ticketTable(tickets) {
   if (tickets.length === 0) return 'no tickets.';
@@ -26,20 +27,33 @@ function ticketTable(tickets) {
  */
 function tree(nodes, cells) {
   if (!nodes.length) return 'no tickets.';
-  const rows: string[][] = [];
+  return columns(treeRows(nodes, cells));
+}
 
+/** The forest's rows, unaligned, each name behind `lead`, so a caller can mix in rows of its own before aligning. */
+function treeRows(nodes, cells, lead = '') {
+  const rows: string[][] = [];
   const walk = (list, prefix, root) => {
     list.forEach((n, i) => {
       const last = i === list.length - 1;
       const t = n.ticket;
-      rows.push([prefix + (root ? '' : last ? '└── ' : '├── ') + store.nameOf(t), ...cells(t, root)]);
+      rows.push([lead + prefix + (root ? '' : last ? '└── ' : '├── ') + store.nameOf(t), ...cells(t, root)]);
       if (n.children.length) walk(n.children, root ? '' : prefix + (last ? '    ' : '│   '), false);
     });
   };
-
   walk(nodes, '', true);
-  return columns(rows);
+  return rows;
 }
+
+/** A group's header row: its label and its done count. */
+const groupRow = (label, tickets) => {
+  const p = graph.groupProgress(tickets, label);
+  return [label, '', '', `${p.done}/${p.total}`];
+};
+
+/** A parked group as one row: what it holds, and the first words of its reason. */
+const parkedRow = (group, held) =>
+  [group.label, 'parked', '-', `${held} held, ${firstWords(group.data.parked)}`];
 
 /**
  * How many of a parent's children are done, of all of them: `3/5`, never a
@@ -71,19 +85,34 @@ function firstWords(text, max = 40) {
  * status, labels and the facts that matter: a parent's count, what a blocked
  * ticket waits on, a parked one's reason, and the parent of a child whose
  * parent the query left out (`under fw-16`), which the tree no longer shows.
+ *
+ * Each ranked group's trees come first under the group's row, then the rest.
+ * `held` are the tickets the listing left out because a parked group holds
+ * them: each such group closes the list as one row.
  */
-function listing(list, all) {
+function listing(list, all, held: any[] = [], groups = all.groups || []) {
   const index = graph.indexById(all);
   const shown = new Set(list.map((t) => t.id));
-  return tree(graph.forest(list), (t, root) => {
+  const cells = (t, root) => {
     const notes = [
       progressOf(t, all),
       blockedNote(t, index),
+      t.held ? `held by ${t.held}` : null,
       t.data.status === 'parked' && t.data.reason ? firstWords(t.data.reason) : null,
       root && t.data.parent && index.has(t.data.parent) && !shown.has(t.data.parent) ? `under ${t.data.parent}` : null,
     ];
     return [t.data.status, t.data.labels.join(',') || '-', notes.filter(Boolean).join(', ')];
-  });
+  };
+
+  const place = graph.placer(all, groups);
+  const roots = graph.forest(list);
+  const rows: string[][] = [];
+  for (const g of [...new Set(roots.map((n) => place(n.ticket)).filter(Boolean))].sort((a: any, b: any) => a.data.rank - b.data.rank) as any[]) {
+    rows.push(groupRow(g.label, all), ...treeRows(roots.filter((n) => place(n.ticket) === g), cells, '  '));
+  }
+  rows.push(...treeRows(roots.filter((n) => !place(n.ticket)), cells));
+  for (const h of graph.holds(held, groups)) rows.push(parkedRow(h.group, h.held.length));
+  return rows.length ? columns(rows) : 'no tickets.';
 }
 
 const blockText = (u) =>
@@ -128,7 +157,7 @@ function show(ticket, tickets, root) {
   const header = [
     store.nameOf(ticket),
     ticket.data.description || null,
-    `status: ${ticket.data.status}   parent: ${ticket.data.parent || '-'}`,
+    `status: ${ticket.data.status}${ticket.held ? ` (held by ${ticket.held})` : ''}   parent: ${ticket.data.parent || '-'}`,
     ticket.data.activity ? `activity:   ${ticket.data.activity}` : null,
     ticket.data.was ? `was:        ${ticket.data.was}` : null,
     branchLine(ticket, root),
@@ -172,10 +201,12 @@ const reviveVerb = (t) => statuses.VERB_OF[t.data.resume] || 'todo';
  * moves the ticket once it has read it, never before.
  *
  * Only `todo` and `parked` get one. A ticket already `in-progress` has no move
- * to make at pickup.
+ * to make at pickup. A held ticket comes back with its group, since starting
+ * it refuses.
  */
 function pickupLine(ticket) {
   const { status } = ticket.data;
+  if (ticket.held) return `pick up with: flow groups revive ${ticket.held}`;
   if (status === 'todo') return `pick up with: flow tickets start ${ticket.id}`;
   if (status === 'parked') return `pick up with: flow tickets ${reviveVerb(ticket)} ${ticket.id}`;
   return null;
@@ -249,9 +280,28 @@ function waitingLine(waiting) {
   return parts.length ? `waiting: ${parts.join(', ')}` : null;
 }
 
-/** One line per ticket: name and labels. The heading above says the status and the parent. */
-const ticketLines = (list) =>
-  indent(columns(list.map((t) => [store.nameOf(t), t.data.labels.join(',') || '-'])));
+/**
+ * One line per ticket: name and labels. The heading above says the status and
+ * the parent. `place` gives a ticket's ranked group, whose label heads its
+ * tickets, indented under it.
+ */
+function ticketLines(list, place: (t: any) => Group | null = () => null) {
+  const rows: string[][] = [];
+  let current: Group | null = null;
+  for (const t of list) {
+    const g = place(t);
+    if (g && g !== current) rows.push([g.label]);
+    current = g;
+    rows.push([`${g ? '  ' : ''}${store.nameOf(t)}`, t.data.labels.join(',') || '-']);
+  }
+  return indent(columns(rows));
+}
+
+/** `2 parked, 15 held by post-v1`: tickets parked alone, then each parked group as what it holds. */
+function parkedLine(view) {
+  const parts = [view.parked ? `${view.parked} parked` : null, ...view.holds.map((h) => `${h.held.length} held by ${h.group.label}`)];
+  return parts.filter(Boolean).join(', ') || null;
+}
 
 /**
  * The session opener, printed by `flow next` from `graph.nextView`: what
@@ -281,7 +331,7 @@ function next(view, tickets, waiting, readyRows = Infinity) {
 
   if (view.ready.length) {
     const shown = view.ready.slice(0, readyRows);
-    out.push(`ready (${view.ready.length})`, ticketLines(shown));
+    out.push(`ready (${view.ready.length})`, ticketLines(shown, view.place));
     if (shown.length < view.ready.length) out.push(`  and ${view.ready.length - shown.length} more (flow next --all)`);
     out.push('');
   } else if (!view.tree.length) {
@@ -295,7 +345,7 @@ function next(view, tickets, waiting, readyRows = Infinity) {
 
   // Each prints only when owed. A line that reads "none" every run is a line
   // the reader learns to skip, and these exist to be noticed.
-  const owed = [view.parked ? `${view.parked} parked` : null, waitingLine(waiting)].filter(Boolean);
+  const owed = [parkedLine(view), waitingLine(waiting)].filter(Boolean);
   if (owed.length) out.push(owed.join(' · '));
   if (view.problems) out.push('the ticket graph has problems, listed by flow tickets check');
 
@@ -347,4 +397,4 @@ function checkReport(problems) {
   return out.join('\n').trimEnd();
 }
 
-export { ticketTable, tree, listing, blockText, show, next, checkReport, reviveVerb };
+export { ticketTable, tree, listing, firstWords, blockText, show, next, checkReport, reviveVerb };

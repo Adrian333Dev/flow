@@ -41,9 +41,10 @@ board.next = {
       project: { prefix: store.prefixOf(root), folder: root },
       lastClosed: view.lastClosed && ticketJson.record(view.lastClosed, tickets, index),
       inProgress: ticketJson.list(view.tree, tickets),
-      ready: view.ready.map((t) => ticketJson.record(t, tickets, index)),
+      ready: view.ready.map((t) => ({ ...ticketJson.record(t, tickets, index), placedIn: view.place(t)?.label || '' })),
       take: view.take ? view.take.id : null,
       parked: view.parked,
+      held: view.holds.map((h) => ({ group: h.group.label, reason: h.group.data.parked, tickets: h.held.map((t) => t.id) })),
       waiting: owed,
       problems: view.problems,
     });

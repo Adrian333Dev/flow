@@ -10,7 +10,7 @@ import * as ticketJson from './json.ts';
 import * as statuses from './statuses.ts';
 import { PROJECT_FLAG, placeLine, load, loadFor, loadAll, locate } from './places.ts';
 import { select, hiddenNote, wantsIssues } from './select.ts';
-import type { Ticket } from './types.ts';
+import type { Ticket, TicketList } from './types.ts';
 
 // `flow tickets labels` lists the tickets themselves up to this many, so one call reaches the leaf.
 const LIST_UP_TO = 10;
@@ -28,14 +28,16 @@ const listing: Action = {
   run({ query: text, flags }) {
     const across = flags.project === undefined && wantsIssues(text);
     const { tickets, places } = (across ? loadAll() : loadFor(flags)) as { tickets: Ticket[]; places?: { root: string; tickets: Ticket[] }[] };
-    const { list, hidden, parked } = select(tickets, text);
-    const draw = (shown) => (flags.flat ? render.ticketTable(graph.rankByStatus(shown, tickets)) : render.listing(shown, tickets));
+    const { list, hidden, parked, held } = select(tickets, text);
+    const draw = (shown, cards) => (flags.flat
+      ? render.ticketTable(graph.rankByStatus(shown, tickets))
+      : render.listing(shown, tickets, held, cards));
 
     // Issues across projects print one group per project; any other listing is the one group loadFor headed.
     const groups = places ? places.map(({ root }) => list.filter((t) => t.root === root)) : [list];
     groups.forEach((shown, i) => {
       if (places) out(`${i ? '\n' : ''}${placeLine(places[i].root)}`);
-      out(draw(shown));
+      out(draw(shown, places ? (places[i].tickets as TicketList).groups : (tickets as TicketList).groups));
     });
     const note = hiddenNote(hidden, parked);
     if (list.length) out(`\n${list.length} of ${tickets.length}${note ? `, ${note}` : ''}.`);
@@ -46,6 +48,7 @@ const listing: Action = {
       total: tickets.length,
       hidden,
       parked,
+      held: held.length,
     });
     return 0;
   },
@@ -61,7 +64,9 @@ const labels: Action = {
   query: true,
   run({ query: text }) {
     const { tickets } = wantsIssues(text) ? loadAll() : load();
-    const { terms, list, hidden, parked } = select(tickets, text);
+    const { terms, list, hidden, parked: alone, held } = select(tickets, text);
+    // A held ticket counts as parked here: this view has no row to show its group on.
+    const parked = alone + held.length;
     const asked = new Set(terms.filter((t) => t.field === 'label').flatMap((t) => t.values));
     const counts = new Map();
     for (const t of list) for (const label of t.data.labels) if (!asked.has(label)) counts.set(label, (counts.get(label) || 0) + 1);

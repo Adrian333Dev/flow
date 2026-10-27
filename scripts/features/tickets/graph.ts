@@ -15,7 +15,11 @@ const { SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, NAMES } = statuses;
 const STATUS_RANK = statuses.RANK;
 import * as order from './rank.ts';
 import * as store from './store.ts';
-import type { Ticket } from './types.ts';
+import * as groupCards from './groups.ts';
+import type { Group } from './groups.ts';
+import type { Ticket, TicketList } from './types.ts';
+
+const { statusOf } = store;
 
 type Index = Map<string, Ticket>;
 
@@ -59,7 +63,7 @@ function hasOpenChildren(tickets: Ticket[], id: string) {
 function readyTickets(tickets: Ticket[]) {
   const index = indexById(tickets);
   return tickets.filter((t) =>
-    t.data.status === 'todo' && !hasOpenChildren(tickets, t.id) && unmetDeps(t, index).length === 0
+    statusOf(t) === 'todo' && !hasOpenChildren(tickets, t.id) && unmetDeps(t, index).length === 0
   );
 }
 
@@ -67,7 +71,7 @@ function readyTickets(tickets: Ticket[]) {
 function blockedTickets(tickets: Ticket[]) {
   const index = indexById(tickets);
   return tickets
-    .filter((t) => t.data.status === 'todo' && !hasOpenChildren(tickets, t.id))
+    .filter((t) => statusOf(t) === 'todo' && !hasOpenChildren(tickets, t.id))
     .map((t) => ({ ticket: t, unmet: unmetDeps(t, index) }))
     .filter((x) => x.unmet.length > 0);
 }
@@ -87,7 +91,7 @@ const rank = (list: Ticket[], pool?: Ticket[]) => {
 const rankByStatus = (list: Ticket[], pool?: Ticket[]) => {
   const index = indexById(pool || list);
   return [...list].sort((a, b) =>
-    (STATUS_RANK[a.data.status] ?? 99) - (STATUS_RANK[b.data.status] ?? 99) ||
+    (STATUS_RANK[statusOf(a)] ?? 99) - (STATUS_RANK[statusOf(b)] ?? 99) ||
     order.compareOrder(a, b, index));
 };
 
@@ -208,6 +212,48 @@ function flatten(nodes: Node[], depth = 0): { ticket: Ticket; depth: number }[] 
 }
 
 /**
+ * The ranked group a ticket is listed under, or null: the first ranked group,
+ * not parked, among its top ancestor's labels. A parent in a group takes its
+ * children with it, and a child stays where its parent sits.
+ */
+function placer(tickets: Ticket[], groups: Group[] = (tickets as TicketList).groups || []) {
+  const index = indexById(tickets);
+  const order = groupCards.ranked(groups).filter((g) => !g.data.parked);
+  return (t: Ticket): Group | null => {
+    const seen = new Set<string>();
+    let top = t;
+    for (let up = index.get(top.data.parent); up && !seen.has(up.id); up = index.get(top.data.parent)) {
+      seen.add(up.id);
+      top = up;
+    }
+    return order.find((g) => top.data.labels.includes(g.label)) || null;
+  };
+}
+
+/** `list` with each ranked group's tickets moved to the top, in group order. The order inside a group, and among the rest, stays. */
+function byPlacement(list: Ticket[], place: (t: Ticket) => Group | null) {
+  const at = (t: Ticket) => {
+    const g = place(t);
+    return g ? (g.data.rank as number) : Infinity;
+  };
+  return list.map((t, i) => ({ t, i, at: at(t) })).sort((a, b) => a.at - b.at || a.i - b.i).map((x) => x.t);
+}
+
+/** How many tickets carry the label, done of all, dropped ones left out. */
+function groupProgress(tickets: Ticket[], label: string) {
+  const members = tickets.filter((t) => t.data.labels.includes(label) && t.data.status !== 'dropped');
+  return { done: members.filter((t) => t.data.status === 'done').length, total: members.length };
+}
+
+/** Each parked group holding at least one ticket, with how many. */
+function holds(tickets: Ticket[], groups: Group[] = (tickets as TicketList).groups || []) {
+  return groups
+    .filter((g) => g.data.parked)
+    .map((g) => ({ group: g, held: tickets.filter((t) => t.held === g.label) }))
+    .filter((h) => h.held.length);
+}
+
+/**
  * What `flow next` shows, before any text is drawn.
  *
  * The tree is the work started: every in-progress ticket, and under it every
@@ -215,30 +261,34 @@ function flatten(nodes: Node[], depth = 0): { ticket: Ticket; depth: number }[] 
  * stops the walk, since nothing under it is being worked. `take` is the first
  * ticket in the tree that can be started, top down, so open work beats new;
  * failing that, the first ready ticket. The ready list is every ready ticket
- * outside the tree, in rank order, whole: the text cuts its rows.
+ * outside the tree, each ranked group's first, then rank order, whole: the
+ * text cuts its rows. A held ticket reads as parked, so it is in neither.
  */
 function nextView(tickets: Ticket[]) {
   const pool = new Map<string, Ticket>();
   const walk = (t: Ticket) => {
     if (pool.has(t.id)) return;
     pool.set(t.id, t);
-    for (const c of children(tickets, t.id)) if (c.data.status === 'todo' || IN_FLIGHT.has(c.data.status)) walk(c);
+    for (const c of children(tickets, t.id)) if (statusOf(c) === 'todo' || IN_FLIGHT.has(statusOf(c))) walk(c);
   };
-  for (const t of tickets) if (IN_FLIGHT.has(t.data.status)) walk(t);
+  for (const t of tickets) if (IN_FLIGHT.has(statusOf(t))) walk(t);
 
   const tree = forest([...pool.values()]);
   const ready = readyTickets(tickets);
   const readyIds = new Set(ready.map((t) => t.id));
-  const outside = rank(ready.filter((t) => !pool.has(t.id)), tickets);
+  const place = placer(tickets);
+  const outside = byPlacement(rank(ready.filter((t) => !pool.has(t.id)), tickets), place);
   const take = flatten(tree).find(({ ticket }) => readyIds.has(ticket.id))?.ticket || outside[0] || null;
 
   return {
     lastClosed: lastClosed(tickets),
     tree,
     ready: outside,
+    place,
     take,
     blocked: tree.length || outside.length ? [] : blockedTickets(tickets),
     parked: tickets.filter((t) => t.data.status === 'parked').length,
+    holds: holds(tickets),
     problems: hasProblems(check(tickets)),
   };
 }
@@ -352,4 +402,4 @@ function wouldCycle(tickets: Ticket[], ticketId: string, dep: string) {
 }
 
 export type { Node };
-export { SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, STATUS_RANK, indexById, unmetDeps, readyTickets, blockedTickets, hasOpenChildren, rank, rankByStatus, lastClosed, nextView, dependents, transitiveDependents, children, openChildren, progress, isUnder, forest, flatten, wouldOrphan, findCycles, check, hasProblems, wouldCycle };
+export { SATISFYING, LIVE, TERMINAL, OPEN, IN_FLIGHT, STATUS_RANK, indexById, unmetDeps, readyTickets, blockedTickets, hasOpenChildren, rank, rankByStatus, lastClosed, placer, byPlacement, groupProgress, holds, nextView, dependents, transitiveDependents, children, openChildren, progress, isUnder, forest, flatten, wouldOrphan, findCycles, check, hasProblems, wouldCycle };

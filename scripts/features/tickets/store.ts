@@ -33,6 +33,7 @@ import type { Ticket, TicketList } from './types.ts';
 import { HOME_WORD, offerWord, badWord, normalizeId, wordOf, idNumber, byId, idOfFolder, idOfRef, folderName, storedId, toIdList } from './ids.ts';
 import { toLabelList, toRank, now } from './fields.ts';
 import { CONTEXT } from './ticket-body.ts';
+import { readGroups, holder } from './groups.ts';
 
 // `was` is the id a ticket held before `flow tickets move` took it to another place,
 // or before a clash renumbered it, so the old id still finds it. `branch` is
@@ -154,16 +155,29 @@ const labelOf = (t) => t.dirName.replace(/^(?:[a-z]{2,8}-)?\d+-?/, '');
 
 /**
  * Every ticket in one place. The list carries the place's word as `prefix`,
- * so a caller holding the list can read an id typed without one.
+ * so a caller holding the list can read an id typed without one, and the
+ * place's `groups`. A todo or in-progress ticket carrying a parked group's
+ * label gets `held`, that group's label.
  */
 function readTickets(root) {
   const prefix = prefixOf(root);
-  const tickets: TicketList = Object.assign([] as Ticket[], { prefix, counter: readCounter(root) });
+  const groups = readGroups(recordsDir(root));
+  const tickets: TicketList = Object.assign([] as Ticket[], { prefix, counter: readCounter(root), groups });
   scanTicketDir(ticketsDir(root), root, prefix, tickets);
   scanTicketDir(archiveDir(root), root, prefix, tickets);
+  for (const t of tickets) {
+    if (t.data.status === 'todo' || t.data.status === 'in-progress') t.held = holder(t, groups);
+  }
   tickets.sort(byId);
   return tickets;
 }
+
+/**
+ * The status every list, query and `--json` record reads: `parked` while a
+ * parked group holds the ticket, else the stored one. The file keeps the
+ * stored status, so a revive changes the card alone.
+ */
+const statusOf = (t: Ticket) => (t.held ? 'parked' : t.data.status);
 
 function scanTicketDir(dir, root, prefix, out) {
   if (!fs.existsSync(dir)) return;
@@ -451,4 +465,4 @@ export { WORD, requireId } from './ids.ts';
 export { slugify, titleFrom, badTitle, toLabelList, badLabel, badActivity, today, now } from './fields.ts';
 export { hasPlan, planSteps, hasMap, mapQuestions, reportFiles, decisionFiles, contextSections, questionCount, taskCount, openWork, tickTask } from './ticket-body.ts';
 export { HOME_WORD, offerWord, badWord, wordOf, idOfFolder, normalizeId, idNumber, idOfRef, folderName, toIdList, CONTEXT };
-export { TICKET_KEYS, recordsDir, isHome, homeRoot, ticketsDir, archiveDir, prefixOf, labelOf, nameOf, COUNTER, readTickets, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber, historyFile, appendHistory, readHistory };
+export { TICKET_KEYS, recordsDir, isHome, homeRoot, ticketsDir, archiveDir, prefixOf, labelOf, nameOf, COUNTER, readTickets, statusOf, nextId, writeTicket, createTicket, findTicket, setStatus, move, moveFolder, remove, renumber, historyFile, appendHistory, readHistory };

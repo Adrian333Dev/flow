@@ -36,7 +36,9 @@ function checkTerms(terms, prefix: string) {
 /**
  * The tickets the query names. Done and dropped stay out unless the query
  * names a `status:` term, and `status:all` names every status. `hidden` counts
- * the done and dropped ones left out, `parked` the parked ones.
+ * the done and dropped ones left out, `parked` the ones parked alone, and
+ * `held` the ones a parked group holds, which a listing shows as the group's row.
+ * `status:` reads the effective status, so `status:parked` finds a held ticket.
  * `parent:<id>` names the ticket and everything under it, to any depth.
  */
 function select(tickets, text?: string) {
@@ -46,18 +48,19 @@ function select(tickets, text?: string) {
   const test = (list) => query.matcher(list, {
     word: (t, w) => search.matcher([w])(t),
     label: (t, v) => t.data.labels.includes(v),
-    status: (t, v) => v === 'all' || t.data.status === v,
+    status: (t, v) => v === 'all' || store.statusOf(t) === v,
     parent: (t, v) => t.id === v || graph.isUnder(t, v, index),
     filed: (t, v) => (v === 'yes') === Boolean(t.data.filed),
   });
-  if (query.has(terms, 'status')) return { terms, list: tickets.filter(test(terms)), hidden: 0, parked: 0 };
+  if (query.has(terms, 'status')) return { terms, list: tickets.filter(test(terms)), hidden: 0, parked: 0, held: [] };
   const everything = tickets.filter(test(terms));
-  const list = everything.filter((t) => OPEN_STATUSES.includes(t.data.status) && t.data.status !== 'parked');
+  const list = everything.filter((t) => OPEN_STATUSES.includes(store.statusOf(t)) && store.statusOf(t) !== 'parked');
   const parked = everything.filter((t) => t.data.status === 'parked').length;
-  return { terms, list, hidden: everything.length - list.length - parked, parked };
+  const held = everything.filter((t) => t.held);
+  return { terms, list, hidden: everything.length - list.length - parked - held.length, parked, held };
 }
 
-/** What a default listing left out: parked tickets, then done and dropped ones. */
+/** What a default listing left out: parked tickets, then done and dropped ones. A held ticket shows as its group's row instead. */
 function hiddenNote(hidden: number, parked: number) {
   const parts = [parked ? `${parked} parked` : '', hidden ? `${hidden} done or dropped` : ''].filter(Boolean);
   return parts.length ? `${parts.join(', ')} hidden: "status:all"` : '';

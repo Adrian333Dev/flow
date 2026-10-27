@@ -2,7 +2,7 @@
 
 Every `flow` command (`fw` for short) and its flags. `flow --help` lists them in the terminal, `flow tickets --help` lists one noun's, and `flow tickets new --help` shows one command.
 
-**Commands sit under a noun**: `tickets`, `notes`, `findings`, `audit` and `settings`. A noun typed alone lists, so `flow tickets` is the ticket table. `flow next` and the setup commands stay bare, and a bare `flow` prints the help.
+**Commands sit under a noun**: `tickets`, `groups`, `notes`, `findings`, `audit` and `settings`. A noun typed alone lists, so `flow tickets` is the ticket table. `flow next` and the setup commands stay bare, and a bare `flow` prints the help.
 
 **A query follows `--`, in double quotes**: `flow notes -- "cache"`. The `--` keeps a query such as `new` from reading as a command. A query the shell split into several words is refused, naming the quoted form.
 
@@ -53,6 +53,11 @@ $ flow tickets start shop-2 --json
   - [`flow findings`](#flow-findings): one row per finding, narrowed and ranked by a query
   - [`flow findings edit`](#flow-findings-edit): rename a finding and rewrite the paths citing it, or set its labels
 - [Ticket status](#ticket-status): move a ticket from one stage to the next
+- [Groups](#groups): a label with a card, to rank a set of tickets or park it with one reason
+  - [`flow groups`](#flow-groups): the groups with open tickets, each with its done count
+  - [`flow groups rank`](#flow-groups-rank): put a group before or after another
+  - [`flow groups park`](#flow-groups-park): hold every open ticket with the label
+  - [`flow groups revive`](#flow-groups-revive): let a parked group's tickets show again
 - [Settings](#settings): turn Flow's own settings on or off
 - [Audit](#audit): read back what Claude Code did in past sessions
   - [`flow audit`](#flow-audit): every session, with its totals
@@ -223,7 +228,7 @@ Each session opens on this screen, so it prints only what the next step needs.
 
 **`in progress` shows each ticket in progress with every open child under it, to any depth.** A parent shows how many of its children are done, `0/2`. A started child sorts before its todo siblings. A child waiting on another ticket says what blocks it.
 
-**`ready` holds the tickets that could start, outside the tree.** It shows 3, then `and N more (flow next --all)`. A ticket here is its name and labels. Parked tickets are a count, with no reasons: `flow tickets -- "status:parked"` shows them.
+**`ready` holds the tickets that could start, outside the tree.** It shows 3, then `and N more (flow next --all)`. A ticket here is its name and labels, under the label of its ranked [group](#groups). Parked tickets are a count, with no reasons: `flow tickets -- "status:parked"` shows them. Each parked group is a count too: `2 held by post-v1`.
 
 **`take:` names the ticket to start.** It is the first ticket in the tree, from the top, that could start, else the first ready one. A blocked ticket is never named, and neither is one in progress, since a running session owns those.
 
@@ -636,6 +641,7 @@ now ready:
 - starting a ticket whose waits have not reached `done`;
 - starting a parent while one of its children is open;
 - closing a parent while one of its children is open;
+- starting a ticket a parked [group](#groups) holds;
 - `flow tickets park` without `--reason`.
 
 `--force` overrides all but the last.
@@ -657,6 +663,96 @@ shop-4-safari-cookie  in-progress → parked
       reason: waiting on a Safari machine
 
 revive with: flow tickets start shop-4
+```
+
+## Groups
+
+A group is a label with a card, `.flow/groups/<label>.md`. Every ticket carrying the label belongs to it, so a ticket gets no new field. The card gives the group a rank and a park state:
+
+```md
+---
+title: post-v1
+parked: "After release 1: the board comes first"
+---
+```
+
+A ranked group's card holds `rank: 1000` instead, and `group_by: label` splits a group by its tickets' other labels.
+
+**A card is made on purpose**, by the first `flow groups rank` or `flow groups park` on a label. A label no ticket carries is refused, naming the labels in use. Delete the card and the group is a plain label again. `flow-issue` is a group with no card, built into Flow.
+
+**A ranked group heads its tickets** in `flow next` and `flow tickets`, before every other ticket. A ticket sits under its first ranked group, and a child sits where its parent sits. An unranked group changes no order.
+
+**A parked group holds every open ticket carrying its label**, whatever its other labels. The ticket's file keeps its status. Every list reads a held ticket as `parked`, so it is never ready and never named by `take:`. A held ticket in progress is held too.
+
+```console
+$ flow next
+shop  ~/code/shop
+ready (3)
+  v1
+    shop-1-budget-page  feature,v1
+  shop-4-search-bar     feature
+  shop-5-safari-cookie  bug
+
+take: shop-1-budget-page
+2 held by post-v1
+
+$ flow tickets get shop-2
+shop-2-dark-mode
+Dark mode: a theme switch
+status: todo (held by post-v1)   parent: -
+```
+
+### `flow groups`
+
+The groups with an open ticket: the ranked ones first, then the rest by label. Each shows its tickets done of all, dropped ones left out, and a parked one shows how many it holds and the first words of its reason. A group with nothing open hides until a ticket arrives.
+
+```console
+$ flow groups
+shop  ~/code/shop
+v1          0/1
+flow-issue  0/1  unranked
+post-v1     0/2  parked, 2 held, After release 1: the board comes first
+```
+
+- **`-p`, `--project <prefix>`**: another project's groups, or `home`'s.
+
+### `flow groups rank`
+
+`flow groups rank <label> --first|--last|--before <label>|--after <label>`: put a group among the ranked ones, as [`flow tickets rank`](#flow-tickets-rank) places a ticket. It makes the card when there is none. A neighbour must be ranked already, so the first group goes in with `--first`.
+
+```console
+$ flow groups rank v1 --first
+v1  first
+```
+
+### `flow groups park`
+
+`flow groups park <label> --reason "<why>"`: hold every open ticket with the label, the reason written once on the card. It makes the card when there is none, and lists any ticket in progress it now holds.
+
+```console
+$ flow groups park post-v1 --reason "After release 1: the board comes first"
+post-v1 parked, holding 2 tickets
+      reason: After release 1: the board comes first
+
+revive with: flow groups revive post-v1
+```
+
+**Starting a held ticket refuses**, naming the group. `--force` starts it anyway.
+
+```console
+$ flow tickets start shop-2
+flow: shop-2 is held by the parked group post-v1. Bring the group back with: flow groups revive post-v1
+  Or start it anyway with: flow tickets start shop-2 --force
+```
+
+### `flow groups revive`
+
+`flow groups revive <label>`: clear the park on the card. Each ticket shows again at the status its file kept, unless another parked group still holds it, which the output names.
+
+```console
+$ flow groups revive post-v1
+post-v1 revived, 2 tickets back
+      cleared reason: After release 1: the board comes first
 ```
 
 ## Settings

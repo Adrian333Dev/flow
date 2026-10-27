@@ -7,9 +7,14 @@
 
 import * as graph from './graph.ts';
 import * as store from './store.ts';
-import type { Ticket } from './types.ts';
+import * as groupCards from './groups.ts';
+import type { Ticket, TicketList } from './types.ts';
 
-/** One ticket. `index` is `graph.indexById(tickets)`, passed by a caller printing many. */
+/**
+ * One ticket. `index` is `graph.indexById(tickets)`, passed by a caller printing
+ * many. `status` is the effective one: `parked` while `heldBy` names the parked
+ * group holding it. `groups` are its labels that are groups.
+ */
 function record(t: Ticket, tickets: Ticket[], index = graph.indexById(tickets)) {
   const d = t.data;
   return {
@@ -17,9 +22,11 @@ function record(t: Ticket, tickets: Ticket[], index = graph.indexById(tickets)) 
     name: store.nameOf(t),
     title: d.title,
     description: d.description,
-    status: d.status,
+    status: store.statusOf(t),
+    heldBy: t.held || '',
     activity: d.activity,
     labels: d.labels,
+    groups: groupCards.groupsOf(t, (tickets as TicketList).groups || []),
     parent: d.parent,
     deps: d.deps,
     rank: typeof d.rank === 'number' ? d.rank : null,

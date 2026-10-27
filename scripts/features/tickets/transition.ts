@@ -65,6 +65,14 @@ function refuseUnlessAllowed(t: Ticket, tickets: Ticket[], from: string, status:
     );
   }
 
+  // A ticket started under a parked group would be work `flow next` never shows.
+  if (status === 'in-progress' && t.held && !force) {
+    throw new FlowError(
+      `${t.id} is held by the parked group ${t.held}. Bring the group back with: flow groups revive ${t.held}\n` +
+      `  Or start it anyway with: ${verb} --force`
+    );
+  }
+
   const entering = (from === 'todo' || from === 'parked') && status !== 'todo' && status !== 'parked';
 
   // Starting a blocked ticket refuses rather than warns. A warning is a line of

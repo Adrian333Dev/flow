@@ -11,6 +11,7 @@ import * as paths from './shared/paths.ts';
 import * as cli from './shared/cli.ts';
 import board from './commands/board.ts';
 import tickets from './commands/tickets.ts';
+import groups from './commands/groups.ts';
 import notes from './commands/notes.ts';
 import findings from './commands/findings.ts';
 import install from './commands/install.ts';
@@ -50,7 +51,7 @@ const SECTIONS = [
 try {
   process.exitCode = cli.dispatch(process.argv.slice(2), {
     commands,
-    groups: { tickets, notes, findings, audit, settings: settingsCommand, scorecard },
+    groups: { tickets, groups, notes, findings, audit, settings: settingsCommand, scorecard },
     check: (_, flags) => {
       paths.useRoot(flags.root);
     },
