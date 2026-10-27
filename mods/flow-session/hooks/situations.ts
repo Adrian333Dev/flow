@@ -33,8 +33,10 @@ const commandOf = (call: Call) => (call.tool === 'Bash' && typeof call.input.com
 const nameOf = (path: string) => path.slice(path.lastIndexOf('/') + 1)
 const touches = (call: Call) => ['Read', 'Edit', 'Write'].includes(call.tool) && pathOf(call) !== ''
 const markdown = (call: Call) => touches(call) && pathOf(call).endsWith('.md')
+const code = (call: Call) =>
+  touches(call) && /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py|rb|go|rs|java|kt|swift|c|h|cc|cpp|hpp|cs|php|sh|bash|lua|svelte|vue|scala|ex|exs|dart|sql)$/.test(pathOf(call))
 /** Every guide an entry sends, in Flow's `references/`. */
-const GUIDES = ['style.md', 'write-loaded-files.md', 'write-rules.md', 'write-spec.md', 'write-tickets.md', 'knowledge.md'] as const
+const GUIDES = ['style.md', 'write-loaded-files.md', 'write-rules.md', 'write-spec.md', 'write-tickets.md', 'knowledge.md', 'write-code.md'] as const
 type Guide = (typeof GUIDES)[number]
 const guides = (...names: Guide[]): Send[] => names.map((name) => ({ tool: 'Read', path: `references/${name}` }))
 const guideWhy = (what: string) => () => `Guide for ${what}.`
@@ -90,6 +92,12 @@ export const ENTRIES: readonly Entry[] = [
     when: markdown,
     send: () => guides('style.md'),
     why: guideWhy('markdown'),
+  },
+  {
+    id: 'code',
+    when: code,
+    send: () => guides('write-code.md'),
+    why: guideWhy('code'),
   },
   {
     id: 'command',

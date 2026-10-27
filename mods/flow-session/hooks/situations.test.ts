@@ -18,11 +18,16 @@ describe('entryFor', () => {
     expect(entryFor(edit('/w/docs/spec/rules.md'))?.id).toBe('spec')
     expect(entryFor(edit('/w/docs/manual/restart.md'))?.id).toBe('markdown')
     expect(entryFor(bash('cd x && flow audit'))?.id).toBe('command')
+    expect(entryFor(edit('/w/mods/flow-session/hooks/window.ts'))?.id).toBe('code')
+    expect(entryFor(read('/w/scripts/flow.js'))?.id).toBe('code')
+    expect(entryFor(read('/w/app/main.py'))?.id).toBe('code')
   })
 
-  test('leaves code, a guide read, bare ticket commands and a help call alone', () => {
-    expect(entryFor(edit('/w/mods/flow-session/hooks/window.ts'))).toBeUndefined()
+  test('leaves data files, a guide read, bare ticket commands and a help call alone', () => {
+    expect(entryFor(edit('/w/scripts/package.json'))).toBeUndefined()
+    expect(entryFor(read('/w/a.yaml'))).toBeUndefined()
     expect(entryFor(read('/h/.flow/references/style.md'))).toBeUndefined()
+    expect(entryFor(read('/h/.flow/references/write-code.md'))).toBeUndefined()
     expect(entryFor(bash('flow tickets start fw-284 --activity build'))).toBeUndefined()
     expect(entryFor(bash('flow audit --help'))).toBeUndefined()
     expect(entryFor({ tool: 'Grep', input: { pattern: 'x', path: '/w/a.md' } })).toBeUndefined()
@@ -100,8 +105,15 @@ describe('planFor', () => {
     expect(sent(plan)).toEqual(['references/style.md', 'references/write-loaded-files.md', 'references/write-rules.md', 'references/write-spec.md'])
   })
 
+  test('a code file gets the code guide once a window, never per file', () => {
+    const plan = planFor([read('/w/a.ts'), read('/w/b.ts')], new Set())
+    expect(sent(plan)).toEqual(['references/write-code.md'])
+    expect(plan.added[0]!.header).toBe(`${HEADER} Guide for code.`)
+    expect(planFor([edit('/w/a.ts')], new Set(['read:references/write-code.md']))).toEqual({ held: [], added: [], notes: new Map() })
+  })
+
   test('an edit with a guide missing is held back with every call after it, the guide read in its place', () => {
-    const plan = planFor([read('/w/a.ts'), edit('/w/docs/manual/restart.md'), bash('npm test')], new Set())
+    const plan = planFor([read('/w/a.ts'), edit('/w/docs/manual/restart.md'), bash('npm test')], new Set(['read:references/write-code.md']))
     expect(plan.held).toEqual([1, 2])
     expect(sent(plan)).toEqual(['references/style.md'])
     expect(plan.added[0]!.header).toBe(

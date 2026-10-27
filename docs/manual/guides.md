@@ -22,9 +22,10 @@ The first entry that matches wins. Every guide sits in `~/.flow/references/`.
 - **`loaded-file`**: a `.md` in a skill folder, `.claude/commands/`, `.claude/agents/`, `.claude/output-styles/`, a `references/` folder, a mod's `prompts/` → `style.md`, `write-loaded-files.md`
 - **`spec`**: a `.md` in `docs/spec/` → `style.md`, `write-spec.md`
 - **`markdown`**: any other `.md`, `docs/manual/` included → `style.md`
+- **`code`**: a code file (`.ts`, `.js`, `.py`, `.sh` and other source files) → `write-code.md`
 - **`command`**: a `Bash` call running `flow notes`, `flow audit` or `util <group>` → that group's `--help`
 
-Code files match no entry, `.mcp.json` aside. A read of a guide itself brings nothing.
+Data files such as `.json` and `.yaml` match no entry, `.mcp.json` aside. A read of a guide itself brings nothing.
 
 ## A read of a matched file
 
@@ -34,7 +35,7 @@ The mod adds a `Read` of each missing guide after the agent's own calls. Its res
 [Added by Flow] Guide for spec files.
 ```
 
-The other entries say `Guide for a ticket's files.`, `Guide for rule files.`, `Guide for files an agent loads.` and `Guide for markdown.` in its place. The rule `flow-added-calls` in `CLAUDE.md` tells the agent what the marker means: act on the call, never mention it to you, never count it as its own.
+The other entries say `Guide for a ticket's files.`, `Guide for rule files.`, `Guide for files an agent loads.`, `Guide for markdown.` and `Guide for code.` in its place. The rule `flow-added-calls` in `CLAUDE.md` tells the agent what the marker means: act on the call, never mention it to you, never count it as its own.
 
 ## An edit or write of a matched file
 

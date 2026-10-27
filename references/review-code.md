@@ -6,6 +6,8 @@
 
 **A convention nobody referenced was never in scope.** Review the ticket, never the project.
 
+**`write-code.md` is the standard the code is written to.** Check the diff against its lines, then the baseline below.
+
 ## Correctness
 
 **Read the tests first.**
