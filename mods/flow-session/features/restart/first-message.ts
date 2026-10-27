@@ -4,7 +4,7 @@
  * The mod builds the new window from the disk, never the old agent's memory of it: an opening of
  * instructions, the tickets in flight with their `context.md`, what the agent chose to load, the
  * agent's note, and the user's messages it never answered, each whole. The loads are `Read`
- * and `Skill` calls with their results (hooks/loads.ts), so the terminal draws them collapsed and
+ * and `Skill` calls with their results (loads.ts), so the terminal draws them collapsed and
  * the agent edits without reading the files again.
  */
 import type { Tracked } from '../../shared/types'

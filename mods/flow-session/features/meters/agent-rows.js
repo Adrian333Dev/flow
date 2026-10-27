@@ -7,7 +7,7 @@
 
 const MINUTE = 60
 
-// Copied from hooks/meters.ts (MODEL_COLOURS, EFFORT_COLOURS): this file is plain Node and cannot import TypeScript.
+// Copied from meters.ts (MODEL_COLOURS, EFFORT_COLOURS): this file is plain Node and cannot import TypeScript.
 const MODEL_COLOURS = [
   [/opus/, '#f2440c'],
   [/sonnet/, '#d97757'],

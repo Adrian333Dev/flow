@@ -2,8 +2,8 @@
  * window.ts: builds the restarted window from the disk and the old conversation.
  *
  * Reads the files and skills the agent named, the tickets the session works and the `context.md`
- * sections of their open questions, and the guides those files need (hooks/situations.ts), and
- * hands the parts to hooks/first-message.ts. The old
+ * sections of their open questions, and the guides those files need (features/guides/situations.ts), and
+ * hands the parts to first-message.ts. The old
  * window's turns stay in the session's transcript, where `flow audit` reads them.
  */
 import type { EngineInterface } from 'claude-code'
@@ -120,7 +120,7 @@ async function ticketLoads($: EngineInterface, entries: readonly Entry[], where:
 }
 
 /**
- * The guides the window's files need (hooks/situations.ts), each once, whole, from the Flow home.
+ * The guides the window's files need (features/guides/situations.ts), each once, whole, from the Flow home.
  * A guide the window already loads whole is left out, and so is one missing on disk.
  */
 async function guideLoads($: EngineInterface, files: readonly Loaded[], home: string): Promise<Loaded[]> {
@@ -140,7 +140,7 @@ async function guideLoads($: EngineInterface, files: readonly Loaded[], home: st
 }
 
 /**
- * The loads with each skill's wiki text after it (hooks/skill-wiki.ts), as `skill.prompt` would add
+ * The loads with each skill's wiki text after it (features/guides/skill-wiki.ts), as `skill.prompt` would add
  * it: a restart writes the `Skill` call itself, so the event never fires. Held: the window's whole
  * reads, and the text added before.
  */

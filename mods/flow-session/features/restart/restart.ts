@@ -29,7 +29,6 @@ let sizeBefore: number | undefined
 // Why the compaction was skipped, when the window could not be built. `restartCompact` sets it, `runRestart` reads it.
 let stopped: string | undefined
 
-/** The `restart` tool and the `/restart` command. */
 export async function registerRestart($: EngineInterface): Promise<void> {
   await $.tool.register({
     name: 'restart',
@@ -80,13 +79,11 @@ export async function askForRestart($: EngineInterface, args: string): Promise<v
     })
 }
 
-/** What `/restart` answers. */
 export async function restartCommand($: EngineInterface, args: string): Promise<string> {
   await askForRestart($, args)
   return 'Restarting: the agent writes its note.'
 }
 
-/** The note the agent passed, trimmed. */
 function readMessage(e: object): string {
   const input = e as { message?: unknown }
   return typeof input.message === 'string' ? input.message.trim() : ''

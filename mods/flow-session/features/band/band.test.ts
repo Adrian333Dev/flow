@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
+import { flush } from '../../shared/testing'
 
 const TICKET = '---\nid: 9\ntitle: band-test\nstatus: in-progress\nactivity: build\n---\n\n## Tasks\n\n- [x] one\n- [ ] two\n'
 const ENTRY = { size: 0, mtimeMs: 0, isLink: false }
@@ -169,7 +170,7 @@ describe('the Restart button', () => {
     return logged
   }
   /** A press runs on its own after the click returns. */
-  const settle = () => new Promise((done) => setTimeout(done, 30))
+  const settle = flush
   const sized = (tokens: number) => ({ context: { tokens, window: 200000 }, rateLimits: [], changed: ['context' as const] })
   const begin = (turnId: string, agentId?: string) => ({ text: '', turnId, ...(agentId ? { agentId } : {}) })
   const finish = (turnId: string, reason: 'answer' | 'aborted' = 'answer', agentId?: string) => ({

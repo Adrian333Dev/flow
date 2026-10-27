@@ -6,6 +6,7 @@
  * `DESIGN` while `## Questions` has an open box, else `BUILD` while `## Tasks` has one,
  * else the status.
  */
+import { frontmatter } from './frontmatter'
 
 export type Ticket = {
   id: string
@@ -42,22 +43,25 @@ function section(body: string, heading: string): string | undefined {
   return (end === -1 ? rest : rest.slice(0, end)).join('\n')
 }
 
-/** The frontmatter fields and the body after them. */
+/** The frontmatter fields, unquoted, and the body after them. */
 function split(text: string): { fields: Record<string, string>; body: string } {
-  const lines = text.split('\n')
-  if (lines[0]?.trim() !== '---') return { fields: {}, body: text }
-  const end = lines.findIndex((line, i) => i > 0 && line.trim() === '---')
-  if (end === -1) return { fields: {}, body: text }
-  const fields: Record<string, string> = {}
-  for (const line of lines.slice(1, end)) {
-    const at = line.indexOf(':')
-    if (at > 0) fields[line.slice(0, at).trim()] = line.slice(at + 1).trim().replace(/^["']|["']$/g, '')
-  }
-  return { fields, body: lines.slice(end + 1).join('\n') }
+  const { fields, body } = frontmatter(text)
+  const unquoted = Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, value.replace(/^["']|["']$/g, '')]))
+  return { fields: unquoted, body }
 }
 
 const isOpen = (count?: Count) => count !== undefined && count.done < count.total
 const show = (count?: Count) => (count ? `${count.done}/${count.total}` : '')
+
+/** The `ticketPrefix` in the text of a `.flow/settings.json`, or undefined when it holds none. */
+export function ticketPrefix(settings: string | undefined): string | undefined {
+  try {
+    const word = (JSON.parse(settings ?? '') as { ticketPrefix?: unknown }).ticketPrefix
+    return typeof word === 'string' && /^[a-z]{2,8}$/.test(word) ? word : undefined
+  } catch {
+    return undefined
+  }
+}
 
 /** The full id of a stored one: `9` is `fw-9` in a project whose prefix is `fw`; `fw-9` and `home-3` are as they are. */
 const fullId = (stored: string, prefix?: string): string => (/^\d+$/.test(stored) && prefix ? `${prefix}-${Number(stored)}` : stored)

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { parseNote, rows, ticketPrefix, titleOf } from './notes'
+import { parseNote, rows, titleOf } from './notes'
 
 const file = (labels: string, project: string, body: string) =>
   `---\ndate: 2026-10-16\nlabels: [${labels}]\nproject: ${project}\n---\n\n${body}\n`
@@ -27,16 +27,6 @@ describe('parseNote', () => {
   test('reads quoted and empty labels', () => {
     expect(parseNote('/p', 1, file('"a", \'b\'', 'x', 'text')).labels).toEqual(['a', 'b'])
     expect(parseNote('/p', 1, file('', 'x', 'text')).labels).toEqual([])
-  })
-})
-
-describe('ticketPrefix', () => {
-  test('reads the prefix of a settings file, and nothing from a missing or odd one', () => {
-    expect(ticketPrefix('{"ticketPrefix":"fw"}')).toBe('fw')
-    expect(ticketPrefix(undefined)).toBeUndefined()
-    expect(ticketPrefix('not json')).toBeUndefined()
-    expect(ticketPrefix('{}')).toBeUndefined()
-    expect(ticketPrefix('{"ticketPrefix":"Flow-Dev"}')).toBeUndefined()
   })
 })
 

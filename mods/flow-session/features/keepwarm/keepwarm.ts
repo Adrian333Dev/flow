@@ -52,7 +52,6 @@ export function keepWarmSettings(globalText?: string, localText?: string): { lea
   return { lead: lead > 0 ? lead * MINUTE : LEAD, maxIdle: maxIdle > 0 ? maxIdle * HOUR : MAX_IDLE }
 }
 
-/** What `planOf` decides from. */
 export type Facts = {
   now: number
   warm: Warm
@@ -135,7 +134,6 @@ export function cancel(): void {
   timer = undefined
 }
 
-/** The newest request at the transcript's end, or undefined. */
 async function requestOf($: EngineInterface, transcript: string): Promise<Request | undefined> {
   const tail = await transcriptTail($, transcript)
   return tail === undefined ? undefined : lastRequest(tail)
@@ -207,7 +205,6 @@ export function tick($: EngineInterface, deps: Deps): Promise<void> {
   return run.catch((error) => $.ui.log(`keep-warm could not plan: ${reasonOf(error)}`))
 }
 
-/** `tick` with the session's own facts. */
 export async function replan($: EngineInterface): Promise<void> {
   await tick($, depsOf($))
 }
@@ -229,7 +226,6 @@ export async function warmTranscript($: EngineInterface, transcript: string): Pr
   await noteTranscript($, transcript).catch(() => undefined)
 }
 
-/** `/keepwarm` with the session's own facts. */
 export async function keepWarm($: EngineInterface, args: string): Promise<string> {
   return keepWarmCommand($, depsOf($), args)
 }
@@ -263,7 +259,6 @@ export async function noteBroken($: EngineInterface): Promise<void> {
   await update($, warm, (w) => ({ ...w, brokenAt: at }))
 }
 
-/** What `/keepwarm` and `/keepwarm status` say. */
 async function status($: EngineInterface, deps: Deps): Promise<string> {
   const f = await factsOf($, deps)
   const plan = planOf(f)

@@ -29,37 +29,28 @@ export function apply(entries: readonly Entry[], ticket: Ticket, lights: boolean
   return [next, ...entries.filter((entry) => entry !== kept && !entry.isDone)]
 }
 
-/**
- * The badge the session is working on: the leftmost open one, which is the one started last.
- * When it closes, the next one started before it takes over. A closed badge is never current.
- */
 export const currentId = (entries: readonly Entry[]): string | undefined => entries.find((entry) => !entry.isDone)?.id
 
-/** Marks `id` as acting, and every other badge as not. */
 export const setActing = (entries: readonly Entry[], id: string | undefined): Entry[] =>
   entries.map((entry) => {
     const acting = entry.id === id && !entry.isDone
     return entry.acting === acting ? entry : { ...entry, acting }
   })
 
-/** One badge as laid out: both parts' text with their padding, ready to draw. */
 export type Badge = { id: string; name: string; status: string; isDone: boolean; acting: boolean }
 
 export type Layout = {
-  /** The badges that fit, the first on the left. */
   badges: Badge[]
   folded: number
   issues: string
-  /** True when the Restart button shows before the issue count. */
   restart: boolean
   /** Blank cells between the last badge (or `+N`) and the button or issue count. */
   space: number
 }
 
-/** Blank cells between two badges. */
 export const GAP = 1
 
-/** The Restart button's label, which sits between 2 corners like a badge, and the blank cells between it and the issue count. */
+/** The label sits between 2 corners, like a badge. */
 export const RESTART = ' Restart '
 export const RESTART_CELLS = RESTART.length + 2
 export const RESTART_GAP = 2
@@ -155,5 +146,4 @@ export function waveShares(length: number, frame: number): number[] {
  */
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 
-/** The spinner's cell at `frame`, a step each frame. */
 export const spinnerAt = (frame: number): string => SPINNER[frame % SPINNER.length] as string

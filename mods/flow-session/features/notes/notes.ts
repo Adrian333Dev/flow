@@ -10,7 +10,9 @@
  */
 import type { EngineInterface } from 'claude-code'
 import { mention } from '../drag/drag'
+import { frontmatter } from '../../shared/frontmatter'
 import { flowHome, readText } from '../../shared/home'
+import { ticketPrefix } from '../../shared/ticket'
 
 export type Note = {
   path: string
@@ -32,20 +34,6 @@ const MAX_NOTES = 8
 
 const unquote = (value: string) => value.trim().replace(/^(["'])(.*)\1$/, '$2')
 
-/** A note's header and text. The header holds `date`, `labels: [a, b]` and `project`. */
-function split(raw: string): { header: Map<string, string>; body: string } {
-  const header = new Map<string, string>()
-  const lines = raw.replace(/^﻿/, '').split('\n')
-  if (lines[0]?.trim() !== '---') return { header, body: raw.trim() }
-  const end = lines.findIndex((line, i) => i > 0 && line.trim() === '---')
-  if (end === -1) return { header, body: raw.trim() }
-  for (const line of lines.slice(1, end)) {
-    const at = line.indexOf(':')
-    if (at > 0) header.set(line.slice(0, at).trim(), line.slice(at + 1).trim())
-  }
-  return { header, body: lines.slice(end + 1).join('\n').trim() }
-}
-
 /** The words before the first `: ` of the first line, else the whole first line. */
 export function titleOf(body: string): string {
   const line = (body.split('\n').find((l) => l.trim()) ?? '').trim()
@@ -53,22 +41,13 @@ export function titleOf(body: string): string {
   return (cut?.[1]?.trim() || line)
 }
 
-/** The `ticketPrefix` in the text of a `.flow/settings.json`, or undefined when it holds none. */
-export function ticketPrefix(settings: string | undefined): string | undefined {
-  try {
-    const word = (JSON.parse(settings ?? '') as { ticketPrefix?: unknown }).ticketPrefix
-    return typeof word === 'string' && /^[a-z]{2,8}$/.test(word) ? word : undefined
-  } catch {
-    return undefined
-  }
-}
-
 /** One note file. `project` is the prefix its header names, `home` where it names none. */
 export function parseNote(path: string, changed: number, raw: string): Note {
-  const { header, body } = split(raw)
-  const inner = (header.get('labels') ?? '').replace(/^\[|\]$/g, '')
+  const { fields, body: text } = frontmatter(raw)
+  const body = text.trim()
+  const inner = (fields.labels ?? '').replace(/^\[|\]$/g, '')
   const labels = inner.split(',').map((l) => unquote(l).toLowerCase()).filter(Boolean)
-  const project = unquote(header.get('project') ?? '') || 'home'
+  const project = unquote(fields.project ?? '') || 'home'
   return {
     path,
     changed,

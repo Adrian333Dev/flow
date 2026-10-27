@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { idsIn, idsInPath, openHandles, readTicket, startedIn, target } from './ticket'
+import { idsIn, idsInPath, openHandles, readTicket, startedIn, target, ticketPrefix } from './ticket'
 
 const ticket = (fields: string, body = '') => `---\nid: fw-9\ntitle: band-test\nstatus: in-progress\n${fields}---\n\n${body}`
 
@@ -129,5 +129,15 @@ describe('openHandles', () => {
 
   test('a ticket with no questions has none', () => {
     expect(openHandles(ticket('', '## Tasks\n\n- [ ] a'))).toEqual([])
+  })
+})
+
+describe('ticketPrefix', () => {
+  test('reads the prefix of a settings file, and nothing from a missing or odd one', () => {
+    expect(ticketPrefix('{"ticketPrefix":"fw"}')).toBe('fw')
+    expect(ticketPrefix(undefined)).toBeUndefined()
+    expect(ticketPrefix('not json')).toBeUndefined()
+    expect(ticketPrefix('{}')).toBeUndefined()
+    expect(ticketPrefix('{"ticketPrefix":"Flow-Dev"}')).toBeUndefined()
   })
 })

@@ -25,7 +25,7 @@ import { failureFiles, openIssues } from './issues'
 import { DEFAULT_LOOK, parseLook, type Look } from './look'
 import { restartOffered } from '../meters/meters-row'
 import { isExpired, isRecordKey, makeRecord, parseRecord, recordKey } from './record'
-import { idsIn, idsInPath, readTicket, startedIn, target } from '../../shared/ticket'
+import { idsIn, idsInPath, readTicket, startedIn, target, ticketPrefix } from '../../shared/ticket'
 
 const issues = atom({ plugin: 'flow-session', key: 'issues' } as const, 0)
 const frame = atom({ plugin: 'flow-session', key: 'frame' } as const, 0)
@@ -73,13 +73,10 @@ async function namedBy($: EngineInterface, tool: string, call: object): Promise<
  */
 async function prefixOf($: EngineInterface): Promise<string | undefined> {
   const root = await $.session.root()
-  const valid = (word: unknown): word is string => typeof word === 'string' && /^[a-z]{2,8}$/.test(word) && word !== 'home'
-  try {
-    const saved = (JSON.parse((await readText($, `${root}/.flow/settings.json`)) ?? '{}') as { ticketPrefix?: unknown }).ticketPrefix
-    if (valid(saved)) return saved
-  } catch {
-    // A settings file that does not parse falls back to the folder's word, as the scripts do.
-  }
+  const valid = (word: string | undefined): word is string => word !== undefined && /^[a-z]{2,8}$/.test(word) && word !== 'home'
+  // A settings file that does not parse falls back to the folder's word, as the scripts do.
+  const saved = ticketPrefix(await readText($, `${root}/.flow/settings.json`))
+  if (valid(saved)) return saved
   const letters = (root.split('/').filter(Boolean).pop() ?? '').toLowerCase().replace(/[^a-z]/g, '')
   const word = letters.length <= 8 ? letters : letters.slice(0, 3)
   return valid(word) ? word : 'flow'
@@ -117,7 +114,6 @@ async function openTicket($: EngineInterface, id: string, atWord: boolean): Prom
   if (result.exitCode !== 0) $.ui.log(`opening ${id} failed: ${result.stderr.trim() || `code exited ${result.exitCode}`}`)
 }
 
-/** Reads the ticket again from its file and applies it to the band. */
 async function refresh($: EngineInterface, id: string, lights: boolean): Promise<void> {
   const folder = await folderOf($, id)
   const text = folder ? await readText($, `${folder}/ticket.md`) : undefined
@@ -176,7 +172,6 @@ async function pointWave($: EngineInterface): Promise<void> {
   await runWave($)
 }
 
-/** Puts the real band back and redraws. */
 async function clearMock($: EngineInterface): Promise<void> {
   mock = undefined
   mockActing = false

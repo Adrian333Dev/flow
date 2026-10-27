@@ -18,7 +18,7 @@ describe('entryFor', () => {
     expect(entryFor(edit('/w/docs/spec/rules.md'))?.id).toBe('spec')
     expect(entryFor(edit('/w/docs/manual/restart.md'))?.id).toBe('markdown')
     expect(entryFor(bash('cd x && flow audit'))?.id).toBe('command')
-    expect(entryFor(edit('/w/mods/flow-session/hooks/window.ts'))?.id).toBe('code')
+    expect(entryFor(edit('/w/mods/flow-session/features/restart/window.ts'))?.id).toBe('code')
     expect(entryFor(read('/w/scripts/flow.js'))?.id).toBe('code')
     expect(entryFor(read('/w/app/main.py'))?.id).toBe('code')
   })

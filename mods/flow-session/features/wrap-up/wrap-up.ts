@@ -71,7 +71,6 @@ export function wrapUpLine(before: number, now: number, limit: number, lines: Li
   return undefined
 }
 
-/** A request's context size: what it sent fresh, read from the cache and wrote to it. */
 export const sizeOf = (usage: { input_tokens: number; cache_read_input_tokens: number; cache_creation_input_tokens: number }): number =>
   usage.input_tokens + usage.cache_read_input_tokens + usage.cache_creation_input_tokens
 
@@ -94,7 +93,6 @@ export async function wrapUp($: EngineInterface): Promise<string | undefined> {
   return `${line}\n\n${await restartGuide($)}`
 }
 
-/** Passes a subagent's response on, noting its size at the stop. */
 export async function* measureAgent(agentId: string | undefined, chunks: AsyncIterable<TurnStepChunk>): AsyncGenerator<TurnStepChunk> {
   for await (const c of chunks) {
     if (agentId !== undefined && c.kind === 'stop' && c.usage) agentSizes.set(agentId, sizeOf(c.usage))
@@ -102,7 +100,6 @@ export async function* measureAgent(agentId: string | undefined, chunks: AsyncIt
   }
 }
 
-/** A subagent finished: its sizes go. */
 export function forgetAgent(agentId: string): void {
   agentSizes.delete(agentId)
   agentChecked.delete(agentId)

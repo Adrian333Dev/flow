@@ -69,17 +69,17 @@ describe('isAutoAllow', () => {
 
   test('allows the main agent under a Flow mod folder, bar the two manifests', () => {
     const base = '/p/mods/flow-session'
-    expect(isAutoAllow('Edit', { file_path: `${base}/hooks/pane.ts` }, core)).toBe(true)
+    expect(isAutoAllow('Edit', { file_path: `${base}/features/band/band.tsx` }, core)).toBe(true)
     expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-permissions/register.ts' }, core)).toBe(true)
     expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-permissions/hooks/hooks.json' }, core)).toBe(false)
-    expect(isAutoAllow('Write', { file_path: `${base}/types/index.d.ts` }, core)).toBe(true)
+    expect(isAutoAllow('Write', { file_path: `${base}/shared/types.d.ts` }, core)).toBe(true)
     expect(isAutoAllow('Edit', { file_path: `${base}/.claude-plugin/plugin.json` }, core)).toBe(false)
     expect(isAutoAllow('Edit', { file_path: `${base}/hooks/hooks.json` }, core)).toBe(false)
   })
 
   test('never for a subagent under the mod folder, or a folder with a similar name', () => {
-    expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-session/hooks/pane.ts' }, core, 'agent-1')).toBe(false)
-    expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-session-copy/hooks/pane.ts' }, core)).toBe(false)
+    expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-session/features/band/band.tsx' }, core, 'agent-1')).toBe(false)
+    expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-session-copy/features/band/band.tsx' }, core)).toBe(false)
   })
 })
 

@@ -14,7 +14,7 @@ export type Entry = {
   acting: boolean
 }
 
-/** The meters row's figures (hooks/meters.ts `Reading`), and `beat`, a counter the 30-second timer bumps to redraw. */
+/** The meters row's figures (features/meters/meters.ts `Reading`), and `beat`, a counter the 30-second timer bumps to redraw. */
 export type MeterState = {
   model?: string
   effort?: string | number
@@ -38,7 +38,7 @@ export type Restart = {
   manual: boolean
 }
 
-/** What a restart keeps word for word besides the dialogue, which the conversation holds, and the restart itself (hooks/register.ts). The host holds it, so an edit that reloads the mod loses none of it. */
+/** What a restart keeps word for word besides the dialogue, which the conversation holds, and the restart itself (features/restart/restart.ts). The host holds it, so an edit that reloads the mod loses none of it. */
 export type Tracked = {
   /** The main turn that runs now, which the restart tool ends. Cleared when that turn ends. */
   turn?: string
@@ -56,7 +56,7 @@ export type Tracked = {
   asked: string[]
 }
 
-/** The keep-warm switch and what its pings must know (hooks/keepwarm.ts). The host holds it, so a hot reload and an in-place restart keep it. Times are epoch milliseconds. */
+/** The keep-warm switch and what its pings must know (features/keepwarm/keepwarm.ts). The host holds it, so a hot reload and an in-place restart keep it. Times are epoch milliseconds. */
 export type Warm = {
   /** Whether this session warms its cache. Off until `/keepwarm on`; a miss or a failed ping turns it off. */
   on: boolean

@@ -1,6 +1,13 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
+import { flush } from '../../shared/testing'
 
-const HINT = { plugin: 'flow-session', component: 'PromptHint', surface: 'terminal', viewport: { columns: 120, rows: 30 }, props: {} } as const
+const HINT = {
+  plugin: 'flow-session',
+  component: 'PromptHint',
+  surface: 'terminal',
+  viewport: { columns: 120, rows: 30 },
+  props: { isDraft: false, isWorking: false, hint: '' },
+} as const
 
 /** The session's context size, which a test moves between calls. */
 function session(on: Parameters<typeof mock.env>[0], size: { tokens?: number }) {
@@ -19,7 +26,7 @@ describe('the context meter', () => {
     expect(await ui.find({ text: '31k' })).toBeDefined()
     size.tokens = 47000
     await $.tool.call({ tool: 'Read', input: {} } as never)
-    await new Promise((done) => setTimeout(done, 20))
+    await flush()
     expect(await ui.find({ text: '47k' })).toBeDefined()
     await ui.unmount()
   })

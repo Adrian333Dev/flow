@@ -1,5 +1,6 @@
 import type { EngineInterface } from 'claude-code'
 import { describe, expect, test } from 'claude-code/testing'
+import { flush } from '../../shared/testing'
 import { cancel, closeWarm, HIT, judge, keepWarmCommand, keepWarmSettings, LEAD, LOOK, MARGIN, MAX_IDLE, MAX_PINGS, noteActive, noteBroken, noteTranscript, planOf, SPACING, tick, type Deps, type Facts } from './keepwarm'
 
 const MINUTE = 60 * 1000
@@ -117,11 +118,6 @@ describe('the verdict', () => {
     expect(judge({ isAnswered: false, reason: 'nothing-to-fork' } as never)).toEqual({ hit: false, reason: 'there was nothing to fork yet' })
   })
 })
-
-/** Lets what is under way run: nothing here waits on a real clock, so a few hundred turns of the microtask queue settle it. */
-async function flush(): Promise<void> {
-  for (let i = 0; i < 300; i++) await Promise.resolve()
-}
 
 /** The engine beneath the mod, in memory: state with versions, a clock whose timers the test moves, a transcript whose newest request the test sets, a fork that answers as told. */
 function world(opts: { tail?: number; fork?: () => unknown } = {}) {
