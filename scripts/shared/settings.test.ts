@@ -90,6 +90,29 @@ test('ls shows each number setting beside its default, and yours once a file set
   assert.match(at.flow().stdout, /^keepWarmMaxIdle\s+4\s{2,}hours after/m);
 });
 
+test('set picks a reminder version on disk, shows it in the listing, and refuses one that is not there', () => {
+  const at = place('settings-versions');
+  const dir = path.join(at.home, 'scripts', 'hooks', 'reminders');
+  fs.mkdirSync(dir, { recursive: true });
+  for (const name of ['default', 'short']) fs.writeFileSync(path.join(dir, `${name}.md`), `${name}\n`);
+
+  const set = at.flow('set', 'reminder', 'short');
+  assert.strictEqual(set.code, 0, set.stderr);
+  assert.strictEqual(set.stdout, 'set: reminder to short, everywhere. It applies from the next message.\n');
+  assert.deepStrictEqual(read(path.join(at.home, 'settings.json')), { reminder: 'short' });
+  assert.match(at.flow().stdout, /^reminder\s+short\s+everywhere/m);
+
+  const missing = at.flow('set', 'reminder', 'long');
+  assert.strictEqual(missing.code, 1);
+  assert.match(missing.stderr, /no reminder version "long", one of: default, short/);
+
+  const flat = at.flow('set', 'wrapUp', 'short');
+  assert.match(flat.stderr, /wrapUp has no versions: switch it with flow settings on or off\./);
+
+  at.flow('on', 'reminder', '--global');
+  assert.match(at.flow().stdout, /^reminder\s+on\s+everywhere/m, 'on goes back to the default version');
+});
+
 test('a setting with no folder list, and a word naming no setting, each refuse and say what works', () => {
   const at = place('settings-refusals');
   const folder = at.flow('off', 'reminder');

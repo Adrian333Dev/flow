@@ -55,7 +55,13 @@ Prints one line beside every message you send, so the agent keeps following the 
 Follow `## The reply`, and pass every `### Before sending` test. If it applies, follow `## Capture`.
 ```
 
-The text comes from `~/.flow/scripts/hooks/reminder.md`.
+The text comes from `~/.flow/scripts/hooks/reminders/default.md`. Every other `.md` file in that folder is a version you can switch to, by its name without `.md`:
+
+- **`"reminder": "<name>"`** prints that version. `flow settings set reminder <name>` writes the line, and refuses a name with no file.
+- **`"reminder": false`** prints nothing.
+- **No line, or `true`**, prints `default`. `flow settings on reminder --global` goes back to it.
+
+A switch applies from your next message, with no restart.
 
 ### `sessionCheck`
 

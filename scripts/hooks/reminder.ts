@@ -8,25 +8,21 @@
  * behind the conversation. A line arriving with the message puts them back in
  * front of the agent.
  *
- * The text lives beside this file, in reminder.md, reached through the symlink
- * ~/.flow/scripts, so changing the line stays one edit and no code.
- *
- * The hook ran `cat` over that file until 2026-09-20. A bare `cat` cannot read
- * a setting, and every line Flow prints by itself now answers to one:
- * `"reminder": false` in ~/.flow/settings.json silences this one.
+ * The text lives beside this file, one version per file in reminders/,
+ * reached through the symlink ~/.flow/scripts, so changing the line stays one
+ * edit and no code. `"reminder"` in ~/.flow/settings.json picks the version,
+ * or `false` silences it (features/reminder/versions.ts).
  *
  * Nothing here ever exits non-zero. Exit 2 on this event rejects the prompt
  * and erases what the user typed, so a missing file prints nothing instead.
  */
 
 import fs from 'node:fs';
-import path from 'node:path';
-import * as settings from '../shared/settings.ts';
-import * as paths from '../shared/paths.ts';
+import * as versions from '../features/reminder/versions.ts';
 
-if (settings.prints('reminder')) {
+const file = versions.file();
+if (file) {
   try {
-    const file = path.join(paths.flowHome(), 'scripts', 'hooks', 'reminder.md');
     process.stdout.write(fs.readFileSync(file, 'utf8'));
   } catch {
     // A reminder nobody can read is a reminder nobody gets. Never a failure.

@@ -4,6 +4,7 @@
  *   (alone)               every setting, whether it is on here, and which level says so,
  *                         then each number setting beside its default
  *   on | off <name>       write that setting at one level
+ *   set <name> <version>  pick a version of a setting that has versions, everywhere
  *   reset <name>          remove it from that level, so the level above decides
  *
  * The levels: no flag for this folder, `--global` for every project on every
@@ -26,10 +27,17 @@ import * as render from '../shared/render.ts';
 import * as settings from '../shared/settings.ts';
 import * as paths from '../shared/paths.ts';
 import * as projects from '../shared/project.ts';
+import * as reminders from '../features/reminder/versions.ts';
 
-/** Every on/off setting, on unless a file says false. `skip` names its list of folders. */
-const SETTINGS = [
-  { key: 'reminder', says: 'a line beside every message, pointing Claude at the reply rules' },
+/**
+ * Every on/off setting, on unless a file says false. `skip` names its list of
+ * folders, `versions` the versions `set` picks from, `chosen` the one in use.
+ */
+const SETTINGS: { key: string; says: string; skip?: string; versions?: () => string[]; chosen?: () => string | null }[] = [
+  {
+    key: 'reminder', says: 'a line beside every message, pointing Claude at the reply rules',
+    versions: () => reminders.names(), chosen: () => reminders.chosen(),
+  },
   { key: 'sessionCheck', says: 'the flow init suggestion, when a session opens' },
   { key: 'setupReminder', says: 'suggests flow init where a repository has no .flow/', skip: 'setupReminderSkip' },
   { key: 'wrapUp', says: 'tells Claude to hand off once the conversation passes wrapUpAt tokens' },
@@ -84,8 +92,11 @@ const listing = {
     const dir = projects.top(process.cwd());
     const switches = SETTINGS.map((s) => {
       const now = state(s, dir);
-      return { key: s.key, on: now.on, level: now.level || null, says: s.says };
+      const version = now.on && s.chosen ? s.chosen() : null;
+      return { key: s.key, on: now.on, version, level: now.level || null, says: s.says };
     });
+    // A versioned setting shows its version in place of `on`, the default version aside.
+    const shown = (s: { on: boolean; version: string | null }) => (!s.on ? 'off' : s.version && s.version !== reminders.DEFAULT ? s.version : 'on');
 
     // `yours` is null while the default decides, and differs from it only by an override.
     const all = settings.readGlobal();
@@ -95,7 +106,7 @@ const listing = {
 
     json({ settings: switches, values });
     out(render.columns([['setting', 'state', 'level', ''],
-      ...switches.map((s) => [s.key, s.on ? 'on' : 'off', LEVEL_NAMES[s.level as any] || '', s.says])]));
+      ...switches.map((s) => [s.key, shown(s), LEVEL_NAMES[s.level as any] || '', s.says])]));
     out(`\n${render.columns([['value', 'default', 'yours', ''],
       ...values.map((v) => [v.key, String(v.default), v.yours === null ? '' : String(v.yours), v.says])])}`);
     return 0;
@@ -155,6 +166,28 @@ actions.off = {
   run: ({ positional, flags }) => switchSetting({ positional, flags, state: 'off', by: 'off' }),
 };
 
+/** Picks a version of a setting that has versions, everywhere: the one file `set` writes. */
+actions.set = {
+  args: '<name> <version>',
+  summary: 'pick a version of a setting that has versions, such as the reminder, everywhere',
+  run({ positional }) {
+    const [key, version, ...extra] = positional;
+    if (!key || !version || extra.length) throw new FlowError('usage: flow settings set <name> <version>');
+    const s = find(key);
+    if (!s.versions) throw new FlowError(`${key} has no versions: switch it with flow settings on or off.`);
+    const known = s.versions();
+    if (!known.includes(version)) throw new FlowError(`no ${key} version "${version}", one of: ${known.join(', ') || 'none on disk'}`);
+    const file = settings.globalFile();
+    const data = settings.read(file);
+    data[key] = version;
+    settings.write(file, data);
+    logs.recordHistory(paths.flowHome(), { type: 'setting', name: key, state: version, level: 'global', by: 'flow settings set' });
+    out(`set: ${key} to ${version}, everywhere. It applies from the next message.`);
+    json({ key, version, level: 'global' });
+    return 0;
+  },
+};
+
 actions.reset = {
   args: '<name>',
   summary: 'remove a setting from that level, so the level above decides',
@@ -162,4 +195,4 @@ actions.reset = {
   run: ({ positional, flags }) => switchSetting({ positional, flags, state: null, by: 'reset' }),
 };
 
-export default { summary: 'switch the settings Flow reads on or off, or reset one', list: listing, actions };
+export default { summary: 'switch the settings Flow reads on or off, pick a version, or reset one', list: listing, actions };

@@ -232,7 +232,7 @@ test('flow settings --json: the list, and a switch', () => {
 
   const all = settings();
   assert.deepStrictEqual(all.settings.find((s) => s.key === 'reminder'), {
-    key: 'reminder', on: true, level: null, says: all.settings[0].says,
+    key: 'reminder', on: true, version: 'default', level: null, says: all.settings[0].says,
   });
   assert.ok(all.values.some((v) => v.key === 'wrapUpAt' && v.yours === null));
 

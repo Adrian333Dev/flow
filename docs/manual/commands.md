@@ -816,7 +816,13 @@ keepWarmMaxIdle  4                hours after your last request that /keepwarm s
 - **`flow settings`**: every setting, and the level that decides it, then each number setting with its default and your value. `yours` is blank while the default decides.
 - **`flow settings on <name>`** and **`off <name>`**: switch a setting.
 - **`flow settings reset <name>`**: remove that level's switch, so the default decides.
+- **`flow settings set reminder <version>`**: pick a version of the reminder line, everywhere. The listing then shows the version in place of `on`. [Reference: `reminder`](settings.md#reminder) says where the versions live.
 - **`--global`**: every project, on every computer. With no flag, the switch is for this folder.
+
+```console
+$ flow settings set reminder default
+set: reminder to default, everywhere. It applies from the next message.
+```
 
 **Only `setupReminder` can be switched for one folder.** Every other setting needs `--global`.
 

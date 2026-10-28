@@ -52,9 +52,9 @@ Then list 4 things:
 
 **Look for contradictions between files as well as inside a message**: 2 versions of one document, a design rejected in a note elsewhere, a scope that changed halfway. Dictated input contradicts itself almost every time. Name each one. Never pick a side quietly.
 
-Sharpen vague input: what was tried already, and what forced this now.
+**Write the problem statement**: who has the problem, what goes wrong and when, what was tried, what forced it now, and what "solved" looks like. Fill it from what exists and what the user said. Each part the input leaves empty, or holds only in pieces, gets drawn out of the user, by `## Asking questions`. Detailed input still leaves parts empty. **The user confirms the statement before Widen.** Research and proposals wait for it. Research before then only a fact a question needs.
 
-**Write down what you found, where it will be used.** What binds the whole ticket (the goals and limits the user set for this work, constraints on every question, contradictions) goes in `## Context`, a few lines. A fact only one question rests on goes in that question's section of `context.md`, with the path you read it from.
+**Write down what you found, where it will be used.** The problem statement goes in `## Context`. What binds the whole ticket (the goals and limits the user set for this work, constraints on every question, contradictions) goes in `## Context`, a few lines. A fact only one question rests on goes in that question's section of `context.md`, with the path you read it from.
 
 **Write only what is specific to this ticket.** A preference of the user, a fact about the project, or how an outside tool behaves goes where `## Capture` sends it. A finding may sit in both.
 
@@ -99,7 +99,16 @@ Questions that constrain other questions go first: say which constrains which.
 
 ## Phase 2: walk the questions
 
-One question at a time. Interview until the decision is genuinely clear. A first answer is not clarity.
+**Sort each question before walking it:**
+
+- **Technical, one option clearly wins on stated principles, and a wrong pick is cheap to undo** → decide it alone. Run the check first where it is cheap. Write in its `context.md` section: "Picked X because …. Rejected Y because …." Tick it, its line ending `(decided alone)`.
+- **Design, functionality, taste, or options that trade something real** → ask it, by the steps below.
+
+Example: 2 ways to speed up a slow query. Measure both, pick the faster, write the pick and the rejected one, move on.
+
+**Show every alone-decision together, once, before Phase 3**: one line each, the pick, the rejected option, and why. A veto reopens that question, to ask. No veto keeps them (`agreed`).
+
+Ask one question at a time. Interview until the decision is genuinely clear. A first answer is not clarity.
 
 1. **Pose the question**, and open its section in `context.md`, headed by its handle: `## 1.2`. Write the facts it rests on there as you find them.
 2. **Recommend**: "I'd go with X because Y."
@@ -214,7 +223,7 @@ Confirm every question is resolved or deliberately deferred, then send each deci
 - **The project's `CLAUDE.md` still holds the template's comments** in its title and `## Project` → write both from what was decided, and delete the comments.
 - **Settled and dying with the build**, this build's non-goals included → already written in the ticket. Leave it there.
 - **Decided, but not now** → `## Deferred`, with the reason.
-- **The answer is no** → say why, in the question's section. A ticket with nothing to build closes with `flow tickets done`. Any other ticket → propose dropping it: on a yes, `flow tickets drop <id> --reason "<why>" --by <id>` re-points whatever depended on it. **Park it only where it is worth building later**: its dependents wait for the revival.
+- **The answer is no** → say why, in the question's section. A ticket with nothing to build closes with `flow tickets done`. Any other ticket → propose dropping it: on a yes, `flow tickets drop <id> --reason "<why>"`. A refusal names each link to move first. **Park it only where it is worth building later**: its dependents wait for the revival.
 - **Anything else** → `## Capture`.
 
 **Then shape the ticket, once, and only here:**
@@ -228,9 +237,11 @@ Confirm every question is resolved or deliberately deferred, then send each deci
 
 Applies in Phases 1 and 2 both.
 
-- **Every question carries your guess.**
-- **Rounds in Phase 1, one at a time in Phase 2.** Ask gap-filling questions together, ordered so none depends on an answer not yet heard. A decision that constrains other decisions gets its own turn.
-- **"I don't know" is a real answer.**
+- **Ask about a real case from the user's own work, never in the abstract.** "When did this last get in your way, and what were you doing?" A question the user must answer in general terms ("is the fault choosing a store at all?") gets rewritten as a case.
+- **Every question carries your guess.** A guess with grounds is a recommendation. With none, give 2 or 3 guesses that differ, for the user to correct: a correction teaches more than an open question.
+- **Rounds in Phase 1, one at a time in Phase 2.** Ask gap-filling questions together, ordered so none depends on an answer not yet heard. A decision that constrains other decisions gets its own turn. A part of the problem the user holds only in pieces gets one question per reply, since each answer shapes the next.
+- **"I don't know" is a real answer.** Follow it with something to react to: a rough version, an example, how another tool does it.
+- **Play back the problem statement every 3 or so answers that draw it out**, in 2 or 3 sentences, for the user to correct.
 - **Buzzword answers get one probe.** "Scalable", "clean", "modern", "best practice" → _if you didn't have to justify this to anyone, what would you actually want?_
 - **Stop test.** Can you predict the reaction to the next 3 questions you'd ask? No → keep going. Several rounds with your confidence flat → say so and reframe the questions.
 - **Agreement is not an answer.** 3 rounds of "yes, agreed" → say out loud that the session went passive.
