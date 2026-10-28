@@ -126,14 +126,15 @@ const blockedLines = (entries) =>
   ).join('\n');
 
 /**
- * The code branch the ticket's work is on. Where a live ticket's branch is not
- * the one checked out, the line says so, since building it here would put the
- * work on the wrong branch.
+ * The code branch the ticket's work merges into. Where a live ticket's branch
+ * is not the one checked out, the line says so, since building it here would
+ * put the work on the wrong branch. A ticket with a worktree is built there,
+ * so the main checkout's branch says nothing about it.
  */
 function branchLine(ticket, root) {
-  const { branch } = ticket.data;
+  const { branch, worktree } = ticket.data;
   if (!branch) return null;
-  const here = statuses.TERMINAL.has(ticket.data.status) ? '' : ticketHistory.currentBranch(root);
+  const here = statuses.TERMINAL.has(ticket.data.status) || worktree ? '' : ticketHistory.currentBranch(root);
   return `branch:     ${branch}${here && here !== branch ? `   (checked out here: ${here})` : ''}`;
 }
 
@@ -161,6 +162,7 @@ function show(ticket, tickets, root) {
     ticket.data.activity ? `activity:   ${ticket.data.activity}` : null,
     ticket.data.was ? `was:        ${ticket.data.was}` : null,
     branchLine(ticket, root),
+    ticket.data.worktree ? `worktree:   ${ticket.data.worktree}` : null,
     typeof ticket.data.rank === 'number' ? `rank:       ${ticket.data.rank}` : null,
     ticket.data.labels.length ? `labels:     ${ticket.data.labels.join(', ')}` : null,
     ticket.data.reason ? `reason:     ${ticket.data.reason}` : null,

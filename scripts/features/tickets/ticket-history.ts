@@ -1,6 +1,6 @@
 /**
- * What a ticket records about the work done on it: the code branch it is
- * built on, and `history.md`, one line per status move.
+ * What a ticket records about the work done on it: the code branch its work
+ * merges into, and `history.md`, one line per status move.
  *
  *   branch: feature/budgets                       in ticket.md, written once
  *
@@ -32,6 +32,19 @@ function currentBranch(root) {
   // `symbolic-ref` names a branch with no commit yet, and fails on a detached checkout.
   const ran = git(root, ['symbolic-ref', '--short', '-q', 'HEAD']);
   return ran.ok ? ran.out : '';
+}
+
+/**
+ * The branch a project's work merges into by default: the remote's, else
+ * `main` or `master` where one exists, else the one checked out.
+ */
+function defaultBranch(root) {
+  const remote = git(root, ['symbolic-ref', '--short', '-q', 'refs/remotes/origin/HEAD']);
+  if (remote.ok && remote.out) return remote.out.replace(/^origin\//, '');
+  for (const name of ['main', 'master']) {
+    if (git(root, ['show-ref', '--verify', '-q', `refs/heads/${name}`]).ok) return name;
+  }
+  return currentBranch(root);
 }
 
 /** The folder Claude Code keeps its transcripts in, one subfolder per project. */
@@ -69,7 +82,7 @@ function append(t, move) {
       move.padEnd(16),
       session || '-',
       title ? JSON.stringify(title) : '-',
-      currentBranch(t.root) || '-',
+      t.data.worktree || currentBranch(t.root) || '-',
     ].join('  ');
     store.appendHistory(t, line);
   } catch {
@@ -78,15 +91,17 @@ function append(t, move) {
 }
 
 /**
- * Write the ticket's `branch:` the first time work starts on it. Returns true
- * when the field changed, so the caller writes the ticket.
+ * Write the ticket's `branch:` the first time work starts on it, only where
+ * that branch is not the default one: an absent `branch:` means the default,
+ * so the record holds only what differs. Returns true when the field changed,
+ * so the caller writes the ticket.
  */
 function claimBranch(t) {
   if (t.data.branch) return false;
   const branch = currentBranch(t.root);
-  if (!branch) return false;
+  if (!branch || branch === defaultBranch(t.root)) return false;
   t.data.branch = branch;
   return true;
 }
 
-export { currentBranch, sessionTitle, append, claimBranch };
+export { currentBranch, defaultBranch, sessionTitle, append, claimBranch };

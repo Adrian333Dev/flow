@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import * as failures from '../logs/failures.ts';
 import * as store from '../tickets/store.ts';
+import * as worktrees from '../tickets/worktrees.ts';
 import * as paths from '../../shared/paths.ts';
 import * as registry from '../../shared/registry.ts';
 import * as settings from '../../shared/settings.ts';
@@ -65,7 +66,8 @@ function checkProjects(at, current) {
 /**
  * The project's tickets, for any still in the format from before `ticket.md`
  * stood alone: a folder named with more than its id, a `groundwork/map.md` that
- * is the empty template, a title that is one of the ticket's own labels.
+ * is the empty template, a title that is one of the ticket's own labels. Also
+ * a ticket's worktree left behind after its ticket closed or was deleted.
  */
 function checkTickets(root) {
   if (!root) return { name: 'tickets', skipped: 'not inside a Flow project' };
@@ -89,6 +91,10 @@ function checkTickets(root) {
     if (t.data.labels.includes(t.data.title)) {
       problems.push(`${t.id} is titled "${t.data.title}", a label and no name: flow tickets edit ${t.id} --title "<up to 4 words>"`);
     }
+  }
+  for (const { name, why } of worktrees.orphans(root, tickets, store.prefixOf(root))) {
+    const folder = path.join(worktrees.FOLDER, name);
+    problems.push(`${folder} is left over, ${why}: git worktree remove ${folder}, which refuses while it holds uncommitted work`);
   }
   return { name: 'tickets', problems, summary: `${count(tickets.length, 'ticket', 'tickets')} in the current format` };
 }

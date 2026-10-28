@@ -22,15 +22,19 @@ const override = () => (process.env.FLOW_PROJECT ? path.resolve(process.env.FLOW
 /**
  * git's top folder around `from`, or null outside a repository.
  *
- * Inside `.flow/` itself, git answers with the checkout of the `flow`
- * branch, which is its own top folder. The project is the one around it.
+ * A linked worktree belongs to the project of its main checkout: a ticket's
+ * worktree under `.claude/worktrees/`, and `.flow/` on the old `flow` branch
+ * model. So the registry, the ticket commits and every ticket read go to one
+ * folder whichever checkout a command runs in. git names the main checkout
+ * through the shared `.git` folder; a bare repository has none, and keeps
+ * git's own answer.
  */
 function top(from?: string | null) {
   if (!from && override()) return override();
-  const found = git.top(from || process.cwd());
-  if (!found) return null;
-  const around = path.dirname(found);
-  if (path.basename(found) === '.flow' && fs.existsSync(path.join(found, '.git'))) return around;
+  const ran = git.git(from || process.cwd(), ['rev-parse', '--path-format=absolute', '--show-toplevel', '--git-common-dir', '--git-dir']);
+  if (!ran.ok) return null;
+  const [found, common, own] = ran.out.split('\n');
+  if (common !== own && path.basename(common) === '.git') return path.dirname(common);
   return found;
 }
 

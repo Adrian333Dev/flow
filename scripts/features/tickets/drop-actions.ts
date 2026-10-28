@@ -7,6 +7,7 @@ import * as ticketJson from './json.ts';
 import * as statuses from './statuses.ts';
 import * as records from './records.ts';
 import * as mentions from './mentions.ts';
+import * as worktrees from './worktrees.ts';
 import { touched, rel, locate, projectNamed } from './places.ts';
 import type { Ticket } from './types.ts';
 
@@ -78,12 +79,14 @@ const drop: Action = {
       );
     }
 
+    const closed = worktrees.finish(t, root, 'dropped');
     clearLinks(t, links);
     const { from, moved } = store.setStatus(t, 'dropped', reason);
     out(`${store.nameOf(t)}  ${from} → dropped`);
     out(`      reason: ${reason}`);
     if (moved) out(`      moved → ${rel(root, moved.to)}`);
     if (links.length) out(`      cleared: ${links.map(({ ticket, field }) => `${ticket.id} ${field}`).join(', ')}`);
+    for (const line of closed || []) out(line);
     json({ ticket: ticketJson.record(t, tickets), cleared: describeLinks(links) });
     records.commit(root, `${t.id}: dropped`);
     records.syncLater(root);

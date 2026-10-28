@@ -676,6 +676,18 @@ now ready:
   shop-3-csv-export  todo    feature,v1  -
 ```
 
+**A ticket built in a git repository gets its own copy of the code.** `flow tickets start <id> --activity build` (or `debug`) makes a second checkout, a git worktree, in `.claude/worktrees/<ticket name>/`, on a branch of the same name. Each session building a ticket edits and tests only its own copy:
+
+```console
+$ flow tickets start shop-2 --activity build
+shop-2-budget-store  todo → in-progress
+      activity: build
+worktree: /home/you/shop/.claude/worktrees/shop-2-budget-store
+      new branch shop-2-budget-store from main
+```
+
+`flow tickets done` puts the work back: it saves everything in the copy as one commit, replays it on top of `main`, moves `main` up to it, and deletes the copy and its branch. Where your `main` changed the same lines, it stops and names the files to fix. `flow tickets drop` deletes the copy and keeps the branch, so the work is still there. A project that needs more in each copy (a database of its own, a `.env` file) says so in `.worktree/create`, `.worktree/remove` and `.worktreeinclude`, all committed.
+
 **A move refuses**:
 
 - starting a ticket whose waits have not reached `done`;

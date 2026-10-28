@@ -248,7 +248,6 @@
       "CronCreate",
       "CronDelete",
       "CronList",
-      "EnterWorktree",
       "Agent(isolation:worktree)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",

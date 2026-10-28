@@ -13,7 +13,7 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 **On a ticket, read `reports/<failure>.md` before step 1**, if it exists. Resume at the first hypothesis nothing killed. Never restart the loop. No report → step 1.
 
-- **On a ticket** → `flow tickets start <id> --activity debug`, also where it is already `in-progress`.
+- **On a ticket** → `flow tickets start <id> --activity debug`, also where it is already `in-progress`. It prints `worktree: <folder>` → enter it by `../execute/references/worktrees.md`.
 - **No ticket** → `flow tickets new "<what failed>" --label bug`, then the same command, before the first hypothesis.
 
 ## The loop
@@ -46,7 +46,7 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 **Then close the ticket by that status:**
 
-- **`FIXED`** → `flow tickets done <id>` once the user confirms the fix, where the ticket has no parent and no open `## Tasks`. Otherwise report `FIXED` and stop: the parent session, or `/flow:execute`, closes it.
+- **`FIXED`** → `flow tickets done <id>` once the user confirms the fix, in a worktree by `../execute/references/worktrees.md` → `## Closing`, where the ticket has no parent and no open `## Tasks`. Otherwise report `FIXED` and stop: the parent session, or `/flow:execute`, closes it.
 - **`FOUND_NOT_FIXED`, `UNPROVEN`** → it stays `in-progress`. The user decides whether the hunt carries on, parks or drops.
 
 ### When the failure is somewhere you cannot reach
