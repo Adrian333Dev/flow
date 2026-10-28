@@ -8,9 +8,9 @@
  * behind the conversation. A line arriving with the message puts them back in
  * front of the agent.
  *
- * The text lives beside this file, one version per file in reminders/,
- * reached through the symlink ~/.flow/scripts, so changing the line stays one
- * edit and no code. `"reminder"` in ~/.flow/settings.json picks the version,
+ * The text lives in prompts/reminders/, one version per file, reached through
+ * the symlink ~/.flow/prompts, so changing the line stays one edit and no
+ * code. `"reminder"` in ~/.flow/settings.json picks the version,
  * or `false` silences it (features/reminder/versions.ts).
  *
  * Nothing here ever exits non-zero. Exit 2 on this event rejects the prompt

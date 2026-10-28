@@ -40,7 +40,7 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 - **At 100,000 past it**, with no restart yet: `Stop now and restart.`
 - **By hand**: a press of the green Restart button above the prompt (shown from 30,000 under the limit), or `/restart`: `Restart now:`. Words typed after `/restart` follow under `User:`.
 
-The guide, as the agent receives it, from `mods/flow-session/prompts/restart-guide.md`:
+The guide, as the agent receives it, from `~/.flow/prompts/restart-guide.md`:
 
 ```md
 # Restart guide

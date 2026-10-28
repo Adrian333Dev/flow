@@ -2,8 +2,8 @@
  * The versions of the line the reminder hook prints beside every message, one
  * file each, while the reply rules are still being tuned:
  *
- *   ~/.flow/scripts/hooks/reminders/default.md
- *   ~/.flow/scripts/hooks/reminders/<name>.md
+ *   ~/.flow/prompts/reminders/default.md
+ *   ~/.flow/prompts/reminders/<name>.md
  *
  * `"reminder"` in ~/.flow/settings.json picks one: `false` prints nothing, a
  * name prints that file, and anything else, absent included, prints
@@ -19,7 +19,7 @@ import * as paths from '../../shared/paths.ts';
 const DEFAULT = 'default';
 const NAME = /^[\w.-]+$/;
 
-const dir = (home = paths.flowHome()) => path.join(home, 'scripts', 'hooks', 'reminders');
+const dir = (home = paths.flowHome()) => path.join(home, 'prompts', 'reminders');
 
 /** Every version on disk, by name, `default` first. */
 function names(home?: string) {

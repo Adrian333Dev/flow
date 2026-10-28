@@ -45,7 +45,7 @@ How Flow gets onto a machine and into a project, stays current, and shares the u
 
 ### The setup session
 
-`scripts/sessions/setup.md` is the session's instructions. It asks the user nothing and reports what changed.
+`prompts/setup-session.md` is the session's instructions. It asks the user nothing and reports what changed.
 
 - `V1` **It runs in safe mode** (`claude --safe-mode`), which loads no plugin, skill or hook of the machine, so nothing it is about to change runs beside it. Ruled 2026-09-24, after a setup skill ran beside the plugins it removed.
 - `V1` **It harvests the old rules.** It reads the old `~/.claude/CLAUDE.md`, drops each line a rule of `~/.flow/CLAUDE.md` already covers (naming that rule), and writes the rest to `~/.flow/archive/old-claude-md.md`, which no session loads.
@@ -75,7 +75,7 @@ How Flow gets onto a machine and into a project, stays current, and shares the u
 - `V1` **`~/.flow/` is one private GitHub repository, the Flow home**, and that is the whole of how another machine gets the user's rules, notes, tickets and wiki. A project's tickets sit in it as well (`docs/spec/tickets.md`).
 - `V1` **`flow sync` fetches, commits this machine's work, merges, then pushes.** Each commit is named for its machine, `pc-wsl: 2 files`. A merge git cannot finish is aborted, naming the files, with this machine's commit kept. A ticket number 2 machines took is renumbered, keeping `was:`.
 - `V1` **`~/.flow/` is also sent in the background**, after a status move on a ticket, after a reply when something waits and the last send was 30 minutes ago or more, and at session end.
-- `V1` **What never travels** sits in `~/.flow/.gitignore`, opening `# What belongs to this machine alone.`: the links into the clone (`scripts`, `guides`, `docs`), `repos/`, `logs/`, `audit/`, `changes/`, `registry.json`, `settings.local.json` and every wiki `downloads/`. `flow install` writes the file on every run.
+- `V1` **What never travels** sits in `~/.flow/.gitignore`, opening `# What belongs to this machine alone.`: the links into the clone (`scripts`, `guides`, `docs`, `prompts`), `repos/`, `logs/`, `audit/`, `changes/`, `registry.json`, `settings.local.json` and every wiki `downloads/`. `flow install` writes the file on every run.
 - `V1` **A setting holding a path lives in `settings.local.json`**, which stays on its machine.
 - `V1` **Uncommitted code travels by `util git uncommitted`**, on the user's own command. The agent never runs it.
 - `never` **A `~/.flow/private-scripts/` folder for the user's own scripts.** Dropped by the user 2026-10-02: such scripts are rare, and any folder in `~/.flow/` already reaches GitHub through `flow sync`.
@@ -96,7 +96,7 @@ How Flow gets onto a machine and into a project, stays current, and shares the u
 - **`scripts/commands/doctor.ts`**: the checks.
 - **`scripts/features/machine/`**: the links, the machine's name, the prerequisites, `MIN_NODE` and `MIN_CLAUDE`, and the owed setup session.
 - **`scripts/shared/registry.ts`**: the registry.
-- **`scripts/sessions/setup.md`**: the setup session's instructions.
+- **`prompts/setup-session.md`**: the setup session's instructions.
 
 ## What passes between them
 

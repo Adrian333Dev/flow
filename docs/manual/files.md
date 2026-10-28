@@ -26,7 +26,8 @@ Every folder and file Flow puts on your computer and in a project, and what writ
 │  └─ projects/                   Claude Code's record of every session
 ├─ .flow/
 │  ├─ CLAUDE.md                   your rules
-│  ├─ scripts, guides, docs       → folders in <clone>
+│  ├─ scripts, guides, docs,
+│  │  prompts                     → folders in <clone>
 │  ├─ repos/                      every repository Flow downloads
 │  ├─ settings.json
 │  ├─ settings.local.json
@@ -101,6 +102,7 @@ Your Flow home: the folder where Flow keeps your rules, notes, settings and tick
 - **`scripts`**: the `flow` command, every hook, and the jobs that run in the background.
 - **`guides`**: the writing guides: the house style, and how each kind of file is written.
 - **`docs`**: these pages, at the same path on every computer.
+- **`prompts`**: the text Flow sends the agent: the reminder beside each message, the restart guide and the setup session's instructions.
 
 ### Tickets
 

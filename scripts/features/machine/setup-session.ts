@@ -3,7 +3,7 @@
  * setup, because two jobs need judgment a script cannot make. The old
  * `~/.claude/CLAUDE.md` holds rules Flow's own may already cover, and
  * `~/.claude/settings.json` holds keys that may conflict with Flow's. Code
- * never edits either file. `sessions/setup.md` is what the session follows.
+ * never edits either file. `prompts/setup-session.md` is what the session follows.
  *
  * The session is owed, then done. `~/.flow/logs/setup-pending` is the marker:
  * `flow install` writes it when `~/.claude/CLAUDE.md` was not yet Flow's
@@ -101,7 +101,7 @@ function open(at, clone, { printOnly }) {
   if (!isPending(at)) return 'none';
 
   const file = path.join(at.flow, 'setup-prompt.md');
-  fs.copyFileSync(path.join(clone, 'scripts', 'sessions', 'setup.md'), file);
+  fs.copyFileSync(path.join(clone, 'prompts', 'setup-session.md'), file);
   const settings = path.join(at.flow, 'setup-settings.json');
   fs.writeFileSync(settings, JSON.stringify(sessionSettings(clone), null, 2) + '\n');
   const args = [

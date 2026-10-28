@@ -18,8 +18,8 @@
  * list:
  *
  *   settings.local.json   every setting holding a path, the clone included
- *   scripts, guides, docs       links into this machine's clone, which sits
- *                 somewhere else on the other machine
+ *   scripts, guides, docs, prompts   links into this machine's clone, which
+ *                 sits somewhere else on the other machine
  *   repos/        this machine's clones: Flow and util
  *   logs/         what happened on this machine: the last install, every
  *                 change Flow made, every failure, every rule check
@@ -95,6 +95,7 @@ const IGNORED = [
   '/scripts',
   '/guides',
   '/docs',
+  '/prompts',
   '/repos/',
   '/logs/',
   '/skills-update.json',

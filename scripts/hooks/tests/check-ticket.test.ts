@@ -1,0 +1,50 @@
+/**
+ * `check-ticket`: the UserPromptExpansion hook that refuses a bare /flow:start
+ * where Flow was never set up in the project.
+ */
+
+import { test } from 'node:test';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { project, run } from '../../shared/testing.ts';
+
+/** The shape Claude Code hands a UserPromptExpansion hook on stdin. */
+function typed(command_name, command_args, cwd) {
+  return JSON.stringify({
+    hook_event_name: 'UserPromptExpansion',
+    expansion_type: 'slash_command',
+    command_name,
+    command_args,
+    cwd,
+    prompt: `/${command_name} ${command_args}`.trim(),
+  });
+}
+
+function check(name, args, dir, env = {}) {
+  return run('hooks/check-ticket.ts', [], {
+    input: typed(name, args, dir),
+    cwd: dir,
+    env: { ...process.env, FLOW_PROJECT: dir, FLOW_HOME: path.join(dir, 'flow-home'), ...env },
+  });
+}
+
+test('check-ticket blocks a bare /flow:start outside a project', () => {
+  const dir = project('check-ticket-unset');
+
+  fs.rmSync(path.join(dir, '.flow'), { recursive: true });
+  const board = check('flow:start', '', dir);
+  assert.strictEqual(board.code, 0);
+  assert.match(board.stdout, /"decision":"block"/);
+  assert.match(board.stdout, /not a Flow project yet.*flow init/);
+});
+
+test('check-ticket passes a phase skill, free text and a typed id outside a Flow project', () => {
+  const dir = project('check-ticket-loose');
+  fs.rmSync(path.join(dir, '.flow'), { recursive: true });
+  for (const [name, args] of [['groundwork', 'write the map for pricing'], ['groundwork', ''], ['execute', 'exp-999'], ['debug', '']]) {
+    const result = check(name, args, dir);
+    assert.strictEqual(result.code, 0);
+    assert.strictEqual(result.stdout.trim(), '', `blocked /${name} ${args}`);
+  }
+});

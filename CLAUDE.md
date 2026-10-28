@@ -2,7 +2,7 @@
 
 ## Project
 
-Flow is a Claude Code workflow for a solo developer: global rules (`home/`), skills (`skills/`), the `flow` command and its hooks (`scripts/`), the `flow-session` mod (`mods/`), a project scaffold (`project-template/`) and the docs (`docs/`). Node and bash, the mod in TypeScript. Dependencies are allowed where they save real work (the user, 2026-10-21). `~/.flow/repos/flow` links to this checkout, so every edit here runs on this machine at once.
+Flow is a Claude Code workflow for a solo developer: global rules (`home/`), skills (`skills/`), the `flow` command and its hooks (`scripts/`), the text they send the agent (`prompts/`), the `flow-session` mod (`mods/`), a project scaffold (`project-template/`) and the docs (`docs/`). Node and bash, the mod in TypeScript. Dependencies are allowed where they save real work (the user, 2026-10-21). `~/.flow/repos/flow` links to this checkout, so every edit here runs on this machine at once.
 
 ## Layout
 
@@ -26,7 +26,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`never-symlink-a-folder`** Never symlink `~/.claude/skills/`, `agents/`, `rules/` or `commands/` as a whole folder. `flow install` links per item. The plugin folder `flow/` is the one folder link.
 - **`one-source-two-ways`** Every shipped script lives once, in `scripts/`: bash where it wraps another command, Node where there is real logic. `lab/scripts/` holds the ones that serve this repo alone. Never copy a file, and never let a `lab/` path leak into a skill, `home/` or `project-template/`.
 - **`home-files-exist-twice`** `home/CLAUDE.md` and `home/settings.json` are the public templates, `~/.flow/CLAUDE.md` and `~/.claude/settings.json` the personalized copies, and this file is neither. Never write personal content into this repo. Always carry an edit to one copy across to its twin by hand, in the same turn and whichever way it was made. The same holds for any other file with a twin: look in `home/` and `project-template/` before finishing. Only a line that is personal stays out, and the reply names it. A setting with no template line, such as `wrapUpAt` in `~/.flow/settings.json`, goes to the default the code reading it uses.
-- **`agent-text-in-markdown`** A guide a mod or hook sends the agent lives in its own `.md` file, named for what it says. Short lines, and text the code assembles from conditions, stay in the code. `docs/manual/` shows each one as the agent receives it.
+- **`agent-text-in-markdown`** A guide a mod or hook sends the agent lives in its own `.md` file in `prompts/`, named for what it says. Short lines, and text the code assembles from conditions, stay in the code. `docs/manual/` shows each one as the agent receives it.
 - **`measurements-in-fw-294`** A check that can run only once real sessions exist is one line in `fw-294`'s `## Tasks`: the ticket it checks, the baseline, the target. Then the building ticket can close. Never leave the check open in that ticket, where nobody runs it after the close.
   - **`measure-real-work`** A check runs through `/flow:audit` on sessions of real work, once days of them exist. Never stage a replay or a test session to measure, and never make a ticket for a measurement.
 - **`no-status-in-claude-md`** No counts, no dates and no build status here. What Flow does goes in `docs/spec/`, open work in tickets.

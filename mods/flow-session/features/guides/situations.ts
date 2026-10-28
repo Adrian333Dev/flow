@@ -78,7 +78,7 @@ export const ENTRIES: readonly Entry[] = [
   },
   {
     id: 'loaded-file',
-    when: (call) => markdown(call) && /\/skills\/|\/\.claude\/(commands|agents|output-styles)\/|\/references\/|\/guides\/|\/mods\/[^/]+\/features\//.test(pathOf(call)),
+    when: (call) => markdown(call) && /\/skills\/|\/\.claude\/(commands|agents|output-styles)\/|\/references\/|\/guides\/|\/prompts\//.test(pathOf(call)),
     send: () => guides('style.md', 'write-loaded-files.md'),
     why: guideWhy('files an agent loads'),
   },

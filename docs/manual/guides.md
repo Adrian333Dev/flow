@@ -19,7 +19,7 @@ The first entry that matches wins. Every guide sits in `~/.flow/guides/`.
 - **`ticket`**: any file under a `tickets/` folder → `write-tickets.md`
 - **`knowledge`**: a `Write` of a `SKILL.md`, an edit of `.mcp.json`, or a `Bash` call running `claude plugin install`, `claude plugin enable` or `claude mcp add` → `knowledge.md`, plus `style.md` and `write-loaded-files.md` for the `SKILL.md`. The call is held back like an edit until `knowledge.md` is read.
 - **`rule-file`**: a `CLAUDE.md`, a `CLAUDE.local.md`, a file in `.claude/rules/` → `style.md`, `write-loaded-files.md`, `write-rules.md`
-- **`loaded-file`**: a `.md` in a skill folder, `.claude/commands/`, `.claude/agents/`, `.claude/output-styles/`, Flow's `guides/`, a skill's `references/`, a mod's `prompts/` → `style.md`, `write-loaded-files.md`
+- **`loaded-file`**: a `.md` in a skill folder, `.claude/commands/`, `.claude/agents/`, `.claude/output-styles/`, Flow's `guides/`, a skill's `references/`, Flow's `prompts/` → `style.md`, `write-loaded-files.md`
 - **`spec`**: a `.md` in `docs/spec/` → `style.md`, `write-spec.md`
 - **`markdown`**: any other `.md`, `docs/manual/` included → `style.md`
 - **`code`**: a code file (`.ts`, `.js`, `.py`, `.sh` and other source files) → `write-code.md`
