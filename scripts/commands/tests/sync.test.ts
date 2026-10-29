@@ -88,6 +88,31 @@ test('what belongs to one machine is what the ignore file names, at the top of ~
   assert.ok(!ignored('projects/shop/tickets/exp-3-tts/protos/a/scripts/run.sh'));
 });
 
+test('a path added to the ignore list stops travelling, though it was committed before', () => {
+  const remote = bareRepo('sync-untrack');
+  const a = machine('sync-untrack-a');
+  connect(a, remote);
+  const reply = path.join(a.at.flow, 'projects', 'shop', 'replies', 'one.md');
+  fs.mkdirSync(path.dirname(reply), { recursive: true });
+  fs.writeFileSync(reply, 'a reply\n');
+  fs.writeFileSync(path.join(a.at.flow, 'CLAUDE.md'), 'rules\n');
+  // This machine's ignore file is older than the line for replies/, so they were sent.
+  fs.writeFileSync(path.join(a.at.flow, '.gitignore'), '/logs/\n');
+  assert.strictEqual(sync(a).code, 0);
+  const tracked = () => git(a.at.flow, ['ls-files']).out.split('\n');
+  assert.ok(tracked().includes('projects/shop/replies/one.md'));
+
+  repo.writeIgnore(a.at);
+  const synced = sync(a);
+  assert.strictEqual(synced.code, 0, synced.stderr);
+  assert.match(synced.stdout, /went up: sync-untrack-a: 2 files$/m, 'the reply leaves, and the ignore file is the other');
+  assert.ok(!tracked().includes('projects/shop/replies/one.md'), 'no longer tracked');
+  assert.strictEqual(read(reply), 'a reply\n', 'and still on this machine\'s disk');
+  assert.ok(tracked().includes('CLAUDE.md'), 'what travels stays');
+  assert.ok(!git(a.at.flow, ['ls-tree', '-r', '--name-only', 'origin/main']).out.includes('replies/one.md'), 'and gone from the remote');
+  assert.strictEqual(sync(a).stdout, 'nothing new came down.\nnothing changed here, so nothing went up.\n', 'settled');
+});
+
 test('sync on a ~/.flow that is not a repository says so and stops', () => {
   const m = machine('sync-bare');
   const refused = sync(m);

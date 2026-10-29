@@ -155,6 +155,20 @@ function changed(at) {
   return `${count} file${count === 1 ? '' : 's'}`;
 }
 
+/**
+ * Stop tracking every committed file the ignore file now names, keeping it on
+ * disk. git ignores only untracked files, so a line added after a file was
+ * committed does nothing for that file. Only `.gitignore` is read, never
+ * git's global excludes, which would untrack what the user's own setup hides.
+ */
+function untrackIgnored(at) {
+  const listed = git(at.flow, ['ls-files', '-z', '--cached', '--ignored', '--exclude-from', path.join(at.flow, '.gitignore')]);
+  if (!listed.ok || !listed.out) return;
+  const files = listed.out.split('\0').filter(Boolean);
+  const removed = git(at.flow, ['rm', '-q', '--cached', '--', ...files]);
+  if (!removed.ok) throw new FlowError(`could not stop tracking what ${at.flow} ignores: ${removed.err}`);
+}
+
 /** The `.gitignore`, written every run so a new machine-only path reaches it. */
 function writeIgnore(at) {
   fs.mkdirSync(at.flow, { recursive: true });
@@ -377,6 +391,7 @@ function sync(at, { roots = [], keepWas = true }: { roots?: string[]; keepWas?: 
   // the one a clash on a ticket number is judged against.
   const theirs = remote ? git(at.flow, ['rev-parse', '-q', '--verify', 'origin/main']).out || null : null;
 
+  untrackIgnored(at);
   const count = changed(at);
   let sent: string | null = null;
   if (count) {
