@@ -13,11 +13,20 @@ export type Headline = {
 }
 
 const WRITES: Record<string, string> = {
-  Edit: 'Edit this file',
-  MultiEdit: 'Edit this file',
-  Write: 'Write this file',
-  NotebookEdit: 'Edit this notebook',
+  Edit: 'Edit',
+  MultiEdit: 'Edit',
+  Write: 'Write',
+  NotebookEdit: 'Edit',
 }
+
+/** The path with the home folder written `~`, whole otherwise. */
+export function shortPath(file: string, home?: string): string {
+  return home && file.startsWith(`${home}/`) ? `~${file.slice(home.length)}` : file
+}
+
+/** A verb and the file it acts on: `Write ~/code/app/README.md`. */
+const onFile = (verb: string, file: string | undefined, home?: string) =>
+  file ? `${verb} ${shortPath(file, home)}` : `${verb} a file`
 
 // A command starts at the text's start, a new line, or after `;`, `&`, `|` or `(`.
 const START = String.raw`(?:^|[\n;&|(])\s*`
@@ -74,14 +83,14 @@ function fieldLines(input: unknown): string {
 }
 
 /** The headline for a call. `Bash` gets a sentence by command only for a commit, a push and a publish. */
-export function headline(tool: string, input: unknown): Headline {
+export function headline(tool: string, input: unknown, home?: string): Headline {
   if (tool === 'Bash') {
     const command = field(input, 'command') ?? ''
     return { sentence: bashSentence(command), text: command }
   }
   const write = WRITES[tool]
-  if (write) return { sentence: write, text: mainField(input) ?? '' }
-  if (tool === 'Read') return { sentence: 'Read this file', text: mainField(input) ?? '' }
+  if (write) return { sentence: onFile(write, mainField(input), home), text: mainField(input) ?? '' }
+  if (tool === 'Read') return { sentence: onFile('Read', mainField(input), home), text: mainField(input) ?? '' }
   if (tool === 'WebFetch') return { sentence: 'Fetch this page', text: mainField(input) ?? '' }
   if (tool === 'WebSearch') return { sentence: 'Search the web', text: mainField(input) ?? '' }
   return { sentence: `Call the tool ${tool}`, text: fieldLines(input) }
@@ -91,7 +100,7 @@ export function headline(tool: string, input: unknown): Headline {
  * The sentence for a write the guard asked about. The guard's own sentence
  * does not survive: Claude Code swaps in its long `requested permissions` text.
  */
-export function guardedSentence(tool: string, file: string): string {
-  if (/(^|\/)\.ssh\//.test(file)) return 'Write into ~/.ssh · login keys'
-  return `${WRITES[tool] ?? 'Edit this file'} · can switch the guard off`
+export function guardedSentence(tool: string, file: string, home?: string): string {
+  const shown = onFile(WRITES[tool] ?? 'Edit', file, home)
+  return /(^|\/)\.ssh\//.test(file) ? `${shown} · login keys` : `${shown} · can switch the guard off`
 }

@@ -77,6 +77,15 @@ describe('isAutoAllow', () => {
     expect(isAutoAllow('Edit', { file_path: `${base}/hooks/hooks.json` }, core)).toBe(false)
   })
 
+  test('allows a write outside the session folder, never inside it or under .git', () => {
+    expect(isAutoAllow('Write', { file_path: '/code/reader/README.md' }, core, undefined, '/code/app')).toBe(true)
+    expect(isAutoAllow('Write', { file_path: '/code/app-copy/a.ts' }, core, 'agent-1', '/code/app')).toBe(true)
+    expect(isAutoAllow('Write', { file_path: '/code/app/src/a.ts' }, core, undefined, '/code/app/')).toBe(false)
+    expect(isAutoAllow('Write', { file_path: '/code/reader/.git/hooks/pre-commit' }, core, undefined, '/code/app')).toBe(false)
+    expect(isAutoAllow('Write', { file_path: 'rel/a.ts' }, core, undefined, '/code/app')).toBe(false)
+    expect(isAutoAllow('Write', { file_path: '/code/reader/a.ts' }, { decision: 'ask', hook: 'PreToolUse' }, undefined, '/code/app')).toBe(false)
+  })
+
   test('never for a subagent under the mod folder, or a folder with a similar name', () => {
     expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-session/features/band/band.tsx' }, core, 'agent-1')).toBe(false)
     expect(isAutoAllow('Edit', { file_path: '/p/mods/flow-session-copy/features/band/band.tsx' }, core)).toBe(false)

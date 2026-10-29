@@ -53,13 +53,19 @@ describe('headline', () => {
 
   test('a write names its path and asks about a write', () => {
     const edit = headline('Edit', { file_path: '/p/.claude/skills/x/SKILL.md', old_string: 'a', new_string: 'b' })
-    expect(edit).toEqual({ sentence: 'Edit this file', text: '/p/.claude/skills/x/SKILL.md' })
-    expect(headline('Write', { file_path: '/p/a.md', content: 'x' }).sentence).toBe('Write this file')
+    expect(edit).toEqual({ sentence: 'Edit /p/.claude/skills/x/SKILL.md', text: '/p/.claude/skills/x/SKILL.md' })
+    expect(headline('Write', { file_path: '/p/a.md', content: 'x' }).sentence).toBe('Write /p/a.md')
     expect(headline('NotebookEdit', { notebook_path: '/p/n.ipynb' }).text).toBe('/p/n.ipynb')
   })
 
+  test('a path under the home folder is written with ~, and a missing one says a file', () => {
+    expect(headline('Write', { file_path: '/h/code/reader/README.md' }, '/h').sentence).toBe('Write ~/code/reader/README.md')
+    expect(headline('Write', { file_path: '/hx/a.md' }, '/h').sentence).toBe('Write /hx/a.md')
+    expect(headline('Edit', null).sentence).toBe('Edit a file')
+  })
+
   test('a read, a fetch and a search show the path, the address and the query', () => {
-    expect(headline('Read', { file_path: '/p/a' })).toMatchObject({ sentence: 'Read this file', text: '/p/a' })
+    expect(headline('Read', { file_path: '/p/a' })).toMatchObject({ sentence: 'Read /p/a', text: '/p/a' })
     expect(headline('WebFetch', { url: 'https://x.dev', prompt: 'p' })).toMatchObject({ sentence: 'Fetch this page', text: 'https://x.dev' })
     expect(headline('WebSearch', { query: 'mods' })).toMatchObject({ sentence: 'Search the web', text: 'mods' })
   })
@@ -84,9 +90,9 @@ describe('mainField', () => {
 })
 
 describe('guardedSentence', () => {
-  test('names the file kind a guard ask protects, in the mod\'s own words', () => {
-    expect(guardedSentence('Edit', '/h/.claude/settings.json')).toBe('Edit this file · can switch the guard off')
-    expect(guardedSentence('Write', '/h/.claude/settings.json')).toBe('Write this file · can switch the guard off')
-    expect(guardedSentence('Write', '/h/.ssh/config')).toBe('Write into ~/.ssh · login keys')
+  test('names the file and why the guard asked, in the mod\'s own words', () => {
+    expect(guardedSentence('Edit', '/h/.claude/settings.json', '/h')).toBe('Edit ~/.claude/settings.json · can switch the guard off')
+    expect(guardedSentence('Write', '/h/.claude/settings.json')).toBe('Write /h/.claude/settings.json · can switch the guard off')
+    expect(guardedSentence('Write', '/h/.ssh/config', '/h')).toBe('Write ~/.ssh/config · login keys')
   })
 })

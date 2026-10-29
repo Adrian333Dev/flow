@@ -160,7 +160,7 @@ These are the keys Flow keeps in `~/.claude/settings.json`. Every other key in t
 
 Hooks are scripts Claude Code runs at a fixed moment, such as before every shell command. Flow's live in `~/.flow/scripts/hooks/`, and the sync job in `~/.flow/scripts/jobs/`:
 
-- **`guard.ts`**, before every shell command, edit, write and file read: asks you before a call that could lose work, send data off the computer, change a shared system or switch the guard off, and before Claude reads a private key or a login.
+- **`guard.ts`**, before every shell command, edit, write and file read: asks you before a call that could lose work, send data off the computer, change a shared system or switch the guard off, and before Claude reads a private key or a login. If the guard itself cannot run, the call is blocked rather than let through.
 - **`changes.ts`**, around every edit and command: records which helper agent changed which file, in `~/.flow/changes/<session>/`.
 - **`rule-check.ts`**, before every edit: tests the edit against your rules. No rule check exists yet, so it does nothing.
 - **`instructions-loaded.ts`**, when a rule file loads: records which rules the agent has read.

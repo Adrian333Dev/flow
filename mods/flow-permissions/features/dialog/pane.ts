@@ -52,13 +52,17 @@ const MOD_MANIFEST = /(^|\/)mods\/flow-(session|permissions)\/(\.claude-plugin\/
  * A core ask on a write under a `.claude` folder, or from the main agent under
  * this mod's folder bar its manifests, with no guard reason and no settings
  * rule behind it. Claude Code asks for every such write, and the mod's allow
- * is the only way to remove that ask.
+ * is the only way to remove that ask. The same holds for a write outside the
+ * session's folder (a sibling checkout, another project): Claude Code asks for
+ * it, and the guard has already passed it. `.git` stays asked, since a hook
+ * file there runs code.
  */
-export function isAutoAllow(tool: string, input: unknown, decided: Decided, agentId?: string): boolean {
+export function isAutoAllow(tool: string, input: unknown, decided: Decided, agentId?: string, root?: string): boolean {
   if (decided.decision !== 'ask' || decided.hook === 'PreToolUse' || decided.rule !== undefined) return false
   if (!WRITE_TOOLS.has(tool)) return false
   const file = mainField(input) ?? ''
   if (/(^|\/)\.claude\//.test(file)) return true
+  if (root && file.startsWith('/') && !file.startsWith(`${root.replace(/\/+$/, '')}/`) && !/(^|\/)\.git\//.test(file)) return true
   return agentId === undefined && MOD_FOLDER.test(file) && !MOD_MANIFEST.test(file)
 }
 

@@ -48,14 +48,16 @@ async function logAsk($: EngineInterface, fields: Omit<LogFields, 'at' | 'projec
 
 /** The answer to an ask the rules and the guard left open. */
 export async function askUser($: EngineInterface, e: Check, decided: Decided): Promise<Decided> {
-  const shown = headline(e.tool, e.input)
+  const home = (await $.env.get('HOME')) ?? undefined
+  const root = await $.session.root().catch(() => undefined)
+  const shown = headline(e.tool, e.input, home)
   const guarded = guardedWrite(e.tool, e.input, decided)
   const guardReason = decided.hook === 'PreToolUse' ? decided.reason?.trim() : undefined
-  const sentence = guarded !== undefined ? guardedSentence(e.tool, guarded) : guardReason || shown.sentence
+  const sentence = guarded !== undefined ? guardedSentence(e.tool, guarded, home) : guardReason || shown.sentence
   const entry = { tool: e.tool, agent: e.agentId, rule: decided.rule, source: sourceOf(decided.hook, decided.rule), headline: sentence, command: shown.text }
   const done = (answer: LogAnswer, ms?: number) => logAsk($, { ...entry, answer, ms })
 
-  if (isAutoAllow(e.tool, e.input, decided, e.agentId) || (guarded !== undefined && isCovered(guarded))) {
+  if (isAutoAllow(e.tool, e.input, decided, e.agentId, root) || (guarded !== undefined && isCovered(guarded))) {
     await done('auto-allow')
     return { decision: 'allow' }
   }

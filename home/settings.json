@@ -16,7 +16,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.flow/scripts/hooks/guard.ts\""
+            "command": "node \"$HOME/.flow/scripts/hooks/guard.ts\"",
+            "onFailure": "block"
           }
         ]
       },
