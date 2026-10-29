@@ -60,6 +60,19 @@ describe('the model meter', () => {
   })
 })
 
+describe('the context meter at the start of a session', () => {
+  test('a resumed session shows the size it resumed with, before any response', async ($, on) => {
+    session(on, {})
+    on('classic.SessionStart', () => ({}) as never)
+    on('process.run', () => ({ value: { exitCode: 0, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }))
+    const ui = await $.ui.mount(HINT)
+    await $.classic.SessionStart({ source: 'resume', context_tokens: 88000, transcript_path: '/t.jsonl' } as never)
+    await flush()
+    expect(await ui.find({ text: '88k' })).toBeDefined()
+    await ui.unmount()
+  })
+})
+
 describe('the context meter', () => {
   test('follows the session inside a turn, with no session.measure', async ($, on) => {
     const size: { tokens?: number } = { tokens: 31000 }

@@ -12,7 +12,8 @@ import { mentionsFor } from './features/drag/drag'
 import { inSkillCall, withSkillWiki } from './features/guides/skill-wiki'
 import { steerStep, withGuideHeader } from './features/guides/steer-step'
 import { cancel as warmCancel, closeWarm, keepWarm, noteBroken, registerKeepWarm, replan, warmTranscript, warmTurnEnded, warmTurnStarted } from './features/keepwarm/keepwarm'
-import { drawMeters, metersMeasure, metersRead, metersRefresh, metersStart, metersStep, metersSwitch } from './features/meters/meters-row'
+import { logSwitch } from './features/meters/model-switch'
+import { drawMeters, metersMeasure, metersRead, metersRefresh, metersResumed, metersStart, metersStep, metersSwitch } from './features/meters/meters-row'
 import { listRows } from './features/notes/notes'
 import { withFileContext } from './features/ticket-context/ticket-context'
 import { countVisit } from './features/usage/visits'
@@ -155,6 +156,7 @@ export const register: Register = (on) => {
   })
 
   on('classic.SessionStart', async ($, e, next) => {
+    if (e.source === 'resume' && e.context_tokens !== undefined) await metersResumed($, e.context_tokens).catch(() => undefined)
     await metersRead($, e.transcript_path).catch(() => undefined)
     await warmTranscript($, e.transcript_path)
     return next(e)
@@ -166,6 +168,7 @@ export const register: Register = (on) => {
   })
   on('classic.PostModelSwitch', async ($, e, next) => {
     await metersSwitch($, e.to_model).catch(() => undefined)
+    await logSwitch($, e)
     await noteBroken($).catch(() => undefined)
     return next(e)
   })

@@ -69,6 +69,15 @@ export async function metersRefresh($: EngineInterface): Promise<void> {
   if (tokens !== undefined) await update($, reading, (r) => (r.tokens === tokens ? r : { ...r, tokens }))
 }
 
+/**
+ * A resumed session starts with the size of the conversation it resumed. `session.usage` has no figure
+ * before the first response, and `SessionStart` carries it (with the last response's output, which the
+ * next request re-sends, so it runs a few tokens above the engine's own count).
+ */
+export async function metersResumed($: EngineInterface, tokens: number): Promise<void> {
+  await update($, reading, (r) => (r.tokens === tokens ? r : { ...r, tokens }))
+}
+
 /** Hides the context meter until a response gives a figure: the old one belongs to a conversation that is gone. */
 export async function metersClear($: EngineInterface): Promise<void> {
   await update($, reading, ({ tokens: _, ...r }) => r)
