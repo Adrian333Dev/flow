@@ -6,7 +6,7 @@
  * response: a `Read` of a guide beside a read of a matched file, the guide's `Read` in place of an
  * `Edit` or `Write` of one, which it holds back with every call after it, and a group's `--help`
  * beside the group's first command. It never adds what the window or the response already holds,
- * whoever made the call. Each added call's result is headed `[Added by Flow]`.
+ * whoever made the call. Each added call's result is headed `[Auto]`.
  */
 import type { EngineInterface } from 'claude-code'
 import { type Block, windowMessages } from '../../shared/window'
@@ -180,7 +180,7 @@ export type Plan = {
   notes: Map<number, string>
 }
 
-export const HEADER = '[Added by Flow]'
+export const HEADER = '[Auto]'
 
 /** The calls named in a header, `Edit of style.md`, `Bash (npm test)`. */
 const named = (call: Call) => (touches(call) ? `${call.tool} of ${nameOf(pathOf(call))}` : call.tool === 'Bash' ? `Bash (${commandOf(call).split('\n')[0]!.slice(0, 60)})` : call.tool)

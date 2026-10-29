@@ -46,11 +46,11 @@ describe('wikiText', () => {
   test('a load sends the index after its line', async () => {
     const text = await wikiText([{ folder: 'audit', mode: 'load' }], HOME, none, disk({ [INDEX]: '# Audit\n- queries.md\n' }))
     expect(text).toBe(`${loadLine(HOME, 'audit')}\n\n# Audit\n- queries.md`)
-    expect(text).toStartWith("[Added by Flow] The index of this skill's wiki folder, /h/.flow/wiki/audit/index.md:")
+    expect(text).toStartWith("[Auto] The index of this skill's wiki folder, /h/.flow/wiki/audit/index.md:")
   })
 
   test('a name sends one line', async () => {
-    expect(await wikiText([{ folder: 'audit', mode: 'name' }], HOME, none, disk({}))).toBe("[Added by Flow] This skill's wiki folder: /h/.flow/wiki/audit/")
+    expect(await wikiText([{ folder: 'audit', mode: 'name' }], HOME, none, disk({}))).toBe("[Auto] This skill's wiki folder: /h/.flow/wiki/audit/")
   })
 
   test('a missing index falls back to the name line, never an error', async () => {

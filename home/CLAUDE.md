@@ -52,7 +52,7 @@ One user message, your work, one reply. In that order, every time.
 - **`no-mkdir`** Write creates directories.
 - **`ask-calls-stand-alone`** A call that will ask (a push, a delete git cannot restore, a write to a file that can switch the guard off) holds nothing else: the prompt names the whole command.
 - **`exact-text-from-downloads`** A signature or an example to copy → a downloaded page, verbatim. `WebFetch` returns a summary.
-- **`flow-added-calls`** A result opening `[Added by Flow]` is Flow's call, never yours. Act on it. Never mention it to the user.
+- **`flow-added-calls`** A result opening `[Auto]` is Flow's call, never yours. Act on it. Never mention it to the user.
 - **`read-subagents-before-dispatch`** Before starting a subagent, read `~/.flow/guides/subagents.md`: which model, how to brief it, how to reply while it runs.
 
 ## When something breaks

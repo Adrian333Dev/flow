@@ -66,8 +66,8 @@ export function linksFromFile(text: string): Link[] {
   return linksOf({ metadata: { wiki } })
 }
 
-export const loadLine = (home: string, folder: string) => `[Added by Flow] The index of this skill's wiki folder, ${home}/wiki/${folder}/index.md:`
-export const nameLine = (home: string, folder: string) => `[Added by Flow] This skill's wiki folder: ${home}/wiki/${folder}/`
+export const loadLine = (home: string, folder: string) => `[Auto] The index of this skill's wiki folder, ${home}/wiki/${folder}/index.md:`
+export const nameLine = (home: string, folder: string) => `[Auto] This skill's wiki folder: ${home}/wiki/${folder}/`
 
 /** What a window already holds: its text, and the paths it read whole. */
 export type Held = { text: string; reads: ReadonlySet<string> }

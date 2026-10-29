@@ -118,10 +118,10 @@ describe('the loads of a window', () => {
     const files = { '/h/.claude/skills/flow/skills/audit/SKILL.md': skill, '/h/.flow/wiki/audit/index.md': 'AUDIT-INDEX\n' }
     const { $ } = engine({ files })
     const window = JSON.stringify((await build($, { restart: restart({ skills: ['flow:audit'] }) })).messages)
-    expect(window).toContain("[Added by Flow] The index of this skill's wiki folder, /h/.flow/wiki/audit/index.md:\\n\\nAUDIT-INDEX")
+    expect(window).toContain("[Auto] The index of this skill's wiki folder, /h/.flow/wiki/audit/index.md:\\n\\nAUDIT-INDEX")
     expect(window.split('AUDIT-INDEX')).toHaveLength(2)
     const named = JSON.stringify((await build(engine({ files }).$, { restart: restart({ skills: ['flow:audit'], files: ['/h/.flow/wiki/audit/index.md'] }) })).messages)
-    expect(named).not.toContain("[Added by Flow] The index of this skill's wiki folder")
+    expect(named).not.toContain("[Auto] The index of this skill's wiki folder")
   })
 
   test('a skill the session does not list is still refused', async () => {

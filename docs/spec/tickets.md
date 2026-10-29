@@ -232,7 +232,7 @@ app/                                   the main checkout, on main: where a build
 The header, as the agent receives it on a `Read` of `fw-204`'s `ticket.md`:
 
 ````text
-[Added by Flow] fw-204 as `flow` reports it. These lines are generated, not part of /home/me/code/flow-dev/.flow/tickets/204/ticket.md: never copy them into the file. Change these fields with `flow tickets` alone.
+[Auto] fw-204 as `flow` reports it. These lines are generated, not part of /home/me/code/flow-dev/.flow/tickets/204/ticket.md: never copy them into the file. Change these fields with `flow tickets` alone.
 ```text
 children:    6/12 done
 questions:   2 open (0, 0.3)

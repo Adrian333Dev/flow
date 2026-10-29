@@ -32,7 +32,7 @@ Data files such as `.json` and `.yaml` match no entry, `.mcp.json` aside. A read
 The mod adds a `Read` of each missing guide after the agent's own calls. Its result carries this line, here for a read of `docs/spec/rules.md`:
 
 ```text
-[Added by Flow] Guide for spec files.
+[Auto] Guide for spec files.
 ```
 
 The other entries say `Guide for a ticket's files.`, `Guide for rule files.`, `Guide for files an agent loads.`, `Guide for markdown.` and `Guide for code.` in its place. The rule `flow-added-calls` in `CLAUDE.md` tells the agent what the marker means: act on the call, never mention it to you, never count it as its own.
@@ -42,7 +42,7 @@ The other entries say `Guide for a ticket's files.`, `Guide for rule files.`, `G
 The `Edit` or `Write` never runs, so the file is unchanged. Every call after it in the same response is held back too, since a test run after the edit would run against the old file. A `Read` of each missing guide takes their place, and the first one's result carries this line:
 
 ```text
-[Added by Flow] Your Write of b.md was held back, so the file is unchanged. Held with it: Bash (npm test). Read this guide, then make them again.
+[Auto] Your Write of b.md was held back, so the file is unchanged. Held with it: Bash (npm test). Read this guide, then make them again.
 ```
 
 With nothing after the edit, the line ends `Read this guide, then make it again.` A held install command says `so it did not run` in place of `so the file is unchanged`. Where the agent already reads the guide in that same response, the line goes on the agent's own `Read`, and nothing is added.
@@ -50,7 +50,7 @@ With nothing after the edit, the line ends `Read this guide, then make it again.
 ## A group's first command
 
 ```text
-[Added by Flow] The flow audit commands.
+[Auto] The flow audit commands.
 ```
 
 Ticket commands, such as `flow tickets start`, bring nothing.
@@ -72,13 +72,13 @@ metadata:
 When the skill starts, typed or called by the agent, the mod adds text after the skill's own. A `load` folder sends its `index.md`, after this line:
 
 ```text
-[Added by Flow] The index of this skill's wiki folder, /home/me/.flow/wiki/audit/index.md:
+[Auto] The index of this skill's wiki folder, /home/me/.flow/wiki/audit/index.md:
 ```
 
 A `name` folder, or a `load` folder with no `index.md`, sends one line:
 
 ```text
-[Added by Flow] This skill's wiki folder: /home/me/.flow/wiki/audit/
+[Auto] This skill's wiki folder: /home/me/.flow/wiki/audit/
 ```
 
 Each folder goes once per conversation. Nothing is added where the conversation already holds the line, or a `Read` of the whole `index.md`. Two skills linking one folder bring it once. A subagent that calls the skill gets its own copy.

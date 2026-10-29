@@ -64,7 +64,7 @@ describe('ticketHeader', () => {
     )
     expect(header).toBe(
       [
-        '[Added by Flow] fw-236 as `flow` reports it. These lines are generated, not part of /work/.flow/tickets/236/ticket.md: never copy them into the file. Change these fields with `flow tickets` alone.',
+        '[Auto] fw-236 as `flow` reports it. These lines are generated, not part of /work/.flow/tickets/236/ticket.md: never copy them into the file. Change these fields with `flow tickets` alone.',
         '```text',
         'status:      todo (held by post-v1)',
         'children:    4/12 done',
@@ -89,11 +89,11 @@ describe('wikiLabels', () => {
   test('counts each label, the most used first, and the findings with none last', () => {
     const text = wikiLabels('claude-code', '/h/.flow', [{ labels: ['mod-api'] }, { labels: ['mod-api', 'terminal-ui'] }, { labels: ['mod-loading'] }, { labels: [] }])
     expect(text.split('\n')[1]).toBe('mod-api 2 · mod-loading 1 · terminal-ui 1 · no label 1')
-    expect(text).toStartWith('[Added by Flow] The findings in /h/.flow/wiki/claude-code/findings/, by label')
+    expect(text).toStartWith('[Auto] The findings in /h/.flow/wiki/claude-code/findings/, by label')
   })
 
   test('a folder with no findings says so', () => {
-    expect(wikiLabels('node', '/h/.flow', [])).toBe('[Added by Flow] /h/.flow/wiki/node/findings/ holds no findings.')
+    expect(wikiLabels('node', '/h/.flow', [])).toBe('[Auto] /h/.flow/wiki/node/findings/ holds no findings.')
   })
 })
 
@@ -159,7 +159,7 @@ describe('the mention hook', () => {
   test('an @ mention of a ticket.md gets the header', async ($, on) => {
     claudeCode(on, () => [])
     const done = await $.prompt.mention({ mention: '.flow/tickets/236/ticket.md', path: PATH })
-    expect(contextOf(done)[0]).toStartWith('[Added by Flow] fw-236 as `flow` reports it.')
+    expect(contextOf(done)[0]).toStartWith('[Auto] fw-236 as `flow` reports it.')
   })
 
   test('a refused mention stays refused, with nothing added and no flow run', async ($, on) => {
