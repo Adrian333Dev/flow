@@ -10,6 +10,7 @@
  */
 import type { EngineInterface } from 'claude-code'
 import { type Block, windowMessages } from '../../shared/window'
+import { CODE_EXTENSIONS, filesWritten } from './shell-write'
 
 /** A tool call as the response holds it: its tool and parsed arguments. */
 export type Call = { tool: string; input: Record<string, unknown> }
@@ -34,8 +35,7 @@ const commandOf = (call: Call) => (call.tool === 'Bash' && typeof call.input.com
 const nameOf = (path: string) => path.slice(path.lastIndexOf('/') + 1)
 const touches = (call: Call) => ['Read', 'Edit', 'Write'].includes(call.tool) && pathOf(call) !== ''
 const markdown = (call: Call) => touches(call) && pathOf(call).endsWith('.md')
-const code = (call: Call) =>
-  touches(call) && /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py|rb|go|rs|java|kt|swift|c|h|cc|cpp|hpp|cs|php|sh|bash|lua|svelte|vue|scala|ex|exs|dart|sql)$/.test(pathOf(call))
+const code = (call: Call) => touches(call) && new RegExp(`\\.(${CODE_EXTENSIONS.join('|')})$`).test(pathOf(call))
 /** Every guide an entry sends, in Flow's `guides/`. */
 const GUIDES = ['style.md', 'write-loaded-files.md', 'write-rules.md', 'write-spec.md', 'write-tickets.md', 'knowledge.md', 'write-code.md'] as const
 type Guide = (typeof GUIDES)[number]
@@ -51,6 +51,16 @@ export function groupsOf(command: string): string[] {
 
 /** True for a command that is a group's own help: `flow audit --help`, `util fs -h`. */
 const helpOf = (command: string, group: string) => new RegExp(`^\\s*${group.replace(' ', '\\s+')}\\s+(--help|-h)\\s*$`).test(command)
+
+/** The guides an `Edit` of each file a Bash command writes takes, once each. A relative path gets the leading `/` the entries test. */
+function shellWriteGuides(call: Call): Send[] {
+  const sends = new Map<string, Send>()
+  for (const file of filesWritten(commandOf(call))) {
+    const edit: Call = { tool: 'Edit', input: { file_path: file.startsWith('/') ? file : `/${file}` } }
+    for (const send of entryFor(edit)?.send(edit) ?? []) sends.set(keyOf(send), send)
+  }
+  return [...sends.values()]
+}
 
 /** The list, first match wins. The guides themselves send nothing when read. */
 export const ENTRIES: readonly Entry[] = [
@@ -99,6 +109,13 @@ export const ENTRIES: readonly Entry[] = [
     when: code,
     send: () => guides('write-code.md'),
     why: guideWhy('code'),
+  },
+  {
+    id: 'shell-write',
+    when: (call) => shellWriteGuides(call).length > 0,
+    send: shellWriteGuides,
+    why: guideWhy('files written from the shell'),
+    holds: true,
   },
   {
     id: 'command',

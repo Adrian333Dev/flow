@@ -63,6 +63,31 @@ describe('knowledge', () => {
   })
 })
 
+describe('shell-write', () => {
+  const sed = `sed -i 's/^- \\[ \\] fw-274:/- [x] fw-274:/' .flow/tickets/316/ticket.md`
+
+  test('a shell write takes the entry, a read does not', () => {
+    expect(entryFor(bash(sed))?.id).toBe('shell-write')
+    expect(entryFor(bash(`sed -n '1,5p' .flow/tickets/316/ticket.md`))).toBeUndefined()
+    expect(entryFor(bash(`grep -rn "sed -i" home/CLAUDE.md`))).toBeUndefined()
+    expect(entryFor(bash(`sed -i 's/a/b/' package.json`))).toBeUndefined()
+  })
+
+  test('a sed -i on a ticket is held until the ticket guide is read', () => {
+    const plan = planFor([bash(sed)], new Set())
+    expect(plan.held).toEqual([0])
+    expect(sent(plan)).toEqual(['guides/write-tickets.md'])
+    expect(plan.added[0]!.header).toBe(`${HEADER} Your Bash (${sed.slice(0, 60)}) was held back, so it did not run. Read this guide, then make it again.`)
+    expect(planFor([bash(sed)], new Set(['read:guides/write-tickets.md']))).toEqual({ held: [], added: [], notes: new Map() })
+  })
+
+  test('a ticket and a test file in one command bring both guides, a rule file the rule guides', () => {
+    const both = ["python3 - <<'EOF'", "a='.flow/tickets/321/ticket.md'", "b='features/usage/visits.test.ts'", "open(a,'w').write('x')", "open(b,'w').write('y')", 'EOF'].join('\n')
+    expect(sent(planFor([bash(both)], new Set()))).toEqual(['guides/write-tickets.md', 'guides/write-code.md'])
+    expect(sent(planFor([bash(`sed -i 's/a/b/' home/CLAUDE.md`)], new Set()))).toEqual(['guides/style.md', 'guides/write-loaded-files.md', 'guides/write-rules.md'])
+  })
+})
+
 describe('groupsOf', () => {
   test('finds flow groups and util groups anywhere in the command', () => {
     expect(groupsOf('flow audit sql "select 1" | head')).toEqual(['flow audit'])

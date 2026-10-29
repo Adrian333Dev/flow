@@ -50,7 +50,6 @@ One user message, your work, one reply. In that order, every time.
 
 - **`read-a-refusal`** Read a refusal before working around it. `--force` is a deliberate override.
 - **`no-mkdir`** Write creates directories.
-- **`edit-with-edit`** Edits → `Edit`, every independent edit in one message. The same mechanical change across many files (a rename, a moved path) → a script in `tmp/`: dry run, apply, delete. Never `python3` or `sed -i` for an ordinary edit, one file per request. Never a check alone after an edit.
 - **`ask-calls-stand-alone`** A call that will ask (a push, a delete git cannot restore, a write to a file that can switch the guard off) holds nothing else: the prompt names the whole command.
 - **`exact-text-from-downloads`** A signature or an example to copy → a downloaded page, verbatim. `WebFetch` returns a summary.
 - **`flow-added-calls`** A result opening `[Added by Flow]` is Flow's call, never yours. Act on it. Never mention it to the user.
