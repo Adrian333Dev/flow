@@ -59,7 +59,8 @@ async function namedBy($: EngineInterface, tool: string, call: object): Promise<
   if (tool === 'Bash' && typeof fields.command === 'string') {
     const command = fields.command
     if (!/\bflow\b|\bfw\s/.test(command)) return { ids: [], started: [] }
-    return { ids: idsIn(command), started: startedIn(command) }
+    const started = startedIn(command, /\bstart\s+\d/.test(command) ? await prefixOf($) : undefined)
+    return { ids: [...new Set([...idsIn(command), ...started])], started }
   }
   if (FILE_TOOL.test(tool) && typeof fields.file_path === 'string' && fields.file_path.includes('/tickets/')) {
     return { ids: idsInPath(fields.file_path, await prefixOf($)), started: [] }

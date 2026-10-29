@@ -111,6 +111,11 @@ describe('startedIn', () => {
     expect(startedIn('flow tickets start fw-9 --activity build && flow tickets get fw-16 && fw start fw-7')).toEqual(['fw-9', 'fw-7'])
   })
 
+  test('a bare number picks up the ticket under the project prefix, and nothing without one', () => {
+    expect(startedIn('cd /p && flow tickets start 321 --activity design', 'fw')).toEqual(['fw-321'])
+    expect(startedIn('flow tickets start 321')).toEqual([])
+  })
+
   test('a read, a done or a park picks nothing up', () => {
     expect(startedIn('flow tickets get fw-73')).toEqual([])
     expect(startedIn('flow done fw-133; flow park fw-16')).toEqual([])
