@@ -1,10 +1,11 @@
 /**
  * The audit database: where it lives, and the shape it holds.
  *
- * Every row here is derived from a transcript Claude Code wrote anyway.
- * Nothing is authoritative: delete the file and `flow audit index` writes it
- * again from the same source. That is what allows the schema to change without
- * a migration: bump SCHEMA and the next index rebuilds.
+ * Every row here is derived from a transcript Claude Code wrote anyway. While
+ * the transcript is on disk, deleting the file and running `flow audit index`
+ * writes it again. Once Claude Code sweeps a transcript, its rows are the only
+ * copy, which is why a rebuild carries them over. That allows the schema to
+ * change without a migration: bump SCHEMA and the next index rebuilds.
  *
  * Machine-local by design. It describes work that happened on one machine, and
  * `~/.flow` is synced between two, so `audit/` is excluded from that sync.
@@ -25,8 +26,9 @@ import * as paths from '../../shared/paths.ts';
 import { DatabaseSync } from 'node:sqlite';
 import { FlowError } from '../../shared/error.ts';
 
-// Bumping this throws the file away on the next index. Every row is derived,
-// so the cost of a rebuild is time, never data.
+// Bumping this rebuilds the file on the next index. A row is derived from a
+// transcript, so a rebuild costs time, except for a session whose transcript
+// Claude Code has swept: `rebuild` carries those rows over.
 const SCHEMA = 11;
 
 const auditDir = () => path.join(paths.flowHome(), 'audit');
@@ -300,8 +302,74 @@ function open({ readonly = false } = {}) {
   }
 
   db.close();
-  for (const suffix of ['', '-wal', '-shm']) fs.rmSync(file + suffix, { force: true });
-  return create(file);
+  rebuild();
+  return new DatabaseSync(file);
+}
+
+// Tables whose rows belong to one session. A kept row is copied by column
+// name, so a column the new schema lacks is dropped and a new one starts empty.
+const BY_SESSION = [
+  ['session', 'id'], ['transcript', 'session_id'], ['segment', 'session_id'],
+  ['turn', 'session_id'], ['event', 'session_id'], ['request', 'session_id'],
+  ['tool_call', 'session_id'], ['file_touch', 'session_id'], ['run_session', 'session_id'],
+];
+
+const clear = (file: string) => { for (const suffix of ['', '-wal', '-shm']) fs.rmSync(file + suffix, { force: true }); };
+
+/** The session ids none of whose transcripts is on disk, read from an old index. [] when it cannot be read. */
+function sweptSessions(db: DatabaseSync, file: string): string[] {
+  try {
+    db.prepare('ATTACH DATABASE ? AS old').run(file);
+    const rows = db.prepare('SELECT session_id, path FROM old.transcript').all() as { session_id: string; path: string }[];
+    const alive = new Set(rows.filter((t) => fs.existsSync(t.path)).map((t) => t.session_id));
+    return [...new Set(rows.map((t) => t.session_id))].filter((id) => !alive.has(id));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Writes the database again from the transcripts on disk. A session whose
+ * transcripts Claude Code has already swept cannot be read back, so its rows
+ * are the only copy: they are carried into the new file first, ids unchanged
+ * because rows point at each other by id. The new file is built beside the old
+ * one and replaces it last, so a failure leaves the old index as it was.
+ */
+function rebuild() {
+  const file = dbPath();
+  const next = file + '.next';
+  clear(next);
+  const db = create(next);
+
+  const swept = fs.existsSync(file) ? sweptSessions(db, file) : [];
+  if (swept.length) {
+    try {
+      db.exec('CREATE TEMP TABLE swept (id TEXT PRIMARY KEY)');
+      const add = db.prepare('INSERT INTO swept (id) VALUES (?)');
+      for (const id of swept) add.run(id);
+
+      const columnsOf = (schema: string, table: string) =>
+        (db.prepare(`PRAGMA ${schema}.table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
+      const carry = (table: string, where: string) => {
+        const before = new Set(columnsOf('old', table));
+        const columns = columnsOf('main', table).filter((c) => before.has(c)).join(', ');
+        if (columns) db.exec(`INSERT INTO main.${table} (${columns}) SELECT ${columns} FROM old.${table} WHERE ${where}`);
+      };
+      for (const [table, key] of BY_SESSION) carry(table, `${key} IN (SELECT id FROM swept)`);
+      carry('run', 'id IN (SELECT run_id FROM main.run_session)');
+    } catch (err) {
+      db.close();
+      clear(next);
+      throw new FlowError(
+        `could not carry the swept sessions into the new audit index: ${(err as Error).message}\n` +
+        `  The old index at ${file} is untouched.`
+      );
+    }
+  }
+
+  db.close();
+  clear(file);
+  fs.renameSync(next, file);
 }
 
 /** Notes the time of a full index run, which `indexedAt` reads back. */
@@ -315,4 +383,4 @@ function indexedAt(db) {
   return value ? new Date(value) : null;
 }
 
-export { open, dbPath, auditDir, projectsDir, markIndexed, indexedAt, SCHEMA };
+export { open, rebuild, dbPath, auditDir, projectsDir, markIndexed, indexedAt, SCHEMA };

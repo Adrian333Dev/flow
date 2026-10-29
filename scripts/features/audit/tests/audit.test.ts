@@ -453,6 +453,48 @@ test('a read refreshes an index older than 30 minutes, and says how old it is', 
   assert.match(stale.stdout, /\b3 turns/);
 });
 
+/** Indexes a session, then deletes its transcript the way Claude Code's sweep does. */
+function sweptSession(name) {
+  const swept = roots(name);
+  fs.writeFileSync(swept.file, asLines([...firstHalf(), ...secondHalf()]));
+  assert.strictEqual(audit(swept.env, ['index', '--quiet']).code, 0);
+  fs.rmSync(swept.file);
+  return swept;
+}
+
+const COUNT = 'SELECT (SELECT COUNT(*) FROM session) s, (SELECT COUNT(*) FROM turn) t, (SELECT COUNT(*) FROM event) e';
+
+test('a rebuild keeps a session whose transcript Claude Code already swept', () => {
+  const { env } = sweptSession('audit-rebuild-swept');
+  const before = audit(env, ['sql', COUNT]).stdout;
+  assert.match(before, /1 +3 +\d+/);
+
+  const rebuilt = audit(env, ['index', '--rebuild', '--quiet']);
+  assert.strictEqual(rebuilt.code, 0, rebuilt.stderr);
+  assert.strictEqual(audit(env, ['sql', COUNT]).stdout, before);
+  assert.match(audit(env, ['sql', `SELECT id FROM session`]).stdout, new RegExp(SESSION));
+});
+
+test('a schema bump keeps a swept session, and rebuilds one still on disk', () => {
+  const { env, file } = sweptSession('audit-schema-swept');
+  const live = '66666666-2222-3333-4444-555555555555';
+  fs.writeFileSync(path.join(path.dirname(file), `${live}.jsonl`),
+    asLines(firstHalf().map((e) => ({ ...e, sessionId: live }))));
+  assert.strictEqual(audit(env, ['index', '--quiet']).code, 0);
+
+  const where = audit(env, ['where']).stdout.match(/index\s+(\S+)/)![1];
+  const db = new DatabaseSync(where);
+  db.prepare("UPDATE meta SET value = '1' WHERE key = 'schema'").run();
+  db.close();
+
+  const result = audit(env, ['summary']);
+  assert.strictEqual(result.code, 0, result.stderr);
+  const ids = audit(env, ['sql', 'SELECT id FROM session ORDER BY id']).stdout;
+  assert.match(ids, new RegExp(SESSION));
+  assert.match(ids, new RegExp(live));
+  assert.match(audit(env, ['sql', 'SELECT COUNT(*) n FROM session']).stdout, /\b2\b/);
+});
+
 test('--json prints the index rows with the coverage, on every view', () => {
   const { file, env } = roots('audit-json');
   fs.writeFileSync(file, asLines([...firstHalf(), ...secondHalf()]));

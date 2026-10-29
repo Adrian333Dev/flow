@@ -20,8 +20,9 @@
  *
  * Nothing is recorded by Flow. `~/.claude/projects/<project>/<session>.jsonl`
  * is written by Claude Code whether Flow is installed or not, and every
- * command here only reads it. The index is derived and rebuildable: delete it
- * and `flow audit index` writes it again. `permissions` alone skips the index
+ * command here only reads it. The index is derived, and `flow audit index
+ * --rebuild` writes it again from the transcripts on disk, keeping the rows of
+ * sessions Claude Code has swept. `permissions` alone skips the index
  * and reads the log Flow's mod keeps in `~/.flow/logs/permissions/`.
  *
  * A transcript names no machine, so each session is tagged with the one that
@@ -147,11 +148,7 @@ actions.index = {
  * other projects behind, so only a full run notes its time in `indexed_at`.
  */
 function build({ project, rebuild = false, onFile = null }: { project: string | null; rebuild?: boolean; onFile?: ((entry: any, added: any) => void) | null }) {
-  if (rebuild) {
-    for (const suffix of ['', '-wal', '-shm']) {
-      fs.rmSync(store.dbPath() + suffix, { force: true });
-    }
-  }
+  if (rebuild) store.rebuild();
 
   const root = store.projectsDir();
   if (!fs.existsSync(root)) {

@@ -874,7 +874,7 @@ $ flow audit index
 ```
 
 - **`-- "project:<name>"`**: one project's transcripts.
-- **`--rebuild`**: delete the index and read everything again. Nothing is lost. It also tags every session with the machine's current name, which a rename does not change in rows already indexed.
+- **`--rebuild`**: write the index again from the transcripts on disk. A session whose transcript Claude Code already deleted keeps its rows, since they are the only copy left. The same holds when a new Flow version changes the index layout. It also tags every session with the machine's current name, which a rename does not change in rows already indexed.
 - **`--quiet`**: print the totals alone.
 
 ### `flow audit`
