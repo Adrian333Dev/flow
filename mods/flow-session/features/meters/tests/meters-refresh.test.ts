@@ -17,6 +17,49 @@ function session(on: Parameters<typeof mock.env>[0], size: { tokens?: number }) 
   on('ui.render', () => ({ type: 'Text', props: {}, children: ['engine hint'] }))
 }
 
+const STEP = { turnId: 't1', index: 0, model: 'claude-sonnet-5-5', effort: 'high', messageCount: 3 }
+
+/** One model request of the main loop, or of the subagent `agentId`, run to its end. */
+async function request($: Parameters<Parameters<typeof test>[1]>[0], over: Record<string, unknown>) {
+  const stream = $.turn.step({ ...STEP, ...over } as never)
+  for await (const _ of stream) void _
+  await flush()
+}
+
+describe('the model meter', () => {
+  test('follows the model and effort of each request, a fallback model included, and ignores a subagent', async ($, on) => {
+    session(on, { tokens: 1000 })
+    // The model that answers is named by the response's stop chunk, which a test sets per request.
+    const answered: { model?: string } = {}
+    on('turn.step', async function* (_$, e) {
+      if (answered.model) {
+        const counts = { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 1, cache_creation_input_tokens: 1 }
+        yield { kind: 'stop', index: 0, stopReason: 'end_turn', usage: { ...counts, model: answered.model } } as never
+      }
+      return { turnId: e.turnId, index: e.index, answer: '', toolUses: [], stopReason: 'end_turn', usage: null } as never
+    })
+    const ui = await $.ui.mount(HINT)
+
+    await request($, {})
+    expect(await ui.find({ text: 'sonnet 5.5' })).toBeDefined()
+    expect(await ui.find({ text: ' high' })).toBeDefined()
+
+    // The user lowered the effort.
+    await request($, { effort: 'low' })
+    expect(await ui.find({ text: ' low' })).toBeDefined()
+
+    // The engine asked for sonnet and haiku answered.
+    answered.model = 'claude-haiku-5-5'
+    await request($, {})
+    expect(await ui.find({ text: 'haiku 5.5' })).toBeDefined()
+
+    // A subagent's request changes nothing.
+    await request($, { model: 'claude-opus-5-5', effort: 'max', agentId: 'helper-1' })
+    expect(await ui.find({ text: 'haiku 5.5' })).toBeDefined()
+    await ui.unmount()
+  })
+})
+
 describe('the context meter', () => {
   test('follows the session inside a turn, with no session.measure', async ($, on) => {
     const size: { tokens?: number } = { tokens: 31000 }

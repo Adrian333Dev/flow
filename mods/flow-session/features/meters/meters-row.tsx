@@ -1,13 +1,15 @@
 /**
  * meters-row.tsx: the meters row under the prompt, fed by the session's figures and the transcript's end.
  *
- * `session.measure` brings the context and the rate limits. The effort and cache lifetime are in no
- * mod call, so each turn's end reads the transcript's tail (cache.ts), which also names the model
- * exactly. Until a first reply the model comes from `$.session.model()`. A 30-second timer
- * redraws the cache countdown. The pure part (which meters, which tone, what fits) is meters.ts.
+ * `session.measure` brings the context and the rate limits. Every main-loop request in `turn.step`
+ * names the model and effort the engine used (a fallback included), and its answer names the model
+ * that gave it. The cache lifetime is in no mod call, so each turn's end reads the transcript's tail
+ * (cache.ts). That tail also seeds the model and effort before the first request, after the session's
+ * own `$.session.model()`. A 30-second timer redraws the cache countdown. The pure part (which meters,
+ * which tone, what fits) is meters.ts.
  */
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, RenderElement, RenderInput, SessionMeasureInput } from 'claude-code'
+import type { EngineInterface, RenderElement, RenderInput, SessionMeasureInput, TurnStepChunk } from 'claude-code'
 
 import { busyWith } from '../restart/button'
 import { coldAt, lastRequest, transcriptTail } from '../../shared/cache'
@@ -82,14 +84,45 @@ export async function metersWarmed($: EngineInterface, coldAt: number): Promise<
   await update($, reading, (r) => ({ ...r, coldAt }))
 }
 
-/** The session started or a turn ended: the model, effort and cache countdown come from the transcript's end. */
+/**
+ * Shows the model and effort of a request. A request of the main loop names both as the engine resolved them
+ * (a fallback model included), and its answer names the model that gave it.
+ */
+async function showRequest($: EngineInterface, model: string, effort: string | number | undefined): Promise<void> {
+  await update($, reading, (r) => (r.model === model && r.effort === effort ? r : { ...r, model, effort }))
+}
+
+/** Passes a step's chunks on, and keeps the model and effort meter on what the main loop really asked and got. A subagent's steps change nothing. */
+export async function* metersStep(
+  $: EngineInterface,
+  step: { agentId?: string; model: string; effort?: string | number },
+  chunks: AsyncIterable<TurnStepChunk>,
+): AsyncGenerator<TurnStepChunk> {
+  const main = step.agentId === undefined
+  if (main) await showRequest($, step.model, step.effort).catch(() => undefined)
+  for await (const c of chunks) {
+    if (main && c.kind === 'stop' && c.usage?.model) await showRequest($, c.usage.model, step.effort).catch(() => undefined)
+    yield c
+  }
+}
+
+/**
+ * The session started or a turn ended: the cache countdown comes from the transcript's end. The model and
+ * effort come from it only until a request has shown them (`metersStep`), since its last line may be an
+ * older model's after a resume, or carry no effort. Before any request the session's own model is the
+ * truth, and the transcript's the fallback.
+ */
 export async function metersRead($: EngineInterface, transcript: string): Promise<void> {
   const tail = await transcriptTail($, transcript)
   if (tail === undefined) return
   const request = lastRequest(tail)
-  // A session with no reply yet has no request, so the model comes from the session itself.
-  const model = request?.model ?? ((await $.session.model().catch(() => undefined)) || undefined)
-  await update($, reading, (r) => ({ ...r, model, effort: request?.effort, coldAt: coldAt(request) }))
+  const model = ((await $.session.model().catch(() => undefined)) || undefined) ?? request?.model
+  await update($, reading, (r) => ({
+    ...r,
+    model: r.model ?? model,
+    effort: r.model ? r.effort : request?.effort,
+    coldAt: coldAt(request),
+  }))
 }
 
 // The footer's mode label (`⏵⏵ accept edits on`) and its gap, which the row shares.

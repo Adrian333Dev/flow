@@ -12,7 +12,7 @@ import { mentionsFor } from './features/drag/drag'
 import { inSkillCall, withSkillWiki } from './features/guides/skill-wiki'
 import { steerStep, withGuideHeader } from './features/guides/steer-step'
 import { cancel as warmCancel, closeWarm, keepWarm, noteBroken, registerKeepWarm, replan, warmTranscript, warmTurnEnded, warmTurnStarted } from './features/keepwarm/keepwarm'
-import { drawMeters, metersMeasure, metersRead, metersRefresh, metersStart, metersSwitch } from './features/meters/meters-row'
+import { drawMeters, metersMeasure, metersRead, metersRefresh, metersStart, metersStep, metersSwitch } from './features/meters/meters-row'
 import { listRows } from './features/notes/notes'
 import { withFileContext } from './features/ticket-context/ticket-context'
 import { countVisit } from './features/usage/visits'
@@ -151,7 +151,7 @@ export const register: Register = (on) => {
   // Every request of the main loop refreshes the context meter, so a long turn shows its size as it grows.
   on('turn.step', async function* ($, e, next) {
     if (e.agentId === undefined) void metersRefresh($).catch(() => undefined)
-    yield* steerStep($, e.agentId, measureAgent(e.agentId, next(e)))
+    yield* steerStep($, e.agentId, measureAgent(e.agentId, metersStep($, e, next(e))))
   })
 
   on('classic.SessionStart', async ($, e, next) => {
