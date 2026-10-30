@@ -108,7 +108,7 @@ Example: 2 ways to speed up a slow query. Measure both, pick the faster, write t
 
 **Show every alone-decision together, once, before Phase 3**: one line each, the pick, the rejected option, and why. A veto reopens that question, to ask. No veto keeps them (`agreed`).
 
-Ask one question at a time. Interview until the decision is genuinely clear. A first answer is not clarity.
+A design question gets the whole reply. Small questions go together as a list: the question, then my recommendation, one line each. Interview until the decision is genuinely clear. A first answer is not clarity.
 
 1. **Pose the question**, and open its section in `context.md`, headed by its handle: `## 1.2`. Write the facts it rests on there as you find them.
 2. **Recommend**: "I'd go with X because Y."
@@ -239,7 +239,7 @@ Applies in Phases 1 and 2 both.
 
 - **Ask about a real case from the user's own work, never in the abstract.** "When did this last get in your way, and what were you doing?" A question the user must answer in general terms ("is the fault choosing a store at all?") gets rewritten as a case.
 - **Every question carries your guess.** A guess with grounds is a recommendation. With none, give 2 or 3 guesses that differ, for the user to correct: a correction teaches more than an open question.
-- **Rounds in Phase 1, one at a time in Phase 2.** Ask gap-filling questions together, ordered so none depends on an answer not yet heard. A decision that constrains other decisions gets its own turn. A part of the problem the user holds only in pieces gets one question per reply, since each answer shapes the next.
+- **Rounds in Phase 1. In Phase 2, small questions together and a design question alone.** Ask gap-filling questions together, ordered so none depends on an answer not yet heard. A decision that constrains other decisions gets its own turn. A part of the problem the user holds only in pieces gets one question per reply, since each answer shapes the next.
 - **"I don't know" is a real answer.** Follow it with something to react to: a rough version, an example, how another tool does it.
 - **Play back the problem statement every 3 or so answers that draw it out**, in 2 or 3 sentences, for the user to correct.
 - **Buzzword answers get one probe.** "Scalable", "clean", "modern", "best practice" → _if you didn't have to justify this to anyone, what would you actually want?_
