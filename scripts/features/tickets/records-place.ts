@@ -102,17 +102,16 @@ function excludeFile(root) {
 }
 
 /**
- * List `line` in `.git/info/exclude`, git's ignore list for one clone, which
- * is never committed, under the comment `why`. `.flow` goes without the
- * slash, so it matches the link as well as a folder. `same` are the spellings
- * already counting as listed.
+ * List `.flow` in `.git/info/exclude`, git's ignore list for one clone, which
+ * is never committed. It goes without the slash, so it matches the link as well
+ * as a folder.
  */
-function exclude(root, line = '.flow', why = "this clone's tickets live outside the repository", same = ['.flow', '/.flow']) {
+function exclude(root) {
   const file = excludeFile(root);
   const had = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  if (had.split('\n').some((l) => same.includes(l.trim()))) return;
+  if (had.split('\n').some((l) => ['.flow', '/.flow'].includes(l.trim()))) return;
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, `${had}${had && !had.endsWith('\n') ? '\n' : ''}# Flow: ${why}\n${line}\n`);
+  fs.writeFileSync(file, `${had}${had && !had.endsWith('\n') ? '\n' : ''}# Flow: this clone's tickets live outside the repository\n.flow\n`);
 }
 
 /** Write the project's repository into the folder's settings, so another machine finds the folder. */

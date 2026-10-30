@@ -92,8 +92,7 @@ function checkTickets(root) {
       problems.push(`${t.id} is titled "${t.data.title}", a label and no name: flow tickets edit ${t.id} --title "<up to 4 words>"`);
     }
   }
-  for (const { name, why } of worktrees.orphans(root, tickets, store.prefixOf(root))) {
-    const folder = path.join(worktrees.FOLDER, name);
+  for (const { folder, why } of worktrees.leftover(root, tickets, store.prefixOf(root))) {
     problems.push(`${folder} is left over, ${why}: git worktree remove ${folder}, which refuses while it holds uncommitted work`);
   }
   return { name: 'tickets', problems, summary: `${count(tickets.length, 'ticket', 'tickets')} in the current format` };

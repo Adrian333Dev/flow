@@ -38,14 +38,13 @@ import { readGroups, holder } from './groups.ts';
 // `was` is the id a ticket held before `flow tickets move` took it to another place,
 // or before a clash renumbered it, so the old id still finds it. `branch` is
 // the code branch the work merges into, written once and only off the
-// default branch: see ticket-history.ts. `worktree` names the ticket's own
-// branch and its folder under `.claude/worktrees/`, once one exists: see
-// worktrees.ts. Never a path, since tickets sync to other machines.
+// default branch: see ticket-history.ts. Never a path, since tickets sync to
+// other machines.
 // `title` is the short name, 2 to 4 hyphenated words; `description` is the
 // sentence saying what the ticket is for. Editing one never changes the other.
 // `activity` is the kind of work under way on an in-progress ticket, which the
 // band shows in capitals. Any status move clears it.
-const TICKET_KEYS = ['id', 'was', 'title', 'description', 'status', 'activity', 'labels', 'rank', 'branch', 'worktree', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
+const TICKET_KEYS = ['id', 'was', 'title', 'description', 'status', 'activity', 'labels', 'rank', 'branch', 'parent', 'deps', 'reason', 'resume', 'closed', 'filed'];
 
 // `reason` is required and typed by the user for the statuses statuses.ts
 // marks as needing one. Everywhere else the workflow is its own explanation.
@@ -194,7 +193,6 @@ function scanTicketDir(dir, root, prefix, out) {
     data.id = normalizeId(data.id, prefix) || normalizeId(idOfFolder(entry.name), prefix) || entry.name;
     data.was = data.was ? (normalizeId(data.was, prefix) || String(data.was).trim()) : '';
     data.branch = data.branch ? String(data.branch).trim() : '';
-    data.worktree = data.worktree ? String(data.worktree).trim() : '';
     data.deps = toIdList(data.deps, prefix);
     // One parent at most: the ticket this one was split out of. Unparseable
     // values survive as written so `check` can report them.

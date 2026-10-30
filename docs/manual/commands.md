@@ -676,17 +676,11 @@ now ready:
   shop-3-csv-export  todo    feature,v1  -
 ```
 
-**A ticket built in a git repository gets its own copy of the code.** `flow tickets start <id> --activity build` (or `debug`) makes a second checkout, a git worktree, in `.claude/worktrees/<ticket name>/`, on a branch of the same name. Each session building a ticket edits and tests only its own copy:
+**A ticket is built in the main checkout.** Its uncommitted changes show in your editor's Source Control list like any other change, and nothing is committed until you say "commit it". `flow tickets start` makes no second copy of the code.
 
-```console
-$ flow tickets start shop-2 --activity build
-shop-2-budget-store  todo → in-progress
-      activity: build
-worktree: /home/you/shop/.claude/worktrees/shop-2-budget-store
-      new branch shop-2-budget-store from main
-```
+**A git worktree, a second checkout of the code, exists only when you ask for one**, usually to build 2 tickets at once. The agent makes it with plain git, in `.claude/worktrees/<ticket name>/`, using the steps in `docs/context/worktrees.md` where the project has that page. The build ends with the edits uncommitted there. In your editor, turn on `git.detectWorktrees`, then reload the window once: each worktree shows as a repository of its own in Source Control. A worktree made later appears after one click on the list's refresh button. When you say "merge it", the agent commits, replays the work on top of `main`, runs the tests, moves `main` forward and removes the copy and its branch.
 
-`flow tickets done` puts the work back: it saves everything in the copy as one commit, replays it on top of `main`, moves `main` up to it, and deletes the copy and its branch. Where your `main` changed the same lines, it stops and names the files to fix. `flow tickets drop` deletes the copy and keeps the branch, so the work is still there. A project that needs more in each copy (a database of its own, a `.env` file) says so in `.worktree/create`, `.worktree/remove` and `.worktreeinclude`, all committed.
+`flow tickets done` and `flow tickets drop` stay out of it. They refuse while the ticket's worktree holds uncommitted work or commits not in `main`, and name its folder. A park leaves the worktree as it is.
 
 **A move refuses**:
 

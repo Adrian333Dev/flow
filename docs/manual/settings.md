@@ -216,7 +216,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
   - Claude Code tools Flow replaces or never uses, such as plan mode and scheduled jobs. Each one left out also saves the tokens its description costs.
   - Reading `~/.ssh` and `~/.aws`, the folders holding your keys.
   - `sudo`, `su`, `mkfs` and `--dangerously-skip-permissions`.
-  - Worktrees: a new one starts without the project's `.flow` folder, so a session in it would have no tickets.
+  - A subagent in a worktree of its own (`Agent(isolation:worktree)`): it starts without the project's `.flow` folder, so it would have no tickets.
 - **`additionalDirectories`**: your Flow home counts as part of every project, so an edit there never asks.
 - **`Edit(//**/.flow/**)`**: an edit through a project's `.flow` link never asks. A project's tickets live in your Flow home and are reached through that link, and Claude Code asks before any write that leads outside the project unless one rule matches both the link and where it points.
 
@@ -265,3 +265,4 @@ A skill you keep takes `"on"`. [`flow doctor`](commands.md#flow-doctor) names ev
 - **`autoMemoryEnabled: false`**: Claude Code's memory, which stays on one computer. Flow keeps what is worth remembering in your rules and project files.
 - **`respondToBashCommands: false`**: a command you type behind `!` shows its output, and the agent waits for your next message.
 - **`worktree.bgIsolation: "none"`**: a session running in the background edits your files where they are.
+- **`worktree.baseRef: "head"`**: a worktree starts from your local latest commit. The default, `"fresh"`, starts from the remote's default branch and misses commits you have not pushed. Uncommitted edits never come along.

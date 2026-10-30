@@ -211,7 +211,8 @@
   "awaySummaryEnabled": false,
   "respondToBashCommands": false,
   "worktree": {
-    "bgIsolation": "none"
+    "bgIsolation": "none",
+    "baseRef": "head"
   },
   "permissions": {
     "defaultMode": "acceptEdits",

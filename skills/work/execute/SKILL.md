@@ -10,7 +10,7 @@ One ticket, from pickup to `done`. No ticket named → `flow next`, and recommen
 ## Pick up
 
 1. Read `ticket.md`, the index: `## Questions` with their answers, `## Decisions`, `## Tasks`, `## References`. Open a `context.md` section only where a task needs its reasoning. An older ticket's `## State` says where its work stopped.
-2. `flow tickets start <id> --activity build`. It prints `worktree: <folder>` → enter it by `references/worktrees.md`.
+2. `flow tickets start <id> --activity build`. A worktree only where the user asks for one, by `~/.flow/guides/worktrees.md`.
 3. `## Questions` still open → name them. The user decides whether the build waits for `/flow:groundwork`.
 4. A child's work is built in the child, never in its parent.
 5. No `## Done when` → write one before building.
@@ -49,7 +49,7 @@ Fix it while the cause is in front of you, and keep going as long as every fix s
 1. Update every record the change made stale: `docs/spec/`, `docs/context/`, other tickets that cite it.
 2. Run the full suite, in the turn you report it.
 3. Read the diff once against the decisions, then against `~/.flow/guides/review-code.md`. A ticket that produced a document reads `~/.flow/guides/style.md` instead. A ticket that produced a decision reads neither.
-4. Fix what is wrong, then `flow tickets done <id>`. In a worktree, by `references/worktrees.md` → `## Closing`.
+4. Fix what is wrong, then `flow tickets done <id>`. In a worktree, merge first on the user's word: `~/.flow/guides/worktrees.md` → `## Merging`. `done` refuses while the worktree holds unmerged work.
 5. An older ticket's `## State`: anything in it still true goes where `## Capture` sends it, then delete the section.
 6. Report. Open with the decisions you made alone, one line each. Then what changed and what the check showed, briefly. End with the next ticket from `flow next`, and why.
 

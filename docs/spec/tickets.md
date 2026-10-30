@@ -139,42 +139,39 @@ Each status, and what moves a ticket into it:
 
 ### What a ticket records about its sessions
 
-- `V1` **`branch:` records the code branch the ticket's work merges into**: the one checked out when the ticket first reaches `in-progress`, written once, and only where it is not the default branch (`fw-317`, 2026-10-28). An absent `branch:` means the default, so the record holds only what differs. `flow tickets get <id>` prints `branch: feature/budgets   (checked out here: main)` where they differ and the ticket has no worktree, and `/flow:start` stops on that line.
-- `V1` **`worktree:` names the ticket's own branch and its folder**, once one exists ([Each ticket's code in its own worktree](#each-tickets-code-in-its-own-worktree)). A name and never a path, since tickets sync to other machines. It stays after the close, as the record.
+- `V1` **`branch:` records the code branch the ticket's work merges into**: the one checked out when the ticket first reaches `in-progress`, written once, and only where it is not the default branch (`fw-317`, 2026-10-28). An absent `branch:` means the default, so the record holds only what differs. `flow tickets get <id>` prints `branch: feature/budgets   (checked out here: main)` where they differ, and `/flow:start` stops on that line. A ticket records nothing about its worktree ([A ticket's worktree, on the user's word](#a-tickets-worktree-on-the-users-word)).
 - `V1` **`session:` names the session the ticket came from**, written by `flow tickets new` from `$CLAUDE_CODE_SESSION_ID` (`fw-321`, the user 2026-10-29). Every other session that worked the ticket is found from the session records, since `flow` writes each ticket event into the acting session's record, and `flow tickets get <id>` prints them. Many sessions per ticket is the normal case.
-- `V1` **`history.md` gets one line per status move**: `2026-09-29 14:02  todo → in-progress  <session id>  "<title>"  feature/budgets`, the last field the ticket's worktree branch where it has one. In the folder rather than in commit messages, so it travels with `flow tickets move`.
+- `V1` **`history.md` gets one line per status move**: `2026-09-29 14:02  todo → in-progress  <session id>  "<title>"  feature/budgets`, the last field the branch checked out in the main checkout. In the folder rather than in commit messages, so it travels with `flow tickets move`.
+- `V1` **The session id is `CLAUDE_CODE_SESSION_ID`**, and the title is the transcript's `/rename` title, else its generated one.
 
-### Each ticket's code in its own worktree
+### A ticket's worktree, on the user's word
 
-Parallel sessions on independent tickets once edited one checkout, so their changes mixed, and one `pnpm test` ran every ticket's code at once (the user 2026-10-28, `fw-317`). Each ticket now builds in its own git worktree, a second checkout of the same repository on its own branch, and merges back by a plain branch merge.
+Parallel sessions on independent tickets once edited one checkout, so their changes mixed, and one `pnpm test` ran every ticket's code at once (the user 2026-10-28, `fw-317`). A worktree made by `flow tickets start` for every ticket fixed that and broke review: its changes never reached the editor's Source Control list, and `flow tickets done` committed and merged them in one step, so nothing was reviewable before `main` changed (the user 2026-10-30, `fw-342`, after `fw-337` and `fw-340`). The default is now the main checkout, and a worktree exists when the user asks for one.
 
 ```text
-app/                                   the main checkout, on main
+app/                                   the main checkout, on main: where a build runs by default
 ├── .flow → ~/.flow/projects/app/      the tickets, one folder for every checkout
-└── .claude/worktrees/
-    ├── exp-47-parser-split/           exp-47's checkout, on branch exp-47-parser-split
-    │   └── .flow → ~/.flow/projects/app/
-    └── exp-52-csv-export/             exp-52's, on branch exp-52-csv-export
+└── .claude/worktrees/                 only after the user asked for parallel work
+    └── exp-47-parser-split/           exp-47's checkout, on branch exp-47-parser-split
+        └── .flow → ~/.flow/projects/app/
 ```
 
-- `V1` **`flow tickets start <id> --activity build|debug` makes the worktree**, in `.claude/worktrees/<name>/`, on a new branch from `branch:`, the default branch where the ticket has none. It prints `worktree: <folder>`, and `/flow:execute` and `/flow:debug` enter it with `EnterWorktree`. A resumed start prints the same folder. Only `flow` knows the ticket and the branch it merges into, so the agent never makes one by hand.
-  - **Design work stays in the main checkout**: groundwork, tickets, wiki, research and prototypes change no project code. No setting turns worktrees off, so a skill's steps never branch on one.
-  - **A ticket already building in the main checkout stays there** on a resumed start. Only a move into build or debug, or a recorded `worktree:`, makes or reuses one. Why: a worktree made mid-build starts without the uncommitted work.
-  - **The worktree starts from the last commit.** Where the main checkout holds uncommitted changes, the start says so in one line.
-  - **A child builds on its parent's unmerged work**: with no `branch:` of its own, its `branch:` becomes the parent's worktree branch while that branch exists.
-- `V1` **`flow` inside a worktree works on the main checkout's project.** The registry, the ticket commits and every ticket read go to one folder whichever checkout runs the command. The worktree also gets its own `.flow` link, for `@.flow/…` mentions.
-- `V1` **A project's own setup runs in every new worktree.** Flow copies the gitignored files `.worktreeinclude` names, checks out the submodules, then runs the committed `.worktree/create` where present. `flow tickets done` and a drop run `.worktree/remove` before the folder goes. A service needs code, which a declared list cannot hold.
-  - **The agent decides which resources get a copy**, by the user's rule: only where 2 sessions would likely change one at once, such as a database a migration changes. `.worktree/create <resource>` makes it. Everything else stays shared, and a resource that cannot be copied is used shared and named in the report.
-  - **A workaround found once goes into `.worktree/create`** in the same ticket, so the next worktree gets it with no steps (the user 2026-10-28).
-- `V1` **`flow tickets done` merges the worktree.** It commits whatever the worktree holds as one commit named for the ticket, rebases it onto `branch:`, fast-forwards that branch, runs `.worktree/remove`, and deletes the folder and the ticket's branch. The session leaves the worktree first (`ExitWorktree`, `keep`), since the folder goes.
-  - **A conflict stops the close**, the ticket still `in-progress`, naming the files. The agent fixes them in the worktree, continues the rebase, and runs `done` again.
-- `V1` **A park keeps the worktree. A drop commits what it holds, deletes the folder and keeps the branch**, so no code is lost. `flow doctor` names a worktree whose ticket closed or is gone.
-- `V1` **`.claude/worktrees/` is hidden through `.git/info/exclude`**, written by Flow, so nothing is committed for it. `EnterWorktree` is off the deny list in `home/settings.json`; subagent worktrees stay denied.
+- `V1` **A build's uncommitted changes show in the editor's Source Control list**, in the main checkout and in a worktree. Nothing is committed or merged until the user says so: "commit it" in the main checkout, "merge it" in a worktree.
+- `V1` **A worktree is made on the user's word, by the agent, with `EnterWorktree` or `git worktree add`.** No Flow command makes one. The folder is named for the ticket, starting with its id (`exp-47-parser-split`), which is how Flow finds it. The user expects to build in parallel often, and starts each worktree by word, never by default (the user 2026-10-30).
+  - **The agent composes the setup for the project and the job.** A page, `docs/context/worktrees.md`, holds the project's snippets: what to copy, link, install or skip. A limit solved by hand once adds its snippet to the page in the same ticket, and a snippet repeated unchanged becomes a script the project commits beside it. Gitignored files `.worktreeinclude` names are copied by Claude Code itself. The agent links `.flow` with `ln -s`, since Claude Code does not.
+  - **No submodule is checked out unless the job needs it.** Each checkout shows as one more repository in Source Control, so 2 worktrees of a project with a submodule listed it 3 times.
+  - **The worktree starts from `main`'s last commit, without the main checkout's uncommitted edits.** `worktree.baseRef` is `"head"` in `home/settings.json`: its default, `"fresh"`, branches from the remote's default branch and so misses local commits not yet pushed. A child building on its parent's unmerged work is the agent's call at `git worktree add`.
+  - **Refused: a fixed `.worktree/create` and `.worktree/remove` that Flow runs, and a Flow command wrapping `EnterWorktree`.** Each fixes one setup for every project, and a script cannot adapt to a job that needs half a checkout (`fw-342`).
+- `V1` **A worktree's changes show in Source Control with `git.detectWorktrees` on** (a setting of the editor's Git extension, off by default), after one window reload when the setting is first turned on. Each worktree is a repository section of its own. A worktree made later appears after one click on the list's refresh button, with no reload (probe 2026-10-30).
+- `V1` **"Merge it" makes the agent merge with plain git**, by `guides/worktrees.md`: commit in the worktree, read `git log <branch>..main`, rebase onto `main`, run the full suite, leave the worktree, move `main` forward with `--ff-only` (the main checkout's uncommitted edits stashed under a unique tag and applied back), remove the folder and the branch. The suite runs after the rebase because text that merges cleanly can still break the other ticket. Why git and no Flow command: `git log <branch>..main` is exact for this branch and shows commits no ticket made, and the guard hook (`scripts/features/guard/losing-work.ts`) stays between the agent and a destructive command. Overturned if audit shows agents skipping a step.
+- `V1` **Two parallel builds changing the same file are found at the merge**: the rebase shows text conflicts, the suite after it shows the rest. No earlier warning. Overturned if a conflict ever reaches `main`.
+- `V1` **`flow tickets done` and a drop refuse while the ticket's worktree holds uncommitted or unmerged work**, naming the folder. `done` only closes the ticket. The worktree is found by `git worktree list`, by its folder name, so the ticket records nothing about it. A park leaves the worktree. `flow doctor` names a worktree whose ticket closed or is gone.
+- `V1` **`flow` inside a worktree works on the main checkout's project.** The registry, the ticket commits and every ticket read go to one folder whichever checkout runs the command.
+- `V1` **`.claude/worktrees/` is hidden through `.git/info/exclude`**, which the agent edits when it makes a project's first worktree, so nothing is committed for it. `EnterWorktree` is off the deny list in `home/settings.json`; subagent worktrees stay denied.
 - `never` **The band shows no worktree mark**: a worktree is named exactly like its ticket, and the badge already shows that name. Replaced 2026-10-29 (`fw-321`): the band shows the worktree on an item built outside the main checkout (`docs/spec/sessions.md`, `### The band`).
 - `never` **Locks on a resource that cannot be copied**: no case yet.
 - `never` **Running Flow's own change live before the merge**: the suite runs in the worktree, and the change goes live at the merge.
 - `never` **A cap on worktrees at once**: nothing it would protect.
-- `V1` **The session id is `CLAUDE_CODE_SESSION_ID`**, and the title is the transcript's `/rename` title, else its generated one.
 
 ### The ticket list and the header
 
@@ -225,7 +222,7 @@ app/                                   the main checkout, on main
 - **`scripts/features/tickets/records.ts`**: commits, pushes and pulls of a project's tickets, and the checkout of the older branch `flow` that a project may still have. **`records-place.ts`**: the Flow home, where every new project's tickets live.
 - **`scripts/jobs/records-sync.ts`**: every send nobody typed.
 - **`scripts/features/tickets/ticket-history.ts`**: `history.md` lines, `branch:`.
-- **`scripts/features/tickets/worktrees.ts`**: each ticket's worktree, made at the start, merged at `done`, removed at a drop.
+- **`scripts/features/tickets/worktrees.ts`**: finds a ticket's worktree by its folder name, the refusal `done` and a drop meet, and the leftovers `flow doctor` names. It makes, merges and removes nothing.
 - **`scripts/commands/tickets.ts`**, **`scripts/commands/board.ts`**: the commands.
 - **`mods/flow-session/features/ticket-context/ticket-context.ts`**: the ticket header and a wiki folder's findings labels, sent on a `Read` (`tool.call`) and an `@` mention (`prompt.mention`). Reads `flow tickets get <n> --json` and `flow findings --json`.
 - **`mods/flow-session/features/notes/notes.ts`**: the `#` list, its ticket rows from `flow tickets --json --flat`. **`mods/flow-session/shared/viewport.ts`**: the terminal width it cuts rows to.

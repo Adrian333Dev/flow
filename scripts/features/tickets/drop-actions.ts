@@ -79,14 +79,13 @@ const drop: Action = {
       );
     }
 
-    const closed = worktrees.finish(t, root, 'dropped');
+    worktrees.refuseWhileUnfinished(t, root, 'dropped');
     clearLinks(t, links);
     const { from, moved } = store.setStatus(t, 'dropped', reason);
     out(`${store.nameOf(t)}  ${from} → dropped`);
     out(`      reason: ${reason}`);
     if (moved) out(`      moved → ${rel(root, moved.to)}`);
     if (links.length) out(`      cleared: ${links.map(({ ticket, field }) => `${ticket.id} ${field}`).join(', ')}`);
-    for (const line of closed || []) out(line);
     json({ ticket: ticketJson.record(t, tickets), cleared: describeLinks(links) });
     records.commit(root, `${t.id}: dropped`);
     records.syncLater(root);

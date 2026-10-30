@@ -82,7 +82,7 @@ function append(t, move) {
       move.padEnd(16),
       session || '-',
       title ? JSON.stringify(title) : '-',
-      t.data.worktree || currentBranch(t.root) || '-',
+      currentBranch(t.root) || '-',
     ].join('  ');
     store.appendHistory(t, line);
   } catch {

@@ -38,32 +38,21 @@ function followInParent(t: Ticket, tickets: Ticket[], from: string, status: stri
   return result === 'missing' && closing ? `${parent.id} has no line for ${t.id} in its ## Tasks` : null;
 }
 
-const BUILT = new Set(['build', 'debug']);
-
 /**
  * A ticket already in the status it was asked to move to: only a resumed
- * `in-progress` may change its activity. A resumed ticket gets its worktree
- * back, and one moving from design into a build gets a new one. A ticket
- * already building in the main checkout, from before worktrees, stays there:
- * a worktree made mid-build would start without its uncommitted work.
+ * `in-progress` may change its activity. No worktree is made here: the agent
+ * makes one on the user's word, with git.
  */
-function stayPut(t: Ticket, tickets: Ticket[], root: string, status: string, activity: string | undefined, result: (fields: object) => void) {
+function stayPut(t: Ticket, status: string, root: string, activity: string | undefined, result: (fields: object) => void) {
   const was = t.data.activity || '-';
   const changed = Boolean(activity && status === 'in-progress' && t.data.activity !== activity);
-  const into = changed && !BUILT.has(t.data.activity);
   // A skill resuming a ticket in progress still names its kind of work.
   if (changed) {
     t.data.activity = activity;
     store.writeTicket(t);
-  }
-  let lines: string[] | null = null;
-  try {
-    if (activity && (t.data.worktree || into)) lines = worktrees.ensure(t, tickets, root, activity);
-  } finally {
-    if (changed || lines) records.commit(root, `${t.id}: ${changed ? `activity ${was} → ${activity}` : 'worktree'}`);
+    records.commit(root, `${t.id}: activity ${was} → ${activity}`);
   }
   out(`${t.id} is already ${status}.${changed ? `\n      activity: ${was} → ${activity}` : ''}`);
-  if (lines) out(lines.join('\n'));
   result({ already: true });
   return 0;
 }
@@ -142,27 +131,21 @@ function transition(t: Ticket, tickets: Ticket[], root: string, status: string, 
     ticket: ticketJson.record(t, tickets), from, to: status, already: false, revived: '', inParent: null,
     nowReady: [], nowBlocked: [], forcedPast: [], ...fields,
   });
-  if (from === status) return stayPut(t, tickets, root, status, activity, result);
+  if (from === status) return stayPut(t, status, root, activity, result);
 
   const unmet = refuseUnlessAllowed(t, tickets, from, status, options);
   const before = graph.readyTickets(tickets).map((x) => x.id);
   const revived = from === 'parked' && t.data.reason;
 
-  // Before the move, so a merge conflict stops it with the ticket still open.
-  const closed = worktrees.finish(t, root, status);
+  // Before the move, so a worktree holding unmerged work leaves the ticket open.
+  worktrees.refuseWhileUnfinished(t, root, status);
   const { moved } = store.setStatus(t, status, reason || '', activity || '');
   const inParent = followInParent(t, tickets, from, status);
-  let made: string[] | null = null;
-  try {
-    made = worktrees.ensure(t, tickets, root, activity || '');
-  } finally {
-    // A status move is a checkpoint: saved on the `flow` branch now, and sent
-    // in the background, so the move never waits on the network. Saved even
-    // where the project's `.worktree/create` failed: the move happened.
-    if (!batch) {
-      records.commit(root, `${t.id}: ${from} → ${status}`);
-      records.syncLater(root);
-    }
+  // A status move is a checkpoint: saved on the `flow` branch now, and sent
+  // in the background, so the move never waits on the network.
+  if (!batch) {
+    records.commit(root, `${t.id}: ${from} → ${status}`);
+    records.syncLater(root);
   }
   out(`${store.nameOf(t)}  ${from} → ${status}`);
   if (t.data.reason && !batch) out(`      reason: ${t.data.reason}`);
@@ -170,7 +153,6 @@ function transition(t: Ticket, tickets: Ticket[], root: string, status: string, 
   if (moved) out(`      moved → ${rel(root, moved.to)}`);
   if (revived && !batch) out(`      revived, cleared reason: ${revived}`);
   if (inParent) out(`      ${inParent}`);
-  for (const line of [...(closed || []), ...(made || [])]) out(line);
   if (batch) return 0;
 
   if (unmet.length) {

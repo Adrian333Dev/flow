@@ -35,7 +35,6 @@ function record(t: Ticket, tickets: Ticket[], index = graph.indexById(tickets)) 
     reason: d.reason,
     was: d.was,
     branch: d.branch,
-    worktree: d.worktree,
     closed: d.closed,
     filed: d.filed,
     path: t.file,
