@@ -37,7 +37,7 @@ On "merge it", with plain git, in this order. A conflict or a failing check stop
 6. In the main checkout, uncommitted edits present → `git stash push -u -m <unique tag>`, then `git rev-parse stash@{0}`. They block the move even where the hunks are disjoint.
 7. `git merge --ff-only <branch>`. Check: `main` holds the commit.
 8. A stash was made → `git stash apply <sha>`, then `git stash drop` of that entry. An apply that fails stops and names the files. Nothing is lost.
-9. `git worktree remove <folder>`, then `git branch -d <branch>`.
+9. `git worktree remove <folder>`, then `git branch -d <branch>`. A worktree that had a submodule checked out refuses removal: `git -C <folder> submodule deinit <path>` first, then `git worktree remove --force <folder>`, which asks the user once. Check: the folder is gone and `git worktree list` shows only the main checkout.
 10. `flow tickets done <id>`.
 
 Never `git checkout -f` or `git reset --hard` in the main checkout. Never commit another session's unfinished edits.
