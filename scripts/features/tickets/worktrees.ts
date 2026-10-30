@@ -2,7 +2,7 @@
  * A ticket's worktree, found and never made. The agent makes one on the user's
  * word, with `EnterWorktree` or `git worktree add`, in a folder named for the
  * ticket (`fw-342-worktree-on-demand`), and merges it on the user's word with
- * plain git: `guides/worktrees.md`.
+ * `util git save -w` or plain git: `guides/worktrees.md`.
  *
  * Flow's part is the guard. `flow tickets done` and a drop refuse while the
  * ticket's worktree holds uncommitted or unmerged work, so nothing the user has
@@ -61,7 +61,7 @@ function refuseWhileUnfinished(t: Ticket, root: string, status: string) {
   const folder = find(t, root)!.folder;
   throw new FlowError(
     `${t.id}'s worktree ${folder} holds ${held.join(' and ')}.\n` +
-    `  Merge it once the user says so (~/.flow/guides/worktrees.md), or throw it away with their word, then run ${status === 'done' ? 'done' : 'drop'} again.`
+    `  The user merges it with util git save -w (~/.flow/guides/worktrees.md), or throws it away, then run ${status === 'done' ? 'done' : 'drop'} again.`
   );
 }
 

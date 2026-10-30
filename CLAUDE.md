@@ -29,6 +29,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 - **`agent-text-in-markdown`** A guide a mod or hook sends the agent lives in its own `.md` file in `prompts/`, named for what it says. Short lines, and text the code assembles from conditions, stay in the code. `docs/manual/` shows each one as the agent receives it.
 - **`measurements-in-fw-294`** A check that can run only once real sessions exist is one line in `fw-294`'s `## Tasks`: the ticket it checks, the baseline, the target. Then the building ticket can close. Never leave the check open in that ticket, where nobody runs it after the close.
   - **`measure-real-work`** A check runs through `/flow:audit` on sessions of real work, once days of them exist. Never stage a replay or a test session to measure, and never make a ticket for a measurement.
+- **`record-notable-tools`** A tool, skill or service met in research that stands out → one entry in `.flow/research/tool-library/notable-tools.md`: what it does, what it costs, why it stands out, the job it could do here. Only standouts: the toolbox `fw-94` dropped filled with tools no work needed. Holds until `fw-62`'s library exists.
 - **`no-status-in-claude-md`** No counts, no dates and no build status here. What Flow does goes in `docs/spec/`, open work in tickets.
 
 ## Temporary

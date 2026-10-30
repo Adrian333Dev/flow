@@ -46,7 +46,7 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 **Then close the ticket by that status:**
 
-- **`FIXED`** → `flow tickets done <id>` once the user confirms the fix, in a worktree after its merge, by `~/.flow/guides/worktrees.md` → `## Merging`, where the ticket has no parent and no open `## Tasks`. Otherwise report `FIXED` and stop: the parent session, or `/flow:execute`, closes it.
+- **`FIXED`** → `flow tickets done <id>` once the user confirms the fix, in a worktree after the user merged it, by `~/.flow/guides/worktrees.md` → `## Closing`, where the ticket has no parent and no open `## Tasks`. Otherwise report `FIXED` and stop: the parent session, or `/flow:execute`, closes it.
 - **`FOUND_NOT_FIXED`, `UNPROVEN`** → it stays `in-progress`. The user decides whether the hunt carries on, parks or drops.
 
 ### When the failure is somewhere you cannot reach

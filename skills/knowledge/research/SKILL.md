@@ -28,8 +28,16 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 - **A need with no tool yet** → anything that already solves it, fully or partly: a library, CLI, service, app, skill, plugin or MCP server. Name what a partial fit leaves unsolved.
 - **A tool already chosen** → its `index.md` → `## Skills` first, then a skill, plugin or MCP server for it, before reading a line of its documentation.
 
-1. **Search skills.sh**, an index of public skills: `npx skills find <the need, or the tool's name>`. For a tool already chosen, add `--owner <its maker's GitHub account>`. It finds tools too, whenever a tool ships a skill. A skill already installed is in the session's skill list, which the wiki steps above check first.
-2. **When nothing from step 1 fits, or the need is no skill:**
+1. **Search skills.sh**, an index of public skills. It finds tools too, whenever a tool ships a skill. A skill already installed is in the session's skill list, which the wiki steps above check first. 2 depths:
+   - **A tool already chosen, or a need with an obvious name** (a NestJS skill) → quick: `npx skills find <the name>`, about 8 results. For a chosen tool, add `--owner <its maker's GitHub account>`.
+   - **A survey of what exists for a need**, or a quick search with no clear fit → wide, at least 5 wordings by `### Wording a search`:
+
+     ```bash
+     bash ~/.agents/skills/flow/skills/research/scripts/skills-search.sh "reddit research" "google search" "web search" "search" "search query"
+     ```
+
+     Up to 100 results per wording, merged, the skills most wordings found first, then the site's relevance, 40 lines by default. Read the description of every name that could fit. Wide enough when a new wording adds no name worth opening.
+2. **When nothing from step 1 fits, or the need is no skill**, worded the same way:
    - **MCP servers:** `curl 'https://registry.modelcontextprotocol.io/v0/servers?search=<word>'`
    - **The web.** For a chosen tool, name it with the words `skill`, `plugin` and `mcp`.
 3. **Rare, only when steps 1 and 2 found nothing:**
@@ -47,6 +55,16 @@ description: Researches any subject. Finds a skill, plugin, library, tool, exist
 - Used whole, and its repository holds `.claude-plugin/marketplace.json` → it is a plugin: `claude plugin marketplace add <owner/repo>`, then `claude plugin install <name>@<marketplace> --scope project`. The default scope, user, loads it in every project. Each other machine runs the install once more, and a third-party marketplace updates only on `claude plugin update <name>@<marketplace>`.
 - Used whole, any other skill → `npx skills add <owner/repo> --skill <name>` installs it into the project's `.claude/skills/`, where git carries it. `-g` installs it into `~/.claude/skills/`, for every project on this machine. `npx skills update` brings it current, and `npx skills remove <name>` removes it.
 - Harvested → read it from a throwaway clone in `tmp/`, then `## Harvest` on the user's yes.
+
+### Wording a search
+
+Makers name a skill, a server or a tool in plain category words, rarely in the expert terms of the need. Word each search 3 ways:
+
+- **The need in the user's words**: `reddit research`, `search query`.
+- **The category, then its parent**: `google search`, `web search`, `search`.
+- **The sites, tools and jobs around the need**: `reddit`, `serp`, `scraping`.
+
+Never search with expert terms alone (`dorking`, `boolean search`): they miss the skills named for the category.
 
 ## How deep to go
 

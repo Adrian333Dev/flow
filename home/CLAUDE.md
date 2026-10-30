@@ -77,6 +77,7 @@ One phase at a time:
   - Context filling, a stretch of work closing, or a job needing its own session → `/flow:handoff`. Near the context limit, start no large step: hand off first, put that step in Next.
 - **`user-only-skills`** Suggest `/flow:start`, `/flow:tickets-from-spec` and `/flow:upkeep` to the user.
 - **`skip-a-step`** Skip a Flow step that makes the work worse. Name the step and the reason. Never ask first.
+- **`never-commit-unasked`** Never commit, push or suggest either. Done means the changes sit uncommitted: the user reviews them in the editor's Source Control list and runs `util git save`. Asked to commit → `util git save "<ticket name>"`, which pushes in the same step. A commit left unpushed is half a save.
 - **`read-before-adding`** Before proposing a skill, a plugin or an MCP server, read `~/.flow/guides/knowledge.md`.
 
 ## Capture
