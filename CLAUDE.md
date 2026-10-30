@@ -6,7 +6,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 
 ## Layout
 
-- `lab/`: the maintainers' workspace: the `lab/util` submodule, `lab/scripts/` (serves this repo alone) and `lab/archive/`.
+- `lab/`: the maintainers' workspace: the `lab/util` submodule, the `lab/skills` submodule (the user's personal skills repository), `lab/scripts/` (serves this repo alone) and `lab/archive/`.
 - `.claude/` holds what Claude Code reads here, `.flow/` what Flow owns.
 - `docs/manual/` is written for the user alone. Keep it current, and never point a skill or a loaded file at it.
 - `~/.flow/wiki/claude-code/downloads/`: Claude Code's documentation on disk. Its `llms.txt` indexes every page, and `WebFetch` reaches the rest.

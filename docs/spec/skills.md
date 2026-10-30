@@ -122,11 +122,12 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 - `later` **An overlay for a skill a subagent preloads through `skills:`**, from a `SubagentStart` hook. Flow ships no such subagent. Approved 2026-09-28.
 - `later` **An overlay reaching a skill's `references/` pages.** The hook fires once, when `SKILL.md` loads.
 
-### The archived `domain-skills` repository
+### The personal skills repository
 
-- `never` **A skill about one field or tool in a public repository.** The `domain-skills` repository, `flow contribute` and `/flow:apply-domain-findings` left Flow 2026-10-14 (`fw-124`), with all work for strangers (`fw-16`). A copy sits in `lab/archive/domain-skills/`. Knowledge about a tool or field goes to wiki pages (`fw-94`), and `/flow:write-skill`, a harvest into one skill per tool, was dropped 2026-10-12 for that reason.
-- `later` **`/web-pages` rebuilt on `browser-harness`**, from 1,059 lines to about 150: the capture scripts go, the investigation method stays. The old skill is in `lab/archive/domain-skills/drafts/web-pages/`. Waits for the move off WSL.
-- `later` **Chrome extensions as wiki pages**, from 3 guides in `lab/archive/domain-skills/drafts/chrome-extension/`, at the next extension project. Knowledge about a field goes to the wiki (`fw-94`).
+- `V1` **The user's own skills live in `Adrian333Dev/skills`, a public repository, the `lab/skills` submodule**, each linked into `~/.claude/skills` (the user, 2026-10-30, `fw-345`). A skill there does a job for the user, such as writing search queries. Knowledge about a tool or field still goes to wiki pages. It is the `domain-skills` repository, renamed.
+- `never` **A skill about one field or tool in a public repository, written for strangers.** The `domain-skills` repository, `flow contribute` and `/flow:apply-domain-findings` left Flow 2026-10-14 (`fw-124`), with all work for strangers (`fw-16`). Knowledge about a tool or field goes to wiki pages (`fw-94`), and `/flow:write-skill`, a harvest into one skill per tool, was dropped 2026-10-12 for that reason.
+- `later` **`/web-pages` rebuilt on `browser-harness`**, from 1,059 lines to about 150: the capture scripts go, the investigation method stays. The old skill is in `lab/skills/drafts/web-pages/`. Waits for the move off WSL.
+- `later` **Chrome extensions as wiki pages**, from 3 guides in `lab/skills/drafts/chrome-extension/`, at the next extension project. Knowledge about a field goes to the wiki (`fw-94`).
 
 ## The parts
 
