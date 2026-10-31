@@ -215,7 +215,7 @@ describe('the Restart button', () => {
 
   test('shows between turns past the mark, hides while a turn runs, and comes back when it ends', async ($, on) => {
     turns(on)
-    await $.session.measure(sized(150000))
+    await $.session.measure(sized(180000))
     const ui = await $.ui.mount(BAND)
     expect(await ui.find({ key: 'restart' })).toBeDefined()
     await $.turn.start(begin('t1'))
@@ -235,7 +235,7 @@ describe('the Restart button', () => {
 
   test('a subagent’s turn neither hides the button nor brings it back', async ($, on) => {
     turns(on)
-    await $.session.measure(sized(150000))
+    await $.session.measure(sized(180000))
     const ui = await $.ui.mount(BAND)
     await $.turn.start(begin('a1', 'agent-1'))
     expect(await ui.find({ key: 'restart' })).toBeDefined()
@@ -251,7 +251,7 @@ describe('the Restart button', () => {
     turns(on)
     on('clock.sleep', () => ({ value: undefined }) as never)
     on('prompt.submit', (_$, e) => ({ text: (e as unknown as { text: string }).text }))
-    await $.session.measure(sized(150000))
+    await $.session.measure(sized(180000))
     const ui = await $.ui.mount(BAND)
     await ui.press({ key: 'restart' })
     await settle()
@@ -269,7 +269,7 @@ describe('the Restart button', () => {
     on('prompt.submit', (_$, e) => ({ text: (e as unknown as { text: string }).text }))
     on('turn.abort', () => ({ value: undefined }) as never)
     on('session.compact', () => ({ messages: [] }) as never)
-    await $.session.measure(sized(150000))
+    await $.session.measure(sized(180000))
     const ui = await $.ui.mount(BAND)
     await ui.press({ key: 'restart' })
     await settle()
@@ -285,7 +285,7 @@ describe('the Restart button', () => {
     on('prompt.submit', () => {
       throw new Error('no agent')
     })
-    await $.session.measure(sized(150000))
+    await $.session.measure(sized(180000))
     const ui = await $.ui.mount(BAND)
     await ui.press({ key: 'restart' })
     await settle()

@@ -19,9 +19,8 @@ Name the rule that was loaded and did not fire in the body, as `Rule: <id>`. Lea
 
 ## Two stages
 
-**Now:** the artifact verbatim, plus one line of what was wrong. Nothing else. Never let it derail the work.
-
-**Later:** the analysis, in the sections below.
+**Now:** the artifact verbatim, one line of what was wrong, and the session: `Session: <$CLAUDE_CODE_SESSION_ID>, began <time from flow audit get>`. Nothing else. Never let it derail the work.
+**Later:** the analysis, in the sections below. Read the named session from its first turn to its last before writing it: an annoyance builds across the session's compactions and restarts, so the moment it surfaced holds only its end.
 
 ## Body
 

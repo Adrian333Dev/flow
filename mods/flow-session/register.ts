@@ -48,10 +48,10 @@ export const register: Register = (on) => {
   on('command.run', { command: 'band' }, async ($, e) => ({ text: await bandMock($, e.args ?? '') })).catch(() => ({
     text: 'The band command failed, so nothing changed.',
   }))
-  on('command.run', { command: 'copy-v2' }, async ($) => ({ text: await copyLast($) })).catch(() => ({
+  on('command.run', { command: 'cp' }, async ($) => ({ text: await copyLast($) })).catch(() => ({
     text: 'The copy command failed, so nothing was copied.',
   }))
-  on('command.run', { command: 'copy-all' }, async ($) => ({ text: await copyAll($) })).catch(() => ({
+  on('command.run', { command: 'cp-all' }, async ($) => ({ text: await copyAll($) })).catch(() => ({
     text: 'The copy command failed, so nothing was copied.',
   }))
   on('command.run', { command: 'keepwarm' }, async ($, e) => ({ text: await keepWarm($, e.args ?? '') })).catch(() => ({

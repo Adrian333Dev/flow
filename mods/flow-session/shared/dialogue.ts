@@ -2,7 +2,7 @@
  * dialogue.ts: tells the user's own messages from the text the mod and the host add.
  *
  * The prompts the mod submits and the messages it writes into a restarted window begin with the
- * prefixes below, so neither `/copy-all` nor the restart counts them as the user's. Nothing here
+ * prefixes below, so neither `/cp-all` nor the restart counts them as the user's. Nothing here
  * touches the host: no import but types.
  */
 import type { SessionMessage } from 'claude-code'

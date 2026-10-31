@@ -66,6 +66,10 @@ export async function askUser($: EngineInterface, e: Check, decided: Decided): P
     return { decision: 'deny', reason: nobodyReason() }
   }
 
+  // Not awaited: the sound plays while the dialog opens. scripts/hooks/sound.ts honours the `sound` switch.
+  const sound = `${await flowHome($)}/scripts/hooks/sound.ts`
+  void $.process.run(['node', sound, 'permission']).catch(() => {})
+
   const started = Date.now()
   let label: string | undefined
   let failure = ''

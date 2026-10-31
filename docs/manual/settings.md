@@ -10,6 +10,7 @@ Every key Flow reads from its own settings files, and every key it writes into C
   - [`sessionCheck`](#sessioncheck): a line when a session opens and something needs attention
   - [`setupReminder`](#setupreminder): the suggestion to run `flow init`
   - [`wrapUp`](#wrapup): the warning that the conversation is getting long
+  - [`sound`](#sound): a notification sound when Claude finishes or waits for permission
 - [Other keys in Flow's files](#other-keys-in-flows-files): numbers, lists and names
   - [`wrapUpAt`](#wrapupat): how long a conversation gets before the warning
   - [`keepWarmLead`](#keepwarmlead) and [`keepWarmMaxIdle`](#keepwarmmaxidle): when `/keepwarm` pings, and when it gives up
@@ -88,16 +89,25 @@ Flow: not set up here. Run flow init to set it up on this computer, or flow sett
 Tells the agent to restart the session once the conversation passes [`wrapUpAt`](#wrapupat). Flow's mod sends one line at the limit:
 
 ```text
-Finish this step, then restart.
+Finish the work in hand (the whole task or ticket, never only this step), run capture, then restart.
 ```
 
-The restart guide follows the line: what to save to the ticket, which files to load and what the note holds. At 100,000 past the limit it sends one more, `Stop now and restart.`, with the same guide. Neither names the size or a handoff. A helper agent that still runs delays the restart until it finishes. A helper agent follows the same limit on its own conversation: it cannot restart, so the mod sends it a message to save its state to its report files and begin its reply with `UNFINISHED:` and their paths, unless it is within a few steps of its final report. The session that sent it starts the next subagent from those files. At 100,000 past the limit the message is `Stop now`. From 30,000 under the limit the band above the prompt shows a green Restart button for restarting by hand. A press sends the agent one prompt asking for its note, with the guide. The button shows only between turns, and a press hides it until the restart ends. The restart keeps the session and its transcript. The new window holds the tickets in flight with their `context.md` (whole in groundwork, else the sections of open questions), the files and skills the agent named, the agent's note, and your messages it never answered, each whole. The old dialogue stays in the session's transcript, for `flow audit`. A typed `/restart` stops there. An automatic restart then submits `Continue from the note.`.
+The restart guide follows the line: what to save to the ticket, which files to load and what the note holds. At 100,000 past the limit it sends one more, `Finish the step in hand, run capture, then restart.`, with the same guide. Nothing forces a restart in the middle of work. Neither names the size or a handoff. A helper agent that still runs delays the restart until it finishes. A helper agent follows the same limit on its own conversation: it cannot restart, so the mod sends it a message to save its state to its report files and begin its reply with `UNFINISHED:` and their paths, unless it is within a few steps of its final report. The session that sent it starts the next subagent from those files. At 100,000 past the limit the message is `Stop now`. From 30,000 under the limit the band above the prompt shows a green Restart button for restarting by hand. A press sends the agent one prompt asking for its note, with the guide. The button shows only between turns, and a press hides it until the restart ends. While the band is hidden (`"shown": false` in the mod's `features/band/band-settings.json`), the button is hidden too: type `/restart` instead. The restart keeps the session and its transcript. The new window holds the tickets in flight with their `context.md` (whole in groundwork, else the sections of open questions), the files and skills the agent named, the agent's note, and your messages it never answered, each whole. The old dialogue stays in the session's transcript, for `flow audit`. A typed `/restart` stops there. An automatic restart then submits `Continue from the note.`.
+
+### `sound`
+
+Plays a short notification sound, once, when a session needs you:
+
+- **Claude finishes a reply**: Windows' `Windows Notify Email` sound.
+- **Claude asks permission**: Windows' `Windows Ding` sound, as the permission dialog opens. Where that dialog fails and Claude Code asks with its own prompt instead, the sound waits until the prompt has sat about 6 seconds with nothing typed.
+
+Under WSL the sounds come from Windows. On Linux they come from the freedesktop sound theme (`complete` and `message-new-instant`), played by `pw-play` or `paplay`. A computer with neither stays silent. Off, both stop, from the next reply.
 
 ## Other keys in Flow's files
 
 ### `wrapUpAt`
 
-The conversation size, in tokens, at which [`wrapUp`](#wrapup) speaks. Unset, it is 170,000: a session starts near 25,000 with `CLAUDE.md` and the tools. `flow settings` shows the default beside your value. Either computer-wide file holds it:
+The conversation size, in tokens, at which [`wrapUp`](#wrapup) speaks. Unset, it is 200,000: a session starts near 25,000 with `CLAUDE.md` and the tools. `flow settings` shows the default beside your value. Either computer-wide file holds it:
 
 ```json
 "wrapUpAt": 140000
@@ -180,6 +190,7 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
 
   The wiki line lists first the folders this project visited, the latest visit first, each with its visit count in brackets, as the labels show theirs. The rest follow, the most recently changed first once the line holds more than 15. [`flow search`](commands.md#flow-search) says what counts as a visit.
 - **`failures.ts`**, when a tool call or the API fails: adds a line to the failure log in `~/.flow/logs/failures/`.
+- **`sound.ts`**, after every reply and when a permission prompt waits: plays [`sound`](#sound).
 - **`records-sync.ts`**, after every reply and as a session closes: sends the project's tickets and your Flow home to GitHub, at most every 30 minutes.
 
 ### `env`

@@ -7,7 +7,7 @@
  * A ticket lights only when `flow tickets start <id>` picks it up, and then sits leftmost; `flow tickets get` reads it again whenever a
  * command or an edit touches it, and for every badge at once at each turn's end. For as long as a turn runs, the badge
  * the session works (the leftmost open one) shows a pale bar 3 cells wide moving along
- * it and a spinner turning after its word; `band-settings.json` switches either off. The rules
+ * it and a spinner turning after its word; `band-settings.json` switches either off, or hides the band whole. The rules
  * for joining and leaving are in band-model.ts; this file only feeds them and draws the result.
  *
  * register.ts calls these from its own hooks: a mod's hooks on one event are one hook,
@@ -339,6 +339,8 @@ export async function drawBand(
   restartSession: () => void,
 ): Promise<RenderElement> {
   const scenario = mock?.scenario
+  // Hidden, the badges are still kept for the restart; a test band from `/band` still shows.
+  if (!look.shown && !scenario) return next(e)
   const entries = scenario ? withActing(scenario.entries, mockActing) : await readBand($)
   const open = scenario ? scenario.issues : await read($, issues)
   const restart = scenario ? scenario.restart : await restartOffered($, turnRunning)

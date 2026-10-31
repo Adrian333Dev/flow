@@ -99,13 +99,13 @@ describe('saveReply', () => {
 describe('the commands', () => {
   const messages = [say('go'), reply('Looking.', [use('Read', { file_path: '/a' })]), result('t1'), reply('a\nb')]
 
-  test('/copy-v2 copies the last message and says how much', async () => {
+  test('/cp copies the last message and says how much', async () => {
     const { $, copies } = engine(messages)
     expect(await copyLast($)).toBe('Copied 3 characters, 2 lines.')
     expect(copies).toEqual(['a\nb'])
   })
 
-  test('/copy-all copies every message of words, with no tool call', async () => {
+  test('/cp-all copies every message of words, with no tool call', async () => {
     const { $, copies } = engine(messages)
     expect(await copyAll($)).toMatch(/^Copied /)
     expect(copies).toEqual([`Looking.${SEPARATOR}a\nb`])

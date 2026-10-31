@@ -28,8 +28,8 @@ describe('offersRestart', () => {
 })
 
 describe('wrapUpLine', () => {
-  const FINISH = 'Finish this step, then restart.'
-  const STOP = 'Stop now and restart.'
+  const FINISH = 'Finish the work in hand (the whole task or ticket, never only this step), run capture, then restart.'
+  const STOP = 'Finish the step in hand, run capture, then restart.'
 
   test('is silent under the limit: no size notice at any mark', () => {
     for (const [before, now] of [[0, 119000], [110000, 122000], [128000, 131000], [141000, 149999]]) expect(wrapUpLine(before!, now!, 150000)).toBeUndefined()
@@ -83,15 +83,15 @@ describe('sizeOf', () => {
 })
 
 describe('wrapUpSettings', () => {
-  test('defaults to 170k, on', () => {
-    expect(wrapUpSettings()).toEqual({ wrapUp: true, limit: 170000 })
-    expect(wrapUpSettings('not json', '[]')).toEqual({ wrapUp: true, limit: 170000 })
+  test('defaults to 200k, on', () => {
+    expect(wrapUpSettings()).toEqual({ wrapUp: true, limit: 200000 })
+    expect(wrapUpSettings('not json', '[]')).toEqual({ wrapUp: true, limit: 200000 })
   })
 
   test('wrapUpAt moves the limit and the local file wins', () => {
     expect(wrapUpSettings('{"wrapUpAt": 100000}').limit).toBe(100000)
     expect(wrapUpSettings('{"wrapUpAt": 100000}', '{"wrapUpAt": 80000}').limit).toBe(80000)
-    expect(wrapUpSettings('{"wrapUpAt": -5}').limit).toBe(170000)
+    expect(wrapUpSettings('{"wrapUpAt": -5}').limit).toBe(200000)
   })
 
   test('"wrapUp": false in settings.json silences it, and the local file cannot switch it', () => {

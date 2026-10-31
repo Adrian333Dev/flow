@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
 
-type Stubs = { asks: { question: string; header?: string; options: unknown }[]; lines: Record<string, unknown>[]; paths: string[]; notes: string[] }
+type Stubs = { asks: { question: string; header?: string; options: unknown }[]; lines: Record<string, unknown>[]; paths: string[]; notes: string[]; sounds: string[] }
 
 /** A dialog that cannot open at all, which the engine reports apart from Esc. */
 class Broken extends Error {}
@@ -13,7 +13,7 @@ const NO_ANSWER = "no answer (The user doesn't want to proceed with this tool us
  * the folder, and the process that appends the log. Returns what the mod did.
  */
 function claudeCode(on: Parameters<typeof mock.env>[0], core: Record<string, unknown>, reply: string | Error = 'Allow'): Stubs {
-  const seen: Stubs = { asks: [], lines: [], paths: [], notes: [] }
+  const seen: Stubs = { asks: [], lines: [], paths: [], notes: [], sounds: [] }
   mock.env(on, { FLOW_HOME: '/h/.flow', HOME: '/h' })
   // The dialog is itself an `AskUserQuestion` call, and its own check passes.
   on('tool.check', (_$, e) => ((e as unknown as { tool: string }).tool === 'AskUserQuestion' ? { decision: 'allow' } : core) as never)
@@ -35,9 +35,14 @@ function claudeCode(on: Parameters<typeof mock.env>[0], core: Record<string, unk
   })
   on('process.run', (_$, e) => {
     const argv = (e as unknown as { argv: string[] }).argv
+    const done = { value: { exitCode: 0, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+    if (argv[1]?.endsWith('/sound.ts')) {
+      seen.sounds.push(argv.slice(1).join(' '))
+      return done
+    }
     seen.lines.push(JSON.parse(argv[4]!))
     seen.paths.push(argv[5]!)
-    return { value: { exitCode: 0, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+    return done
   })
   return seen
 }
@@ -53,6 +58,7 @@ describe('an ask the guard raised', () => {
     expect(seen.asks).toHaveLength(1)
     expect(seen.asks[0]!.question).toBe('Push to origin/main')
     expect(seen.asks[0]!.header).toBe('Permission')
+    expect(seen.sounds).toEqual(['/h/.flow/scripts/hooks/sound.ts permission'])
     expect(JSON.stringify(seen.asks[0]!.options)).toContain('Refuse')
     expect(seen.lines).toHaveLength(1)
     expect(seen.lines[0]).toMatchObject({

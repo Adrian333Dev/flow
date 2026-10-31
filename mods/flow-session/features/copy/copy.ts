@@ -1,7 +1,7 @@
 /**
  * copy.ts: the agent's words as a copy, in 2 sizes.
  *
- * `/copy-v2` copies the agent's last message, as Claude Code's own `/copy` does. `/copy-all` copies
+ * `/cp` copies the agent's last message, as Claude Code's own `/copy` does. `/cp-all` copies
  * every message of words the agent wrote since the user's last message, as raw markdown with a `---`
  * line between them, so the user sees where one starts. Tool calls are left out. After each turn the
  * same stretch is written to `.flow/replies/<session>-<n>.md` (n counts the user's messages in the
@@ -68,22 +68,22 @@ async function put($: EngineInterface, words: string): Promise<string> {
   return `Copied ${words.length} characters, ${words.split('\n').length} lines.`
 }
 
-/** What `/copy-v2` answers: the last message is on the clipboard, or why it is not. */
+/** What `/cp` answers: the last message is on the clipboard, or why it is not. */
 export async function copyLast($: EngineInterface): Promise<string> {
   return put($, lastOf(await $.session.messages()))
 }
 
-/** `/copy-v2` (Alt+C in `~/.claude/keybindings.json`) and `/copy-all` (Alt+A). */
+/** `/cp` (Alt+C in `~/.claude/keybindings.json`) and `/cp-all` (Alt+A). */
 export async function registerCopy($: EngineInterface): Promise<void> {
   await $.command
-    .register({ name: 'copy-v2', description: 'Copy the agent’s last message, as markdown. Alt+C runs it.' })
+    .register({ name: 'cp', description: 'Copy the agent’s last message, as markdown. Alt+C runs it.' })
     .catch(() => undefined)
   await $.command
-    .register({ name: 'copy-all', description: 'Copy every message the agent wrote since your last message, with a --- between them and no tool calls. Alt+A runs it.' })
+    .register({ name: 'cp-all', description: 'Copy every message the agent wrote since your last message, with a --- between them and no tool calls. Alt+A runs it.' })
     .catch(() => undefined)
 }
 
-/** What `/copy-all` answers: the stretch is on the clipboard, or why it is not. */
+/** What `/cp-all` answers: the stretch is on the clipboard, or why it is not. */
 export async function copyAll($: EngineInterface): Promise<string> {
   return put($, stretchOf(await $.session.messages()).text)
 }

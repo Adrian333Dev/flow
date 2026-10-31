@@ -11,8 +11,12 @@ describe('parseLook', () => {
     expect(parseLook('{ "topRow": false }')).toEqual({ ...DEFAULT_LOOK, topRow: false })
     expect(parseLook('{ "topRow": true }').topRow).toBe(true)
   })
+  test('the band shows unless the file says false', () => {
+    expect(parseLook('{ "shown": false }')).toEqual({ ...DEFAULT_LOOK, shown: false })
+    expect(parseLook('{ "sweep": false }').shown).toBe(true)
+  })
   test('a missing or broken file leaves all on', () => {
-    expect(parseLook(undefined)).toEqual({ sweep: true, spinner: true, topRow: true })
+    expect(parseLook(undefined)).toEqual({ shown: true, sweep: true, spinner: true, topRow: true })
     expect(parseLook('{ nope')).toEqual(DEFAULT_LOOK)
     expect(parseLook('null')).toEqual(DEFAULT_LOOK)
   })

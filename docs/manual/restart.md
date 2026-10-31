@@ -14,7 +14,7 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 ## The 3 phases
 
 ```text
-   context reaches 170k, or you press Restart, or you type /restart
+   context reaches 200k, or you press Restart, or you type /restart
                  │
                  ▼
      ┌──────────────────────┐
@@ -36,8 +36,8 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 
 3 things start a restart, and each sends the agent one message ending in the restart guide:
 
-- **At the limit**, 170,000 tokens by default ([`wrapUpAt`](settings.md#wrapupat)): `Finish this step, then restart.`
-- **At 100,000 past it**, with no restart yet: `Stop now and restart.`
+- **At the limit**, 200,000 tokens by default ([`wrapUpAt`](settings.md#wrapupat)): `Finish the work in hand (the whole task or ticket, never only this step), run capture, then restart.`
+- **At 100,000 past it**, with no restart yet: `Finish the step in hand, run capture, then restart.`
 - **By hand**: a press of the green Restart button above the prompt (shown from 30,000 under the limit), or `/restart`: `Restart now:`. Words typed after `/restart` follow under `User:`.
 
 The guide, as the agent receives it, from `~/.flow/prompts/restart-guide.md`:

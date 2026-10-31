@@ -34,4 +34,7 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 
 ## Temporary
 
+- **`flow-under-repair`** Flow is under repair (`fw-361`): treat its skills and rules as possibly broken. Follow a step where it helps the work, and skip one that makes it worse, saying so in one line. Distrust most: `/flow:groundwork`, the path for writing a skill, and the rules on proposals and capture.
+  - **`discuss-without-groundwork`** Design by plain discussion: ask the questions that matter, propose with a recommendation, wait for the answer. Never run groundwork's phases unless the user asks for them.
+
 Flow runs on this machine alone. A second machine joins soon, once this version of Flow is finished. Never suggest setting it up or running anything for it. Design every change so state that follows a ticket or a project syncs, and the other machine sees it. Sync faults such as git conflicts belong to the multi-machine tickets (`fw-6`, `fw-158`), never to the change at hand. Delete this section when the machine joins.

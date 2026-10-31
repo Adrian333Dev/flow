@@ -117,6 +117,23 @@
             "type": "command",
             "command": "node \"$HOME/.flow/scripts/jobs/records-sync.ts\" --hook stop",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/hooks/sound.ts\"",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.flow/scripts/hooks/sound.ts\"",
+            "async": true
           }
         ]
       }

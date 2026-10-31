@@ -2,8 +2,9 @@
  * wrap-up.ts: when the mod tells the agent its context size, and what it says.
  *
  * Answers get worse long before the window fills, so the limit follows the
- * work, never the window. At the limit the mod tells the agent to finish its
- * step and call `restart`; `HARD` past it, to stop and call it. Each line is
+ * work, never the window. At the limit the mod tells the agent to finish the
+ * work in hand and call `restart`; `HARD` past it, to finish the step in hand and call it.
+ * Nothing forces a restart mid-work. Each line is
  * sent once and names no size: a notice pulls the agent off its task, and the
  * user is not reminded of the size. A subagent has its own lines at the same limit,
  * measured on its own conversation: it saves its state to files and finishes.
@@ -15,7 +16,7 @@ import { kilo, reasonOf } from '../../shared/format'
 import { flowSettings, parseObject } from '../../shared/settings'
 
 /** The limit when no setting names one. */
-export const LIMIT = 170000
+export const LIMIT = 200000
 /** How far past the limit the second line comes. A turn that passes it a little is no problem. */
 export const HARD = 100000
 /** How far under the limit the band offers the Restart button. */
@@ -46,8 +47,8 @@ export type Lines = { finish: string; stop: string }
 
 /** The restart guide follows either line. */
 export const MAIN_LINES: Lines = {
-  finish: 'Finish this step, then restart.',
-  stop: 'Stop now and restart.',
+  finish: 'Finish the work in hand (the whole task or ticket, never only this step), run capture, then restart.',
+  stop: 'Finish the step in hand, run capture, then restart.',
 }
 
 /**

@@ -75,7 +75,7 @@ test('a fresh install passes every check', () => {
   assert.match(report.stdout, /nothing to fix\./);
   assert.match(report.stdout, /util: fs tree runs/);
   assert.match(report.stdout, /^ok {4}projects: exp .*doctor-clean$/m);
-  assert.match(report.stdout, /19 hooks registered, every file they name on disk, sessions start in "acceptEdits" mode/);
+  assert.match(report.stdout, /21 hooks registered, every file they name on disk, sessions start in "acceptEdits" mode/);
 });
 
 test('a machine with nothing installed says so once, rather than failing every check', () => {

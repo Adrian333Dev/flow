@@ -161,7 +161,7 @@ The project's tickets and what sessions learn in it. It is a link into `~/.flow/
 - **`tickets/archive/`**: finished and dropped tickets, moved here whole.
 - **`ticket-counter`**: the highest ticket number this project ever gave out, such as `75`, so a deleted or moved ticket's number never goes to a new one.
 - **`findings/`**: one file per thing a session learned about this project. `flow findings new` writes it.
-- **`replies/`**: every message the agent wrote since your last message, saved at the end of each turn as `<session>-<n>.md`, where `n` counts your messages in the window. It holds a `---` between the messages and no tool calls, the same text `/copy-all` copies. The mod keeps the newest 100 files. They stay on this computer.
+- **`replies/`**: every message the agent wrote since your last message, saved at the end of each turn as `<session>-<n>.md`, where `n` counts your messages in the window. It holds a `---` between the messages and no tool calls, the same text `/cp-all` copies. The mod keeps the newest 100 files. They stay on this computer.
 - **`research/<topic>/`**: the research reports this project asked for, one folder per topic. `/flow:research` writes them.
 - **`settings.json`**: this project's [`ticketPrefix`](settings.md#ticketprefix).
 

@@ -78,13 +78,13 @@ test('--global writes the shared file, and the local file switches nothing', () 
 test('ls shows each number setting beside its default, and yours once a file sets it', () => {
   const at = place('settings-values');
   assert.match(at.flow().stdout, /^value\s+default\s+yours\s*$/m);
-  assert.match(at.flow().stdout, /^wrapUpAt\s+170000\s{2,}the conversation size/m, 'nothing set: yours is blank');
+  assert.match(at.flow().stdout, /^wrapUpAt\s+200000\s{2,}the conversation size/m, 'nothing set: yours is blank');
 
-  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ wrapUpAt: 200000 }));
-  assert.match(at.flow().stdout, /^wrapUpAt\s+170000\s+200000\s+the conversation size/m);
+  fs.writeFileSync(path.join(at.home, 'settings.json'), JSON.stringify({ wrapUpAt: 250000 }));
+  assert.match(at.flow().stdout, /^wrapUpAt\s+200000\s+250000\s+the conversation size/m);
 
   fs.writeFileSync(path.join(at.home, 'settings.local.json'), JSON.stringify({ wrapUpAt: 120000 }));
-  assert.match(at.flow().stdout, /^wrapUpAt\s+170000\s+120000\s/m, 'the local file wins');
+  assert.match(at.flow().stdout, /^wrapUpAt\s+200000\s+120000\s/m, 'the local file wins');
 
   assert.match(at.flow().stdout, /^keepWarmLead\s+3\s{2,}minutes before/m);
   assert.match(at.flow().stdout, /^keepWarmMaxIdle\s+4\s{2,}hours after/m);
@@ -120,6 +120,6 @@ test('a setting with no folder list, and a word naming no setting, each refuse a
   assert.match(folder.stderr, /reminder has no per-folder switch\. Add --global to switch it everywhere\./);
 
   const unknown = at.flow('off', 'reminders', '--global');
-  assert.match(unknown.stderr, /no setting "reminders", one of: reminder, sessionCheck, setupReminder, wrapUp/);
+  assert.match(unknown.stderr, /no setting "reminders", one of: reminder, sessionCheck, setupReminder, wrapUp, sound/);
   assert.ok(!fs.existsSync(path.join(at.home, 'settings.json')), 'nothing written');
 });

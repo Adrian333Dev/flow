@@ -41,6 +41,7 @@ const SETTINGS: { key: string; says: string; skip?: string; versions?: () => str
   { key: 'sessionCheck', says: 'the flow init suggestion, when a session opens' },
   { key: 'setupReminder', says: 'suggests flow init where a repository has no .flow/', skip: 'setupReminderSkip' },
   { key: 'wrapUp', says: 'tells Claude to hand off once the conversation passes wrapUpAt tokens' },
+  { key: 'sound', says: 'a sound when Claude finishes a reply, another when a permission prompt waits' },
 ];
 
 /** The number settings, shown beside their default so an override shows. Changed by editing `settings.json`. */
