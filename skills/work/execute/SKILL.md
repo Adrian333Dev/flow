@@ -48,7 +48,7 @@ Fix it while the cause is in front of you, and keep going as long as every fix s
 
 1. Update every record the change made stale: `docs/spec/`, `docs/context/`, other tickets that cite it.
 2. Run the full suite, in the turn you report it.
-3. Read the diff once against the decisions, then against `~/.flow/guides/review-code.md`. A ticket that produced a document reads `~/.flow/guides/style.md` instead. A ticket that produced a decision reads neither.
+3. Read the diff once against the decisions, then against `~/.flow/guides/review-code.md`. A ticket that produced a document reads `~/.flow/guides/writing.md` instead. A ticket that produced a decision reads neither.
 4. Fix what is wrong, then `flow tickets done <id>`. In a worktree, the user merges first: `~/.flow/guides/worktrees.md` → `## The user merges`, then `## Closing`. `done` refuses while the worktree holds unmerged work.
 5. An older ticket's `## State`: anything in it still true goes where `## Capture` sends it, then delete the section.
 6. Report. Open with the decisions you made alone, one line each. Then what changed and what the check showed, briefly. End with the next ticket from `flow next`, and why.

@@ -10,6 +10,7 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 - [Phase 3: the context after the restart](#phase-3-the-context-after-the-restart): the skeleton of the new conversation
 - [What decides each part](#what-decides-each-part): which tickets, sections and files load
 - [When a restart is refused](#when-a-restart-is-refused): the reasons, and what to do
+- [/fresh: a light window once the work is finished](#fresh-a-light-window-once-the-work-is-finished): what it carries, and the line that suggests it
 
 ## The 3 phases
 
@@ -228,3 +229,32 @@ The tool answers with the reason, and nothing restarts:
 - **`Nothing restarted:`**, followed by a file that cannot be read, a skill the session does not list, or each part's size past 40k tokens in all. The agent names fewer files, and calls again.
 
 A restart that fails while building the new window leaves the session as it was. The log line says `restart failed, the session is as it was`, followed by the error.
+
+## /fresh: a light window once the work is finished
+
+Type `/fresh` once a piece of work is finished and the context is large. The mod empties the conversation the way a restart does, with no note, no files and no model request. Nothing runs until you type. It never asks for a capture first: you know a finished piece of work from a discussion still running.
+
+The new window holds, in order:
+
+1. The opening, as the agent receives it:
+
+   ```md
+   Session restarted. The old window's work is finished: below are the tickets in flight and the agent's last reply.
+   Answer every point of the user's messages below.
+   Conflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.
+   ```
+
+   The second line shows only when a message of yours is unanswered.
+2. The tickets in flight, as a restart loads them.
+3. Each ancestor of those tickets (its parent, the parent's parent, and on up): only the part above its first `##` heading, its `## Context` and its `## Decisions`. A parent's `## Questions` can run past 150 KB.
+4. The guides those files need.
+5. The agent's last reply, headed `The agent's last reply in the old window:`.
+6. Your unanswered messages, each whole.
+
+At the end of a turn, at 120k and then every 30k, the mod shows a line under the reply. The agent never sees it:
+
+```text
+flow-session: context 152k: once this work is finished, /fresh opens a light window from the tickets and the last reply
+```
+
+`/fresh` is refused only while a restart is already under way.

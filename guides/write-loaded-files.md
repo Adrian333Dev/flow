@@ -1,6 +1,6 @@
  # Write a loaded file
 
-Beside `style.md`, for any file that enters an agent's context: a rule file, a skill and its references, a command, an agent, a guide in `guides/`, a mod's prompt.
+Beside `writing.md`, for any file that enters an agent's context: a rule file, a skill and its references, a command, an agent, a guide in `guides/`, a mod's prompt.
 
 ## 1. Mark each piece
 
@@ -81,7 +81,7 @@ Four examples means the test was never written.
 
 ### Delete the elaboration
 
-Restatement and hedging around a rule already stated. The reason itself stays: `style.md` → `## 5. Never cut these`.
+Restatement and hedging around a rule already stated. The reason itself stays: `writing.md` → `## 6. Never cut these`.
 
 - **39w:** "**Read minimal context.** Access to the codebase is not a mandate to read it: target by path and line range, prefer one filtered query over many reads, stop when the answer is in hand."
 - **20w:** "**Read minimal context.** Path and line range, one filtered query over many reads, stop when answered."

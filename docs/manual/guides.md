@@ -2,6 +2,8 @@
 
 Flow's `flow-session` mod watches each response the agent writes. When a response touches a file that a writing guide covers, the mod adds a `Read` of that guide to the same response. When the response edits or writes such a file before the guide is read, the mod holds the edit back and reads the guide in its place. The list lives in `mods/flow-session/features/guides/situations.ts`.
 
+The mod is the backstop. The rule `read-writing-first` in `CLAUDE.md` has the agent read `guides/writing.md` before it plans or drafts any markdown change. Its first section names the guides for each kind of file, so the agent plans with them before any file is touched.
+
 ## Table of contents
 
 - [Which file brings which guide](#which-file-brings-which-guide): the entries, first match wins
@@ -17,11 +19,11 @@ Flow's `flow-session` mod watches each response the agent writes. When a respons
 The first entry that matches wins. Every guide sits in `~/.flow/guides/`.
 
 - **`ticket`**: any file under a `tickets/` folder → `write-tickets.md`
-- **`knowledge`**: a `Write` of a `SKILL.md`, an edit of `.mcp.json`, or a `Bash` call running `claude plugin install`, `claude plugin enable` or `claude mcp add` → `knowledge.md`, plus `style.md` and `write-loaded-files.md` for the `SKILL.md`. The call is held back like an edit until `knowledge.md` is read.
-- **`rule-file`**: a `CLAUDE.md`, a `CLAUDE.local.md`, a file in `.claude/rules/` → `style.md`, `write-loaded-files.md`, `write-rules.md`
-- **`loaded-file`**: a `.md` in a skill folder, `.claude/commands/`, `.claude/agents/`, `.claude/output-styles/`, Flow's `guides/`, a skill's `references/`, Flow's `prompts/` → `style.md`, `write-loaded-files.md`
-- **`spec`**: a `.md` in `docs/spec/` → `style.md`, `write-spec.md`
-- **`markdown`**: any other `.md`, `docs/manual/` included → `style.md`
+- **`knowledge`**: a `Write` of a `SKILL.md`, an edit of `.mcp.json`, or a `Bash` call running `claude plugin install`, `claude plugin enable` or `claude mcp add` → `knowledge.md`, plus `writing.md` and `write-loaded-files.md` for the `SKILL.md`. The call is held back like an edit until `knowledge.md` is read.
+- **`rule-file`**: a `CLAUDE.md`, a `CLAUDE.local.md`, a file in `.claude/rules/` → `writing.md`, `write-loaded-files.md`, `write-rules.md`
+- **`loaded-file`**: a `.md` in a skill folder, `.claude/commands/`, `.claude/agents/`, `.claude/output-styles/`, Flow's `guides/`, a skill's `references/`, Flow's `prompts/` → `writing.md`, `write-loaded-files.md`
+- **`spec`**: a `.md` in `docs/spec/` → `writing.md`, `write-spec.md`
+- **`markdown`**: any other `.md`, `docs/manual/` included → `writing.md`
 - **`code`**: a code file (`.ts`, `.js`, `.py`, `.sh` and other source files) → `write-code.md`
 - **`command`**: a `Bash` call running `flow notes`, `flow audit` or `util <group>` → that group's `--help`
 

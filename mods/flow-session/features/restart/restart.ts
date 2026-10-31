@@ -5,7 +5,8 @@
  * button, the agent calls the `restart` tool with its note and the files and skills to load. The
  * mod ends that turn, compacts between turns, and answers the compaction itself (window.ts), so the
  * session and its transcript stay and no model writes a summary. A typed restart stops after the
- * compaction. An automatic one submits `CONTINUE`.
+ * compaction. An automatic one submits `CONTINUE`. `/fresh` (fresh.ts) runs the same compaction
+ * with no note, answered by window.ts `buildFresh`.
  */
 import type { EngineInterface, SessionCompactInput, SessionCompactResult, ToolCallInput, ToolCallResult, TurnCompleteInput } from 'claude-code'
 import type { Restart } from '../../shared/types'
@@ -19,7 +20,7 @@ import { restartAsk } from './ask'
 import { pressed, pressLost, restartEnded, turnEnded, turnStarted } from './button'
 import { addAsked, afterAnswer } from './first-message'
 import { restartGuide } from './restart-guide'
-import { buildWindow, resolveLoads } from './window'
+import { buildFresh, buildWindow, resolveLoads } from './window'
 
 export const RESTART_CALL = /^mcp__flow-session__restart$/
 const REFUSAL = 'Flow compacts only at its own restart. Run /restart.'
@@ -124,7 +125,8 @@ export async function restartCompact($: EngineInterface, e: SessionCompactInput)
   if (e.trigger !== 'manual' || !restart?.started) return { skip: REFUSAL }
   let built: Awaited<ReturnType<typeof buildWindow>>
   try {
-    built = await buildWindow($, { restart, asked, entries: await readBand($), home: await flowHome($) })
+    const input = { asked, entries: await readBand($), home: await flowHome($) }
+    built = restart.fresh ? await buildFresh($, input) : await buildWindow($, { ...input, restart })
   } catch (error) {
     stopped = `Restart stopped, the session is as it was: ${reasonOf(error)}.`
     return { skip: stopped }
@@ -135,9 +137,9 @@ export async function restartCompact($: EngineInterface, e: SessionCompactInput)
 
 export const compactRefused = (): SessionCompactResult => ({ skip: REFUSAL })
 
-/** True for a message the user typed, not the mod's own prompt, a notification or the /restart command. */
+/** True for a message the user typed, not the mod's own prompt, a notification or the /restart and /fresh commands. */
 const usersOwn = (e: { origin?: { kind: string }; isMeta?: true; text: string }) =>
-  !e.isMeta && (e.origin === undefined || e.origin.kind === 'composer' || e.origin.kind === 'bridge') && !/^\/restart\b/.test(e.text)
+  !e.isMeta && (e.origin === undefined || e.origin.kind === 'composer' || e.origin.kind === 'bridge') && !/^\/(restart|fresh)\b/.test(e.text)
 
 /** A submitted prompt: the user's own message is kept for the next window until a reply answers it. */
 export async function noteAsked($: EngineInterface, e: { origin?: { kind: string }; isMeta?: true; text: string }): Promise<void> {
@@ -168,9 +170,9 @@ async function logSize($: EngineInterface): Promise<void> {
  * Starts the compaction, then the turn that works from the note.
  * The note is in the compacted conversation by then, so a crash before the
  * turn loses nothing. A typed restart starts no turn: the user writes next.
- * Not awaited by its caller, so it owns its errors.
+ * Not awaited by its caller, so it owns its errors. `/fresh` runs it too (fresh.ts).
  */
-async function runRestart($: EngineInterface, restart: Restart): Promise<void> {
+export async function runRestart($: EngineInterface, restart: Restart): Promise<void> {
   await updateTracked($, (t) => ({ ...t, restart: { ...restart, started: true } }))
   await metersClear($).catch(() => undefined)
   // The compacted conversation has no cached prefix: a ping now would pay for all of it.

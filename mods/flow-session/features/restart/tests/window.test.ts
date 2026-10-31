@@ -1,7 +1,7 @@
 import type { EngineInterface } from 'claude-code'
 import { describe, expect, test } from 'claude-code/testing'
 import type { Entry, Restart } from '../../../shared/types'
-import { buildWindow, resolveLoads } from '../window'
+import { buildFresh, buildWindow, resolveLoads } from '../window'
 
 const restart = (over: Partial<Restart> = {}): Restart => ({ message: 'NOTE', files: [], skills: [], size: 150000, started: true, manual: false, ...over })
 const entry = (id: string, isDone = false): Entry => ({ id, name: id, word: 'BUILD 1/2', isDone, acting: false })
@@ -12,14 +12,27 @@ type Built = { messages: { text: string; toolUses: { input: { file_path?: string
  * The part of the engine `buildWindow` uses, over a disk the test holds. The kit's `$` is the
  * mod's hooks, not the engine, so the function is handed this stand-in. It writes nothing.
  */
-function engine(state: { files: Record<string, string>; listed?: string[]; open?: Record<string, string[]> }): { $: EngineInterface } {
+function engine(state: {
+  files: Record<string, string>
+  listed?: string[]
+  open?: Record<string, string[]>
+  parents?: Record<string, string>
+  messages?: { role: 'user' | 'assistant'; text: string }[]
+}): { $: EngineInterface; runs: string[][] } {
   const usage = async () => ({ context: { tokens: 0, window: 0, breakdown: { skills: { skillFrontmatter: (state.listed ?? []).map((name) => ({ name, source: 'built-in', tokens: 0 })) } } } })
+  const runs: string[][] = []
   const $ = {
-    session: { root: async () => '/work/flow-dev', id: async () => '17da95cd-0000-4000-8000-000000000000', usage },
+    session: { root: async () => '/work/flow-dev', id: async () => '17da95cd-0000-4000-8000-000000000000', usage, messages: async () => state.messages ?? [] },
     env: { get: async () => '/h' },
     process: {
       run: async (argv: string[]) => {
-        const found = argv.slice(3, -1).map((id) => ({ id, openQuestions: state.open?.[id] ?? [] }))
+        runs.push(argv)
+        const found = argv.slice(3, -1).map((id) => ({
+          id,
+          openQuestions: state.open?.[id] ?? [],
+          parent: state.parents?.[id] ?? null,
+          path: `/work/flow-dev/.flow/tickets/${id.split('-')[1]}/ticket.md`,
+        }))
         return { exitCode: 0, stdout: JSON.stringify(found.length === 1 ? found[0] : { tickets: found, missing: [] }), stderr: '' }
       },
     },
@@ -31,7 +44,7 @@ function engine(state: { files: Record<string, string>; listed?: string[]; open?
       },
     },
   } as unknown as EngineInterface
-  return { $ }
+  return { $, runs }
 }
 
 const build = ($: EngineInterface, over: { restart?: Restart; entries?: Entry[]; asked?: string[] } = {}) =>
@@ -87,10 +100,10 @@ describe('the loads of a window', () => {
 
   test('each matched file brings its guides once, and a guide the agent named loads once', async () => {
     const G = (name: string) => `/h/.flow/guides/${name}`
-    const files = { [TICKET]: 'T', '/work/flow-dev/docs/spec/a.md': 'S', [G('write-tickets.md')]: 'WT', [G('style.md')]: 'ST', [G('write-spec.md')]: 'WS', '/work/flow-dev/a.ts': 'A' }
+    const files = { [TICKET]: 'T', '/work/flow-dev/docs/spec/a.md': 'S', [G('write-tickets.md')]: 'WT', [G('writing.md')]: 'ST', [G('write-spec.md')]: 'WS', '/work/flow-dev/a.ts': 'A' }
     const { $ } = engine({ files })
-    const built = (await build($, { restart: restart({ files: ['docs/spec/a.md', 'a.ts', '/h/.flow/guides/style.md'] }), entries: [entry('fw-244')] })) as Built
-    expect(paths(built)).toEqual([TICKET, G('write-tickets.md'), G('write-spec.md'), '/work/flow-dev/docs/spec/a.md', '/work/flow-dev/a.ts', G('style.md')])
+    const built = (await build($, { restart: restart({ files: ['docs/spec/a.md', 'a.ts', '/h/.flow/guides/writing.md'] }), entries: [entry('fw-244')] })) as Built
+    expect(paths(built)).toEqual([TICKET, G('write-tickets.md'), G('write-spec.md'), '/work/flow-dev/docs/spec/a.md', '/work/flow-dev/a.ts', G('writing.md')])
   })
 
   test('a ticket that is done is not loaded', async () => {
@@ -127,5 +140,45 @@ describe('the loads of a window', () => {
   test('a skill the session does not list is still refused', async () => {
     const { $ } = engine({ files: {}, listed: ['plugin-authoring'] })
     expect(await resolveLoads($, [], ['plugin-authorng'])).toEqual({ error: 'the skill plugin-authorng is not found' })
+  })
+})
+
+describe('the window /fresh opens', () => {
+  const T = (n: number) => `/work/flow-dev/.flow/tickets/${n}/ticket.md`
+  const paths = (built: Built) => built.messages.flatMap((m) => m.toolUses).map((use) => use.input.file_path)
+  const PARENT = '---\nid: 361\n---\n\nOPENING\n\n## Context\n\nCTX\n\n## Questions\n\nQUESTIONS\n\n## Decisions\n\nDEC\n\n## Tasks\n\nTASKS'
+  const files = { [T(362)]: 'CHILD', [T(361)]: PARENT, [T(16)]: 'ROOT ONLY' }
+  const messages = [
+    { role: 'user' as const, text: 'build it' },
+    { role: 'assistant' as const, text: 'REPLY' },
+    { role: 'user' as const, text: 'ASKED' },
+  ]
+
+  test('carries the tickets, each ancestor as its opening, Context and Decisions, then the last reply and the unanswered messages', async () => {
+    const { $, runs } = engine({ files, parents: { 'fw-362': 'fw-361', 'fw-361': 'fw-16' }, messages })
+    const built = (await buildFresh($, { asked: ['ASKED'], entries: [entry('fw-362')], home: '/h/.flow' })) as Built
+    expect(paths(built)).toEqual([T(362), T(361), T(361), T(361), T(16)])
+    const text = JSON.stringify(built.messages)
+    for (const part of ['CHILD', 'OPENING', 'CTX', 'DEC', 'ROOT ONLY']) expect(text).toContain(part)
+    for (const part of ['QUESTIONS', 'TASKS']) expect(text).not.toContain(part)
+    expect(built.messages[0]!.text).toStartWith('Session restarted. The old window')
+    expect(built.messages.at(-2)!.text).toBe("The agent's last reply in the old window:\n\nREPLY")
+    expect(built.messages.at(-1)!.text).toBe('ASKED')
+    expect(runs).toHaveLength(3)
+    expect(built.log).toBe('fresh: 1 tickets and 4 ancestor parts, 1 KB; the last reply, 1 KB; 1 unanswered messages')
+  })
+
+  test('an ancestor that is a badge itself loads once, whole', async () => {
+    const { $ } = engine({ files, parents: { 'fw-362': 'fw-361' }, messages })
+    const built = (await buildFresh($, { asked: [], entries: [entry('fw-362'), entry('fw-361')], home: '/h/.flow' })) as Built
+    expect(paths(built)).toEqual([T(362), T(361)])
+    expect(JSON.stringify(built.messages)).toContain('QUESTIONS')
+  })
+
+  test('with no reply, no tickets and nothing asked, the opening alone remains', async () => {
+    const { $ } = engine({ files: {} })
+    const built = (await buildFresh($, { asked: [], entries: [], home: '/h/.flow' })) as Built
+    expect(built.messages).toHaveLength(1)
+    expect(built.messages[0]!.text).not.toContain('Answer every point')
   })
 })

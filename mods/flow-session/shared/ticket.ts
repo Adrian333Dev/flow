@@ -33,6 +33,8 @@ export type TicketJson = {
   /** The handles of the open questions: `1.2` is the heading of its section in `context.md`. */
   openQuestions: string[]
   path: string
+  /** The parent's id, such as `fw-361`. */
+  parent?: string | null
 }
 
 const isOpen = (count?: Count | null) => count != null && count.done < count.total

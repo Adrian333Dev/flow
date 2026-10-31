@@ -8,7 +8,8 @@
  */
 import type { EngineInterface } from 'claude-code'
 import type { Entry, Restart } from '../../shared/types'
-import { restartWindow, type Built } from './first-message'
+import { freshWindow, restartWindow, type Built } from './first-message'
+import { lastOf } from '../copy/copy'
 import { CAP, parseSpec, sectionLines, skillBody, slice, tokensOf, type Loaded } from './loads'
 import { entryFor, keyOf, keysOf } from '../guides/situations'
 import { linksFromFile, wikiText, withWiki } from '../guides/skill-wiki'
@@ -97,12 +98,13 @@ function openSections(handles: readonly string[], path: string, context: string)
  * The ticket files of the badges in flight, each followed by its `context.md`: whole in groundwork
  * (`design`), where every topic stays in play, else the sections of its open questions.
  * `fw-244` is `.flow/tickets/244/ticket.md` beside its `context.md`, and a `home` ticket sits under the Flow home.
- * The handles of the open questions come from `flow tickets get`, one process for all the badges.
+ * The handles of the open questions and the parents come from `flow tickets get`, one process for all the badges.
  */
-async function ticketLoads($: EngineInterface, entries: readonly Entry[], where: Where, home: string): Promise<Loaded[]> {
+async function ticketLoads($: EngineInterface, entries: readonly Entry[], where: Where, home: string): Promise<{ loads: Loaded[]; parents: string[] }> {
   const found: Loaded[] = []
   const open = entries.filter((e) => !e.isDone)
-  const handles = new Map((await readTickets($, open.map((e) => e.id), where.root)).map((json) => [json.id, json.openQuestions]))
+  const read = await readTickets($, open.map((e) => e.id), where.root)
+  const handles = new Map(read.map((json) => [json.id, json.openQuestions]))
   for (const entry of open) {
     const [, prefix, number] = /^(.+)-(\d+)$/.exec(entry.id) ?? []
     if (!prefix || !number) continue
@@ -118,6 +120,35 @@ async function ticketLoads($: EngineInterface, entries: readonly Entry[], where:
       } else if (context !== undefined) found.push(...openSections(handles.get(entry.id) ?? [], `${dir}/context.md`, context))
       break
     }
+  }
+  return { loads: found, parents: read.flatMap((json) => (json.parent ? [json.parent] : [])) }
+}
+
+/** An ancestor's `ticket.md` as `/fresh` reads it: its opening up to the first `##` heading, `## Context` and `## Decisions`. Its `## Questions` alone can run past 150 KB. */
+function ancestorParts(path: string, text: string): Loaded[] {
+  const lines = text.split('\n')
+  const part = (from: number, to: number): Loaded => ({ type: 'file', path, text: lines.slice(from - 1, to).join('\n'), from, to, whole: from === 1 && to === lines.length })
+  const first = lines.findIndex((line) => /^##\s/.test(line))
+  const opening = first < 0 ? [part(1, lines.length)] : first > 0 ? [part(1, first)] : []
+  const sections = ['Context', 'Decisions'].flatMap((heading) => {
+    const found = sectionLines(text, heading)
+    return found ? [part(found.from, found.to)] : []
+  })
+  return [...opening, ...sections]
+}
+
+/** The parts of every ancestor of the badges, nearest first, each ticket once. A ticket in `have` is already loaded. One `flow tickets get` a generation. */
+async function ancestorLoads($: EngineInterface, parents: readonly string[], root: string, have: Set<string>): Promise<Loaded[]> {
+  const found: Loaded[] = []
+  let next = [...new Set(parents)].filter((id) => !have.has(id))
+  while (next.length) {
+    for (const id of next) have.add(id)
+    const read = await readTickets($, next, root)
+    for (const json of read) {
+      const text = await $.fs.read(json.path).catch(() => undefined)
+      if (text !== undefined) found.push(...ancestorParts(json.path, text))
+    }
+    next = [...new Set(read.flatMap((json) => (json.parent ? [json.parent] : [])))].filter((id) => !have.has(id))
   }
   return found
 }
@@ -179,7 +210,7 @@ export type Input = {
 /** The window the restart answers the compaction with, and the line the mod logs about it. */
 export async function buildWindow($: EngineInterface, input: Input): Promise<{ messages: Built[]; log: string }> {
   const where = await whereAmI($)
-  const tickets = await ticketLoads($, input.entries, where, input.home)
+  const { loads: tickets } = await ticketLoads($, input.entries, where, input.home)
   const named = await resolveLoads($, input.restart.files, input.restart.skills)
   const chosen = 'loaded' in named ? named.loaded.filter((one) => !alreadyIn(tickets, one)) : []
   const guides = await guideLoads($, [...tickets, ...chosen], input.home)
@@ -196,5 +227,21 @@ export async function buildWindow($: EngineInterface, input: Input): Promise<{ m
   ]
     .filter(Boolean)
     .join('; ')
+  return { messages, log }
+}
+
+/** The window `/fresh` answers the compaction with, and the line the mod logs about it. */
+export async function buildFresh($: EngineInterface, input: Omit<Input, 'restart'>): Promise<{ messages: Built[]; log: string }> {
+  const where = await whereAmI($)
+  const { loads: tickets, parents } = await ticketLoads($, input.entries, where, input.home)
+  const ancestors = await ancestorLoads($, parents, where.root, new Set(input.entries.filter((e) => !e.isDone).map((e) => e.id)))
+  const guides = await guideLoads($, [...tickets, ...ancestors], input.home)
+  const reply = lastOf(await $.session.messages())
+  const messages = freshWindow({ tickets: [...tickets, ...ancestors, ...guides], reply, asked: input.asked })
+  const log = [
+    `fresh: ${tickets.filter((one) => one.type === 'file' && one.path.endsWith('/ticket.md')).length} tickets and ${ancestors.length} ancestor parts, ${kb([...tickets, ...ancestors].reduce((sum, one) => sum + bytes(one.text), 0))}`,
+    reply ? `the last reply, ${kb(bytes(reply))}` : 'no last reply',
+    `${input.asked.length} unanswered messages`,
+  ].join('; ')
   return { messages, log }
 }

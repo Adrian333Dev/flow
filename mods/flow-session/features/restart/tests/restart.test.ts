@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
-import { addAsked, afterAnswer, restartWindow } from '../first-message'
+import { addAsked, afterAnswer, freshWindow, restartWindow } from '../first-message'
 const REFUSAL = { skip: 'Flow compacts only at its own restart. Run /restart.' }
 
 describe('restartWindow', () => {
@@ -42,6 +42,23 @@ describe('restartWindow', () => {
   test('with no loads and no unanswered messages, the opening and the note remain', () => {
     const messages = restartWindow({ ...window, tickets: [], loads: [], asked: [] })
     expect(messages.map((m) => m.role)).toEqual(['user', 'user'])
+  })
+})
+
+describe('freshWindow', () => {
+  const file = { type: 'file' as const, path: '/p/ticket.md', text: 'T', from: 1, to: 1, whole: true }
+
+  test('has its parts in order: opening, tickets, the last reply, unanswered messages', () => {
+    const messages = freshWindow({ tickets: [file], reply: 'REPLY', asked: ['ONE'] })
+    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant', 'user', 'user', 'user'])
+    expect(messages[0]!.text).toContain("Answer every point of the user's messages below.")
+    expect(messages[0]!.text).not.toContain('note')
+    expect(messages[3]!.text).toBe("The agent's last reply in the old window:\n\nREPLY")
+    expect(messages[4]!.text).toBe('ONE')
+  })
+
+  test('the opening names no way back to the old turns', () => {
+    expect(freshWindow({ tickets: [], reply: '', asked: [] })[0]!.text).not.toContain('flow audit')
   })
 })
 

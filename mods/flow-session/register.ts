@@ -30,6 +30,7 @@ import {
   restartTurnStarted,
   startPendingRestart,
 } from './features/restart/restart'
+import { freshCommand, registerFresh, suggestFresh } from './features/restart/fresh'
 import { forgetAgent, measureAgent, wrapUp, wrapUpResult } from './features/wrap-up/wrap-up'
 
 export const register: Register = (on) => {
@@ -40,6 +41,7 @@ export const register: Register = (on) => {
     // A hot reload loses the timer, so a switch that is on plans again.
     void replan($)
     await registerRestart($)
+    await registerFresh($)
     await registerCopy($)
     await registerKeepWarm($)
     return next(e)
@@ -59,6 +61,9 @@ export const register: Register = (on) => {
   }))
   on('command.run', { command: 'restart' }, async ($, e) => ({ text: await restartCommand($, e.args ?? '') })).catch(() => ({
     text: 'The restart command failed, so nothing restarted.',
+  }))
+  on('command.run', { command: 'fresh' }, async ($) => ({ text: await freshCommand($) })).catch(() => ({
+    text: 'The fresh command failed, so the session is as it was.',
   }))
 
   on('turn.start', async ($, e, next) => {
@@ -136,6 +141,7 @@ export const register: Register = (on) => {
     void saveReply($).catch((error) => $.ui.log(`the reply was not saved: ${reasonOf(error)}`))
     await restartTurnEnded($, e)
     await warmTurnEnded($)
+    await suggestFresh($).catch(() => undefined)
     await startPendingRestart($)
     return done
   })

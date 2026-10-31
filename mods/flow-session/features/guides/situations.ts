@@ -37,7 +37,7 @@ const touches = (call: Call) => ['Read', 'Edit', 'Write'].includes(call.tool) &&
 const markdown = (call: Call) => touches(call) && pathOf(call).endsWith('.md')
 const code = (call: Call) => touches(call) && new RegExp(`\\.(${CODE_EXTENSIONS.join('|')})$`).test(pathOf(call))
 /** Every guide an entry sends, in Flow's `guides/`. */
-const GUIDES = ['style.md', 'write-loaded-files.md', 'write-rules.md', 'write-spec.md', 'write-tickets.md', 'knowledge.md', 'write-code.md'] as const
+const GUIDES = ['writing.md', 'write-loaded-files.md', 'write-rules.md', 'write-spec.md', 'write-tickets.md', 'knowledge.md', 'write-code.md'] as const
 type Guide = (typeof GUIDES)[number]
 const guides = (...names: Guide[]): Send[] => names.map((name) => ({ tool: 'Read', path: `guides/${name}` }))
 const guideWhy = (what: string) => () => `Guide for ${what}.`
@@ -76,32 +76,32 @@ export const ENTRIES: readonly Entry[] = [
       (call.tool === 'Write' && pathOf(call).endsWith('/SKILL.md')) ||
       (['Edit', 'Write'].includes(call.tool) && pathOf(call).endsWith('/.mcp.json')) ||
       /(?:^|[\s;&|(`])claude\s+(?:plugin\s+(?:install|enable)|mcp\s+add)\b/.test(commandOf(call)),
-    send: (call) => (call.tool === 'Bash' || !markdown(call) ? guides('knowledge.md') : guides('style.md', 'write-loaded-files.md', 'knowledge.md')),
+    send: (call) => (call.tool === 'Bash' || !markdown(call) ? guides('knowledge.md') : guides('writing.md', 'write-loaded-files.md', 'knowledge.md')),
     why: guideWhy('adding a skill, a plugin or an MCP server'),
     holds: true,
   },
   {
     id: 'rule-file',
     when: (call) => markdown(call) && (/\/CLAUDE(\.local)?\.md$/.test(pathOf(call)) || /\/\.claude\/rules\//.test(pathOf(call))),
-    send: () => guides('style.md', 'write-loaded-files.md', 'write-rules.md'),
+    send: () => guides('writing.md', 'write-loaded-files.md', 'write-rules.md'),
     why: guideWhy('rule files'),
   },
   {
     id: 'loaded-file',
     when: (call) => markdown(call) && /\/skills\/|\/\.claude\/(commands|agents|output-styles)\/|\/references\/|\/guides\/|\/prompts\//.test(pathOf(call)),
-    send: () => guides('style.md', 'write-loaded-files.md'),
+    send: () => guides('writing.md', 'write-loaded-files.md'),
     why: guideWhy('files an agent loads'),
   },
   {
     id: 'spec',
     when: (call) => markdown(call) && /\/docs\/spec\//.test(pathOf(call)),
-    send: () => guides('style.md', 'write-spec.md'),
+    send: () => guides('writing.md', 'write-spec.md'),
     why: guideWhy('spec files'),
   },
   {
     id: 'markdown',
     when: markdown,
-    send: () => guides('style.md'),
+    send: () => guides('writing.md'),
     why: guideWhy('markdown'),
   },
   {
@@ -182,7 +182,7 @@ export type Plan = {
 
 export const HEADER = '[Auto]'
 
-/** The calls named in a header, `Edit of style.md`, `Bash (npm test)`. */
+/** The calls named in a header, `Edit of writing.md`, `Bash (npm test)`. */
 const named = (call: Call) => (touches(call) ? `${call.tool} of ${nameOf(pathOf(call))}` : call.tool === 'Bash' ? `Bash (${commandOf(call).split('\n')[0]!.slice(0, 60)})` : call.tool)
 
 /** The line saying a write was held back, and what was held with it. */

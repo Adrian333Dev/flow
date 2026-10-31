@@ -15,6 +15,8 @@ export const CONTINUE = 'Continue from the note.'
 export const OPENING = 'Session restarted.'
 /** How the message holding the agent's note begins. */
 export const NOTE_PREFIX = 'Note from the old agent:'
+/** How the message holding the agent's last reply begins, in a window `/fresh` opens. */
+export const REPLY_PREFIX = "The agent's last reply in the old window:"
 /** The id prefix of a call the mod wrote into a window. */
 export const FAKE_ID = 'toolu_restart_'
 
@@ -32,6 +34,6 @@ export function isUsersOwn(m: Pick<SessionMessage, 'role' | 'text' | 'toolResult
   if (m.role !== 'user' || m.toolResults?.length) return false
   const text = m.text.trim()
   if (!text || text === CONTINUE) return false
-  if ([OPENING, NOTE_PREFIX, ASK_PREFIX].some((prefix) => text.startsWith(prefix))) return false
+  if ([OPENING, NOTE_PREFIX, REPLY_PREFIX, ASK_PREFIX].some((prefix) => text.startsWith(prefix))) return false
   return !NOT_THE_USER.some((pattern) => pattern.test(text))
 }

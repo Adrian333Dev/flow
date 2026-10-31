@@ -1,18 +1,26 @@
-# Style
+# Writing
 
-For everything Flow writes: a skill, a rule file, a ticket, a spec, a page the user reads, a message to the user. 3 kinds of file read a second guide beside this one:
+For everything Flow writes: a skill, a rule file, a ticket, a spec, a page the user reads, a message to the user.
 
-- **A file an agent loads** → `write-loaded-files.md`: its shapes, one home per fact, and cuts from real rewrites.
-- **A rule file** → `write-rules.md` too: what makes a rule fire, and the id every rule carries.
-- **A spec file** → `write-spec.md`.
+## 1. Read the guides for the file's kind
 
-## 1. Plan the shape first
+Before planning, read them in one message:
+
+- **A rule file** (`CLAUDE.md`, `CLAUDE.local.md`, `.claude/rules/`) → `write-loaded-files.md`, `write-rules.md`
+- **Any other file an agent loads** (a skill and its `references/`, a command, an agent, a guide, a prompt) → `write-loaded-files.md`
+- **A new skill** → `write-loaded-files.md`, `knowledge.md`
+- **A spec, `docs/spec/`** → `write-spec.md`
+- **A ticket's files** → `write-tickets.md`, and `issue-tickets.md` for a `flow-issue` ticket
+- **A wiki page, `~/.flow/wiki/`** → `wiki.md`
+- **Anything else**, `docs/manual/` included → nothing more
+
+## 2. Plan the shape first
 
 Name the sections and their order before writing a sentence. Never discover the structure while typing.
 
 Plan the whole file every time you touch it. A pointer to one line is not a scope.
 
-## 2. Markdown
+## 3. Markdown
 
 Standard markdown, always: `-` for unordered, `1.` for ordered, `- [ ]` for a checklist. Nest as deep as the material needs. Never invent a layout markdown already has. Default to a list.
 
@@ -20,7 +28,7 @@ Standard markdown, always: `-` for unordered, `1.` for ordered, `- [ ]` for a ch
 - **Show real output**, copied from a run. Never type an example's output by hand.
 - **A page the user reads opens with a table of contents** under a `## Table of contents` heading, one line per heading, in order. Each line ends with a few words after a colon saying what the section holds. An index page is its own table of contents, and gets none.
 
-## 3. Sentences
+## 4. Sentences
 
 Three tests. Run them on every sentence that carries a rule, and on every sentence written to the user.
 
@@ -52,7 +60,7 @@ Three tests. Run them on every sentence that carries a rule, and on every senten
 - **Define anything invented before first use.**
 - **Use one word per concept, and the common word.**
 
-## 4. Words
+## 5. Words
 
 **Say it in the fewest words that keep it clear.** Stop cutting where a sentence would need a second read. Last pass, after the structure is right.
 
@@ -61,7 +69,7 @@ Three tests. Run them on every sentence that carries a rule, and on every senten
 - Symbols only where clearer than the word. They save nothing: `→`, `·` and an invented abbreviation like `cfg` are each their own token.
 - Never use em dashes. Use a period, a comma, a colon, or parentheses. The only ones left are the character itself, listed as a drawing glyph in `/flow:visualize` and as the example check in `write-checks.md`.
 
-## 5. Never cut these
+## 6. Never cut these
 
 - **A rule.** Compression removes words and duplication, never rules. Cutting rule count is banned as a strategy.
 - **The reason, where it decides a case the rule does not name.** A reason that only argues for the rule is cut. A rule needs no argument.

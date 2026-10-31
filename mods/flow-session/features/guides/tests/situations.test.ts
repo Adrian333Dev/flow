@@ -26,7 +26,7 @@ describe('entryFor', () => {
   test('leaves data files, a guide read, bare ticket commands and a help call alone', () => {
     expect(entryFor(edit('/w/scripts/package.json'))).toBeUndefined()
     expect(entryFor(read('/w/a.yaml'))).toBeUndefined()
-    expect(entryFor(read('/h/.flow/guides/style.md'))).toBeUndefined()
+    expect(entryFor(read('/h/.flow/guides/writing.md'))).toBeUndefined()
     expect(entryFor(read('/h/.flow/guides/write-code.md'))).toBeUndefined()
     expect(entryFor(bash('flow tickets start fw-284 --activity build'))).toBeUndefined()
     expect(entryFor(bash('flow audit --help'))).toBeUndefined()
@@ -34,7 +34,7 @@ describe('entryFor', () => {
   })
 
   test('an edit of a guide still takes its entry', () => {
-    expect(entryFor(edit('/w/guides/style.md'))?.id).toBe('loaded-file')
+    expect(entryFor(edit('/w/guides/writing.md'))?.id).toBe('loaded-file')
   })
 })
 
@@ -52,7 +52,7 @@ describe('knowledge', () => {
 
   test('a written skill gets the writing guides beside knowledge.md', () => {
     const plan = planFor([write('/w/.claude/skills/a/SKILL.md')], new Set())
-    expect(sent(plan)).toEqual(['guides/style.md', 'guides/write-loaded-files.md', 'guides/knowledge.md'])
+    expect(sent(plan)).toEqual(['guides/writing.md', 'guides/write-loaded-files.md', 'guides/knowledge.md'])
   })
 
   test('an install command is held back until knowledge.md is read', () => {
@@ -84,7 +84,7 @@ describe('shell-write', () => {
   test('a ticket and a test file in one command bring both guides, a rule file the rule guides', () => {
     const both = ["python3 - <<'EOF'", "a='.flow/tickets/321/ticket.md'", "b='features/usage/visits.test.ts'", "open(a,'w').write('x')", "open(b,'w').write('y')", 'EOF'].join('\n')
     expect(sent(planFor([bash(both)], new Set()))).toEqual(['guides/write-tickets.md', 'guides/write-code.md'])
-    expect(sent(planFor([bash(`sed -i 's/a/b/' home/CLAUDE.md`)], new Set()))).toEqual(['guides/style.md', 'guides/write-loaded-files.md', 'guides/write-rules.md'])
+    expect(sent(planFor([bash(`sed -i 's/a/b/' home/CLAUDE.md`)], new Set()))).toEqual(['guides/writing.md', 'guides/write-loaded-files.md', 'guides/write-rules.md'])
   })
 })
 
@@ -100,34 +100,34 @@ describe('windowKeys', () => {
   test('counts a whole-file read and a help call once answered', () => {
     const keys = windowKeys([
       { content: [
-        { type: 'tool_use', id: 'a', name: 'Read', input: { file_path: '/h/.flow/guides/style.md' } },
+        { type: 'tool_use', id: 'a', name: 'Read', input: { file_path: '/h/.flow/guides/writing.md' } },
         { type: 'tool_use', id: 'b', name: 'Read', input: { file_path: '/h/.flow/guides/write-spec.md', offset: 40, limit: 10 } },
         { type: 'tool_use', id: 'c', name: 'Bash', input: { command: 'flow audit --help' } },
         { type: 'tool_use', id: 'd', name: 'Read', input: { file_path: '/h/.flow/guides/write-rules.md' } },
       ] },
       { content: [{ type: 'tool_result', tool_use_id: 'a' }, { type: 'tool_result', tool_use_id: 'b' }, { type: 'tool_result', tool_use_id: 'c' }] },
     ])
-    expect([...keys].sort()).toEqual(['bash:flow audit --help', 'read:guides/style.md'])
+    expect([...keys].sort()).toEqual(['bash:flow audit --help', 'read:guides/writing.md'])
   })
 })
 
 describe('planFor', () => {
   test('a read of a matched file gets each missing guide added beside it', () => {
-    const plan = planFor([read('/w/docs/spec/rules.md')], new Set(['read:guides/style.md']))
+    const plan = planFor([read('/w/docs/spec/rules.md')], new Set(['read:guides/writing.md']))
     expect(plan.held).toEqual([])
     expect(sent(plan)).toEqual(['guides/write-spec.md'])
     expect(plan.added[0]!.header).toBe(`${HEADER} Guide for spec files.`)
   })
 
   test('nothing is added that the window or the response holds', () => {
-    expect(planFor([read('/w/docs/spec/rules.md')], new Set(['read:guides/style.md', 'read:guides/write-spec.md'])).added).toEqual([])
-    const plan = planFor([read('/w/docs/spec/rules.md'), read('/h/.flow/guides/style.md')], new Set())
+    expect(planFor([read('/w/docs/spec/rules.md')], new Set(['read:guides/writing.md', 'read:guides/write-spec.md'])).added).toEqual([])
+    const plan = planFor([read('/w/docs/spec/rules.md'), read('/h/.flow/guides/writing.md')], new Set())
     expect(sent(plan)).toEqual(['guides/write-spec.md'])
   })
 
   test('3 files in one response share their guides', () => {
     const plan = planFor([read('/w/home/CLAUDE.md'), read('/w/skills/a/SKILL.md'), read('/w/docs/spec/a.md')], new Set())
-    expect(sent(plan)).toEqual(['guides/style.md', 'guides/write-loaded-files.md', 'guides/write-rules.md', 'guides/write-spec.md'])
+    expect(sent(plan)).toEqual(['guides/writing.md', 'guides/write-loaded-files.md', 'guides/write-rules.md', 'guides/write-spec.md'])
   })
 
   test('a code file gets the code guide once a window, never per file', () => {
@@ -140,7 +140,7 @@ describe('planFor', () => {
   test('an edit with a guide missing is held back with every call after it, the guide read in its place', () => {
     const plan = planFor([read('/w/a.ts'), edit('/w/docs/manual/restart.md'), bash('npm test')], new Set(['read:guides/write-code.md']))
     expect(plan.held).toEqual([1, 2])
-    expect(sent(plan)).toEqual(['guides/style.md'])
+    expect(sent(plan)).toEqual(['guides/writing.md'])
     expect(plan.added[0]!.header).toBe(
       `${HEADER} Your Edit of restart.md was held back, so the file is unchanged. Held with it: Bash (npm test). Read this guide, then make them again.`,
     )
@@ -152,14 +152,14 @@ describe('planFor', () => {
   })
 
   test('an edit whose guide the model reads beside it is still held, the line on the model\'s own read', () => {
-    const plan = planFor([read('/h/.flow/guides/style.md'), edit('/w/notes/a.md')], new Set())
+    const plan = planFor([read('/h/.flow/guides/writing.md'), edit('/w/notes/a.md')], new Set())
     expect(plan.held).toEqual([1])
     expect(plan.added).toEqual([])
     expect(plan.notes.get(0)).toContain('Your Edit of a.md was held back')
   })
 
   test('an edit with every guide in the window runs', () => {
-    expect(planFor([edit('/w/notes/a.md')], new Set(['read:guides/style.md']))).toEqual({ held: [], added: [], notes: new Map() })
+    expect(planFor([edit('/w/notes/a.md')], new Set(['read:guides/writing.md']))).toEqual({ held: [], added: [], notes: new Map() })
   })
 
   test('a group\'s first command gets its help, a help call already there stops it', () => {

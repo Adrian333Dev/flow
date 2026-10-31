@@ -65,7 +65,7 @@ Install counts and stars only pick which 3 to read.
 
 ## Writing a skill
 
-Write it by `style.md` and `write-loaded-files.md`. They hold the style, the `description` included.
+Write it by `writing.md` and `write-loaded-files.md`. They hold the style, the `description` included.
 
 ### Before writing one
 

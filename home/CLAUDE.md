@@ -40,7 +40,7 @@ One user message, your work, one reply. In that order, every time.
 
 ## Writing files
 
-- **`writing-pass`** Write every markdown file by `~/.flow/guides/style.md` and the guide it names for the file's kind, inside the edit that touches it. Plan the sections first, then test each sentence. Never leave a file for a later pass.
+- **`read-writing-first`** Before planning or drafting any markdown change, read `~/.flow/guides/writing.md`.
 - **`check-before-adding`** Before adding a rule, preference, section or line to a loaded file, read what is there. Something already covering it → rewrite that in place, where it fires. A rule that exists but didn't fire → a Flow failure: change its place or shape before adding. A loaded rule it could contradict → name it, say which wins. Never a second copy.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
 - **`standard-terminology`** Name a field, a function, a variable, a class or a command with the word most codebases already use: `type`, never `kind`, and `action`, never `verb`. Invent a term only where no standard one exists.

@@ -8,7 +8,7 @@
  * the agent edits without reading the files again.
  */
 import type { Tracked } from '../../shared/types'
-import { NOTE_PREFIX, OPENING } from '../../shared/dialogue'
+import { NOTE_PREFIX, OPENING, REPLY_PREFIX } from '../../shared/dialogue'
 import { callsFor, type Built, type Loaded } from './loads'
 
 export type { Built }
@@ -47,6 +47,37 @@ export function restartWindow(window: Window): Built[] {
     ...callsFor([...window.tickets, ...window.loads]),
     user(`${NOTE_PREFIX}\n\n${window.note}`),
     ...window.asked.map(user),
+  ]
+}
+
+/** What `/fresh` carries: no note and no files, since it opens once a piece of work is finished. */
+export type Fresh = {
+  /** Each ticket's `ticket.md` and `context.md` as a restart loads them, then the parts of its ancestors. */
+  tickets: readonly Loaded[]
+  /** The agent's last reply, '' when it has written none. */
+  reply: string
+  asked: readonly string[]
+}
+
+/**
+ * The opening of a window `/fresh` opens. The user typed it, so the user writes next. It names no
+ * way back to the old turns: `/fresh` starts a new topic, and a pointer invites reading finished work.
+ */
+function freshOpening(fresh: Fresh): string {
+  return [
+    `${OPENING} The old window's work is finished: below are the tickets in flight and the agent's last reply.`,
+    ...(fresh.asked.length ? ["Answer every point of the user's messages below."] : []),
+    'Conflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.',
+  ].join('\n')
+}
+
+/** The conversation after `/fresh`, oldest first, below the fixed part Claude Code adds. */
+export function freshWindow(fresh: Fresh): Built[] {
+  return [
+    user(freshOpening(fresh)),
+    ...callsFor(fresh.tickets),
+    ...(fresh.reply ? [user(`${REPLY_PREFIX}\n\n${fresh.reply}`)] : []),
+    ...fresh.asked.map(user),
   ]
 }
 
