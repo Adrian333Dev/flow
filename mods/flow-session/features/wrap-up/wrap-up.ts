@@ -5,8 +5,9 @@
  * work, never the window. At the limit the mod tells the agent to finish the
  * work in hand and call `restart`; `HARD` past it, to finish the step in hand and call it.
  * Nothing forces a restart mid-work. Each line is
- * sent once and names no size: a notice pulls the agent off its task, and the
- * user is not reminded of the size. A subagent has its own lines at the same limit,
+ * sent once and names no size. Apart from them, the main session gets the size alone from
+ * `SIZE_FROM`, then every `SIZE_EVERY`: a notice every 10k broke the agent's focus (`fw-228`),
+ * and none left it blind to its size (`fw-296`). A subagent has its own lines at the same limit,
  * measured on its own conversation: it saves its state to files and finishes.
  */
 import type { EngineInterface, TurnStepChunk } from 'claude-code'
@@ -21,6 +22,9 @@ export const LIMIT = 200000
 export const HARD = 100000
 /** How far under the limit the band offers the Restart button. */
 export const LEAD = 30000
+/** Where the size lines start, and how far apart they come. */
+export const SIZE_FROM = 120000
+export const SIZE_EVERY = 30000
 
 /**
  * `wrapUp` and `wrapUpAt` from the text of `~/.flow/settings.json` and
@@ -73,6 +77,12 @@ export function wrapUpLine(before: number, now: number, limit: number, lines: Li
   return undefined
 }
 
+/** The size line, or undefined: once for each mark from `SIZE_FROM` that the check passed. */
+export function sizeLine(before: number, now: number): string | undefined {
+  const mark = (tokens: number) => (tokens < SIZE_FROM ? -1 : Math.floor((tokens - SIZE_FROM) / SIZE_EVERY))
+  return mark(now) > mark(before) ? `Context: ${kilo(now)} tokens.` : undefined
+}
+
 export const sizeOf = (usage: { input_tokens: number; cache_read_input_tokens: number; cache_creation_input_tokens: number }): number =>
   usage.input_tokens + usage.cache_read_input_tokens + usage.cache_creation_input_tokens
 
@@ -82,7 +92,10 @@ let lastChecked = 0
 const agentSizes = new Map<string, number>()
 const agentChecked = new Map<string, number>()
 
-/** The main session's line for its size now, with the restart guide, or undefined. Each mark speaks once. */
+/**
+ * The main session's line for its size now, or undefined. Each mark speaks once. A wrap-up line
+ * comes with the restart guide and stands in for a size line passed at the same check.
+ */
 export async function wrapUp($: EngineInterface): Promise<string | undefined> {
   const { wrapUp: on, limit } = wrapUpSettings(...(await flowSettings($)))
   const now = (await $.session.usage().catch(() => undefined))?.context.tokens
@@ -90,7 +103,7 @@ export async function wrapUp($: EngineInterface): Promise<string | undefined> {
   const before = lastChecked
   lastChecked = now
   const line = wrapUpLine(before, now, limit)
-  if (!line) return undefined
+  if (!line) return sizeLine(before, now)
   $.ui.log(`wrap-up line sent at ${kilo(now)}`)
   return `${line}\n\n${await restartGuide($)}`
 }

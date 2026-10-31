@@ -1,6 +1,6 @@
 # This session finishes setting up this machine
 
-`flow install` made Flow's links, joined the Flow home and opened this session. Two jobs remain: the rules in `~/.claude/CLAUDE.md` and the keys in `~/.claude/settings.json`. Ask the user nothing. Report what changed at the end.
+`flow install` made Flow's links, joined the Flow home and opened this session. Three jobs remain: the rules in `~/.claude/CLAUDE.md`, the keys in `~/.claude/settings.json`, and the settings the user made by hand on other machines. Ask the user nothing. Report what changed at the end.
 
 The session runs in safe mode, so no rule, plugin or hook of the machine loads. Claude Code asks before the first write to a path holding `.claude`. Tell the user in one line that it is about to ask, and that **allow Claude to edit its own settings for this session** covers the rest.
 
@@ -19,10 +19,15 @@ Flow's clone is `~/.flow/repos/flow/`. Every path below starting `home/` sits in
    - Remove what conflicts with Flow. A `deny` rule on a tool a Flow hook or skill uses is one: `SendMessage`, which Flow's `PostToolUse` hook matches.
    - Keep every other key. A key the template lacks, such as `model`, `theme` or `enabledPlugins`, is the user's.
    - Build JSON with `node`, never by hand. The file must parse after the edit.
-3. **Check.** Run `flow doctor`. Fix each problem it names in the 2 files above. Name the others in the last message.
-4. **Finish.** Run `rm ~/.flow/logs/setup-pending`. Skip it where a step above failed, so the next `flow install` opens this session again.
-5. **The last message.**
+3. **Machine settings.** `~/.flow/notes/machine-setup.md` missing → skip to step 4.
+   - Read it. Each line is a setting the user made by hand on another machine.
+   - A line naming a file this session can write (the shell profile, `~/.claude/keybindings.json`, the editor's `settings.json`, under `/mnt/c/` on WSL) → apply it. Already set → leave it.
+   - Anything else (a font to install, a setting in an app's window) → keep it for the last message.
+4. **Check.** Run `flow doctor`. Fix each problem it names in the 2 files of steps 1 and 2. Name the others in the last message.
+5. **Finish.** Run `rm ~/.flow/logs/setup-pending`. Skip it where a step above failed, so the next `flow install` opens this session again.
+6. **The last message.**
    - One line per change: the file, what changed, why.
+   - Each machine setting left for the user, with what to do.
    - Keys kept that `home/settings.json` lacks, by name. A machine rebuilt from GitHub gets the template alone, so the user adds the ones worth keeping there.
    - The copies in `~/.flow/logs/before/` undo a bad edit.
    - End with: "Quit this session and start `claude` again: Flow's rules and hooks load when a session starts."

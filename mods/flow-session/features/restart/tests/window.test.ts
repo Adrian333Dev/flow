@@ -98,10 +98,10 @@ describe('the loads of a window', () => {
     expect(paths((await build($, { entries: [entry('fw-244', true)] })) as Built)).not.toContain(TICKET)
   })
 
-  test('files over 40k tokens are refused with each size, and the window still opens', async () => {
+  test('files over 40k tokens, counted at 2.5 bytes a token, are refused with each size, and the window still opens', async () => {
     const { $ } = engine({ files: { '/work/flow-dev/big.md': 'x'.repeat(200_000) } })
     const built = (await build($, { restart: restart({ files: ['big.md'] }) })) as Built
-    expect(built.log).toContain('loads dropped: files and skills hold about 50k tokens (big.md 50k tokens), over the cap of 40k tokens')
+    expect(built.log).toContain('loads dropped: files and skills hold about 80k tokens (big.md 80k tokens), over the cap of 40k tokens')
     expect(JSON.stringify(built.messages)).not.toContain('xxxx')
   })
 

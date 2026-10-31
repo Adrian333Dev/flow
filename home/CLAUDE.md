@@ -74,7 +74,7 @@ One phase at a time:
 
 - **`invoke-the-skill`** Invoke the skill that fits, never improvise its job. A small obvious task takes none.
   - Anything drawn: structure, architecture, layout, density, hierarchy, colour → `/flow:visualize`
-  - Context filling, a stretch of work closing, or a job needing its own session → `/flow:handoff`. Near the context limit, start no large step: hand off first, put that step in Next.
+- **`restart-early`** You get context size lines from 120k. Past one, between pieces of work, with the next needing little of this window → restart by `~/.flow/prompts/restart-guide.md`. A large window dulls answers. Not while the user may still reply on the work just done.
 - **`user-only-skills`** Suggest `/flow:start`, `/flow:tickets-from-spec` and `/flow:upkeep` to the user.
 - **`skip-a-step`** Skip a Flow step that makes the work worse. Name the step and the reason. Never ask first.
 - **`never-commit-unasked`** Never commit, push or suggest either. Done means the changes sit uncommitted: the user reviews them in the editor's Source Control list and runs `util git save`. Asked to commit → `util git save "<ticket name>"`, which pushes in the same step. A commit left unpushed is half a save.

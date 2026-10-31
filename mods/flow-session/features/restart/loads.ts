@@ -15,8 +15,8 @@ export type Built = Pick<SessionMessage, 'role' | 'text' | 'toolUses' | 'toolRes
 /** Files and skills together, in tokens. Tickets stand outside it. */
 export const CAP = 40_000
 
-/** A text's tokens, estimated at 4 bytes a token: close for English and code, and needs no tokenizer. */
-export const tokensOf = (text: string) => Math.ceil(new TextEncoder().encode(text).length / 4)
+/** A text's tokens, estimated at 2.5 bytes a token, as measured on Flow's own files (`fw-296` question 4). 4 bytes let 40k admit 65k to 70k real tokens. */
+export const tokensOf = (text: string) => Math.ceil(new TextEncoder().encode(text).length / 2.5)
 
 /** What a `files` entry asks for. `from` and `to` are line numbers counted from 1, both included. */
 export type Spec = { path: string; heading?: string; from?: number; to?: number }
