@@ -6,6 +6,7 @@ How to change Flow itself: where the running copy lives, how an edit reaches a s
 
 - [One copy runs on the machine](#one-copy-runs-on-the-machine): the dev copy is the installed copy
 - [What an edit reaches at once](#what-an-edit-reaches-at-once): and what needs `flow install`
+- [The edit log](#the-edit-log): every change to a rule, a skill or a guide, with the old text
 - [Taking a newer Flow](#taking-a-newer-flow): why `flow update` leaves the dev copy alone
 - [The `v1` branch](#the-v1-branch): the branch release 1 is built on, and the return to `main`
 - [Running the tests](#running-the-tests): the check before a change counts
@@ -26,6 +27,31 @@ lrwxrwxrwx 1 me me 22 Oct 18 00:08 /home/me/.flow/repos/flow -> /home/me/code/fl
 - **A script, a hook or a reference file**: the next command or the next session that reads it.
 - **A skill's text**: a running session sees the edit without a restart.
 - **A skill added, renamed or removed**: run `flow install`, which links skills one by one.
+
+## The edit log
+
+Every change to a markdown file Flow ships gets an entry in that file's own log, under `lab/edit-log/` at the same path with `.log.md` added: `home/CLAUDE.md` logs to `lab/edit-log/home/CLAUDE.md.log.md`. Shipped means `home/`, `project-template/`, `guides/`, `prompts/`, `skills/` and this repo's `CLAUDE.md`, reached directly or through `~/.flow/guides` and the skill links. An agent in another project editing `~/.flow/guides/writing.md` writes the log here too. The personal copies, such as `~/.flow/CLAUDE.md`, get no log.
+
+The agent writes the entry, one per rule it changed in the turn. The mod only reminds it: the turn's first edit of such a file ends on a line naming the log and the guide, `guides/edit-log.md`, which gives the fields.
+
+```text
+[Auto] home/CLAUDE.md is logged: add an entry to /home/me/code/flow-dev/lab/edit-log/home/CLAUDE.md.log.md, as /home/me/.flow/guides/edit-log.md says.
+```
+
+An entry, newest at the end of the log:
+
+````md
+## 2026-11-01 · `agreed` · rewrite
+Ticket: fw-341
+Why: a hedge on a proposal was read as pushback, and the user asked for hedges to count as agreement.
+Trial: watch whether "mostly" replies still get asked for a yes.
+Was:
+```md
+- **`agreed`** Everything you proposed that drew no pushback. Pushback: an objection, or another solution to the same problem.
+```
+````
+
+`Was` is the whole rule as it stood before, so a rule can be put back without searching git. A `Trial:` line marks a change you called a test. `/flow:upkeep` in this repo finds them and deletes the line once the change holds. A change that fails is reworded again, as a new entry. An edit made from the shell, such as `sed -i`, brings no reminder.
 
 ## Taking a newer Flow
 

@@ -94,28 +94,29 @@ What happens each time the agent edits or writes a file:
 
 ### Changes to a loaded file
 
-A loaded file is one that enters an agent's context: a rule file, a skill and its references, a guide, a prompt. A change to one leaves an entry in a log kept in this repo, so a removed or reworded chunk can be restored and a trial removal judged (`fw-338`, the user 2026-10-30). An entry as designed:
+A loaded file is one that enters an agent's context: a rule file, a skill and its references, a guide, a prompt. A change to one leaves an entry in a log kept in this repo, so a removed or reworded rule can be restored, and a change under test found again (`fw-338`, the user 2026-10-30; reshaped in `fw-341`, the user 2026-11-01). An entry:
 
+````md
+## 2026-11-01 · `agreed` · rewrite
+Ticket: fw-341
+Why: a hedge on a proposal was read as pushback, and the user asked for hedges to count as agreement.
+Trial: watch whether "mostly" replies still get asked for a yes.
+Was:
 ```md
-## 2026-10-30 · `agreed` · rewrite
-Mode: final
-Ticket: fw-288
-Why: "mostly approved, but keep it flexible" was recorded as a full approval.
-Together with: home/CLAUDE.md
-Was: Pushback: an objection, or another solution to the same problem. Never ask for a yes, …
-Now: Pushback: an objection, or another solution to the same problem. A hedge on a proposal ("mostly", "maybe") is no pushback. …
+- **`agreed`** Everything you proposed that drew no pushback. Pushback: an objection, or another solution to the same problem.
 ```
+````
 
-- `next` **Every edit to a file Flow ships is logged**: `home/`, `project-template/`, `guides/`, `prompts/`, `skills/` and this repo's `CLAUDE.md`, additions, rewrites and removals alike. The live copies in `~/.flow` and `~/.claude` get no log, since they follow the templates (`home-files-exist-twice`). Why: a removed chunk had no single home. It went to `lab/archive/` with a `README.md` line, to the one dated snapshot (`lab/archive/global-rules/CLAUDE-2026-10-17.md`), or to a commit among the batches of `~/.flow` (`pc-wsl: 13 files`) that hold no reason. Refused: a log in `~/.flow`, which would cover the live copies.
-- `next` **One log file per logged file, mirroring its path under `lab/edit-log/`**: `home/CLAUDE.md` logs to `lab/edit-log/home/CLAUDE.md`. Why: 3 files are named `CLAUDE.md` and many `SKILL.md`. Refused: one file per month, which hides which file changed (the user). Entries made in one turn for different files name each other in `Together with`. A renamed file moves its log, and a retired file keeps its log.
-- `next` **One entry per rule or section per turn**: a rule id where the file has ids, else the enclosing heading. A turn is the edits between one message of the user and the agent's reply. The first edit sets `Was` to the text before the turn, and later edits of the same rule change `Now` only. Why: an entry per edit logs a half-finished wording, and a trial verdict belongs to one rule. A new file gets one `add` entry reading `new file, N lines`, with no copied text.
-- `next` **An entry holds** the date, the rule id or heading, the action (`add`, `rewrite`, `remove`), `Mode` (`final` or `trial`, on every entry), the ticket, `Why`, `Was` and `Now` verbatim, and `Together with`. A rewrite is tried like a removal, so `Mode` applies to it too.
-- `next` **The mod writes the entry as the edit lands, and the agent writes the `Why`.** An empty `Why` marks an unfinished entry. Why: retyping 30 lines of a section rewrite doubles the output, and a slip ruins the way back. Refused: the agent writing it all, the failure of forgetting that the user keeps seeing. Refused: the mod alone, which cannot know a reason.
-  - `next` **The mod appends, newest last.** Two sessions inserting at the top would overwrite each other, and the scorecard appends one line at a time for the same reason. The one read-and-write is a later edit of the same rule in the same turn, by one session.
-- `next` **The agent is told by a line on the edit's result and by a guide.** The line: `[Auto] Logged in <log path>, entry <id>. Fill Why.` The guide, `guides/edit-log.md`, holds the fields and the trial lines, and a `situations.ts` entry sends it once per window, the way `writing.md` arrives. Why: the log works when an agent in another project edits these files, and a guide sent once never repeats on back-to-back edits (the user 2026-10-30). The guide names no `lab/` path.
-- `next` **A trial is an entry with `Mode: trial` and `Verdict: open`**, and its `Why` says what to watch. `/flow:upkeep` in this repo greps the open ones, checks the sessions since through `flow audit`, and sets `Verdict` to `kept` (the mode becomes `final`) or `restored`. Restoring is an ordinary edit, logged like any other. The sweep instruction sits in this repo's `CLAUDE.md`, since the skill ships to every project.
+- `V1` **Every `Edit` or `Write` of a markdown file Flow ships is logged**: `home/`, `project-template/`, `guides/`, `prompts/`, `skills/` and this repo's `CLAUDE.md`, additions, rewrites and removals alike, reached by the repo path or through a link (`~/.flow/guides/`, `~/.claude/skills/flow/skills/`), which the mod reads at session start (`features/edit-log/shipped.ts`). The live copies in `~/.flow` and `~/.claude` get no log, since they follow the templates (`home-files-exist-twice`). Why: a removed chunk had no single home. It went to `lab/archive/` with a `README.md` line, to the one dated snapshot (`lab/archive/global-rules/CLAUDE-2026-10-17.md`), or to a commit among the batches of `~/.flow` (`pc-wsl: 13 files`) that hold no reason. Refused: a log in `~/.flow`, which would cover the live copies.
+- `V1` **One log per logged file, its path mirrored under `lab/edit-log/` with `.log.md` added**: `home/CLAUDE.md` logs to `lab/edit-log/home/CLAUDE.md.log.md`. Why: one log per file shows which file changed, and 3 files are named `CLAUDE.md` and many `SKILL.md` (the user 2026-11-01). The suffix keeps a log from being named `CLAUDE.md`, which Claude Code would load as rules. Refused: one file per month, which hides which file changed (the user 2026-10-29). Refused: one log for every file (the user 2026-11-01). A renamed file moves its log, and a retired file keeps its log.
+- `V1` **The agent writes the entry, one per rule or section changed in a turn**: the rule id where the file has ids, else the heading. Several edits of one rule in a turn are one entry. Newest last. The fields are in `guides/edit-log.md`: the date, the rule, `add`, `rewrite` or `remove`, the ticket, `Why`, an optional `Trial`, and `Was`.
+- `V1` **`Was` holds the whole rule or section before the turn, verbatim**, for a rewrite or a remove. Why: restoring a rule from `git log -p` means searching every commit of a file that changes often (the user 2026-11-01). The new text is in the file, so no `Now`.
+- `V1` **The mod only reminds.** The turn's first landed `Edit` or `Write` of a logged file gets one line on its result: `[Auto] home/CLAUDE.md is logged: add an entry to <log>, as ~/.flow/guides/edit-log.md says.` The edit runs as it would, never held back. Why: the agent can write the entry after the edit lands, and the log will cover every change later, code included, where a mod's copy of the text fits nothing (the user 2026-11-01). The line works from any project, and the guide names no `lab/` path. Refused, built and dropped the same day: the mod diffing each edit and writing `Was`, `Now`, `Together with` and an id itself, the agent filling `Why`; and `guides/edit-log.md` sent by `situations.ts`, which held the first edit back until the guide was read.
+- `V1` **A change under test carries a `Trial:` line** saying what to watch. `/flow:upkeep` in this repo greps `Trial:` across `lab/edit-log/`, checks the sessions since through `flow audit`, and deletes the line once the change holds. A change that fails is reworded again, a new entry, with a `Trial:` line of its own where it is tested too. The sweep instruction sits in this repo's `CLAUDE.md`, since the skill ships to every project. Refused (the user 2026-11-01): `Mode: final` or `trial` on every entry and a `Verdict` of `kept` or `restored`, since a failed trial is usually reworded, not restored.
 - `never` **A ticket, a `fw-294` line, a `flow doctor` line, a result line listing open trials, or a copy of the file with a link switch, per trial.** The user asked for the simplest path (2026-10-30): a sweep of the logs is the measurement. The copy-and-link switch was drafted 2026-10-25 and replaced by this log.
+- `later` **Every change logged, not only markdown**: features added and removed, code included, in the same logs (the user 2026-11-01). Waits until the workflow settles.
 - `later` **A `Read` of a logged file lists that file's open trials**, if a rule out on trial turns out to be proposed again before its review.
+- `later` **An edit made from the shell (`sed -i`, a script) is reminded too.** Today only `Edit` and `Write` are, and `fw-294` counts the rest from `git log`.
 
 ### Rule checks
 

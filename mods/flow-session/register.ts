@@ -9,6 +9,8 @@ import { helperEnded, helperStarted, setInteractive } from './shared/state'
 import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './features/band/band'
 import { copyAll, copyLast, registerCopy, saveReply } from './features/copy/copy'
 import { mentionsFor } from './features/drag/drag'
+import { editLogTurnStarted, withEditLog } from './features/edit-log/edit-log'
+import { readLinks } from './features/edit-log/shipped'
 import { inSkillCall, withSkillWiki } from './features/guides/skill-wiki'
 import { steerStep, withGuideHeader } from './features/guides/steer-step'
 import { cancel as warmCancel, closeWarm, keepWarm, noteBroken, registerKeepWarm, replan, warmTranscript, warmTurnEnded, warmTurnStarted } from './features/keepwarm/keepwarm'
@@ -36,6 +38,7 @@ import { forgetAgent, measureAgent, wrapUp, wrapUpResult } from './features/wrap
 export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {
     setInteractive(e.isInteractive)
+    await readLinks($).catch((error) => $.ui.log(`the edit log found no Flow repo: ${reasonOf(error)}`))
     await bandStart($)
     await metersStart($).catch(() => undefined)
     // A hot reload loses the timer, so a switch that is on plans again.
@@ -71,6 +74,7 @@ export const register: Register = (on) => {
 
   on('turn.start', async ($, e, next) => {
     await bandTurnStart($, e)
+    editLogTurnStarted(e.agentId)
     if (e.agentId !== undefined) helperStarted(e.agentId)
     else {
       await warmTurnStarted($)
@@ -116,6 +120,9 @@ export const register: Register = (on) => {
     return withFileContext($, path, e.agentId, done)
   }).catch(async (_$, e, next) => next(e))
   on('prompt.mention', async ($, e, next) => withFileContext($, e.path, e.agentId, await next(e)))
+
+  // A landed edit of a loaded file Flow ships leaves an entry in the repo's edit log, and its result asks for the reason.
+  on('tool.call', { tool: /^(Edit|Write)$/ }, async ($, e, next) => withEditLog($, e as { file_path?: unknown; agentId?: string }, () => next(e)))
 
   on('skill.prompt', async ($, e, next) => withSkillWiki($, e.frontmatter, await next(e)))
 

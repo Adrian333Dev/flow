@@ -37,10 +37,12 @@ const touches = (call: Call) => ['Read', 'Edit', 'Write'].includes(call.tool) &&
 const markdown = (call: Call) => touches(call) && pathOf(call).endsWith('.md')
 const code = (call: Call) => touches(call) && new RegExp(`\\.(${CODE_EXTENSIONS.join('|')})$`).test(pathOf(call))
 /** Every guide an entry sends, in Flow's `guides/`. */
-const GUIDES = ['writing.md', 'write-loaded-files.md', 'write-rules.md', 'write-spec.md', 'write-tickets.md', 'knowledge.md', 'write-code.md'] as const
+const GUIDES = ['writing.md', 'write-loaded-files.md', 'write-rules.md', 'write-spec.md', 'write-tickets.md', 'knowledge.md', 'write-code.md', 'edit-log.md'] as const
 type Guide = (typeof GUIDES)[number]
 const guides = (...names: Guide[]): Send[] => names.map((name) => ({ tool: 'Read', path: `guides/${name}` }))
 const guideWhy = (what: string) => () => `Guide for ${what}.`
+/** The edit log's own files, which mirror the paths they log and are no loaded files. */
+const inEditLog = (call: Call) => /\/lab\/edit-log\//.test(pathOf(call))
 
 /** The `flow` and `util` groups a command runs, by the word after the program's name. */
 export function groupsOf(command: string): string[] {
@@ -88,7 +90,7 @@ export const ENTRIES: readonly Entry[] = [
   },
   {
     id: 'loaded-file',
-    when: (call) => markdown(call) && /\/skills\/|\/\.claude\/(commands|agents|output-styles)\/|\/references\/|\/guides\/|\/prompts\//.test(pathOf(call)),
+    when: (call) => markdown(call) && !inEditLog(call) && /\/skills\/|\/\.claude\/(commands|agents|output-styles)\/|\/references\/|\/guides\/|\/prompts\//.test(pathOf(call)),
     send: () => guides('writing.md', 'write-loaded-files.md'),
     why: guideWhy('files an agent loads'),
   },

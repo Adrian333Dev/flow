@@ -169,3 +169,10 @@ describe('planFor', () => {
     expect(planFor([bash('flow audit')], new Set(['bash:flow audit --help'])).added).toEqual([])
   })
 })
+
+describe('edit-log', () => {
+  test("the edit log's own files take no loaded-file guides, and its guide read brings nothing", () => {
+    expect(entryFor(edit('/code/flow/lab/edit-log/skills/work/execute/SKILL.md.log.md'))?.id).toBe('markdown')
+    expect(entryFor(read('/h/.flow/guides/edit-log.md'))).toBeUndefined()
+  })
+})

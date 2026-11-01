@@ -15,7 +15,8 @@ Flow is a Claude Code workflow for a solo developer: global rules (`home/`), ski
 ## Rules
 
 - **`designed-is-not-built`** A design decided in a ticket changes nothing on disk until its build ticket closes. Until then every file follows the old model: a ticket, a skill or a folder that breaks the new design is the old model at work, never a fault in the file or in the design. Judge a file by the model that wrote it. For the redesign, cite `fw-16`'s `context.md` before the spec, which lags it.
-- **`retire-to-the-archive`** Retired code, skills, rules and docs move to `lab/archive/` with a line in its `README.md`, never deleted. Ticket text is never archived.
+- **`retire-to-the-archive`** Retired code, skills, rules and docs move to `lab/archive/` with a line in its `README.md`, never deleted. Ticket text is never archived. A rule or section removed from a loaded file goes to its log in `lab/edit-log/` instead, as `Was`.
+- **`sweep-trials`** `/flow:upkeep` here greps `lab/edit-log/` for `Trial:`, checks the sessions since each through `flow audit`, and deletes the line once the change holds. A change that fails gets reworded again, logged as a new entry.
 - **`not-your-failure`** A test that still fails with your change stashed belongs to a parallel session: leave it, ticket nothing.
 - **`read-the-spec-first`** Read `docs/spec/product.md` and the spec file of the part you touch, before changing skills, installation, the scripts or the docs tree.
 - **`never-suggest-upkeep`** Never offer `/flow:upkeep`, and never count the closed tickets waiting for it. End with the next ticket instead: each reminder costs the user a line to skip.
