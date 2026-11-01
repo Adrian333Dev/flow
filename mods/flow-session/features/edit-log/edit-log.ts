@@ -21,7 +21,7 @@ export const editLogTurnStarted = (agentId: string | undefined) => void turns.se
 export const logPathOf = (root: string, rel: string) => `${root}/lab/edit-log/${rel}.log.md`
 
 /** The line on the edit's result. */
-export const reminderOf = (rel: string, log: string, guide: string) => `[Auto] ${rel} is logged: add an entry to ${log}, as ${guide} says.`
+export const reminderOf = (rel: string, log: string, guide: string) => `[Auto] ${rel} is logged: a change of approach gets an entry in ${log}, as ${guide} says.`
 
 type Done = { deny?: string; isError?: boolean; context?: readonly string[] }
 

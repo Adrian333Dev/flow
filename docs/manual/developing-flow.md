@@ -30,12 +30,12 @@ lrwxrwxrwx 1 me me 22 Oct 18 00:08 /home/me/.flow/repos/flow -> /home/me/code/fl
 
 ## The edit log
 
-Every change to a markdown file Flow ships gets an entry in that file's own log, under `lab/edit-log/` at the same path with `.log.md` added: `home/CLAUDE.md` logs to `lab/edit-log/home/CLAUDE.md.log.md`. Shipped means `home/`, `project-template/`, `guides/`, `prompts/`, `skills/` and this repo's `CLAUDE.md`, reached directly or through `~/.flow/guides` and the skill links. An agent in another project editing `~/.flow/guides/writing.md` writes the log here too. The personal copies, such as `~/.flow/CLAUDE.md`, get no log.
+A change of approach in a markdown file Flow ships gets an entry in that file's own log: a rule that now has the agent act otherwise, or a rule removed. A rename, a rewording, or a line added because a Claude Code release changed a tool gets none. The log sits under `lab/edit-log/` at the same path with `.log.md` added: `home/CLAUDE.md` logs to `lab/edit-log/home/CLAUDE.md.log.md`. Shipped means `home/`, `project-template/`, `guides/`, `prompts/`, `skills/` and this repo's `CLAUDE.md`, reached directly or through `~/.flow/guides` and the skill links. An agent in another project editing `~/.flow/guides/writing.md` writes the log here too. The personal copies, such as `~/.flow/CLAUDE.md`, get no log.
 
 The agent writes the entry, one per rule it changed in the turn. The mod only reminds it: the turn's first edit of such a file ends on a line naming the log and the guide, `guides/edit-log.md`, which gives the fields.
 
 ```text
-[Auto] home/CLAUDE.md is logged: add an entry to /home/me/code/flow-dev/lab/edit-log/home/CLAUDE.md.log.md, as /home/me/.flow/guides/edit-log.md says.
+[Auto] home/CLAUDE.md is logged: a change of approach gets an entry in /home/me/code/flow-dev/lab/edit-log/home/CLAUDE.md.log.md, as /home/me/.flow/guides/edit-log.md says.
 ```
 
 An entry, newest at the end of the log:

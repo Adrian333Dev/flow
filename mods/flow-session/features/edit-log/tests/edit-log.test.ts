@@ -55,7 +55,7 @@ function claudeCode(on: Parameters<typeof mock.env>[0]): void {
 const edit = (file_path: string) => ({ tool: 'Edit', file_path, old_string: 'a', new_string: 'b' }) as never
 const contextOf = async ($: { tool: { call: (e: never) => Promise<unknown> } }, call: never) => ((await $.tool.call(call)) as { context?: string[] }).context
 const GUIDE = `${HOME}/guides/edit-log.md`
-const reminder = (rel: string) => `[Auto] ${rel} is logged: add an entry to ${ROOT}/lab/edit-log/${rel}.log.md, as ${GUIDE} says.`
+const reminder = (rel: string) => `[Auto] ${rel} is logged: a change of approach gets an entry in ${ROOT}/lab/edit-log/${rel}.log.md, as ${GUIDE} says.`
 
 describe('the Edit and Write hook', () => {
   test("a turn's first edit of a shipped file names its log and the guide; a second edit of it in the turn adds nothing", async ($, on) => {

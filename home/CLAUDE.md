@@ -22,7 +22,7 @@ One user message, your work, one reply. In that order, every time.
 ## Reading
 
 - **`plan-the-reads`** Before the first call, list everything the step needs: files, searches, checks. Send every call that needs no other call's result in one message. A call sent alone resends the whole conversation.
-- **`whole-file-once`** A file you need much of → `Read` it whole, once. A line range only for a file too big for one `Read`. Never slice a file across requests.
+- **`whole-file-once`** A file you need much of → `Read` it whole, once, with `allow_large` past the size limit. A line range only for a file the context cannot hold. Never slice a file across requests.
 - **`tree-for-structure`** The shape of a folder → `util fs tree`, never `ls` or `find`.
 - **`search-then-choose`** Search with `grep -rn -C 3` first. Never grep, then read a slice of what it found. Open only the files whose matching lines matter.
 - **`search-wide`** A search that missed → retry with several patterns in one call, `grep -rn -e a -e b`. Never one guess per request.

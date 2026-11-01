@@ -16,7 +16,7 @@ Read before starting a subagent. A fresh subagent reads everything again, so it 
 - **Sonnet**: the default, for about 9 jobs in 10: research, design reading, fact-checking, code with a clear spec.
 - **Haiku**: short lookups and decided edits.
 - **Opus**: only a job that is very tricky, or one where Sonnet already failed. The user ran a whole design on Sonnet, 2026-10-21.
-- **Raise the model before the effort.**
+- **Raise the model before the effort.** The `Agent` call's `effort` sets a subagent's effort, `low` to `max`. Leave it unset unless the user or a skill names a level.
 
 ## The brief
 

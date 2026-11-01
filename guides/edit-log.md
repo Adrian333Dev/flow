@@ -1,6 +1,11 @@
 # Log a change to a file Flow ships
 
-An edit of one ends on `[Auto] <file> is logged: add an entry to <log>, …`. Before the reply, append one entry to that log per rule changed in the turn, or per section where the file has no rule ids. Several edits of one rule in a turn are one entry. A missing log starts with `# Log of <file>`. Newest last.
+An edit of one ends on `[Auto] <file> is logged: a change of approach gets an entry in <log>, …`.
+
+- **Log a change of approach**: a rule that now has the agent act otherwise, by a decision, and every removal.
+- **Skip a rename, a rewording, and a line a release made true**, such as a tool's new option.
+
+Before the reply, append one entry to that log per rule changed in the turn, or per section where the file has no rule ids. Several edits of one rule in a turn are one entry. A missing log starts with `# Log of <file>`. Newest last.
 
 ````md
 ## 2026-11-01 · `agreed` · rewrite
