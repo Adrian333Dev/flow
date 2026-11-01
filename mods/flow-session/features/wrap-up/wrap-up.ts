@@ -2,12 +2,13 @@
  * wrap-up.ts: when the mod tells the agent its context size, and what it says.
  *
  * Answers get worse long before the window fills, so the limit follows the
- * work, never the window. At the limit the mod tells the agent to finish the
- * work in hand and call `restart`; `HARD` past it, to finish the step in hand and call it.
- * Nothing forces a restart mid-work. Each line is
- * sent once and names no size. Apart from them, the main session gets the size alone from
- * `SIZE_FROM`, then every `SIZE_EVERY`: a notice every 10k broke the agent's focus (`fw-228`),
- * and none left it blind to its size (`fw-296`). A subagent has its own lines at the same limit,
+ * work, never the window. At the limit the mod tells the agent to carry on and restart at the
+ * next break; `HARD` past it, at the end of the step, discussion or not. The agent cannot tell
+ * when the user is done with a topic, so the first line names a break it can see: the user
+ * turning to something new (`fw-362`, the user 2026-11-01). Nothing forces a restart mid-work. Each line is
+ * sent once and names no size. No other line tells the agent its size: the size lines every 30k
+ * from 120k (`fw-296`) made it restart too early, mid-discussion (`fw-362`, the user 2026-11-01;
+ * kept in `lab/archive/size-lines/`). A subagent has its own lines at the same limit,
  * measured on its own conversation: it saves its state to files and finishes.
  */
 import type { EngineInterface, TurnStepChunk } from 'claude-code'
@@ -22,9 +23,6 @@ export const LIMIT = 200000
 export const HARD = 100000
 /** How far under the limit the band offers the Restart button. */
 export const LEAD = 30000
-/** Where the size lines start, and how far apart they come. */
-export const SIZE_FROM = 120000
-export const SIZE_EVERY = 30000
 
 /**
  * `wrapUp` and `wrapUpAt` from the text of `~/.flow/settings.json` and
@@ -51,8 +49,8 @@ export type Lines = { finish: string; stop: string }
 
 /** The restart guide follows either line. */
 export const MAIN_LINES: Lines = {
-  finish: 'Finish the work in hand (the whole task or ticket, never only this step), run capture, then restart.',
-  stop: 'Finish the step in hand, run capture, then restart.',
+  finish: 'Context is large. Carry on. Restart at the next break: the work in hand finished, or the user turning to something new. Run capture first.',
+  stop: 'Context is very large. Restart at the end of this step, discussion or not. Run capture first.',
 }
 
 /**
@@ -77,12 +75,6 @@ export function wrapUpLine(before: number, now: number, limit: number, lines: Li
   return undefined
 }
 
-/** The size line, or undefined: once for each mark from `SIZE_FROM` that the check passed. */
-export function sizeLine(before: number, now: number): string | undefined {
-  const mark = (tokens: number) => (tokens < SIZE_FROM ? -1 : Math.floor((tokens - SIZE_FROM) / SIZE_EVERY))
-  return mark(now) > mark(before) ? `Context: ${kilo(now)} tokens.` : undefined
-}
-
 export const sizeOf = (usage: { input_tokens: number; cache_read_input_tokens: number; cache_creation_input_tokens: number }): number =>
   usage.input_tokens + usage.cache_read_input_tokens + usage.cache_creation_input_tokens
 
@@ -94,7 +86,7 @@ const agentChecked = new Map<string, number>()
 
 /**
  * The main session's line for its size now, or undefined. Each mark speaks once. A wrap-up line
- * comes with the restart guide and stands in for a size line passed at the same check.
+ * comes with the restart guide.
  */
 export async function wrapUp($: EngineInterface): Promise<string | undefined> {
   const { wrapUp: on, limit } = wrapUpSettings(...(await flowSettings($)))
@@ -103,7 +95,7 @@ export async function wrapUp($: EngineInterface): Promise<string | undefined> {
   const before = lastChecked
   lastChecked = now
   const line = wrapUpLine(before, now, limit)
-  if (!line) return sizeLine(before, now)
+  if (!line) return undefined
   $.ui.log(`wrap-up line sent at ${kilo(now)}`)
   return `${line}\n\n${await restartGuide($)}`
 }

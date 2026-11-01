@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
-import { AGENT_LINES, HARD, LEAD, offersRestart, SIZE_EVERY, SIZE_FROM, sizeLine, sizeOf, wrapUpLine, wrapUpSettings } from '../wrap-up'
+import { AGENT_LINES, HARD, LEAD, offersRestart, sizeOf, wrapUpLine, wrapUpSettings } from '../wrap-up'
 
 describe('offersRestart', () => {
   const idle = { running: false, requested: false, restarting: false }
@@ -28,19 +28,19 @@ describe('offersRestart', () => {
 })
 
 describe('wrapUpLine', () => {
-  const FINISH = 'Finish the work in hand (the whole task or ticket, never only this step), run capture, then restart.'
-  const STOP = 'Finish the step in hand, run capture, then restart.'
+  const FINISH = 'Context is large. Carry on. Restart at the next break: the work in hand finished, or the user turning to something new. Run capture first.'
+  const STOP = 'Context is very large. Restart at the end of this step, discussion or not. Run capture first.'
 
   test('is silent under the limit: no size notice at any mark', () => {
     for (const [before, now] of [[0, 119000], [110000, 122000], [128000, 131000], [141000, 149999]]) expect(wrapUpLine(before!, now!, 150000)).toBeUndefined()
   })
 
-  test('says finish this step when the size crosses the limit', () => {
+  test('says restart at the next break when the size crosses the limit', () => {
     expect(wrapUpLine(149000, 152300, 150000)).toBe(FINISH)
     expect(wrapUpLine(0, 150000, 150000)).toBe(FINISH)
   })
 
-  test('says stop now when the size crosses 100k past the limit', () => {
+  test('says restart at the end of this step when the size crosses 100k past the limit', () => {
     expect(HARD).toBe(100000)
     expect(wrapUpLine(152300, 260000, 150000)).toBe(STOP)
     expect(wrapUpLine(249999, 250001, 150000)).toBe(STOP)
@@ -73,27 +73,6 @@ describe('a subagent’s lines', () => {
 
   test('the first line lets a job near its end finish instead', () => {
     expect(AGENT_LINES.finish).toContain('Unless you are within a few steps of your final report')
-  })
-})
-
-describe('sizeLine', () => {
-  test('says the size alone at 120k, then every 30k, past the wrap-up marks too', () => {
-    expect([SIZE_FROM, SIZE_EVERY]).toEqual([120000, 30000])
-    expect(sizeLine(118000, 121400)).toBe('Context: 121k tokens.')
-    for (const mark of [150000, 180000, 210000, 240000, 270000, 300000, 330000]) expect(sizeLine(mark - 1000, mark + 2000)).toBe(`Context: ${(mark + 2000) / 1000}k tokens.`)
-  })
-
-  test('is silent under 120k and between marks', () => {
-    for (const [before, now] of [[0, 119999], [100000, 119000], [121000, 149999], [150000, 179000]]) expect(sizeLine(before!, now!)).toBeUndefined()
-  })
-
-  test('a size that jumps several marks gets one line', () => {
-    expect(sizeLine(0, 185000)).toBe('Context: 185k tokens.')
-  })
-
-  test('a size that fell, after a restart, starts again from 120k', () => {
-    expect(sizeLine(260000, 40000)).toBeUndefined()
-    expect(sizeLine(40000, 125000)).toBe('Context: 125k tokens.')
   })
 })
 

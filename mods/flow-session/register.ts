@@ -30,7 +30,7 @@ import {
   restartTurnStarted,
   startPendingRestart,
 } from './features/restart/restart'
-import { freshCommand, registerFresh, suggestFresh } from './features/restart/fresh'
+import { freshCommand, registerFresh } from './features/restart/fresh'
 import { forgetAgent, measureAgent, wrapUp, wrapUpResult } from './features/wrap-up/wrap-up'
 
 export const register: Register = (on) => {
@@ -141,7 +141,6 @@ export const register: Register = (on) => {
     void saveReply($).catch((error) => $.ui.log(`the reply was not saved: ${reasonOf(error)}`))
     await restartTurnEnded($, e)
     await warmTurnEnded($)
-    await suggestFresh($).catch(() => undefined)
     await startPendingRestart($)
     return done
   })

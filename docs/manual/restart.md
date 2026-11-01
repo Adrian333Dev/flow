@@ -10,7 +10,7 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 - [Phase 3: the context after the restart](#phase-3-the-context-after-the-restart): the skeleton of the new conversation
 - [What decides each part](#what-decides-each-part): which tickets, sections and files load
 - [When a restart is refused](#when-a-restart-is-refused): the reasons, and what to do
-- [/fresh: a light window once the work is finished](#fresh-a-light-window-once-the-work-is-finished): what it carries, and the line that suggests it
+- [/fresh: a light window once the work is finished](#fresh-a-light-window-once-the-work-is-finished): what it carries
 
 ## The 3 phases
 
@@ -37,8 +37,8 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 
 3 things start a restart, and each sends the agent one message ending in the restart guide:
 
-- **At the limit**, 200,000 tokens by default ([`wrapUpAt`](settings.md#wrapupat)): `Finish the work in hand (the whole task or ticket, never only this step), run capture, then restart.`
-- **At 100,000 past it**, with no restart yet: `Finish the step in hand, run capture, then restart.`
+- **At the limit**, 200,000 tokens by default ([`wrapUpAt`](settings.md#wrapupat)): `Context is large. Carry on. Restart at the next break: the work in hand finished, or the user turning to something new. Run capture first.` In a discussion, the break is your next message on another topic: the agent restarts before starting it, and your message carries over.
+- **At 100,000 past it**, with no restart yet: `Context is very large. Restart at the end of this step, discussion or not. Run capture first.`
 - **By hand**: a press of the green Restart button above the prompt (shown from 30,000 under the limit), or `/restart`: `Restart now:`. Words typed after `/restart` follow under `User:`.
 
 The guide, as the agent receives it, from `~/.flow/prompts/restart-guide.md`:
@@ -251,10 +251,6 @@ The new window holds, in order:
 5. The agent's last reply, headed `The agent's last reply in the old window:`.
 6. Your unanswered messages, each whole.
 
-At the end of a turn, at 120k and then every 30k, the mod shows a line under the reply. The agent never sees it:
-
-```text
-flow-session: context 152k: once this work is finished, /fresh opens a light window from the tickets and the last reply
-```
+Nothing suggests `/fresh`: the meters under the prompt show the size. The agent hears about its size only from the wrap-up lines in phase 1.
 
 `/fresh` is refused only while a restart is already under way.
