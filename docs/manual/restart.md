@@ -11,6 +11,7 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 - [What decides each part](#what-decides-each-part): which tickets, sections and files load
 - [When a restart is refused](#when-a-restart-is-refused): the reasons, and what to do
 - [/fresh: a light window once the work is finished](#fresh-a-light-window-once-the-work-is-finished): what it carries
+- [/fresh-dialogue: a light window that keeps the last window's dialogue](#fresh-dialogue-a-light-window-that-keeps-the-last-windows-dialogue): what it carries, and its limit
 
 ## The 3 phases
 
@@ -49,21 +50,21 @@ The guide, as the agent receives it, from `~/.flow/prompts/restart-guide.md`:
 The new window holds only: the tickets in flight, the files and skills you name, your note, the user's unanswered messages word for word. Nothing else of this conversation survives.
 
 1. Update the ticket. Everything this window learned or decided goes into `ticket.md` and `context.md`, by `~/.flow/guides/write-tickets.md`: decisions, answers, findings, context, dead ends, task state. Check: the note restates none of it.
-2. Pick `files`: only what the first step edits. Name every other file the next steps need by path in the note.
+2. Run `## Capture` over this window: file every lesson, correction and fault by its route now. Check: nothing is left to file, so the note carries no lesson.
+3. Pick `files`: only what the first step edits. Name every other file the next steps need by path in the note.
    - Whole file by default.
    - `path#heading` or `path:from-to` only for a large file whose rest the next step doesn't need.
    - Groundwork: `context.md` loads whole by itself. Name the specs and code the open questions touch.
    - Build: the file mid-edit, its test, the spec part it implements.
    - 40k tokens in all, skills included.
-3. Pick `skills`: the phase skill running and any skill the next step follows.
-4. Write `message`, the note. Facts, compressed, no narration. In order:
-   - Lessons not yet filed, each with its exact value, error text or path.
+4. Pick `skills`: the phase skill running and any skill the next step follows.
+5. Write `message`, the note. Facts, compressed, no narration. In order:
    - Facts still needed that belong in no ticket file.
    - Each point of the user's unanswered messages: done (what you did) or open (what's left).
    - First action: file, place, change.
    - Next steps, in order.
    - Questions waiting on the user.
-5. Call `restart` last.
+6. Call `restart` last.
 ```
 
 A helper agent still running delays the restart until it finishes. A helper agent never restarts itself. At its own limit it gets this message instead:
@@ -80,11 +81,11 @@ From the session that started you: stop now, whatever your brief says. Write wha
 
 ## Phase 2: the tool call
 
-The agent first writes the window's decisions and findings into the ticket's `ticket.md` (the index) and `context.md` (one section per question or task). Then it calls the tool once, as its last action:
+The agent first writes the window's decisions and findings into the ticket's `ticket.md` (the index) and `context.md` (one section per question or task). Then it runs its capture pass, filing every lesson, correction and fault, so the note carries none. Then it calls the tool once, as its last action:
 
 ```json
 {
-  "message": "- Lesson: python3 heredoc used to cut tests, against edit-with-edit. File a flow-issue if the type repeats.\n- fw-268 reopened. Mod suite 306 pass.\n- User's message: (1) how unanswered messages are found: open, answer it. (2) delete the 13 restart files: done.\n- First action: lab/archive/README.md, the mod-restart-dialogue line: add the retired parts.\n- Next: the unchecked tasks in fw-268, in order.",
+  "message": "- fw-268 reopened. Mod suite 306 pass.\n- User's message: (1) how unanswered messages are found: open, answer it. (2) delete the 13 restart files: done.\n- First action: lab/archive/README.md, the mod-restart-dialogue line: add the retired parts.\n- Next: the unchecked tasks in fw-268, in order.",
   "files": [
     "mods/flow-session/features/restart/first-message.ts",
     "lab/archive/README.md",
@@ -122,7 +123,7 @@ The mod empties the conversation and writes this one in its place. Each file and
   // 1. The opening: instructions only
   {
     "role": "user",
-    "content": "Session restarted. Continue from the note.\nAnswer every point of the user's messages below.\nConflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.\nAfter answering, run `## Capture` over the note.",
+    "content": "Session restarted. Continue from the note.\nAnswer every point of the user's messages below.\nConflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.",
   },
 
   // 2. Each ticket in flight: ticket.md, then context.md
@@ -193,7 +194,7 @@ The mod empties the conversation and writes this one in its place. Each file and
   // 6. The note
   {
     "role": "user",
-    "content": "Note from the old agent:\n\n- Lesson: python3 heredoc used to cut tests …\n- First action: lab/archive/README.md …",
+    "content": "Note from the old agent:\n\n- fw-268 reopened. Mod suite 306 pass …\n- First action: lab/archive/README.md …",
   },
 
   // 7. Your unanswered messages, each whole, word for word
@@ -218,7 +219,7 @@ After a press of the button or `/restart`, the opening's first line is `Session 
 - **A file named twice**: loads once. A ticket file the agent also names in `files` is not repeated.
 - **A heading the file lacks, or a range outside it**: loads the whole file.
 - **Your unanswered messages**: every message since the agent's last finished reply. A message sent again with more words or a typo fixed arrives once, in its longer form.
-- **The old dialogue**: never carried. It stays in the session's transcript.
+- **The old dialogue**: never carried by a restart or `/fresh`. It stays in the session's transcript, and `/fresh-dialogue` copies the part since the last restart.
 
 ## When a restart is refused
 
@@ -254,3 +255,38 @@ The new window holds, in order:
 Nothing suggests `/fresh`: the meters under the prompt show the size. The agent hears about its size only from the wrap-up lines in phase 1.
 
 `/fresh` is refused only while a restart is already under way.
+
+## /fresh-dialogue: a light window that keeps the last window's dialogue
+
+Type `/fresh-dialogue` anywhere: mid-discussion, mid-groundwork, or on a cold cache. It empties the conversation the way `/fresh` does, with no note and no model request. In place of the last reply it carries everything said since the last restart, `/fresh` or `/fresh-dialogue`, so nothing needs filing first. Earlier windows are finished work, and stay in the transcript. Nothing runs until you type.
+
+The new window holds, in order:
+
+1. The opening, as the agent receives it:
+
+   ```md
+   Session restarted. Below are the tickets in flight and the dialogue since the last restart: the user's words and the agent's text word for word, each tool call as one line.
+   The dialogue ends with the user's messages not yet answered: answer every point of them.
+   Conflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.
+   ```
+
+   The second line shows only when a message of yours is unanswered.
+2. The tickets in flight, their ancestors and the guides, as `/fresh` loads them.
+3. The dialogue, read from the session's transcript file after its last restart. It is headed `Copied dialogue of the previous window, since the last restart:` and looks like this:
+
+   ```text
+   [user]
+   /flow:execute fw-300
+
+   [agent]
+   Raising the stop mark from 30,000 to 100,000 past the limit.
+
+   [tool] Edit /home/me/code/flow-dev/mods/flow-session/hooks/wrap-up.ts
+   [tool] Bash cd /home/me/code/flow-dev/mods/flow-session && claude plugin test . 2>&1 | tail -8
+   ```
+
+   Left out: tool results, the agent's thinking, subagents, and the window the mod itself wrote at the last restart.
+
+The dialogue keeps at most 160 KB, about 65,000 tokens, so the new window opens near 100,000 at most. A longer window keeps its newest part, starting at one of your messages, and the heading then reads `Copied dialogue of the previous window, its newest part: the start of the window is left out to fit:`. One window rarely reaches the limit: this session's window on 2026-11-01 copied to 7 KB.
+
+`/fresh-dialogue` is refused only while a restart is already under way. A transcript it cannot read leaves the session as it was, and the log line names the file.

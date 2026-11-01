@@ -11,3 +11,11 @@ describe('/fresh', () => {
     expect(await $.tool.call({ tool: 'mcp__flow-session__restart', message: 'NOTE' } as never)).toEqual({ deny: 'A restart is already under way.' })
   })
 })
+
+describe('/fresh-dialogue', () => {
+  test('answers that a fresh window with the dialogue opens, and holds a restart record meanwhile', async ($) => {
+    const result = await $.command.run({ command: 'fresh-dialogue', args: '' } as never)
+    expect(result.text).toBe('Opening a fresh window with the dialogue.')
+    expect(await $.tool.call({ tool: 'mcp__flow-session__restart', message: 'NOTE' } as never)).toEqual({ deny: 'A restart is already under way.' })
+  })
+})

@@ -5,8 +5,8 @@
  * button, the agent calls the `restart` tool with its note and the files and skills to load. The
  * mod ends that turn, compacts between turns, and answers the compaction itself (window.ts), so the
  * session and its transcript stay and no model writes a summary. A typed restart stops after the
- * compaction. An automatic one submits `CONTINUE`. `/fresh` (fresh.ts) runs the same compaction
- * with no note, answered by window.ts `buildFresh`.
+ * compaction. An automatic one submits `CONTINUE`. `/fresh` and `/fresh-dialogue` (fresh.ts) run
+ * the same compaction with no note, answered by window.ts `buildFresh`.
  */
 import type { EngineInterface, SessionCompactInput, SessionCompactResult, ToolCallInput, ToolCallResult, TurnCompleteInput } from 'claude-code'
 import type { Restart } from '../../shared/types'
@@ -126,7 +126,7 @@ export async function restartCompact($: EngineInterface, e: SessionCompactInput)
   let built: Awaited<ReturnType<typeof buildWindow>>
   try {
     const input = { asked, entries: await readBand($), home: await flowHome($) }
-    built = restart.fresh ? await buildFresh($, input) : await buildWindow($, { ...input, restart })
+    built = restart.fresh ? await buildFresh($, { ...input, dialogue: restart.dialogue === true }) : await buildWindow($, { ...input, restart })
   } catch (error) {
     stopped = `Restart stopped, the session is as it was: ${reasonOf(error)}.`
     return { skip: stopped }

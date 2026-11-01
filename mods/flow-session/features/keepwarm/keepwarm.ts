@@ -241,6 +241,11 @@ export async function noteTranscript($: EngineInterface, transcript: string): Pr
   await update($, warm, (w) => (w.transcript === transcript ? w : { ...w, transcript }))
 }
 
+/** The session's transcript file as its last start or turn end named it, or undefined before either. `/fresh-dialogue` reads it too. */
+export async function transcriptPath($: EngineInterface): Promise<string | undefined> {
+  return (await read($, warm)).transcript
+}
+
 /** A main turn started or ended: the cache was renewed no earlier than now, whatever the transcript shows yet. */
 export async function noteActive($: EngineInterface): Promise<void> {
   const at = await $.clock.now()

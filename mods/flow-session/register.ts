@@ -65,6 +65,9 @@ export const register: Register = (on) => {
   on('command.run', { command: 'fresh' }, async ($) => ({ text: await freshCommand($) })).catch(() => ({
     text: 'The fresh command failed, so the session is as it was.',
   }))
+  on('command.run', { command: 'fresh-dialogue' }, async ($) => ({ text: await freshCommand($, true) })).catch(() => ({
+    text: 'The fresh-dialogue command failed, so the session is as it was.',
+  }))
 
   on('turn.start', async ($, e, next) => {
     await bandTurnStart($, e)

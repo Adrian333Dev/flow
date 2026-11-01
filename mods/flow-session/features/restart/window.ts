@@ -10,6 +10,8 @@ import type { EngineInterface } from 'claude-code'
 import type { Entry, Restart } from '../../shared/types'
 import { freshWindow, restartWindow, type Built } from './first-message'
 import { lastOf } from '../copy/copy'
+import { transcriptPath } from '../keepwarm/keepwarm'
+import { dialogueOf, readDialogueRows } from './dialogue'
 import { CAP, parseSpec, sectionLines, skillBody, slice, tokensOf, type Loaded } from './loads'
 import { entryFor, keyOf, keysOf } from '../guides/situations'
 import { linksFromFile, wikiText, withWiki } from '../guides/skill-wiki'
@@ -230,18 +232,32 @@ export async function buildWindow($: EngineInterface, input: Input): Promise<{ m
   return { messages, log }
 }
 
-/** The window `/fresh` answers the compaction with, and the line the mod logs about it. */
-export async function buildFresh($: EngineInterface, input: Omit<Input, 'restart'>): Promise<{ messages: Built[]; log: string }> {
+/**
+ * The rows of the session's transcript the dialogue reads: the path its last start or turn end
+ * named, else where Claude Code keeps it (`~/.claude/projects/<the root, each other character a
+ * dash>/<session id>.jsonl`). Unreadable, it throws, and the compaction is skipped with the reason.
+ */
+async function readTranscript($: EngineInterface, where: Where): Promise<string> {
+  const named = await transcriptPath($).catch(() => undefined)
+  const path = named ?? `${where.user}/.claude/projects/${where.root.replace(/[^A-Za-z0-9]/g, '-')}/${await $.session.id()}.jsonl`
+  return readDialogueRows($, path)
+}
+
+/** The window `/fresh` answers the compaction with, or `/fresh-dialogue` where `dialogue` is set, and the line the mod logs about it. */
+export async function buildFresh($: EngineInterface, input: Omit<Input, 'restart'> & { dialogue?: boolean }): Promise<{ messages: Built[]; log: string }> {
   const where = await whereAmI($)
   const { loads: tickets, parents } = await ticketLoads($, input.entries, where, input.home)
   const ancestors = await ancestorLoads($, parents, where.root, new Set(input.entries.filter((e) => !e.isDone).map((e) => e.id)))
   const guides = await guideLoads($, [...tickets, ...ancestors], input.home)
+  const loaded = [...tickets, ...ancestors, ...guides]
+  const ticketsLine = `${tickets.filter((one) => one.type === 'file' && one.path.endsWith('/ticket.md')).length} tickets and ${ancestors.length} ancestor parts, ${kb([...tickets, ...ancestors].reduce((sum, one) => sum + bytes(one.text), 0))}`
+  if (input.dialogue) {
+    const { text, users, cut } = dialogueOf(await readTranscript($, where))
+    const messages = freshWindow({ tickets: loaded, dialogue: text, cut, asked: input.asked })
+    return { messages, log: `fresh-dialogue: ${ticketsLine}; the dialogue, ${kb(bytes(text))} with ${users} messages of the user's${cut ? ', its start cut to fit' : ''}` }
+  }
   const reply = lastOf(await $.session.messages())
-  const messages = freshWindow({ tickets: [...tickets, ...ancestors, ...guides], reply, asked: input.asked })
-  const log = [
-    `fresh: ${tickets.filter((one) => one.type === 'file' && one.path.endsWith('/ticket.md')).length} tickets and ${ancestors.length} ancestor parts, ${kb([...tickets, ...ancestors].reduce((sum, one) => sum + bytes(one.text), 0))}`,
-    reply ? `the last reply, ${kb(bytes(reply))}` : 'no last reply',
-    `${input.asked.length} unanswered messages`,
-  ].join('; ')
+  const messages = freshWindow({ tickets: loaded, reply, asked: input.asked })
+  const log = [`fresh: ${ticketsLine}`, reply ? `the last reply, ${kb(bytes(reply))}` : 'no last reply', `${input.asked.length} unanswered messages`].join('; ')
   return { messages, log }
 }

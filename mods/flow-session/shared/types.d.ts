@@ -38,6 +38,8 @@ export type Restart = {
   manual: boolean
   /** Typed by the user as /fresh (features/restart/fresh.ts): no note, no files, the window from the tickets and the last reply. */
   fresh?: true
+  /** Typed as /fresh-dialogue: a fresh window with the dialogue since the last restart in place of the last reply. */
+  dialogue?: true
 }
 
 /** What a restart keeps word for word besides the dialogue, which the conversation holds, and the restart itself (features/restart/restart.ts). The host holds it, so an edit that reloads the mod loses none of it. */

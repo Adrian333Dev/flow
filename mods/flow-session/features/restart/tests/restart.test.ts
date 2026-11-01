@@ -11,7 +11,7 @@ describe('restartWindow', () => {
     const messages = restartWindow(window)
     expect(messages.map((m) => m.role)).toEqual(['user', 'assistant', 'user', 'assistant', 'user', 'user', 'user', 'user'])
     expect(messages[0]!.text).toBe(
-      "Session restarted. Continue from the note.\nAnswer every point of the user's messages below.\nConflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.\nAfter answering, run `## Capture` over the note.",
+      "Session restarted. Continue from the note.\nAnswer every point of the user's messages below.\nConflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.",
     )
     expect(messages[1]!.toolUses[0]).toMatchObject({ tool: 'Read', input: { file_path: '/p/a.ts' } })
     expect(messages[2]!.toolResults![0]!.text).toBe('     1\tone\n     2\ttwo')

@@ -26,6 +26,8 @@ function engine(state: {
     env: { get: async () => '/h' },
     process: {
       run: async (argv: string[]) => {
+        // The Node step that shrinks a transcript: the test's transcript is already only rows the dialogue reads.
+        if (argv[0] === 'node') return argv[3]! in state.files ? { exitCode: 0, stdout: state.files[argv[3]!], stderr: '' } : { exitCode: 1, stdout: '', stderr: `ENOENT: ${argv[3]}` }
         runs.push(argv)
         const found = argv.slice(3, -1).map((id) => ({
           id,
@@ -173,6 +175,27 @@ describe('the window /fresh opens', () => {
     const built = (await buildFresh($, { asked: [], entries: [entry('fw-362'), entry('fw-361')], home: '/h/.flow' })) as Built
     expect(paths(built)).toEqual([T(362), T(361)])
     expect(JSON.stringify(built.messages)).toContain('QUESTIONS')
+  })
+
+  test('/fresh-dialogue carries the tickets and ancestors, then the dialogue from the transcript in place of the last reply', async () => {
+    const transcript = '/h/.claude/projects/-work-flow-dev/17da95cd-0000-4000-8000-000000000000.jsonl'
+    const rows = [
+      { type: 'user', origin: { kind: 'human' }, message: { content: 'build it' } },
+      { type: 'assistant', message: { content: [{ type: 'text', text: 'REPLY' }] } },
+      { type: 'user', origin: { kind: 'human' }, message: { content: 'ASKED' } },
+    ]
+    const { $ } = engine({ files: { ...files, [transcript]: rows.map((row) => JSON.stringify(row)).join('\n') }, parents: { 'fw-362': 'fw-361' }, messages })
+    const built = (await buildFresh($, { asked: ['ASKED'], entries: [entry('fw-362')], home: '/h/.flow', dialogue: true })) as Built
+    expect(paths(built)).toEqual([T(362), T(361), T(361), T(361)])
+    expect(built.messages[0]!.text).toContain("the dialogue since the last restart")
+    expect(built.messages[0]!.text).toContain("The dialogue ends with the user's messages not yet answered")
+    expect(built.messages.at(-1)!.text).toBe("Copied dialogue of the previous window, since the last restart:\n\n[user]\nbuild it\n\n[agent]\nREPLY\n\n[user]\nASKED")
+    expect(built.log).toBe("fresh-dialogue: 1 tickets and 3 ancestor parts, 1 KB; the dialogue, 1 KB with 2 messages of the user's")
+  })
+
+  test('/fresh-dialogue with no transcript on disk throws, so the compaction is skipped with the reason', async () => {
+    const { $ } = engine({ files })
+    await expect(buildFresh($, { asked: [], entries: [], home: '/h/.flow', dialogue: true })).rejects.toThrow('cannot be read')
   })
 
   test('with no reply, no tickets and nothing asked, the opening alone remains', async () => {

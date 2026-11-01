@@ -8,7 +8,7 @@
  * the agent edits without reading the files again.
  */
 import type { Tracked } from '../../shared/types'
-import { NOTE_PREFIX, OPENING, REPLY_PREFIX } from '../../shared/dialogue'
+import { DIALOGUE_PREFIX, NOTE_PREFIX, OPENING, REPLY_PREFIX } from '../../shared/dialogue'
 import { callsFor, type Built, type Loaded } from './loads'
 
 export type { Built }
@@ -36,7 +36,6 @@ function opening(window: Window): string {
     ...window.invoke.map((name) => `Invoke the \`${name}\` skill first.`),
     ...(window.asked.length ? ["Answer every point of the user's messages below."] : []),
     'Conflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.',
-    'After answering, run `## Capture` over the note.',
   ].join('\n')
 }
 
@@ -50,35 +49,37 @@ export function restartWindow(window: Window): Built[] {
   ]
 }
 
-/** What `/fresh` carries: no note and no files, since it opens once a piece of work is finished. */
+/**
+ * What `/fresh` and `/fresh-dialogue` carry: no note and no files. `/fresh` opens once a piece of
+ * work is finished, with the last reply. `/fresh-dialogue` opens anywhere, with the dialogue since the last restart.
+ */
 export type Fresh = {
   /** Each ticket's `ticket.md` and `context.md` as a restart loads them, then the parts of its ancestors. */
   tickets: readonly Loaded[]
-  /** The agent's last reply, '' when it has written none. */
-  reply: string
   asked: readonly string[]
-}
+} & ({ reply: string } | { dialogue: string; /** Its start was left out to fit. */ cut: boolean })
 
 /**
- * The opening of a window `/fresh` opens. The user typed it, so the user writes next. It names no
- * way back to the old turns: `/fresh` starts a new topic, and a pointer invites reading finished work.
+ * The opening of a window `/fresh` or `/fresh-dialogue` opens. The user typed it, so the user
+ * writes next. It names no way back to the old turns: a pointer invites reading finished work.
  */
 function freshOpening(fresh: Fresh): string {
+  const dialogue = 'dialogue' in fresh
   return [
-    `${OPENING} The old window's work is finished: below are the tickets in flight and the agent's last reply.`,
-    ...(fresh.asked.length ? ["Answer every point of the user's messages below."] : []),
+    dialogue
+      ? `${OPENING} Below are the tickets in flight and the dialogue since the last restart: the user's words and the agent's text word for word, each tool call as one line.`
+      : `${OPENING} The old window's work is finished: below are the tickets in flight and the agent's last reply.`,
+    ...(fresh.asked.length ? [dialogue ? "The dialogue ends with the user's messages not yet answered: answer every point of them." : "Answer every point of the user's messages below."] : []),
     'Conflicts: files win on what exists; `ticket.md` wins over `context.md` on decisions.',
   ].join('\n')
 }
 
-/** The conversation after `/fresh`, oldest first, below the fixed part Claude Code adds. */
+/** The conversation after `/fresh` or `/fresh-dialogue`, oldest first, below the fixed part Claude Code adds. The dialogue holds the unanswered messages already. */
 export function freshWindow(fresh: Fresh): Built[] {
-  return [
-    user(freshOpening(fresh)),
-    ...callsFor(fresh.tickets),
-    ...(fresh.reply ? [user(`${REPLY_PREFIX}\n\n${fresh.reply}`)] : []),
-    ...fresh.asked.map(user),
-  ]
+  const tail = 'dialogue' in fresh
+    ? fresh.dialogue ? [user(`${DIALOGUE_PREFIX}, ${fresh.cut ? 'its newest part: the start of the window is left out to fit' : 'since the last restart'}:\n\n${fresh.dialogue}`)] : []
+    : [...(fresh.reply ? [user(`${REPLY_PREFIX}\n\n${fresh.reply}`)] : []), ...fresh.asked.map(user)]
+  return [user(freshOpening(fresh)), ...callsFor(fresh.tickets), ...tail]
 }
 
 /** What is tracked once a main turn ends with `answer`: the user's messages are answered. A restart's closing line answers nothing, so it clears nothing. */
