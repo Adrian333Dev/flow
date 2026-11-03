@@ -2,7 +2,7 @@
 
 The new window holds only: the tickets in flight, the files and skills you name, your note, the user's unanswered messages word for word. Nothing else of this conversation survives.
 
-1. Update the ticket. Everything this window learned or decided goes into `ticket.md` and `context.md`, by `~/.flow/guides/write-tickets.md`: decisions, answers, findings, context, dead ends, task state. Check: the note restates none of it.
+1. Update the ticket. Everything this window learned or decided goes into `ticket.md` and `context.md`, by `~/.flow/references/guides/write-tickets.md`: decisions, answers, findings, context, dead ends, task state. Check: the note restates none of it.
 2. Run `## Capture` over this window: file every lesson, correction and fault by its route now. Check: nothing is left to file, so the note carries no lesson.
 3. Pick `files`: only what the first step edits. Name every other file the next steps need by path in the note.
    - Whole file by default.

@@ -81,9 +81,9 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 - `V1` **A refusal stops the turn, with Claude Code's own screen**: `Interrupted · What should Claude do instead?`. On Refuse, Esc or row 4, `tool.check` stores the verdict in the mod's state and returns the ask unchanged. A `classic.PermissionRequest` hook in the same mod then answers `{ behavior: 'deny', interrupt: true }`. Called route A2. Ruled by the user 2026-10-13: a refusal that lets the agent carry on is wrong. Overturned by: a Claude Code release that changes `classic.PermissionRequest` in mods, or two identical calls at once colliding on the stored key (tool name plus command).
 - `V1` **The dialog waits with no timeout while the user is there.** Silence is never a yes. Where nobody can answer (`claude -p`, no screen), the mod denies with no interrupt: `No one is here to ask. Choose another way, or stop.`
 - `V1` **A subagent's ask opens in the main session and takes its turn.** A refusal stops that subagent and the main turn goes on. Each session's mod holds its own state, so parallel sessions never block each other.
-- `V1` **The `AskUserQuestion` deny leaves `home/settings.json`.** The dialog is that tool, and a deny by name, or by `AskUserQuestion(*)`, makes `$.ui.ask` fail. The agent may call the tool again, and nothing blocks it. Ruled by the user 2026-10-13, overturning the ruling of 2026-09-21 whose reason was the tool's schema in every request.
+- `V1` **The `AskUserQuestion` deny leaves `home/settings.json`.** The dialog is that tool, and a deny by name, or by `AskUserQuestion(*)`, makes `$.ui.ask` fail. Ruled by the user 2026-10-13, overturning the ruling of 2026-09-21 whose reason was the tool's schema in every request.
+- `V1` **The agent never sees `AskUserQuestion`.** The mod moves its schema behind ToolSearch (`tool.describe`), drops its name from the list of deferred tools (`prompt.attachment`), and refuses a call the model makes anyway with `Never call this. Ask the user in plain text in your reply.` A mod's own `$.ui.ask` still opens. Ruled by the user 2026-11-04: the agent asks in plain text, and a pick-list it never sees is never offered. Refused: hiding it by a settings deny, which kills the dialog.
 - `never` **An edit's dialog showing 4 to 6 changed lines.** The tool's row shows the edit, as it shows a command. Dropped 2026-10-24 with the colour draw (`fw-282`).
-- `later` **Hiding the tool's definition from the agent** by changing the request a mod sends, to win back the schema's tokens. Reopen only if the cost shows in the numbers.
 
 ### The log
 
@@ -113,7 +113,7 @@ A call the guard leaves silent and no rule asks about runs at once, and the mod 
 - **`home/settings.json`**: the allow, ask and deny lists, and the guard's matcher.
 - **`scripts/hooks/guard.ts`**: the `PreToolUse` hook. Judges `Bash` and `Read` by command and path, `Edit` and `Write` by the folder rule, and fails closed.
 - **`scripts/features/guard/`**: one file per kind of harm, the parser, and `world.ts`, the one file that reads the disk. The narrowed folder list lives in one place here.
-- **The pane**: one module in its own mod, `flow-permissions`, apart from `flow-session` (decided 2026-10-20, `fw-172`, built by `fw-233`). It holds the dialog, route A2, the headline for every tool other than `Bash`, and the log write. The path rule that lets a mod folder be edited without an ask covers every Flow mod.
+- **The pane**: one module in its own mod, `flow-permissions`, apart from `flow-session` (decided 2026-10-20, `fw-172`, built by `fw-233`). It holds the dialog, route A2, the headline for every tool other than `Bash`, the log write, and the hiding of `AskUserQuestion`. The path rule that lets a mod folder be edited without an ask covers every Flow mod.
 - **`~/.flow/logs/permissions/`**: the log.
 - **`scripts/commands/audit.ts`**: gains the permissions view.
 

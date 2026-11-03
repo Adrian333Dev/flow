@@ -56,10 +56,10 @@ test('install builds a whole machine, is idempotent, and prunes a dead link', ()
   assert.strictEqual(linkTarget(at.skill('debug')), path.join(REPO, 'skills', 'work', 'debug'),
     'every skill is linked');
 
-  // scripts, guides and docs live under ~/.flow: Claude Code reads none of
+  // scripts, references and docs live under ~/.flow: Claude Code reads none of
   // them, and the hooks and skills name all 3 by path.
   assert.strictEqual(linkTarget(path.join(at.flowHome, 'scripts')), path.join(REPO, 'scripts'));
-  assert.strictEqual(linkTarget(path.join(at.flowHome, 'guides')), path.join(REPO, 'guides'));
+  assert.strictEqual(linkTarget(path.join(at.flowHome, 'references')), path.join(REPO, 'references'));
   assert.strictEqual(linkTarget(path.join(at.flowHome, 'docs')), path.join(REPO, 'docs'),
     'a session reads a manual page through this link');
   assert.ok(!fs.existsSync(path.join(at.claude, 'scripts')), 'scripts never land under ~/.claude');

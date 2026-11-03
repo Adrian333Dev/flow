@@ -138,7 +138,7 @@ export async function restartCompact($: EngineInterface, e: SessionCompactInput)
 export const compactRefused = (): SessionCompactResult => ({ skip: REFUSAL })
 
 /** True for a message the user typed, not the mod's own prompt, a notification or the /restart and /fresh commands. */
-const usersOwn = (e: { origin?: { kind: string }; isMeta?: true; text: string }) =>
+export const usersOwn = (e: { origin?: { kind: string }; isMeta?: true; text: string }) =>
   !e.isMeta && (e.origin === undefined || e.origin.kind === 'composer' || e.origin.kind === 'bridge') && !/^\/(restart|fresh)\b/.test(e.text)
 
 /** A submitted prompt: the user's own message is kept for the next window until a reply answers it. */

@@ -18,7 +18,7 @@
  * list:
  *
  *   settings.local.json   every setting holding a path, the clone included
- *   scripts, guides, docs, prompts   links into this machine's clone, which
+ *   scripts, references, docs, prompts   links into this machine's clone, which
  *                 sits somewhere else on the other machine
  *   repos/        this machine's clones: Flow and util
  *   logs/         what happened on this machine: the last install, every
@@ -93,7 +93,7 @@ const IGNORED = [
   '/restore.md',
   '/settings.local.json',
   '/scripts',
-  '/guides',
+  '/references',
   '/docs',
   '/prompts',
   '/repos/',

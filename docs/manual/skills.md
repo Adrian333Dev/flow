@@ -26,7 +26,6 @@ Each phase works on one ticket. Type the phase, then `#shop-7`, and take the tic
 - **`/flow:upkeep`** (only you can start it): fold closed tickets, notes, findings and the failure log into the wiki, rules and skills. It shows one plan first.
 - **`/flow:tickets-from-spec`** (only you can start it): cut the next chunk of planned work out of `docs/spec/` into tickets, earliest release first.
 - **`/flow:review-code`** (only you can start it): review the code this session changed against Flow's review criteria, and report what to fix before the ticket closes.
-- **`/flow:write-spec`** (only you can start it): write the decisions this session settled into `docs/spec/`, by Flow's spec criteria. It shows the paths and stops.
 
 A skill only you can start never fires by itself, and its description costs the agent nothing. When one is the next step, the agent tells you to type it.
 

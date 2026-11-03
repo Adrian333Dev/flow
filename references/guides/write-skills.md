@@ -1,0 +1,83 @@
+# Write a skill
+
+## Before writing one
+
+- **One job, sayable in a sentence.** 2 sentences means 2 skills.
+- **Nothing already covers it.** Something close → extend that skill.
+- **Aim for the density of `skills/knowledge/upkeep`.**
+
+## Flow's own skills
+
+**Flow's own skills live once, in the Flow clone**, inside the group folder that files it. Only Flow's own workflow gets one.
+
+- **`work/`**: the steps that move a ticket.
+- **`techniques/`**: a way of thinking used in any step.
+- **`knowledge/`**: what Flow knows, gathered and kept.
+- **`session/`**: starting and handing over a session.
+
+**Every Flow skill installs on every machine**, so a skill is typeable the moment its folder exists. Adding, renaming or removing one needs `flow install`.
+
+**Every Flow skill is shown in every session, and nothing switches it off.** A Flow skill has no switch for one project: `skillOverrides`, the settings key that hides a skill, skips a plugin's skills.
+
+**Name the folder bare and write the same bare word as `name` in the frontmatter.** A folder called `groundwork` holding `name: groundwork` is typed `/flow:groundwork`. Never write the prefix into either one. The `flow:` comes from `.claude-plugin/plugin.json` beside the skills, holding `"name": "flow"`.
+
+## Shape
+
+**`SKILL.md` is the only file at a skill's root.** Add another only with a reason, and give it a folder:
+
+- **`references/`**: markdown read on some runs and not others. Split by how often a part is read, never by length.
+- **`scripts/`**: runnable code the agent would otherwise rewrite per run.
+- **A `` !` `` line in `SKILL.md`**: a shell command Claude Code runs as the skill loads, its output pasted in. Run one named command or script there, never a pattern test and a chain of `&&`.
+- **`knowledge/`**: accumulated facts, one file per topic. Let the layout emerge; never design it up front.
+
+One file until one file stops working.
+
+**A Flow skill that learns as it works owns a wiki folder**, never a `knowledge/` folder, since the agent never writes Flow's files. Link it in the frontmatter, `metadata: { wiki: { audit: load } }`, one key per folder:
+
+- **`load`**: the folder's `index.md` arrives with the skill. For a folder most runs need.
+- **`name`**: one line naming the folder. For a folder only some runs need.
+
+**Put the learning line at the step where it learns**, naming what the folder takes: "A query or an approach that worked, and would serve another audit → a finding in `~/.flow/wiki/audit/findings/`, filed now."
+
+**Plain, common words, no invented or rare terms**, in what a skill says and in what it produces.
+
+**A command on the `PATH` is written bare**: `flow next`, `util fs tree docs`. Every other script is `~/.flow/scripts/<file.ext>`. A script is `flow.ts` on disk and `flow` to type, since the symlink drops the extension.
+
+## Knowledge files
+
+**A knowledge file holds what is true for anyone.** Anything true only because of one project belongs in that project's `docs/context/`: a class name from your own UI, a decision your app made, a path in another repo.
+
+Date every entry and cite what proved it.
+
+**Once a tactic appears in 2 files, promote it** into the shared file both then point at. Prune on the same pass any line the agent would follow by default.
+
+## Frontmatter
+
+```yaml
+name: <short, lowercase and hyphens, the same word as the folder, never a prefix>
+description: <what it is and what it covers>
+argument-hint: <what to type after the name>    # only where it takes one
+disable-model-invocation: true                  # user-only skills
+```
+
+**Write a trigger only where one is wanted**, in exactly 1 of these:
+
+- **`~/.flow/CLAUDE.md`**: the few that must fire with nothing else loaded
+- **A phase's body**, where that phase is what needs it. A comment standard is named by `/flow:execute`
+- **A phase's overlay**, `~/.flow/skill-overlays/<phase>.md`, where the user wants it in every project. `~/.flow/CLAUDE.md` would load it into every session
+- **The project's `CLAUDE.md`**, where it is project-wide and belongs to no phase
+
+**A new skill is user-only (`disable-model-invocation: true`) unless the agent has to start it itself.** A user-only skill costs nothing until it is typed. An agent-reachable skill puts its description in every session.
+
+**`disable-model-invocation: true` takes the skill out of the list a session is handed.** The user still finds it in the `/` menu. Name it in a file the model reads, or the model reports it missing when the user asks for it by name. Write the line only where the user typing it is the whole point, and where never firing is true in every project.
+
+**A skill invoked over and over stays short, and a long skill takes an argument only where the argument names what the skill opens.** Claude Code appends the whole body again on every run whose render differs, through an argument or a shell line's output. A long skill takes an argument only where what it loads is worth more than its body, such as a ticket and its files, and its bare run renders the same text every time.
+
+## Reshaping one
+
+- the same thing written twice → one shared file, both point at it
+- a rarely-read reference crowding `SKILL.md` → move it to `references/`
+- 2 jobs in one skill → split it
+- grown by accretion → rewrite it, never patch it
+
+**Deleting a skill is the user's call.** Discuss it, never unprompted.

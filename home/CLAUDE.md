@@ -15,7 +15,7 @@ One user message, your work, one reply. In that order, every time.
    - **`agreed`** Everything you proposed that drew no pushback, in any phase, however far back. Pushback: an objection, or another solution to the same problem. A hedge on a proposal ("mostly", "maybe") is no pushback. Proceed as proposed, change only what it names, state the doubt in one line. Never ask for a yes, never record one as awaiting or open. A delete of something the user made is the only yes asked for. A ticket merged into others is deleted without one. What this work made itself (probe files, test transcripts, scratch, servers, sessions) is deleted without asking, wherever it sits.
    - **`not-agreed`** Anything you never spelled out, and anything raised in the message that approved something else.
    - **`new-decision-stops`** Deciding something nobody proposed → stop and say so first, when undoing it costs more than redoing it: a design, a function, a structure. A choice cheap to undo, in a session already building → build your best guess and name it in one line. A technical choice with one sensible answer → decide it.
-   - **`one-approval-runs-to-the-end`** The build, every record it makes stale, the tests, the writing pass, then a check of your work against `~/.flow/guides/review-code.md`. Never stop at a checkpoint to wait for a second go.
+   - **`one-approval-runs-to-the-end`** The build, every record it makes stale, the tests, the writing pass, then a check of your work against `~/.flow/references/guides/review-code.md`. Never stop at a checkpoint to wait for a second go.
 5. **`act-then-answer-once`** One line as you take each step: "editing `docs/spec/product.md`". Every action first, then one answer: the only message the user reads.
    - **`move-forward-never-sideways`** No confirming settled points, no summarizing agreement, no recapping before the next topic. State what is now true, never the sequence that produced it.
    - **`end-with-the-next-step`** Work handed over for review, a ticket closed, a topic settled, a stop at the context limit → end by recommending the next step, with its reason. Give the command to type where one exists. A ticket is the `@` mention its `#exp-47` row writes, after the phase: `/flow:execute @.flow/tickets/47/ticket.md`.
@@ -40,7 +40,6 @@ One user message, your work, one reply. In that order, every time.
 
 ## Writing files
 
-- **`read-writing-first`** Before planning or drafting any markdown change, read `~/.flow/guides/writing.md`.
 - **`check-before-adding`** Before adding a rule, preference, section or line to a loaded file, read what is there. Something already covering it → rewrite that in place, where it fires. A rule that exists but didn't fire → a Flow failure: change its place or shape before adding. A loaded rule it could contradict → name it, say which wins. Never a second copy.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
 - **`standard-terminology`** Name a field, a function, a variable, a class or a command with the word most codebases already use: `type`, never `kind`, and `action`, never `verb`. Invent a term only where no standard one exists.
@@ -53,7 +52,6 @@ One user message, your work, one reply. In that order, every time.
 - **`ask-calls-stand-alone`** A call that will ask (a push, a delete git cannot restore, a write to a file that can switch the guard off) holds nothing else: the prompt names the whole command.
 - **`exact-text-from-downloads`** A signature or an example to copy → a downloaded page, verbatim. `WebFetch` returns a summary.
 - **`flow-added-calls`** A result opening `[Auto]` is Flow's call, never yours. Act on it. Never mention it to the user.
-- **`read-subagents-before-dispatch`** Before starting a subagent, read `~/.flow/guides/subagents.md`: which model, how to brief it, how to reply while it runs.
 
 ## When something breaks
 
@@ -74,10 +72,9 @@ One phase at a time:
 
 - **`invoke-the-skill`** Invoke the skill that fits, never improvise its job. A small obvious task takes none.
   - Anything drawn: structure, architecture, layout, density, hierarchy, colour → `/flow:visualize`
-- **`user-only-skills`** Suggest `/flow:start`, `/flow:tickets-from-spec` and `/flow:upkeep` to the user.
+- **`user-only-skills`** Suggest `/flow:start`, `/flow:tickets-from-spec`, `/flow:triggers-check` and `/flow:upkeep` to the user.
 - **`skip-a-step`** Skip a Flow step that makes the work worse. Name the step and the reason. Never ask first.
 - **`never-commit-unasked`** Never commit, push or suggest either. Done means the changes sit uncommitted: the user reviews them in the editor's Source Control list and runs `util git save`. Asked to commit → `util git save "<ticket name>"`, which pushes in the same step. A commit left unpushed is half a save.
-- **`read-before-adding`** Before proposing a skill, a plugin or an MCP server, read `~/.flow/guides/knowledge.md`.
 
 ## Capture
 
@@ -87,9 +84,9 @@ One phase at a time:
 
 - A lesson or fact about a tool or this project, a failed attempt with its cause, a procedure done before → a finding: `~/.flow/wiki/<tool>/findings/<lesson>.md` for any project, `.flow/findings/<lesson>.md` for this project.
 - A correction → `flow notes new "…" --label rule`, with `--project home` where it holds in every project.
-- A decision → the `docs/spec/` file that owns it (`~/.flow/guides/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow notes new "…"`. One batch, never mid-discussion.
+- A decision → the `docs/spec/` file that owns it (`~/.flow/references/guides/write-spec.md` picks it), with its reason, or the groundwork map that owns the subject. None owns it → `flow notes new "…"`. One batch, never mid-discussion.
 - Work left undone → a line in this session's ticket `## Tasks`. No ticket open → `flow notes new "…"`.
-- Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow tickets new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow tickets labels -- "label:flow-issue"` lists the types. A type already listed is a repeat. How to write one: `~/.flow/guides/issue-tickets.md`.
+- Your own mistake, a fault in Flow, a rule that did not fire or output the user rejected → a ticket: `flow tickets new "<short name>: <what went wrong>" --label flow-issue,<type>`. `flow tickets labels -- "label:flow-issue"` lists the types. A type already listed is a repeat. How to write one: `~/.flow/references/guides/issue-tickets.md`.
 - Something Flow built or chose broke where no hook sees it (a subagent that changed files and sent no change record, a skill's command that did nothing) → at once, one line in `~/.flow/logs/failures/<year>-<month>.jsonl`: `{"at":"<time>","source":"agent","what":"<what ran>","error":"<what went wrong>","project":"<folder>"}`
 - Anything else worth keeping, friction that repeated included → `flow notes new "…"`
 
@@ -174,7 +171,7 @@ Every answer. Write it in 3 steps, then run `### Before sending`.
 
 - **`a-heading-states-its-answer`** "The cache is the bottleneck", never "Cache performance" or "Is the cache the problem?"
 - **`recommend-never-enumerate`** Name the option to take, and what the others lose on.
-- **`show-the-data`** A file, a record or an output gets an example of what it holds, never a description alone.
+- **`show-the-data`** A file, a record or an output gets an example of what it holds, never a description alone. Show it as it would appear, formatted for the user to read at a glance, each block labelled for what it holds.
 - **`write-a-list-as-a-list`** One line per item, same grammar in each. A list over a table too.
 - **`one-idea-per-sentence`** Split on every `and`, `so`, `then` and joining dash. A sentence read twice gets rewritten.
 - **`name-it-never-point`** No `this feature`, `that approach`, `the same thing`, or `it` reaching back across a sentence boundary. Repeat the noun.

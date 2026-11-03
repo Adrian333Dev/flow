@@ -1,12 +1,17 @@
 /**
  * register.ts: every hook of Flow's permission mod. Every ask the rules and the guard leave open
  * goes to Claude Code's question dialog (features/dialog/), and each is logged (features/log/).
+ * The agent never sees the question tool the dialog runs on (features/hide-question-tool/).
  */
 import type { Register } from 'claude-code'
 import { askUser, setInteractive } from './features/dialog/ask'
 import { denyFor, takeVerdict, verdictKey } from './features/dialog/pane'
+import { hideQuestionTool } from './features/hide-question-tool/hide-question-tool'
 
 export const register: Register = (on) => {
+  hideQuestionTool(on)
+
+
   on('session.start', async (_$, e, next) => {
     setInteractive(e.isInteractive)
     return next(e)

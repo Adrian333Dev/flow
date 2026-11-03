@@ -132,6 +132,14 @@ function renderLines(raw, { full = false, thinking = false, results = new Map() 
 
     if (e.type === 'attachment' && e.attachment) {
       const a = e.attachment;
+      // Text a hook adds to a tool result or a prompt is its own row, never inside the tool_result.
+      if (a.type === 'hook_additional_context') {
+        const body = (Array.isArray(a.content) ? a.content : [a.content]).filter(Boolean).join('\n');
+        const head = `   + hook ${a.hookName || a.hookEvent || ''}`;
+        push(full ? wrap(head, body.slice(0, RESULT_CHARS) + (body.length > RESULT_CHARS ? '\n…' : ''))
+          : `${head}: ${trim(body.split('\n')[0], 160)}`);
+        continue;
+      }
       const file = a.path || a.displayPath || a.filename;
       if (file) push(`   + ${a.type}: ${file}`);
     }

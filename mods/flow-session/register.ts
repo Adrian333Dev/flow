@@ -9,15 +9,15 @@ import { helperEnded, helperStarted, setInteractive } from './shared/state'
 import { bandMock, bandShell, bandStart, bandToolCall, bandTurnComplete, bandTurnStart, drawBand } from './features/band/band'
 import { copyAll, copyLast, registerCopy, saveReply } from './features/copy/copy'
 import { mentionsFor } from './features/drag/drag'
-import { editLogTurnStarted, withEditLog } from './features/edit-log/edit-log'
-import { readLinks } from './features/edit-log/shipped'
-import { inSkillCall, withSkillWiki } from './features/guides/skill-wiki'
-import { steerStep, withGuideHeader } from './features/guides/steer-step'
+import { readLinks } from './features/triggers/checks/shipped'
+import { steerStep, withGuideHeader } from './features/triggers/engine/response'
+import { withMentionTriggers, withResultTriggers } from './features/triggers/engine/result'
+import { inSkillCall, withSkillTriggers } from './features/triggers/engine/skill'
+import { editLogTurnStarted } from './features/triggers/sends/edit-log'
 import { cancel as warmCancel, closeWarm, keepWarm, noteBroken, registerKeepWarm, replan, warmTranscript, warmTurnEnded, warmTurnStarted } from './features/keepwarm/keepwarm'
 import { logSwitch } from './features/meters/model-switch'
 import { drawMeters, metersMeasure, metersRead, metersRefresh, metersResumed, metersStart, metersStep, metersSwitch } from './features/meters/meters-row'
 import { listRows } from './features/notes/notes'
-import { withFileContext } from './features/ticket-context/ticket-context'
 import { countVisit } from './features/usage/visits'
 import {
   RESTART_CALL,
@@ -31,7 +31,9 @@ import {
   restartTurnEnded,
   restartTurnStarted,
   startPendingRestart,
+  usersOwn,
 } from './features/restart/restart'
+import { chatGuides } from './features/triggers/engine/message'
 import { freshCommand, registerFresh } from './features/restart/fresh'
 import { forgetAgent, measureAgent, wrapUp, wrapUpResult } from './features/wrap-up/wrap-up'
 
@@ -95,10 +97,13 @@ export const register: Register = (on) => {
     return next(mentions ? { ...e, inputText: mentions } : e)
   })
 
+  // The chat score (features/triggers/engine/message.ts) attaches guides to the user's own messages alone.
   on('prompt.submit', async ($, e, next) => {
     await noteAsked($, e)
     const line = await wrapUp($).catch(() => undefined)
-    return next(line ? { ...e, context: [...(e.context ?? []), line] } : e)
+    const guides = !e.command && usersOwn(e) ? await chatGuides($, e.text).catch((error) => void $.ui.log(`chat guides not sent: ${reasonOf(error)}`)) : undefined
+    const added = [...(line ? [line] : []), ...(guides ?? [])]
+    return next(added.length ? { ...e, context: [...(e.context ?? []), ...added] } : e)
   })
 
   on('tool.call', async ($, e, next) => {
@@ -110,21 +115,18 @@ export const register: Register = (on) => {
 
   on('tool.call', { tool: 'Skill' }, async (_$, e, next) => inSkillCall(e.agentId, () => next(e)))
 
-  // A ticket's header or a wiki folder's labels, beside the file read or mentioned.
-  // A failure passes the read through as it was: next(e) after a first call settles with that call's result.
+  // The triggers on a result (features/triggers/list.ts): a ticket's header, a wiki folder's labels, a shell read's guides, the edit log's line.
+  // A failure passes the call through as it was: next(e) after a first call settles with that call's result.
   // A read inside a wiki folder or a research topic counts a visit, never awaited into the read's result.
   on('tool.call', { tool: 'Read' }, async ($, e, next) => {
-    const path = (e as { file_path?: unknown }).file_path
     const done = await next(e)
-    if (done.deny === undefined && !done.isError) void countVisit($, path, e.agentId, e.tool_use_id)
-    return withFileContext($, path, e.agentId, done)
+    if (done.deny === undefined && !done.isError) void countVisit($, (e as { file_path?: unknown }).file_path, e.agentId, e.tool_use_id)
+    return withResultTriggers($, e, done)
   }).catch(async (_$, e, next) => next(e))
-  on('prompt.mention', async ($, e, next) => withFileContext($, e.path, e.agentId, await next(e)))
+  on('tool.call', { tool: /^(Bash|Edit|Write)$/ }, async ($, e, next) => withResultTriggers($, e, await next(e))).catch(async (_$, e, next) => next(e))
+  on('prompt.mention', async ($, e, next) => withMentionTriggers($, e.path, e.agentId, await next(e)))
 
-  // A landed edit of a loaded file Flow ships leaves an entry in the repo's edit log, and its result asks for the reason.
-  on('tool.call', { tool: /^(Edit|Write)$/ }, async ($, e, next) => withEditLog($, e as { file_path?: unknown; agentId?: string }, () => next(e)))
-
-  on('skill.prompt', async ($, e, next) => withSkillWiki($, e.frontmatter, await next(e)))
+  on('skill.prompt', async ($, e, next) => withSkillTriggers($, e.frontmatter, await next(e)))
 
   on('tool.call', { tool: RESTART_CALL }, async ($, e) => restartCall($, e)).catch(() => ({ deny: 'The restart hook failed, so nothing restarted.' }))
 

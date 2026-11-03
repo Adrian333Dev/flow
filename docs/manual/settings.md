@@ -228,6 +228,8 @@ Hooks are scripts Claude Code runs at a fixed moment, such as before every shell
   - Reading `~/.ssh` and `~/.aws`, the folders holding your keys.
   - `sudo`, `su`, `mkfs` and `--dangerously-skip-permissions`.
   - A subagent in a worktree of its own (`Agent(isolation:worktree)`): it starts without the project's `.flow` folder, so it would have no tickets.
+
+  The pick-list question tool (`AskUserQuestion`) is not on the list: Flow's permission dialog runs on it, and a deny would break the dialog. Flow's permission mod hides the tool from Claude instead, and refuses a call Claude makes anyway, so Claude asks you in plain text.
 - **`additionalDirectories`**: your Flow home counts as part of every project, so an edit there never asks.
 - **`Edit(//**/.flow/**)`**: an edit through a project's `.flow` link never asks. A project's tickets live in your Flow home and are reached through that link, and Claude Code asks before any write that leads outside the project unless one rule matches both the link and where it points.
 

@@ -525,3 +525,15 @@ test('--json prints the index rows with the coverage, on every view', () => {
   assert.strictEqual(kept.kept.length, 1);
   assert.deepStrictEqual(kept.gone, []);
 });
+
+test('read shows the text a hook added, as its own row: one line, or whole with --full', async () => {
+  const { renderLines } = await import('../read.ts');
+  const added = JSON.stringify(base('attachment', { attachment: {
+    type: 'hook_additional_context', hookName: 'tool.call', hookEvent: 'PostToolUse', toolUseID: 't1',
+    content: ['[Auto] Before planning a change to rules.md, follow this guide, references/guides/write-spec.md:\n\n# Write the spec'],
+  } }));
+  assert.strictEqual(renderLines([added]),
+    '   + hook tool.call: [Auto] Before planning a change to rules.md, follow this guide, references/guides/write-spec.md:');
+  assert.strictEqual(renderLines([added], { full: true }),
+    '   + hook tool.call\n  [Auto] Before planning a change to rules.md, follow this guide, references/guides/write-spec.md:\n  \n  # Write the spec');
+});

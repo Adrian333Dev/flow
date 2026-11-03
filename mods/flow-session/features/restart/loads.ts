@@ -8,7 +8,7 @@
  */
 import type { SessionMessage } from 'claude-code'
 import { FAKE_ID } from '../../shared/dialogue'
-import type { Link } from '../guides/skill-wiki'
+import type { Link } from '../triggers/sends/skill-wiki'
 
 export type Built = Pick<SessionMessage, 'role' | 'text' | 'toolUses' | 'toolResults'>
 

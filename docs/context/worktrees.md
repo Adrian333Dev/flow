@@ -1,6 +1,6 @@
 # Worktrees in this repo
 
-Read before making a worktree (`guides/worktrees.md`). Adapt each snippet to the job. `<wt>` is the worktree folder, `<main>` the main checkout.
+Read before making a worktree (`references/guides/worktrees.md`). Adapt each snippet to the job. `<wt>` is the worktree folder, `<main>` the main checkout.
 
 ## Set up
 

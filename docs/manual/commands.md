@@ -961,6 +961,7 @@ a1b2c3d4 turns 1-1 · transcript lines 1-10
 
 - **`--turns <range>`**: required, such as `412-460`, or `412` for one turn. A whole session is refused: it is too long to read at once.
 - **`--full`**: also print what each tool returned, up to 1,200 characters per call.
+- **`+ hook <name>`** lines: text a hook added beside a tool result or a prompt, such as a guide the mod sent. The first line by default, up to 1,200 characters with `--full`.
 - **`--thinking`**: also print the model's reasoning.
 
 ### `flow audit summary`

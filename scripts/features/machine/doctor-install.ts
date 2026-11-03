@@ -302,10 +302,10 @@ function checkSettings(clone, claude, catalog) {
 
 /** What only Flow reads. Claude Code never opens any of the 4. */
 function checkFlowHome(clone, flowHome) {
-  const problems = checkLinks(['scripts', 'guides', 'docs', 'prompts'].map((name) => ({
+  const problems = checkLinks(['scripts', 'references', 'docs', 'prompts'].map((name) => ({
     at: path.join(flowHome, name), target: path.join(clone, name), what: name,
   })));
-  return { name: paths.shorten(flowHome), problems, summary: 'scripts, guides, docs and prompts resolve into this clone' };
+  return { name: paths.shorten(flowHome), problems, summary: 'scripts, references, docs and prompts resolve into this clone' };
 }
 
 export { inspect, count, checkNames, checkAgents, checkClaude, checkSettings, checkFlowHome };

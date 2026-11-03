@@ -2,7 +2,7 @@
  * window.ts: builds the restarted window from the disk and the old conversation.
  *
  * Reads the files and skills the agent named, the tickets the session works and the `context.md`
- * sections of their open questions, and the guides those files need (features/guides/situations.ts),
+ * sections of their open questions, and the guides those files need (features/triggers/list.ts),
  * and hands the parts to first-message.ts. The old window's turns stay in the session's transcript,
  * where `flow audit` reads them.
  */
@@ -13,8 +13,10 @@ import { lastOf } from '../copy/copy'
 import { transcriptPath } from '../keepwarm/keepwarm'
 import { dialogueOf, readDialogueRows } from './dialogue'
 import { CAP, parseSpec, sectionLines, skillBody, slice, tokensOf, type Loaded } from './loads'
-import { entryFor, keyOf, keysOf } from '../guides/situations'
-import { linksFromFile, wikiText, withWiki } from '../guides/skill-wiki'
+import { entryFor } from '../triggers/list'
+import { keysOf } from '../triggers/engine/held'
+import { keyOf } from '../triggers/sends/guides'
+import { linksFromFile, wikiText, withWiki } from '../triggers/sends/skill-wiki'
 import { readTickets } from '../../shared/ticket'
 
 const bytes = (text: string) => new TextEncoder().encode(text).length
@@ -156,7 +158,7 @@ async function ancestorLoads($: EngineInterface, parents: readonly string[], roo
 }
 
 /**
- * The guides the window's files need (features/guides/situations.ts), each once, whole, from the Flow home.
+ * The guides the window's files need (features/triggers/list.ts), each once, whole, from the Flow home.
  * A guide the window already loads whole is left out, and so is one missing on disk.
  */
 async function guideLoads($: EngineInterface, files: readonly Loaded[], home: string): Promise<Loaded[]> {
@@ -176,7 +178,7 @@ async function guideLoads($: EngineInterface, files: readonly Loaded[], home: st
 }
 
 /**
- * The loads with each skill's wiki text after it (features/guides/skill-wiki.ts), as `skill.prompt` would add
+ * The loads with each skill's wiki text after it (features/triggers/sends/skill-wiki.ts), as `skill.prompt` would add
  * it: a restart writes the `Skill` call itself, so the event never fires. Held: the window's whole
  * reads, and the text added before.
  */

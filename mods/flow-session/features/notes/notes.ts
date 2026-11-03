@@ -6,7 +6,7 @@
  * notes, and `#board` narrows the list. `#t:board` lists tickets alone, `#n:board`
  * labels and notes alone. Taking a label row writes `#label`, and taking a note or
  * ticket row writes an `@` mention of its file, so a ticket's header comes with it
- * (ticket-context.ts).
+ * (triggers/sends/file-context.ts).
  *
  * A row's label is a short handle and its description carries the words, since the
  * engine lines the descriptions up after the longest label and cuts an overlong label

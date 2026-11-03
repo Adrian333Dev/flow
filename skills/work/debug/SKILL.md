@@ -13,7 +13,7 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 **On a ticket, read `reports/<failure>.md` before step 1**, if it exists. Resume at the first hypothesis nothing killed. Never restart the loop. No report → step 1.
 
-- **On a ticket** → `flow tickets start <id> --activity debug`, also where it is already `in-progress`. A worktree only where the user asks for one, by `~/.flow/guides/worktrees.md`.
+- **On a ticket** → `flow tickets start <id> --activity debug`, also where it is already `in-progress`. A worktree only where the user asks for one, by `~/.flow/references/guides/worktrees.md`.
 - **No ticket** → `flow tickets new "<what failed>" --label bug`, then the same command, before the first hypothesis.
 
 ## The loop
@@ -46,7 +46,7 @@ Usually it is one command you run yourself. Where the failure lives out of reach
 
 **Then close the ticket by that status:**
 
-- **`FIXED`** → `flow tickets done <id>` once the user confirms the fix, in a worktree after the user merged it, by `~/.flow/guides/worktrees.md` → `## Closing`, where the ticket has no parent and no open `## Tasks`. Otherwise report `FIXED` and stop: the parent session, or `/flow:execute`, closes it.
+- **`FIXED`** → `flow tickets done <id>` once the user confirms the fix, in a worktree after the user merged it, by `~/.flow/references/guides/worktrees.md` → `## Closing`, where the ticket has no parent and no open `## Tasks`. Otherwise report `FIXED` and stop: the parent session, or `/flow:execute`, closes it.
 - **`FOUND_NOT_FIXED`, `UNPROVEN`** → it stays `in-progress`. The user decides whether the hunt carries on, parks or drops.
 
 ### When the failure is somewhere you cannot reach
@@ -91,7 +91,7 @@ Stop fixing: the shape of the code is the cause. Name the structure that makes t
 
 **Brief it with two things**: the report's path, and the failing check. No ticket is made.
 
-`~/.flow/guides/subagents.md` says how a question it has reaches the user.
+`~/.flow/references/guides/subagents.md` says how a question it has reaches the user.
 
 **When a fix comes back, re-run the failing check yourself.** It passes → close the ticket by the rule above.
 
