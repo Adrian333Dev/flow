@@ -23,7 +23,8 @@ const DECAY = 0.5
 const TURNS = 3
 
 const FILE = new RegExp(String.raw`(?:^|[\s\x60'"(\[])((?:[\w.~-]+/)*[\w.-]+\.(?:md|${CODE_EXTENSIONS.join('|')}))(?=$|[\s\x60'"),.:;\]#])`, 'gm')
-const CHANGE = /\b(?:edit|chang|rewrit|rewor|updat|add|remov|cut|delet|propos|draft|fix|mov|renam|restructur|replac|trim|split|merg)\w*/i
+// A word of change inside a file name, such as `writing.md` or `lab/edit-log/`, is no word of change.
+const CHANGE = /(?<![-\w/.])(?:edit|chang|rewrit|rewor|updat|add|remov|cut|delet|propos|draft|fix|mov|renam|restructur|replac|trim|split|merg|writ|creat|build|implement)\w*(?![-\w/]|\.\w)/i
 const RULE_LINE = /^\s*- \*\*`[a-z0-9]+(?:-[a-z0-9]+)+`\*\*/m
 
 /** The files a text names, each once. A bare guide name is read as Flow's guide. */

@@ -16,6 +16,17 @@ describe('chatScores', () => {
     expect(likelyChanges([{ user: 'we should rewrite home/CLAUDE.md', agent: '' }])).toEqual([{ file: 'home/CLAUDE.md', score: 5 }])
   })
 
+  test('write, create, build and implement are words of change', () => {
+    for (const word of ['write', 'create', 'build', 'implement'])
+      expect(likelyChanges([{ user: `${word} skills/x/SKILL.md`, agent: '' }])).toEqual([{ file: 'skills/x/SKILL.md', score: 5 }])
+  })
+
+  test('a word of change inside a file name is none', () => {
+    expect(likelyChanges([{ user: 'what does writing.md say?', agent: '' }])).toEqual([])
+    expect(likelyChanges([{ user: 'look at lab/edit-log/home/CLAUDE.md.log.md', agent: '' }])).toEqual([])
+    expect(likelyChanges([{ user: 'read write-code.md', agent: '' }])).toEqual([])
+  })
+
   test('a drafted rule line counts for CLAUDE.md', () => {
     const turns = [
       { user: 'the agent keeps skipping reads', agent: 'Proposed:\n\n- **`read-before-acting`** Read the file first.\n' },
