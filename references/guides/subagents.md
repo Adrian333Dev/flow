@@ -24,7 +24,7 @@ A fresh subagent reads everything again, so it costs what its input weighs.
 
 - **One batch**: a unit of evidence, never a slice by size.
 - **A stopping point the brief names**: "stop after these 3 sources and write the file". Never a time limit.
-- **It writes its file as it goes.** It cannot restart. At 170k, the session limit, the mod sends it a message that replaces the brief's stopping point: it saves the sources read, the findings and what is left to its report files, then begins its reply with `UNFINISHED:` and their paths. Within a few steps of its final report it finishes instead, because a new agent costs about 4 requests of a full window. The brief needs no word on this.
+- **It writes its file as it goes.** It cannot restart, and the mod never tells it to stop: it finishes its job. A file written as it goes keeps the work if it fills its window.
 - **It starts another subagent only with a serious reason, stated in the brief.** A chain can be right. A chain nobody needed once passed one question up through 3 agents.
 - **It cannot ask the user.** A question it has ends its report. Ask, then resume the same subagent with `SendMessage` and the answer.
 - **A job that needs no rule file, such as a lookup or an idea generator** → a custom agent definition setting `omitClaudeMd: true`. It starts without every `CLAUDE.md`: cheaper, and free of this session's framing. Its tools and skills stay. Its brief carries every rule it needs. An `Agent` call alone cannot drop them.

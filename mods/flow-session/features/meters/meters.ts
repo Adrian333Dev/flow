@@ -10,7 +10,7 @@ import { kilo } from '../../shared/format'
 export type Tone = 'plain' | 'ok' | 'warn' | 'bad'
 
 /**
- * A piece of a value with a look of its own, such as the effort beside the model's name or the limit after the context.
+ * A piece of a value with a look of its own, such as the effort beside the model's name.
  * The pieces joined are the value. No `colour` means the meter's tone colour, an empty one the terminal's own.
  */
 export type Part = { text: string; colour?: string; dim?: boolean }
@@ -108,8 +108,8 @@ export function meters(reading: Reading, now: number): Meter[] {
   }
   if (reading.tokens !== undefined) {
     const used = reading.tokens / reading.limit
-    const parts: Part[] = [{ text: kilo(reading.tokens) }, { text: `/${kilo(reading.limit)}`, dim: true }]
-    found.push({ id: 'context', label: 'context', value: parts.map((part) => part.text).join(''), tone: used >= 1 ? 'bad' : used >= CONTEXT_WARN ? 'warn' : 'ok', parts })
+    // The figure alone: the mark it is read against shows only in its colour (the user, 2026-11-05).
+    found.push({ id: 'context', label: 'context', value: kilo(reading.tokens), tone: used >= 1 ? 'bad' : used >= CONTEXT_WARN ? 'warn' : 'ok' })
   }
   const five = reading.rates.find((rate) => rate.kind === 'five_hour')
   if (five) found.push(limitMeter('five', '5h', five, now))

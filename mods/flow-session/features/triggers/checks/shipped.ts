@@ -18,8 +18,8 @@ let known: { root: string; links: Link[] } = { root: '', links: [] }
 /** Sets what `shippedOf` resolves through. Session start calls it, and tests. */
 export const setLinks = (root: string, links: readonly Link[]) => void (known = { root, links: [...links].sort((a, b) => b.from.length - a.from.length) })
 
-/** The folders of the repo whose markdown agents load, and the repo's own `CLAUDE.md`. */
-const SHIPPED = /^(?:(?:home|project-template|references|prompts|skills)\/.+|CLAUDE)\.md$/
+/** The folders of the repo whose markdown agents load. The repo's own `CLAUDE.md` ships nowhere, and gets no log. */
+const SHIPPED = /^(?:home|project-template|references|prompts|skills)\/.+\.md$/
 
 /** The repo-relative path of any path inside the repo, by its own path or through a link, or undefined. */
 export function repoPathOf(path: string): string | undefined {

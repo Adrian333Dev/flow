@@ -3,7 +3,6 @@
 ## 2026-11-02 · 0. The path · add
 Ticket: fw-358
 Why: loaded text went through groundwork then `/flow:execute`, and the user agreed to summaries only; the real text and behaviour showed after they were written (session `9feb0e67`). The user: "I kind of need to see, like, what the fuck agent really proposes here." Removal first, but only after finding why a line was added: the user fears a line added for a real fault, its reason forgotten, cut by a compression pass.
-Trial: watch the next loaded-text change in this repo: is this section read before the first proposal, and is the behaviour shown on a real case before any text.
 
 ## 2026-11-03 · `propose-the-exact-text` · rewrite
 Ticket: fw-397
@@ -36,3 +35,23 @@ A table header carrying what each row would repeat. Dropped: a list is preferred
 (State the rule, cut the argument) - **Before:** "**`docs/` and `.flow/` both always exist**, project or not, repo or not. Paths are created on first write. `docs/` is the project's own: the spec, durable facts, fetched research, anything there before Flow. `.flow/` is Flow's working store: tickets, groundwork, the inbox, the handoff."
 - **After:** deleted. Every route under it names its own path.
 ```
+
+## 2026-11-05 · `show-the-behaviour-early` · remove
+Ticket: fw-408
+Why: "On a real case, before any text" pushed an invented case for a guide about code, and "the exchange before the change and after it" produced made-up before/after blocks. Merged into `show-before-writing`.
+Was:
+```md
+2. **`show-the-behaviour-early`** On a real case, before any text. A skill → what it outputs on the user's case. A rule → the exchange before the change and after it. Check: the user saw the behaviour before any text.
+```
+
+## 2026-11-05 · `propose-the-exact-text` · remove
+Ticket: fw-408
+Why: it did the same job as `show-the-behaviour-early`, split into cases per file type. The user: the rule got "too specific and too long"; the old text is now named by its section, never quoted. Merged into `show-before-writing`.
+Was:
+```md
+6. **`propose-the-exact-text`** The new text word for word. The old text word for word when short, its file and section when long. A new skill → the description and the section list first, then each section. A guide or a reference file → a summary of what changes, section by section, and the exact text only when the user asks.
+```
+
+## 2026-11-05 · `show-before-writing` · add
+Ticket: fw-408
+Why: one short step for both removed ones, approved by the user 2026-11-05. Placed after `state-the-problem`, so the text comes after the cut analysis.

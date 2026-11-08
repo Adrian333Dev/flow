@@ -5,13 +5,12 @@
 From the first message about the change, before the first proposal. Code takes its usual route.
 
 1. **`discuss`** Ask your own questions, push back, propose.
-2. **`show-the-behaviour-early`** On a real case, before any text. A skill → what it outputs on the user's case. A rule → the exchange before the change and after it. Check: the user saw the behaviour before any text.
-3. **`cut-before-adding`** First find why the line was added: its edit log entry, else `git log -S` and the ticket its commit names. Cut it when what it guarded is gone or another line covers it. No reason found → name what it seems to guard.
-4. **`see-how-others-solved-it`** Where that helps.
-5. **`state-the-problem`** The problem and the agreed behaviour, in a few lines. Check: the user confirmed them.
-6. **`propose-the-exact-text`** The new text word for word. The old text word for word when short, its file and section when long. A new skill → the description and the section list first, then each section. A guide or a reference file → a summary of what changes, section by section, and the exact text only when the user asks.
-7. **`write-what-was-agreed`** Exactly that. A decision made alone → one line in the reply.
-8. **`try-it-on-a-real-case`**
+2. **`cut-before-adding`** First find why the line was added: its edit log entry, else `git log -S` and the ticket its commit names. Cut it when what it guarded is gone or another line covers it. No reason found → name what it seems to guard.
+3. **`see-how-others-solved-it`** Where that helps.
+4. **`state-the-problem`** The problem and the agreed behaviour, in a few lines. Check: the user confirmed them.
+5. **`show-before-writing`** Show the new text before writing it, and name the section it replaces. A guide gets a summary instead. A skill also gets what it outputs on a real case.
+6. **`write-what-was-agreed`** Exactly that. A decision made alone → one line in the reply.
+7. **`try-it-on-a-real-case`**
 
 ## 1. Mark each piece
 

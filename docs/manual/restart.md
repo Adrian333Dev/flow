@@ -36,11 +36,17 @@ Near the context limit, Flow restarts the session in place: Flow's `flow-session
 
 ## Phase 1: the ask
 
-3 things start a restart, and each sends the agent one message ending in the restart guide:
+3 things start a restart, and each sends the agent one message ending in the restart guide. The first 2 come only in a build, when the badge of the ticket the session works now reads `BUILD`:
 
 - **At the limit**, 200,000 tokens by default ([`wrapUpAt`](settings.md#wrapupat)): `Context is large. Carry on. Restart at the next break: the work in hand finished, or the user turning to something new. Run capture first.` In a discussion, the break is your next message on another topic: the agent restarts before starting it, and your message carries over.
 - **At 100,000 past it**, with no restart yet: `Context is very large. Restart at the end of this step, discussion or not. Run capture first.`
 - **By hand**: a press of the green Restart button above the prompt (shown from 30,000 under the limit), or `/restart`: `Restart now:`. Words typed after `/restart` follow under `User:`.
+
+In every other phase, and with no ticket, the agent asks for no restart. It gets one line at the limit, with no guide:
+
+```md
+Context is large. Bring the ticket up to date with this window's decisions and findings. Never call restart: the user restarts by hand.
+```
 
 The guide, as the agent receives it, from `~/.flow/prompts/restart-guide.md`:
 
@@ -67,17 +73,7 @@ The new window holds only: the tickets in flight, the files and skills you name,
 6. Call `restart` last.
 ```
 
-A helper agent still running delays the restart until it finishes. A helper agent never restarts itself. At its own limit it gets this message instead:
-
-```md
-From the session that started you: your window is full, and this replaces the stopping point in your brief. Unless you are within a few steps of your final report, write what you learned to your report files now: the sources read, the findings, what is left to do. Then begin your reply with `UNFINISHED:` and the paths of those files.
-```
-
-At 100,000 past its limit:
-
-```md
-From the session that started you: stop now, whatever your brief says. Write what you learned to your report files and begin your reply with `UNFINISHED:` and their paths.
-```
+A helper agent still running delays the restart until it finishes. A helper agent never restarts itself, and gets no line at its own size: it finishes its job.
 
 ## Phase 2: the tool call
 
@@ -102,7 +98,7 @@ The agent first writes the window's decisions and findings into the ticket's `ti
 The tool's description, as the agent sees it in every request, one line per part:
 
 ```text
-restart   Restart this session, as the restart guide sent with the ask says. Call it last. A subagent never restarts: it saves its state to files and begins its reply with `UNFINISHED:`.
+restart   Restart this session, as the restart guide sent with the ask says. Call it last. A subagent never restarts: it finishes its job.
 message   Your note to the new window, in the order the restart guide gives.
 files     Files the next step works on: a path (whole file), `path#heading` (a markdown section), `path:from-to` (lines). A miss loads the whole file. With skills, 40k tokens at most.
 skills    Skills the new window starts with, such as `flow:execute`.

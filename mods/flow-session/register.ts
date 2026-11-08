@@ -35,7 +35,7 @@ import {
 } from './features/restart/restart'
 import { chatGuides } from './features/triggers/engine/message'
 import { freshCommand, registerFresh } from './features/restart/fresh'
-import { forgetAgent, measureAgent, wrapUp, wrapUpResult } from './features/wrap-up/wrap-up'
+import { wrapUp, wrapUpResult } from './features/wrap-up/wrap-up'
 
 export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {
@@ -147,7 +147,6 @@ export const register: Register = (on) => {
     await bandTurnComplete($, e)
     if (e.agentId !== undefined) {
       helperEnded(e.agentId)
-      forgetAgent(e.agentId)
       return done
     }
     void saveReply($).catch((error) => $.ui.log(`the reply was not saved: ${reasonOf(error)}`))
@@ -169,7 +168,7 @@ export const register: Register = (on) => {
   // Every request of the main loop refreshes the context meter, so a long turn shows its size as it grows.
   on('turn.step', async function* ($, e, next) {
     if (e.agentId === undefined) void metersRefresh($).catch(() => undefined)
-    yield* steerStep($, e.agentId, measureAgent(e.agentId, metersStep($, e, next(e))))
+    yield* steerStep($, e.agentId, metersStep($, e, next(e)))
   })
 
   on('classic.SessionStart', async ($, e, next) => {

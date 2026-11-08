@@ -8,7 +8,7 @@ metadata:
 
 # Audit
 
-Answer a question about how something behaved by counting it in the records: whether a Flow mechanism fires and the agent follows it, why one broke, where work wastes tokens and steps, whether a trial rule file still works. A guideline: adapt each point to the question.
+Answer a question about how something behaved by counting it in the records: whether a Flow mechanism fires and the agent follows it, why one broke, where work wastes tokens and steps. A guideline: adapt each point to the question.
 
 The records: past sessions through `flow audit`, the logs in `~/.flow/logs/`, ticket history, `git log`.
 

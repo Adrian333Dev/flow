@@ -33,7 +33,7 @@ let stopped: string | undefined
 export async function registerRestart($: EngineInterface): Promise<void> {
   await $.tool.register({
     name: 'restart',
-    description: 'Restart this session, as the restart guide sent with the ask says. Call it last. A subagent never restarts: it saves its state to files and begins its reply with `UNFINISHED:`.',
+    description: 'Restart this session, as the restart guide sent with the ask says. Call it last. A subagent never restarts: it finishes its job.',
     isDeferred: false,
     inputSchema: {
       type: 'object',
@@ -99,7 +99,7 @@ function readList(e: object, key: 'files' | 'skills'): string[] | undefined {
 
 /** The `restart` tool call: checks the note and the loads, records the restart, and ends the turn. */
 export async function restartCall($: EngineInterface, e: ToolCallInput): Promise<ToolCallResult> {
-  if (e.agentId !== undefined) return { deny: 'A subagent does not restart. Write what you learned to your report files and begin your reply with `UNFINISHED:` and their paths.' }
+  if (e.agentId !== undefined) return { deny: 'A subagent does not restart. Finish your job.' }
   const { turn, restart } = await readTracked($)
   if (restart) return { deny: 'A restart is already under way.' }
   const helpers = helpersRunning()

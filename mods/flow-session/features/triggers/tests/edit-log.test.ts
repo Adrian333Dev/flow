@@ -13,7 +13,7 @@ describe('shippedOf', () => {
   test('names the repo path of a shipped loaded file, by its own path or through a link', () => {
     setLinks(ROOT, LINKS)
     expect(shippedOf(`${ROOT}/home/CLAUDE.md`)).toBe('home/CLAUDE.md')
-    expect(shippedOf(`${ROOT}/CLAUDE.md`)).toBe('CLAUDE.md')
+    expect(shippedOf(`${ROOT}/CLAUDE.md`)).toBeUndefined()
     expect(shippedOf(`${HOME}/references/guides/writing.md`)).toBe('references/guides/writing.md')
     expect(shippedOf('/h/.claude/skills/flow/skills/execute/SKILL.md')).toBe('skills/work/execute/SKILL.md')
     expect(shippedOf(`${ROOT}/project-template/CLAUDE.md`)).toBe('project-template/CLAUDE.md')

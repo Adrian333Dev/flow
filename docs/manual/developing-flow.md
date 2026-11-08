@@ -30,7 +30,7 @@ lrwxrwxrwx 1 me me 22 Oct 18 00:08 /home/me/.flow/repos/flow -> /home/me/code/fl
 
 ## The edit log
 
-A change of approach in a markdown file Flow ships gets an entry in that file's own log: a rule that now has the agent act otherwise, or a rule removed. A rename, a rewording, or a line added because a Claude Code release changed a tool gets none. The log sits under `lab/edit-log/` at the same path with `.log.md` added: `home/CLAUDE.md` logs to `lab/edit-log/home/CLAUDE.md.log.md`. Shipped means `home/`, `project-template/`, `references/guides/`, `prompts/`, `skills/` and this repo's `CLAUDE.md`, reached directly or through `~/.flow/references` and the skill links. An agent in another project editing `~/.flow/references/guides/writing.md` writes the log here too. The personal copies, such as `~/.flow/CLAUDE.md`, get no log.
+A change of approach in a markdown file Flow ships gets an entry in that file's own log: a rule that now has the agent act otherwise, or a rule removed. A rename, a rewording, or a line added because a Claude Code release changed a tool gets none. The log sits under `lab/edit-log/` at the same path with `.log.md` added: `home/CLAUDE.md` logs to `lab/edit-log/home/CLAUDE.md.log.md`. Shipped means `home/`, `project-template/`, `references/guides/`, `prompts/` and `skills/`, reached directly or through `~/.flow/references` and the skill links. An agent in another project editing `~/.flow/references/guides/writing.md` writes the log here too. The personal copies, such as `~/.flow/CLAUDE.md`, get no log, and neither does this repo's own `CLAUDE.md`.
 
 The agent writes the entry, one per rule it changed in the turn. The mod only reminds it: the turn's first edit of such a file ends on a line naming the log and the guide, `references/guides/edit-log.md`, which gives the fields.
 
@@ -44,14 +44,13 @@ An entry, newest at the end of the log:
 ## 2026-11-01 · `agreed` · rewrite
 Ticket: fw-341
 Why: a hedge on a proposal was read as pushback, and the user asked for hedges to count as agreement.
-Trial: watch whether "mostly" replies still get asked for a yes.
 Was:
 ```md
 - **`agreed`** Everything you proposed that drew no pushback. Pushback: an objection, or another solution to the same problem.
 ```
 ````
 
-`Was` is the whole rule as it stood before, so a rule can be put back without searching git. A `Trial:` line marks a change you called a test. `/flow:upkeep` in this repo finds them and deletes the line once the change holds. A change that fails is reworded again, as a new entry. An edit made from the shell, such as `sed -i`, brings no reminder.
+`Was` is the whole rule as it stood before, so a rule can be put back without searching git. An edit made from the shell, such as `sed -i`, brings no reminder.
 
 ## Taking a newer Flow
 

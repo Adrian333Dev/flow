@@ -70,7 +70,7 @@ describe('remaining', () => {
 
 describe('meters', () => {
   test('draws the row of the mockup, in order', () => {
-    expect(text(meters(reading(), NOW))).toBe('opus 5.5 high │ context 142k/150k │ 5h 38% │ week 81% 2d4h │ cache 47m')
+    expect(text(meters(reading(), NOW))).toBe('opus 5.5 high │ context 142k │ 5h 38% │ week 81% 2d4h │ cache 47m')
   })
 
   test('a limit shows its reset only above 70%', () => {
@@ -101,7 +101,7 @@ describe('meters', () => {
   test('a meter with no figure is left out', () => {
     const list = meters({ limit: 150000, rates: [] }, NOW)
     expect(list).toEqual([])
-    expect(text(meters(reading({ effort: undefined, rates: [], coldAt: undefined }), NOW))).toBe('opus 5.5 │ context 142k/150k')
+    expect(text(meters(reading({ effort: undefined, rates: [], coldAt: undefined }), NOW))).toBe('opus 5.5 │ context 142k')
   })
 })
 
