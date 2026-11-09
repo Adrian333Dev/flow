@@ -22,10 +22,10 @@ No rule sends the agent to a guide: the mod is the only route.
 The first entry that matches wins. Every guide sits in `~/.flow/references/guides/`.
 
 - **`ticket`**: any file under a `tickets/` folder → `write-tickets.md`
-- **`knowledge`**: a `Write` of a `SKILL.md`, an edit of `.mcp.json`, or a `Bash` call running `claude plugin install`, `claude plugin enable` or `claude mcp add` → `knowledge.md`. A `SKILL.md` gets `writing.md`, `write-loaded-files.md` and `write-skills.md` instead. The call is held back like an edit until its guides are read.
+- **`knowledge`**: an edit of `.mcp.json`, or a `Bash` call running `claude plugin install`, `claude plugin enable` or `claude mcp add` → `knowledge.md`. The call is held back like an edit until its guides are read.
 - **`agent`**: an `Agent` call, starting a subagent → `subagents.md`. The call is held back until the guide is read.
-- **`rule-file`**: a `CLAUDE.md`, a `CLAUDE.local.md`, a file in `.claude/rules/` → `writing.md`, `write-loaded-files.md`, `write-rules.md`
-- **`loaded-file`**: a `.md` in a skill folder, `.claude/commands/`, `.claude/agents/`, `.claude/output-styles/`, Flow's `references/guides/`, a skill's `references/`, Flow's `prompts/` → `writing.md`, `write-loaded-files.md`
+- **`rule-file`**: a `CLAUDE.md`, a `CLAUDE.local.md`, a file in `.claude/rules/` → nothing. `/flow:write-instructions` covers it.
+- **`loaded-file`**: a `.md` in a skill folder, `.claude/commands/`, `.claude/agents/`, `.claude/output-styles/`, Flow's `references/guides/`, a skill's `references/`, Flow's `prompts/` → nothing, for the same reason. The entry stops such a file falling through to `markdown`.
 - **`spec`**: a `.md` in `docs/spec/` → `writing.md`, `write-spec.md`
 - **`wiki`**: a `.md` in `~/.flow/wiki/` → `writing.md`, `wiki.md`
 - **`markdown`**: any other `.md`, `docs/manual/` included → `writing.md`
@@ -57,12 +57,12 @@ With nothing after the edit, the line ends `Read this guide, then make it again.
 
 ## A shell read of a matched file
 
-A `grep`, `rg`, `cat`, `head`, `tail`, `sed -n`, `awk`, `less` or `bat` runs as it would. Once its result is in, the mod attaches the guides of each file the output shows to that result. For a grep, those are the files named at the start of its output lines. Otherwise they are the files the command names. A listing (`grep -l`, `-c`, `-q`) or an empty output brings nothing. Here is what the agent reads after `grep -n "## 6" references/guides/writing.md`, once per guide:
+A `grep`, `rg`, `cat`, `head`, `tail`, `sed -n`, `awk`, `less` or `bat` runs as it would. Once its result is in, the mod attaches the guides of each file the output shows to that result. For a grep, those are the files named at the start of its output lines. Otherwise they are the files the command names. A listing (`grep -l`, `-c`, `-q`) or an empty output brings nothing. Here is what the agent reads after `grep -n "### Guides" docs/spec/rules.md`, once per guide:
 
 ```text
-[Auto] Before planning a change to writing.md, follow this guide, references/guides/write-loaded-files.md:
+[Auto] Before planning a change to rules.md, follow this guide, references/guides/write-spec.md:
 
-# Write a file an agent loads
+# Write the spec
 …
 ```
 
@@ -110,16 +110,16 @@ The restart window loads the tickets in flight and the files the agent named, wi
 
 ## Guides sent from the chat
 
-When you send a message, the mod reads the last 3 turns of the conversation, yours and the agent's, and scores each file they name. A file named alone scores 3. Named in a message that also says to change something (edit, rewrite, remove and the like), it scores 5. A reply of the agent's that drafts a rule line such as ``- **`read-first`** …`` scores 5 for `CLAUDE.md`. A turn back counts half. At 5 the file's guides ride along with your message, as with a shell read:
+When you send a message, the mod reads the last 3 turns of the conversation, yours and the agent's, and scores each file they name. A file named alone scores 3. Named in a message that also says to change something (edit, rewrite, remove and the like), it scores 5. A turn back counts half. At 5 the file's guides ride along with your message, as with a shell read:
 
 ```text
-[Auto] Before planning a change to CLAUDE.md, follow this guide, references/guides/write-rules.md:
+[Auto] Before planning a change to rules.md, follow this guide, references/guides/write-spec.md:
 
-# Writing a rule
+# Write the spec
 …
 ```
 
-"we should rewrite home/CLAUDE.md" sends them. "what does home/CLAUDE.md say?" does not. Each guide goes once per conversation.
+"we should rewrite docs/spec/rules.md" sends them. "what does docs/spec/rules.md say?" does not. Each guide goes once per conversation.
 
 ## The load log
 

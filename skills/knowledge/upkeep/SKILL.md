@@ -109,4 +109,4 @@ Make it a skill instead where a script has to run, or after the agent skipped th
 
 ## Building or reshaping a skill
 
-**Read `~/.flow/references/guides/write-skills.md`** before creating or restructuring one.
+**Run `/flow:write-instructions`** to create or restructure one.

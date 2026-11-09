@@ -37,9 +37,9 @@ The user says what to read in their own words: "this window", "this and the prev
 One block per moment, oldest first, then one line counting the verdicts:
 
 ```text
-turn 6 · references/guides/writing.md § 6, the show-the-data rule
-  needed   writing.md, write-loaded-files.md, write-rules.md
-  loaded   none: § 6 grepped, no guide sent
+turn 6 · docs/spec/rules.md, the guides section
+  needed   writing.md, write-spec.md
+  loaded   none: the section grepped, no guide sent
   verdict  missed · the trigger
   signal   "rewrite" beside a guide path, in the agent's own reply
 ```

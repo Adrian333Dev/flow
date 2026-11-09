@@ -1,10 +1,10 @@
 # Skills
 
-How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 12, typed `/flow:<name>`. 3 of them are the phases, the 3 kinds of work.
+How Flow's skills are shaped and installed, and how outside skills join them. A skill is a folder holding a `SKILL.md` that Claude Code loads when the user types its name or the agent judges it fits. Flow ships 13, typed `/flow:<name>`. 3 of them are the phases, the 3 kinds of work.
 
 ## Scope
 
-- **In**: Flow's 12 skills and what each does, the 3 phases, `/flow:handoff`, how skills install, outside skills and how they are used, overlays and arguments.
+- **In**: Flow's 13 skills and what each does, the 3 phases, `/flow:handoff`, how skills install, outside skills and how they are used, overlays and arguments.
 - **Out**: the `#` ticket list and the ticket header, in `docs/spec/tickets.md`. `/flow:research`, the wiki and how `/flow:upkeep` routes a finding, in `docs/spec/knowledge-base.md`. `/flow:visualize`, in `docs/spec/drawing.md`. The checks `/flow:upkeep` writes, in `docs/spec/rules.md`.
 
 ## Where a skill lives
@@ -12,7 +12,8 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 ```text
 ~/.flow/repos/flow/skills/                 Flow's skills, the one real copy
 ├─ work/        groundwork, tickets-from-spec,
-│               execute, review-code, debug
+│               execute, review-code, debug,
+│               write-instructions
 ├─ techniques/  visualize
 ├─ knowledge/   research, audit, upkeep, triggers-check
 └─ session/     start, handoff
@@ -30,7 +31,7 @@ How Flow's skills are shaped and installed, and how outside skills join them. A 
 
 ### Flow's skills
 
-- `V1` **12 skills in 4 groups, by what a skill does** (`fw-233` 0.4.0, 2026-10-27): `work/`, the steps that move a ticket (`groundwork`, `tickets-from-spec`, `execute`, `review-code`, `debug`); `techniques/`, a way of thinking used in any step (`visualize`); `knowledge/`, what Flow knows, gathered and kept (`research`, `audit`, `upkeep`, `triggers-check`); `session/`, starting and handing over a session (`start`, `handoff`). The group only files a skill: it is typed `/flow:<name>` either way. Why: a new skill's group is plain before it is written. Refused: `phases/` and `tools/`, where `tools/` held 9 unrelated skills and a skill is no tool in Claude Code's sense. Refused: groups by job (`design/`, `build/`), which `visualize` fits badly. Refused: one flat folder, since many skills are coming.
+- `V1` **13 skills in 4 groups, by what a skill does** (`fw-233` 0.4.0, 2026-10-27): `work/`, the steps that move a ticket (`groundwork`, `tickets-from-spec`, `execute`, `review-code`, `debug`, `write-instructions`); `techniques/`, a way of thinking used in any step (`visualize`); `knowledge/`, what Flow knows, gathered and kept (`research`, `audit`, `upkeep`, `triggers-check`); `session/`, starting and handing over a session (`start`, `handoff`). The group only files a skill: it is typed `/flow:<name>` either way. Why: a new skill's group is plain before it is written. Refused: `phases/` and `tools/`, where `tools/` held 9 unrelated skills and a skill is no tool in Claude Code's sense. Refused: groups by job (`design/`, `build/`), which `visualize` fits badly. Refused: one flat folder, since many skills are coming.
 - `V1` **Every skill is typed `/flow:<name>`, and no folder or `name` carries the prefix.** `skills/.claude-plugin/plugin.json` names the set `flow`, and Claude Code adds the prefix as the skill loads. Decided 2026-09-18: bare, `setup`, `help` and `migrate` claimed ground on a machine with other skills.
 - `V1` **Every skill is always on**: `flow install` links each one, and nothing switches one off.
 - `V1` **5 skills only the user can start**: `/flow:review-code`, `/flow:start`, `/flow:tickets-from-spec`, `/flow:triggers-check` and `/flow:upkeep`, each `disable-model-invocation: true`. `home/CLAUDE.md` → `user-only-skills` names all but `/flow:review-code`, so the agent suggests them and knows they exist when the user names one (`/flow:triggers-check` added 2026-11-04).
@@ -69,6 +70,7 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 - `V1` **`/flow:upkeep` folds closed tickets, notes, findings and the failure log into the wiki, rules and skills**, user only. It shows one plan and stops, then writes, through `~/.flow/references/guides/knowledge.md` and `references/write-checks.md`. It also reads `flow audit summary` for tickets that looped or ran long.
 - `next` **`/flow:upkeep` stays the periodic sweep, and `/flow:file` is a separate closing step per ticket** (`fw-204`, 2026-10-24). Upkeep consolidates, prunes, flags stale pages and changes existing text, so it keeps its plan, the user's yes and its user-only flag. `/flow:file` only routes one ticket's lessons into new files and lines, so the agent runs it at done, park and drop (`docs/spec/tickets.md`). Upkeep then reads what piled up, never closed tickets whole. Its sources change: the index and `context.md` replace `map.md`, decision files and `## State`.
   - Refused: one skill with two scopes, `/flow:upkeep <id>` and `/flow:upkeep`. The two read as the same command, and a closing step must not start rewriting skills.
+- `V1` **`/flow:write-instructions` writes and changes the text an agent loads**: skills, rule files, guides, hooks' prompts (`fw-425`, the user 2026-11-08). 7 ordered steps, each sized by the job: read what exists, state the problem, write the cases, design, show the exact text, land it, check it later. It replaces `/flow:groundwork` and `/flow:execute` for such a change. `docs/spec/rules.md` → `### Writing a rule` says why.
 - `V1` **`/flow:review-code` loads a criteria file**, user only: `references/guides/review-code.md` for the code a session changed. Review runs in the same session, never a subagent.
 - `never` **`/flow:write-spec`, a user-only skill loading `write-spec.md`.** Retired 2026-11-04 by the user: never typed, and a guide can be `@`-mentioned directly. The mod sends `write-spec.md` on every spec edit, and `/flow:groundwork` names `write-new-spec.md` for a spec written whole. The skill is in `lab/archive/write-spec-skill/`.
 - `V1` **`/flow:audit` answers a question about how something behaved, from the records** (`fw-290`, the user 2026-10-25): sessions through `flow audit`, the logs in `~/.flow/logs/`, ticket histories, `git log`. A guideline the agent adapts to the question, with 2 hard rules: the question, with what a yes, a no and the baseline look like, is written before any data is read; and no conclusion stands on cases read without a count over every case. It writes `reports/<question>.md`, opening `ANSWERED`, `TOO_EARLY` or `NO_RECORD`, on the ticket it runs on, or one it makes labelled `audit`. A failure found becomes a ticket; a fault with no known cause goes to `/flow:debug`. A raw transcript is read only for what the index does not store. Its wiki folder, `audit/`, is linked `load`. Why: such questions come often (a broken restart, whether an added guide is followed, waste in builds, a trial `CLAUDE.md`), and naming the command gave the records but no method.
@@ -137,7 +139,7 @@ Closed at 3, set by the user. Prototype was the fourth, until it became a step i
 - **`scripts/features/skills/skills.ts`**: the skill catalog and what installs.
 - **`scripts/hooks/overlays.ts`**: the overlays.
 - **`references/guides/knowledge.md`**: used whole or harvested, how each piece arrives, and the order for reaching a service. Read by `/flow:research`, and sent by the mod on a plugin or MCP install.
-- **`references/guides/write-skills.md`**: how a skill is written: its folder, its files, its frontmatter, reshaping it. Sent by the mod on a written `SKILL.md`, and read by `/flow:upkeep` before it builds a skill. Split out of `knowledge.md` 2026-11-04 (`fw-397`): the guides now arrive by trigger, so a skill write gets only the half it needs. Refused: the merged file of 2026-10-26 (`fw-284`), whose reason was one file for 3 readers, `read-before-adding` among them, a rule since removed.
+- **`skills/work/write-instructions/references/shapes.md`** → `## Skills`: how a skill is written: its folder, its files, its frontmatter, reshaping it. Was `references/guides/write-skills.md` until 2026-11-08 (`fw-425`), archived in `lab/archive/write-guides/`.
 
 ## What passes between them
 

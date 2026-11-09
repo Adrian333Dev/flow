@@ -48,8 +48,8 @@ describe('entryFor', () => {
 describe('knowledge', () => {
   const write = (file_path: string): Call => ({ tool: 'Write', input: { file_path, content: 'x' } })
 
-  test('a written skill, an edited .mcp.json and an install command take the entry, an edited skill does not', () => {
-    expect(entryFor(write('/w/.claude/skills/a/SKILL.md'))?.id).toBe('knowledge')
+  test('an edited .mcp.json and an install command take the entry, a written or edited skill does not', () => {
+    expect(entryFor(write('/w/.claude/skills/a/SKILL.md'))?.id).toBe('loaded-file')
     expect(entryFor(edit('/w/.mcp.json'))?.id).toBe('knowledge')
     expect(entryFor(bash('claude plugin install x@y --scope project'))?.id).toBe('knowledge')
     expect(entryFor(bash('cd w && claude mcp add ctx -- npx ctx'))?.id).toBe('knowledge')
@@ -57,9 +57,8 @@ describe('knowledge', () => {
     expect(entryFor(bash('claude plugin list'))).toBeUndefined()
   })
 
-  test('a written skill gets the writing guides beside write-skills.md', () => {
-    const plan = planFor([write('/w/.claude/skills/a/SKILL.md')], new Set())
-    expect(sent(plan)).toEqual(['references/guides/writing.md', 'references/guides/write-loaded-files.md', 'references/guides/write-skills.md'])
+  test('a written skill gets no guide, and nothing is held', () => {
+    expect(planFor([write('/w/.claude/skills/a/SKILL.md')], new Set())).toEqual({ held: [], added: [], notes: new Map() })
   })
 
   test('an install command is held back until knowledge.md is read', () => {
@@ -88,10 +87,10 @@ describe('shell-write', () => {
     expect(planFor([bash(sed)], new Set(['read:references/guides/write-tickets.md']))).toEqual({ held: [], added: [], notes: new Map() })
   })
 
-  test('a ticket and a test file in one command bring both guides, a rule file the rule guides', () => {
+  test('a ticket and a test file in one command bring both guides, a rule file none', () => {
     const both = ["python3 - <<'EOF'", "a='.flow/tickets/321/ticket.md'", "b='features/usage/visits.test.ts'", "open(a,'w').write('x')", "open(b,'w').write('y')", 'EOF'].join('\n')
     expect(sent(planFor([bash(both)], new Set()))).toEqual(['references/guides/write-tickets.md', 'references/guides/write-code.md'])
-    expect(sent(planFor([bash(`sed -i 's/a/b/' home/CLAUDE.md`)], new Set()))).toEqual(['references/guides/writing.md', 'references/guides/write-loaded-files.md', 'references/guides/write-rules.md'])
+    expect(sent(planFor([bash(`sed -i 's/a/b/' home/CLAUDE.md`)], new Set()))).toEqual([])
   })
 })
 
@@ -110,7 +109,7 @@ describe('windowKeys', () => {
         { type: 'tool_use', id: 'a', name: 'Read', input: { file_path: '/h/.flow/references/guides/writing.md' } },
         { type: 'tool_use', id: 'b', name: 'Read', input: { file_path: '/h/.flow/references/guides/write-spec.md', offset: 40, limit: 10 } },
         { type: 'tool_use', id: 'c', name: 'Bash', input: { command: 'flow audit --help' } },
-        { type: 'tool_use', id: 'd', name: 'Read', input: { file_path: '/h/.flow/references/guides/write-rules.md' } },
+        { type: 'tool_use', id: 'd', name: 'Read', input: { file_path: '/h/.flow/references/guides/write-tickets.md' } },
       ] },
       { content: [{ type: 'tool_result', tool_use_id: 'a' }, { type: 'tool_result', tool_use_id: 'b' }, { type: 'tool_result', tool_use_id: 'c' }] },
     ])
@@ -118,9 +117,9 @@ describe('windowKeys', () => {
   })
 
   test('counts a guide attached to a shell read, so a later edit runs', () => {
-    const keys = windowKeys([{ content: [{ type: 'text', text: `${attachedLine('home/CLAUDE.md', 'write-rules.md')}\n\n# Write rules` }] }])
-    expect([...keys]).toEqual(['read:references/guides/write-rules.md'])
-    expect(planFor([edit('/w/.claude/rules/a.md')], new Set([...keys, 'read:references/guides/writing.md', 'read:references/guides/write-loaded-files.md'])).held).toEqual([])
+    const keys = windowKeys([{ content: [{ type: 'text', text: `${attachedLine('docs/spec/a.md', 'write-spec.md')}\n\n# Write the spec` }] }])
+    expect([...keys]).toEqual(['read:references/guides/write-spec.md'])
+    expect(planFor([edit('/w/docs/spec/a.md')], new Set([...keys, 'read:references/guides/writing.md'])).held).toEqual([])
   })
 })
 
@@ -140,7 +139,7 @@ describe('planFor', () => {
 
   test('3 files in one response share their guides', () => {
     const plan = planFor([read('/w/home/CLAUDE.md'), read('/w/skills/a/SKILL.md'), read('/w/docs/spec/a.md')], new Set())
-    expect(sent(plan)).toEqual(['references/guides/writing.md', 'references/guides/write-loaded-files.md', 'references/guides/write-rules.md', 'references/guides/write-spec.md'])
+    expect(sent(plan)).toEqual(['references/guides/writing.md', 'references/guides/write-spec.md'])
   })
 
   test('a code file gets the code guide once a window, never per file', () => {

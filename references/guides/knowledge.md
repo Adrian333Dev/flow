@@ -33,7 +33,7 @@ Found by `/flow:research`, or already on the machine when setup runs. Never swit
 - **Knowledge or process.** A skill with its own work order, such as "Analyze, Design, Implement, Verify", competes with `/flow:execute`.
 - **What the agent gets wrong without it.** Only that part earns context. General engineering the agent already knows does not.
 - **Where the user would disagree.** Each disagreement is a line to rewrite or drop.
-- **The description.** `~/.flow/references/guides/write-loaded-files.md` → `## 6. Frontmatter descriptions` holds the bar.
+- **The description.** `/flow:write-instructions` → `references/shapes.md` → `### Frontmatter` holds the bar.
 
 Install counts and stars only pick which 3 to read.
 

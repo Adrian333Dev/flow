@@ -35,7 +35,6 @@ Flow: an agentic development workflow for a solo developer.
 
 ## Writing files
 
-- **`check-before-adding`** Before adding a rule, preference, section or line to a loaded file, read what is there. Something already covering it → rewrite that in place, where it fires. A rule that exists but didn't fire → a Flow failure: change its place or shape before adding. A loaded rule it could contradict → name it, say which wins. Never a second copy.
 - **`name-for-content`** Name a file or folder for what it holds: short, plain words. No abbreviation a reader has to expand.
 - **`standard-terminology`** Name a field, a function, a variable, a class or a command with the word most codebases already use: `type`, never `kind`, and `action`, never `verb`. Invent a term only where no standard one exists.
 - **`never-hand-write-generated`** Dependencies → the package manager's add / remove / update. Scaffolds → the official `create-*` or `init` CLI.

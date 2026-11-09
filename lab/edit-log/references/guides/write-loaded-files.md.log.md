@@ -55,3 +55,8 @@ Was:
 ## 2026-11-05 · `show-before-writing` · add
 Ticket: fw-408
 Why: one short step for both removed ones, approved by the user 2026-11-05. Placed after `state-the-problem`, so the text comes after the cut analysis.
+
+## 2026-11-08 · write-loaded-files.md · remove
+Ticket: fw-425
+Why: folded into `/flow:write-instructions` and its `references/shapes.md`. The hook no longer attaches it.
+Was: the whole file, kept verbatim in `lab/archive/write-guides/write-loaded-files.md`.

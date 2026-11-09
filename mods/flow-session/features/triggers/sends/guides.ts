@@ -9,13 +9,10 @@ export type Send = { tool: 'Read'; path: string } | { tool: 'Bash'; command: str
 /** Every guide an entry sends, in Flow's `references/guides/`. */
 export const GUIDES = [
   'writing.md',
-  'write-loaded-files.md',
-  'write-rules.md',
   'write-spec.md',
   'write-new-spec.md',
   'write-tickets.md',
   'knowledge.md',
-  'write-skills.md',
   'write-code.md',
   'edit-log.md',
   'wiki.md',

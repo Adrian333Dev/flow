@@ -16,6 +16,8 @@ Each phase works on one ticket. Type the phase, then `#shop-7`, and take the tic
 - **`/flow:execute`**: build one ticket, from its plan through review.
 - **`/flow:debug`**: find a bug's cause from evidence, prove it, then fix it.
 
+`/flow:write-instructions` takes the place of the phases for a change to a rule, a skill, a guide or a hook's prompt. It reads what exists, says the problem in its own words, lists the cases for you to correct, and shows you the exact text before writing it.
+
 ## Tools
 
 - **`/flow:start`** (only you can start it): open a session on the board, or on one ticket. Bare, it shows the board and recommends what to work on. With a ticket, `/flow:start @.flow/tickets/7/ticket.md`, it picks the phase the ticket needs.

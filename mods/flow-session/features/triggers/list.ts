@@ -130,10 +130,9 @@ export const TRIGGERS: readonly Trigger[] = [
     id: 'knowledge',
     on: 'response',
     when: (call) =>
-      (call.tool === 'Write' && pathOf(call).endsWith('/SKILL.md')) ||
       (['Edit', 'Write'].includes(call.tool) && pathOf(call).endsWith('/.mcp.json')) ||
       /(?:^|[\s;&|(`])claude\s+(?:plugin\s+(?:install|enable)|mcp\s+add)\b/.test(commandOf(call)),
-    send: (call) => (call.tool === 'Bash' || !markdown(call) ? guides('knowledge.md') : guides('writing.md', 'write-loaded-files.md', 'write-skills.md')),
+    send: () => guides('knowledge.md'),
     why: guideWhy,
     holds: true,
   },
@@ -149,14 +148,15 @@ export const TRIGGERS: readonly Trigger[] = [
     id: 'rule-file',
     on: 'response',
     when: (call) => markdown(call) && (/\/CLAUDE(\.local)?\.md$/.test(pathOf(call)) || /\/\.claude\/rules\//.test(pathOf(call))),
-    send: () => guides('writing.md', 'write-loaded-files.md', 'write-rules.md'),
+    // Loaded text gets no guide: /flow:write-instructions covers it, and attached guides went unfollowed (fw-425).
+    send: () => [],
     why: guideWhy,
   },
   {
     id: 'loaded-file',
     on: 'response',
     when: (call) => markdown(call) && !inEditLog(call) && /\/skills\/|\/\.claude\/(commands|agents|output-styles)\/|\/references\/|\/prompts\//.test(pathOf(call)),
-    send: () => guides('writing.md', 'write-loaded-files.md'),
+    send: () => [],
     why: guideWhy,
   },
   {

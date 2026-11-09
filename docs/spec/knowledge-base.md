@@ -192,7 +192,7 @@ The harvest reads raw reports or an outside skill, and writes what holds into wi
 - **`skills/knowledge/research/scripts/fetch-docs.sh`**: downloads into a tool's `downloads/` from any folder. `--package` or `--repo` names where the latest release is read, and `--clone` clones or pulls the source into `downloads/repo/`.
 - **`home/CLAUDE.md` → `## Capture`**: where each kind of knowledge goes. **`## Reading`**: work against an outside tool starts from its wiki folder.
 - **`skills/knowledge/upkeep/SKILL.md`**: the routing from closed tickets, notes and findings to their homes.
-- **`~/.flow/references/guides/knowledge.md`**: the map of what an agent draws on past the rules, read before taking on an outside skill, a plugin or an MCP server. How a skill is written is `write-skills.md`.
+- **`~/.flow/references/guides/knowledge.md`**: the map of what an agent draws on past the rules, read before taking on an outside skill, a plugin or an MCP server. How a skill is written is `/flow:write-instructions`.
 
 ## What passes between them
 

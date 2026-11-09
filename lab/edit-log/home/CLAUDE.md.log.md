@@ -181,3 +181,11 @@ A design, a plan, a mechanism, a diff across files.
 - **`find-it-mid-walk`** A missing step never shows on the page.
 - **`small-things-skip-the-walk`** A rename, a fact, a one-line answer, a one-part fix: none of this.
 ````
+
+## 2026-11-08 · `check-before-adding` · remove
+Ticket: fw-425
+Why: moved into `/flow:write-instructions`, steps 1, 2 and 4, as the cut pass of 2026-11-07 planned ("stays until the writing skill lands, then moves into it"). Both copies.
+Was:
+```md
+- **`check-before-adding`** Before adding a rule, preference, section or line to a loaded file, read what is there. Something already covering it → rewrite that in place, where it fires. A rule that exists but didn't fire → a Flow failure: change its place or shape before adding. A loaded rule it could contradict → name it, say which wins. Never a second copy.
+```

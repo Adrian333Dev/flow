@@ -44,15 +44,14 @@ describe('filesShown', () => {
 
 describe('guidesFor', () => {
   test('each file takes the guides an edit of it would, each once', () => {
-    expect(guidesFor(['home/CLAUDE.md', 'skills/a/SKILL.md'])).toEqual([
-      { file: 'home/CLAUDE.md', guide: 'writing.md' },
-      { file: 'home/CLAUDE.md', guide: 'write-loaded-files.md' },
-      { file: 'home/CLAUDE.md', guide: 'write-rules.md' },
+    expect(guidesFor(['docs/spec/a.md', 'docs/spec/b.md', 'docs/manual/c.md'])).toEqual([
+      { file: 'docs/spec/a.md', guide: 'writing.md' },
+      { file: 'docs/spec/a.md', guide: 'write-spec.md' },
     ])
   })
 
-  test('a slice of a guide brings that guide whole, with the loaded-file guide', () => {
-    expect(guidesFor(['references/guides/writing.md']).map((g) => g.guide)).toEqual(['writing.md', 'write-loaded-files.md'])
+  test('loaded text brings no guide: a rule file, a skill, a guide', () => {
+    expect(guidesFor(['home/CLAUDE.md', 'skills/a/SKILL.md', 'references/guides/writing.md'])).toEqual([])
   })
 
   test('a data file brings nothing, a code file the code guide', () => {
