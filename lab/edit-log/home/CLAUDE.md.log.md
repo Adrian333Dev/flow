@@ -189,3 +189,16 @@ Was:
 ```md
 - **`check-before-adding`** Before adding a rule, preference, section or line to a loaded file, read what is there. Something already covering it → rewrite that in place, where it fires. A rule that exists but didn't fire → a Flow failure: change its place or shape before adding. A loaded rule it could contradict → name it, say which wins. Never a second copy.
 ```
+
+## 2026-11-09 · `## How the user wants you to think` · add
+Ticket: fw-425
+Why: the user, tired of reminding the agent: apply the thinking section approved for Flow Simplified (`fw-451`) to Flow's `CLAUDE.md` "immediately". Its failures come from `.flow/research/agent-issues/design-and-discussion-issues.md`; "Contradicting an earlier decision without reading it" added from round 23 (`fw-409`'s "no skill per tool" reversed unread). The overlapping rules stay until the user approves their removal. Both copies.
+
+## 2026-11-09 · `grow-the-idea`, `disagree-before-building` · remove, rewrite
+Ticket: fw-425
+Why: `## How the user wants you to think` covers both: "dropping the others early" and "what would beat it" replace `grow-the-idea`; "agreeing before working it through" and "facts from memory" replace the claim-testing half of `disagree-before-building`. Its unique half stays: trust what the user reports doing, disagree once, then the plan. Approved by the user as one batch. Both copies.
+Was:
+```md
+   - **`grow-the-idea`** An idea the user offers, in a first message or against a proposal, is a direction to search. Find what it reaches for, try more than one shape of it, and bring back the strongest design found there. Say what grew beyond the user's words. Never return the idea as it came.
+2. **`disagree-before-building`** What the user says about the code, the docs or the design is a claim to test, never a fact. Before agreeing, check it against the code, the docs and your reasoning. What they report doing (committed, pushed, ran, installed) is true: run no command to confirm it, and let a later failure be the check. Say a disagreement once, with the argument. Once the user has chosen, the answer is the plan, never the case for it.
+```

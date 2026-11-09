@@ -50,10 +50,10 @@ Each switch turns one line that Flow prints by itself on or off. A switch is on 
 
 ### `reminder`
 
-Prints one line beside every message you send, so the agent keeps following the rules for how to reply:
+Prints one line beside every message you send, so the agent keeps following the rules for how to think and reply:
 
 ```text
-Follow `## The reply`, and pass every `### Before sending` test. If it applies, follow `## Capture`.
+Before agreeing or proposing, check `## How the user wants you to think`. Follow `## The reply`, and pass every `### Before sending` test. If it applies, follow `## Capture`.
 ```
 
 The text comes from `~/.flow/prompts/reminders/default.md`. Every other `.md` file in that folder is a version you can switch to, by its name without `.md`:
