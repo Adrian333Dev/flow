@@ -1,5 +1,5 @@
 {
-  "cleanupPeriodDays": 60,
+  "cleanupPeriodDays": 3650,
   "idleCompaction": false,
   "env": {
     "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS": "1",

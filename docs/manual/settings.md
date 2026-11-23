@@ -250,10 +250,10 @@ It never enters `.git`, `node_modules`, `dist`, `build`, `out`, `coverage`, `.ne
 ### `cleanupPeriodDays`
 
 ```json
-"cleanupPeriodDays": 60
+"cleanupPeriodDays": 3650
 ```
 
-Claude Code deletes a session's record once it is this many days old. Its default is 30. Flow keeps 60, so a mistake can still be traced to the session that made it: `flow audit` reads these records. The audit index outlives the records, and `flow audit keep <id>` archives one session.
+Claude Code deletes a session's record once it is this many days old. Its default is 30. Flow keeps 10 years, so a mistake can still be traced to the session that made it, and old sessions stay available for later analysis: `flow audit` reads these records. The audit index outlives the records, and `flow audit keep <id>` archives one session.
 
 ### `skillOverrides`
 
